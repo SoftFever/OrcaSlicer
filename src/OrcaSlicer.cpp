@@ -161,6 +161,8 @@ typedef struct _sliced_info {
     std::vector<sliced_plate_info_t> sliced_plates;
     size_t prepare_time;
     size_t export_time;
+    std::vector<std::string> upward_machines;
+    std::vector<std::string> downward_machines;
 }sliced_info_t;
 std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
 
@@ -409,6 +411,10 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
     try {
         json j;
         //record the headers
+        if (sliced_info.downward_machines.size() > 0)
+            j["downward_compatible_machine"] = sliced_info.downward_machines;
+        if (sliced_info.upward_machines.size() > 0)
+            j["upward_compatible_machine"] = sliced_info.upward_machines;
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
@@ -679,6 +685,51 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
                     assemble_object.print_params = object_json[JSON_ASSEMPLE_OBJECT_PRINT_PARAMS].get<std::map<std::string, std::string>>();
                     BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% print params") % (plate_index + 1) %assemble_object.path % assemble_object.print_params.size();
                 }
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES)) {
+                    json height_range_json = object_json[JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES];
+                    int range_count = height_range_json.size();
+
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% height ranges") % (plate_index + 1) %assemble_object.path % range_count;
+
+                    assemble_object.height_ranges.resize(range_count);
+                    for (int range_index = 0; range_index < range_count; range_index++)
+                    {
+                        height_range_info_t& height_range = assemble_object.height_ranges[range_index];
+                        height_range.min_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MIN_Z];
+                        height_range.max_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MAX_Z];
+                        height_range.range_params = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_RANGE_PARAMS].get<std::map<std::string, std::string>>();
+                    }
+                }
+            }
+            if (plate_json.contains(JSON_ASSEMPLE_ASSEMBLE_PARAMS)) {
+                json assemble_params_json = plate_json[JSON_ASSEMPLE_ASSEMBLE_PARAMS];
+                int assemble_count = assemble_params_json.size();
+                for (int i = 0; i < assemble_count; i++)
+                {
+                    assembled_param_info_t assembled_param;
+                    int assemble_index = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_ASSEMBLE_INDEX];
+                    if (assemble_params_json[i].contains(JSON_ASSEMPLE_OBJECT_PRINT_PARAMS)) {
+                        assembled_param.print_params = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_PRINT_PARAMS].get<std::map<std::string, std::string>>();
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% has %3% print params") % (plate_index + 1) %i % assembled_param.print_params.size();
+                    }
+                    if (assemble_params_json[i].contains(JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES)) {
+                        json height_range_json = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES];
+                        int range_count = height_range_json.size();
+
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% has %3% height ranges") % (plate_index + 1) %i % range_count;
+
+                        assembled_param.height_ranges.resize(range_count);
+                        for (int range_index = 0; range_index < range_count; range_index++)
+                        {
+                            height_range_info_t& height_range = assembled_param.height_ranges[range_index];
+                            height_range.min_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MIN_Z];
+                            height_range.max_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MAX_Z];
+                            height_range.range_params = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_RANGE_PARAMS].get<std::map<std::string, std::string>>();
+                        }
+                    }
+                    assemble_plate.assembled_param_list.emplace(assemble_index, std::move(assembled_param));
+                }
+                BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, has %2% plate params") % (plate_index + 1)  % assemble_plate.plate_params.size();
             }
         }
     }
@@ -820,6 +871,21 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 }
             }
 
+            if (!assemble_object.height_ranges.empty())
+            {
+                for (int range_index = 0; range_index < assemble_object.height_ranges.size(); range_index++)
+                {
+                    height_range_info_t& range = assemble_object.height_ranges[range_index];
+                    DynamicPrintConfig range_config;
+                    for (auto range_config_iter = range.range_params.begin(); range_config_iter != range.range_params.end(); range_config_iter++)
+                    {
+                        range_config.set_deserialize(range_config_iter->first, range_config_iter->second, config_substitutions);
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("object %1%, height range %2% key %3%, value %4%") % object_1_name % range_index % range_config_iter->first % range_config_iter->second;
+                    }
+                    object->layer_config_ranges[{ range.min_z, range.max_z }].assign_config(std::move(range_config));
+                }
+            }
+
             if (assemble_object.pos_x.empty())
                 assemble_object.pos_x.resize(1, 0.f);
             if (assemble_object.pos_y.empty())
@@ -864,6 +930,46 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
             }
         }
 
+        size_t assemble_count = merged_objects.size();
+        if ((assemble_count > 0) && (assemble_plate_info.assembled_param_list.size() > 0))
+        {
+            for (auto& iter : merged_objects)
+            {
+                ModelObject* assemble_obj = iter.second;
+                int assemble_index = iter.first;
+
+                auto assemble_iter = assemble_plate_info.assembled_param_list.find(assemble_index);
+
+                if (assemble_iter != assemble_plate_info.assembled_param_list.end())
+                {
+                    assembled_param_info_t& assembled_param = assemble_iter->second;
+                    if (!assembled_param.print_params.empty())
+                    {
+                        for (auto param_iter = assembled_param.print_params.begin(); param_iter != assembled_param.print_params.end(); param_iter++)
+                        {
+                            assemble_obj->config.set_deserialize(param_iter->first, param_iter->second, config_substitutions);
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% key %3%, value %4%") % (index + 1) % assemble_obj->name % param_iter->first % param_iter->second;
+                        }
+                    }
+
+                    if (!assembled_param.height_ranges.empty())
+                    {
+                        for (int range_index = 0; range_index < assembled_param.height_ranges.size(); range_index++)
+                        {
+                            height_range_info_t& range = assembled_param.height_ranges[range_index];
+                            DynamicPrintConfig range_config;
+                            for (auto range_config_iter = range.range_params.begin(); range_config_iter != range.range_params.end(); range_config_iter++)
+                            {
+                                range_config.set_deserialize(range_config_iter->first, range_config_iter->second, config_substitutions);
+                                BOOST_LOG_TRIVIAL(debug) << boost::format("assenble object %1%, height range %2% key %3%, value %4%") % assemble_obj->name % range_index % range_config_iter->first % range_config_iter->second;
+                            }
+                            assemble_obj->layer_config_ranges[{ range.min_z, range.max_z }].assign_config(std::move(range_config));
+                        }
+                    }
+                }
+            }
+        }
+
         assemble_plate_info.filaments_count = used_filaments.size();
         assemble_plate_info.assemble_obj_list.clear();
         assemble_plate_info.assemble_obj_list.shrink_to_fit();
@@ -877,6 +983,56 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     temp_model.clear_objects();
     temp_model.clear_materials();
     return ret;
+}
+
+static void load_downward_settings_list_from_config(std::string config_file, std::string printer_name, std::string printer_model, std::vector<std::string>& downward_settings)
+{
+    std::map<std::string, std::string> printer_params;
+
+    boost::filesystem::path directory_path(config_file);
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, will parse file %2% for printer mode %3%, printer name %4%")%__FUNCTION__ % config_file %printer_model %printer_name;
+    if (!fs::exists(directory_path)) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("file %1% not exist.")%config_file;
+    }
+    else {
+        try {
+            json root_json;
+            boost::nowide::ifstream ifs(config_file);
+            ifs >> root_json;
+            ifs.close();
+
+            if (root_json.contains("printer")) {
+                json printer_json = root_json["printer"];
+                if (!printer_model.empty() && printer_json.contains(printer_model)) {
+                    json printer_model_json = printer_json[printer_model];
+
+                    if (printer_model_json.contains("downward_check")) {
+                        json downward_check_json = printer_model_json["downward_check"];
+                        if (downward_check_json.contains(printer_name)) {
+                            downward_settings = downward_check_json[printer_name].get<std::vector<std::string>>();
+                            BOOST_LOG_TRIVIAL(info) << boost::format("got %1% downward settings of %2% in cli_config.json")%downward_settings.size() %printer_name;
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("can not find  %1% in downward_check of %2% in cli_config.json")%printer_name %printer_model;
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("can not find downward_check for %1% in cli_config.json")%printer_model;
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find printer_model %1% in the file")%printer_model;
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key printer in the file");
+            }
+        }
+        catch (std::exception &err) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse file "<<config_file<<" got a generic exception, reason = " << err.what();
+        }
+    }
 }
 
 int CLI::run(int argc, char **argv)
@@ -927,8 +1083,6 @@ int CLI::run(int argc, char **argv)
 
     PrinterTechnology printer_technology = get_printer_technology(m_config);
 
-    bool							start_gui			= m_actions.empty();
-
     //BBS: remove GCodeViewer as seperate APP logic
     /*bool 							start_as_gcodeviewer =
 #ifdef _WIN32
@@ -938,8 +1092,8 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, shrink_to_new_bed = false, filament_color_changed = false;
-    int current_printable_width, current_printable_depth, current_printable_height;
+    bool translate_old = false, regenerate_thumbnails = false, filament_color_changed = false, downward_check = false;
+    int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
     float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f;
@@ -948,6 +1102,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
     const std::vector<std::string>              &uptodate_filaments          = m_config.option<ConfigOptionStrings>("uptodate_filaments", true)->values;
+    std::vector<std::string>                    downward_settings          = m_config.option<ConfigOptionStrings>("downward_settings", true)->values;
+    std::vector<std::string> downward_compatible_machines;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
@@ -960,6 +1116,11 @@ int CLI::run(int argc, char **argv)
     sliced_info_t sliced_info;
     std::map<std::string, std::string> record_key_values;
 
+    ConfigOptionBool* downward_check_option = m_config.option<ConfigOptionBool>("downward_check");
+    if (downward_check_option)
+        downward_check = downward_check_option->value;
+
+    bool start_gui = m_actions.empty() && !downward_check;
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
         ::Label::initSysFont();
@@ -1028,6 +1189,7 @@ int CLI::run(int argc, char **argv)
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
+    std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
@@ -1035,12 +1197,21 @@ int CLI::run(int argc, char **argv)
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, printer_model;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model;//, printer_inherits, print_inherits;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
-    std::string pipe_name, makerlab_name, makerlab_version;
+    std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
+    const std::vector<std::string>              &metadata_name               = m_config.option<ConfigOptionStrings>("metadata_name", true)->values;
+    const std::vector<std::string>              &metadata_value              = m_config.option<ConfigOptionStrings>("metadata_value", true)->values;
+
+    if (metadata_name.size() != metadata_value.size())
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("metadata_name should be the same size with metadata_value");
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -1270,6 +1441,7 @@ int CLI::run(int argc, char **argv)
                         }*/
                     current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
+                    current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
@@ -1631,6 +1803,11 @@ int CLI::run(int argc, char **argv)
             config.set("print_settings_id", new_process_name, true);
             //print_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             new_print_compatible_printers = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+
+            if (!is_bbl_3mf && config.option<ConfigOptionStrings>("different_settings_to_system")) {
+                std::vector<std::string> diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system")->values;
+                different_process_setting = diff_settings[0];
+            }
             load_process_config = std::move(config);
             BOOST_LOG_TRIVIAL(info) << boost::format("loaded process config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_process_system_name;
         }
@@ -2043,7 +2220,7 @@ int CLI::run(int argc, char **argv)
     }
 
     //upwards check
-    bool process_compatible = false, machine_upwards = false;
+    bool process_compatible = false, machine_upwards = false, machine_switch = false;
     BOOST_LOG_TRIVIAL(info) << boost::format("current printer %1%, new printer %2%, current process %3%, new process %4%")%current_printer_name %new_printer_name %current_process_name %new_process_name;
     BOOST_LOG_TRIVIAL(info) << boost::format("current printer inherits %1%, new printer inherits %2%, current process inherits %3%, new process inherits %4%")
         %current_printer_system_name %new_printer_system_name %current_process_system_name %new_process_system_name;
@@ -2105,11 +2282,16 @@ int CLI::run(int argc, char **argv)
             %current_printer_name %current_printer_system_name %current_process_name %current_process_system_name %process_compatible;
     }
     if (!process_compatible && !new_printer_name.empty() && !current_printer_name.empty() && (new_printer_name != current_printer_name)) {
+        //set all printer to compatible
+        process_compatible = true;
+        machine_switch = true;
+        BOOST_LOG_TRIVIAL(info) << boost::format("switch to new printers, set to compatible");
         if (upward_compatible_printers.size() > 0) {
             for (int index = 0; index < upward_compatible_printers.size(); index++) {
                 if (upward_compatible_printers[index] == new_printer_system_name) {
                     process_compatible = true;
                     machine_upwards = true;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("new printer is upward_compatible");
                     break;
                 }
             }
@@ -2119,11 +2301,11 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(CLI_3MF_NEW_MACHINE_NOT_SUPPORTED);
             }
         }
-        else {
+        /*else {
             BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1%: current 3mf file not support upward_compatible_printers, can not change machine preset.")%__LINE__;
             record_exit_reson(outfile_dir, CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE, 0, cli_errors[CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE], sliced_info);
             flush_and_exit(CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE);
-        }
+        }*/
     }
 
     if (!process_compatible) {
@@ -2131,10 +2313,11 @@ int CLI::run(int argc, char **argv)
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }
+    sliced_info.upward_machines = upward_compatible_printers;
 
     //create project embedded preset if needed
     Preset *new_preset = NULL;
-    if (is_bbl_3mf && machine_upwards) {
+    if (is_bbl_3mf && machine_switch) {
         //we need to update the compatible printer and create a new process here, or if we load the 3mf in studio, the process preset can not be loaded as not compatible
         Preset *current_preset = NULL;
         size_t project_presets_count = project_presets.size();
@@ -2226,6 +2409,9 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string>& inherits_group = m_print_config.option<ConfigOptionStrings>("inherits_group", true)->values;
     inherits_group.resize(filament_count + 2, std::string());
     different_settings.resize(filament_count + 2, std::string());
+    if (!is_bbl_3mf && !different_process_setting.empty()) {
+        different_settings[0] = different_process_setting;
+    }
     //set the machine settings into print config
     if (!new_printer_name.empty() || up_config_to_date) {
         std::vector<std::string> different_keys;
@@ -2291,33 +2477,40 @@ int CLI::run(int argc, char **argv)
                         if (root_json.contains("printer")) {
                             json printer_json = root_json["printer"];
                             if (!printer_model.empty() && printer_json.contains(printer_model)) {
-                                json new_printer_json = printer_json[printer_model];
-                                printer_params = new_printer_json.get<std::map<std::string, std::string>>();
+                                json printer_model_json = printer_json[printer_model];
 
-                                for (auto param_iter = printer_params.begin(); param_iter != printer_params.end(); param_iter++)
-                                {
-                                    std::string key = param_iter->first;
-                                    //replace "cli_safe" with "machine_max"
-                                    key.replace(0, 8, "machine_max");
+                                if (printer_model_json.contains("machine_limits")) {
+                                    json machine_limits_json = printer_model_json["machine_limits"];
+                                    printer_params = machine_limits_json.get<std::map<std::string, std::string>>();
 
-                                    ConfigOptionFloats* option = m_print_config.option<ConfigOptionFloats>(key);
-                                    if (option) {
-                                        //de-serialize the values from param_iter->second, and do the compare here
-                                        unsigned int array_count = option->size();
-                                        ConfigOptionFloats new_option;
-                                        new_option.deserialize(param_iter->second);
-                                        unsigned int new_array_count = new_option.size();
-                                        for (unsigned int index = 0; index < array_count; index++)
-                                        {
-                                            if ((index < new_array_count) && new_option.values[index] != 0.f && (new_option.values[index] < option->values[index]))
+                                    for (auto param_iter = printer_params.begin(); param_iter != printer_params.end(); param_iter++)
+                                    {
+                                        std::string key = param_iter->first;
+                                        //replace "cli_safe" with "machine_max"
+                                        key.replace(0, 8, "machine_max");
+
+                                        ConfigOptionFloats* option = m_print_config.option<ConfigOptionFloats>(key);
+                                        if (option) {
+                                            //de-serialize the values from param_iter->second, and do the compare here
+                                            unsigned int array_count = option->size();
+                                            ConfigOptionFloats new_option;
+                                            new_option.deserialize(param_iter->second);
+                                            unsigned int new_array_count = new_option.size();
+                                            for (unsigned int index = 0; index < array_count; index++)
                                             {
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("set key %1%  index %2%, from %3%  to %4%") % key %index %option->values[index] % new_option.values[index];
-                                                option->values[index] = new_option.values[index];
+                                                if ((index < new_array_count) && new_option.values[index] != 0.f && (new_option.values[index] < option->values[index]))
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("set key %1%  index %2%, from %3%  to %4%") % key %index %option->values[index] % new_option.values[index];
+                                                    option->values[index] = new_option.values[index];
+                                                }
                                             }
                                         }
+                                        else
+                                            BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key %1% in config") %key;
                                     }
-                                    else
-                                        BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key %1% in config") %key;
+                                }
+                                else {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find machine_limits for printer %1% in cli_config.json")%printer_model;
                                 }
                             }
                             else {
@@ -2407,7 +2600,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    if (machine_upwards) {
+    if (machine_switch) {
         print_compatible_printers.push_back(new_printer_system_name);
 
         std::string old_setting = different_settings[0];
@@ -2792,134 +2985,6 @@ int CLI::run(int argc, char **argv)
         flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
     }
 
-    //BBS: partplate list
-    Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
-    //use Pointfs insteadof Points
-    Pointfs current_printable_area = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
-    Pointfs current_exclude_area = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
-    //update part plate's size
-    double print_height = m_print_config.opt_float("printable_height");
-    double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
-    double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
-    double cleareance_radius = m_print_config.opt_float("extruder_clearance_radius");
-    //double plate_stride;
-    std::string bed_texture;
-
-    current_printable_width = current_printable_area[2].x() - current_printable_area[0].x();
-    current_printable_depth = current_printable_area[2].y() - current_printable_area[0].y();
-    current_printable_height = print_height;
-    if (old_printable_width == 0)
-        old_printable_width = current_printable_width;
-    if (old_printable_depth == 0)
-        old_printable_depth = current_printable_depth;
-    if (old_printable_height == 0)
-        old_printable_height = current_printable_height;
-    if ((old_printable_width > 0)&&(old_printable_depth > 0)&&(old_printable_height > 0))
-    {
-        //check the printable size logic
-        //if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
-        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth))
-        {
-            BOOST_LOG_TRIVIAL(error) << boost::format("old printable size {%1%, %2%, %3%} is larger than new printable size {%4%, %5%, %6%}, can not print")
-                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
-            record_exit_reson(outfile_dir, CLI_PRINTABLE_SIZE_REDUCED, 0, cli_errors[CLI_PRINTABLE_SIZE_REDUCED], sliced_info);
-            flush_and_exit(CLI_PRINTABLE_SIZE_REDUCED);
-        }
-        else if ((old_printable_width < current_printable_width) || (old_printable_depth < current_printable_depth))
-        {
-            BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%} is smaller than new printable size {%4%, %5%, %6%}, need to center the model")
-                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
-            shrink_to_new_bed = true;
-        }
-        else {
-            BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%}, new printable size {%4%, %5%, %6%}")
-                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
-        }
-    }
-
-    if (m_models.size() > 0)
-    {
-        BOOST_LOG_TRIVIAL(info) << boost::format("translate_old %1%, shrink_to_new_bed %2%, old bed size {%3%, %4%, %5%}")%translate_old%shrink_to_new_bed %old_printable_width %old_printable_depth %old_printable_height;
-        if (translate_old) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to older bed size,{%1%, %2%, %3%}")%(old_printable_width + bed3d_ax3s_default_tip_radius)%(old_printable_depth+bed3d_ax3s_default_tip_radius) %old_printable_height;
-            partplate_list.reset_size(old_printable_width + bed3d_ax3s_default_tip_radius, old_printable_depth + bed3d_ax3s_default_tip_radius, old_printable_height, false);
-        }
-        else {
-            partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
-        }
-        partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
-        //plate_stride = partplate_list.plate_stride_x();
-    }
-
-    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
-        //BBS: translate old 3mf to correct positions
-        if (translate_old) {
-            //translate the objects
-            int plate_count = plate_list.get_plate_count();
-            for (int index = 1; index < plate_count; index ++) {
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
-
-                Vec3d cur_origin = cur_plate->get_origin();
-                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, old_printable_width, old_printable_depth);
-
-                cur_plate->translate_all_instance(new_origin - cur_origin);
-            }
-            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
-            plate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
-        }
-
-        if (shrink_to_new_bed)
-        {
-            int plate_count = plate_list.get_plate_count();
-            ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
-            Vec3d wipe_offset;
-            if (print_config.has("wipe_tower_x")) {
-                wipe_x_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_x"));
-                wipe_y_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_y"));
-            }
-            for (int index = 0; index < plate_count; index ++) {
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
-
-                Vec3d cur_origin = cur_plate->get_origin();
-                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, current_printable_width, current_printable_depth);
-                Vec3d cur_center_offset { ((double)old_printable_width)/2, ((double)old_printable_depth)/2, 0}, new_center_offset { ((double)current_printable_width)/2, ((double)current_printable_depth)/2, 0};
-                Vec3d cur_center = cur_origin + cur_center_offset;
-                Vec3d new_center = new_origin + new_center_offset;
-                Vec3d offset  = new_center - cur_center;
-
-                cur_plate->translate_all_instance(offset);
-                if (index == 0)
-                    wipe_offset = offset;
-                if (wipe_x_option) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1%: wipe tower src: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index);
-                    ConfigOptionFloat wipe_tower_x(wipe_x_option->get_at(index) + wipe_offset(0));
-                    ConfigOptionFloat wipe_tower_y(wipe_y_option->get_at(index) + wipe_offset(1));
-
-                    wipe_x_option->set_at(&wipe_tower_x, index, 0);
-                    wipe_y_option->set_at(&wipe_tower_y, index, 0);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% wipe tower changes to: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index);
-                }
-
-                BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% translate offset: {%2%, %3%, %4%}")%(index+1) %offset[0] %offset[1] %offset[2];
-            }
-            BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
-            plate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
-        }
-    };
-    if (plate_data_src.size() > 0)
-    {
-        partplate_list.load_from_3mf_structure(plate_data_src);
-
-        translate_models(partplate_list, m_print_config);
-    }
-
-    /*for (ModelObject *model_object : m_models[0].objects)
-        for (ModelInstance *model_instance : model_object->instances)
-        {
-            const Vec3d &instance_offset = model_instance->get_offset();
-            BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
-        }*/
-
     auto timelapse_type_opt = m_print_config.option("timelapse_type");
     bool is_smooth_timelapse = false;
     if (enable_timelapse && timelapse_type_opt && (timelapse_type_opt->getInt() == TimelapseType::tlSmooth))
@@ -2952,6 +3017,378 @@ int CLI::run(int argc, char **argv)
                 if (need_insert)
                     different_settings[0] = diff_settings + ";enable_prime_tower";
             }
+        }
+    }
+
+    //BBS: partplate list
+    Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
+    //use Pointfs insteadof Points
+    Pointfs current_printable_area = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
+    Pointfs current_exclude_area = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
+    //update part plate's size
+    double print_height = m_print_config.opt_float("printable_height");
+    double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
+    double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
+    double cleareance_radius = m_print_config.opt_float("extruder_clearance_radius");
+    //double plate_stride;
+    std::string bed_texture;
+
+    current_printable_width = current_printable_area[2].x() - current_printable_area[0].x();
+    current_printable_depth = current_printable_area[2].y() - current_printable_area[0].y();
+    current_printable_height = print_height;
+    if (old_printable_width == 0)
+        old_printable_width = current_printable_width;
+    if (old_printable_depth == 0)
+        old_printable_depth = current_printable_depth;
+    if (old_printable_height == 0)
+        old_printable_height = current_printable_height;
+    if (is_bbl_3mf && (old_printable_width > 0) && (old_printable_depth > 0) && (old_printable_height > 0))
+    {
+        //check the printable size logic
+        //if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("old printable size {%1%, %2%, %3%} is larger than new printable size {%4%, %5%, %6%}, the object size should be limited")
+                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+            /*record_exit_reson(outfile_dir, CLI_PRINTABLE_SIZE_REDUCED, 0, cli_errors[CLI_PRINTABLE_SIZE_REDUCED], sliced_info);
+            flush_and_exit(CLI_PRINTABLE_SIZE_REDUCED);*/
+            shrink_to_new_bed = 2;
+        }
+        else if ((old_printable_width < current_printable_width) || (old_printable_depth < current_printable_depth))
+        {
+            BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%} is smaller than new printable size {%4%, %5%, %6%}, need to center the model")
+                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+            shrink_to_new_bed = 1;
+        }
+        else {
+            if ((current_exclude_area.size() > 0)&&(current_exclude_area != old_exclude_area)) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%}, new printable size {%4%, %5%, %6%}, exclude_area different, need to shrink")
+                   %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+                shrink_to_new_bed = 2;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%}, new printable size {%4%, %5%, %6%}, extract the same, no need shrink")
+                   %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+            }
+        }
+    }
+
+    if (m_models.size() > 0)
+    {
+        BOOST_LOG_TRIVIAL(info) << boost::format("translate_old %1%, shrink_to_new_bed %2%, old bed size {%3%, %4%, %5%}")%translate_old%shrink_to_new_bed %old_printable_width %old_printable_depth %old_printable_height;
+        if (translate_old) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to older bed size,{%1%, %2%, %3%}")%(old_printable_width + bed3d_ax3s_default_tip_radius)%(old_printable_depth+bed3d_ax3s_default_tip_radius) %old_printable_height;
+            partplate_list.reset_size(old_printable_width + bed3d_ax3s_default_tip_radius, old_printable_depth + bed3d_ax3s_default_tip_radius, old_printable_height, false);
+        }
+        else {
+            partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
+        }
+        partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
+        //plate_stride = partplate_list.plate_stride_x();
+    }
+
+    auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
+        PrintSequence curr_plate_seq = plate->get_print_seq();
+        if (curr_plate_seq == PrintSequence::ByDefault) {
+            auto seq_print = print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+            if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from global");
+                is_seq_print = true;
+            }
+        }
+        else if (curr_plate_seq == PrintSequence::ByObject) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from plate self");
+            is_seq_print = true;
+        }
+    };
+
+    auto check_plate_wipe_tower = [get_print_sequence, is_smooth_timelapse](Slic3r::GUI::PartPlate* plate, int plate_index, DynamicPrintConfig& print_config, plate_obj_size_info_t &plate_obj_size_info) {
+        plate_obj_size_info.obj_bbox= plate->get_objects_bounding_box();
+        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, object bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
+                    %(plate_index+1) %plate_obj_size_info.obj_bbox.min.x() % plate_obj_size_info.obj_bbox.min.y() % plate_obj_size_info.obj_bbox.min.z() %plate_obj_size_info.obj_bbox.max.x() % plate_obj_size_info.obj_bbox.max.y() % plate_obj_size_info.obj_bbox.max.z();
+        if (!print_config.has("wipe_tower_x")) {
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("can not found wipe_tower_x in config, set to no wipe tower");
+            return;
+        }
+
+        int valid_count = plate->printable_instance_size();
+        if (valid_count <= 0){
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("no printable object found, set to no wipe tower");
+            return;
+        }
+
+        bool is_sequence = false;
+        get_print_sequence(plate, print_config, is_sequence);
+        if (is_sequence && valid_count > 1) {
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("sequence print, valid_count=%1%, set to no wipe tower")%valid_count;
+            return;
+        }
+
+        std::vector<int> extruders = plate->get_extruders_under_cli(true, print_config);
+        unsigned int filaments_cnt = extruders.size();
+        if ((filaments_cnt <= 1) && !is_smooth_timelapse){
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("filaments_cnt=%1%, set to no wipe tower")%filaments_cnt;
+            return;
+        }
+
+        ConfigOptionFloats *wipe_x_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_x"));
+        ConfigOptionFloats *wipe_y_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_y"));
+
+        plate_obj_size_info.wipe_x = wipe_x_option->get_at(plate_index);
+        plate_obj_size_info.wipe_y = wipe_y_option->get_at(plate_index);
+
+        ConfigOptionFloat* width_option = print_config.option<ConfigOptionFloat>("prime_tower_width", true);
+        plate_obj_size_info.wipe_width = width_option->value;
+
+        ConfigOptionFloat* brim_width_option = print_config.option<ConfigOptionFloat>("prime_tower_brim_width", true);
+        float brim_width = brim_width_option->value;
+
+        ConfigOptionFloat* volume_option = print_config.option<ConfigOptionFloat>("prime_volume", true);
+        float wipe_volume = volume_option->value;
+
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, wipe_volume, filaments_cnt);
+        plate_obj_size_info.wipe_depth = wipe_tower_size(1);
+
+        Vec3d origin = plate->get_origin();
+        Vec3d start(origin(0) + plate_obj_size_info.wipe_x - brim_width, origin(1) + plate_obj_size_info.wipe_y, 0.f);
+        plate_obj_size_info.obj_bbox.merge(start);
+        Vec3d end(origin(0) + plate_obj_size_info.wipe_x + plate_obj_size_info.wipe_width + brim_width, origin(1) + plate_obj_size_info.wipe_y + plate_obj_size_info.wipe_depth, 0.f);
+        plate_obj_size_info.obj_bbox.merge(end);
+        plate_obj_size_info.has_wipe_tower = true;
+        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, has wipe tower, wipe bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
+                %(plate_index+1) %start.x() % start.y() % start.z() %end.x() % end.y() % end.z();
+    };
+
+    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
+        //BBS: translate old 3mf to correct positions
+        if (translate_old) {
+            //translate the objects
+            int plate_count = plate_list.get_plate_count();
+            for (int index = 1; index < plate_count; index ++) {
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
+
+                Vec3d cur_origin = cur_plate->get_origin();
+                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, old_printable_width, old_printable_depth);
+
+                cur_plate->translate_all_instance(new_origin - cur_origin);
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
+            plate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
+        }
+
+        if (shrink_to_new_bed > 0)
+        {
+            int plate_count = plate_list.get_plate_count();
+            ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
+            Vec3d wipe_offset;
+            if (print_config.has("wipe_tower_x")) {
+                wipe_x_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_x"));
+                wipe_y_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_y"));
+            }
+            double exclude_width = 0.f, exclude_depth = 0.f;
+
+            if (current_exclude_area.size() >= 4) {
+                exclude_width = current_exclude_area[2].x() - current_exclude_area[0].x();
+                exclude_depth = current_exclude_area[2].y() - current_exclude_area[0].y();
+            }
+            for (int index = 0; index < plate_count; index ++) {
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
+                Vec3d cur_origin = cur_plate->get_origin();
+                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, current_printable_width, current_printable_depth);
+                Vec3d offset;
+
+
+                if (shrink_to_new_bed == 1) {
+                    Vec3d cur_center_offset { ((double)old_printable_width)/2, ((double)old_printable_depth)/2, 0}, new_center_offset { ((double)current_printable_width)/2, ((double)current_printable_depth)/2, 0};
+                    Vec3d cur_center = cur_origin + cur_center_offset;
+                    Vec3d new_center = new_origin + new_center_offset;
+
+                    offset  = new_center - cur_center;
+
+                    if (index == 0)
+                        wipe_offset = offset;
+
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 1, plate %1%, cur_origin: {%2%, %3%}, new_origin: {%4%, %5%}, cur_center {%6%, %7%} new_center {%8%, %9%}")
+                        %(index+1) %cur_origin(0) %cur_origin(1) %new_origin(0) %new_origin(1)  %cur_center(0) %cur_center(1) %new_center(0) %new_center(1);
+                }
+                else {
+                    //center the object
+                    Vec3d new_center_offset { ((double)current_printable_width + exclude_width)/2, ((double)current_printable_depth + exclude_depth)/2, 0};
+                    BoundingBoxf3& bbox = plate_obj_size_infos[index].obj_bbox;
+                    Vec3d size = bbox.size();
+                    if (size.x() > (current_printable_width - exclude_width))
+                        new_center_offset(0) = ((double)current_printable_width)/2;
+                    if (size.y() > (current_printable_depth - exclude_depth))
+                        new_center_offset(1) = ((double)current_printable_depth)/2;
+                    Vec3d new_center = new_origin + new_center_offset;
+
+                    offset  = new_center - bbox.center();
+
+                    wipe_offset = offset + cur_origin - new_origin;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 2, plate %1%, new_origin: {%2%, %3%}, new_center: {%4%, %5%}, obj bbox(including wipe tower) min {%6%, %7%} max {%8%, %9%}")
+                        %(index+1) %new_origin(0) %new_origin(1)  %new_center(0) %new_center(1) %bbox.min(0) %bbox.min(1)  %bbox.max(0) %bbox.max(1);
+                }
+                offset(2) = 0.f;
+                BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed %1%, plate %2% translate offset: {%3%, %4%} wipe_offset {%5%, %6%}") %shrink_to_new_bed %(index+1) %offset[0] %offset[1] %wipe_offset[0]  %wipe_offset[1];
+                cur_plate->translate_all_instance(offset);
+
+                if (wipe_x_option) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed %4%, plate %1%: wipe tower src: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index)%shrink_to_new_bed;
+                    ConfigOptionFloat wipe_tower_x(wipe_x_option->get_at(index) + wipe_offset(0));
+                    ConfigOptionFloat wipe_tower_y(wipe_y_option->get_at(index) + wipe_offset(1));
+
+                    wipe_x_option->set_at(&wipe_tower_x, index, 0);
+                    wipe_y_option->set_at(&wipe_tower_y, index, 0);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed %4%, plate %1% wipe tower changes to: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index) %shrink_to_new_bed;
+                }
+
+
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
+            plate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+        }
+    };
+    if (plate_data_src.size() > 0)
+    {
+        partplate_list.load_from_3mf_structure(plate_data_src);
+
+        int plate_count = partplate_list.get_plate_count();
+        plate_obj_size_infos.resize(plate_count, plate_obj_size_info_t());
+        for (int index = 0; index < plate_count; index ++) {
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+
+            check_plate_wipe_tower(cur_plate, index, m_print_config, plate_obj_size_infos[index]);
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%,  has_wipe_tower %2%, wipe_x %3%, wipe_y %4%, width %5%, depth %6%")
+                %(index+1) %plate_obj_size_infos[index].has_wipe_tower %plate_obj_size_infos[index].wipe_x %plate_obj_size_infos[index].wipe_y %plate_obj_size_infos[index].wipe_width %plate_obj_size_infos[index].wipe_depth;
+        }
+
+        translate_models(partplate_list, m_print_config);
+    }
+
+    /*for (ModelObject *model_object : m_models[0].objects)
+        for (ModelInstance *model_instance : model_object->instances)
+        {
+            const Vec3d &instance_offset = model_instance->get_offset();
+            BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
+        }*/
+
+    //doing downward_check
+    std::vector<printer_plate_info_t> downward_check_printers;
+    std::vector<bool> downward_check_status;
+    if (downward_check) {
+        bool use_default = false;
+        std::string default_path;
+        if (downward_settings.size() == 0) {
+            //parse from internal
+            std::string cli_config_file = resources_dir() + "/profiles/BBL/cli_config.json";
+            load_downward_settings_list_from_config(cli_config_file, current_printer_name, current_printer_model, downward_settings);
+            use_default = true;
+            default_path = resources_dir() + "/profiles/BBL/machine_full/";
+        }
+        for (auto const &file : downward_settings) {
+            DynamicPrintConfig  config;
+            std::string config_type, config_name, filament_id, config_from, downward_printer;
+            std::string file_path = use_default?(default_path+file+".json"):file;
+            int ret = load_config_file(file_path, config, config_type, config_name, filament_id, config_from);
+            if (ret) {
+                record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                flush_and_exit(ret);
+            }
+            if ((config_type != "machine") || (config_from != "system")) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("found invalid config type %1% or from %2% in file %3% when downward_check")%config_type %config_from %file_path;
+                record_exit_reson(outfile_dir, ret, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(ret);
+
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: loaded machine config %1%, from %2%")%config_name %file_path ;
+
+            printer_plate_info_t printer_plate;
+            Pointfs temp_printable_area, temp_exclude_area;
+
+            printer_plate.printer_name = config_name;
+
+            temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
+            temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+            if (temp_printable_area.size() >= 4) {
+                printer_plate.printable_width = (int)(temp_printable_area[2].x() - temp_printable_area[0].x());
+                printer_plate.printable_depth = (int)(temp_printable_area[2].y() - temp_printable_area[0].y());
+                printer_plate.printable_height = (int)(config.opt_float("printable_height"));
+            }
+            if (temp_exclude_area.size() >= 4) {
+                printer_plate.exclude_width = (int)(temp_exclude_area[2].x() - temp_exclude_area[0].x());
+                printer_plate.exclude_depth = (int)(temp_exclude_area[2].y() - temp_exclude_area[0].y());
+                printer_plate.exclude_x = (int)temp_exclude_area[0].x();
+                printer_plate.exclude_y = (int)temp_exclude_area[0].y();
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}")
+                %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
+                %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth;
+            downward_check_printers.push_back(std::move(printer_plate));
+        }
+    }
+
+    int downward_check_size = downward_check_printers.size();
+    if (downward_check_size > 0)
+    {
+        downward_check_status.resize(downward_check_size, false);
+        int plate_count = partplate_list.get_plate_count();
+        int failed_count = 0;
+        for (int index = 0; index < plate_count; index ++)
+        {
+            if (failed_count == downward_check_size) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
+                break;
+            }
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+            Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
+
+            for (int index2 = 0; index2 < downward_check_size; index2 ++)
+            {
+                if (failed_count == downward_check_size) {
+                    break;
+                }
+                if (downward_check_status[index2])
+                    continue;
+                printer_plate_info_t& plate_info = downward_check_printers[index2];
+                if ((size.z() > plate_info.printable_height) || (size.y() > plate_info.printable_depth) || (size.x() > plate_info.printable_width)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%, %6%} exceeds printer size {%7%, %8%, %9%}")
+                        %(index+1) %(index2+1) %plate_info.printer_name
+                        %size.x() % size.y() % size.z() %plate_info.printable_width %plate_info.printable_depth %plate_info.printable_height;
+                    downward_check_status[index2] = true;
+                    failed_count ++;
+                    continue;
+                }
+                if (plate_info.exclude_width > 0) {
+                    int real_width = plate_info.printable_width - plate_info.exclude_width;
+                    int real_depth = plate_info.printable_depth - plate_info.exclude_depth;
+                    if ((size.x() > real_width) && (size.y() > real_depth)) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%} exceeds real size without exclude_area {%6%, %7%}")
+                            %(index+1) %(index2+1) %plate_info.printer_name
+                            %size.x() % size.y() %real_width %real_depth;
+                        downward_check_status[index2] = true;
+                        failed_count ++;
+                        continue;
+                    }
+                }
+            }
+        }
+        if (failed_count < downward_check_size)
+        {
+            //has success ones
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
+            for (int index2 = 0; index2 < downward_check_size; index2 ++)
+            {
+                if (downward_check_status[index2])
+                    continue;
+                printer_plate_info_t& plate_info = downward_check_printers[index2];
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
+                downward_compatible_machines.push_back(plate_info.printer_name);
+            }
+            sliced_info.downward_machines = downward_compatible_machines;
         }
     }
 
@@ -3262,7 +3699,7 @@ int CLI::run(int argc, char **argv)
             }
             else
             {
-                BOOST_LOG_TRIVIAL(info) << "Before process command, no need to orient, object id :" << o->id().id<<std::endl;
+                BOOST_LOG_TRIVIAL(debug) << "Before process command, no need to orient, object id :" << o->id().id<<std::endl;
             }
         }
     }
@@ -3338,6 +3775,10 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
                     plate_data_src[index]->thumbnail_file.clear();
                 }
+                if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.")%(index+1)%plate_data_src[index]->no_light_thumbnail_file;
+                    plate_data_src[index]->no_light_thumbnail_file.clear();
+                }
                 if (!plate_data_src[index]->top_file.empty()) {
                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
                     plate_data_src[index]->top_file.clear();
@@ -3349,21 +3790,6 @@ int CLI::run(int argc, char **argv)
             }
         }
     }
-
-    auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
-        PrintSequence curr_plate_seq = plate->get_print_seq();
-        if (curr_plate_seq == PrintSequence::ByDefault) {
-            auto seq_print = print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from global");
-                is_seq_print = true;
-            }
-        }
-        else if (curr_plate_seq == PrintSequence::ByObject) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from plate self");
-            is_seq_print = true;
-        }
-    };
 
     if (!assemble_plate_info_list.empty())
     {
@@ -3422,6 +3848,9 @@ int CLI::run(int argc, char **argv)
                     int plate_count = partplate_list.get_plate_count();
 
                     auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                    const float tower_brim_width = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true)->value;
+                    const float tower_margin = WIPE_TOWER_MARGIN + tower_brim_width;
+
                     // set the default position, the same with print config(left top)
                     float x = WIPE_TOWER_DEFAULT_X_POS;
                     float y = WIPE_TOWER_DEFAULT_Y_POS;
@@ -3429,11 +3858,11 @@ int CLI::run(int argc, char **argv)
                         x = I3_WIPE_TOWER_DEFAULT_X_POS;
                         y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                     }
-                    if (x < WIPE_TOWER_MARGIN) {
-                        x = WIPE_TOWER_MARGIN;
+                    if (x < tower_margin) {
+                        x = tower_margin;
                     }
-                    if (y < WIPE_TOWER_MARGIN) {
-                        y = WIPE_TOWER_MARGIN;
+                    if (y < tower_margin) {
+                        y = tower_margin;
                     }
 
                     ConfigOptionFloat wt_x_opt(x);
@@ -3674,6 +4103,8 @@ int CLI::run(int argc, char **argv)
                         int extruder_size = used_filament_set.size();
 
                         auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                        const float tower_brim_width      = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true)->value;
+                        const float tower_margin          = WIPE_TOWER_MARGIN + tower_brim_width;
                         // set the default position, the same with print config(left top)
                         float x = WIPE_TOWER_DEFAULT_X_POS;
                         float y = WIPE_TOWER_DEFAULT_Y_POS;
@@ -3682,11 +4113,11 @@ int CLI::run(int argc, char **argv)
                             y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                         }
 
-                        if (x < WIPE_TOWER_MARGIN) {
-                            x = WIPE_TOWER_MARGIN;
+                        if (x < tower_margin) {
+                            x = tower_margin;
                         }
-                        if (y < WIPE_TOWER_MARGIN) {
-                            y = WIPE_TOWER_MARGIN;
+                        if (y < tower_margin) {
+                            y = tower_margin;
                         }
                         ConfigOptionFloat wt_x_opt(x);
                         ConfigOptionFloat wt_y_opt(y);
@@ -4181,7 +4612,7 @@ int CLI::run(int argc, char **argv)
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
     bool no_check = false;
-    std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
+    std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir, export_stls_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
     std::vector<int> plate_object_count(partplate_list.get_plate_count(), 0);
     int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0, sliced_plate = -1;
@@ -4215,9 +4646,9 @@ int CLI::run(int argc, char **argv)
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
             }
-            else if (shrink_to_new_bed)
+            else if (shrink_to_new_bed > 0)
             {
-                BOOST_LOG_TRIVIAL(warning) << "use load_slicedata when shrink_to_new_bed(switch printer from small to bigger." << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << "use load_slicedata when shrink_to_new_bed." << std::endl;
                 //record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 //flush_and_exit(CLI_INVALID_PARAMS);
             }
@@ -4246,6 +4677,14 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::STL)) {
+                record_exit_reson(outfile_dir, CLI_EXPORT_STL_ERROR, 0, cli_errors[CLI_EXPORT_STL_ERROR], sliced_info);
+                flush_and_exit(CLI_EXPORT_STL_ERROR);
+            }
+        } else if (opt_key == "export_stls") {
+            export_stls_dir = m_config.opt_string(opt_key);
+            for (auto &model : m_models)
+                model.add_default_instances();
+            if (! this->export_models(IO::STL, export_stls_dir)) {
                 record_exit_reson(outfile_dir, CLI_EXPORT_STL_ERROR, 0, cli_errors[CLI_EXPORT_STL_ERROR], sliced_info);
                 flush_and_exit(CLI_EXPORT_STL_ERROR);
             }
@@ -4389,6 +4828,10 @@ int CLI::run(int argc, char **argv)
                                                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
                                                     plate_data_src[index]->thumbnail_file.clear();
                                                 }
+                                                if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.")%(index+1)%plate_data_src[index]->no_light_thumbnail_file;
+                                                    plate_data_src[index]->no_light_thumbnail_file.clear();
+                                                }
                                                 if (!plate_data_src[index]->top_file.empty()) {
                                                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
                                                     plate_data_src[index]->top_file.clear();
@@ -4415,7 +4858,7 @@ int CLI::run(int argc, char **argv)
                                             if (vol->is_model_part()) {
                                                 size_t volume_triangle_count = vol->mesh().facets_count();
                                                 triangle_count += volume_triangle_count;
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
+                                                BOOST_LOG_TRIVIAL(debug) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
                                                 if ((max_triangle_count_per_plate != 0) && (triangle_count > max_triangle_count_per_plate))
                                                 {
                                                     BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
@@ -4740,7 +5183,7 @@ int CLI::run(int argc, char **argv)
     global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
-        std::vector<ThumbnailData *> thumbnails, top_thumbnails, pick_thumbnails;
+        std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
         partplate_list.store_to_3mf_structure(plate_data_list);
@@ -4779,8 +5222,9 @@ int CLI::run(int argc, char **argv)
 #endif
 
         bool need_regenerate_thumbnail = oriented_or_arranged || regenerate_thumbnails;
+        bool need_regenerate_no_light_thumbnail = oriented_or_arranged || regenerate_thumbnails;
         bool need_regenerate_top_thumbnail = oriented_or_arranged || regenerate_thumbnails;
-        bool need_create_thumbnail_group = false,  need_create_top_group = false;
+        bool need_create_thumbnail_group = false, need_create_no_light_group = false, need_create_top_group = false;
 
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
@@ -4837,6 +5281,27 @@ int CLI::run(int argc, char **argv)
                 }
             }
 
+            if (plate_data->no_light_thumbnail_file.empty()) {
+                if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
+                    plate_data->no_light_thumbnail_file = plate_data_src[i]->no_light_thumbnail_file;
+                }
+                if (plate_data->no_light_thumbnail_file.empty() || (!boost::filesystem::exists(plate_data->no_light_thumbnail_file))) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail_file %2% also not there, need to regenerate")%(i+1)%plate_data->no_light_thumbnail_file;
+                    if (!skip_this_plate) {
+                        need_regenerate_no_light_thumbnail = true;
+                        need_create_no_light_group = true;
+                    }
+                }
+                else {
+                    if (regenerate_thumbnails) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail file %2% cleared, need to regenerate")%(i+1) %plate_data->no_light_thumbnail_file;
+                        plate_data->no_light_thumbnail_file.clear();
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail file exists, no need to regenerate")%(i+1);
+                }
+            }
+
             if (plate_data->top_file.empty() || plate_data->pick_file.empty()) {
                 if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
                     plate_data->top_file = plate_data_src[i]->top_file;
@@ -4862,7 +5327,7 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if (need_regenerate_thumbnail || need_regenerate_top_thumbnail) {
+        if (need_regenerate_thumbnail || need_regenerate_no_light_thumbnail || need_regenerate_top_thumbnail) {
             std::vector<std::string> colors;
             if (filament_color) {
                 colors= filament_color->vserialize();
@@ -5050,6 +5515,60 @@ int CLI::run(int argc, char **argv)
                                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
                             }
 
+                            //no light thumbnail
+                            if (!plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file)))
+                            {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s no_light_thumbnail_file path to empty.")%__LINE__%(i+1);
+                                    plate_data->no_light_thumbnail_file.clear();
+                                }
+                                else
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has valid no_light_thumbnail_file extracted from 3mf, directly using it")%(i+1);
+                            }
+                            else{
+                                ThumbnailData *no_light_thumbnail = &part_plate->no_light_thumbnail_data;
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    part_plate->no_light_thumbnail_data.reset();
+                                    plate_data->no_light_thumbnail_file.clear();
+                                }
+                                else {
+                                    unsigned int thumbnail_width = 512, thumbnail_height = 512;
+                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light_thumbnail_file missed, need to regenerate")%(i+1);
+                                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                    {
+                                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*no_light_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                break;
+                                            }
+                                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*no_light_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                break;
+                                            }
+                                        default:
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                            break;
+                                    }
+                                    plate_data->no_light_thumbnail_file = "valid_no_light";
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light thumbnail,finished rendering")%(i+1);
+                                }
+                            }
+
+                            if (need_create_no_light_group) {
+                                no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for no_light into group")%(i+1);
+                            }
+
                             //top thumbnails
                             /*if (part_plate->top_thumbnail_data.is_valid() && part_plate->pick_thumbnail_data.is_valid()) {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
@@ -5160,6 +5679,9 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s all the thumbnails skipped, reset here")%(i+1);
                     plate_data->plate_thumbnail.reset();
                     plate_data->thumbnail_file.clear();
+                    part_plate->no_light_thumbnail_data.reset();
+                    plate_data->no_light_thumbnail_file.clear();
+
                     part_plate->top_thumbnail_data.reset();
                     part_plate->pick_thumbnail_data.reset();
                     plate_data->top_file.clear();
@@ -5186,6 +5708,11 @@ int CLI::run(int argc, char **argv)
 
                 if (need_create_thumbnail_group) {
                     thumbnails.push_back(&plate_data->plate_thumbnail);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
+                }
+
+                if (need_create_no_light_group) {
+                    no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
                 }
 
@@ -5334,7 +5861,19 @@ int CLI::run(int argc, char **argv)
             model.mk_version = makerlab_version;
             BOOST_LOG_TRIVIAL(info) << boost::format("mk_name %1%, mk_version %2%")%makerlab_name %makerlab_version;
         }
-        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
+
+        if (!metadata_name.empty()) {
+            Model &model = m_models[0];
+
+            model.md_value = metadata_value;
+            model.md_name = metadata_name;
+            for (unsigned int i = 0; i < metadata_name.size(); i++)
+            {
+                BOOST_LOG_TRIVIAL(info) << boost::format("index %1% metadata_name %2%, metadata_value %3%")%i %metadata_name[i] %metadata_value[i];
+            }
+        }
+
+        if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {
             release_PlateData_list(plate_data_list);
@@ -5344,6 +5883,8 @@ int CLI::run(int argc, char **argv)
 
         for (unsigned int i = 0; i < thumbnails.size(); i++)
             thumbnails[i]->reset();
+        for (unsigned int i = 0; i < no_light_thumbnails.size(); i++)
+            no_light_thumbnails[i]->reset();
         for (unsigned int i = 0; i < top_thumbnails.size(); i++)
             top_thumbnails[i]->reset();
         for (unsigned int i = 0; i < pick_thumbnails.size(); i++)
@@ -5517,7 +6058,7 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
     }*/
 }
 
-bool CLI::export_models(IO::ExportFormat format)
+bool CLI::export_models(IO::ExportFormat format, std::string path_dir)
 {
     for (Model &model : m_models) {
         const std::string path = this->output_filepath(model, format);
@@ -5538,7 +6079,7 @@ bool CLI::export_models(IO::ExportFormat format)
                 unsigned int index = 1;
                 for (ModelObject* model_object : model.objects)
                 {
-                    const std::string path = this->output_filepath(*model_object, index++, format);
+                    const std::string path = this->output_filepath(*model_object, index++, format, path_dir);
                     success = Slic3r::store_stl(path.c_str(), model_object, true);
                     if (success)
                         BOOST_LOG_TRIVIAL(info) << "Model successfully exported to " << path << std::endl;
@@ -5559,7 +6100,11 @@ bool CLI::export_models(IO::ExportFormat format)
 
 //BBS: add export_project function
 bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
-    std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
+                         std::vector<Preset *> &       project_presets,
+                         std::vector<ThumbnailData *> &thumbnails,
+                         std::vector<ThumbnailData *> &no_light_thumbnails,
+                         std::vector<ThumbnailData *> &top_thumbnails,
+                         std::vector<ThumbnailData *> &pick_thumbnails,
     std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save, int plate_to_export)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
@@ -5572,6 +6117,7 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
     store_params.thumbnail_data = thumbnails;
+    store_params.no_light_thumbnail_data    = no_light_thumbnails;
     store_params.top_thumbnail_data = top_thumbnails;
     store_params.pick_thumbnail_data = pick_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
@@ -5616,7 +6162,7 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
     return proposed_path.string();
 }
 
-std::string CLI::output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format) const
+std::string CLI::output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format, std::string path_dir) const
 {
     std::string ext, subdir, file_name, output_path;
     switch (format) {
@@ -5645,10 +6191,15 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
     if (pos != ext_pos)
         file_name += ext;
 
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
-    std::string cmdline_param = m_config.opt_string("outputdir");
-    if (! cmdline_param.empty()) {
-        subdir = cmdline_param + "/" + subdir;
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": dir = "<< path_dir<<", file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
+    if (path_dir.empty()) {
+        std::string cmdline_param = m_config.opt_string("outputdir");
+        if (! cmdline_param.empty()) {
+            subdir = cmdline_param + "/" + subdir;
+        }
+    }
+    else {
+        subdir = path_dir;
     }
 
     output_path = subdir + "/"+file_name;

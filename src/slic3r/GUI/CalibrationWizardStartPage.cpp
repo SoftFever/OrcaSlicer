@@ -117,7 +117,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
         _L("About this calibration"),
         _L("Please find the details of Flow Dynamics Calibration from our wiki.\
 \n\nUsually the calibration is unnecessary. When you start a single color/material print, with the \"flow dynamics calibration\" option checked in the print start menu, the printer will follow the old way, calibrate the filament before the print; When you start a multi color/material print, the printer will use the default compensation parameter for the filament during every filament switch which will have a good result in most cases.\
-\n\nPlease note there are a few cases that will make the calibration result not reliable: using a texture plate to do the calibration; the build plate does not have good adhesion (please wash the build plate or apply gluestick!) ...You can find more from our wiki.\
+\n\nPlease note that there are a few cases that can make the calibration results unreliable, such as insufficient adhesion on the build plate. Improving adhesion can be achieved by washing the build plate or applying glue. For more information on this topic, please refer to our Wiki.\
 \n\nThe calibration results have about 10 percent jitter in our test, which may cause the result not exactly the same in each calibration. We are still investigating the root cause to do improvements with new updates."));
     m_top_sizer->Add(m_about_title);
     m_top_sizer->Add(m_about_content);

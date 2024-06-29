@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2834,11 +2834,13 @@ msgstr "Are you sure you want to clear the filament information?"
 msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "Voer een geldige waarde in (K in 0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr ""
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "Voer een geldige waarde in (K in 0~0,3, N in 0,6~2,0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -3264,11 +3266,11 @@ msgstr "Task Sent"
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr ""
 
 #, c-format, boost-format
@@ -3330,7 +3332,7 @@ msgstr ""
 msgid "Printing Failed"
 msgstr ""
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr ""
 
 msgid "Prepare"
@@ -4026,9 +4028,10 @@ msgid ""
 "Invalid input format. Expected vector of dimensions in the following format: "
 "\"%1%\""
 msgstr ""
+"Ongeldige invoer. Verwachte waarde moet in het volgende format: \"%1%\""
 
 msgid "Input value is out of range"
-msgstr ""
+msgstr "Ingevoerde waarde valt buiten het bereik"
 
 msgid "Some extension in the input is invalid"
 msgstr ""
@@ -7119,9 +7122,6 @@ msgstr "Versturen gelukt"
 msgid "Error code"
 msgstr "Error code"
 
-msgid "Printer local connection failed, please try again."
-msgstr "Printer local connection failed; please try again."
-
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Geen login-account, alleen printers in LAN-modus worden weergegeven"
 
@@ -8264,6 +8264,60 @@ msgstr "Geen updates beschikbaar."
 
 msgid "The configuration is up to date."
 msgstr "De configuratie is up to date."
+
+msgid "Obj file Import color"
+msgstr "Obj file Import color"
+
+msgid "Specify number of colors:"
+msgstr "Specify number of colors:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "The color count should be in range [%d, %d]."
+
+msgid "Recommended "
+msgstr "Recommended "
+
+msgid "Current filament colors:"
+msgstr "Current filament colors:"
+
+msgid "Quick set:"
+msgstr "Quick set:"
+
+msgid "Color match"
+msgstr "Color match"
+
+msgid "Approximate color matching."
+msgstr "Approximate color matching."
+
+msgid "Append"
+msgstr "Append"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "Add consumable extruder after existing extruders."
+
+msgid "Reset mapped extruders."
+msgstr "Reset mapped extruders."
+
+msgid "Cluster colors"
+msgstr "Cluster colors"
+
+msgid "Map Filament"
+msgstr "Map Filament"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"Warning: The count of newly added and \n"
+" current extruders exceeds 16."
 
 msgid "Ramming customization"
 msgstr "Ramming aanpassen"
@@ -10465,6 +10519,22 @@ msgstr ""
 "Als deze instelling is ingeschakeld, zal de printkop ventilator altijd aan "
 "staan op een minimale snelheid om het aantal start en stop momenten te "
 "beperken"
+
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
 
 msgid "Layer time"
 msgstr "Laag tijd"
@@ -13983,34 +14053,15 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"De details van Flow Dynamics Calibration vindt u op onze wiki.\n"
-"\n"
-"Meestal is kalibratie niet nodig. Als je een print met één kleur/materiaal "
-"start en de optie \"kalibratie van de stroomdynamica\" is aangevinkt in het "
-"startmenu van de printer, dan zal de printer de oude manier volgen en het "
-"filament kalibreren voor het printen; als je een print met meerdere kleuren/"
-"materialen start, dan zal de printer de standaard compensatieparameter voor "
-"het filament gebruiken tijdens elke filamentwissel, wat in de meeste "
-"gevallen een goed resultaat zal opleveren.\n"
-"\n"
-"Let op: er zijn een paar gevallen waardoor het kalibratieresultaat niet "
-"betrouwbaar is: als je een textuurplaat gebruikt om de kalibratie uit te "
-"voeren; als de bouwplaat geen goede hechting heeft (was de bouwplaat of "
-"breng lijm aan!) ...Je kunt meer informatie vinden op onze wiki.\n"
-"\n"
-"De kalibratieresultaten hebben ongeveer 10 procent jitter in onze test, "
-"waardoor het resultaat niet bij elke kalibratie precies hetzelfde is. We "
-"onderzoeken nog steeds de oorzaak om verbeteringen aan te brengen met nieuwe "
-"updates."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "Wanneer moet u Flow Rate kalibratie gebruiken"
@@ -14141,25 +14192,15 @@ msgstr "De naam mag niet langer zijn dan 40 tekens."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
 "Slechts één van de resultaten met dezelfde naam wordt opgeslagen. Weet je "
-"zeker dat je de andere resultaten wilt vervangen?"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"Er is al een eerder kalibratieresultaat met dezelfde naam: %s. Slechts één "
-"van de resultaten met dezelfde naam wordt opgeslagen. Weet je zeker dat je "
-"het vorige resultaat wilt vervangen?"
+"zeker dat je de andere resultaten wilt overschrijven?"
 
 msgid "Please find the best line on your plate"
 msgstr "Zoek de beste regel op je bord"
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr "Zoek de hoek met de perfecte extrusiegraad"
 
 msgid "Input Value"
@@ -14414,6 +14455,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -14497,6 +14541,9 @@ msgstr ""
 "Gebruik indien nodig schuine strepen (/) als scheidingsteken voor mappen."
 
 msgid "Upload to storage"
+msgstr ""
+
+msgid "Switch to Device tab after upload."
 msgstr ""
 
 #, c-format, boost-format
@@ -15121,7 +15168,7 @@ msgstr "Dagelijkse tips"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "mondstuk onthouden: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -15164,6 +15211,12 @@ msgstr ""
 
 msgid "Refresh Printers"
 msgstr "Printers vernieuwen"
+
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -15594,15 +15647,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."
@@ -15965,6 +16016,76 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Voer een geldige waarde in (K in 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "Voer een geldige waarde in (K in 0~0,3, N in 0,6~2,0)"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "Printer local connection failed; please try again."
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "De details van Flow Dynamics Calibration vindt u op onze wiki.\n"
+#~ "\n"
+#~ "Meestal is kalibratie niet nodig. Als je een print met één kleur/"
+#~ "materiaal start en de optie \"kalibratie van de stroomdynamica\" is "
+#~ "aangevinkt in het startmenu van de printer, dan zal de printer de oude "
+#~ "manier volgen en het filament kalibreren voor het printen; als je een "
+#~ "print met meerdere kleuren/materialen start, dan zal de printer de "
+#~ "standaard compensatieparameter voor het filament gebruiken tijdens elke "
+#~ "filamentwissel, wat in de meeste gevallen een goed resultaat zal "
+#~ "opleveren.\n"
+#~ "\n"
+#~ "Let op: er zijn een paar gevallen waardoor het kalibratieresultaat niet "
+#~ "betrouwbaar is: als je een textuurplaat gebruikt om de kalibratie uit te "
+#~ "voeren; als de bouwplaat geen goede hechting heeft (was de bouwplaat of "
+#~ "breng lijm aan!) ...Je kunt meer informatie vinden op onze wiki.\n"
+#~ "\n"
+#~ "De kalibratieresultaten hebben ongeveer 10 procent jitter in onze test, "
+#~ "waardoor het resultaat niet bij elke kalibratie precies hetzelfde is. We "
+#~ "onderzoeken nog steeds de oorzaak om verbeteringen aan te brengen met "
+#~ "nieuwe updates."
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr ""
+#~ "Slechts één van de resultaten met dezelfde naam wordt opgeslagen. Weet je "
+#~ "zeker dat je de andere resultaten wilt vervangen?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "Er is al een eerder kalibratieresultaat met dezelfde naam: %s. Slechts "
+#~ "één van de resultaten met dezelfde naam wordt opgeslagen. Weet je zeker "
+#~ "dat je het vorige resultaat wilt vervangen?"
+
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "Zoek de hoek met de perfecte extrusiegraad"
 
 #~ msgid "V"
 #~ msgstr "V"

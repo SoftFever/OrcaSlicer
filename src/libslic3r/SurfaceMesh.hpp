@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 Lukáš Matěna @lukasmatena
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_SurfaceMesh_hpp_
 #define slic3r_SurfaceMesh_hpp_
 

@@ -69,15 +69,16 @@ jobs:
             cd ${{ github.workspace }}/deps/build
 
       - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-12'
+        if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake git gettext automake texinfo ninja
+            brew install cmake
+            brew install automake texinfo ninja libtool
             brew list
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
             brew uninstall --ignore-dependencies zstd
-            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15
+            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
             brew install zstd
 
 
@@ -102,7 +103,7 @@ jobs:
 
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-12'
+        if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}

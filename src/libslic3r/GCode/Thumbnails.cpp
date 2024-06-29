@@ -1,14 +1,12 @@
-///|/ Copyright (c) Prusa Research 2022 Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Thumbnails.hpp"
 #include "../miniz_extension.hpp"
+#include "format.hpp"
 
 #include <qoi/qoi.h>
 #include <jpeglib.h>
 #include <jerror.h>
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 namespace Slic3r::GCodeThumbnails {
 
