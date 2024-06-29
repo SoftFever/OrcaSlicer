@@ -3092,7 +3092,7 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
-                                        "filament_z_hop_types", 
+                                        "filament_z_hop_types",
                                         "filament_retract_lift_above",
                                         "filament_retract_lift_below",
                                         "filament_retract_lift_enforce",
@@ -4157,6 +4157,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
             optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+            optgroup->append_single_option_line("travel_slope", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -4421,6 +4422,8 @@ void TabPrinter::toggle_options()
         toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
         toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
         //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
+        
+        toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
