@@ -1801,10 +1801,10 @@ void PrintConfigDef::init_fff_params()
         one turn of whatever feeding mehcanism/gear your printer uses. You can emperically derive that
         for your own pellets for a particular printer model.
 
-        We are translating the flow_coefficient into filament_diameter so that everything works just like it 
+        We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it 
         does already with very minor adjustments.
 
-        filament_diameter = sqrt( (4 * flow_coefficient) / PI )
+        filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )
 
         sqrt just makes the relationship between flow_coefficient and volume linear.
 
@@ -1814,7 +1814,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pellet_flow_coefficient", coFloats);
     def->label = L("Pellet flow coefficient");
-    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printer");
+    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 

@@ -22,8 +22,6 @@
   "name": "ginger_one_common",
   "print_host": "192.168.0.167",
   "printer_settings_id": "ginger_one_common",
-  "nozzle_diameter": ["3.0"],
-  "printer_variant": "3.0",
   "retract_restart_extra": ["0.5"],
   "retraction_length": ["3"],
   "retraction_minimum_travel": ["10"],
