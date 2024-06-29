@@ -1216,6 +1216,17 @@ void Sidebar::update_all_preset_comboboxes()
 
     }
 
+    if (cfg.opt_bool("pellet_modded_printer")) {
+		p->m_staticText_filament_settings->SetLabel(_L("Pellets"));
+        p->m_filament_icon->SetBitmap_("pellets");
+    } else {
+		p->m_staticText_filament_settings->SetLabel(_L("Filament"));
+        p->m_filament_icon->SetBitmap_("filament");
+    }
+
+    //p->m_staticText_filament_settings->Update();
+
+
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
         m_bed_type_list->Enable();
         auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
