@@ -1822,6 +1822,38 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
+    /*
+        Large format printers with print volumes in the order of 1m^3 generally use pellets for printing.
+        The overall tech is very similar to FDM printing. 
+        It is FDM printing, but instead of filaments, it uses pellets.
+
+        The difference here is that where filaments have a filament_diameter that is used to calculate 
+        the volume of filament ingested, pellets have a particular flow_coefficient that is empirically 
+        devised for that particular pellet.
+
+        pellet_flow_coefficient is basically a measure of the packing density of a particular pellet.
+        Shape, material and density of an individual pellet will determine the packing density and
+        the only thing that matters for 3d printing is how much of that pellet material is extruded by 
+        one turn of whatever feeding mehcanism/gear your printer uses. You can emperically derive that
+        for your own pellets for a particular printer model.
+
+        We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it 
+        does already with very minor adjustments.
+
+        filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )
+
+        sqrt just makes the relationship between flow_coefficient and volume linear.
+
+        higher packing density -> more material extruded by single turn -> higher pellet_flow_coefficient -> treated as if a filament of larger diameter is being used
+        All other calculations remain the same for slicing.
+    */
+
+    def = this->add("pellet_flow_coefficient", coFloats);
+    def->label = L("Pellet flow coefficient");
+    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloats{ 0.4157 });
+
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage");
     // xgettext:no-c-format, no-boost-format
@@ -2674,6 +2706,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
+
+    def          = this->add("pellet_modded_printer", coBool);
+    def->label   = L("Pellet Modded Printer");
+    def->tooltip = L("Enable this option if your printer uses pellets instead of filaments");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
@@ -3592,6 +3630,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSlope });
+
+    def = this->add("travel_slope", coFloats);
+    def->label = L("Traveling angle");
+    def->tooltip = L("Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results in Normal Lift");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
+    def->min = 1;
+    def->max = 90;
+    def->set_default_value(new ConfigOptionFloats { 3 });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Only lift Z above");
@@ -5149,7 +5196,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
@@ -5171,7 +5218,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types"
+        "z_hop_types",
+        "travel_slope"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
