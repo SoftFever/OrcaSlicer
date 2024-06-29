@@ -450,9 +450,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     
     // Orca:
     // mmu_painted flag used to skip shrinkage compensation for MM prints
-    // display_shrinkage_comp_error flag used to display warning to the user
     bool mmu_painted = false;
-    bool display_shrinkage_comp_error = false;
     
     // Orca:
     // Is any ModelVolume MMU painted?
@@ -473,20 +471,13 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
             double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
             
-            if(scale != 1 && mmu_painted){
-                display_shrinkage_comp_error = true;
-            } else if (scale != 1) {
+            if (scale != 1 && !mmu_painted) {
                 scale = 1 / scale;
                 for (ExPolygons& polys : region_polys)
                     for (ExPolygon& poly : polys)
                         poly.scale(scale);
             }
-            
         }
-    }
-    if(display_shrinkage_comp_error){
-        const_cast<PrintObject&>(print_object).active_step_add_warning( PrintStateBase::WarningLevel::CRITICAL,
-            L("Filament shrinkage compensation is incompatible with multi color and multi material prints. It will be ignored when printing this model."));
     }
 
     return slices_by_region;
