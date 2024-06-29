@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
-    "activate_chamber_temp_control": [
-        "0"
-    ],
     "filament_max_volumetric_speed": [
         "16"
     ],
@@ -32,6 +29,9 @@
     ],
     "pressure_advance": [
         "0.021"
+    ],
+    "activate_chamber_temp_control": [
+        "0"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

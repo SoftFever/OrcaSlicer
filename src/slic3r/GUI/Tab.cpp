@@ -1418,6 +1418,19 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+
+    if (opt_key == "pellet_flow_coefficient") 
+    {
+        double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
+        m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
+	}
+
+    if (opt_key == "filament_diameter") {
+        double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
+        m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
+    }
+    
+
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
@@ -3098,7 +3111,7 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
-                                        "filament_z_hop_types", 
+                                        "filament_z_hop_types",
                                         "filament_retract_lift_above",
                                         "filament_retract_lift_below",
                                         "filament_retract_lift_enforce",
@@ -3210,6 +3223,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
+        optgroup->append_single_option_line("pellet_flow_coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3525,6 +3539,10 @@ void TabFilament::toggle_options()
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
 
+        bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
+
+        toggle_line("pellet_flow_coefficient", is_pellet_printer);
+        toggle_line("filament_diameter", !is_pellet_printer);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
@@ -3636,6 +3654,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
+        optgroup->append_single_option_line("pellet_modded_printer");
         optgroup->append_single_option_line("support_multi_bed_types","bed-types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
@@ -4163,6 +4182,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
             optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+            optgroup->append_single_option_line("travel_slope", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -4427,6 +4447,8 @@ void TabPrinter::toggle_options()
         toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
         toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
         //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
+        
+        toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
