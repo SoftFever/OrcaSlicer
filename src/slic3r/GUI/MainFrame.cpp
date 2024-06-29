@@ -1999,6 +1999,9 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_btn->Enable(enable_slice);
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
+
+    if (wxGetApp().mainframe)
+        wxGetApp().plater()->update_title_dirty_status();
 }
 
 

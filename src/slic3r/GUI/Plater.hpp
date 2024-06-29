@@ -654,6 +654,7 @@ public:
 
     bool need_update() const;
     void set_need_update(bool need_update);
+    void update_title_dirty_status();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
