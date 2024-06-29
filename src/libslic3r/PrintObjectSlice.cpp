@@ -464,7 +464,6 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     // SoftFever: ported from SuperSlicer
     // filament shrink
     // Orca: only run filament shrink compensation when we do not have an MM painted print.
-    // Algorithm fails with MM painted models. Display warning message to the user if an MM painted print and shrinkage compensation is found.
     for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
         if (pr.get()) {
             std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
