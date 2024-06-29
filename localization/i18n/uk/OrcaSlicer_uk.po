@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-05-30 12:35+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15063,6 +15063,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15159,6 +15162,9 @@ msgstr ""
 
 msgid "Upload to storage"
 msgstr "Завантажити до сховища"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15861,6 +15867,12 @@ msgstr "Ви впевнені, що вийшли?"
 msgid "Refresh Printers"
 msgstr "Оновити принтери"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16301,20 +16313,16 @@ msgstr "Успішне підключення до SimplyPrint!"
 msgid "Could not connect to SimplyPrint"
 msgstr "Не вдалося підключитися до SimplyPrint"
 
+msgid "Internal error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr "Невідома помилка"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "Обліковий запис SimplyPrint не пов’язано. Щоб налаштувати його, перейдіть до "
 "параметрів підключення."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"Розмір файлу перевищує ліміт завантаження в 100 Мб. Будь ласка, завантажте "
-"свій файл через панель."
-
-msgid "Unknown error"
-msgstr "Невідома помилка"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "Підключення до Flashforge працює правильно."
@@ -16719,6 +16727,13 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "Розмір файлу перевищує ліміт завантаження в 100 Мб. Будь ласка, "
+#~ "завантажте свій файл через панель."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Введіть допустиме значення (K в діапазоні 0~0.3)"

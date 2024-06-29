@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-06-15 11:02+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15244,6 +15244,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15340,6 +15343,9 @@ msgstr ""
 
 msgid "Upload to storage"
 msgstr "Pujar a l'emmagatzematge"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -16041,6 +16047,12 @@ msgstr "Estàs segur de tancar sessió?"
 msgid "Refresh Printers"
 msgstr "Refrescar Impressores"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16493,20 +16505,16 @@ msgstr "Connectat a SimplyPrint amb èxit!"
 msgid "Could not connect to SimplyPrint"
 msgstr "No s'ha pogut connectar a SimplyPrint"
 
+msgid "Internal error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr "Error desconegut"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "No s'ha enllaçat el compte de SimplyPrint. Aneu a Opcions de Connexió per "
 "configurar-lo."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"La mida del fitxer supera el límit de pujada de 100 MB. Si us plau, "
-"carregueu el vostre fitxer a través del panell."
-
-msgid "Unknown error"
-msgstr "Error desconegut"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "La connexió amb Flashforge funciona correctament."
@@ -16917,92 +16925,18 @@ msgstr ""
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
 
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "La mida del fitxer supera el límit de pujada de 100 MB. Si us plau, "
+#~ "carregueu el vostre fitxer a través del panell."
+
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Introduïu un valor vàlid ( K en 0 ~ 0.3 )"
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "Introduïu un valor vàlid ( K a 0 ~ 0.3, N a 0.6 ~ 2.0 )"
-
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "Seleccionar impressores connectades (0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "Seleccionar Impressores Connectades (%d/6)"
-
-#~ msgid "PrintingPause"
-#~ msgstr "Pausar Impressió"
-
-#~ msgid "Printer local connection failed, please try again."
-#~ msgstr "La connexió local de la impressora ha fallat, torneu-ho a provar."
-
-#~ msgid ""
-#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
-#~ "\n"
-#~ "Usually the calibration is unnecessary. When you start a single color/"
-#~ "material print, with the \"flow dynamics calibration\" option checked in "
-#~ "the print start menu, the printer will follow the old way, calibrate the "
-#~ "filament before the print; When you start a multi color/material print, "
-#~ "the printer will use the default compensation parameter for the filament "
-#~ "during every filament switch which will have a good result in most "
-#~ "cases.\n"
-#~ "\n"
-#~ "Please note there are a few cases that will make the calibration result "
-#~ "not reliable: using a texture plate to do the calibration; the build "
-#~ "plate does not have good adhesion (please wash the build plate or apply "
-#~ "gluestick!) ...You can find more from our wiki.\n"
-#~ "\n"
-#~ "The calibration results have about 10 percent jitter in our test, which "
-#~ "may cause the result not exactly the same in each calibration. We are "
-#~ "still investigating the root cause to do improvements with new updates."
-#~ msgstr ""
-#~ "Consulteu els detalls del Calibratge de les Dinàmiques de Flux al nostre "
-#~ "wiki.\n"
-#~ "\n"
-#~ "Normalment el calibratge és innecessari. Quan inicieu una impressió d'un "
-#~ "sol color/material, amb l'opció \"Calibratge de les Dinàmiques de Flux\" "
-#~ "marcada al menú d'inici d'impressió, la impressora seguirà la forma "
-#~ "antiga, calibrarà el filament abans de la impressió; Quan s'inicia una "
-#~ "impressió multicolor/multimaterial, la impressora utilitzarà el paràmetre "
-#~ "de compensació predeterminat per al filament durant cada canvi de "
-#~ "filament, el qual tindrà un bon resultat en la majoria dels casos.\n"
-#~ "\n"
-#~ "Tingueu en compte que hi ha alguns casos que faran que el resultat del "
-#~ "calibratge no sigui fiable: utilitzar una placa de textura per fer el "
-#~ "calibratge; si la placa d'impressió no té una bona adherència ( renteu la "
-#~ "placa d'impressió o apliqueu adhesiu! ) ... Podeu trobar més informació a "
-#~ "la nostra wiki.\n"
-#~ "\n"
-#~ "Els resultats del calibratge tenen al voltant d'un 10 per cent de "
-#~ "fluctuació en la nostra prova, la qual cosa pot fer que el resultat no "
-#~ "sigui exactament el mateix en cada calibratge. Encara estem investigant "
-#~ "la causa arrel per fer millores amb noves actualitzacions."
-
-#~ msgid ""
-#~ "Only one of the results with the same name will be saved. Are you sure "
-#~ "you want to overrides the other results?"
-#~ msgstr ""
-#~ "Només es desarà un dels resultats amb el mateix nom. Estàs segur que vols "
-#~ "sobreescriure els altres resultats?"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "There is already a historical calibration result with the same name: %s. "
-#~ "Only one of the results with the same name is saved. Are you sure you "
-#~ "want to overrides the historical result?"
-#~ msgstr ""
-#~ "Ja hi ha un resultat històric de calibratge amb el mateix nom: %s. Només "
-#~ "es pot guardar un dels resultats amb el mateix nom. Estàs segur que vols "
-#~ "sobreescriure el resultat històric?"
-
-#~ msgid "Please find the cornor with perfect degree of extrusion"
-#~ msgstr "Busqueu la cantonada amb un grau d'extrusió perfecte"
-
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
 
 #~ msgid "V"
 #~ msgstr "V"
@@ -17069,22 +17003,27 @@ msgstr ""
 #~ msgstr "HMS"
 
 #, fuzzy
+#~| msgid "Unsaved Changes"
 #~ msgid "Actions For Unsaved Changes"
 #~ msgstr "Canvis no desats"
 
 #, fuzzy
+#~| msgid "Reset scale"
 #~ msgid "Preset Value"
 #~ msgstr "Valor predefinit esquerre"
 
 #, fuzzy
+#~| msgid "Modified G-codes"
 #~ msgid "Modified Value"
 #~ msgstr "Valor modificat"
 
 #, fuzzy
+#~| msgid "User Preset"
 #~ msgid "Use Preset Value"
 #~ msgstr "Perfil d'usuari"
 
 #, fuzzy
+#~| msgid "Save file as:"
 #~ msgid "Save Modified Value"
 #~ msgstr "Desa el fitxer com a:"
 
@@ -17097,6 +17036,10 @@ msgstr ""
 #~ "Voleu desar aquests paràmetres canviats (valor modificat)?"
 
 #, fuzzy
+#~| msgid ""
+#~| "You have changed some preset settings. \n"
+#~| "Would you like to keep these changed settings (new value) after "
+#~| "switching preset?"
 #~ msgid ""
 #~ "\n"
 #~ "Would you like to keep these changed settings(modified value) after "

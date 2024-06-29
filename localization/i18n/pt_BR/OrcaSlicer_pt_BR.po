@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-06-01 21:51-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -15139,6 +15139,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15235,6 +15238,9 @@ msgstr ""
 
 msgid "Upload to storage"
 msgstr "Enviar para armazenamento"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15928,6 +15934,12 @@ msgstr "Tem certeza de que deseja sair?"
 msgid "Refresh Printers"
 msgstr "Atualizar Impressoras"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16370,20 +16382,16 @@ msgstr "Conectado ao SimplyPrint com sucesso!"
 msgid "Could not connect to SimplyPrint"
 msgstr "Não é possível conectar a SimplyPrint"
 
+msgid "Internal error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr "Erro desconhecido"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "Conta SimplyPrint não vinculada. Vá para as opções de conexão para configurá-"
 "la."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"O tamanho do arquivo excede o limite de envio de 100MB. Por favor, envie seu "
-"arquivo através do painel."
-
-msgid "Unknown error"
-msgstr "Erro desconhecido"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "A conexão com a Flashforge está funcionando corretamente."
@@ -16791,6 +16799,13 @@ msgstr ""
 "Você sabia que ao imprimir materiais propensos ao empenamento, como ABS, "
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "O tamanho do arquivo excede o limite de envio de 100MB. Por favor, envie "
+#~ "seu arquivo através do painel."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Por favor, insira um valor válido (K entre 0~0.3)"
