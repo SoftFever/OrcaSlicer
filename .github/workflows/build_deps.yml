@@ -93,7 +93,7 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
 
-      - name: Install Dependencies (Ubuntu 20.04)
+      - name: Install Dependencies (Ubuntu 24.04)
         if: inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
