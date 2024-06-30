@@ -12722,7 +12722,7 @@ msgid "Aligned"
 msgstr "Wyrównany"
 
 msgid "Back"
-msgstr "Z tyłu"
+msgstr "Tył"
 
 msgid "Random"
 msgstr "Losowo"
