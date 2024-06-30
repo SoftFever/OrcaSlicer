@@ -15359,7 +15359,7 @@ msgid "PETG"
 msgstr "PETG"
 
 msgid "PCTG"
-msgstr ""
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
@@ -16167,10 +16167,10 @@ msgid "Refresh Printers"
 msgstr "Drucker aktualisieren"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Druck-Host-Webui im Geräte-Tab anzeigen"
 
 msgid "Replace the BambuLab's device tab with print host webui"
-msgstr ""
+msgstr "Ersetzen Sie den BambuLab-Geräte-Tab durch das Druck-Host-Webui"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16619,7 +16619,7 @@ msgid "Could not connect to SimplyPrint"
 msgstr "Konnte keine Verbindung zu SimplyPrint herstellen"
 
 msgid "Internal error"
-msgstr ""
+msgstr "Interner Fehler"
 
 msgid "Unknown error"
 msgstr "Unbekannter Fehler"
