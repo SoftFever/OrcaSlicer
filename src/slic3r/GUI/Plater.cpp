@@ -1720,7 +1720,7 @@ void Sidebar::sync_ams_list()
 
     // BBS:Record consumables information before synchronization
     std::vector<string> color_before_sync;
-    std::vector<int> is_support_before;
+    std::vector<bool> is_support_before;
     DynamicPrintConfig& project_config = wxGetApp().preset_bundle->project_config;
     ConfigOptionStrings* color_opt = project_config.option<ConfigOptionStrings>("filament_colour");
     for (int i = 0; i < p->combos_filament.size(); ++i) {
