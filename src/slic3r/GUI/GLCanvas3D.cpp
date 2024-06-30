@@ -4080,12 +4080,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Set focus in order to remove it from sidebar fields
         if (m_canvas != nullptr) {
             // Only set focus, if the top level window of this canvas is active.
-            auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
-            while (p->GetParent())
-                p = p->GetParent();
-            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-            if (top_level_wnd && top_level_wnd->IsActive() && !wxGetApp().get_side_menu_popup_status())
-                ;// m_canvas->SetFocus();
+//            auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
+//            while (p->GetParent())
+//                p = p->GetParent();
+//            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+//            if (top_level_wnd && top_level_wnd->IsActive() && !wxGetApp().get_side_menu_popup_status())
+                // m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
             m_tooltip_enabled = false;
             // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
