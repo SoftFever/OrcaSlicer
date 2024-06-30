@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14326,6 +14326,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -14408,6 +14411,9 @@ msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "Ha szükséges, használj perjeleket ( / ) könyvtárelválasztóként."
 
 msgid "Upload to storage"
+msgstr ""
+
+msgid "Switch to Device tab after upload."
 msgstr ""
 
 #, c-format, boost-format
@@ -15071,6 +15077,12 @@ msgstr ""
 msgid "Refresh Printers"
 msgstr "Nyomtatók frissítése"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -15502,15 +15514,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."

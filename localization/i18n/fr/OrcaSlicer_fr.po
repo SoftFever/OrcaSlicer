@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -15469,6 +15469,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr "PCTG"
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15566,6 +15569,9 @@ msgstr ""
 
 msgid "Upload to storage"
 msgstr "Envoyer vers le stockage"
+
+msgid "Switch to Device tab after upload."
+msgstr "Passer à l’onglet Appareil après le téléchargement."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -16279,6 +16285,13 @@ msgstr "Êtes-vous sûr de pouvoir vous déconnecter ?"
 msgid "Refresh Printers"
 msgstr "Actualiser les imprimantes"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+"Afficher l’interface web de l’hôte d’impression dans l’onglet Périphérique"
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr "Remplacer l’onglet device de BambuLab par print host webui"
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16743,20 +16756,16 @@ msgstr "Connexion à SimplyPrint réussie !"
 msgid "Could not connect to SimplyPrint"
 msgstr "Impossible de se connecter à SimplyPrint"
 
+msgid "Internel error"
+msgstr "Erreur interne"
+
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "Le compte SimplyPrint n’est pas lié. Allez dans les options de connexion "
 "pour le configurer."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"La taille du fichier dépasse la limite de téléchargement de 100 Mo. Veuillez "
-"télécharger votre fichier via le panneau."
-
-msgid "Unknown error"
-msgstr "Erreur inconnue"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "La connexion à Flashforge fonctionne correctement."
@@ -17175,6 +17184,13 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "La taille du fichier dépasse la limite de téléchargement de 100 Mo. "
+#~ "Veuillez télécharger votre fichier via le panneau."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Veuillez saisir une valeur valide (K entre 0 et 0,3)"

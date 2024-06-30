@@ -30,12 +30,12 @@ jobs:
       - name: set outputs
         id: set_outputs
         env:
-          underscore-arch: ${{ inputs.os == 'macos-12' && '_' || ''}}${{ inputs.os == 'macos-12' && inputs.arch || '' }} # if is macos, make a string that does "_{arch}", else output nothing
-          dash-arch: ${{ inputs.os == 'macos-12' && '-' || ''}}${{ inputs.os == 'macos-12' && inputs.arch || '' }} # if is macos, make a string that does "-{arch}", else output nothing
-          dep-folder-name: ${{ (inputs.os == 'windows-latest' || inputs.os == 'macos-12') && 'OrcaSlicer_dep' || 'destdir' }}
+          underscore-arch: ${{ inputs.os == 'macos-14' && '_' || ''}}${{ inputs.os == 'macos-14' && inputs.arch || '' }} # if is macos, make a string that does "_{arch}", else output nothing
+          dash-arch: ${{ inputs.os == 'macos-14' && '-' || ''}}${{ inputs.os == 'macos-14' && inputs.arch || '' }} # if is macos, make a string that does "-{arch}", else output nothing
+          dep-folder-name: ${{ (inputs.os == 'windows-latest' || inputs.os == 'macos-14') && 'OrcaSlicer_dep' || 'destdir' }}
           output-cmd: ${{ inputs.os == 'windows-latest' && '$env:GITHUB_OUTPUT' || '"$GITHUB_OUTPUT"'}}
         run: |
-          echo cache-key=${{ runner.os }}${{ env.dash-arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }} >> ${{ env.output-cmd }}
+          echo cache-key=${{ inputs.os }}${{ env.dash-arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }} >> ${{ env.output-cmd }}
           echo cache-path=${{ github.workspace }}/deps/build${{ env.underscore-arch }}/${{ env.dep-folder-name }}${{ env.underscore-arch }} >> ${{ env.output-cmd }}
             
       - name: load cache

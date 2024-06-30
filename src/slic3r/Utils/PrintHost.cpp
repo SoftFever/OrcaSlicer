@@ -21,6 +21,7 @@
 #include "MKS.hpp"
 #include "ESP3D.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "../GUI/MainFrame.hpp"
 #include "Obico.hpp"
 #include "Flashforge.hpp"
 #include "SimplyPrint.hpp"
@@ -314,6 +315,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
     if (success) {
         emit_progress(100);
+        if (the_job.switch_to_device_tab) {
+            const auto mainframe = GUI::wxGetApp().mainframe;
+            mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+        }
     }
 }
 

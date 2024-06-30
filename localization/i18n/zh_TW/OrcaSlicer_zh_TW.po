@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -14267,6 +14267,9 @@ msgstr ""
 msgid "PETG"
 msgstr ""
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr ""
 
@@ -14366,6 +14369,9 @@ msgstr "如有需要，請使用正斜槓（ / ）作為目錄分隔符號。"
 
 msgid "Upload to storage"
 msgstr "上傳到儲存單位"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, fuzzy, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14975,6 +14981,12 @@ msgstr ""
 msgid "Refresh Printers"
 msgstr "重新整理列印設備"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -15317,15 +15329,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."

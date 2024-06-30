@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -10094,8 +10094,8 @@ msgid ""
 "external walls\n"
 "\n"
 msgstr ""
-"如果启用，此设置将确保外墙不会为了满足最小层时间而减速。这在以下情况下特别有帮"
-"助：\n"
+"如果启用，此设置将确保外墙不会为了满足最小层时间而减速。这在以下情况下特别有"
+"帮助：\n"
 "\n"
 "1. 避免在打印光滑耗材时改变光泽\n"
 "2. 避免改变外墙速度，可能会产生轻微的墙壁伪影，看起来像z条纹\n"
@@ -13882,6 +13882,9 @@ msgstr ""
 msgid "PETG"
 msgstr ""
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr ""
 
@@ -13977,6 +13980,9 @@ msgstr "如有需要，请使用正斜杠（ / ）作为目录分隔符。"
 
 msgid "Upload to storage"
 msgstr "上传到存储单位"
+
+msgid "Switch to Device tab after upload."
+msgstr "上传后跳转到设备页。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14605,6 +14611,12 @@ msgstr ""
 msgid "Refresh Printers"
 msgstr "刷新打印机"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -14990,15 +15002,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."

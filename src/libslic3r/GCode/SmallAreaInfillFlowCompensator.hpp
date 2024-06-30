@@ -5,6 +5,7 @@
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "spline/spline.h"
+#include <memory>
 
 namespace Slic3r {
 
@@ -23,7 +24,7 @@ private:
     std::vector<double> flowComps;
 
     // TODO: Cubic Spline
-    tk::spline flowModel;
+    std::unique_ptr<tk::spline> flowModel;
 
     double flow_comp_model(const double line_length);
 
