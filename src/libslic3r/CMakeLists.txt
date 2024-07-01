@@ -447,8 +447,12 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
-        GCode/Thumbnails.cpp
-        GCode/Thumbnails.hpp
+    GCode/Thumbnails.cpp
+    GCode/Thumbnails.hpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
