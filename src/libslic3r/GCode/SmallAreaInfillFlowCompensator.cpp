@@ -9,6 +9,7 @@
 #include <math.h>
 #include <cstring>
 #include <cfloat>
+#include <regex>
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
