@@ -92,20 +92,20 @@
       "sub_path": "process/0.20mm Standard @Flashforge G3U 0.4 Nozzle.json"
     },
     {
-      "name": "0.30mm Draft @Flashforge Guider 2s 0.4 nozzle",
-      "sub_path": "process/0.30mm Draft @Flashforge Guider 2s 0.4 nozzle.json"
+      "name": "0.30mm Draft @Flashforge Guider 2s 0.4",
+      "sub_path": "process/0.30mm Draft @Flashforge Guider 2s 0.4.json"
     },
     {
-      "name": "0.20mm Standard @Flashforge Guider 2s 0.4 nozzle",
-      "sub_path": "process/0.20mm Standard @Flashforge Guider 2s 0.4 nozzle.json"
+      "name": "0.20mm Standard @Flashforge Guider 2s 0.4",
+      "sub_path": "process/0.20mm Standard @Flashforge Guider 2s 0.4.json"
     },
     {
-      "name": "0.16mm Optimal @Flashforge Guider 2s 0.4 nozzle",
-      "sub_path": "process/0.16mm Optimal @Flashforge Guider 2s 0.4 nozzle.json"
+      "name": "0.16mm Optimal @Flashforge Guider 2s 0.4",
+      "sub_path": "process/0.16mm Optimal @Flashforge Guider 2s 0.4.json"
     },
     {
-      "name": "0.12mm Detail @Flashforge Guider 2s 0.4 nozzle",
-      "sub_path": "process/0.12mm Detail @Flashforge Guider 2s 0.4 nozzle.json"
+      "name": "0.12mm Detail @Flashforge Guider 2s 0.4",
+      "sub_path": "process/0.12mm Detail @Flashforge Guider 2s 0.4.json"
     }
   ],
   "filament_list": [
