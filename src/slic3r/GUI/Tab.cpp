@@ -495,7 +495,19 @@ void Tab::create_preset_tab()
 
     m_tabctrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
-    m_main_sizer->Add(m_tabctrl, 1, wxEXPAND | wxALL, 0 );
+    m_main_sizer->Add(m_tabctrl, 0, wxEXPAND | wxALL, 0 );
+
+    if (dynamic_cast<TabPrint *>(this)) {
+        m_extruder_switch = new SwitchButton(panel);
+        m_extruder_switch->SetMaxSize({em_unit(this) * 24, -1});
+        m_extruder_switch->SetLabels(_L("Left"), _L("Right"));
+        m_extruder_switch->Bind(wxEVT_TOGGLEBUTTON, [this] (auto & evt) {
+            evt.Skip();
+            dynamic_cast<TabPrint *>(this)->switch_excluder(evt.GetInt());
+            reload_config();
+        });
+        m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 4);
+    }
 
     this->SetSizer(m_main_sizer);
     //this->Layout();
@@ -859,44 +871,21 @@ void Tab::decorate()
         m_active_page->refresh();
 }
 
-std::vector<std::string> Tab::filter_diff_option(const std::vector<std::string> &options)
+void Tab::filter_diff_option(std::vector<std::string> &options)
 {
-    auto get_name_and_index = [](const std::string& value) -> std::pair<std::string, int>{
-        size_t pos = value.find("#");
-        if (pos != std::string::npos) {
-            std::string param_name = value.substr(0, pos);
-            std::string number_str = value.substr(pos + 1);
-            int         index      = 0;
-            if (!number_str.empty()) {
-                index = std::stoi(number_str);
+    for (auto &opt : options) {
+        if (opt.find_last_of('#') == std::string::npos) continue;
+        bool found = false;
+        for (auto page : m_pages) {
+            if (auto iter = page->m_opt_id_map.find(opt); iter != page->m_opt_id_map.end()) {
+                opt = iter->second;
+                found = true;
+                break;
             }
-            return std::make_pair(param_name, index);
         }
-        return std::make_pair(value, -1);
-    };
-
-    std::vector<std::string> diff_options;
-    for (std::string option : options) {
-        auto name_to_index = get_name_and_index(option);
-        if (name_to_index.second == -1) {
-            diff_options.emplace_back(option);
-            continue;
-        }
-
-        size_t nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-        std::vector<int> support_indexes;
-        for (size_t i = 0; i < nozzle_nums; ++i) {
-            support_indexes.push_back(get_extruder_idx(*m_config, name_to_index.first, i));
-        }
-        auto iter = std::find(support_indexes.begin(), support_indexes.end(), name_to_index.second);
-        if (iter != support_indexes.end()) {
-            int extruder_id = std::distance(support_indexes.begin(), iter);
-            std::string name_to_extruder_id = name_to_index.first + "#" + std::to_string(extruder_id);
-            diff_options.emplace_back(name_to_extruder_id);
-        }
+        if (!found) opt.clear();
     }
-
-    return diff_options;
+    options.erase(std::remove(options.begin(), options.end(), ""), options.end());
 }
 
 // Update UI according to changes
@@ -919,8 +908,8 @@ void Tab::update_changed_ui()
     for (auto& it : m_options_list)
         it.second = m_opt_status_value;
 
-    dirty_options = filter_diff_option(dirty_options);
-    nonsys_options = filter_diff_option(nonsys_options);
+    filter_diff_option(dirty_options);
+    filter_diff_option(nonsys_options);
 
     for (auto opt_key : dirty_options) {
         m_options_list[opt_key] &= ~osInitValue;
@@ -1091,7 +1080,7 @@ void Tab::update_changed_tree_ui()
                 if (!sys_page && modified_page)
                     break;
                 for (const auto &kvp : group->opt_map()) {
-                    const std::string& opt_key = kvp.first;
+                    const std::string &opt_key = kvp.first;
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
             }
@@ -1170,7 +1159,7 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
             }
         }
         for (const auto &kvp : group->opt_map()) {
-            const std::string& opt_key = kvp.first;
+            const std::string &opt_key = kvp.first;
             if ((m_options_list[opt_key] & os) == 0)
                 to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
         }
@@ -1777,6 +1766,18 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         DynamicPrintConfig new_conf = *m_config;
         new_conf.set_key_value("purge_in_prime_tower", new ConfigOptionBool(false));
         m_config_manipulation.apply(m_config, &new_conf);
+    }
+
+    if (opt_key.find_first_of("nozzle_volume_type") != std::string::npos) {
+        int extruder_idx = std::atoi(opt_key.substr(opt_key.find_last_of('#') + 1).c_str());
+        for (auto tab : wxGetApp().tabs_list) {
+            tab->update_extruder_variants(extruder_idx);
+            tab->reload_config();
+        }
+        for (auto tab : wxGetApp().model_tabs_list) {
+            tab->update_extruder_variants(extruder_idx);
+            tab->reload_config();
+        }
     }
 
     if (m_postpone_update_ui) {
@@ -2658,7 +2659,6 @@ void TabPrint::clear_pages()
     m_recommended_thin_wall_thickness_description_line = nullptr;
     m_top_bottom_shell_thickness_explanation = nullptr;
 }
-
 
 //BBS: GUI refactor
 
@@ -4514,6 +4514,7 @@ if (is_marlin_flavor)
                             load_config(new_conf);
                         }
                     }
+
                     update_dirty();
                     on_value_change(opt_key, value);
                     update();
@@ -4889,6 +4890,7 @@ void Tab::load_current_preset()
     }
 
     // Reload preset pages with the new configuration values.
+    update_extruder_variants();
     reload_config();
 
     update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
@@ -5630,6 +5632,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         return false;
 
     m_active_page = page;
+    if (m_extruder_switch)
+        GetSizer()->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
 
     auto throw_if_canceled = std::function<void()>([this](){
 #ifdef WIN32
@@ -6164,6 +6168,7 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     auto nozzle_volumes = m_config->option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
+    on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape
@@ -6269,6 +6274,88 @@ void Tab::set_just_edit(bool just_edit)
     } else {
         m_presets_choice->Enable();
         m_btn_delete_preset->Enable();
+    }
+}
+
+/// <summary>
+///     Call from:
+///         1: on_value_change "nozzle_volume_type"
+///         2: on_preset_loaded (extruder_id = -1)
+/// </summary>
+/// <param name="extruder_id"></param>
+
+void Tab::update_extruder_variants(int extruder_id)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << extruder_id;
+    if (m_extruder_switch) {
+        Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+        auto    nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (nozzle_volumes->size() == 2) {
+            auto     nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
+            wxString left, right;
+            for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
+                if (nozzle_volumes->values[0] == i) left = _L(nozzle_volumes_def->enum_labels[i]);
+                if (nozzle_volumes->values[1] == i) right = _L(nozzle_volumes_def->enum_labels[i]);
+            }
+            m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
+            m_extruder_switch->SetValue(extruder_id == 1);
+        } else {
+            GetSizer()->Show(m_extruder_switch, false);
+            return;
+        }
+    }
+    switch_excluder(extruder_id);
+    if (m_extruder_switch)
+        GetSizer()->Show(m_extruder_switch, m_active_page && !m_active_page->m_opt_id_map.empty());
+}
+
+void Tab::switch_excluder(int extruder_id)
+{
+    Preset & printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    std::pair<std::string, std::string> variant_keys[]{
+        {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
+        {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
+        {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
+    };
+    if (m_extruder_switch) {
+        int current_extruder = m_extruder_switch->GetValue() ? 1 : 0;
+        if (extruder_id == -1)
+            extruder_id = current_extruder;
+        else if (extruder_id != current_extruder)
+            return;
+    }
+    auto get_index_for_extruder =
+            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
+        return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
+            ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
+    };
+    auto index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
+    for (auto page : m_pages) {
+        bool is_extruder = false;
+        page->m_opt_id_map.clear();
+        if (m_extruder_switch == nullptr && page->title().StartsWith("Extruder ")) {
+            int extruder_id2 = std::atoi(page->title().Mid(9).ToUTF8()) - 1;
+            if (extruder_id >= 0 && extruder_id2 != extruder_id)
+                continue;
+            if (extruder_id2 > 0)
+                index = get_index_for_extruder(extruder_id2);
+            is_extruder = true;
+        }
+        for (auto group : page->m_optgroups) {
+            if (is_extruder && group->title == "Type") {
+                for (auto &opt : group->opt_map())
+                    page->m_opt_id_map.insert({opt.first, opt.first});
+                continue;
+            }
+            for (auto &opt : group->opt_map()) {
+                if (opt.second.second >= 0) {
+                    const_cast<int &>(opt.second.second) = index;
+                    page->m_opt_id_map.insert({opt.second.first + "#" + std::to_string(index), opt.first});
+                }
+            }
+        }
     }
 }
 

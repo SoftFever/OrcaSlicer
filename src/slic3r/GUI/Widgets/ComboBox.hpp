@@ -13,7 +13,6 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     std::vector<wxString>         tips;
     std::vector<wxBitmap>         icons;
     std::vector<void *>           datas;
-    std::vector<wxClientDataType> types;
 
     DropDown               drop;
     bool     drop_down = false;

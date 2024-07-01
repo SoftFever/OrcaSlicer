@@ -1620,6 +1620,8 @@ void Sidebar::msw_rescale()
     //BBS
     p->m_bed_type_list->Rescale();
     p->m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
+    p->m_left_extruder_list->Rescale();
+    p->m_right_extruder_list->Rescale();
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
@@ -1682,9 +1684,10 @@ void Sidebar::sys_color_changed()
     //    wxGetApp().UpdateDarkUI(btn, true);
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+    p->m_printer_setting->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
-    p->m_bpButton_del_filament->msw_rescale();
+    //p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
@@ -1958,7 +1961,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         int extruder = /*ams.nozzle ? 0 :*/ 0x10000;
         for (auto tray : ams.second->trayList) {
             char t = tray.first.front() - '0' + '1';
-            filament_ams_list.emplace(extruder + ((n - 'A') * 4 + t - '1'), 
+            filament_ams_list.emplace(extruder + ((n - 'A') * 4 + t - '1'),
                 build_tray_config(*tray.second, std::string(1, n) + std::string(1, t)));
             extruder = 0;
         }

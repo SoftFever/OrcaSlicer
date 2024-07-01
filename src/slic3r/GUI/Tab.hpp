@@ -115,6 +115,8 @@ public:
 	}
     bool get_show() const { return m_show; }
 
+    std::map<std::string, std::string> m_opt_id_map;
+
 protected:
 	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
 	const wxColour*		m_item_color;
@@ -300,7 +302,8 @@ public:
     // 3. propagate changed configuration to the Plater when (m_update_cnt == 0) only
     int                 m_update_cnt = 0;
 
-	SwitchButton *		m_mode_view = nullptr;
+    SwitchButton *m_mode_view = nullptr;
+    SwitchButton *m_extruder_switch = nullptr;
 
 public:
 	// BBS
@@ -420,6 +423,9 @@ public:
     virtual const std::string&	get_custom_gcode(const t_config_option_key& opt_key);
     virtual void				set_custom_gcode(const t_config_option_key& opt_key, const std::string& value);
 
+    void        update_extruder_variants(int extruder_id = -1);
+    void        switch_excluder(int extruder_id = -1);
+
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
@@ -434,7 +440,7 @@ protected:
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
 	void			set_tooltips_text();
-    std::vector<std::string> filter_diff_option(const std::vector<std::string> &options);
+    void			filter_diff_option(std::vector<std::string> &options);
 
     ConfigManipulation m_config_manipulation;
     ConfigManipulation get_config_manipulation();
