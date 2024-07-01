@@ -1,0 +1,57 @@
+name: Update Translation Catalog
+on: 
+    push:
+      branches: 
+       - main
+      paths:
+        - src/**
+
+jobs:
+  update_translation:
+    name: Update translation
+    runs-on: ubuntu-latest
+    steps:  
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate filter
+        id: generate-filter
+        run: |
+          {
+            echo 'filter<<EOF'
+            echo src:
+            while read p; do
+              echo - "$p"
+            done < localization/i18n/list.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check filter
+        id: check-filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: ${{ steps.generate-filter.outputs.filter }}
+
+      - name: Install gettext
+        if: steps.check-filter.outputs.src == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+
+      - name: Update translation catalog
+        if: steps.check-filter.outputs.src == 'true'
+        run: |
+          ./run_gettext.sh --full
+          git add localization/i18n/*
+
+      - name: Commit translation catalog updates
+        uses: qoomon/actions--create-commit@v1
+        id: commit
+        if: steps.check-filter.outputs.src == 'true'
+        with:
+          message: Update translation catalog
+          skip-empty: true
+
+      - name: Push changes
+        if: ${{ steps.check-filter.outputs.src == 'true' }}
+        run: git push
