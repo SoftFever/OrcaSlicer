@@ -45,6 +45,12 @@
     "filament_density":[
         "1.15"
     ],
+    "activate_air_filtration":[
+         "0"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",

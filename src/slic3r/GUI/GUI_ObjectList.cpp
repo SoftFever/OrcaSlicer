@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, David Kocík @kocikdav, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Mathias Rasmussen
-///|/ Copyright (c) 2020 rongith
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1347,6 +1341,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                 const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
 
                 menu = volume->is_text() ? plater->text_part_menu() :
+			volume->is_svg() ? plater->svg_part_menu() : // ORCA fixes missing "Edit SVG" item for Add/Negative/Modifier SVG objects in object list
                     plater->part_menu();
             }
             else
@@ -5024,8 +5019,17 @@ void ObjectList::change_part_type()
         }
     }
 
-    const wxString names[] = { _L("Part"), _L("Negative Part"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type));
+    // ORCA: Fix crash when changing type of svg / text modifier
+    wxArrayString names;
+    names.Add(_L("Part"));
+    names.Add(_L("Negative Part"));
+    names.Add(_L("Modifier"));
+    if (!volume->is_svg() && !volume->is_text()) {
+        names.Add(_L("Support Blocker"));
+        names.Add(_L("Support Enforcer"));
+    }
+
+    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(type));
     auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
@@ -5652,11 +5656,22 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         if (type & itLayerRoot)
             continue;
 
+        // BBS: handle extruder 0 for part, use it's parent extruder
+        int new_extruder = extruder;
+        if (extruder == 0) {
+            if (type & itObject) {
+                new_extruder = 1;
+            }
+            else if ((type & itVolume) && (m_objects_model->GetVolumeType(sel_item) == ModelVolumeType::MODEL_PART)) {
+                new_extruder = m_objects_model->GetExtruderNumber(m_objects_model->GetParent(sel_item));
+            }
+        }
+
         ModelConfig& config = get_item_config(item);
         if (config.has("extruder"))
-            config.set("extruder", extruder);
+            config.set("extruder", new_extruder);
         else
-            config.set_key_value("extruder", new ConfigOptionInt(extruder));
+            config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
 
         // for object, clear all its part volume's extruder config
         if (type & itObject) {
@@ -5667,7 +5682,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
             }
         }
 
-        const wxString extruder_str = wxString::Format("%d", extruder);
+        const wxString extruder_str = wxString::Format("%d", new_extruder);
         m_objects_model->SetExtruder(extruder_str, item);
     }
 
@@ -5697,9 +5712,6 @@ void ObjectList::on_plate_deleted(int plate_idx)
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
 
@@ -5729,9 +5741,6 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     update_selections();
 
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
     m_prevent_canvas_selection_update = false;
 
     // update scene

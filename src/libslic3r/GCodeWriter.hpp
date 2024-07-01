@@ -21,7 +21,7 @@ public:
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),
         m_last_jerk(0), m_max_jerk(0),
-        /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
+        m_last_bed_temperature(0), m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
         m_to_lift_type(LiftType::NormalLift),
@@ -108,8 +108,6 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static bool full_gcode_comment;
-    //Radian threshold of slope for lazy lift and spiral lift;
-    static const double slope_threshold;
     //SoftFever
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}

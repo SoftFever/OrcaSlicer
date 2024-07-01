@@ -1,12 +1,1 @@
-<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_8988_35027)">
-<rect x="0.906738" y="0.75" width="8.18652" height="8.5" rx="0.25" stroke="#262E30" stroke-width="0.5"/>
-<path d="M4.9637 5.02569L3.88802 3.94978H2.35885L3.43476 5.02569L2.47619 5.98426H3.88802V7.61449L4.9637 6.5388L5.95471 7.52982V6.22301H7.55276L6.42825 5.0985L7.57696 3.94978H6.08038V2.51779L4.9637 3.63447L2.8603 1.53108V2.84139H1.03223V3.94978L2.03942 4.95697L1.12934 5.86705V7.11291H2.73116V9.08687H3.76668L4.77793 8.07562L5.78917 9.08687H6.98649V7.27471H8.94427V5.98426L7.91699 4.95697L8.92418 3.94978V3.05173H7.18065V0.786538H6.33929L5.1177 2.00813L3.88802 0.778439" stroke="#262E30" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M1.93858 0.818897V1.7088H1M1 8.09989H1.71182V9.07069M8.05437 9.07069V8.37495H8.94427M8.94427 1.96768H8.31325V0.818897" stroke="#262E30" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-<defs>
-<clipPath id="clip0_8988_35027">
-<rect width="10" height="10" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><polyline points="8.5 9.5 6.5 9.5 9.5 12.5 6.5 15.5 9.5 15.5 9.5 18.5 12.5 15.5 15.5 18.5 15.5 15.5 18.5 15.5 15.5 12.5 18.5 9.5 15.583 9.5 15.5 6.5 12.5 9.5 7.5 4.5 7.5 6.5 1.5 6.5 1.5 8.5 5.5 12.5 1.5 16.5 1.5 18.5 6.5 18.5 6.5 22.5 9.929 22.5 12.5 19.5 15.071 22.5 18.5 22.5 18.5 18.5 22.5 18.5 22.5 15.071 19.5 12.5 22.5 9.929 22.5 6.5 18.5 6.5 18.5 1.5 15.929 1.5 12.5 5.5 8.5 1.5 4.5 1.5 4.5 3.5 1.5 3.5" style="fill:none;stroke:#009688;stroke-linecap:round;stroke-linejoin:round"/><rect x="1.5" y="1.5" width="21" height="21" rx="2" style="fill:none;stroke:#949494;stroke-linecap:round;stroke-linejoin:round"/></svg>

@@ -241,6 +241,7 @@ public:
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
     std::string         custom_defined;  // enum: "1", "0", ""
+    std::string         description;     // 
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
@@ -319,6 +320,15 @@ public:
     bool has_cali_lines(PresetBundle* preset_bundle);
 
 
+    static double convert_pellet_flow_to_filament_diameter(double pellet_flow_coefficient)
+    {
+        return sqrt(4 / (PI * pellet_flow_coefficient)); 
+    }
+
+    static double convert_filament_diameter_to_pellet_flow(double filament_diameter)
+    {
+        return 4 / (pow(filament_diameter, 2) * PI); 
+    }
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();

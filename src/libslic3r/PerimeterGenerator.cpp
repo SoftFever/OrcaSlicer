@@ -1,10 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) Slic3r 2015 - 2016 Alessandro Ranellucci @alranel
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "PerimeterGenerator.hpp"
 #include "AABBTreeLines.hpp"
 #include "BridgeDetector.hpp"
@@ -23,7 +16,9 @@
 #include "Line.hpp"
 #include <cmath>
 #include <cassert>
+#include <random>
 #include <unordered_set>
+#include <thread>
 #include "libslic3r/AABBTreeLines.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
@@ -35,6 +30,15 @@ static const int max_overhang_degree = overhang_sampling_number - 1;
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
 namespace Slic3r {
+
+// Produces a random value between 0 and 1. Thread-safe.
+static double random_value() {
+    thread_local std::random_device rd;
+    // Hash thread ID for random number seed if no hardware rng seed is available
+    thread_local std::mt19937 gen(rd.entropy() > 0 ? rd() : std::hash<std::thread::id>()(std::this_thread::get_id()));
+    thread_local std::uniform_real_distribution<double> dist(0.0, 1.0);
+    return dist(gen);
+}
 
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
@@ -65,7 +69,7 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
 {
     const double min_dist_between_points = fuzzy_skin_point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = fuzzy_skin_point_distance / 2.;
-    double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
+    double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
     Point* p0 = &poly.points.back();
     Points out;
     out.reserve(poly.points.size());
@@ -75,9 +79,9 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
         for (; p0pa_dist < p0p1_size;
-            p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX))
+            p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist)
         {
-            double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
+            double r = random_value() * (fuzzy_skin_thickness * 2.) - fuzzy_skin_thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
         }
         dist_left_over = p0pa_dist - p0p1_size;
@@ -2138,10 +2142,17 @@ void PerimeterGenerator::process_classic()
                 ext_perimeter_spacing / 2 :
                 // two or more loops?
                 perimeter_spacing / 2;
+        
         // only apply infill overlap if we actually have one perimeter
         coord_t infill_peri_overlap = 0;
+        coord_t top_infill_peri_overlap = 0;
         if (inset > 0) {
-            infill_peri_overlap = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+            if(this->layer_id == 0 || this->upper_slices == nullptr){
+                infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+            }else{
+                infill_peri_overlap = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+                top_infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+            }
             inset -= infill_peri_overlap;
         }
         // simplify infill contours according to resolution
@@ -2160,7 +2171,7 @@ void PerimeterGenerator::process_classic()
         //if any top_fills, grow them by ext_perimeter_spacing/2 to have the real un-anchored fill
         ExPolygons top_infill_exp = intersection_ex(fill_clip, offset_ex(top_fills, double(ext_perimeter_spacing / 2)));
         if (!top_fills.empty()) {
-            infill_exp = union_ex(infill_exp, offset_ex(top_infill_exp, double(infill_peri_overlap)));
+            infill_exp = union_ex(infill_exp, offset_ex(top_infill_exp, double(top_infill_peri_overlap)));
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
@@ -2866,8 +2877,14 @@ ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
             ext_perimeter_spacing :
             // two or more loops?
             perimeter_spacing;
-
-        inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        coord_t top_inset = inset;
+        
+        top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        if(is_topmost_layer || is_bottom_layer)
+            inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        else
+            inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon& ex : infill_contour)
@@ -2882,7 +2899,7 @@ ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
             float(inset + min_perimeter_infill_spacing / 2.));
         // append infill areas to fill_surfaces
         if (!top_fills.empty()) {
-            infill_exp = union_ex(infill_exp, offset_ex(top_fills, double(inset)));
+            infill_exp = union_ex(infill_exp, offset_ex(top_fills, double(top_inset)));
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 

@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 Enrico Turri @enricoturri1966, Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "RaycastManager.hpp"
 #include <utility>
 
@@ -151,7 +147,7 @@ std::optional<RaycastManager::Hit> RaycastManager::first_hit(const Vec3d& point,
 
     // Calculate normal from transformed triangle
     // NOTE: Anisotropic transformation of normal is not perpendiculat to triangle
-    const Vec3i tri = hit_mesh->indices(hit_face);
+    const Vec3i32 tri = hit_mesh->indices(hit_face);
     std::array<Vec3d,3> pts;
     auto tr = hit_tramsformation->linear();
     for (int i = 0; i < 3; ++i)

@@ -84,7 +84,7 @@
 	"max_travel_detour_distance": "0",
 	"min_bead_width": "85%",
 	"min_feature_size": "25%",
-	"min_width_top_surface": "300%",
+	"min_width_top_surface": "100%",
 	"minimum_sparse_infill_area": "15",
 	"notes": "",
 	"only_one_wall_first_layer": "0",
@@ -130,7 +130,7 @@
 	"sparse_infill_density": "15%",
 	"sparse_infill_filament": "1",
 	"sparse_infill_line_width": "0.45",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "crosshatch",
 
 	"spiral_mode": "0",
 	"staggered_inner_seams": "0",

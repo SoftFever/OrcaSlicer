@@ -61,7 +61,7 @@ public:
         if (m_flush_multiplier_ebox == nullptr)
             return 1.f;
 
-        return std::atof(m_flush_multiplier_ebox->GetValue().c_str());
+        return wxAtof(m_flush_multiplier_ebox->GetValue());
     }
 
 private:

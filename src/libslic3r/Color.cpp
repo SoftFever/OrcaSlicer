@@ -6,7 +6,15 @@
 static const float INV_255 = 1.0f / 255.0f;
 
 namespace Slic3r {
-
+bool color_is_equal(const RGBA a, const RGBA& b)
+{
+    for (size_t i = 0; i < 4; i++) {
+        if (abs(a[i] - b[i]) > 0.01) {
+            return false;
+        }
+    }
+    return true;
+}
 // Conversion from RGB to HSV color space
 // The input RGB values are in the range [0, 1]
 // The output HSV values are in the ranges h = [0, 360], and s, v = [0, 1]

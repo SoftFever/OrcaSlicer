@@ -19,7 +19,9 @@
 #include "AstroBox.hpp"
 #include "Repetier.hpp"
 #include "MKS.hpp"
+#include "ESP3D.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "../GUI/MainFrame.hpp"
 #include "Obico.hpp"
 #include "Flashforge.hpp"
 #include "SimplyPrint.hpp"
@@ -57,6 +59,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htPrusaLink: return new PrusaLink(config);
             case htPrusaConnect: return new PrusaConnect(config);
             case htMKS:       return new MKS(config);
+            case htESP3D:       return new ESP3D(config);
             case htObico:     return new Obico(config);
             case htFlashforge: return new Flashforge(config);
             case htSimplyPrint: return new SimplyPrint(config);
@@ -312,6 +315,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
     if (success) {
         emit_progress(100);
+        if (the_job.switch_to_device_tab) {
+            const auto mainframe = GUI::wxGetApp().mainframe;
+            mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+        }
     }
 }
 

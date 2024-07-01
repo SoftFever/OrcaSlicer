@@ -413,7 +413,7 @@ ModelVolumeType type_from_string(const std::string &s)
         struct Geometry
         {
             std::vector<Vec3f> vertices;
-            std::vector<Vec3i> triangles;
+            std::vector<Vec3i32> triangles;
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
@@ -2107,7 +2107,7 @@ ModelVolumeType type_from_string(const std::string &s)
             {
                 int min_id = its.indices.front()[0];
                 int max_id = min_id;
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i32& face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
                             add_error("Found invalid vertex id");
@@ -2120,7 +2120,7 @@ ModelVolumeType type_from_string(const std::string &s)
                 its.vertices.assign(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
 
                 // rebase indices to the current vertices list
-                for (Vec3i& face : its.indices)
+                for (Vec3i32& face : its.indices)
                     for (int& tri_id : face)
                         tri_id -= min_id;
             }
@@ -2786,7 +2786,7 @@ ModelVolumeType type_from_string(const std::string &s)
 
             for (int i = 0; i < int(its.indices.size()); ++ i) {
                 {
-                    const Vec3i &idx = its.indices[i];
+                    const Vec3i32 &idx = its.indices[i];
                     char *ptr = buf;
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<

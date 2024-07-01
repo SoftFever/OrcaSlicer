@@ -831,6 +831,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else if (boost::iequals(it.key(), BBL_JSON_KEY_FROM)) {
                 key_values.emplace(BBL_JSON_KEY_FROM, it.value());
             }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_DESCRIPTION)) {
+                key_values.emplace(BBL_JSON_KEY_DESCRIPTION, it.value());
+            }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_INSTANTIATION)) {
                 key_values.emplace(BBL_JSON_KEY_INSTANTIATION, it.value());
             }
@@ -1011,6 +1014,10 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
             }
         }
+        
+        // Do legacy conversion on a completely loaded dictionary.
+        // Perform composite conversions, for example merging multiple keys into one key.
+        this->handle_legacy_composite();
         return 0;
     }
     catch (const std::ifstream::failure &err)  {
@@ -1100,6 +1107,9 @@ ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, Fo
             // ignore
         }
     }
+    // Do legacy conversion on a completely loaded dictionary.
+    // Perform composite conversions, for example merging multiple keys into one key.
+    this->handle_legacy_composite();
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -1186,7 +1196,10 @@ size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char*
         end = start;
     }
 
-    // BBS
+    // Do legacy conversion on a completely loaded dictionary.
+    // Perform composite conversions, for example merging multiple keys into one key.
+    config.handle_legacy_composite();
+
     free(result);
     return num_key_value_pairs;
 }
@@ -1364,6 +1377,10 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
         throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
     }
+
+    // Do legacy conversion on a completely loaded dictionary.
+    // Perform composite conversions, for example merging multiple keys into one key.
+    this->handle_legacy_composite();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
     return std::move(substitutions_ctxt.substitutions);

@@ -36,7 +36,9 @@
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
+#include "../Utils/ColorSpaceConvert.hpp"
 #include "BitmapCache.hpp"
+#include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
 
@@ -625,37 +627,6 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
     return true;
 }
 
-void PlaterPresetComboBox::save_custom_color_to_config(const std::vector<std::string>& colors)
-{
-    auto set_colors = [](std::map<std::string, std::string> &data, const std::vector<std::string> &colors) {
-        for (size_t i = 0; i < colors.size(); i++) {
-            data[std::to_string(10 + i)] = colors[i]; //for map sort:10 begin
-        }
-    };
-    if (colors.size() > 0) {
-        if (!wxGetApp().app_config->has_section("custom_color_list")) {
-            std::map<std::string, std::string> data;
-            set_colors(data,colors);
-            wxGetApp().app_config->set_section("custom_color_list", data);
-        } else {
-            auto data        = wxGetApp().app_config->get_section("custom_color_list");
-            auto data_modify = const_cast<std::map<std::string, std::string> *>(&data);
-            set_colors(*data_modify, colors);
-            wxGetApp().app_config->set_section("custom_color_list", *data_modify);
-        }
-    }
-}
-
-std::vector<std::string> PlaterPresetComboBox::get_custom_color_from_config() {
-    std::vector<std::string> colors;
-    if (wxGetApp().app_config->has_section("custom_color_list")) {
-        auto data = wxGetApp().app_config->get_section("custom_color_list");
-        for (auto iter : data) {
-            colors.push_back(iter.second);
-        }
-    }
-    return colors;
-}
 // ---------------------------------
 // ***  PlaterPresetComboBox  ***
 // ---------------------------------
@@ -704,21 +675,9 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
             m_clrData.SetChooseFull(true);
             m_clrData.SetChooseAlpha(false);
-            auto color_to_string   = [](const wxColour& color) { 
-                std::string str = std::to_string(color.Red()) + "," + std::to_string(color.Green()) + "," + std::to_string(color.Blue()) + "," + std::to_string(color.Alpha());
-                return str;
-            };
-            auto string_to_wxColor = [](const std::string& str) { 
-                wxColour color;
-                std::vector<std::string> result;
-                boost::split(result, str, boost::is_any_of(","));
-                if (result.size() == 4) { 
-                     color = wxColour(std::stoi(result[0]), std::stoi(result[1]), std::stoi(result[2]), std::stoi(result[3]));
-                }
-                return color;
-            };
-            std::vector<std::string> colors=get_custom_color_from_config();
-            for (int i = 0; i < colors.size(); i++) { 
+
+            std::vector<std::string> colors = wxGetApp().app_config->get_custom_color_from_config();
+            for (int i = 0; i < colors.size(); i++) {
                  m_clrData.SetCustomColour(i, string_to_wxColor(colors[i]));
             }
             wxColourDialog dialog(this, &m_clrData);
@@ -726,13 +685,13 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();
-                const int custom_color_count = 15;
-                if (colors.size() != custom_color_count) { 
-                    colors.resize(custom_color_count); }
-                for (int i = 0; i < custom_color_count; i++) { 
+                if (colors.size() != CUSTOM_COLOR_COUNT) {
+                    colors.resize(CUSTOM_COLOR_COUNT);
+                }
+                for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
                     colors[i] = color_to_string(m_clrData.GetCustomColour(i));
                 }
-                save_custom_color_to_config(colors);
+                wxGetApp().app_config->save_custom_color_to_config(colors);
                 // get current color
                 DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
                 auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
@@ -999,7 +958,8 @@ void PlaterPresetComboBox::update()
     std::map<wxString, wxBitmap*> nonsys_presets;
     //BBS: add project embedded presets logic
     std::map<wxString, wxBitmap*>  project_embedded_presets;
-    std::map<wxString, wxBitmap*>  system_presets;
+    std::map<wxString, wxBitmap *> system_presets;
+    std::map<wxString, wxString>   preset_descriptions;
 
     //BBS:  move system to the end
     wxString selected_system_preset;
@@ -1040,13 +1000,15 @@ void PlaterPresetComboBox::update()
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
-        const std::string name = preset.alias.empty() ? preset.name : preset.alias;
+        const wxString name = get_preset_name(preset);
+        preset_descriptions.emplace(name, from_u8(preset.description));
+
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace(get_preset_name(preset), bmp);
+            system_presets.emplace(name, bmp);
             if (is_selected) {
                 tooltip = get_tooltip(preset);
-                selected_system_preset = get_preset_name(preset);
+                selected_system_preset = name;
             }
             //Append(get_preset_name(preset), *bmp);
             //validate_selection(is_selected);
@@ -1057,17 +1019,17 @@ void PlaterPresetComboBox::update()
         //BBS: add project embedded preset logic
         else if (preset.is_project_embedded)
         {
-            project_embedded_presets.emplace(get_preset_name(preset), bmp);
+            project_embedded_presets.emplace(name, bmp);
             if (is_selected) {
-                selected_user_preset = get_preset_name(preset);
+                selected_user_preset = name;
                 tooltip = wxString::FromUTF8(preset.name.c_str());
             }
         }
         else
         {
-            nonsys_presets.emplace(get_preset_name(preset), bmp);
+            nonsys_presets.emplace(name, bmp);
             if (is_selected) {
-                selected_user_preset = get_preset_name(preset);
+                selected_user_preset = name;
                 //BBS set tooltip
                 tooltip = get_tooltip(preset);
             }
@@ -1084,7 +1046,7 @@ void PlaterPresetComboBox::update()
     {
         set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            Append(it->first, *it->second);
+            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
             validate_selection(it->first == selected_user_preset);
         }
     }
@@ -1092,7 +1054,7 @@ void PlaterPresetComboBox::update()
     {
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            Append(it->first, *it->second);
+            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
             validate_selection(it->first == selected_user_preset);
         }
     }
@@ -1101,7 +1063,7 @@ void PlaterPresetComboBox::update()
     {
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
-            Append(it->first, *it->second);
+            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
             validate_selection(it->first == selected_system_preset);
         }
     }
@@ -1250,6 +1212,7 @@ void TabPresetComboBox::update()
     std::map<wxString, std::pair<wxBitmap*, bool>>  project_embedded_presets;
     //BBS:  move system to the end
     std::map<wxString, std::pair<wxBitmap*, bool>>  system_presets;
+    std::map<wxString, wxString>                    preset_descriptions;
 
     wxString selected = "";
     //BBS:  move system to the end
@@ -1276,11 +1239,14 @@ void TabPresetComboBox::update()
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
+        const wxString name = get_preset_name(preset);
+        preset_descriptions.emplace(name, from_u8(preset.description));
+
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace(get_preset_name(preset), std::pair<wxBitmap *, bool>(bmp, is_enabled));
+            system_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
             if (i == idx_selected)
-                selected = get_preset_name(preset);
+                selected = name;
             //int item_id = Append(get_preset_name(preset), *bmp);
             //if (!is_enabled)
             //    set_label_marker(item_id, LABEL_ITEM_DISABLED);
@@ -1290,16 +1256,16 @@ void TabPresetComboBox::update()
         else if (preset.is_project_embedded)
         {
             //std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            project_embedded_presets.emplace(get_preset_name(preset), std::pair<wxBitmap *, bool>(bmp, is_enabled));
+            project_embedded_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
             if (i == idx_selected)
-                selected = get_preset_name(preset);
+                selected = name;
         }
         else
         {
             std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            nonsys_presets.emplace(get_preset_name(preset), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            nonsys_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
             if (i == idx_selected)
-                selected = get_preset_name(preset);
+                selected = name;
         }
         //BBS: move system to the end
         //if (i + 1 == m_collection->num_default_presets())
@@ -1315,6 +1281,7 @@ void TabPresetComboBox::update()
         set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
+            SetItemTooltip(item_id, preset_descriptions[it->first]);
             bool is_enabled = it->second.second;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
@@ -1326,6 +1293,7 @@ void TabPresetComboBox::update()
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
+            SetItemTooltip(item_id, preset_descriptions[it->first]);
             bool is_enabled = it->second.second;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
@@ -1338,6 +1306,7 @@ void TabPresetComboBox::update()
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
+            SetItemTooltip(item_id, preset_descriptions[it->first]);
             bool is_enabled = it->second.second;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);

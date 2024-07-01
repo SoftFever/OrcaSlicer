@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include <iostream>
 #include <memory.h>
 #include <cstring>
@@ -774,6 +769,7 @@ void PressureEqualizer::push_line_to_output(const size_t line_idx, float new_fee
     // Orca: sanity check, 1 mm/s is the minimum feedrate.
     if (new_feedrate < 60)
         new_feedrate = 60;
+    new_feedrate = std::round(new_feedrate);
     const GCodeLine &line = m_gcode_lines[line_idx];
     if (line_idx > 0 && output_buffer_length > 0) {
         const std::string prev_line_str = std::string(output_buffer.begin() + int(this->output_buffer_prev_length),

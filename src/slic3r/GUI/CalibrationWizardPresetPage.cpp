@@ -1,3 +1,4 @@
+#include <regex>
 #include "CalibrationWizardPresetPage.hpp"
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
@@ -312,7 +313,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
         m_title_texts[i]->Wrap(-1);
         m_title_texts[i]->SetFont(::Label::Body_14);
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
-        m_value_inputs[i] = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_value_inputs[i] = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
         m_value_inputs[i]->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         m_value_inputs[i]->GetTextCtrl()->Bind(wxEVT_TEXT, [this, i](wxCommandEvent& event) {
             std::string number = m_value_inputs[i]->GetTextCtrl()->GetValue().ToStdString();
@@ -391,7 +392,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     auto nozzle_temp_sizer = new wxBoxSizer(wxVERTICAL);
     auto nozzle_temp_text = new Label(parent, _L("Nozzle temperature"));
     nozzle_temp_text->SetFont(Label::Body_12);
-    m_nozzle_temp = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_nozzle_temp = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_nozzle_temp->SetBorderWidth(0);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
@@ -406,7 +407,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     auto bed_temp_text = new Label(parent, _L("Bed temperature"));
     bed_temp_text->SetFont(Label::Body_12);
 
-    m_bed_temp = new Label(parent, _L("- \u2103"));
+    m_bed_temp = new Label(parent, wxString::FromUTF8("- °C"));
     m_bed_temp->SetFont(Label::Body_12);
     bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
     bed_temp_sizer->Add(m_bed_temp, 0, wxALIGN_CENTER);
@@ -414,7 +415,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
     auto max_flow_text = new Label(parent, _L("Max volumetric speed"));
     max_flow_text->SetFont(Label::Body_12);
-    m_max_volumetric_speed = new TextInput(parent, wxEmptyString, _L("mm\u00B3"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_max_volumetric_speed = new TextInput(parent, wxEmptyString, wxString::FromUTF8("mm³"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_max_volumetric_speed->SetBorderWidth(0);
     max_flow_sizer->Add(max_flow_text, 0, wxALIGN_LEFT);
     max_flow_sizer->Add(m_max_volumetric_speed, 0, wxEXPAND);
@@ -1204,7 +1205,7 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
         return;
     }
-    else if (need_check_sdcard(obj_) && obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
         return;
     }
@@ -1424,10 +1425,10 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 m_custom_range_panel->set_titles(titles);
 
                 wxArrayString values;
-                values.push_back(_L("0"));
-                    values.push_back(_L("0.5"));
-                values.push_back(_L("0.005"));
-                                m_custom_range_panel->set_values(values);
+                values.push_back(wxString::Format(wxT("%.0f"), 0));
+                values.push_back(wxString::Format(wxT("%.2f"), 0.05));
+                values.push_back(wxString::Format(wxT("%.3f"), 0.005));
+                m_custom_range_panel->set_values(values);
 
                 m_custom_range_panel->set_unit("");
                 m_custom_range_panel->Show();
@@ -1479,7 +1480,7 @@ void CalibrationPresetPage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
     if (CalibUtils::print_worker) {
-        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
         CalibUtils::print_worker->cancel_all();
         CalibUtils::print_worker->wait_for_idle();
     }
@@ -1913,7 +1914,7 @@ MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
         titles.push_back(_L("Step"));
         m_custom_range_panel->set_titles(titles);
 
-        m_custom_range_panel->set_unit(_L("mm\u00B3/s"));
+        m_custom_range_panel->set_unit("mm³/s");
     }
 }
 }}

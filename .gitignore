@@ -28,4 +28,5 @@ src/OrcaSlicer-doc/
 **/machine_full/
 **/filament_full/
 DL_CACHE
+**/.flatpak-builder/
 resources/profiles/user/default

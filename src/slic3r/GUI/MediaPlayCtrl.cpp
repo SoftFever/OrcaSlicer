@@ -546,6 +546,13 @@ void MediaPlayCtrl::msw_rescale() {
     m_button_play->Rescale(); 
 }
 
+void MediaPlayCtrl::jump_to_play()
+{
+    if (m_last_state != MEDIASTATE_IDLE)
+        return;
+    TogglePlay();
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
@@ -571,11 +578,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() >= 320) {
             m_last_state = state;
+            m_failed_code = 0;
             SetStatus(_L("Playing..."), false);
 
 
             m_failed_retry = 0;
-            m_failed_code  = 0;
             m_disable_lan = false;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");

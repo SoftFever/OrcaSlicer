@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2020 Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef IPROGRESSINDICATOR_HPP
 #define IPROGRESSINDICATOR_HPP
 

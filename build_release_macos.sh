@@ -34,6 +34,9 @@ while getopts ":dpa:snt:xbc:h" opt; do
     c )
         export BUILD_CONFIG="$OPTARG"
         ;;
+    1 )
+        export CMAKE_BUILD_PARALLEL_LEVEL=1
+        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
@@ -43,6 +46,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         echo "   -x: Use Ninja CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
+        echo "   -1: Use single job for building"
         exit 0
         ;;
     * )

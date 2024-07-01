@@ -160,10 +160,12 @@ VoronoiDiagram::detect_known_issues(const VoronoiDiagram &voronoi_diagram, Segme
         return IssueType::FINITE_EDGE_WITH_NON_FINITE_VERTEX;
     } else if (const IssueType cell_issue_type = detect_known_voronoi_cell_issues(voronoi_diagram, segment_begin, segment_end); cell_issue_type != IssueType::NO_ISSUE_DETECTED) {
         return cell_issue_type;
-    } else if (!VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram, segment_begin, segment_end)) {
-        // Detection of non-planar Voronoi diagram detects at least GH issues #8474, #8514 and #8446.
-        return IssueType::NON_PLANAR_VORONOI_DIAGRAM;
     }
+    // BBS: test no problem in BBS
+    //} else if (!VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram, segment_begin, segment_end)) {
+    //    // Detection of non-planar Voronoi diagram detects at least GH issues #8474, #8514 and #8446.
+    //    return IssueType::NON_PLANAR_VORONOI_DIAGRAM;
+    //}
 
     return IssueType::NO_ISSUE_DETECTED;
 }

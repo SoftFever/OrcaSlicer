@@ -1,10 +1,3 @@
-#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Vojtěch Král @vojtechkral
-#/|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
-#/|/ Copyright (c) 2023 Mimoja @Mimoja
-#/|/ Copyright (c) 2022 ole00 @ole00
-#/|/
-#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r)
 
@@ -100,6 +93,8 @@ set(lisbslic3r_sources
     Fill/FillConcentric.hpp
     Fill/FillConcentricInternal.cpp
     Fill/FillConcentricInternal.hpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillCrossHatch.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
@@ -143,6 +138,8 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
+    Format/ZipperArchiveImport.hpp
+    Format/ZipperArchiveImport.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
@@ -209,6 +206,7 @@ set(lisbslic3r_sources
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
+    libslic3r.cpp
     Line.cpp
     Line.hpp
     BlacklistedLibraryCheck.cpp
@@ -232,6 +230,7 @@ set(lisbslic3r_sources
     Arrange.cpp
     NormalUtils.cpp
     NormalUtils.hpp
+    ObjColorUtils.hpp
     Orient.hpp
     Orient.cpp
     MultiPoint.cpp
@@ -448,8 +447,12 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
-        GCode/Thumbnails.cpp
-        GCode/Thumbnails.hpp
+    GCode/Thumbnails.cpp
+    GCode/Thumbnails.hpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -473,6 +476,7 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
 add_library(libslic3r_cgal STATIC 
@@ -573,6 +577,7 @@ target_link_libraries(libslic3r
     mcut
     JPEG::JPEG
     qoi
+    opencv_world
     )
 
 if(NOT WIN32)
