@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include "libslic3r/Exception.hpp"
 #include "libslic3r_version.h"
