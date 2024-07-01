@@ -8,6 +8,13 @@ on:
     branches:
       - main # This can be changed to any branch of your preference
 
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+
 env:
   USER_TOKEN: ${{ secrets.GH_WIKI_PAT }} # This is the repository secret personal access token
   USER_NAME: ${{ vars.BOT_USER_NAME }} # Enter the username of your (bot) account
@@ -16,7 +23,6 @@ env:
 
 jobs:
   publish_docs_to_wiki:
-    if: ${{ ! env.ACT }} # Skip if using `act`
     name: Publish docs to Wiki
     runs-on: ubuntu-latest
     steps:  
