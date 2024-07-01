@@ -1147,7 +1147,7 @@ wxPanel* SendMultiMachinePage::create_page()
         e.Skip();
     });
 
-    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
+    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
     m_printer_name->SetBackgroundColor(head_bg);
     m_printer_name->SetCornerRadius(0);
     m_printer_name->SetFont(TABLE_HEAD_FONT);
@@ -1169,7 +1169,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(10) );
     m_table_head_sizer->Add(m_printer_name, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
+    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
     m_device_status->SetBackgroundColor(head_bg);
     m_device_status->SetFont(TABLE_HEAD_FONT);
     m_device_status->SetCornerRadius(0);
@@ -1212,7 +1212,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     //m_table_head_sizer->Add(m_task_status, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE, false);
+    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE, false);
     m_ams->SetBackgroundColor(head_bg);
     m_ams->SetCornerRadius(0);
     m_ams->SetFont(TABLE_HEAD_FONT);
@@ -1233,7 +1233,7 @@ wxPanel* SendMultiMachinePage::create_page()
     });
     m_table_head_sizer->Add(m_ams, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, ICON_SIZE, false);
+    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, MM_ICON_SIZE, false);
     m_refresh_button->SetBackgroundColor(head_bg);
     m_refresh_button->SetCornerRadius(0);
     m_refresh_button->SetFont(TABLE_HEAD_FONT);
