@@ -9,12 +9,8 @@
 #include "Widgets/StaticLine.hpp"
 
 #include <utility>
-#include <wx/bookctrl.h>
 #include <wx/numformatter.h>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include "libslic3r/Exception.hpp"
-#include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
 #include <locale>

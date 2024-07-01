@@ -6,13 +6,9 @@
 #include <boost/log/trivial.hpp>
 
 #if _WIN32
-#include <windows.h>
 #include <tchar.h>
 #include <winioctl.h>
 #include <shlwapi.h>
-
-#include <Dbt.h>
-
 #else
 // unix, linux & OSX includes
 #include <errno.h>

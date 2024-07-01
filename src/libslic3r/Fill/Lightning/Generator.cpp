@@ -4,7 +4,6 @@
 #include "Generator.hpp"
 #include "TreeNode.hpp"
 
-#include "../../ClipperUtils.hpp"
 #include "../../Layer.hpp"
 #include "../../Print.hpp"
 

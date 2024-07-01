@@ -1,6 +1,4 @@
-#include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
-#include "../Surface.hpp"
 #include <cmath>
 
 #include "FillCrossHatch.hpp"

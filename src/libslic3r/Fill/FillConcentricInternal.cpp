@@ -1,6 +1,3 @@
-#include "../ClipperUtils.hpp"
-#include "../ExPolygon.hpp"
-#include "../Surface.hpp"
 #include "../VariableWidth.hpp"
 #include "Arachne/WallToolPaths.hpp"
 

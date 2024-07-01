@@ -6,7 +6,6 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
-#include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
@@ -15,19 +14,11 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 
-#include <wx/listbook.h>
-#include <wx/notebook.h>
 #include <wx/glcanvas.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/choice.h>
-#include <wx/combo.h>
-#include <wx/combobox.h>
-#include <wx/checkbox.h>
 
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
 #include "libslic3r/Print.hpp"
-#include "libslic3r/SLAPrint.hpp"
 #include "NotificationManager.hpp"
 
 #ifdef _WIN32

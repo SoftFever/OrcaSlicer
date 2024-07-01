@@ -1,9 +1,6 @@
 #include <algorithm>
-#include <sstream>
-//#include "libslic3r/FlushVolCalc.hpp"
 #include "ObjColorDialog.hpp"
 #include "BitmapCache.hpp"
-#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"

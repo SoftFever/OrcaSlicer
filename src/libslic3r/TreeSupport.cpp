@@ -5,7 +5,6 @@
 #include "Print.hpp"
 #include "Layer.hpp"
 #include "Fill/FillBase.hpp"
-#include "Fill/FillConcentric.hpp"
 #include "CurveAnalyzer.hpp"
 #include "SVG.hpp"
 #include "ShortestPath.hpp"
@@ -13,7 +12,6 @@
 #include <libnest2d/backends/libslic3r/geometries.hpp>
 
 #include <boost/log/trivial.hpp>
-#include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
 #define _L(s) Slic3r::I18N::translate(s)
