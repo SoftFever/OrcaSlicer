@@ -274,7 +274,7 @@ jobs:
           path: './build/OrcaSlicer_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
