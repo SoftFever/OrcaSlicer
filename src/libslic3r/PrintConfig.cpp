@@ -1718,6 +1718,12 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 15;
     def->set_default_value(new ConfigOptionStrings{"0,0,0\n0,0,0"});
+    
+    def = this->add("adaptive_pressure_advance_overhangs", coBools);
+    def->label = L("Enable adaptive pressure advance for overhangs (beta)");
+    def->tooltip = L("Enable evaluating adaptive PA for overhangs.\n");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");
