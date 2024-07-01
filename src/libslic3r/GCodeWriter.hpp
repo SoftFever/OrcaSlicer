@@ -108,8 +108,6 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static bool full_gcode_comment;
-    //Radian threshold of slope for lazy lift and spiral lift;
-    static const double slope_threshold;
     //SoftFever
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}

@@ -7,6 +7,7 @@
 #include <jpeglib.h>
 #include <jerror.h>
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 namespace Slic3r::GCodeThumbnails {
 
