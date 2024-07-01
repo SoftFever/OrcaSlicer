@@ -2311,8 +2311,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        optgroup->append_single_option_line("interlocking_beam");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
+        optgroup->append_single_option_line("interlocking_beam_width");
+        optgroup->append_single_option_line("interlocking_orientation");
+        optgroup->append_single_option_line("interlocking_beam_layer_count");
+        optgroup->append_single_option_line("interlocking_depth");
+        optgroup->append_single_option_line("interlocking_boundary_avoidance");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");

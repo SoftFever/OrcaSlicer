@@ -2292,7 +2292,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - layers segmentation in parallel - end";
     throw_on_cancel_callback();
 
-    if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth; max_width > 0.f  || interlocking_depth > 0.f) {
+    auto interlocking_beam = print_object.config().interlocking_beam;
+    if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth;
+        !interlocking_beam && (max_width > 0.f || interlocking_depth > 0.f)) {
         cut_segmented_layers(input_expolygons, segmented_regions, float(scale_(max_width)), float(scale_(interlocking_depth)), throw_on_cancel_callback);
         throw_on_cancel_callback();
     }
