@@ -5372,7 +5372,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // TODO: is issued before the overhang perimeter role change is triggered
     // TODO: because for some reason (maybe path segmentation upstream?) there is a short path extruded
     // TODO: with the overhang speed and flow before the role change is flagged in the path.role() function.
-    if(role_change) evaluate_adaptive_pa = true;
+    if(role_change && EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance)) 
+        evaluate_adaptive_pa = true;
     
     // Orca: End of dynamic PA trigger flag segment
     
