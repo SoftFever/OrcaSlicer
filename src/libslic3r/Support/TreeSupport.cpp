@@ -748,7 +748,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         return cluster;
     };
 
-    if (!is_tree(stype)) return;   
+    if (!is_tree(stype)) return;
 
     max_cantilever_dist = 0;
     m_highest_overhang_layer = 0;
@@ -852,7 +852,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         }
                         dist_max = std::max(dist_max, dist_pt);
                     }
-                    if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base                            
+                    if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base
                         max_cantilever_dist = std::max(max_cantilever_dist, dist_max);
                         layer->cantilevers.emplace_back(poly);
                         BOOST_LOG_TRIVIAL(debug) << "found a cantilever cluster. layer_nr=" << layer_nr << dist_max;
@@ -939,7 +939,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     layer->sharp_tails_height.push_back( accum_height);
                 }
 
-            }          
+            }
         }
     }
 
@@ -1034,7 +1034,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
 
         if (layer_nr < blockers.size()) {
-            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise, 
+            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
             // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
             ExPolygons blocker = offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution));
             layer->loverhangs = diff_ex(layer->loverhangs, blocker);
@@ -1071,7 +1071,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
         // add sharp tail overhangs
         append(layer->loverhangs, sharp_tail_overhangs);
-		
+
         // fill overhang_types
         for (size_t i = 0; i < layer->loverhangs.size(); i++)
             overhang_types.emplace(&layer->loverhangs[i], i < nDetected ? OverhangType::Detected :
@@ -1295,7 +1295,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const ExPolygon
 
         if (infill_first)
             dst.insert(dst.end(), loops_entities.begin(), loops_entities.end());
-        else { // loops first            
+        else { // loops first
             loops_entities.insert(loops_entities.end(), dst.begin(), dst.end());
             dst = std::move(loops_entities);
         }
@@ -1670,7 +1670,7 @@ void TreeSupport::generate()
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
 
-    
+
     profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
     m_object->print()->set_status(70, _u8L("Generating support"));
     generate_toolpaths();
@@ -1795,7 +1795,7 @@ ExPolygons avoid_object_remove_extra_small_parts(const ExPolygon &expoly, const 
         }
     }
     if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
-    
+
     return expolys_out;
 }
 
@@ -1888,7 +1888,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
-    const bool SQUARE_SUPPORT = avg_node_per_layer > 200;    
+    const bool SQUARE_SUPPORT = avg_node_per_layer > 200;
     const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 100; // The number of vertices in each circle.
 
 
@@ -2312,7 +2312,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                         {
                         // if roof1 interface is inside a hole, need to expand the interface
                         for (auto& roof1 : ts_layer->roof_1st_layer) {
-                            //if (hole.contains(roof1.contour.points.front()) && hole.contains(roof1.contour.bounding_box().center())) 
+                            //if (hole.contains(roof1.contour.points.front()) && hole.contains(roof1.contour.bounding_box().center()))
                             bool is_inside_hole = std::all_of(roof1.contour.points.begin(), roof1.contour.points.end(), [&hole](Point& pt) { return hole.contains(pt); });
                             if (is_inside_hole) {
                                 Polygon hole_reoriented = hole;
@@ -2460,7 +2460,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
         auto& layer_contact_nodes = contact_nodes[layer_nr];
         if (layer_contact_nodes.empty())
             continue;
-        
+
         int      layer_nr_next = layer_heights[layer_nr].next_layer_nr;
         coordf_t print_z = layer_heights[layer_nr].print_z;
         coordf_t print_z_next = layer_heights[layer_nr_next].print_z;
@@ -2660,7 +2660,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
 
             //In the second pass, move all middle nodes.
             tbb::parallel_for_each(nodes_vec.begin(), nodes_vec.end(), [&](const std::pair<const Point, SupportNode*>& entry) {
-            
+
                 SupportNode* p_node = entry.second;
                 const SupportNode& node = *p_node;
                 if (to_delete.find(p_node) != to_delete.end())
@@ -2738,7 +2738,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                     for (const Point &neighbour : neighbours) {
                         // do not move to the neighbor to be deleted
                         SupportNode *neighbour_node = nodes_this_part[neighbour];
-                        if (to_delete.find(neighbour_node) != to_delete.end()) continue; 
+                        if (to_delete.find(neighbour_node) != to_delete.end()) continue;
 
                         Point direction = neighbour - node.position;
                         // do not move to neighbor that's too far away (即使以最大速度移动，在接触热床之前都无法汇聚)
@@ -2754,7 +2754,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                         if (!is_strong)
                             sum_direction += direction * (1 / dist2_to_neighbor);
                         else
-                            sum_direction += direction;                        
+                            sum_direction += direction;
                     }
 
                     if (!is_strong)
@@ -2964,71 +2964,72 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_
 
 std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::vector<SupportNode *>> &contact_nodes)
 {
-    const coordf_t max_layer_height = m_slicing_params.max_layer_height;
-    const coordf_t layer_height = m_object_config->layer_height.value;
-    coordf_t z_distance_top = m_slicing_params.gap_support_object;
-    // BBS: add extra distance if thick bridge is enabled
-    // Note: normal support uses print_z, but tree support uses integer layers, so we need to subtract layer_height
-    if (!m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
-        z_distance_top += m_object->layers()[0]->regions()[0]->region().bridging_height_avg(*m_print_config) - layer_height;
-    }
-    const size_t support_roof_layers = m_object_config->support_interface_top_layers.value;
-    const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1;
     std::vector<LayerHeightData> layer_heights(contact_nodes.size());
-    std::vector<int> bounds;
+    std::map<int, std::pair<coordf_t,coordf_t>> bounds; // layer_nr:(print_z, height)
 
-    if (!m_object_config->tree_support_adaptive_layer_height || layer_height == max_layer_height || !m_support_params.independent_layer_height) {
-        for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
-            layer_heights[layer_nr] = {m_object->get_layer(layer_nr)->print_z, m_object->get_layer(layer_nr)->height, layer_nr > 0 ? size_t(layer_nr - 1) : 0};
-        }
-    }
-    else {
-        bounds.push_back(0);
+    {
         // Keep first layer still
         layer_heights[0] = { m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0 };
+        bounds[0] = { m_object->get_layer(0)->print_z, m_object->get_layer(0)->height};
         // Collect top contact layers
         for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
             if (!contact_nodes[layer_nr].empty()) {
-                bounds.push_back(layer_nr);
-                layer_heights[layer_nr].print_z = contact_nodes[layer_nr].front()->print_z;
-                layer_heights[layer_nr].height = contact_nodes[layer_nr].front()->height;
-                BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[layer_nr].print_z << " " << layer_heights[layer_nr].height << "   "
-                    << layer_nr;
+                coordf_t print_z = contact_nodes[layer_nr].front()->print_z;
+                coordf_t height = contact_nodes[layer_nr].front()->height;
+                if(height>m_slicing_params.max_suport_layer_height){
+                    // split this layer into multiple layers if the gap is too big
+                    int num_layers=std::ceil(height/m_slicing_params.max_suport_layer_height);
+                    coordf_t new_height= height/num_layers;
+                    for(auto& node: contact_nodes[layer_nr]) {
+                        node->height = new_height;
+                        node->distance_to_top = -num_layers;
+                        node->support_roof_layers_below+=num_layers-1;
+                    }
+
+                    for (int i=0; i<num_layers; ++i) {
+                        bounds[layer_nr-i]={print_z, new_height};
+                        print_z-=new_height;
+                    }
+                }else{
+                    bounds[layer_nr]={print_z, height};
+                }
             }
         }
-        std::set<int> s(bounds.begin(), bounds.end());
-        bounds.assign(s.begin(), s.end());
 
-        for (size_t idx_extreme = 1; idx_extreme < bounds.size(); idx_extreme++) {
-            int extr2_layer_nr = bounds[idx_extreme];
-            coordf_t extr2z = layer_heights[extr2_layer_nr].bottom_z();
-            int extr1_layer_nr = bounds[idx_extreme - 1];
-            coordf_t extr1z = layer_heights[extr1_layer_nr].print_z;
+        auto it1 = bounds.begin();
+        auto it2 = bounds.begin();
+        it2++;
+        for (; it2 != bounds.end();it1++, it2++) {
+            int      extr2_layer_nr = it2->first;
+            coordf_t extr2z         = it2->second.first - it2->second.second; // bottom_z of upper bound
+            int extr1_layer_nr = it1->first; //bounds[idx_extreme - 1];
+            coordf_t extr1z = it1->second.first;// print_z of lower bound
             coordf_t dist = extr2z - extr1z;
 
+            layer_heights[extr2_layer_nr].print_z = it2->second.first;
+            layer_heights[extr2_layer_nr].height = it2->second.second;
+            BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[extr2_layer_nr].print_z << " " << layer_heights[extr2_layer_nr].height << "   " << extr2_layer_nr;
+
             // Insert intermediate layers.
-            size_t n_layers_extra = size_t(ceil(dist / (m_slicing_params.max_suport_layer_height + EPSILON)));
-            int actual_internel_layers = extr2_layer_nr - extr1_layer_nr - 1;
-            int extr_layers_left = extr2_layer_nr - extr1_layer_nr - n_layers_extra - 1;
+            size_t n_layers_extra   = m_support_params.independent_layer_height ? size_t(ceil(dist / (m_slicing_params.max_suport_layer_height))) :
+                                                                                  size_t(ceil(dist / (m_slicing_params.min_layer_height)));
             if (n_layers_extra < 1)
                 continue;
 
             coordf_t step = dist / coordf_t(n_layers_extra);
-            coordf_t print_z = extr1z + step;
-            //assert(step >= layer_height - EPSILON);
-            coordf_t extr2z_large_steps = extr2z;
+            coordf_t print_z = extr1z;
             for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
-                // if (curr_layer_nodes.empty()) continue;
-                if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON || extr_layers_left < 1) {
+                Layer* layer = m_object->get_layer(layer_nr);
+                if (!m_support_params.independent_layer_height) step = layer->height;
+                if (std::abs((print_z+step) - layer->print_z) < step / 2 + EPSILON) {
+                    print_z += step;
                     layer_heights[layer_nr].print_z = print_z;
                     layer_heights[layer_nr].height = step;
-                    print_z += step;
                 }
                 else {
                     // can't clear curr_layer_nodes, or the model will have empty layers
                     layer_heights[layer_nr].print_z = 0.0;
                     layer_heights[layer_nr].height = 0.0;
-                    extr_layers_left--;
                 }
             }
         }
@@ -3152,9 +3153,12 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
                     contact_node->overhang = overhang_part;
                     contact_node->is_sharp_tail = is_sharp_tail;
                     if (is_sharp_tail) {
-                        int  ind = overhang_part.contour.closest_point_index(pt);
-                        auto n1 = (overhang_part.contour[ind] - overhang_part.contour[ind - 1]).cast<double>().normalized();
-                        auto n2 = (overhang_part.contour[ind] - overhang_part.contour[ind + 1]).cast<double>().normalized();
+                        int  ind      = overhang_part.contour.closest_point_index(pt);
+                        int  nSize    = overhang_part.contour.points.size();
+                        int  ind_prev = (ind - 1 + nSize) % nSize;
+                        int  ind_next = (ind + 1) % nSize;
+                        auto n1 = (overhang_part.contour[ind] - overhang_part.contour[ind_prev]).cast<double>().normalized();
+                        auto n2 = (overhang_part.contour[ind] - overhang_part.contour[ind_next]).cast<double>().normalized();
                         contact_node->skin_direction = scaled((n1 + n2).normalized());
                     }
                     curr_nodes.emplace_back(contact_node);
@@ -3223,7 +3227,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
                             }
                         }
                     }
-                
+
             }
             if (!curr_nodes.empty()) nonempty_layers++;
             for (auto node : curr_nodes) { all_nodes.emplace_back(node->position(0), node->position(1), scale_(node->print_z)); }
@@ -3250,7 +3254,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
             mx2 += x * x;
         }
         nodes_angle = atan2(nNodes * mxy - mx * my, nNodes * mx2 - SQ(mx));
-        
+
         BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
     }
 }
