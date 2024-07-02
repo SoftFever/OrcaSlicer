@@ -9,10 +9,6 @@
 #include "format.hpp"
 #include "libslic3r.h"
 
-#ifdef __APPLE__
-#include "MacUtils.hpp"
-#endif
-
 #ifdef WIN32
 	#include <windows.h>
 	#include <psapi.h>
@@ -29,6 +25,7 @@
 	#ifdef __APPLE__
 		#include <mach/mach.h>
 		#include <libproc.h>
+        #include "MacUtils.hpp"
 	#endif
 	#ifdef __linux__
 		#include <sys/stat.h>
@@ -36,6 +33,7 @@
 		#include <sys/sendfile.h>
 		#include <dirent.h>
 		#include <stdio.h>
+        #include "Platform.hpp"
 	#endif
 #endif
 

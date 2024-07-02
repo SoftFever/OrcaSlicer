@@ -1926,8 +1926,13 @@ void GUI_App::init_app_config()
             boost::filesystem::create_directory(data_dir_path);
         }
 
-        // Change current dirtory of application
-        _chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
+        // Change current directory of application
+        auto path = encode_path((Slic3r::data_dir() + "/log").c_str());
+#ifdef _WIN32
+        _chdir(path.c_str());
+#else
+        chdir(path.c_str());
+#endif
     } else {
         m_datadir_redefined = true;
     }
