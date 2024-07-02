@@ -1,5 +1,4 @@
-# Precise Z Height
-When enabled, this option ensures the accurate Z height of the model after slicing, even if the model height is not a multiple of the layer height.
+This feature ensures the accurate Z height of the model after slicing, even if the model height is not a multiple of the layer height.
 
 For example, slicing a 20mm x 20mm x 20.1mm cube with a layer height of 0.2mm would typically result in a final height of 20.2mm due to the layer height increments. 
 
