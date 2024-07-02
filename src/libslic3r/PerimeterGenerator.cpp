@@ -18,6 +18,7 @@
 #include <cassert>
 #include <random>
 #include <unordered_set>
+#include <thread>
 #include "libslic3r/AABBTreeLines.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;

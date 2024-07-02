@@ -39,8 +39,7 @@ then
     fi
 
     # check which version of libwebkit2gtk is available
-    apt show --quiet libwebkit2gtk-4.0-dev >/dev/null 2>&1
-    if [ "$?" == "0" ]
+    if [ "$(apt show --quiet libwebkit2gtk-4.0-dev)" != "" ]
     then
         REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.0-dev)
     else
