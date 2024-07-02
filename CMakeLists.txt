@@ -48,6 +48,7 @@ set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find 
 set(SLIC3R_GTK "3" CACHE STRING "GTK version to use with wxWidgets on Linux")
 set(IS_CROSS_COMPILE FALSE)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
+set(CGAL_DATA_DIR ".") # Prevent warning from CGAL regarding data dir not being set. Orca does not use CGAL's data dir
 
 # Enable C++17 language standard.
 set(CMAKE_CXX_STANDARD 17)
