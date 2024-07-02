@@ -10,7 +10,7 @@
         "0.926"
     ],
     "filament_max_volumetric_speed": [
-        "2"
+        "4.5"
     ],
 	"compatible_printers": [
 		"UltiMaker 2 0.4 nozzle"
