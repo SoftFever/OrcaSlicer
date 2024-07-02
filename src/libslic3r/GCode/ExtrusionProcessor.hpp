@@ -118,7 +118,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
             if ((curr.distance > -boundary_offset && curr.distance < boundary_offset + 2.0f) ||
                 (next.distance > -boundary_offset && next.distance < boundary_offset + 2.0f)) {
                 double line_len = (next.position - curr.position).norm();
-                if (line_len > 1.0f) {
+                if (line_len > 0.8f) {
                     double a0 = std::clamp((curr.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double a1 = std::clamp(1.0f - (next.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double t0 = std::min(a0, a1);
