@@ -1896,35 +1896,37 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         it = this->find_preset_renamed(original_name);
         found = it != m_presets.end();
     }
+
+    std::string extruder_id_name, extruder_variant_name;
+    std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr, empty_set;
+    if (m_type == Preset::TYPE_PRINT) {
+        extruder_id_name = "print_extruder_id";
+        extruder_variant_name = "print_extruder_variant";
+        key_set1 = &print_options_with_variant;
+        key_set2 = &empty_set;
+    }
+    else if (m_type == Preset::TYPE_PRINTER) {
+        extruder_id_name = "printer_extruder_id";
+        extruder_variant_name = "printer_extruder_variant";
+        key_set1 = &printer_options_with_variant_1;
+        key_set2 = &printer_options_with_variant_2;
+    }
+    else if (m_type == Preset::TYPE_FILAMENT) {
+        extruder_variant_name = "filament_extruder_variant";
+        key_set1 = &filament_options_with_variant;
+        key_set2 = &empty_set;
+    }
     if (!inherits.empty() && (different_settings_list.size() > 0)) {
         auto iter = this->find_preset_internal(inherits);
         if (iter != m_presets.end() && iter->name == inherits) {
             //std::vector<std::string> dirty_options = cfg.diff(iter->config);
-            for (auto &opt : keys) {
-                if (different_settings_list.find(opt) != different_settings_list.end())
-                    continue;
-                ConfigOption *opt_src = iter->config.option(opt);
-                ConfigOption *opt_dst = cfg.option(opt);
-                if (opt_src && opt_dst && (*opt_src != *opt_dst)) {
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to inherit's value %3%, preset_name %4%, inherits_name %5%")
-                            %opt %(opt_dst->serialize()) %(opt_src->serialize()) %original_name %inherits;
-                    opt_dst->set(opt_src);
-                }
-            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": change preset %1% inherit %2% 's value to %3% 's values")%original_name %inherits %path;
+            cfg.update_non_diff_values_to_base_config(iter->config, keys, different_settings_list, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
         }
     }
     else if (found && it->is_system && (different_settings_list.size() > 0)) {
-        for (auto &opt : keys) {
-            if (different_settings_list.find(opt) != different_settings_list.end())
-                continue;
-            ConfigOption *opt_src = it->config.option(opt);
-            ConfigOption *opt_dst = cfg.option(opt);
-            if (opt_src && opt_dst && (*opt_src != *opt_dst)) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to new_value %3%, preset_name %4%")
-                        %opt %(opt_dst->serialize()) %(opt_src->serialize()) %original_name;
-                opt_dst->set(opt_src);
-            }
-        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": change preset %1% 's value to %2% 's values")%original_name %path;
+        cfg.update_non_diff_values_to_base_config(it->config, keys, different_settings_list, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
     }
 
     //BBS: add config related logs

@@ -2755,7 +2755,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                             if (other_opt_vec->size() != extruder_variant_count) {
                                 throw Slic3r::RuntimeError(std::string("Invalid values of \"") + key + std::string("\" found in ") + name_or_path);
                             }
-                            size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count - 1;
+                            size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count;
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set(other_opt, filament_variant_index[i], next_index - filament_variant_index[i]);
                         }
                         else

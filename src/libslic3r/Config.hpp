@@ -348,6 +348,7 @@ public:
     //BBS
     virtual void append(const ConfigOption *rhs) = 0;
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
+    virtual void set_with_keep(const ConfigOptionVectorBase* rhs, std::vector<int>& keep_index, int stride) = 0;
     // Resize the vector of values, copy the newly added values from opt_default if provided.
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
     // Clear the values vector.
@@ -468,6 +469,29 @@ public:
         }
         else
             throw ConfigurationError("ConfigOptionVector::set_with(): Assigning an incompatible type");
+    }
+
+    virtual void set_with_keep(const ConfigOptionVectorBase* rhs, std::vector<int>& keep_index, int stride) override
+    {
+        if (rhs->type() == this->type()) {
+            //backup original ones
+            std::vector<T> backup_values = this->values;
+            // Assign the first value of the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            this->values = other->values;
+
+            if (other->values.size() != keep_index.size())
+                throw ConfigurationError("ConfigOptionVector::set_with_keep(): Assigning from an vector with invalid keep_index size");
+
+            for (size_t i = 0; i < keep_index.size(); i++) {
+                if (keep_index[i] != -1) {
+                    for (size_t j = 0; j < stride; j++)
+                        this->values[i * stride +j] = backup_values[keep_index[i] * stride +j];
+                }
+            }
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_with_keep(): Assigning an incompatible type");
     }
 
     const T& get_at(size_t i) const
