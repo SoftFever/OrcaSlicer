@@ -219,10 +219,14 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     // BBS
     // Reorder the extruders to minimize tool switches.
-    if (first_extruder == (unsigned int)-1) {
-        this->reorder_extruders(generate_first_layer_tool_order(object));
+    std::vector<unsigned int> first_layer_tool_order;
+    if (first_extruder == (unsigned int) -1) {
+        first_layer_tool_order = generate_first_layer_tool_order(object);
     }
-    else {
+
+    if (!first_layer_tool_order.empty()) {
+        this->reorder_extruders(first_layer_tool_order);
+    } else {
         this->reorder_extruders(first_extruder);
     }
 
