@@ -435,7 +435,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
-        int new_extruder_id = get_extruder_index(new_filament_id);
+        int new_extruder_id = get_extruder_index(*m_print_config, new_filament_id);
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
@@ -1534,7 +1534,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     bool activate_long_retraction_when_cut = false;
     for (const auto& extruder : m_writer.extruders())
         activate_long_retraction_when_cut |= (
-            m_config.long_retractions_when_cut.get_at(extruder.extruder_id()) 
+            m_config.long_retractions_when_cut.get_at(extruder.extruder_id())
          && m_config.retraction_distances_when_cut.get_at(extruder.extruder_id()) > 0
             );
 
@@ -1820,6 +1820,8 @@ static BambuBedType to_bambu_bed_type(BedType type)
 void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_FUNC();
+
+    m_print = &print;
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
@@ -2155,7 +2157,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
-    int extruder_id = get_extruder_index(initial_extruder_id);
+    int extruder_id = get_extruder_id(initial_extruder_id);
 
     // Orca: Initialise AdaptivePA processor filter
     m_pa_processor = std::make_unique<AdaptivePAProcessor>(*this, tool_ordering.all_extruders());
@@ -2739,6 +2741,18 @@ void GCode::check_placeholder_parser_failed()
         msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
         throw Slic3r::PlaceholderParserError(msg);
     }
+}
+
+size_t GCode::get_extruder_id(unsigned int filament_id) const
+{
+    if (m_print) {
+        std::vector<int> filament_maps = m_print->get_filament_maps();
+        if (filament_id < filament_maps.size()) {
+            return filament_maps[filament_id];
+        }
+    }
+
+    return 0;
 }
 
 // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
@@ -6370,7 +6384,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
 std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool by_object)
 {
-    int extruder_id = get_extruder_index(filament_id);
+    int extruder_id = get_extruder_id(filament_id);
     if (!m_writer.need_toolchange(filament_id))
         return "";
 

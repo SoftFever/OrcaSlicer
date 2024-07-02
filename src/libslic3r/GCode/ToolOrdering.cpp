@@ -354,7 +354,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         auto first_layer = object->get_layer(0);
         for (auto layerm : first_layer->regions()) {
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
-            
+
             for (auto expoly : layerm->raw_slices) {
                 const double nozzle_diameter = print.config().nozzle_diameter.get_at(0);
                 const coordf_t initial_layer_line_width = print.config().get_abs_value("initial_layer_line_width", nozzle_diameter);
@@ -486,7 +486,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
 
-        // Override extruder with the next 
+        // Override extruder with the next
     	for (; it_per_layer_extruder_override != per_layer_extruder_switches.end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
     		extruder_override = (int)it_per_layer_extruder_override->second;
 
@@ -552,7 +552,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
 
     sort_remove_duplicates(firstLayerExtruders);
     const_cast<PrintObject&>(object).object_first_layer_wall_extruders = firstLayerExtruders;
-    
+
     for (auto& layer : m_layer_tools) {
         // Sort and remove duplicates
         sort_remove_duplicates(layer.extruders);
@@ -1057,7 +1057,11 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     size_t nozzle_nums = print_config->nozzle_diameter.values.size();
     if (nozzle_nums > 1) {
         std::vector<int> filament_maps = get_recommended_filament_maps();
+        if (filament_maps.empty())  // multi-extruder and one-color
+            return;
+
         reorder_extruders_for_minimum_flush_volume_multi_extruder(filament_maps);
+        m_print->update_filament_maps_to_config(filament_maps);
         return;
     }
 
@@ -1177,7 +1181,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume_multi_extruder(con
 
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
-    
+
     auto extruders_to_hash_key = [](const std::vector<unsigned int> &extruders, std::optional<unsigned int> initial_extruder_id) -> uint32_t {
         uint32_t hash_key = 0;
         // high 16 bit define initial extruder ,low 16 bit define extruder set
@@ -1206,7 +1210,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume_multi_extruder(con
         }
         return false;
     };
-    
+
     std::optional<unsigned int> current_extruder_id;
 
     std::vector<std::optional<unsigned int>> nozzle_to_cur_filaments;

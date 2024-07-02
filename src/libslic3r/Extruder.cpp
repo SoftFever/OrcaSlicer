@@ -12,7 +12,7 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_share_extruder(share_extruder)
 {
     reset();
-    
+
     // cache values that are going to be called often
     m_e_per_mm3 = this->filament_flow_ratio();
     m_e_per_mm3 /= this->filament_crossection();
@@ -20,7 +20,11 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
 
 unsigned int Extruder::extruder_id() const
 {
-    return get_extruder_index(m_id);
+    assert(m_config);
+    if (m_id < m_config->filament_map.size()) {
+        return m_config->filament_map.get_at(m_id);
+    }
+    return 0;
 }
 
 double Extruder::extrude(double dE)
@@ -47,7 +51,7 @@ double Extruder::extrude(double dE)
 
 /* This method makes sure the extruder is retracted by the specified amount
    of filament and returns the amount of filament retracted.
-   If the extruder is already retracted by the same or a greater amount, 
+   If the extruder is already retracted by the same or a greater amount,
    this method is a no-op.
    The restart_extra argument sets the extra length to be used for
    unretraction. If we're actually performing a retraction, any restart_extra

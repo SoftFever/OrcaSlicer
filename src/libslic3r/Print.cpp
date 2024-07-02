@@ -2603,6 +2603,15 @@ std::vector<int> Print::get_filament_maps() const
     return m_config.filament_map.values;
 }
 
+size_t Print::get_extruder_id(unsigned int filament_id) const
+{
+    std::vector<int> filament_map = get_filament_maps();
+    if (filament_id < filament_map.size()) {
+        return filament_map[filament_id];
+    }
+    return 0;
+}
+
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {

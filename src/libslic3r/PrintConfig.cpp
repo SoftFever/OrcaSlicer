@@ -53,9 +53,11 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
-size_t get_extruder_index(unsigned int filament_id)
+size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
 {
-    // todo multi_extruders:
+    if (filament_id < config.filament_map.size()) {
+        return config.filament_map.get_at(filament_id);
+    }
     return 0;
 }
 

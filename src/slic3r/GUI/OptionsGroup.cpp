@@ -48,12 +48,14 @@ int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_ke
     NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(cur_extruder_id));
 
     std::string id_name, variant_name;
+    unsigned int stride = 1;
     if (printer_options_with_variant_1.count(opt_key) > 0) { // printer parameter
         id_name      = "printer_extruder_id";
         variant_name = "printer_extruder_variant";
     } else if (printer_options_with_variant_2.count(opt_key) > 0) {
         id_name      = "printer_extruder_id";
         variant_name = "printer_extruder_variant";
+        stride       = 2;
     } else if (filament_options_with_variant.count(opt_key) > 0) {
         //filament don't use id anymore
         //id_name      = "filament_extruder_id";
@@ -66,7 +68,7 @@ int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_ke
     }
 
     // variant index
-    int variant_index = config.get_index_for_extruder(cur_extruder_id + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+    int variant_index = config.get_index_for_extruder(cur_extruder_id + 1, id_name, extruder_type, nozzle_volume_type, variant_name, stride);
     if (variant_index < 0) {
         assert(false);
         return 0;
