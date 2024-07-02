@@ -5729,6 +5729,9 @@ msgstr "사전 설정 비교"
 msgid "View all object's settings"
 msgstr "모든 개체 설정 보기"
 
+msgid "Material settings"
+msgstr "재료 설정"
+
 msgid "Remove current plate (if not last one)"
 msgstr "현재 플레이트 제거(마지막 플레이트가 아닌 경우)"
 
@@ -5804,6 +5807,9 @@ msgstr "사용할 필라멘트 설정"
 
 msgid "Search plate, object and part."
 msgstr "플레이트, 개체 및 부품을 검색합니다."
+
+msgid "Pellets"
+msgstr "펠릿"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6406,6 +6412,21 @@ msgstr "탐색"
 msgid "Choose Download Directory"
 msgstr "다운로드 폴더 선택"
 
+msgid "Associate"
+msgstr "링크"
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr "를 OrcaSlicer와 연결하여 Orca가 다음 사이트의 모델을 열 수 있게 합니다"
+
+msgid "Current Association: "
+msgstr "현재 연결: "
+
+msgid "Current Instance"
+msgstr "현재 인스턴스"
+
+msgid "Current Instance Path: "
+msgstr "현재 인스턴스 경로: "
+
 msgid "General Settings"
 msgstr "일반 설정"
 
@@ -6611,42 +6632,6 @@ msgstr "OrcaSlicer에 웹 링크 연결"
 
 msgid "Associate URLs to OrcaSlicer"
 msgstr "OrcaSlicer에 URL 연결"
-
-msgid "Current association: "
-msgstr "현재 연결:"
-
-msgid "Associate prusaslicer://"
-msgstr "prusaslicer:// 연결"
-
-msgid "Not associated to any application"
-msgstr "어떤 애플리케이션과도 연결되지 않음"
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-"OrcaSlicer가 Printable.com에서 모델을 열 수 있도록 OrcaSlicer를 prusaslicer:// 링크"
-"와 연결합니다."
-
-msgid "Associate bambustudio://"
-msgstr "bambustudio:// 연결"
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-"OrcaSlicer가 makerworld.com에서 모델을 열 수 있도록 OrcaSlicer를 bambustudio:// 링"
-"크와 연결합니다."
-
-msgid "Associate cura://"
-msgstr "cura:// 연결"
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
-msgstr ""
-"OOrcaSlicer가 thingiverse.com에서 모델을 열 수 있도록 OrcaSlicer를 cura:// 링크와 연"
-"결합니다."
 
 msgid "Maximum recent projects"
 msgstr "최근 프로젝트 최대 표시"
@@ -8279,7 +8264,8 @@ msgid ""
 "Your system is missing H.264 codecs for GStreamer, which are required to "
 "play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
 "libav packages, then restart Orca Slicer?)"
-msgstr ""
+msgstr "시스템에 동영상 재생을 위해 필요한 GStreamer용 H.264 코덱이 존재하지 않습니다. "
+"(gstreamer1.0-plugins-bad 또는 gstreamer1.0-libav 패키지를 설치한 다음 Orca Slicer를 다시 실행하십시오.)"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "뱀부 네트워크 플러그인이 감지되지 않습니다."
@@ -10554,6 +10540,26 @@ msgstr ""
 "필라멘트 직경은 G코드에서 압출량을 계산하는데 사용되므로 중요하며 정확해야 합니"
 "다"
 
+msgid "Pellet flow coefficient"
+msgstr "펠릿 유량 계수"
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+"펠릿 유량 계수는 경험적으로 추산되며 펠릿 프린터에서의 부피 계산에 사용됩니"
+"다.\n"
+"\n"
+"내부적으로 이 값은 filament_diameter로 변환됩니다. 다른 부피 계산은 영향을 받"
+"지 않습니다.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+
 msgid "Shrinkage"
 msgstr "수축"
 
@@ -11295,6 +11301,12 @@ msgstr "프린터와 호환되는 G코드 종류"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr "펠릿 프린터"
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr "프린터가 필라멘트 대신 펠릿을 사용할 경우 활성화하세요"
+
 msgid "Support multi bed types"
 msgstr "멀티 배드 유형 지원"
 
@@ -11408,6 +11420,58 @@ msgstr "분할된 영역의 연동 깊이"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "분할된 영역의 깊이를 연동합니다. 0은 이 기능을 비활성화합니다."
+
+msgid "Use beam interlocking"
+msgstr "인터로킹 빔 사용"
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+"서로 다른 필라멘트가 접촉하는 곳에 맞물리는 구조의 (인터로킹) 빔을 생성합니"
+"다. 이 기능은 필라멘트 간의 결합력을 향상시키며, 서로 다른 재료로 출력한 모델"
+"에 특히 유용합니다."
+
+msgid "Interlocking beam width"
+msgstr "인터로킹 빔 너비"
+
+msgid "The width of the interlocking structure beams."
+msgstr "인터로킹 빔 구조의 너비"
+
+msgid "Interlocking direction"
+msgstr "맞물림 방향"
+
+msgid "Orientation of interlock beams."
+msgstr "인터로킹 빔의 배치 방향"
+
+msgid "Interlocking beam layers"
+msgstr "인터로킹 빔 레이어 수"
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+"맞물림 구조의 높이를 레이어 수로 나타낸 값입니다. 레이어 수가 적을수록 강도"
+"가 올라가나, 결함이 발생하기 더 쉬워집니다."
+
+msgid "Interlocking depth"
+msgstr "맞물림 깊이"
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+"필라멘트 간의 접촉면으로부터 맞물림 구조를 생성할 거리를 셀의 수로 나타낸 값"
+"입니다. 너무 적은 수의 셀을 사용할 경우 결합력이 저하될 수 있습니다."
+
+msgid "Interlocking boundary avoidance"
+msgstr "맞물림 방지 거리"
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr "모델의 외벽으로부터 맞물림 구조를 생성하기 시작할 거리를 설정합니다."
 
 msgid "Ironing Type"
 msgstr "다림질 유형"
@@ -12091,6 +12155,14 @@ msgstr "경사"
 
 msgid "Spiral"
 msgstr "나선형"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Z값 위에서만 올리기"
@@ -14176,6 +14248,22 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
+"우리 위키에서 동적 유량 교정에 대한 자세한 내용을 찾아보세요.\n"
+"\n"
+"일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 유량 교정"
+"\" 옵션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방"
+"식을 따르며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하"
+"면 프린터는 모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 "
+"사용하므로 대부분의 경우 좋은 결과를 얻을 수 있습니다.\n"
+"\n"
+"교정 결과를 신뢰할 수 없게 만드는 몇 가지 경우가 있습니다. 텍스처 플레이트"
+"를 사용하여 보정을 수행합니다. 빌드 플레이트의 접착력이 좋지 않습니다. (빌"
+"드 플레이트를 세척하거나 풀을 바르십시오!) ...위키에서 자세한 내용을 확인"
+"할 수 있습니다.\n"
+"\n"
+"테스트에서 교정 결과에는 약 10%의 오차가 있으며, 이로 인해 각 교정에서 결"
+"과가 정확히 동일하지 않을 수 있습니다. 새로운 업데이트로 개선하기 위해 근"
+"본 원인을 계속 조사하고 있습니다."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "유량 교정을 사용해야 하는 경우"
