@@ -424,11 +424,7 @@ coordf_t Layer::get_sparse_infill_max_void_area()
 
 size_t Layer::get_extruder_id(unsigned int filament_id) const
 {
-    std::vector<int> filament_map = m_object->print()->get_filament_maps();
-    if (filament_id < filament_map.size()) {
-        return filament_map[filament_id];
-    }
-    return 0;
+    return m_object->print()->get_extruder_id(filament_id);
 }
 
 BoundingBox get_extents(const LayerRegion &layer_region)

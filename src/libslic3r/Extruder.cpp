@@ -22,7 +22,7 @@ unsigned int Extruder::extruder_id() const
 {
     assert(m_config);
     if (m_id < m_config->filament_map.size()) {
-        return m_config->filament_map.get_at(m_id);
+        return m_config->filament_map.get_at(m_id) - 1;
     }
     return 0;
 }
