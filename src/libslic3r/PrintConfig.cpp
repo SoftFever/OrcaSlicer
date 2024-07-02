@@ -1721,7 +1721,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("adaptive_pressure_advance_overhangs", coBools);
     def->label = L("Enable adaptive pressure advance for overhangs (beta)");
-    def->tooltip = L("Enable evaluating adaptive PA for overhangs.\n");
+    def->tooltip = L("Enable evaluating adaptive PA for overhangs as well as when flow changes within the same feature.\n");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
 

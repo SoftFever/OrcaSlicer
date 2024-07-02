@@ -361,14 +361,19 @@ private:
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
     std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
     
-    // Orca: Used for adaptive PA when extruding paths with multiple, varying flow segments.
+    // Orca: Adaptive PA variables
+    // Used for adaptive PA when extruding paths with multiple, varying flow segments.
     // This contains the sum of the mm3_per_mm values weighted by the length of each path segment.
     // The m_multi_flow_segment_path_pa_set constrains the PA change request to the first extrusion segment.
     // It sets the mm3_mm value for the adaptive PA post processor to be the average of that path
     // as calculated and stored in the m_multi_segment_path_average_mm3_per_mm value
     double          m_multi_flow_segment_path_average_mm3_per_mm = 0;
     bool            m_multi_flow_segment_path_pa_set = false;
+    // Adaptive PA last set speed and flow to enable issuing of PA change commands when adaptive PA for overhangs
+    // is enabled
     double          m_last_set_speed = 0;
+    double          m_last_mm3_mm = 0;
+    // Orca: Adaptive PA code segment end
 
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
