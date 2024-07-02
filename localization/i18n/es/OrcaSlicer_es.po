@@ -5188,7 +5188,7 @@ msgid "Switch to video files."
 msgstr "Cambiar a archivos de video."
 
 msgid "Switch to 3mf model files."
-msgstr "Switch to 3mf model files."
+msgstr "Cambiar a archivos de modelos 3mf."
 
 msgid "Delete selected files from printer."
 msgstr "Borrar archivos seleccionados desde la impresora."
@@ -5209,7 +5209,7 @@ msgid "Refresh"
 msgstr "Actualizar"
 
 msgid "Reload file list from printer."
-msgstr "Reload file list from printer."
+msgstr "Recarga la lista de archivos desde la impresora."
 
 msgid "No printers."
 msgstr "No hay impresoras."
@@ -5225,17 +5225,17 @@ msgid "No files"
 msgstr "No hay archivos"
 
 msgid "Load failed"
-msgstr "Load failed"
+msgstr "Carga fallida"
 
 msgid "Initialize failed (Device connection not ready)!"
-msgstr "Initialization failed (Device connection not ready)!"
+msgstr "Error de inicialización (conexión del dispositivo no preparada)."
 
 msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
-"Browsing file in SD card is not supported in current firmware. Please update "
-"the printer firmware."
+"La búsqueda de archivos en la tarjeta SD no es compatible con el firmware "
+"actual. Actualice el firmware de la impresora."
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 msgstr ""
@@ -5243,10 +5243,11 @@ msgstr ""
 "SD)."
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr "LAN Connection Failed (Failed to view sdcard)"
+msgstr "Conexión LAN fallida (no se puede ver la tarjeta sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+msgstr ""
+"La búsqueda de archivos en la tarjeta SD no es posible en el modo Sólo LAN."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -5264,13 +5265,13 @@ msgstr "Borrar archivos"
 
 #, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
-msgstr "Do you want to delete the file '%s' from printer?"
+msgstr "¿Desea eliminar el fichero '%s' de la impresora?"
 
 msgid "Delete file"
-msgstr "Delete file"
+msgstr "Borrar archivo"
 
 msgid "Fetching model infomations ..."
-msgstr "Fetching model information..."
+msgstr "Obteniendo información sobre el modelo ..."
 
 msgid "Failed to fetch model information from printer."
 msgstr "No se pudo recuperar la información del modelo de la impresora."
@@ -5317,8 +5318,8 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
-"Reconnecting the printer, the operation cannot be completed immediately, "
-"please try again later."
+"Al volver a conectar la impresora, la operación no puede completarse "
+"inmediatamente, inténtelo de nuevo más tarde."
 
 msgid "File does not exist."
 msgstr "El archivo no existe."
@@ -6469,24 +6470,25 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
-"Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"No se pueden realizar operaciones booleanas en las mallas del modelo. Sólo "
+"se conservarán las partes positivas. Puede arreglar las mallas e intentarlo "
+"de nuevo."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr "Reason: part \"%1%\" is empty."
+msgstr "Razón: la parte \"%1%\" está vacía."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr "Reason: part \"%1%\" does not bound a volume."
+msgstr "Motivo: La pieza \"%1%\" no tiene volumen."
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Reason: part \"%1%\" has self intersection."
+msgstr "Razón: la parte \"%1%\" se ha intersecado."
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr "Reason: \"%1%\" and another part have no intersection."
+msgstr "Razón: \"%1%\" y otra parte no tienen intersección."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6536,7 +6538,7 @@ msgstr "Configuración de Bandeja"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
-msgstr "Number of currently selected parts: %1%\n"
+msgstr "Número de piezas seleccionadas actualmente: %1%.\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
@@ -7216,7 +7218,7 @@ msgid "Input access code"
 msgstr "Introducir el código de acceso"
 
 msgid "Can't find my devices?"
-msgstr "No puedo encontrar mis dispositivos?"
+msgstr "¿No puedo encontrar mis dispositivos?"
 
 msgid "Log out successful."
 msgstr "Cierre de sesión con éxito."
@@ -7228,7 +7230,7 @@ msgid "Bambu Cool Plate"
 msgstr "Bandeja frío Bambu"
 
 msgid "PLA Plate"
-msgstr "PLA Plate"
+msgstr "Bandeja PLA"
 
 msgid "Bambu Engineering Plate"
 msgstr "Bandeja de Ingeniería Bambú"
@@ -7252,10 +7254,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Presione aquí si no puede conectar a la impresora"
 
 msgid "send completed"
-msgstr "envío completo"
+msgstr "Envío completo"
 
 msgid "Error code"
-msgstr "Error code"
+msgstr "Código de error"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Sin cuenta de acceso, sólo se muestran las impresoras en modo LAN"
@@ -7397,8 +7399,8 @@ msgid ""
 "start printing."
 msgstr ""
 "Hay algunos filamentos desconocidos en los mapeados AMS. Por favor, "
-"compruebe si son los filamentos requeridos. Si lo son, presione \"Confirmar"
-"\" para empezar a imprimir."
+"compruebe si son los filamentos requeridos. Si lo son, presione "
+"\"Confirmar\" para empezar a imprimir."
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
@@ -7763,8 +7765,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Cuando grabamos timelapse sin cabezal de impresión, es recomendable añadir "
 "un \"Torre de Purga de Intervalo\" \n"
@@ -8023,7 +8025,7 @@ msgid "Toolchange parameters with single extruder MM printers"
 msgstr "Parámetros de cambio de herramienta para impresoras de 1 extrusor MM"
 
 msgid "Ramming settings"
-msgstr "Parámetros de Ramming"
+msgstr "Parámetros de Moldeado de Extremo"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr ""
@@ -8421,61 +8423,61 @@ msgid "The configuration is up to date."
 msgstr "La configuración está actualizada."
 
 msgid "Obj file Import color"
-msgstr "Obj file Import color"
+msgstr "Archivo Obj Importar color"
 
 msgid "Specify number of colors:"
-msgstr "Specify number of colors:"
+msgstr "Especifique el número de colores:"
 
 #, c-format, boost-format
 msgid "The color count should be in range [%d, %d]."
-msgstr "The color count should be in range [%d, %d]."
+msgstr "El recuento de colores debe estar en el rango [%d, %d]."
 
 msgid "Recommended "
-msgstr "Recommended "
+msgstr "Recomendado "
 
 msgid "Current filament colors:"
-msgstr "Current filament colors:"
+msgstr "Colores de filamento actuales:"
 
 msgid "Quick set:"
-msgstr "Quick set:"
+msgstr "Configurar rápido:"
 
 msgid "Color match"
-msgstr "Color match"
+msgstr "Combinación de colores"
 
 msgid "Approximate color matching."
-msgstr "Approximate color matching."
+msgstr "Coincidencia de color aproximada."
 
 msgid "Append"
-msgstr "Append"
+msgstr "Añada"
 
 msgid "Add consumable extruder after existing extruders."
-msgstr "Add consumable extruder after existing extruders."
+msgstr "Añadir extrusora consumible después de las extrusoras existentes."
 
 msgid "Reset mapped extruders."
-msgstr "Reset mapped extruders."
+msgstr "Restablecer extrusoras mapeadas."
 
 msgid "Cluster colors"
-msgstr "Cluster colors"
+msgstr "Colores de los grupos"
 
 msgid "Map Filament"
-msgstr "Map Filament"
+msgstr "Mapear Filamento"
 
 msgid ""
 "Note:The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Nota: Una vez seleccionado el color, puede seleccionar OK \n"
+" para continuar o ajustarlo manualmente."
 
 msgid ""
 "Waring:The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
-"Warning: The count of newly added and \n"
-" current extruders exceeds 16."
+"Advertencia: El número de extrusoras añadidas y \n"
+"actuales supera los 16."
 
 msgid "Ramming customization"
-msgstr "Personalización de Ramming"
+msgstr "Personalización de Moldeado de Extremo"
 
 msgid ""
 "Ramming denotes the rapid extrusion just before a tool change in a single-"
@@ -8495,7 +8497,7 @@ msgstr ""
 "posteriormente."
 
 msgid "Total ramming time"
-msgstr "Tiempo total de Ramming"
+msgstr "Tiempo total de Moldeado de Extremo"
 
 msgid "s"
 msgstr "s"
@@ -8504,7 +8506,7 @@ msgid "Total rammed volume"
 msgstr "Volumen de moldeado de extremo total"
 
 msgid "Ramming line width"
-msgstr "Ancho de línea de Ramming"
+msgstr "Ancho de línea de Moldeado de Extremo"
 
 msgid "Ramming line spacing"
 msgstr "Separación de línea de moldeado de extremo"
@@ -8543,10 +8545,10 @@ msgid "Multiplier"
 msgstr "Multiplicador"
 
 msgid "unloaded"
-msgstr "descargado"
+msgstr "Descargado"
 
 msgid "loaded"
-msgstr "cargado"
+msgstr "Cargado"
 
 msgid "Filament #"
 msgstr "Filamento #"
@@ -9854,19 +9856,19 @@ msgid "First layer print sequence"
 msgstr "Secuencia de impresión de primera capa"
 
 msgid "Other layers print sequence"
-msgstr "Other layers print sequence"
+msgstr "Secuencia de impresión de otras capas"
 
 msgid "The number of other layers print sequence"
-msgstr "The number of other layers print sequence"
+msgstr "El número de secuencias de impresión de otras capas"
 
 msgid "Other layers filament sequence"
-msgstr "Other layers filament sequence"
+msgstr "Secuencia de filamentos de otras capas"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Este G-Code se inserta en cada cambio de capa antes de levantar z"
 
 msgid "Bottom shell layers"
-msgstr "Cubiertas inferiores de cubierta"
+msgstr "Capas inferiores de cubierta"
 
 msgid ""
 "This is the number of solid layers of bottom shell, including the bottom "
@@ -11141,8 +11143,8 @@ msgid ""
 "This string is edited by RammingDialog and contains ramming specific "
 "parameters."
 msgstr ""
-"El RammingDialog edita esta cadena y contiene los parámetros específicos de "
-"moldeado de extremo."
+"El Moldeado de ExtremoDialog edita esta cadena y contiene los parámetros "
+"específicos de moldeado de extremo."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
@@ -11171,17 +11173,18 @@ msgstr ""
 "torre de purga está activada."
 
 msgid "Multitool ramming volume"
-msgstr "Volumen de Ramming multiherramienta"
+msgstr "Volumen de Moldeado de Extremo multiherramienta"
 
 msgid "The volume to be rammed before the toolchange."
-msgstr "El volumen de Ramming antes del cambio de herramienta."
+msgstr "El volumen de Moldeado de Extremo antes del cambio de herramienta."
 
 msgid "Multitool ramming flow"
-msgstr "Flujo de Ramming multiherramienta"
+msgstr "Flujo de Moldeado de Extremo multiherramienta"
 
 msgid "Flow used for ramming the filament before the toolchange."
 msgstr ""
-"Flujo usado por el Ramming de filamento antes del cambio de herramienta."
+"Flujo usado por el Moldeado de Extremo de filamento antes del cambio de "
+"herramienta."
 
 msgid "Density"
 msgstr "Densidad"
@@ -11524,10 +11527,10 @@ msgstr "Velocidad máxima del ventilador en la capa"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La velocidad de ventilador se incrementará linealmente de cero a "
 "\"close_fan_the_first_x_layers\" al máximo de capa \"full_fan_speed_layer\". "
@@ -14163,9 +14166,6 @@ msgstr ""
 "NOTA: Las superficies inferior y superior no se verán afectadas por este "
 "valor para evitar huecos visuales en el exterior del modelo. Ajuste \"Umbral "
 "de perímetro\" en la configuración avanzada para ajustar la sensibilidad de "
-"lo que se considera una superficie superior. El \"Umbral de un solo perímetro"
-"\" sólo es visible si este valor es superior al valor predeterminado de 0,5, "
-"o si las superficies superiores de un solo perímetro están activados."
 
 msgid "First layer minimum wall width"
 msgstr "Ancho mínimo del perímetro de la primera capa"
@@ -14901,12 +14901,12 @@ msgstr ""
 "wiki.\n"
 "\n"
 "Normalmente la calibración es innecesaria. Cuando se inicia una impresión de "
-"un solo color/material, con la opción \"calibración de la dinámica de flujo"
-"\" marcada en el menú de inicio de impresión, la impresora seguirá el camino "
-"antiguo, calibrar el filamento antes de la impresión; cuando se inicia una "
-"impresión de varios colores/materiales, la impresora utilizará el parámetro "
-"de compensación por defecto para el filamento durante cada cambio de "
-"filamento que tendrá un buen resultado en la mayoría de los casos.\n"
+"un solo color/material, con la opción \"calibración de la dinámica de "
+"flujo\" marcada en el menú de inicio de impresión, la impresora seguirá el "
+"camino antiguo, calibrar el filamento antes de la impresión; cuando se "
+"inicia una impresión de varios colores/materiales, la impresora utilizará el "
+"parámetro de compensación por defecto para el filamento durante cada cambio "
+"de filamento que tendrá un buen resultado en la mayoría de los casos.\n"
 "\n"
 "Tenga en cuenta que hay algunos casos que pueden hacer que los resultados de "
 "la calibración no sean fiables, como una adhesión insuficiente en la placa "
@@ -15139,7 +15139,7 @@ msgid "Printing Parameters"
 msgstr "Parámetros de Impresión"
 
 msgid "Plate Type"
-msgstr "Plate Type"
+msgstr "Tipo de Bandeja"
 
 msgid "filament position"
 msgstr "posición de filamento"
@@ -15219,19 +15219,21 @@ msgstr "Acción"
 
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
-msgstr "This machine type can only hold %d historical results per nozzle."
+msgstr ""
+"Este tipo de máquina sólo puede almacenar %d resultados históricos por "
+"boquilla."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Editar Calibración de Dinámicas de Flujo"
 
 msgid "New Flow Dynamic Calibration"
-msgstr "New Flow Dynamic Calibration"
+msgstr "Nueva Calibración Dinámica del Caudal"
 
 msgid "Ok"
 msgstr "Ok"
 
 msgid "The filament must be selected."
-msgstr "The filament must be selected."
+msgstr "Debe seleccionarse el filamento."
 
 msgid "Network lookup"
 msgstr "Búsqueda de red"
@@ -15423,7 +15425,7 @@ msgid "Upload to storage"
 msgstr "Subir a almacenamiento"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Cambie a la pestaña Dispositivo después de la carga."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15660,8 +15662,8 @@ msgstr ""
 "¿Quieres reescribirlo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Cambiaríamos el nombre de los preajustes a \"Número de serie del Vendedor "
@@ -16124,10 +16126,10 @@ msgid "Refresh Printers"
 msgstr "Refrescar Impresoras"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Ver el host de impresión webui en la pestaña Dispositivo"
 
 msgid "Replace the BambuLab's device tab with print host webui"
-msgstr ""
+msgstr "Sustituir la pestaña de dispositivos de BambuLab por print host webui"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16584,8 +16586,8 @@ msgstr "¡Se ha conectado correctamente a SimplyPrint!"
 msgid "Could not connect to SimplyPrint"
 msgstr "No se ha podido conectar con SimplyPrint"
 
-msgid "Internel error"
-msgstr ""
+msgid "Internal error"
+msgstr "Error interno"
 
 msgid "Unknown error"
 msgstr "Error desconocido"
@@ -17449,8 +17451,8 @@ msgstr ""
 #~ msgstr "Capas de baja densidad (EXPERIMENTAL)"
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
-#~ "\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you "
+#~ "selected\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "Cambiaremos el nombre de los perfiles a \"Tipo Número de Serie @impresora "

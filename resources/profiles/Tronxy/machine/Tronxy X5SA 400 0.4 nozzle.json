@@ -6,6 +6,8 @@
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "printer_model": "Tronxy X5SA 400 Marlin Firmware",
+  "default_filament_profile": "Tronxy Generic PLA",
+  "default_print_profile": "0.20mm Standard @Tronxy",
   "nozzle_diameter": [
     "0.4"
   ],
@@ -15,5 +17,6 @@
     "400x400",
     "0x400"
   ],
-  "printable_height": "400"
+  "printable_height": "400",
+  "machine_start_gcode": "M104 S[nozzle_temperature_initial_layer] ; start heat nozzle\nM140 S[bed_temperature_initial_layer] ; start heat bed\nG90 ; abs coords\nM83 ; extrude relative\nG28 ; home\nM190 S[bed_temperature_initial_layer] ; wait for bed temp\nM109 S[nozzle_temperature_initial_layer] ; wait for nozzle temp\nG1 X10.1 Y20 Z0.28 F5000.0 ; purge line\nG1 X10.1 Y200.0 Z0.28 F1500.0 E15\nG1 X10.4 Y200.0 Z0.28 F5000.0\nG1 X10.4 Y20 Z0.28 F1500.0 E15\nG1 Z5.0 F3000 ; move Z up"
 }

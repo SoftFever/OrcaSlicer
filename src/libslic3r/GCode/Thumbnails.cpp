@@ -1,10 +1,12 @@
 #include "Thumbnails.hpp"
 #include "../miniz_extension.hpp"
+#include "format.hpp"
 
 #include <qoi/qoi.h>
 #include <jpeglib.h>
 #include <jerror.h>
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 namespace Slic3r::GCodeThumbnails {
 
