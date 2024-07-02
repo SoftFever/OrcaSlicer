@@ -5360,21 +5360,23 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     // Orca: Dynamic PA
     // If adaptive PA is enabled, by default evaluate PA on all extrusion moves
-    bool evaluate_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance);
-    // If we have already emmited a PA change because the m_multi_flow_segment_path_pa_set is set
-    // skip re-issuing the PA change tag.
-    if (m_multi_flow_segment_path_pa_set && evaluate_adaptive_pa)
-        evaluate_adaptive_pa = false;
-    bool role_change = (m_last_extrusion_role != path.role());
-    // TODO: Explore forcing evaluation of PA if a role change is happening mid extrusion.
-    // TODO: This would enable adapting PA for overhang perimeters as they are part of the current loop
-    // TODO: The issue with simply enabling PA evaluation on a role change is that the speed change
-    // TODO: is issued before the overhang perimeter role change is triggered
-    // TODO: because for some reason (maybe path segmentation upstream?) there is a short path extruded
-    // TODO: with the overhang speed and flow before the role change is flagged in the path.role() function.
-    if(role_change && EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance)) 
+    bool evaluate_adaptive_pa = false;
+    if(EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance)){
         evaluate_adaptive_pa = true;
-    
+        // If we have already emmited a PA change because the m_multi_flow_segment_path_pa_set is set
+        // skip re-issuing the PA change tag.
+        if (m_multi_flow_segment_path_pa_set && evaluate_adaptive_pa)
+            evaluate_adaptive_pa = false;
+        bool role_change = (m_last_extrusion_role != path.role());
+        // TODO: Explore forcing evaluation of PA if a role change is happening mid extrusion.
+        // TODO: This would enable adapting PA for overhang perimeters as they are part of the current loop
+        // TODO: The issue with simply enabling PA evaluation on a role change is that the speed change
+        // TODO: is issued before the overhang perimeter role change is triggered
+        // TODO: because for some reason (maybe path segmentation upstream?) there is a short path extruded
+        // TODO: with the overhang speed and flow before the role change is flagged in the path.role() function.
+        if(role_change)
+            evaluate_adaptive_pa = true;
+    }
     // Orca: End of dynamic PA trigger flag segment
     
     //Orca: process custom gcode for extrusion role change
