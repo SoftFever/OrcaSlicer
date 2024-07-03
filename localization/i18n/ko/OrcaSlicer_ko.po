@@ -1777,10 +1777,10 @@ msgid "Reload the selected parts from disk"
 msgstr "선택한 부품을 디스크에서 다시 불러오기"
 
 msgid "Replace with STL"
-msgstr "STL파일로 교체"
+msgstr "STL 파일로 교체"
 
 msgid "Replace the selected part with new STL"
-msgstr "선택한 부품을 새 STL파일로 교체"
+msgstr "선택한 부품을 새 STL 파일로 교체"
 
 msgid "Change filament"
 msgstr "필라멘트 변경"
@@ -2985,10 +2985,10 @@ msgstr ""
 "(현재 동일한 브랜드, 재질, 색상의 소모품 자동 공급 지원)"
 
 msgid "DRY"
-msgstr "DRY"
+msgstr "건조함"
 
 msgid "WET"
-msgstr "WET"
+msgstr "습함"
 
 msgid "AMS Settings"
 msgstr "AMS 설정"
@@ -3219,10 +3219,10 @@ msgid "Device"
 msgstr "장치"
 
 msgid "Task Sending"
-msgstr "Task Sending"
+msgstr "작업 전송중"
 
 msgid "Task Sent"
-msgstr "Task Sent"
+msgstr "작업 전송됨"
 
 msgid "Edit multiple printers"
 msgstr "여러 프린터 편집"
@@ -3242,7 +3242,7 @@ msgid "Offline"
 msgstr "오프라인"
 
 msgid "No task"
-msgstr "No task"
+msgstr "작업 없음"
 
 msgid "View"
 msgstr "시점"
@@ -3267,7 +3267,7 @@ msgstr "동작"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "여기에서 관리할 장치를 선택하세요(최대 6개 장치)"
+msgstr "여기에서 관리할 장치를 선택하세요 (최대 6개 장치)"
 
 msgid "Add"
 msgstr "추가"
@@ -3387,7 +3387,7 @@ msgid "Timelapse"
 msgstr "타임랩스"
 
 msgid "Flow Dynamic Calibration"
-msgstr "흐름 동적 보정"
+msgstr "유량 동적 보정"
 
 msgid "Send Options"
 msgstr "전송 옵션"
@@ -3877,7 +3877,7 @@ msgid "Edit Custom G-code (%1%)"
 msgstr "사용자 지정 G코드 편집 (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
-msgstr "기본 제공 플레이스홀더(항목을 두 번 클릭하여 G코드에 추가)"
+msgstr "기본 제공 플레이스홀더 (항목을 두 번 클릭하여 G코드에 추가)"
 
 msgid "Search gcode placeholders"
 msgstr "G코드 자리 표시자 검색"
@@ -4003,7 +4003,7 @@ msgid "Layer Time"
 msgstr "레이어 시간"
 
 msgid "Layer Time (log)"
-msgstr "레이어 시간(log)"
+msgstr "레이어 시간 (log)"
 
 msgid "Height: "
 msgstr "높이: "
@@ -4326,7 +4326,7 @@ msgid ""
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 "레이어 %d, z = %.2lf mm에서 G코드 경로 충돌이 발견되었습니다. 충돌하는 개체"
-"를 더 멀리 분리하세요(%s <-> %s)."
+"를 더 멀리 분리하세요 (%s <-> %s)."
 
 msgid "An object is layed over the boundary of plate."
 msgstr "개체가 플레이트 경계 위에 놓여 있습니다."
@@ -4809,17 +4809,17 @@ msgid "Export toolpaths as OBJ"
 msgstr "툴 경로를 OBJ로 내보내기"
 
 msgid "Open &Slicer"
-msgstr "Studio 열기 (&O)"
+msgstr "&Slicer 열기 (&O)"
 
 msgid "Open Slicer"
-msgstr "Studio 열기"
+msgstr "Slicer 열기"
 
 msgid "&Quit"
 msgstr "종료 (&Q)"
 
 #, c-format, boost-format
 msgid "Quit %s"
-msgstr "종료 %s"
+msgstr "%s 종료"
 
 msgid "&File"
 msgstr "파일 (&F)"
@@ -4973,7 +4973,7 @@ msgid ""
 "Do you want to stop this virtual camera?"
 msgstr ""
 "다른 가상 카메라가 실행 중입니다.\n"
-"Orca Slicer는 단일 가상 카메라만 지원합니다.\n"
+"Orca Slicer는 하나의 가상 카메라만 지원합니다.\n"
 "이 가상 카메라를 중지하시겠습니까?"
 
 #, c-format, boost-format
@@ -5071,7 +5071,7 @@ msgstr ""
 "초기화에 실패했습니다(저장소를 사용할 수 없습니다. SD 카드를 삽입하세요.)!"
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr "LAN 연결 실패(sdcard를 볼 수 없음)"
+msgstr "LAN 연결 실패 (sdcard를 볼 수 없음)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr "LAN 전용 모드에서는 SD 카드의 파일 탐색이 지원되지 않습니다."
@@ -5273,10 +5273,10 @@ msgid "Debug Info"
 msgstr "디버그 정보"
 
 msgid "No SD Card"
-msgstr "SD카드 없음"
+msgstr "SD 카드 없음"
 
 msgid "SD Card Abnormal"
-msgstr "SD카드 이상"
+msgstr "SD 카드 이상"
 
 msgid "Cancel print"
 msgstr "출력 취소"
@@ -5337,7 +5337,7 @@ msgid "Sport"
 msgstr "스포츠"
 
 msgid "Ludicrous"
-msgstr "루더크러스"
+msgstr "루디크러스"
 
 msgid "Can't start this without SD card."
 msgstr "SD 카드가 없으면 시작할 수 없습니다."
@@ -8198,7 +8198,7 @@ msgid "Total ramming time"
 msgstr "총 래밍 시간"
 
 msgid "s"
-msgstr "s"
+msgstr "초"
 
 msgid "Total rammed volume"
 msgstr "총 래밍 부피"
@@ -9264,7 +9264,7 @@ msgid ""
 "the next layers will be linearly shrunk less, up to the layer indicated by "
 "this value."
 msgstr ""
-"코끼리 발 보정울 적용할 레이어의 수입니다. 첫 번째 레이어는 코끼리 발 보정 값"
+"코끼리 발 보정을 적용할 레이어의 수입니다. 첫 번째 레이어는 코끼리 발 보정 값"
 "만큼 축소되고, 다음 레이어부터 이 값으로 표시된 레이어까지 선형적으로 덜 축소"
 "됩니다."
 
@@ -9374,7 +9374,7 @@ msgid "API key"
 msgstr "API 키"
 
 msgid "HTTP digest"
-msgstr "HTTP digest"
+msgstr "HTTP 다이제스트"
 
 msgid "Avoid crossing wall"
 msgstr "벽 가로지름 방지"
@@ -9393,10 +9393,10 @@ msgid ""
 msgstr ""
 "벽 가로지름 방지를 위한 최대 우회 거리. 우회 거리가 이 값보다 크면 우회하지 "
 "않습니다. 우회 길이는 절대값 또는 직접 이동 경로의 백분율(예: 50%)로 지정할 "
-"수 있습니다. 0으로 비활성화"
+"수 있습니다. 값 0으로 비활성화할 수 있습니다"
 
 msgid "mm or %"
-msgstr "mm or %"
+msgstr "mm 또는 %"
 
 msgid "Other layers"
 msgstr "다른 레이어"
@@ -9488,7 +9488,7 @@ msgid "Other layers filament sequence"
 msgstr "다른 층 필라멘트 순서"
 
 msgid "This G-code is inserted at every layer change before lifting z"
-msgstr "이 G코드는 Z올리기 전에 모든 레이어 변경에 삽입됩니다"
+msgstr "이 G코드는 Z좌표를 올리기 전 모든 레이어 변경에 삽입됩니다"
 
 msgid "Bottom shell layers"
 msgstr "하단 쉘 레이어"
@@ -9535,7 +9535,7 @@ msgstr ""
 "옵션:\n"
 "1. 어디에서나: 상단, 하단 및 내부 솔리드 표면에 간격 채우기를 적용합니다.\n"
 "2. 상단 및 하단 표면: 상단 및 하단 표면에만 간격 채우기를 적용합니다.\n"
-"3. Nowhere: 간격 채우기를 비활성화합니다.\n"
+"3. 아무데도: 간격 채우기를 비활성화합니다.\n"
 
 msgid "Everywhere"
 msgstr "어디에나"
@@ -10309,8 +10309,8 @@ msgid ""
 msgstr ""
 "위에서 아래를 내려다볼 때 벽 루프가 돌출되는 방향입니다.\n"
 "\n"
-"홀수 방향 반전이 활성화되지 않은 경우 기본적으로 모든 벽은 시계 반대 방향으"
-"로 돌출됩니다. 이것을 Auto 이외의 옵션으로 설정하면 Reverse on 홀수에 관계없"
+"홀수에 반전 설정이 활성화되지 않은 경우 기본적으로 모든 벽은 시계 반대 방향으"
+"로 출력됩니다. 이것을 Auto 이외의 옵션으로 설정하면 홀수에 반전 설정과 관계없"
 "이 벽 방향이 강제됩니다.\n"
 "\n"
 "나선형 꽃병 모드가 활성화된 경우 이 옵션은 비활성화됩니다."
@@ -10433,7 +10433,7 @@ msgid ""
 "has slight overflow or underflow"
 msgstr ""
 "재료는 용융 상태와 결정 상태 사이를 전환한 후 부피 변화가 있을 수 있습니다. "
-"이 설정은 이 필라멘트 코드의 모든 압출 흐름을 비례적으로 변경합니다. 권장 값 "
+"이 설정은 이 필라멘트 코드의 모든 압출 유량을 비례적으로 변경합니다. 권장 값 "
 "범위는 0.95와 1.05 사이입니다. 약간의 과대압출 또는 과소압출이 있을 때 이 값"
 "을 조정하여 평평한 표면을 얻을 수 있습니다"
 
@@ -11165,7 +11165,7 @@ msgid "Undefine"
 msgstr "알 수 없음"
 
 msgid "Hardened steel"
-msgstr "경화강"
+msgstr "경화강 노즐"
 
 msgid "Stainless steel"
 msgstr "스테인레스강 노즐"
@@ -11504,13 +11504,13 @@ msgid "This G-code will be used as a custom code"
 msgstr "이 G코드는 사용자 정의 코드로 사용됩니다"
 
 msgid "Small area flow compensation (beta)"
-msgstr "작은영역 유량 보상(베타)"
+msgstr "작은 영역 유량 보상 (베타)"
 
 msgid "Enable flow compensation for small infill areas"
-msgstr "작은 채우기 영역에 대한 흐름 보상 활성화"
+msgstr "작은 채우기 영역에 대한 유량 보상 활성화"
 
 msgid "Flow Compensation Model"
-msgstr "흐름 보상 모델"
+msgstr "유량 보상 모델"
 
 msgid ""
 "Flow Compensation Model, used to adjust the flow for small infill areas. The "
@@ -11518,8 +11518,8 @@ msgid ""
 "and flow correction factors, one per line, in the following format: "
 "\"1.234,5.678\""
 msgstr ""
-"작은 채우기 영역의 흐름을 조정하는 데 사용되는 흐름 보상 모델. 모델은 "
-"\"1.234,5.678\" 형식으로 한 줄에 하나씩 압출 길이 및 흐름 수정 계수에 대한 쉼"
+"작은 채우기 영역의 유량을 조정하는 데 사용되는 유량 보상 모델. 모델은 "
+"\"1.234,5.678\" 형식으로 한 줄에 하나씩 압출 길이 및 유량 수정 계수에 대한 쉼"
 "표로 구분된 값 쌍으로 표현됩니다."
 
 msgid "Maximum speed X"
@@ -12297,7 +12297,7 @@ msgstr ""
 "습니다."
 
 msgid "Scarf joint flow ratio"
-msgstr "스카프 조인트 흐름 비율"
+msgstr "스카프 조인트 유량 비율"
 
 msgid "This factor affects the amount of material for scarf joints."
 msgstr "이 요소는 스카프 조인트의 재료 양에 영향을 미칩니다."
@@ -14462,7 +14462,7 @@ msgid "Edit Flow Dynamics Calibration"
 msgstr "동적 유량 교정 편집"
 
 msgid "New Flow Dynamic Calibration"
-msgstr "새로운 흐름 동적 교정"
+msgstr "새로운 유량 동적 교정"
 
 msgid "Ok"
 msgstr "확인"
@@ -15745,7 +15745,7 @@ msgstr "SimplyPrint에 성공적으로 연결되었습니다!"
 msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint에 연결할 수 없습니다"
 
-msgid "Internel error"
+msgid "Internal error"
 msgstr "내부 오류"
 
 msgid "Unknown error"
@@ -15792,7 +15792,7 @@ msgid ""
 msgstr ""
 "샌드위치 모드\n"
 "모델에 가파른 돌출부가 없는 경우 샌드위치 모드(내부-외부-내부)를 사용하여 정"
-"밀도와 레이어 일관성을 향상시킬 수 있다는 것을 알고 계셨습니까?"
+"밀도와 레이어 일관성을 향상시킬 수 있다는 것을 알고 계셨나요?"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
@@ -15862,7 +15862,7 @@ msgid ""
 "the surface quality of your overhangs?"
 msgstr ""
 "홀수에 반전\n"
-"<b>홀수면 반전</b> 기능이 오버행의 표면 품질을 크게 향상시킬 수 있다는 사실"
+"<b>홀수에 반전</b> 기능이 오버행의 표면 품질을 크게 향상시킬 수 있다는 사실"
 "을 알고 계셨나요?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -15995,8 +15995,8 @@ msgstr ""
 "STEP\n"
 "STL 대신 STEP 파일을 슬라이싱하여 출력 품질을 향상시킬 수 있다는 사실을 알고 "
 "계섰나요?\n"
-"Orca Slicer는 STEP 파일 슬라이싱을 지원하여 저해상도 STL보다 부드러운 결과를 "
-"제공합니다. 시도해 보세요!"
+"Orca Slicer는 STEP 파일 슬라이싱을 지원하며, 저해상도 STL을 사용할 때 보다 더 "
+"부드러운 결과를 얻을 수 있습니다. 시도해 보세요!"
 
 #: resources/data/hints.ini: [hint:Z seam location]
 msgid ""
@@ -16018,8 +16018,8 @@ msgid ""
 "printed model by doing some fine-tuning."
 msgstr ""
 "유량 미세 조정\n"
-"더 보기 좋은 출력물을 위해 유량을 미세 조정할 수 있다는 사실을 알고 있습니"
-"까? 재료에 따라 약간의 미세 조정을 통해 출력된 모델의 전체적인 마감을 개선할 "
+"더 보기 좋은 출력물을 위해 유량을 미세 조정할 수 있다는 사실을 알고 계셨나요? "
+"재료에 따라 약간의 미세 조정을 통해 출력된 모델의 전체적인 마감을 개선할 "
 "수 있습니다."
 
 #: resources/data/hints.ini: [hint:Split your prints into plates]
@@ -16124,8 +16124,8 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 "강도 향상\n"
-"모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 채우기 밀도를 사용"
-"할 수 있다는 것을 알고 계섰나요?"
+"더 많은 외벽과 더 높은 드문 채우기 밀도를 사용하여 모델의 강도를 높일 수 "
+"있다는 사실을 알고 계섰나요?"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
 #: opened]
@@ -16148,8 +16148,8 @@ msgid ""
 "probability of warping."
 msgstr ""
 "뒤틀림 방지\n"
-"ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
-"면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+"ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
+"높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
 #~ msgid ""
 #~ "File size exceeds the 100MB upload limit. Please upload your file through "
