@@ -1429,8 +1429,6 @@ void MachineObject::parse_status(int flag)
     }
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
-
-    network_wired = ((flag >> 18) & 0x1) != 0;
 }
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
