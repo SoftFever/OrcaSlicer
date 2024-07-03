@@ -1644,7 +1644,7 @@ msgstr "Ekstrüzyon Genişliği"
 msgid "Wipe options"
 msgstr "Temizleme seçenekleri"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Etek"
 
 msgid "Add part"
@@ -1928,12 +1928,6 @@ msgstr "Otomatik yönlendirme"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "Baskı kalitesini artırmak için nesneyi otomatik olarak yönlendirin."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Seçilen nesneyi birden fazla nesneye bölme"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Seçilen nesneyi birden fazla parçaya böl"
 
 msgid "Select All"
 msgstr "Hepsini seç"
@@ -3637,7 +3631,7 @@ msgstr ""
 "Değer 0'a sıfırlanacaktır."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6147,7 +6141,7 @@ msgstr ""
 "%s dosyası zaten mevcut\n"
 "değiştirmek istiyor musun?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Farklı Kaydetmeyi Onayla"
 
 msgid "Delete object which is a part of cut object"

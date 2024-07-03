@@ -1632,7 +1632,7 @@ msgstr "압출 너비"
 msgid "Wipe options"
 msgstr "닦기 옵션"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "베드 안착"
 
 msgid "Add part"
@@ -1916,12 +1916,6 @@ msgstr "자동 방향 지정"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "개체의 방향을 자동으로 지정하여 출력 품질을 향상시킵니다."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "선택한 개체를 여러 개체로 분할"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "선택한 개체를 여러 부품으로 분할"
 
 msgid "Select All"
 msgstr "모두 선택"
@@ -3580,7 +3574,7 @@ msgstr ""
 "값이 0으로 재설정됩니다."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6041,7 +6035,7 @@ msgstr ""
 "파일 %s이(가) 이미 존재합니다.\n"
 "파일을 바꾸시겠습니까?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "다른 이름으로 저장 확인"
 
 msgid "Delete object which is a part of cut object"
@@ -10989,7 +10983,7 @@ msgstr "초기 레이어 높이"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "초기 레이어의 높이입니다. 초기 레이어 높이를 약간 두껍게 하면 빌드 플레이트 "
 "접착력을 향상시킬 수 있습니다"

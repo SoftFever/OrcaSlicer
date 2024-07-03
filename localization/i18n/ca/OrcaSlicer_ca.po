@@ -1663,7 +1663,7 @@ msgstr "Amplada de l'extrusió"
 msgid "Wipe options"
 msgstr "Opcions de purga"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Adhesió al llit"
 
 msgid "Add part"
@@ -1949,12 +1949,6 @@ msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Orientar/alinear automàticament l'objecte per millorar la qualitat "
 "d'impressió."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Partir l'objecte seleccionat en múltiples objectes"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Partir l'objecte seleccionat en múltiples peces"
 
 msgid "Select All"
 msgstr "Seleccionar-ho tot"
@@ -3681,7 +3675,7 @@ msgstr ""
 "El valor es restablirà a 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6216,7 +6210,7 @@ msgstr ""
 "El fitxer %s ja existeix\n"
 "Vols substituir-lo?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirmar Desar Com"
 
 msgid "Delete object which is a part of cut object"
@@ -11422,7 +11416,7 @@ msgstr "Alçada de la capa inicial"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Alçada de la capa inicial. Fer que l'alçada inicial de la capa sigui "
 "lleugerament més gruixuda pot millorar l'adherència de la placa d'impressió"

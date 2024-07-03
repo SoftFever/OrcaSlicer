@@ -1604,7 +1604,7 @@ msgstr "Extrudálási szélesség"
 msgid "Wipe options"
 msgstr "Törlés opciók"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Asztalra tapadás"
 
 msgid "Add part"
@@ -1886,12 +1886,6 @@ msgstr "Automatikus orientáció"
 msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Az objektum automatikus tájolása a nyomtatási minőség javítása érdekében."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
 
 msgid "Select All"
 msgstr "Összes kijelölése"
@@ -3608,7 +3602,7 @@ msgstr ""
 "Az érték 0-ra áll vissza."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6081,7 +6075,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Mentés másként megerősítése"
 
 msgid "Delete object which is a part of cut object"
@@ -10913,7 +10907,7 @@ msgstr "Kezdő rétegmagasság"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Kezdőréteg magassága. A vastagabb kezdőréteg javíthatja a tárgy asztalhoz "
 "való tapadását"

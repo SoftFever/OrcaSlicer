@@ -1615,7 +1615,7 @@ msgstr "Extrusiebreedte"
 msgid "Wipe options"
 msgstr "Veeg opties"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Printbed hechting"
 
 msgid "Add part"
@@ -1896,12 +1896,6 @@ msgstr "Automatisch oriënteren"
 msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Automatisch oriënteren van het object om de printkwaliteit te verbeteren."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Splits het geselecteerde object op in meerdere objecten"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Splits het geselecteerde object op in meerdere onderdelen"
 
 msgid "Select All"
 msgstr "Alles selecteren"
@@ -3638,7 +3632,7 @@ msgstr ""
 "De waarde wordt teruggezet naar 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6134,7 +6128,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Opslaan als bevestigen"
 
 msgid "Delete object which is a part of cut object"
@@ -11014,7 +11008,7 @@ msgstr "Laaghoogte van de eerste laag"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Dit is de hoogte van de eerste laag. Door de hoogte van de eerste laag hoger "
 "te maken, kan de hechting op het printbed worden verbeterd."

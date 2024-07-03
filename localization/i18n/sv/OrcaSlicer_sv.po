@@ -1599,7 +1599,7 @@ msgstr "Extruderings Bredd"
 msgid "Wipe options"
 msgstr "Avstryknings val"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Byggplattans vidhäftningsförmåga"
 
 msgid "Add part"
@@ -1878,12 +1878,6 @@ msgstr "Auto placera"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "Auto placera objektet för att förbättra utskriftskvaliteten."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Dela det valda objektet till multipla objekt"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dela det valda objektet till multipla delar"
 
 msgid "Select All"
 msgstr "Välj Alla"
@@ -3583,7 +3577,7 @@ msgstr ""
 "Värdet kommer att återställas till 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6047,7 +6041,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Bekräfta Spara som"
 
 msgid "Delete object which is a part of cut object"
@@ -10792,7 +10786,7 @@ msgstr "Första lagerhöjd"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
 "byggplattan"

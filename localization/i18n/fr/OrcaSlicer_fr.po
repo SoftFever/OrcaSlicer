@@ -1677,7 +1677,7 @@ msgstr "Largeur d'Extrusion"
 msgid "Wipe options"
 msgstr "Options d’essuyage"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Adhérence au plateau"
 
 msgid "Add part"
@@ -1964,12 +1964,6 @@ msgstr "Orientation automatique"
 msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Orientez automatiquement l'objet pour améliorer la qualité d'impression."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Diviser l'objet sélectionné en plusieurs objets"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Diviser l'objet sélectionné en plusieurs parties"
 
 msgid "Select All"
 msgstr "Tout sélectionner"
@@ -3709,7 +3703,7 @@ msgstr ""
 "La valeur sera remise à 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6259,7 +6253,7 @@ msgstr ""
 "Le fichier %s existe déjà\n"
 "Voulez-vous le remplacer ?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirmer Enregistrer sous"
 
 msgid "Delete object which is a part of cut object"
@@ -11584,7 +11578,7 @@ msgstr "Hauteur de couche initiale"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Il s'agit de la hauteur de la première couche. L'augmentation de la hauteur "
 "de la première couche peut améliorer l'adhérence sur le plateau."

@@ -1639,7 +1639,7 @@ msgstr "擠出寬度"
 msgid "Wipe options"
 msgstr "擦除選項"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "熱床黏接"
 
 #, fuzzy
@@ -1927,12 +1927,6 @@ msgstr "自動定向"
 #, fuzzy
 msgid "Auto orient the object to improve print quality."
 msgstr "自動調整物件方向以提高列印品質。"
-
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所選物件為多個物件"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所選物件為多個零件"
 
 msgid "Select All"
 msgstr "全選"
@@ -3611,7 +3605,7 @@ msgstr ""
 
 #, fuzzy
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6107,7 +6101,7 @@ msgid ""
 "Do you want to replace it?"
 msgstr ""
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr ""
 
 msgid "Delete object which is a part of cut object"
@@ -10919,7 +10913,7 @@ msgstr "首層層高"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "首層層高"
 
 msgid "Speed of initial layer except the solid infill part"

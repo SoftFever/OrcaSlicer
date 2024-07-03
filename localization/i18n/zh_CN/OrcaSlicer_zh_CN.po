@@ -1601,7 +1601,7 @@ msgstr "挤出宽度"
 msgid "Wipe options"
 msgstr "擦除选项"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "热床粘接"
 
 msgid "Add part"
@@ -1879,12 +1879,6 @@ msgstr "自动朝向"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "自动调整对象朝向以提高打印质量。"
-
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所选对象为多个零件"
 
 msgid "Select All"
 msgstr "全选"
@@ -3492,7 +3486,7 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5893,7 +5887,7 @@ msgstr ""
 "文件 %s 已经存在\n"
 "您是否要替换它？"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "确认另存为"
 
 msgid "Delete object which is a part of cut object"
@@ -10564,7 +10558,7 @@ msgstr "首层层高"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "首层层高"
 
 msgid "Speed of initial layer except the solid infill part"

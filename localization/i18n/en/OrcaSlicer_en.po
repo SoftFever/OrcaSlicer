@@ -1601,7 +1601,7 @@ msgstr "Extrusion width"
 msgid "Wipe options"
 msgstr "Wipe options"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Bed adhesion"
 
 msgid "Add part"
@@ -1879,12 +1879,6 @@ msgstr "Auto orientation"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "Auto orient the object to improve print quality."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Split the selected object into mutiple objects"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Split the selected object into mutiple parts"
 
 msgid "Select All"
 msgstr "Select All"
@@ -3571,7 +3565,7 @@ msgstr ""
 "The value will be reset to 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6035,7 +6029,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirm Save As"
 
 msgid "Delete object which is a part of cut object"
@@ -10780,7 +10774,7 @@ msgstr "First layer height"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "This is the height of the first layer. Making the first layer height thicker "
 "can improve build plate adhesion."

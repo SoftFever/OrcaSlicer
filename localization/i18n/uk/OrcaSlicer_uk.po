@@ -1651,7 +1651,7 @@ msgstr "Ширина екструзії"
 msgid "Wipe options"
 msgstr "Параметри очищення"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Прилипання до столу"
 
 msgid "Add part"
@@ -1935,12 +1935,6 @@ msgstr "Автоматична орієнтація"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "Автоматично орієнтуйте об'єкт для покращення якості друку."
-
-msgid "Split the selected object into mutiple objects"
-msgstr "Розділити вибраний об'єкт на кілька об'єктів"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Розділити вибраний об'єкт на кілька частин"
 
 msgid "Select All"
 msgstr "Вибрати все"
@@ -3669,7 +3663,7 @@ msgstr ""
 "Це значення буде скинуто на 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6197,7 +6191,7 @@ msgstr ""
 "Файл %s вже існує.\n"
 "Бажаєте замінити його?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Підтвердити збереження як"
 
 msgid "Delete object which is a part of cut object"
@@ -11333,7 +11327,7 @@ msgstr "Початкова висота шару"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Висота вихідного шару. Незначна товщина початкової висоти шару може "
 "поліпшити прилипання до столу"
