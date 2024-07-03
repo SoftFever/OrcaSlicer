@@ -13260,6 +13260,8 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
+    if (wxGetApp().app_config->get("auto_arrange") == "true")
+        this->arrange();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
