@@ -68,6 +68,12 @@ jobs:
             .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build
 
+      - name: Select Xcode version on Mac ${{ inputs.arch }}
+        if: inputs.os == 'macos-14'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}

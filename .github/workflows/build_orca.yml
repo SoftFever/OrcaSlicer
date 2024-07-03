@@ -74,6 +74,12 @@ jobs:
         shell: pwsh
 
 #   Mac
+      - name: Select Xcode version on Mac ${{ inputs.arch }}
+        if: inputs.os == 'macos-14'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
       - name: Install tools mac
         if: inputs.os == 'macos-14'
         run: |
