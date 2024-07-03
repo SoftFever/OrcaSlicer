@@ -3167,6 +3167,13 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
                         }
                     }
+                    if (!key_field_only) {
+                        if (jj.contains("net")) {
+                            if (jj["net"].contains("conf")) {
+                                network_wired = (jj["net"]["conf"].get<int>() & (0x1)) != 0;
+                            }
+                        }
+                    }
 #pragma endregion
 
 #pragma region online
