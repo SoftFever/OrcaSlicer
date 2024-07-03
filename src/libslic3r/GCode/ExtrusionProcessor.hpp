@@ -323,7 +323,7 @@ public:
                     	//  The whole segment gets slower unnecesarily. For these long lines, we do additional check whether it is worth slowing down.
                     	// NOTE that this is still quite rough approximation, e.g. we are still checking lines only near the middle point
                     	// TODO maybe split the lines into smaller segments before running this alg? but can be demanding, and GCode will be huge
-                    	if (len > 8) {
+                    	if (len > 2) {
                         	Vec2d dir   = Vec2d(next.position - curr.position) / len;
                         	Vec2d right = Vec2d(-dir.y(), dir.x());
 
