@@ -5,10 +5,15 @@ import sys
 from configparser import ConfigParser
 from pathlib import Path
 
+
 def write_to_pot(path: Path, data: dict[str, str]):
     with open(path, "a+t") as pot_file:
         for key in data.keys():
-            print(f"\n#: resources/data/hints.ini: [{ key }]\nmsgid \"{ data[key]['text'] }\"\nmsgstr \"\"", file = pot_file)
+            print(
+                f"\n#: resources/data/hints.ini: [{ key }]\nmsgid \"{ data[key]['text'] }\"\nmsgstr \"\"",
+                file=pot_file,
+            )
+
 
 def main():
     if len(sys.argv) != 3:
@@ -25,6 +30,7 @@ def main():
     write_to_pot(path_to_pot, config._sections)
     print("HINTS_TO_POT SUCCESS")
     exit(0)
+
 
 if __name__ == "__main__":
     main()
