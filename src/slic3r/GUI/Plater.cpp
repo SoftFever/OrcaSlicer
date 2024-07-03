@@ -1947,7 +1947,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     if (obj->ams_support_virtual_tray) {
         int extruder = 0x10000;
         //for (auto &vt_tray : obj->vt_slot) {
-        filament_ams_list.emplace(extruder + VIRTUAL_TRAY_ID, build_tray_config(vt_tray, "Ext"));
+        filament_ams_list.emplace(extruder + VIRTUAL_TRAY_MAIN_ID, build_tray_config(vt_tray, "Ext"));
         extruder = 0;
         //}
     }
