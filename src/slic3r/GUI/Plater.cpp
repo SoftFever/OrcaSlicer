@@ -1946,24 +1946,22 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         return tray_config;
     };
 
-    auto vt_tray = obj->vt_tray;
     if (obj->ams_support_virtual_tray) {
-        int extruder = 0x10000;
-        //for (auto &vt_tray : obj->vt_slot) {
-        filament_ams_list.emplace(extruder + VIRTUAL_TRAY_MAIN_ID, build_tray_config(vt_tray, "Ext"));
-        extruder = 0;
-        //}
+        int extruder = 0x10000; // Main (first) extruder at right
+        for (auto & vt_tray : obj->vt_slot) {
+            filament_ams_list.emplace(extruder + VIRTUAL_TRAY_MAIN_ID, build_tray_config(vt_tray, "Ext"));
+            extruder = 0;
+        }
     }
 
     auto list = obj->amsList;
     for (auto ams : list) {
         char n = ams.first.front() - '0' + 'A';
-        int extruder = /*ams.nozzle ? 0 :*/ 0x10000;
+        int extruder = ams.second->nozzle ? 0 : 0x10000; // Main (first) extruder at right
         for (auto tray : ams.second->trayList) {
             char t = tray.first.front() - '0' + '1';
             filament_ams_list.emplace(extruder + ((n - 'A') * 4 + t - '1'),
                 build_tray_config(*tray.second, std::string(1, n) + std::string(1, t)));
-            extruder = 0;
         }
     }
     return filament_ams_list;

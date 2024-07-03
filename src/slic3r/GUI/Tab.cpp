@@ -505,6 +505,7 @@ void Tab::create_preset_tab()
             evt.Skip();
             dynamic_cast<TabPrint *>(this)->switch_excluder(evt.GetInt());
             reload_config();
+            update_changed_ui();
         });
         m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 4);
     }
@@ -894,7 +895,7 @@ void Tab::update_changed_ui()
     if (m_postpone_update_ui)
         return;
 
-    const bool deep_compare = (m_type == Slic3r::Preset::TYPE_PRINTER || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL);
+    const bool deep_compare = (m_type == Slic3r::Preset::TYPE_PRINTER || m_type == Slic3r::Preset::TYPE_PRINT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL);
     auto dirty_options = m_presets->current_dirty_options(deep_compare);
     auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
     if (m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF) {
@@ -908,8 +909,10 @@ void Tab::update_changed_ui()
     for (auto& it : m_options_list)
         it.second = m_opt_status_value;
 
-    filter_diff_option(dirty_options);
-    filter_diff_option(nonsys_options);
+    if (m_extruder_switch == nullptr || m_extruder_switch->IsEnabled()) {
+        filter_diff_option(dirty_options);
+        filter_diff_option(nonsys_options);
+    }
 
     for (auto opt_key : dirty_options) {
         m_options_list[opt_key] &= ~osInitValue;
@@ -930,15 +933,6 @@ void Tab::update_changed_ui()
     update_undo_buttons();
 }
 
-void Tab::init_options_list()
-{
-    if (!m_options_list.empty())
-        m_options_list.clear();
-
-    for (const std::string& opt_key : m_config->keys())
-        m_options_list.emplace(opt_key, m_opt_status_value);
-}
-
 template<class T>
 void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, Tab *tab, const int& value)
 {
@@ -947,14 +941,14 @@ void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::
         map.emplace(opt_key + "#" + std::to_string(i), value);
 }
 
-void TabPrinter::init_options_list()
+void Tab::init_options_list()
 {
     if (!m_options_list.empty())
         m_options_list.clear();
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "thumbnails") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnails") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -971,6 +965,11 @@ void TabPrinter::init_options_list()
         default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
         }
     }
+}
+
+void TabPrinter::init_options_list()
+{
+    Tab::init_options_list();
     if (m_printer_technology == ptFFF)
         m_options_list.emplace("extruders_count", m_opt_status_value);
 }
@@ -987,30 +986,13 @@ void TabPrinter::msw_rescale()
     m_parent->Layout();
 }
 
-void TabSLAMaterial::init_options_list()
+void TabFilament::init_options_list()
 {
     if (!m_options_list.empty())
         m_options_list.clear();
 
     for (const std::string& opt_key : m_config->keys())
-    {
-        if (opt_key == "compatible_prints" || opt_key == "compatible_printers") {
-            m_options_list.emplace(opt_key, m_opt_status_value);
-            continue;
-        }
-        switch (m_config->option(opt_key)->type())
-        {
-        case coInts:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coBools:	add_correct_opts_to_options_list<ConfigOptionBools		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coFloats:	add_correct_opts_to_options_list<ConfigOptionFloats		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        // BBS
-        case coEnums:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
-        }
-    }
+        m_options_list.emplace(opt_key, m_opt_status_value);
 }
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
@@ -1768,7 +1750,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
-    if (opt_key.find_first_of("nozzle_volume_type") != std::string::npos) {
+    if (opt_key.find("nozzle_volume_type") != std::string::npos) {
         int extruder_idx = std::atoi(opt_key.substr(opt_key.find_last_of('#') + 1).c_str());
         for (auto tab : wxGetApp().tabs_list) {
             tab->update_extruder_variants(extruder_idx);
@@ -6299,7 +6281,9 @@ void Tab::update_extruder_variants(int extruder_id)
             }
             m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
             m_extruder_switch->SetValue(extruder_id == 1);
+            m_extruder_switch->Enable();
         } else {
+            m_extruder_switch->Enable(false);
             GetSizer()->Show(m_extruder_switch, false);
             return;
         }
