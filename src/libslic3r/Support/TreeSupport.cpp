@@ -662,6 +662,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     double thresh_angle = config.support_threshold_angle.value > EPSILON ? config.support_threshold_angle.value + 1 : 30;
     thresh_angle = std::min(thresh_angle, 89.); // should be smaller than 90
     const double threshold_rad = Geometry::deg2rad(thresh_angle);
+    // FIXME this is a fudge constant!
+    double support_tree_tip_diameter = 0.8;
+    auto   enforcer_overhang_offset  = scaled<double>(support_tree_tip_diameter);
 
     // for small overhang removal
     struct OverhangCluster {
@@ -1007,6 +1010,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     }
 
     int layers_with_overhangs = 0;
+    int layers_with_enforcers = 0;
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         if (m_object->print()->canceled())
             break;
@@ -1056,15 +1060,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 		int nDetected = layer->loverhangs.size();
         // enforcers now follow same logic as normal support. See STUDIO-3692
         if (layer_nr < enforcers.size() && lower_layer) {
-            float no_interface_offset = std::accumulate(layer->regions().begin(), layer->regions().end(), FLT_MAX,
-                [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
-            Polygons  lower_layer_polygons = (layer_nr == 0) ? Polygons() : to_polygons(lower_layer->lslices_extrudable);
-            Polygons& enforcer = enforcers[layer_nr];
-            if (!enforcer.empty()) {
-                ExPolygons enforcer_polygons = diff_ex(intersection_ex(layer->lslices_extrudable, enforcer),
-                    // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
-                    expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                append(layer->loverhangs, enforcer_polygons);
+            ExPolygons enforced_overhangs   = intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]);
+            if (!enforced_overhangs.empty()) {
+                // FIXME this is a hack to make enforcers work on steep overhangs. See STUDIO-7538.
+                enforced_overhangs = diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
+                append(layer->loverhangs, enforced_overhangs);
             }
         }
         int nEnforced = layer->loverhangs.size();
@@ -1081,10 +1081,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             layers_with_overhangs++;
             m_highest_overhang_layer = std::max(m_highest_overhang_layer, size_t(layer_nr));
         }
+        if (nEnforced > 0) layers_with_enforcers++;
         if (!layer->cantilevers.empty()) has_cantilever = true;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Tree support overhang detection done. " << layers_with_overhangs << " layers with overhangs.";
+    BOOST_LOG_TRIVIAL(info) << "Tree support overhang detection done. " << layers_with_overhangs << " layers with overhangs. nEnforced=" << layers_with_enforcers;
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     for (const Layer* layer : m_object->layers()) {
@@ -2563,7 +2564,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         coordf_t branch_radius_temp = 0;
         coordf_t max_y = std::numeric_limits<coordf_t>::min();
-        draw_layer_mst(debug_out_path("mtree_%.2f.svg", print_z), spanning_trees, m_object->get_layer(obj_layer_nr)->lslices_extrudable);
+        draw_layer_mst(debug_out_path("mtree_%.2f.svg", print_z), spanning_trees, m_object->get_layer(layer_nr)->lslices);
 #endif
         for (size_t group_index = 0; group_index < nodes_per_part.size(); group_index++)
         {
@@ -2843,7 +2844,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                                            m_ts_data->m_layer_outlines[layer_nr],
             contact_nodes[layer_nr], contact_nodes[layer_nr_next], { "overhang","avoid","outline" }, { "blue","red","yellow" });
 
-            BOOST_LOG_TRIVIAL(debug) << "drop_nodes layer->next " << layer_nr << "->" << layer_nr_next << ", print_z=" << ts_layer->print_z
+            BOOST_LOG_TRIVIAL(debug) << "drop_nodes layer->next " << layer_nr << "->" << layer_nr_next << ", print_z=" << print_z
                 << ", num points: " << contact_nodes[layer_nr].size() << "->" << contact_nodes[layer_nr_next].size();
             for (size_t i = 0; i < std::min(size_t(5), contact_nodes[layer_nr].size()); i++) {
                 auto &node = contact_nodes[layer_nr][i];
