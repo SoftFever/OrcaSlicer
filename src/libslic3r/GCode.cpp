@@ -5446,28 +5446,27 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // 6) whether this segment is triggered because of a role change (to aid in calculation of average speed for the role)
     // This tag simplifies the creation of the gcode post processor while also keeping the feature decoupled from other tags.
     if (evaluate_adaptive_pa) {
-        bool is_external = (path.role() == erExternalPerimeter);
         bool isOverhangPerimeter = (path.role() == erOverhangPerimeter);
         if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     m_multi_flow_segment_path_average_mm3_per_mm,
                     acceleration_i,
-                    is_external,
-                    role_change, 
+                    ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
+                    role_change,
                     isOverhangPerimeter);
             gcode += buf;
         } else if(_mm3_per_mm >0 ){ // Triggered when extruding a single segment path (like a line).
                                     // Check if mm3_mm value is greater than zero as the wipe before external perimeter
                                     // is a zero mm3_mm path to force de-retraction to happen and we dont want
                                     // to issue a zero flow PA change command for this
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     _mm3_per_mm,
                     acceleration_i,
-                    is_external,
+                    ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
                     role_change,
                     isOverhangPerimeter);
             gcode += buf;
@@ -5535,18 +5534,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                EXTRUDER_CONFIG(enable_pressure_advance) &&
                EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs) &&
                !evaluate_adaptive_pa){
-                bool is_external = (path.role() == erExternalPerimeter);
                 if(m_last_set_speed > F){ // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
                     if(m_config.gcode_comments){
                         sprintf(buf, "; Ramp down-non-variable\n");
                         gcode += buf;
                     }
-                    sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+                    sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                             GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                             m_writer.extruder()->id(),
                             _mm3_per_mm,
                             acceleration_i,
-                            is_external,
+                            ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
                             1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                             // the properties of the extrusion in the overhang are different so it behaves similarly to a role
                             // change for the Adaptive PA post processor.
@@ -5556,12 +5554,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         sprintf(buf, "; Ramp up-non-variable\n");
                         gcode += buf;
                     }
-                    sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+                    sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                             GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                             m_writer.extruder()->id(),
                             _mm3_per_mm,
                             acceleration_i,
-                            is_external,
+                            ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
                             1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                             // the properties of the extrusion in the overhang are different so it is technically similar to a role
                             // change for the Adaptive PA post processor.
@@ -5782,12 +5780,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             sprintf(buf, "; Ramp up-variable\n");
                             gcode += buf;
                         }
-                        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+                        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                                 GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                                 m_writer.extruder()->id(),
                                 _mm3_per_mm,
                                 acceleration_i,
-                                (path.role() == erExternalPerimeter),
+                                ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
                                 1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                                 // the properties of the extrusion in the overhang are different so it is technically similar to a role
                                 // change for the Adaptive PA post processor.
@@ -5797,12 +5795,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             sprintf(buf, "; Ramp down-variable\n");
                             gcode += buf;
                         }
-                        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
+                        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u BR:%d RC:%d OV:%d\n",
                                 GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                                 m_writer.extruder()->id(),
                                 _mm3_per_mm,
                                 acceleration_i,
-                                (path.role() == erExternalPerimeter),
+                                ((path.role() == erBridgeInfill) ||(path.role() == erOverhangPerimeter)),
                                 1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                                 // the properties of the extrusion in the overhang are different so it is technically similar to a role
                                 // change for the Adaptive PA post processor.

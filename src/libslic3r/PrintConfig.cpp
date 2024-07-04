@@ -1724,6 +1724,13 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable evaluating adaptive PA for overhangs as well as when flow changes within the same feature.\n");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
+    
+    def = this->add("adaptive_pressure_advance_bridges", coFloats);
+    def->label = L("Pressure advance for bridges");
+    def->tooltip = L("Pressure advance value for bridges");
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0.02 });
 
     def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");

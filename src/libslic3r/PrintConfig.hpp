@@ -1035,6 +1035,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,                adaptive_pressure_advance))
     ((ConfigOptionBools,                adaptive_pressure_advance_overhangs))
     ((ConfigOptionStrings,             adaptive_pressure_advance_model))
+    ((ConfigOptionFloats,              adaptive_pressure_advance_bridges))
     //
     ((ConfigOptionFloat,               fan_kickstart))
     ((ConfigOptionBool,                fan_speedup_overhangs))

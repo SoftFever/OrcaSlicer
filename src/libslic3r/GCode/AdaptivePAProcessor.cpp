@@ -29,7 +29,7 @@ AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
       m_current_feedrate(0.0),
       m_last_extruder_id(-1),
       m_AdaptivePAInterpolator(std::make_unique<AdaptivePAInterpolator>()),
-      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+) EXT:(\d+) RC:(\d+) OV:(\d+))"),
+      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+) BR:(\d+) RC:(\d+) OV:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
 {
     // Constructor body can be used for further initialization if necessary
@@ -91,9 +91,9 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 int extruder_id = std::stoi(m_match[1].str());
                 mm3mm_value = std::stod(m_match[2].str());
                 accel_value = std::stod(m_match[3].str());
-                //int isExternal = std::stoi(m_match[4].str());
+                int isBridge = std::stoi(m_match[4].str());
                 int roleChange = std::stoi(m_match[5].str());
-                int overhangPerimeter = std::stoi(m_match[6].str());
+                int isOverhang = std::stoi(m_match[6].str());
                 
                 // Check if the extruder ID has changed
                 bool extruder_changed = (extruder_id != m_last_extruder_id);
@@ -206,18 +206,22 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 } else {
                     // Model setup succeeded
                     // Proceed to identify the print speed to use to calculate the adaptive PA value
-                    if(overhangPerimeter > 0){  // If we are in an overhang perimeter, use the minimum between current print speed and any speed immediately after
-                                                // In most cases the current speed is the minimum one; however if slowdown for layer cooling is enabled, the overhang perimeter
+                    if(isOverhang > 0){  // If we are in an overhang area, use the minimum between current print speed and any speed immediately after
+                                                // In most cases the current speed is the minimum one; however if slowdown for layer cooling is enabled, the overhang
                                                 // may be slowed down more than the current speed.
                         adaptive_PA_speed = (m_current_feedrate == 0 || m_next_feedrate == 0) ?
                                                 std::max(m_current_feedrate, m_next_feedrate) :
                                                 std::min(m_current_feedrate, m_next_feedrate);
 
-                    }else                    // If this is not an overhang perimeter, use the maximum speed from the current and upcomming speeds for the island.
+                    }else                    // If this is not an overhang area, use the maximum speed from the current and upcomming speeds for the island.
                         adaptive_PA_speed = std::max(m_max_next_feedrate,m_current_feedrate);
                     
                     // Calculate the adaptive PA value
                     predicted_pa = (*m_AdaptivePAInterpolator)(mm3mm_value * adaptive_PA_speed, accel_value);
+                    
+                    // This is a bridge, use the dedicated PA setting.
+                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > 0)
+                        predicted_pa = m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id);
                     
                     if (predicted_pa < 0) { // If extrapolation fails, fall back to the default PA for the extruder.
                         predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
@@ -228,6 +232,8 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 // Output the PA_CHANGE line and set the pressure advance immediately after
                 if(m_config.gcode_comments) {
                     output << pa_change_line << '\n'; // Output PA change command tag
+                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > 0)
+                        output << "; APA Model Override (bridge)\n";
                     output << "; APA Current Speed: " << std::to_string(m_current_feedrate) << "\n";
                     output << "; APA Next Speed: " << std::to_string(m_next_feedrate) << "\n";
                     output << "; APA Max Next Speed: " << std::to_string(m_max_next_feedrate) << "\n";
