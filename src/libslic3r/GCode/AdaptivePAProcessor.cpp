@@ -107,12 +107,14 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 std::string next_line;
                 double temp_feed_rate = 0;
                 bool extrude_move_found = false;
+                int line_counter = 0;
                 
                 // Carry on searching on the layer gcode lines to find the print speed
                 // If a G1 Fxxxx pattern is found, the new speed is identified
                 // Carry on searching for feedrates to find the maximum print speed
                 // until a feature change pattern or a wipe command is detected
                 while (std::getline(stream, next_line)) {
+                    line_counter++;
                     // Found an extrude move, set extrude move found flag and move to the next line
                     if ((!extrude_move_found) && next_line.find("G1 ") == 0 &&
                         next_line.find('X') != std::string::npos &&
@@ -163,10 +165,14 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                         std::size_t pos = next_line.find('F');
                         if (pos != std::string::npos) {
                             double feedrate = std::stod(next_line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
+                            if(line_counter==1){ // this is the first command after the PA change pattern, and hence before any extrusion has happened. Reset
+                                                // the current speed to this one
+                                m_current_feedrate = feedrate;
+                            }
                             if (temp_feed_rate < feedrate) {
                                 temp_feed_rate = feedrate;
                             }
-                            if(m_next_feedrate < EPSILON){ // This the first feedrate after the PA Change command
+                            if(m_next_feedrate < EPSILON){ // This the first feedrate found after the PA Change command
                                 m_next_feedrate = feedrate;
                             }
                         }
@@ -195,11 +201,12 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 if (pchip_return_flag == -1) {
                     // Model failed, use fallback value from m_config
                     predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
-                    output << "; APA: Interpolator setup failed, using fallback pressure advance value\n";
+                    if(m_config.gcode_comments)
+                        output << "; APA: Interpolator setup failed, using fallback pressure advance value\n";
                 } else {
                     // Model setup succeeded
                     // Proceed to identify the print speed to use to calculate the adaptive PA value
-                    if(overhangPerimeter > 0){  // If we are in an overhang perimeter, use the minimum between current print speed and first speed immediately after
+                    if(overhangPerimeter > 0){  // If we are in an overhang perimeter, use the minimum between current print speed and any speed immediately after
                                                 // In most cases the current speed is the minimum one; however if slowdown for layer cooling is enabled, the overhang perimeter
                                                 // may be slowed down more than the current speed.
                         adaptive_PA_speed = (m_current_feedrate == 0 || m_next_feedrate == 0) ?
@@ -214,19 +221,20 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                     
                     if (predicted_pa < 0) { // If extrapolation fails, fall back to the default PA for the extruder.
                         predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
-                        output << "; APA: Interpolation failed, using fallback pressure advance value\n";
+                        if(m_config.gcode_comments)
+                            output << "; APA: Interpolation failed, using fallback pressure advance value\n";
                     }
                 }
-                
                 // Output the PA_CHANGE line and set the pressure advance immediately after
-                // TODO: reduce debug logging when prepping for release (remove the first three outputs)
-                output << pa_change_line << '\n'; // Output PA change command tag TODO: remove before release
-                output << "; APA Current Speed: " << std::to_string(m_current_feedrate) << "\n"; // TODO: remove before release
-                output << "; APA Next Speed: " << std::to_string(m_next_feedrate) << "\n"; // TODO: remove before release
-                output << "; APA Max Next Speed: " << std::to_string(m_max_next_feedrate) << "\n"; // TODO: remove before release
-                output << "; APA Speed Used: " << std::to_string(adaptive_PA_speed) << "\n"; // TODO: remove before release
-                output << "; APA Flow rate: " << std::to_string(mm3mm_value * m_max_next_feedrate) << "\n"; // TODO: remove before release
-                output << "; APA Prev PA: " << std::to_string(m_last_predicted_pa) << " New PA: " << std::to_string(predicted_pa) << "\n"; // TODO: remove before release
+                if(m_config.gcode_comments) {
+                    output << pa_change_line << '\n'; // Output PA change command tag
+                    output << "; APA Current Speed: " << std::to_string(m_current_feedrate) << "\n";
+                    output << "; APA Next Speed: " << std::to_string(m_next_feedrate) << "\n";
+                    output << "; APA Max Next Speed: " << std::to_string(m_max_next_feedrate) << "\n";
+                    output << "; APA Speed Used: " << std::to_string(adaptive_PA_speed) << "\n";
+                    output << "; APA Flow rate: " << std::to_string(mm3mm_value * m_max_next_feedrate) << "\n";
+                    output << "; APA Prev PA: " << std::to_string(m_last_predicted_pa) << " New PA: " << std::to_string(predicted_pa) << "\n"; 
+                }
                 if (extruder_changed || std::fabs(predicted_pa - m_last_predicted_pa) > EPSILON) {
                     output << m_gcodegen.writer().set_pressure_advance(predicted_pa); // Use m_writer to set pressure advance
                     m_last_predicted_pa = predicted_pa; // Update the last predicted PA value

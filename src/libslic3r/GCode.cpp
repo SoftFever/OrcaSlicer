@@ -4712,7 +4712,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             total_multipath_length += path_length;
         }
     }
-    if (total_multipath_length != 0.0)
+    if (total_multipath_length > 0.0)
         m_multi_flow_segment_path_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
     // Orca: end of multipath average mm3_per_mm value calculation
     
@@ -4844,7 +4844,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
             total_multipath_length += path_length;
         }
     }
-    if (total_multipath_length != 0.0)
+    if (total_multipath_length > 0.0)
         m_multi_flow_segment_path_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
     // Orca: end of multipath average mm3_per_mm value calculation
     
@@ -5524,7 +5524,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (!variable_speed) {
         // F is mm per minute.
-        if(F != m_last_set_speed || std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON){
+        if( (std::abs(m_last_set_speed - F) > EPSILON) || (std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON) ){
             // ORCA: Adaptive PA code segment when adjusting PA within the same feature
             // There is a speed change coming out of an overhang region
             // or a flow change, so emit the flag to evaluate PA for the upcomming extrusion
@@ -5536,7 +5536,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs) &&
                !evaluate_adaptive_pa){
                 bool is_external = (path.role() == erExternalPerimeter);
-                if(m_last_set_speed > F) // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
+                if(m_last_set_speed > F){ // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
+                    if(m_config.gcode_comments){
+                        sprintf(buf, "; Ramp down-non-variable\n");
+                        gcode += buf;
+                    }
                     sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                             GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                             m_writer.extruder()->id(),
@@ -5544,10 +5548,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             acceleration_i,
                             is_external,
                             1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
-                               // the properties of the extrusion in the overhang are different so it behaves similarly to a role
-                               // change for the Adaptive PA post processor.
+                            // the properties of the extrusion in the overhang are different so it behaves similarly to a role
+                            // change for the Adaptive PA post processor.
                             1);
-                else // Ramping up speed - use baseline logic where max speed is used between current and upcoming extrusion
+                }else{ // Ramping up speed - use baseline logic where max speed is used between current and upcoming extrusion
+                    if(m_config.gcode_comments){ 
+                        sprintf(buf, "; Ramp up-non-variable\n");
+                        gcode += buf;
+                    }
                     sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                             GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                             m_writer.extruder()->id(),
@@ -5555,9 +5563,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             acceleration_i,
                             is_external,
                             1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
-                               // the properties of the extrusion in the overhang are different so it is technically similar to a role
-                               // change for the Adaptive PA post processor.
+                            // the properties of the extrusion in the overhang are different so it is technically similar to a role
+                            // change for the Adaptive PA post processor.
                             0);
+                }
                 gcode += buf;
                 m_last_mm3_mm = _mm3_per_mm;
                 m_last_set_speed = F;
@@ -5760,7 +5769,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             path_length += line_length;
             double new_speed = pre_processed_point.speed * 60.0;
             
-            if (last_set_speed != new_speed || std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON) {
+            if ((std::abs(last_set_speed - new_speed) > EPSILON) || (std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON)) {
                 // ORCA: Adaptive PA code segment when adjusting PA within the same feature
                 // There is a speed change or flow change so emit the flag to evaluate PA for the upcomming extrusion
                 // Emit tag before new speed is set so the post processor reads the next speed immediately and uses it.
@@ -5768,29 +5777,37 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                    EXTRUDER_CONFIG(adaptive_pressure_advance) &&
                    EXTRUDER_CONFIG(enable_pressure_advance) &&
                    EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs) ){
-                    bool is_external = (path.role() == erExternalPerimeter);
-                    if(last_set_speed > new_speed) // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
+                    if(last_set_speed > new_speed){ // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
+                        if(m_config.gcode_comments) {
+                            sprintf(buf, "; Ramp up-variable\n");
+                            gcode += buf;
+                        }
                         sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                                 GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                                 m_writer.extruder()->id(),
                                 _mm3_per_mm,
                                 acceleration_i,
-                                is_external,
+                                (path.role() == erExternalPerimeter),
                                 1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                                 // the properties of the extrusion in the overhang are different so it is technically similar to a role
                                 // change for the Adaptive PA post processor.
                                 1);
-                    else // Ramping up speed - use baseline logic where max speed is used between current and upcoming extrusion
+                    }else{ // Ramping up speed - use baseline logic where max speed is used between current and upcoming extrusion
+                        if(m_config.gcode_comments) {
+                            sprintf(buf, "; Ramp down-variable\n");
+                            gcode += buf;
+                        }
                         sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                                 GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                                 m_writer.extruder()->id(),
                                 _mm3_per_mm,
                                 acceleration_i,
-                                is_external,
+                                (path.role() == erExternalPerimeter),
                                 1, // Force a dummy "role change" & "overhang perimeter" for the post processor, as, while technically it is not a role change,
                                 // the properties of the extrusion in the overhang are different so it is technically similar to a role
                                 // change for the Adaptive PA post processor.
                                 0);
+                    }
                     gcode += buf;
                     m_last_set_speed = new_speed;
                     m_last_mm3_mm = _mm3_per_mm;
