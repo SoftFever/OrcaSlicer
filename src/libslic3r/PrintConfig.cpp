@@ -2800,11 +2800,10 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
     def->label    = L("Interlocking depth of a segmented region");
-    //def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
-    //                 "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
-    //                 "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
-    def->tooltip  = L("Interlocking depth of a segmented region. Zero disables this feature.");
-    def->sidetext = L("mm"); //(zero to disable)
+    def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
+                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
+                    "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+    def->sidetext = L("mm"); 
     def->min      = 0;
     def->category = L("Advanced");
     def->mode     = comAdvanced;
@@ -3398,7 +3397,7 @@ void PrintConfigDef::init_fff_params()
     def->category = "Extruders";
     def->tooltip = "Filament to print walls";
     def->min = 1;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("inner_wall_line_width", coFloatOrPercent);
@@ -4061,12 +4060,13 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
-    //def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
-    //               "Enables a full-height \"sacrificial\" skirt on which the nozzles are periodically wiped.");
+    // TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+    def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
+                     "The value is not used when 'idle_temperature' in filament settings "
+                     "is defined.");
     def->sidetext = "∆°C";
     def->min = -max_temp;
     def->max = max_temp;
-    //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(-5));
 
@@ -4092,7 +4092,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Single Extruder Multi Material");
     def->tooltip = L("Use single nozzle to print multi filament");
     def->mode = comAdvanced;
-    def->readonly = true;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("manual_filament_change", coBool);
@@ -4913,8 +4912,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
 
-    def = this->add("wipe_tower_extruder", coInt);
-    def->label = L("Wipe tower extruder");
+    def = this->add("wipe_tower_filament", coInt);
+    def->label = L("Wipe tower");
     def->category = L("Extruders");
     def->tooltip = L("The extruder to use when printing perimeter of the wipe tower. "
                      "Set to 0 to use the one that is available (non-soluble would be preferred).");
@@ -4960,6 +4959,15 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.));
+
+    def = this->add("idle_temperature", coInts);
+    def->label = L("Idle temperature");
+    def->tooltip = L("Nozzle temperature when the tool is currently not used in multi-tool setups."
+                     "This is only used when 'Ooze prevention' is active in Print Settings. Set to 0 to disable.");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("xy_hole_compensation", coFloat);
     def->label = L("X-Y hole compensation");
@@ -5921,7 +5929,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "solid_infill_filament";
     }else if (opt_key == "perimeter_extruder") {
         opt_key = "wall_filament";
-    } else if (opt_key == "support_material_extruder") {
+    }else if(opt_key == "wipe_tower_extruder") {
+        opt_key = "wipe_tower_filament";
+    }else if (opt_key == "support_material_extruder") {
         opt_key = "support_filament";
     } else if (opt_key == "support_material_interface_extruder") {
         opt_key = "support_interface_filament";
@@ -5988,8 +5998,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else {
             opt_key = "wall_sequence";
         }
-    } else if(opt_key == "single_extruder_multi_material") {
-        value = "1";
     }
     else if(opt_key == "ensure_vertical_shell_thickness") {
         if(value == "1") {
@@ -7243,10 +7251,9 @@ ReadWriteSlicingStatesConfigDef::ReadWriteSlicingStatesConfigDef()
     def->label = L("Extra deretraction");
     def->tooltip = L("Currently planned extra extruder priming after deretraction.");
 
-    // Options from PS not used in Orca
-//    def = this->add("e_position", coFloats);
-//    def->label = L("Absolute E position");
-//    def->tooltip = L("Current position of the extruder axis. Only used with absolute extruder addressing.");
+   def = this->add("e_position", coFloats);
+   def->label = L("Absolute E position");
+   def->tooltip = L("Current position of the extruder axis. Only used with absolute extruder addressing.");
 }
 
 OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
@@ -7488,10 +7495,9 @@ OtherPresetsConfigDef::OtherPresetsConfigDef()
     def->label = L("Physical printer name");
     def->tooltip = L("Name of the physical printer used for slicing.");
 
-    // Options from PS not used in Orca
-    //    def = this->add("num_extruders", coInt);
-    //    def->label = L("Number of extruders");
-    //    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
+    def          = this->add("num_extruders", coInt);
+    def->label   = L("Number of extruders");
+    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
 }
 
 
