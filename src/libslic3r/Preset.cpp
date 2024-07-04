@@ -2676,7 +2676,7 @@ bool PresetCollection::update_dirty()
 }
 
 template<class T>
-void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase &this_c)
+void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase &this_c, bool strict)
 {
     const T* opt_init = static_cast<const T*>(other.option(opt_key));
     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
@@ -2690,16 +2690,25 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     for (int i = 0; i < int(opt_cur->values.size()); i++)
     {
         int init_id = i <= opt_init_max_id ? i : 0;
-        if (opt_cur->values[i] != opt_init->values[init_id])
+        if (opt_cur->values[i] != opt_init->values[init_id]
+                && (strict || opt_cur->is_nil(i) || opt_init->is_nil(init_id)))
             vec.emplace_back(opt_key + "#" + std::to_string(i));
     }
 }
 
 // Use deep_diff to correct return of changed options, considering individual options for each extruder.
-inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other)
+inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = false)
 {
     t_config_option_keys diff;
-    for (const t_config_option_key &opt_key : config_this.keys()) {
+    t_config_option_keys keys = config_this.keys();
+    if (strict) {
+        t_config_option_keys keys_this = config_this.keys();
+        t_config_option_keys keys_other = config_other.keys();
+        std::set_union(keys_this.begin(), keys_this.end(), keys_other.begin(), keys_other.end(), std::back_inserter(keys));
+    } else {
+        keys = config_this.keys();
+    }
+    for (const t_config_option_key &opt_key : keys) {
         const ConfigOption *this_opt  = config_this.option(opt_key);
         const ConfigOption *other_opt = config_other.option(opt_key);
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
@@ -2724,15 +2733,32 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
                     diff.emplace_back(opt_key);
             } else {
                 switch (other_opt->type()) {
-                case coInts:    add_correct_opts_to_diff<ConfigOptionInts       >(opt_key, diff, config_other, config_this);  break;
-                case coBools:   add_correct_opts_to_diff<ConfigOptionBools      >(opt_key, diff, config_other, config_this);  break;
-                case coFloats:  add_correct_opts_to_diff<ConfigOptionFloats     >(opt_key, diff, config_other, config_this);  break;
-                case coStrings: add_correct_opts_to_diff<ConfigOptionStrings    >(opt_key, diff, config_other, config_this);  break;
-                case coPercents:add_correct_opts_to_diff<ConfigOptionPercents   >(opt_key, diff, config_other, config_this);  break;
-                case coPoints:  add_correct_opts_to_diff<ConfigOptionPoints     >(opt_key, diff, config_other, config_this);  break;
+                case coInts:    add_correct_opts_to_diff<ConfigOptionInts       >(opt_key, diff, config_other, config_this, strict);  break;
+                case coBools:   add_correct_opts_to_diff<ConfigOptionBools      >(opt_key, diff, config_other, config_this, strict);  break;
+                case coFloats:  add_correct_opts_to_diff<ConfigOptionFloats     >(opt_key, diff, config_other, config_this, strict);  break;
+                case coStrings: add_correct_opts_to_diff<ConfigOptionStrings    >(opt_key, diff, config_other, config_this, strict);  break;
+                case coPercents:add_correct_opts_to_diff<ConfigOptionPercents   >(opt_key, diff, config_other, config_this, strict);  break;
+                case coFloatsOrPercents: add_correct_opts_to_diff<ConfigOptionFloatsOrPercents>(opt_key, diff, config_other, config_this); break;
+                case coPoints:  add_correct_opts_to_diff<ConfigOptionPoints     >(opt_key, diff, config_other, config_this, strict);  break;
                 // BBS
-                case coEnums:   add_correct_opts_to_diff<ConfigOptionInts       >(opt_key, diff, config_other, config_this);  break;
+                case coEnums: add_correct_opts_to_diff<ConfigOptionInts>(opt_key, diff, config_other, config_this, strict); break;
                 default:        diff.emplace_back(opt_key);     break;
+                }
+            }
+        }
+        else if (strict) {
+            const ConfigOption *opt = nullptr;
+            if (this_opt != nullptr && other_opt == nullptr)
+                opt = this_opt;
+            else if (this_opt == nullptr && other_opt != nullptr)
+                opt = other_opt;
+            if (opt) {
+                if (opt->type() & coVectorType) {
+                    auto vec = dynamic_cast<ConfigOptionVectorBase const *>(opt);
+                    for (size_t i = 0; i < vec->size(); i++)
+                        diff.push_back(opt_key + "#" + std::to_string(i));
+                } else {
+                        diff.push_back(opt_key);
                 }
             }
         }

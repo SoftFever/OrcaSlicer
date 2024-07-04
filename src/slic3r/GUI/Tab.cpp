@@ -57,6 +57,9 @@
 #endif // WIN32
 
 namespace Slic3r {
+
+t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = false);
+
 namespace GUI {
 
 #define DISABLE_UNDO_SYS
@@ -507,7 +510,7 @@ void Tab::create_preset_tab()
             reload_config();
             update_changed_ui();
         });
-        m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 4);
+        m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP, m_em_unit);
     }
 
     this->SetSizer(m_main_sizer);
@@ -895,7 +898,8 @@ void Tab::update_changed_ui()
     if (m_postpone_update_ui)
         return;
 
-    const bool deep_compare = (m_type == Slic3r::Preset::TYPE_PRINTER || m_type == Slic3r::Preset::TYPE_PRINT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL);
+    const bool deep_compare = (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_PRINT
+            || m_type == Preset::TYPE_SLA_MATERIAL || m_type == Preset::TYPE_MODEL);
     auto dirty_options = m_presets->current_dirty_options(deep_compare);
     auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
     if (m_type == Preset::TYPE_PRINTER && static_cast<TabPrinter*>(this)->m_printer_technology == ptFFF) {
@@ -906,13 +910,15 @@ void Tab::update_changed_ui()
             nonsys_options.emplace_back("extruders_count");
     }
 
-    for (auto& it : m_options_list)
-        it.second = m_opt_status_value;
+    update_custom_dirty(dirty_options, nonsys_options);
 
     if (m_extruder_switch == nullptr || m_extruder_switch->IsEnabled()) {
         filter_diff_option(dirty_options);
         filter_diff_option(nonsys_options);
     }
+
+    for (auto& it : m_options_list)
+        it.second = m_opt_status_value;
 
     for (auto opt_key : dirty_options) {
         m_options_list[opt_key] &= ~osInitValue;
@@ -920,8 +926,6 @@ void Tab::update_changed_ui()
     for (auto opt_key : nonsys_options) {
         m_options_list[opt_key] &= ~osSystemValue;
     }
-
-    update_custom_dirty();
 
     decorate();
 
@@ -2721,6 +2725,23 @@ void TabPrintModel::set_model_config(std::map<ObjectBase *, ModelConfig *> const
     update_model_config();
 }
 
+static std::vector<std::string> variant_keys(DynamicPrintConfig const & config)
+{
+    std::vector<std::string> t;
+    for (const std::string &opt_key : config.keys()) {
+        auto opt = config.option(opt_key);
+        if (opt->type() & coVectorType) {
+            auto vec = dynamic_cast<ConfigOptionVectorBase const *>(opt);
+            for (size_t i = 0; i < vec->size(); i++)
+                if (!vec->is_nil(i))
+                    t.push_back(opt_key + "#" + std::to_string(i));
+        } else {
+            t.push_back(opt_key);
+        }
+    }
+    return t;
+}
+
 void TabPrintModel::update_model_config()
 {
     if (m_config_manipulation.is_applying()) {
@@ -2735,25 +2756,42 @@ void TabPrintModel::update_model_config()
         DynamicPrintConfig const & global_config= *m_config;
         DynamicPrintConfig const & local_config = m_object_configs.begin()->second->get();
         DynamicPrintConfig diff_config;
-        std::vector<std::string> all_keys = local_config.keys(); // at least one has these keys
-        std::vector<std::string> local_keys = intersect(m_keys, all_keys); // all equal on these keys
+        std::vector<std::string> all_keys = variant_keys(local_config); // at least one has these keys
+        std::vector<std::string> local_diffs; // all diff keys to first config
         if (m_object_configs.size() > 1) {
-            std::vector<std::string> global_keys = m_keys; // all equal with global on these keys
+            std::vector<std::string> global_diffs; // all diff keys to global config
             for (auto & config : m_object_configs) {
-                auto equals = global_config.equal(config.second->get());
-                global_keys = intersect(global_keys, equals);
-                diff_config.apply_only(config.second->get(), substruct(config.second->keys(), equals));
+                all_keys = concat(all_keys, variant_keys(config.second->get()));
+                auto diffs = deep_diff(config.second->get(), global_config);
+                global_diffs = concat(global_diffs, diffs);
+                diff_config.apply_only(config.second->get(), diffs);
                 if (&config.second->get() == &local_config) continue;
-                all_keys = concat(all_keys, config.second->keys());
-                local_keys = intersect(local_keys, local_config.equal(config.second->get()));
+                local_diffs = concat(local_diffs, deep_diff(local_config, config.second->get(), true));
             }
-            all_keys = intersect(all_keys, m_keys);
-            m_null_keys = substruct(substruct(all_keys, global_keys), local_keys);
+            m_null_keys = intersect(global_diffs, local_diffs);
             m_config->apply(diff_config);
         }
-        m_all_keys = intersect(all_keys, m_keys);
+        m_all_keys.clear();
+        std::copy_if(all_keys.begin(), all_keys.end(), std::back_inserter(m_all_keys), [this](std::string & e) {
+            auto iter = std::lower_bound(m_keys.begin(), m_keys.end(), e);
+            if (auto n = e.find('#'); n == std::string::npos)
+                return iter != m_keys.end() && e == *iter;
+            else
+                return iter != m_keys.begin() && e.compare(0, n, *--iter) == 0;
+        });
         // except those than all equal on
-        m_config->apply_only(local_config, local_keys);
+        auto local_keys = substruct(m_all_keys, local_diffs);
+        auto iter = std::partition(local_keys.begin(), local_keys.end(), [] (auto & e) {
+            return e.find('#') == std::string::npos;
+        });
+        m_config->apply_only(local_config, std::vector<std::string>(local_keys.begin(), iter));
+        for (; iter != local_keys.end(); ++iter) {
+            int n = iter->find('#');
+            auto opt_key = iter->substr(0, n);
+            n = std::atoi(iter->c_str() + n + 1);
+            auto vec = dynamic_cast<ConfigOptionVectorBase *>(m_config->option(opt_key));
+            vec->set_at(local_config.option(opt_key), n, n);
+        }
         m_config_manipulation.apply_null_fff_config(m_config, m_null_keys, m_object_configs);
 
         if (m_type == Preset::Type::TYPE_PLATE) {
@@ -2787,8 +2825,8 @@ void TabPrintModel::update_model_config()
                 notify_changed(plate_item.first);
             }
         }
-
     }
+
     toggle_options();
     if (m_active_page)
         m_active_page->update_visibility(m_mode, true); // for taggle line
@@ -2838,35 +2876,78 @@ void TabPrintModel::activate_selected_page(std::function<void()> throw_if_cancel
     }
 }
 
-void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
+void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any& value)
 {
     // TODO: support opt_index, translate by OptionsGroup's m_opt_map
-    auto k = opt_key;
     if (m_config_manipulation.is_applying()) {
-        TabPrint::on_value_change(opt_key, value);
+        TabPrint::on_value_change(opt_id, value);
         return;
     }
-    if (!has_key(k))
+    auto opt_key   = opt_id;
+    auto opt_id2   = opt_id;
+    int opt_index = -1;
+    if (auto n = opt_key.find('#'); n != std::string::npos) {
+        opt_key = opt_key.substr(0, n);
+        auto iter = m_active_page->m_opt_id_map.lower_bound(opt_key);
+        assert(iter != m_active_page->m_opt_id_map.end() && iter->second == opt_id);
+        opt_id2 = iter->first;
+        opt_index = std::atoi(opt_id2.c_str() + n + 1);
+    }
+    if (!has_key(opt_key))
         return;
     if (!m_object_configs.empty())
-        wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % k).str());
-    auto inull = std::find(m_null_keys.begin(), m_null_keys.end(), k);
+        wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_id2).str());
+    auto inull = std::find(m_null_keys.begin(), m_null_keys.end(), opt_id2);
     // always add object config
     bool set   = true; // *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
+    auto tab_opt = dynamic_cast<ConfigOptionVectorBase *>(m_config->option(opt_key));
+    static std::map<ConfigOptionType, ConfigOptionVectorBase const *> null_vecs {
+        {coInts, new ConfigOptionIntsNullable(1, ConfigOptionIntsNullable::nil_value())},
+        {coFloats, new ConfigOptionFloatsNullable(1, ConfigOptionFloatsNullable::nil_value())},
+        {coPercents, new ConfigOptionPercentsNullable(1, ConfigOptionPercentsNullable::nil_value())},
+        {coFloatsOrPercents, new ConfigOptionFloatsOrPercentsNullable(1, ConfigOptionFloatsOrPercentsNullable::nil_value())}
+    };
     if (m_back_to_sys) {
-        for (auto config : m_object_configs)
-            config.second->erase(k);
-        m_all_keys.erase(std::remove(m_all_keys.begin(), m_all_keys.end(), k), m_all_keys.end());
+        if (opt_key == opt_id) {
+            for (auto config : m_object_configs)
+                config.second->erase(opt_key);
+        } else {
+            for (auto config : m_object_configs) {
+                auto opt  = config.second->option(opt_key);
+                if (opt) {
+                    auto opt2 = opt->clone();
+                    dynamic_cast<ConfigOptionVectorBase *>(opt2)->resize(tab_opt->size());
+                    dynamic_cast<ConfigOptionVectorBase *>(opt2)->set_at(null_vecs[tab_opt->type()], opt_index, 0);
+                    if (opt2->is_nil()) {
+                        delete opt2;
+                        config.second->erase(opt_key);
+                    } else {
+                        config.second->set_key_value(opt_key, opt2);
+                    }
+                }
+            }
+        }
+        m_all_keys.erase(std::remove(m_all_keys.begin(), m_all_keys.end(), opt_id2), m_all_keys.end());
     } else if (set) {
-        for (auto config : m_object_configs)
-            config.second->apply_only(*m_config, {k});
-        m_all_keys = concat(m_all_keys, {k});
+        if (opt_key == opt_id) {
+            for (auto config : m_object_configs)
+                config.second->apply_only(*m_config, {opt_key});
+        } else {
+            for (auto config : m_object_configs) {
+                auto opt = config.second->option(opt_key);
+                auto opt2 = opt ? opt->clone() : null_vecs[tab_opt->type()]->clone();
+                dynamic_cast<ConfigOptionVectorBase *>(opt2)->resize(tab_opt->size());
+                dynamic_cast<ConfigOptionVectorBase *>(opt2)->set_at(tab_opt, opt_index, opt_index);
+                config.second->set_key_value(opt_key, opt2);
+            }
+        }
+        m_all_keys = concat(m_all_keys, {opt_id2});
     }
     if (inull != m_null_keys.end())
         m_null_keys.erase(inull);
     if (m_back_to_sys || set) update_changed_ui();
     m_back_to_sys = false;
-    TabPrint::on_value_change(k, value);
+    TabPrint::on_value_change(opt_id, value);
     for (auto config : m_object_configs) {
         config.second->touch();
         notify_changed(config.first);
@@ -2901,10 +2982,11 @@ void TabPrintModel::reload_config()
     }
 }
 
-void TabPrintModel::update_custom_dirty()
+void TabPrintModel::update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options)
 {
-    for (auto k : m_null_keys) m_options_list[k] = 0;
-    for (auto k : m_all_keys) m_options_list[k] &= ~osSystemValue;
+    dirty_options = concat(dirty_options, m_null_keys);
+    nonsys_options = concat(nonsys_options, m_null_keys);
+    nonsys_options = concat(nonsys_options, m_all_keys);
 }
 
 //BBS: GUI refactor
@@ -3094,17 +3176,16 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
     }
 }
 
-void TabPrintPlate::update_custom_dirty()
+void TabPrintPlate::update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options)
 {
-    for (auto k : m_null_keys)
-        m_options_list[k] = 0;
+    TabPrintModel::update_custom_dirty(dirty_options, nonsys_options);
     for (auto k : m_all_keys) {
         if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
             if (m_config->opt_enum<LayerSeq>("first_layer_sequence_choice") != LayerSeq::flsAuto) {
-                m_options_list[k] &= ~osInitValue;
+                dirty_options.push_back(k);
             }
             if (m_config->opt_enum<LayerSeq>("other_layers_sequence_choice") != LayerSeq::flsAuto) {
-                m_options_list[k] &= ~osInitValue;
+                dirty_options.push_back(k);
             }
         }
         if (k == "curr_bed_type") {
@@ -3112,11 +3193,10 @@ void TabPrintPlate::update_custom_dirty()
             if (global_cfg.has("curr_bed_type")) {
                 BedType global_bed_type = global_cfg.opt_enum<BedType>("curr_bed_type");
                 if (m_config->opt_enum<BedType>("curr_bed_type") != global_bed_type) {
-                    m_options_list[k] &= ~osInitValue;
+                    dirty_options.push_back(k);
                 }
             }
         }
-        m_options_list[k] &= ~osSystemValue;
     }
 }
 
@@ -3168,19 +3248,20 @@ void TabPrintLayer::notify_changed(ObjectBase * object)
     }
 }
 
-void TabPrintLayer::update_custom_dirty()
+void TabPrintLayer::update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options)
 {
-    for (auto k : m_null_keys) m_options_list[k] = 0;
-    for (auto k : m_all_keys) m_options_list[k] &= ~osSystemValue;
-
+    TabPrintModel::update_custom_dirty(dirty_options, nonsys_options);
     auto option = m_parent_tab->get_config()->option(layer_height);
     for (auto config : m_object_configs) {
         if (!config.second->has(layer_height)) {
             config.second->set_key_value(layer_height, option->clone());
-            m_options_list[layer_height] = osInitValue | osSystemValue;
+            dirty_options.erase(std::remove(dirty_options.begin(), dirty_options.end(), layer_height), dirty_options.end());
+            nonsys_options.erase(std::remove(nonsys_options.begin(), nonsys_options.end(), layer_height), nonsys_options.end());
         }
-        else if (config.second->opt_float(layer_height) == option->getFloat())
-            m_options_list[layer_height] = osInitValue | osSystemValue;
+        else if (config.second->opt_float(layer_height) == option->getFloat()) {
+            dirty_options.erase(std::remove(dirty_options.begin(), dirty_options.end(), layer_height), dirty_options.end());
+            nonsys_options.erase(std::remove(nonsys_options.begin(), nonsys_options.end(), layer_height), nonsys_options.end());
+        }
     }
 }
 
@@ -4873,6 +4954,12 @@ void Tab::load_current_preset()
 
     // Reload preset pages with the new configuration values.
     update_extruder_variants();
+    if (m_type == Preset::TYPE_PRINT) {
+        for (auto tab : wxGetApp().model_tabs_list) {
+            tab->update_extruder_variants();
+            tab->reload_config();
+        }
+    }
     reload_config();
 
     update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
@@ -4956,6 +5043,11 @@ void Tab::load_current_preset()
         }
         m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
         init_options_list();
+        if (m_type == Preset::TYPE_PRINT) {
+            for (auto tab : wxGetApp().model_tabs_list) {
+                tab->init_options_list();
+            }
+        }
         update_visibility();
         update_changed_ui();
     }
@@ -5614,8 +5706,10 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         return false;
 
     m_active_page = page;
-    if (m_extruder_switch)
-        GetSizer()->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
+    if (m_extruder_switch) {
+        m_main_sizer->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
+        GetParent()->Layout();
+    }
 
     auto throw_if_canceled = std::function<void()>([this](){
 #ifdef WIN32
@@ -6284,13 +6378,16 @@ void Tab::update_extruder_variants(int extruder_id)
             m_extruder_switch->Enable();
         } else {
             m_extruder_switch->Enable(false);
-            GetSizer()->Show(m_extruder_switch, false);
+            m_main_sizer->Show(m_extruder_switch, false);
+            GetParent()->Layout();
             return;
         }
     }
     switch_excluder(extruder_id);
-    if (m_extruder_switch)
-        GetSizer()->Show(m_extruder_switch, m_active_page && !m_active_page->m_opt_id_map.empty());
+    if (m_extruder_switch) {
+        m_main_sizer->Show(m_extruder_switch, m_active_page && !m_active_page->m_opt_id_map.empty());
+        GetParent()->Layout();
+    }
 }
 
 void Tab::switch_excluder(int extruder_id)

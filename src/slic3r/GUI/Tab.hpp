@@ -370,7 +370,7 @@ public:
 	virtual void	update() = 0;
 	virtual void	toggle_options() = 0;
 	virtual void	init_options_list();
-    virtual void    update_custom_dirty() {}
+    virtual void    update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) {}
 	void			load_initial_data();
 	void			update_dirty();
 	//BBS update plater presets if update_plater_presets = true
@@ -496,7 +496,7 @@ protected:
 
 	virtual void	reload_config();
 
-	virtual void	update_custom_dirty() override;
+	virtual void	update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
 
 protected:
 	std::vector<std::string> m_keys;
@@ -522,7 +522,7 @@ public:
 protected:
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
 	virtual void    notify_changed(ObjectBase* object) override;
-	virtual void	update_custom_dirty() override;
+	virtual void	update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
 };
 
 class TabPrintObject : public TabPrintModel
@@ -553,7 +553,7 @@ public:
 	~TabPrintLayer() {}
 protected:
 	virtual void    notify_changed(ObjectBase* object) override;
-	virtual void    update_custom_dirty() override;
+	virtual void    update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
 };
 
 class TabFilament : public Tab
