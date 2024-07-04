@@ -121,6 +121,9 @@ if (MSVC)
     # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
     # C4267: The compiler detected a conversion from size_t to a smaller type.
     add_compile_options(/wd4244 /wd4267)
+    # Disable warnings on comparison of unsigned and signed
+    # C4018: signed/unsigned mismatch
+    add_compile_options(/wd4018)
 endif ()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
@@ -251,6 +254,9 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
 
     # Ignore unused functions warnings
     add_compile_options(-Wno-unused-function)
+
+    # Ignore signed/unsigned comparison warnings
+    add_compile_options(-Wno-sign-compare)
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
