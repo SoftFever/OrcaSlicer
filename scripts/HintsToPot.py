@@ -24,6 +24,7 @@ def main():
     if not path_to_ini.exists():
         print("HINTS_TO_POT FAILED: PATH TO INI DOES NOT EXISTS")
         print(str(path_to_ini))
+        exit(-1)
     config = ConfigParser()
     with open(path_to_ini) as hints_file:
         config.read_file(hints_file)
