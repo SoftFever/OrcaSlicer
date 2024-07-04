@@ -11,6 +11,7 @@ set(DEP_CMAKE_OPTS
     "-DCMAKE_C_FLAGS=${DEP_WERRORS_SDK}"
     "-DCMAKE_FIND_FRAMEWORK=LAST"
     "-DCMAKE_FIND_APPBUNDLE=LAST"
+    "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic"
 )
 
 include("deps-unix-common.cmake")
