@@ -155,6 +155,8 @@ public:
     void text_wrapped(const wxString &label, float wrap_width);
     void tooltip(const char *label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
+    void filament_group(const std::string &filament_type, const char *hex_color);
+    void                   sub_title(const std::string &label);
 
 
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).
@@ -388,7 +390,6 @@ class IMTexture
 public:
     // load svg file to thumbnail data, specific width, height is thumbnailData width, height
     static bool load_from_svg_file(const std::string& filename, unsigned width, unsigned height, ImTextureID &texture_id);
-
 };
 
 

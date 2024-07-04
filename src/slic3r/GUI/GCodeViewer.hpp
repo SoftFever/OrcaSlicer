@@ -739,6 +739,11 @@ private:
     bool m_only_gcode_in_preview {false};
     std::vector<size_t> m_ssid_to_moveid_map;
 
+    //BBS: extruder dispensing filament
+    //std::pair<TYPE, CLOUR>
+    std::vector<std::pair<std::string, std::string>> m_left_extruder_filament;
+    std::vector<std::pair<std::string, std::string>> m_right_extruder_filament;
+
     std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;
@@ -898,6 +903,7 @@ private:
 
     //BBS: GUI refactor: add canvas size
     void render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin);
+    void render_legend_color_arr_recommen(float window_padding);
     void render_slider(int canvas_width, int canvas_height);
 
 #if ENABLE_GCODE_VIEWER_STATISTICS

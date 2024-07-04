@@ -134,6 +134,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
+    {ImGui::FilamentGreen,                "filament_green"                       },
 
     {ImGui::PlayButton,                   "notification_play"                    },
     {ImGui::PlayDarkButton,               "notification_play_dark"               },
@@ -3157,6 +3158,39 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
         wxTheClipboard->SetData(new wxTextDataObject(wxString::FromUTF8(text)));   // object owned by the clipboard
         wxTheClipboard->Close();
     }
+}
+
+void ImGuiWrapper::filament_group(const std::string &filament_type, const char *hex_color)
+{
+    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    static ImTextureID transparent;
+    ImVec2             img_size = {30.0f, 45.0f};
+    ImVec2             text_size     = ImGui::CalcTextSize(filament_type.c_str());
+    BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + "/images/filament_green.svg", img_size.x, img_size.y, transparent, hex_color);
+    ImGui::BeginGroup();
+    {
+    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+        draw_list->AddImage(transparent, cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, {0, 0}, {1, 1}, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+    // image border test
+    // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
+    ImVec2 current_cursor = ImGui::GetCursorPos();
+    ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_size.x) * 0.5f, current_cursor.y + 40});
+    this->text(filament_type);
+    ImGui::EndGroup();
+    }
+    //ImGui::PopStyleVar(1);
+}
+
+void ImGuiWrapper::sub_title(const std::string &label)
+{
+    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    text_colored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), label);
+    ImGui::SameLine();
+    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+    float available_width = ImGui::GetContentRegionAvail().x;
+    draw_list->AddLine(ImVec2(cursor_pos.x, cursor_pos.y + 8.0f), ImVec2(cursor_pos.x + available_width, cursor_pos.y + 8.0f), IM_COL32(255, 255, 255, 100));
+    ImGui::NewLine();
 }
 
 bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, unsigned height, ImTextureID& texture_id)

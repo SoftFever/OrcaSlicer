@@ -960,6 +960,16 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
 
+    std::vector<int> filament_maps = print.get_filament_maps();
+    std::vector<std::string> color_opt     = print.config().option<ConfigOptionStrings>("filament_colour")->values;
+    std::vector<std::string> type_opt     = print.config().option<ConfigOptionStrings>("filament_type")->values;
+    for (int i = 0; i < filament_maps.size(); ++i) {
+        if (filament_maps[i] == 1) {
+            m_left_extruder_filament.emplace_back(type_opt[i], color_opt[i]);
+        } else {
+            m_right_extruder_filament.emplace_back(type_opt[i], color_opt[i]);
+        }
+    }
     m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
     //BBS: add only gcode mode
@@ -4359,6 +4369,91 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     return;
 }
 
+void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
+{
+    ImGuiWrapper &imgui = *wxGetApp().imgui();
+
+    auto link_text = [&](std::string &label) {
+        ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
+
+        ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+        ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
+        imgui.text(label.c_str());
+        ImGui::PopStyleColor();
+
+        // click behavior
+        if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
+            // underline
+            ImVec2 lineEnd = ImGui::GetItemRectMax();
+            lineEnd.y -= 2.0f;
+            ImVec2 lineStart = lineEnd;
+            lineStart.x      = ImGui::GetItemRectMin().x;
+            ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
+
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+        }
+    };
+
+    ////BBS Color Arrangement Recommendation
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.title(_u8L("Color Arrangement Recommendation"));
+    //BBS AMS containers
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
+    ImGui::BeginChild("#AMS", ImVec2(0, 230.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+    {
+        // BBS save time;
+        imgui.text(_u8L("Since you set 1 AMS"));
+        ImGui::SameLine();
+        // BBS change button
+        link_text(_u8L("(change)"));
+        ImGui::SameLine();
+        imgui.text(_u8L(",this arrangement would be optimal."));
+        imgui.text(_u8L("It will save 738g filament and 23 minutes"));
+
+        float available_width   = ImGui::GetContentRegionAvail().x;
+        float available_height = ImGui::GetContentRegionAvail().y;
+        float half_width       = available_width * 0.5f;
+        float spacing           = 12.0f * m_scale;
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.3f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
+        ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
+        ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + 24.0f * m_scale), IM_COL32(0, 0, 0, 64));
+        ImGui::BeginChild("#LeftAMS", ImVec2(half_width, available_height - 20 * m_scale), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+        {
+            imgui.bold_text(_u8L("Left"));
+            ImGui::Dummy({window_padding, window_padding});
+            int index = 1;
+            for (const auto &extruder_filament : m_left_extruder_filament) {
+                imgui.filament_group(extruder_filament.first, extruder_filament.second.c_str());
+                if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
+            }
+            ImGui::EndChild();
+        }
+        ImGui::SameLine();
+        cursor_pos = ImGui::GetCursorScreenPos();
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + 24.0f * m_scale), IM_COL32(0, 0, 0, 64));
+        ImGui::BeginChild("#RightAMS", ImVec2(half_width, available_height - 20 * m_scale), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+        {
+            imgui.bold_text(_u8L("Right"));
+            ImGui::Dummy({window_padding, window_padding});
+            int index = 1;
+            for (const auto &extruder_filament : m_right_extruder_filament) {
+                imgui.filament_group(extruder_filament.first, extruder_filament.second.c_str());
+                if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
+            }
+            ImGui::EndChild();
+        }
+        ImGui::PopStyleColor(1);
+        ImGui::PopStyleVar(1);
+        link_text(_u8L("Customize Arrangement"));
+        ImGui::EndChild();
+    }
+    ImGui::PopStyleVar(1);
+}
+
 void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canvas_height, int right_margin)
 {
     if (!m_legend_enabled)
@@ -4651,10 +4746,15 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    //BBS display Color Scheme
+    //BBS Slicing Result title
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::SameLine(window_padding * 2); // ORCA Ignores item spacing to get perfect window margins since since this part uses dummies for window padding
+    std::string title = _u8L("Slicing Result");
+    imgui.bold_text(title);
+    ImVec2 longest_text_size = imgui.calc_text_size(_u8L("Since you set 1 AMS (change) ,this arrangement would be optimal."));
+    ImVec2 title_text_size   = imgui.calc_text_size(title);
+    ImGui::SameLine(0, longest_text_size.x - title_text_size.x);
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon;
@@ -4666,7 +4766,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     float calc_padding = (ImGui::GetFrameHeight() - 16 * m_scale) / 2;                      // ORCA calculated padding for 16x16 icon
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(calc_padding, calc_padding));    // ORCA Center icon with frame padding
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f * m_scale);                       // ORCA Match button style with combo box
-
     float button_width = 16 * m_scale + calc_padding * 2;                                   // ORCA match buttons height with combo box
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
         m_fold = !m_fold;
@@ -4680,6 +4779,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
+
+    if (m_fold) {
+        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5;
+        imgui.end();
+        ImGui::PopStyleColor(6);
+        ImGui::PopStyleVar(2);
+        return;
+    }
+
+    render_legend_color_arr_recommen(window_padding);
+
+    //BBS display Color Scheme
+    ImGui::Dummy({ window_padding, window_padding });
 
     //imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
@@ -4713,16 +4825,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
     float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
-
-    if (m_fold) {
-        legend_height = ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar margins while its folded
-        ImGui::SameLine(window_width);                // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
-        ImGui::Dummy({ 0, 0 });
-        imgui.end();
-        ImGui::PopStyleColor(6);
-        ImGui::PopStyleVar(2);
-        return;
-    }
 
     // data used to properly align items in columns when showing time
     std::vector<float> offsets;
