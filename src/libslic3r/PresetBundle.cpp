@@ -2117,7 +2117,6 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
 
     // BBS
     size_t  num_filaments = this->filament_presets.size();
-    auto* extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> compatible_prints_condition;
@@ -2472,7 +2471,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> filament_ids                           = std::move(config.option<ConfigOptionStrings>("filament_ids", true)->values);
     std::vector<std::string> print_compatible_printers              = std::move(config.option<ConfigOptionStrings>("print_compatible_printers", true)->values);
     //BBS: add different settings check logic
-    bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
+    // bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
     std::vector<std::string> different_values                       = std::move(config.option<ConfigOptionStrings>("different_settings_to_system", true)->values);
     std::string &compatible_printers_condition  = Preset::compatible_printers_condition(config);
     std::string &compatible_prints_condition    = Preset::compatible_prints_condition(config);

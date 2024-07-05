@@ -1483,8 +1483,6 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
     MD5_Init(&ctx);
     boost::nowide::ifstream ifs(filename, std::ios::binary);
     std::string                 buf(64 * 1024, 0);
-    const std::size_t &         size      = boost::filesystem::file_size(filename);
-    std::size_t                 left_size = size;
     while (ifs) {
         ifs.read(buf.data(), buf.size());
         int read_bytes = ifs.gcount();
