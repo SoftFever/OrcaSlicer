@@ -26,7 +26,6 @@ orcaslicer_add_cmake_project(
     wxWidgets
     GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
     GIT_SHALLOW ON
-    GIT_TAG a675dbe8fd07cb5c982cdab7b93cffc9d9f05f22
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON

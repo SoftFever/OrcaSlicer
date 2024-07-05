@@ -160,7 +160,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/SoftFever/Orca-deps-wxWidgets
-        commit: a675dbe8fd07cb5c982cdab7b93cffc9d9f05f22 
+        branch: master
         path: ../
     cleanup:
       - "*.la"
