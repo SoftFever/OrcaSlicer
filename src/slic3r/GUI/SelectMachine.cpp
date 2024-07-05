@@ -412,8 +412,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_filament_2extruder->Add(m_filament_right_panel, 0, wxALIGN_CENTER, 0);
     m_sizer_filament_2extruder->Layout();
 
-    m_filament_left_panel->Hide();
-    m_filament_right_panel->Hide();
+
+    //m_filament_left_panel->Hide();
+    //m_filament_right_panel->Hide();
+    m_filament_panel->Hide();
 
 
 
@@ -997,7 +999,12 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                 wxString ams_id;
                 wxColour ams_col;
 
-                if (f->tray_id >= 0) {
+                if (f->tray_id == VIRTUAL_TRAY_MAIN_ID || f->tray_id == VIRTUAL_TRAY_DEPUTY_ID)
+                {
+                    ams_id = "Ext";
+                }
+
+                else if (f->tray_id >= 0) {
                     ams_id = wxGetApp().transition_tridid(f->tray_id);
                     //ams_id = wxString::Format("%02d", f->tray_id + 1);
                 } else {
@@ -1044,8 +1051,94 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     if (!obj_) return false;
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
     // try color and type mapping
-    int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
-    if (result == 0) {
+
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
+    int filament_result = 0;
+    if (nozzle_nums > 1)
+    {
+        //get nozzle property, the nozzles are same?, wait fill
+        if (!is_two_nozzle_same())
+        {
+            m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
+            std::vector<FilamentInfo>           m_ams_mapping_result_first;
+            std::vector<FilamentInfo>           m_ams_mapping_result_second;
+            std::vector<FilamentInfo>           m_filament_first;
+            std::vector<FilamentInfo>           m_filament_second;
+            for (auto it = m_filaments.begin(); it != m_filaments.end(); it++)
+            {
+                if (it->id < 0 || it->id > m_filaments_map.size())
+                {
+                    BOOST_LOG_TRIVIAL(info) << "error: do_ams_mapping: m_filaments[].it" << it->id;
+                    BOOST_LOG_TRIVIAL(info) << "m_filaments_map.size()" << m_filaments_map.size();
+                    return false;
+                }
+                if (m_filaments_map[it->id] == 1)
+                {
+                    m_filament_first.push_back(*it);
+                }
+                else if (m_filaments_map[it->id] == 2)
+                {
+                    m_filament_second.push_back(*it);
+                }
+            }
+            std::vector<FilamentInfo>           temp_result_first;
+            std::vector<FilamentInfo>           temp_result_second;
+            int result_first = obj_->ams_filament_mapping(m_filament_first, m_ams_mapping_result_first, true, false);
+            int result_second = obj_->ams_filament_mapping(m_filament_second, m_ams_mapping_result_second, false, true);
+
+            m_ams_mapping_result.clear();
+            auto iter_first = m_ams_mapping_result_first.begin();
+            auto iter_second = m_ams_mapping_result_second.begin();
+            auto it = m_filaments.begin();
+            while (it != m_filaments.end() && iter_first != m_ams_mapping_result_first.end() && iter_second != m_ams_mapping_result_second.end())
+            {
+                if (it->id < 0 || it->id >= m_filaments_map.size())
+                {
+                    break;
+                }
+                if (m_filaments_map[it->id] == 1)
+                {
+                    m_ams_mapping_result.push_back(*iter_first);
+                    iter_first++;
+                    it++;
+                }
+                else
+                {
+                    m_ams_mapping_result.push_back(*iter_second);
+                    iter_second++;
+                    it++;
+                }
+            }
+            while (iter_first != m_ams_mapping_result_first.end())
+            {
+                m_ams_mapping_result.push_back(*iter_first);
+                iter_first++;
+            }
+            while (iter_second != m_ams_mapping_result_second.end())
+            {
+                m_ams_mapping_result.push_back(*iter_second);
+                iter_second++;
+            }
+            filament_result = (result_first && result_second);
+        }
+        else {
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, true, true);
+        }
+    }
+
+    else {
+        if (obj_->is_support_amx_ext_mix_mapping())
+        {
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, true, false);
+        }
+        else {
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, false, false);
+        }
+    }
+
+    if (filament_result == 0) {
         print_ams_mapping_result(m_ams_mapping_result);
         std::string ams_array;
         std::string ams_array2;
@@ -1064,7 +1157,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     } else {
         // do not support ams mapping try to use order mapping
         bool is_valid = obj_->is_valid_mapping_result(m_ams_mapping_result);
-        if (result != 1 && !is_valid) {
+        if (filament_result != 1 && !is_valid) {
             //reset invalid result
             for (int i = 0; i < m_ams_mapping_result.size(); i++) {
                 m_ams_mapping_result[i].tray_id = -1;
@@ -1129,10 +1222,13 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     //convert #RRGGBB to RRGGBBAA
                     mapping_item["sourceColor"]     = m_filaments[k].color;
                     mapping_item["targetColor"]     = m_ams_mapping_result[k].color;
-
+                    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID)
+                    {
+                        tray_id = -1;
+                    }
 
                     /*new ams mapping data*/
-                    
+
                     try
                     {
                         if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
@@ -1212,6 +1308,10 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
     }
     nozzles_info = nozzle_info_json.dump();
     return true;
+}
+
+bool SelectMachineDialog::is_two_nozzle_same() {
+    return false;
 }
 
 void SelectMachineDialog::prepare(int print_plate_idx)
@@ -1401,6 +1501,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
+        wxString msg_text = _L("Please do not mix-use the Ext with Ams");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -2822,6 +2927,28 @@ void SelectMachineDialog::update_show_status()
         do_ams_mapping(obj_);
     }
 
+    if (!m_mapping_popup.m_supporting_mix_print)
+    {
+        bool useAms = false;
+        bool useExt = false;
+        for (auto iter = m_ams_mapping_result.begin(); iter != m_ams_mapping_result.end(); iter++)
+        {
+            if (iter->tray_id != VIRTUAL_TRAY_MAIN_ID)
+            {
+                useAms = true;
+            }
+            if (iter->tray_id == VIRTUAL_TRAY_MAIN_ID)
+            {
+                useExt = true;
+            }
+            if (useAms && useExt)
+            {
+                show_status(PrintDialogStatus::PrintStatusAmsMappingMixInvalid);
+                return;
+            }
+        }
+    }
+
     if (!obj_->is_support_ams_mapping()) {
         int exceed_index = -1;
         if (obj_->is_mapping_exceed_filament(m_ams_mapping_result, exceed_index)) {
@@ -3217,7 +3344,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
             PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
             Preset *          preset           = &filament_presets->preset(f_index);
-
+            int size = preset_bundle->filaments.size();
             if (preset && filament_name.compare(preset->name) == 0) {
                 std::string display_filament_type;
                 std::string filament_type = preset->config.get_filament_type(display_filament_type);
@@ -3252,6 +3379,16 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_materialList.clear();
     m_filaments.clear();
 
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
+    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
+    bool use_double_extruder = nozzle_nums > 1 ? true : false;
+    if (use_double_extruder)
+    {
+        m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
+    }
+
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
         auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
@@ -3261,8 +3398,26 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size()) continue;
 
-        MaterialItem *item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
-        m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        MaterialItem* item = nullptr;
+        if (use_double_extruder)
+        {
+            
+            if (m_filaments_map[extruder] == 1)
+            {
+                item = new MaterialItem(m_filament_left_panel, colour_rgb, _L(display_materials[extruder]));
+                m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
+            }
+            else if (m_filaments_map[extruder] == 2)
+            {
+                item = new MaterialItem(m_filament_right_panel, colour_rgb, _L(display_materials[extruder]));
+                m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
+            }
+        }
+        else
+        {
+            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        }
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -3327,9 +3482,23 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         m_sizer_ams_mapping->SetCols(10);
     }*/
 
-    m_sizer_ams_mapping->SetCols(8);
-    m_sizer_ams_mapping->Layout();
-    m_filament_panel_sizer->Layout();
+    if (use_double_extruder)
+    {
+        m_sizer_ams_mapping_left->SetCols(4);
+        m_sizer_ams_mapping_left->Layout();
+        //m_filament_panel_left_sizer->Layout();
+
+        m_sizer_ams_mapping_right->SetCols(4);
+        m_sizer_ams_mapping_right->Layout();
+        //m_filament_panel_right_sizer->Layout();
+    }
+    else
+    {
+        m_sizer_ams_mapping->SetCols(8);
+        m_sizer_ams_mapping->Layout();
+        m_filament_panel_sizer->Layout();
+    }
+    
     // reset_ams_material();//show "-"
 }
 

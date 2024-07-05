@@ -854,6 +854,10 @@ bool MachineObject::is_support_ams_mapping()
     return true;
 }
 
+bool MachineObject::is_support_amx_ext_mix_mapping() {
+    return true;
+}
+
 static float calc_color_distance(wxColour c1, wxColour c2)
 {
     float lab[2][3];
@@ -876,17 +880,18 @@ void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
     }
 }
 
-int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id)
+int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, bool ext_first, bool ext_second, std::vector<int> exclude_id)
 {
     if (filaments.empty())
         return -1;
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
+    
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
 
         std::string ams_id = ams->second->id;
-
+        FilamentInfo info;
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
             int tray_id = atoi(tray->first.c_str());
@@ -898,7 +903,6 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             }
             // push
             if (tray->second->is_tray_info_ready()) {
-                FilamentInfo info;
                 info.color = tray->second->color;
                 info.type = tray->second->get_filament_type();
                 info.id = tray_index;
@@ -909,73 +913,67 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 /*for new ams mapping*/
                 info.ams_id = ams->first.c_str();
                 info.slot_id = tray->first.c_str();
-
+            }
+            if (!ext_first && !ext_second)
+            {
+                tray_filaments.emplace(std::make_pair(tray_index, info));
+            }
+            else if (ams->second->nozzle == 0 && ext_first)
+            {
+                tray_filaments.emplace(std::make_pair(tray_index, info));
+            }
+            else if (ams->second->nozzle == 1 && ext_second)
+            {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
     }
-
-    // tray info list
-    std::vector<FilamentInfo> tray_info_list;
-    int flament_index_id = 0;
-    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
-        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
-
+    if (ext_first)
+    {
+        auto tray = vt_slot.begin();
+        if (tray != vt_slot.end())
+        {
             FilamentInfo info;
-            info.id = flament_index_id;
-            info.tray_id = flament_index_id;
-            info.color = tray->second->color;
-            info.type = tray->second->get_filament_type();
-            info.ctype = tray->second->ctype;
-            info.colors = tray->second->cols;
-
+            info.color = tray->color;
+            //info.color = "EEEEEEFF";
+            info.type = tray->get_filament_type();
+            //info.type = "PLA"; //temp change
+            info.tray_id = atoi(tray->id.c_str());
+            info.id = atoi(tray->id.c_str());
+            info.filament_id = tray->setting_id;
+            info.ctype = tray->ctype;
+            info.colors = tray->cols;
 
             /*for new ams mapping*/
-            info.ams_id = ams->second->id;
-            info.slot_id = tray->second->id;
-
-            tray_info_list.push_back(info);
-            flament_index_id++;
+            info.ams_id = tray->id.c_str();
+            info.slot_id = std::to_string(0);
+            tray_filaments.emplace(std::make_pair(info.tray_id, info));
         }
+        
     }
+    if (ext_second)
+    {
 
-
-    // is_support_ams_mapping
-    if (!is_support_ams_mapping()) {
-        BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
-        result.clear();
-        for (int i = 0; i < filaments.size(); i++) {
+        auto tray = vt_slot.begin();
+        tray++;
+        if (tray != vt_slot.end())
+        {
             FilamentInfo info;
-            info.id = filaments[i].id;
-            int ams_id = filaments[i].id / 4;
-            auto ams_it = amsList.find(std::to_string(ams_id));
-            if (ams_it == amsList.end()) {
-                info.tray_id = -1;
-                info.mapping_result = (int)MappingResult::MAPPING_RESULT_EXCEED;
-            } else {
-                info.tray_id = filaments[i].id;
-                int tray_id = filaments[i].id % 4;
-                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
-                if (tray_it != ams_it->second->trayList.end()) {
-                    if (!tray_it->second->is_exists || tray_it->second->is_unset_third_filament()) {
-                        ;
-                    } else {
-                        if (filaments[i].type == tray_it->second->get_filament_type()) {
-                            info.color = tray_it->second->color;
-                            info.type = tray_it->second->get_filament_type();
-                            info.ctype = tray_it->second->ctype;
-                            std::vector<wxColour> cols;
-                            info.colors = tray_it->second->cols;
-                        } else {
-                            info.tray_id = -1;
-                            info.mapping_result = (int)MappingResult::MAPPING_RESULT_TYPE_MISMATCH;
-                        }
-                    }
-                }
-            }
-            result.push_back(info);
+            info.color = tray->color;
+            //info.color = "EEEEEEFF";
+            info.type = tray->get_filament_type();
+            //info.type = "PLA"; //temp change
+            info.tray_id = atoi(tray->id.c_str());
+            info.id = atoi(tray->id.c_str());
+            info.filament_id = tray->setting_id;
+            info.ctype = tray->ctype;
+            info.colors = tray->cols;
+
+            /*for new ams mapping*/
+            info.ams_id = tray->id.c_str();
+            info.slot_id = std::to_string(0);
+            tray_filaments.emplace(std::make_pair(info.tray_id, info));
         }
-        return 1;
     }
 
     char buffer[256];
@@ -1096,53 +1094,11 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         return 0;
     }
 
-    reset_mapping_result(result);
-    try {
-        // try to use ordering ams mapping
-        bool order_mapping_result = true;
-        for (int i = 0; i < filaments.size(); i++) {
-            if (i >= tray_info_list.size()) {
-                order_mapping_result = false;
-                break;
-            }
-            if (tray_info_list[i].tray_id == -1) {
-                result[i].tray_id = tray_info_list[i].tray_id;
-            } else {
-                if (!tray_info_list[i].type.empty() && tray_info_list[i].type != filaments[i].type) {
-                    order_mapping_result = false;
-                    break;
-                } else {
-                    result[i].tray_id = tray_info_list[i].tray_id;
-                    result[i].color = tray_info_list[i].color;
-                    result[i].type = tray_info_list[i].type;
-                    result[i].ctype = tray_info_list[i].ctype;
-                    result[i].colors = tray_info_list[i].colors;
-
-                    /*for new ams mapping*/
-                    result[i].ams_id = tray_info_list[i].ams_id;
-                    result[i].slot_id = tray_info_list[i].slot_id;
-                }
-            }
-        }
-
-        //check order mapping result
-        if (is_valid_mapping_result(result, true)) {
-            return 0;
-        }
-    } catch(...) {
-        reset_mapping_result(result);
-        return -1;
-    }
-
-    // try to match some color
-    reset_mapping_result(result);
-    result = cache_map_result;
     for (auto it = result.begin(); it != result.end(); it++) {
         if (it->distance >= 6000) {
             it->tray_id = -1;
         }
     }
-
     return 0;
 }
 

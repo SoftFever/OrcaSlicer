@@ -155,6 +155,7 @@ public:
     std::vector<MappingItem*> m_mapping_item_list;
 
     bool        m_has_unmatch_filament {false};
+    bool        m_supporting_mix_print {false};
     int         m_current_filament_id;
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 

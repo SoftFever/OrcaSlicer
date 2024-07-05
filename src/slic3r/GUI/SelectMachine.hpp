@@ -73,6 +73,7 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingSuccess,
     PrintStatusAmsMappingInvalid,
     PrintStatusAmsMappingU0Invalid,
+    PrintStatusAmsMappingMixInvalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -199,6 +200,7 @@ private:
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
+    std::vector<int>                    m_filaments_map;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
     std::unique_ptr<Worker>             m_worker;
 
@@ -369,6 +371,7 @@ public:
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool is_two_nozzle_same();
     bool build_nozzles_info(std::string& nozzles_info);
 
     std::string get_print_status_info(PrintDialogStatus status);
