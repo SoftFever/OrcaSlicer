@@ -2691,7 +2691,7 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     {
         int init_id = i <= opt_init_max_id ? i : 0;
         if (opt_cur->values[i] != opt_init->values[init_id]
-                && (strict || opt_cur->is_nil(i) || opt_init->is_nil(init_id)))
+                && (strict || !(opt_cur->is_nil(i) || opt_init->is_nil(init_id))))
             vec.emplace_back(opt_key + "#" + std::to_string(i));
     }
 }

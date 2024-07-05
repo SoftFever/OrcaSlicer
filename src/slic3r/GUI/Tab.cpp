@@ -1761,6 +1761,10 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             tab->update_extruder_variants(extruder_idx);
             tab->reload_config();
         }
+        if (auto tab = wxGetApp().plate_tab) {
+            tab->update_extruder_variants(extruder_idx);
+            tab->reload_config();
+        }
         for (auto tab : wxGetApp().model_tabs_list) {
             tab->update_extruder_variants(extruder_idx);
             tab->reload_config();
@@ -4956,6 +4960,10 @@ void Tab::load_current_preset()
     // Reload preset pages with the new configuration values.
     update_extruder_variants();
     if (m_type == Preset::TYPE_PRINT) {
+        if (auto tab = wxGetApp().plate_tab) {
+            tab->update_extruder_variants();
+            tab->reload_config();
+        }
         for (auto tab : wxGetApp().model_tabs_list) {
             tab->update_extruder_variants();
             tab->reload_config();
