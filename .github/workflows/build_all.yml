@@ -48,6 +48,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
+          - os: ubuntu-24.04
           - os: windows-latest
           - os: macos-14
             arch: x86_64
