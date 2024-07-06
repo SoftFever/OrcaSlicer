@@ -1431,9 +1431,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
     }
     
-    auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
 
     if (opt_key == "single_extruder_multi_material"  ){
+        const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
         wxGetApp().sidebar().show_add_del_filament_button(bSEMM);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     }
@@ -1654,7 +1654,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
 
     //Orca: sync filament num if it's a multi tool printer
-    if (opt_key == "extruders_count" && !bSEMM){
+    if (opt_key == "extruders_count" && !m_config->opt_bool("single_extruder_multi_material")){
         auto num_extruder = boost::any_cast<size_t>(value);
         wxColour new_col = Plater::get_next_color_for_filament();
         std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
