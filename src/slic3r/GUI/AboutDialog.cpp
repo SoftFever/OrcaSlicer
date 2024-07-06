@@ -243,8 +243,11 @@ AboutDialog::AboutDialog()
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
         auto version_string = _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
+        auto build_string = _L("build") + " " + std::string(GIT_COMMIT_HASH);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
+        wxStaticText* version_build = new wxStaticText(this, wxID_ANY, build_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on PrusaSlicer and BambuStudio"), wxDefaultPosition, wxDefaultSize);
+        version_build->SetFont(Label::Body_12);
         bs_version->SetFont(Label::Body_12);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
@@ -255,12 +258,15 @@ AboutDialog::AboutDialog()
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
         version->SetForegroundColour(wxColour("#FFFFFD"));
+        version_build->SetForegroundColour(wxColour("#FFFFFD"));
         bs_version->SetForegroundColour(wxColour("#FFFFFD"));
         version->SetBackgroundColour(wxColour("#4d4d4d"));
+        version_build->SetBackgroundColour(wxColour("#4d4d4d"));
         bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
 
 
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        vesizer->Add(version_build, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
         vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #if BBL_INTERNAL_TESTING
 //         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
