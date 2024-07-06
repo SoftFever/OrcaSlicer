@@ -2715,6 +2715,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("sparse_infill_filament", coInt);
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Infill");
     def->category = L("Extruders");
     def->tooltip = L("Filament to print internal sparse infill.");
@@ -3390,9 +3391,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wall_filament", coInt);
-    //def->label = L("Walls");
-    //def->category = L("Extruders");
-    //def->tooltip = L("Filament to print walls");
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = "Walls";
     def->category = "Extruders";
     def->tooltip = "Filament to print walls";
@@ -3983,9 +3982,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(15));
 
     def = this->add("solid_infill_filament", coInt);
-    //def->label = L("Solid infill");
-    //def->category = L("Extruders");
-    //def->tooltip = L("Filament to print solid infill");
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = "Solid infill";
     def->category = "Extruders";
     def->tooltip = "Filament to print solid infill";
@@ -4913,6 +4910,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(90.));
 
     def = this->add("wipe_tower_filament", coInt);
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Wipe tower");
     def->category = L("Extruders");
     def->tooltip = L("The extruder to use when printing perimeter of the wipe tower. "
