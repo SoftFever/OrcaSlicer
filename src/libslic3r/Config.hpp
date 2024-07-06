@@ -346,9 +346,12 @@ public:
     // This function is useful to split values from multiple extrder / filament settings into separate configurations.
     virtual void set_at(const ConfigOption *rhs, size_t i, size_t j) = 0;
     //BBS
+    virtual void set_at_to_nil(size_t i) = 0;
     virtual void append(const ConfigOption *rhs) = 0;
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
-    virtual void set_with_keep(const ConfigOptionVectorBase* rhs, std::vector<int>& keep_index, int stride) = 0;
+    virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) = 0;
+    virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
+    virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
     // Resize the vector of values, copy the newly added values from opt_default if provided.
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
     // Clear the values vector.
@@ -437,6 +440,8 @@ public:
     }
 
     //BBS
+    virtual void set_at_to_nil(size_t i) override {}
+
     void append(const ConfigOption *rhs) override
     {
         if (rhs->type() == this->type()) {
@@ -471,7 +476,10 @@ public:
             throw ConfigurationError("ConfigOptionVector::set_with(): Assigning an incompatible type");
     }
 
-    virtual void set_with_keep(const ConfigOptionVectorBase* rhs, std::vector<int>& keep_index, int stride) override
+    //set a item related with extruder variants when loading config from 3mf, restore the non change values to system config
+    //rhs: item from systemconfig(inherits)
+    //keep_index: which index in this vector need to be restored
+    virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) override
     {
         if (rhs->type() == this->type()) {
             //backup original ones
@@ -480,18 +488,79 @@ public:
             auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
             this->values = other->values;
 
-            if (other->values.size() != keep_index.size())
-                throw ConfigurationError("ConfigOptionVector::set_with_keep(): Assigning from an vector with invalid keep_index size");
+            if (other->values.size() != (restore_index.size()*stride))
+                throw ConfigurationError("ConfigOptionVector::set_with_restore(): Assigning from an vector with invalid restore_index size");
 
-            for (size_t i = 0; i < keep_index.size(); i++) {
-                if (keep_index[i] != -1) {
+            for (size_t i = 0; i < restore_index.size(); i++) {
+                if (restore_index[i] != -1) {
                     for (size_t j = 0; j < stride; j++)
-                        this->values[i * stride +j] = backup_values[keep_index[i] * stride +j];
+                        this->values[i * stride +j] = backup_values[restore_index[i] * stride +j];
                 }
             }
         }
         else
             throw ConfigurationError("ConfigOptionVector::set_with_keep(): Assigning an incompatible type");
+    }
+
+    //set a item related with extruder variants when loading user config, only set the different value of some extruder
+    //rhs: item from user config
+    //diff_index: which index in this vector need to be set
+    virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) override
+    {
+        if (rhs->type() == this->type()) {
+            // Assign the first value of the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+
+            if (this->values.size() != (diff_index.size()*stride))
+                throw ConfigurationError("ConfigOptionVector::set_only_diff(): Assigning from an vector with invalid diff_index size");
+
+            for (size_t i = 0; i < diff_index.size(); i++) {
+                if (diff_index[i] != -1) {
+                    for (size_t j = 0; j < stride; j++)
+                    {
+                        if (!other->is_nil(diff_index[i]))
+                            this->values[i * stride +j] = other->values[diff_index[i] * stride +j];
+                    }
+                }
+            }
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_only_diff(): Assigning an incompatible type");
+    }
+
+    //set a item related with extruder variants when saving user config, set the non-diff value of some extruder to nill
+    //this item has different value with inherit config
+    //rhs: item from userconfig
+    //inherits: item from inherit config
+    virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) override
+    {
+        if ((rhs->type() == this->type()) && (inherits->type() == this->type())) {
+            auto rhs_opt = static_cast<const ConfigOptionVector<T>*>(rhs);
+            auto inherits_opt = static_cast<const ConfigOptionVector<T>*>(inherits);
+
+            if (inherits->size() != rhs->size())
+                throw ConfigurationError("ConfigOptionVector::set_with_nil(): rhs size different with inherits size");
+
+            for (size_t i = 0; i < inherits_opt->size(); i= i+stride) {
+                bool set_nil = true;
+                for (size_t j = 0; j < stride; j++) {
+                    if (inherits_opt->values[i +j] != rhs_opt->values[i +j]) {
+                        set_nil = false;
+                        break;
+                    }
+                }
+
+                for (size_t j = 0; j < stride; j++) {
+                    if (set_nil) {
+                        this->set_at_to_nil(i +j);
+                    }
+                    else
+                        this->values[i +j] = rhs_opt->values[i +j];
+                }
+            }
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_with_nil(): Assigning an incompatible type");
     }
 
     const T& get_at(size_t i) const
@@ -699,6 +768,11 @@ public:
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (! std::isnan(v)) return false; return true; }
     bool 					is_nil(size_t idx) const override { return std::isnan(this->values[idx]); }
+    virtual void set_at_to_nil(size_t i) override
+    {
+        assert(nullable() && (i < this->values.size()));
+        this->values[i] = nil_value();
+    }
 
     std::string serialize() const override
     {
@@ -872,6 +946,11 @@ public:
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
     bool 					is_nil(size_t idx) const override { return this->values[idx] == nil_value(); }
+    virtual void set_at_to_nil(size_t i) override
+    {
+        assert(nullable() && (i < this->values.size()));
+        this->values[i] = nil_value();
+    }
 
     std::string serialize() const override
     {
@@ -1196,6 +1275,11 @@ public:
     // A scalar is nil, or all values of a vector are nil.
     bool                    is_nil() const override { for (auto v : this->values) if (! std::isnan(v.value)) return false; return true; }
     bool                    is_nil(size_t idx) const override { return std::isnan(this->values[idx].value); }
+    virtual void set_at_to_nil(size_t i) override
+    {
+        assert(nullable() && (i < this->values.size()));
+        this->values[i] = nil_value();
+    }
 
     std::string serialize() const override
     {
@@ -1716,6 +1800,11 @@ public:
     // A scalar is nil, or all values of a vector are nil.
     bool 					is_nil() const override { for (auto v : this->values) if (v != nil_value()) return false; return true; }
     bool 					is_nil(size_t idx) const override { return this->values[idx] == nil_value(); }
+    virtual void set_at_to_nil(size_t i) override
+    {
+        assert(nullable() && (i < this->values.size()));
+        this->values[i] = nil_value();
+    }
 
     bool& get_at(size_t i) {
         assert(! this->values.empty());
@@ -2394,6 +2483,7 @@ public:
     // An UnknownOptionException is thrown in case some option keys are not defined by this->def(),
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
     void apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false);
+
     // Are the two configs equal? Ignoring options not present in both configs.
     //BBS: add skipped_keys logic
     bool equals(const ConfigBase &other, const std::set<std::string>* skipped_keys = nullptr) const;

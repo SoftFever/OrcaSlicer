@@ -627,6 +627,7 @@ public:
 
     void update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys, std::string extruder_id_name, std::string extruder_variant_name,
         std::set<std::string>& key_set1, std::set<std::string>& key_set2);
+    void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
     int update_values_from_single_to_multi(DynamicPrintConfig& multi_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
     int update_values_from_multi_to_single(DynamicPrintConfig& single_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, std::vector<std::string>& extruder_variants);
@@ -644,6 +645,7 @@ extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;
 extern std::set<std::string> printer_options_with_variant_1;
 extern std::set<std::string> printer_options_with_variant_2;
+extern std::set<std::string> empty_options;
 
 extern void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_maps);

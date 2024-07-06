@@ -529,11 +529,37 @@ void Preset::save(DynamicPrintConfig* parent_config)
     if (parent_config) {
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = config.diff(*parent_config);
+
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+        if (!extruder_id_name.empty()) {
+            dirty_options.emplace_back(extruder_id_name);
+        }
+        if (!extruder_variant_name.empty()) {
+            dirty_options.emplace_back(extruder_variant_name);
+        }
+
         for (auto option: dirty_options)
         {
             ConfigOption *opt_src = config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            opt_dst->set(opt_src);
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+                opt_dst->set(opt_src);
+            else {
+                ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
+                ConfigOptionVectorBase* opt_vec_inherit = static_cast<ConfigOptionVectorBase*>(parent_config->option(option));
+                if (key_set1->find(option) != key_set1->end()) {
+                    opt_vec_dst->set_with_nil(opt_vec_src, opt_vec_inherit, 1);
+                }
+                else if (key_set2->find(option) != key_set2->end()) {
+                    opt_vec_dst->set_with_nil(opt_vec_src, opt_vec_inherit, 2);
+                }
+                else
+                    opt_dst->set(opt_src);
+            }
         }
         temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string());
     } else if (!filament_id.empty() && inherits().empty()) {
@@ -722,6 +748,31 @@ std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
         }
     }
     return "";
+}
+
+void Preset::get_extruder_names_and_keysets(Type type, std::string& extruder_id_name, std::string& extruder_variant_name, std::set<std::string>** p_key_set1, std::set<std::string>** p_key_set2)
+{
+    if (type == Preset::TYPE_PRINT) {
+        extruder_id_name = "print_extruder_id";
+        extruder_variant_name = "print_extruder_variant";
+        *p_key_set1 = &print_options_with_variant;
+        *p_key_set2 = &empty_options;
+    }
+    else if (type == Preset::TYPE_PRINTER) {
+        extruder_id_name = "printer_extruder_id";
+        extruder_variant_name = "printer_extruder_variant";
+        *p_key_set1 = &printer_options_with_variant_1;
+        *p_key_set2 = &printer_options_with_variant_2;
+    }
+    else if (type == Preset::TYPE_FILAMENT) {
+        extruder_variant_name = "filament_extruder_variant";
+        *p_key_set1 = &filament_options_with_variant;
+        *p_key_set2 = &empty_options;
+    }
+    else {
+        *p_key_set1 = &empty_options;
+        *p_key_set2 = &empty_options;
+    }
 }
 
 bool Preset::has_lidar(PresetBundle *preset_bundle)
@@ -1119,6 +1170,12 @@ void PresetCollection::load_presets(
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     std::deque<Preset> presets_loaded;
+
+    //BBS: get the extruder related info for this preset collection
+    std::string extruder_id_name, extruder_variant_name;
+    std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+    Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
     //BBS: change to json format
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
     {
@@ -1193,6 +1250,7 @@ void PresetCollection::load_presets(
                     if (inherit_preset) {
                         preset.config = inherit_preset->config;
                         preset.filament_id = inherit_preset->filament_id;
+                        preset.config.update_diff_values_to_child_config(config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
                     }
                     else {
                         auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
@@ -1204,9 +1262,10 @@ void PresetCollection::load_presets(
                         // We support custom root preset now
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
                         preset.config = default_preset.config;
+                        preset.config.apply(std::move(config));
                     }
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " load preset: " << name << " and filament_id: " << preset.filament_id << " and base_id: " << preset.base_id;
-                    preset.config.apply(std::move(config));
+
                     Preset::normalize(preset.config);
                     // Report configuration fields, which are misplaced into a wrong group.
                     std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
@@ -1727,7 +1786,15 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
             new_config = default_preset.config;
         }
-        new_config.apply(std::move(cloud_config));
+        if (inherit_preset) {
+            std::string extruder_id_name, extruder_variant_name;
+            std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+            Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+            new_config.update_diff_values_to_child_config(cloud_config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
+        }
+        else
+            new_config.apply(std::move(cloud_config));
         Preset::normalize(new_config);
         // Report configuration fields, which are misplaced into a wrong group.
         std::string incorrect_keys = Preset::remove_invalid_keys(new_config, default_preset.config);
@@ -1904,24 +1971,9 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     }
 
     std::string extruder_id_name, extruder_variant_name;
-    std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr, empty_set;
-    if (m_type == Preset::TYPE_PRINT) {
-        extruder_id_name = "print_extruder_id";
-        extruder_variant_name = "print_extruder_variant";
-        key_set1 = &print_options_with_variant;
-        key_set2 = &empty_set;
-    }
-    else if (m_type == Preset::TYPE_PRINTER) {
-        extruder_id_name = "printer_extruder_id";
-        extruder_variant_name = "printer_extruder_variant";
-        key_set1 = &printer_options_with_variant_1;
-        key_set2 = &printer_options_with_variant_2;
-    }
-    else if (m_type == Preset::TYPE_FILAMENT) {
-        extruder_variant_name = "filament_extruder_variant";
-        key_set1 = &filament_options_with_variant;
-        key_set2 = &empty_set;
-    }
+    std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+    Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
     if (!inherits.empty() && (different_settings_list.size() > 0)) {
         auto iter = this->find_preset_internal(inherits);
         if (iter != m_presets.end() && iter->name == inherits) {

@@ -253,7 +253,7 @@ public:
     std::string         user_id;         // preset user_id
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
-    std::string         description;     // 
+    std::string         description;     //
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
@@ -324,6 +324,8 @@ public:
     std::string get_filament_type(std::string &display_filament_type);
     std::string get_printer_type(PresetBundle *preset_bundle); // get edited preset type
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
+
+    static void get_extruder_names_and_keysets(Type type, std::string& extruder_id_name, std::string& extruder_variant_name, std::set<std::string>** p_key_set1, std::set<std::string>** p_key_set2);
 
     bool has_lidar(PresetBundle *preset_bundle);
     bool is_custom_defined();
