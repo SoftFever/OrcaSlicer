@@ -15742,7 +15742,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crear Tipo"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "No se encuentra el modelo, vuelva a seleccionar fabricante."
 
 msgid "Select Model"

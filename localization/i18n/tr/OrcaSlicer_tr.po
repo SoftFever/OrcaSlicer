@@ -15434,7 +15434,7 @@ msgstr "Ön Ayarı İçe Aktar"
 msgid "Create Type"
 msgstr "Tür Oluştur"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Model bulunamadı, lütfen satıcıyı seçin."
 
 msgid "Select Model"

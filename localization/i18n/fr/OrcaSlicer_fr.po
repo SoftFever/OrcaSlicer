@@ -15893,7 +15893,7 @@ msgstr "Importer un préréglage"
 msgid "Create Type"
 msgstr "Créer un type"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Le modèle n’est pas trouvé, il faut resélectionner le fournisseur."
 
 msgid "Select Model"

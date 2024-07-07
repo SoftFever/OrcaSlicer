@@ -15500,7 +15500,7 @@ msgstr "Імпорт набору параметрів"
 msgid "Create Type"
 msgstr "Тип"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Модель не знайдено. Будь ласка, перевиберіть виробника."
 
 msgid "Select Model"

@@ -14285,7 +14285,7 @@ msgstr "导入预设"
 msgid "Create Type"
 msgstr "创建类型"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
 msgid "Select Model"

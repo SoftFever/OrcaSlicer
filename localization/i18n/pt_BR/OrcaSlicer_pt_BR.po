@@ -15553,7 +15553,7 @@ msgstr "Importar Preset"
 msgid "Create Type"
 msgstr "Tipo de Criação"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "O modelo não foi encontrado, por favor, reselecione o fornecedor."
 
 msgid "Select Model"

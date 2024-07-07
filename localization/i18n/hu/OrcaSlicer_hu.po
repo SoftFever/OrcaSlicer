@@ -14723,7 +14723,7 @@ msgstr "Beállítás importálása"
 msgid "Create Type"
 msgstr "Típus létrehozása"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"

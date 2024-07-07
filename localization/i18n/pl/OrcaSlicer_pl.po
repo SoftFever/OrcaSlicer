@@ -15630,7 +15630,7 @@ msgstr "Importuj Profil wstępny"
 msgid "Create Type"
 msgstr "Utwórz Typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Nie znaleziono modelu, proszę wybrać dostawcę ponownie."
 
 msgid "Select Model"

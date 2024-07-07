@@ -15780,7 +15780,7 @@ msgstr "Voreinstellung importieren"
 msgid "Create Type"
 msgstr "Typ erstellen"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Das Modell ist nicht gefunden, bitte Hersteller erneut auswählen."
 
 msgid "Select Model"

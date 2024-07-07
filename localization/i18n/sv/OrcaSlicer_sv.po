@@ -14554,7 +14554,7 @@ msgstr "Importera inställning"
 msgid "Create Type"
 msgstr "Skapa typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
