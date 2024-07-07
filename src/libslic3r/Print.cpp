@@ -2061,14 +2061,6 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             tool_ordering = this->tool_ordering();
             tool_ordering.assign_custom_gcodes(*this);
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
-            //BBS: have no single_extruder_multi_material_priming
-#if 0
-            initial_extruder_id = (has_wipe_tower && !this->config().single_extruder_multi_material_priming) ?
-                // The priming towers will be skipped.
-                tool_ordering.all_extruders().back() :
-                // Don't skip the priming towers.
-                tool_ordering.first_extruder();
-#endif
             initial_extruder_id = tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
             append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
@@ -2581,9 +2573,19 @@ void Print::_make_wipe_tower()
     for (unsigned int i = 0; i<number_of_extruders; ++i)
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
 
+    // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
+    if (!m_config.purge_in_prime_tower && !is_BBL_printer()) {
+        for (unsigned int i = 0; i < number_of_extruders; ++i) {
+            for (unsigned int j = 0; j < number_of_extruders; ++j) {
+                if (wipe_volumes[i][j] > 0) {
+                    wipe_volumes[i][j] = m_config.prime_volume;
+                }
+            }
+        }
+    }
+
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
-    // BBS: priming logic is removed, so don't consider it in tool ordering
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
@@ -2734,13 +2736,13 @@ void Print::_make_wipe_tower()
         for (size_t i = 0; i < number_of_extruders; ++i)
             wipe_tower.set_extruder(i, m_config);
 
-        // m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
-        //     wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
+        m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
+            wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
         // Lets go through the wipe tower layers and determine pairs of extruder changes for each
         // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
         {
-            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
+            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.all_extruders().back();
             for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
                 if (!layer_tools.has_wipe_tower)
                     continue;
@@ -2748,7 +2750,7 @@ void Print::_make_wipe_tower()
                 wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
                                            current_extruder_id, false);
                 for (const auto extruder_id : layer_tools.extruders) {
-                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */ extruder_id !=
+                    if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id !=
                         current_extruder_id) {
                         float volume_to_wipe = m_config.prime_volume;
                         if (m_config.purge_in_prime_tower) {

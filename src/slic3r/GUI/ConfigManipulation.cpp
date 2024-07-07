@@ -675,8 +675,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
     
+    // Orca: do we really need to hide these options when not purge_in_primetower?
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed", "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming"})
-        toggle_line(el, have_prime_tower && purge_in_primetower);
+        toggle_line(el, have_prime_tower);
     
     toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
     
