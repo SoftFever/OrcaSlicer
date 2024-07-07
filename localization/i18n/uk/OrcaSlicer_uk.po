@@ -15551,10 +15551,10 @@ msgstr "Шлях до налаштувань не знайдено. Будь л�
 msgid "The printer model was not found, please reselect."
 msgstr "Модель принтера не було знайдено. Будь ласка, перевиберіть її."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Діаметр сопла не знайдено. Будь ласка, перевиберіть його."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Налаштування принтера не знайдено. Будь ласка, перевиберіть його."
 
 msgid "Printer Preset"

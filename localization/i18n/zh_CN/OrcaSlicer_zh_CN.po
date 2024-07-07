@@ -14334,10 +14334,10 @@ msgstr "预设路径未找到，请重新选择供应商。"
 msgid "The printer model was not found, please reselect."
 msgstr "未找到打印机型号，请重新选择。"
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "未找到喷嘴直径，请重新选择。"
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer Preset"

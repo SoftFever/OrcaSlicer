@@ -14775,10 +14775,10 @@ msgstr "Útvonal nem található. Kérjük, válaszd ki újra a gyártót."
 msgid "The printer model was not found, please reselect."
 msgstr "A nyomtató modellje nem található, kérjük, válaszd ki újra."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"

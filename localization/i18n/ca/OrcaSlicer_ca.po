@@ -15712,10 +15712,10 @@ msgstr "No es troba la ruta predeterminada, torneu a seleccionar el proveïdor."
 msgid "The printer model was not found, please reselect."
 msgstr "No s'ha trobat el model d'impressora, torneu a seleccionar."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "El diàmetre del broquet no s'ha trobat, torneu a seleccionar-lo."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "El perfil de la impressora no s'ha trobat, torneu a seleccionar-lo."
 
 msgid "Printer Preset"

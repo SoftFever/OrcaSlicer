@@ -14904,10 +14904,10 @@ msgstr "Preset-pad niet gevonden; selecteer leverancier opnieuw."
 msgid "The printer model was not found, please reselect."
 msgstr "Het printermodel is niet gevonden, selecteer opnieuw."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"

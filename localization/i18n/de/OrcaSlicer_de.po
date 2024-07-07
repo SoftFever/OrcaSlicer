@@ -15829,10 +15829,10 @@ msgstr "Voreinstellungspfad nicht gefunden, bitte Hersteller erneut auswählen."
 msgid "The printer model was not found, please reselect."
 msgstr "Das Druckermodell wurde nicht gefunden, bitte erneut auswählen."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Der Düsendurchmesser ist nicht gefunden, bitte erneut auswählen."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Die Druckervoreinstellung ist nicht gefunden, bitte erneut auswählen."
 
 msgid "Printer Preset"

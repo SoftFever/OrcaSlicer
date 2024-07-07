@@ -15483,10 +15483,10 @@ msgstr "Ön ayar yolu bulunamıyor, lütfen satıcıyı yeniden seçin."
 msgid "The printer model was not found, please reselect."
 msgstr "Yazıcı modeli bulunamadı, lütfen yeniden seçin."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Nozul çapı bulunamadı, lütfen yeniden seçin."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Yazıcı ön ayarı bulunamadı, lütfen yeniden seçin."
 
 msgid "Printer Preset"

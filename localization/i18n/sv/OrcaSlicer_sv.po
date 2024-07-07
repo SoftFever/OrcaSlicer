@@ -14603,10 +14603,10 @@ msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 msgid "The printer model was not found, please reselect."
 msgstr "Printer modellen hittades inte, välj igen."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"

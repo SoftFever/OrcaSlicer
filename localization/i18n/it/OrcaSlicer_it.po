@@ -15650,10 +15650,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "Il modello della stampante non è stato trovato, riselezionare."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Il diametro del nozzle non trovato, riselezionare."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 "La configurazione predefinita della stampante non è stata trovata. Per "
 "favore, seleziona nuovamente."
