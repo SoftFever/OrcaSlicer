@@ -9,6 +9,12 @@
 
 namespace Slic3r {
 
+// Currently on Linux/macOS, this class spits out large amounts of subobject linkage
+// warnings because of the flowModel field. tk::spline is in an anonymous namespace which
+// causes this issue. Until the issue can be solved, this is a temporary solution.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
+
 class SmallAreaInfillFlowCompensator
 {
 public:
@@ -30,6 +36,8 @@ private:
 
     double max_modified_length() { return eLengths.back(); }
 };
+
+#pragma GCC diagnostic pop
 
 } // namespace Slic3r
 
