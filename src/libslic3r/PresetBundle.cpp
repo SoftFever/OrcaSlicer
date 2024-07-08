@@ -2126,10 +2126,10 @@ bool PresetBundle::support_different_extruders()
     return supported;
 }
 
-DynamicPrintConfig PresetBundle::full_config(std::vector<int> filament_maps) const
+DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::vector<int> filament_maps) const
 {
     return (this->printers.get_edited_preset().printer_technology() == ptFFF) ?
-        this->full_fff_config(true, filament_maps) :
+        this->full_fff_config(apply_extruder, filament_maps) :
         this->full_sla_config();
 }
 

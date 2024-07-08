@@ -183,7 +183,7 @@ public:
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
-    DynamicPrintConfig          full_config(std::vector<int> filament_maps = std::vector<int>()) const;
+    DynamicPrintConfig          full_config(bool apply_extruder = true, std::vector<int> filament_maps = std::vector<int>()) const;
     // full_config() with the some "useless" config removed.
     DynamicPrintConfig          full_config_secure(std::vector<int> filament_maps = std::vector<int>()) const;
 

@@ -5508,10 +5508,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_filament_maps();
-        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(f_maps));
+        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false, f_maps));
     }
     else
-        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config());
+        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false));
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
         // BBS: add only gcode mode
@@ -14115,10 +14115,10 @@ void Plater::apply_background_progress()
     Print::ApplyStatus invalidated;
     if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
         std::vector<int> f_maps = part_plate->get_filament_maps();
-        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
     }
     else
-        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -14159,10 +14159,10 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //always apply the current plate's print
         if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
             std::vector<int> f_maps = part_plate->get_filament_maps();
-            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
         }
         else
-            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
         bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
@@ -14470,10 +14470,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             //always apply the current plate's print
             if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
                 std::vector<int> f_maps = part_plate->get_filament_maps();
-                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
             }
             else
-                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
             bool model_fits, validate_err;
             validate_current_plate(model_fits, validate_err);
 

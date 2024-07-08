@@ -2607,10 +2607,18 @@ void Print::finalize_first_layer_convex_hull()
 
 void Print::update_filament_maps_to_config(std::vector<int> f_maps)
 {
-    std::vector<int>& filament_maps = m_full_print_config.option<ConfigOptionInts>("filament_map", true)->values;
+    if (m_config.filament_map.values != f_maps)
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament maps changed after pre-slicing.");
+        m_ori_full_print_config.option<ConfigOptionInts>("filament_map", true)->values = f_maps;
+        m_config.filament_map.values = f_maps;
 
-    filament_maps = f_maps;
-    m_config.filament_map.values = f_maps;
+        m_full_print_config = m_ori_full_print_config;
+        m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+
+        t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
+        m_config.apply_only(m_full_print_config, keys, true);
+    }
 }
 
 std::vector<int> Print::get_filament_maps() const

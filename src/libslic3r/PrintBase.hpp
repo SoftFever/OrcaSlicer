@@ -550,6 +550,7 @@ protected:
 
 	Model                                   m_model;
 	DynamicPrintConfig						m_full_print_config;
+    DynamicPrintConfig						m_ori_full_print_config;  //original full print config without extruder applied
     PlaceholderParser                       m_placeholder_parser;
 
     //BBS: add plate id into print base
