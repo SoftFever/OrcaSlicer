@@ -453,6 +453,8 @@ set(lisbslic3r_sources
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp
+    FilamentGroup.hpp
+    FilamentGroup.cpp
 )
 
 if (APPLE)
