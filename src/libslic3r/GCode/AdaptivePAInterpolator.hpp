@@ -20,7 +20,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    AdaptivePAInterpolator() = default;
+    AdaptivePAInterpolator() : m_isInitialised(false) {}
 
     /**
      * @brief Parses the input data and sets up the interpolators.
@@ -36,10 +36,19 @@ public:
      * @return The interpolated PA value, or -1 if interpolation fails.
      */
     double operator()(double flow_rate, double acceleration);
+    
+    /**
+     * @brief Returns the initialization status.
+     * @return The value of m_isInitialised.
+     */
+    bool isInitialised() const {
+        return m_isInitialised;
+    }
 
 private:
     std::map<double, PchipInterpolatorHelper> flow_interpolators_; ///< Map each acceleration to a flow-rate-to-PA interpolator.
     std::vector<double> accelerations_; ///< Store unique accelerations.
+    bool m_isInitialised;
 };
 
 #endif // ADAPTIVEPAINTERPOLATOR_HPP

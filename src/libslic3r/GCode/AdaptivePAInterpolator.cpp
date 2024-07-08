@@ -69,9 +69,10 @@ int AdaptivePAInterpolator::parseAndSetData(const std::string& data) {
             }
         }
     } catch (const std::exception&) {
+        m_isInitialised = false;
         return -1; // Error: Exception during parsing
     }
-
+    m_isInitialised = true;
     return 0; // Success
 }
 
