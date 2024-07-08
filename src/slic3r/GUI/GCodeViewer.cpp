@@ -959,17 +959,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_last_result_id = gcode_result.id;
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
-
-    std::vector<int> filament_maps = print.get_filament_maps();
-    std::vector<std::string> color_opt     = print.config().option<ConfigOptionStrings>("filament_colour")->values;
-    std::vector<std::string> type_opt     = print.config().option<ConfigOptionStrings>("filament_type")->values;
-    for (int i = 0; i < filament_maps.size(); ++i) {
-        if (filament_maps[i] == 1) {
-            m_left_extruder_filament.emplace_back(type_opt[i], color_opt[i]);
-        } else {
-            m_right_extruder_filament.emplace_back(type_opt[i], color_opt[i]);
-        }
-    }
+     
     m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
     //BBS: add only gcode mode
@@ -981,6 +971,18 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
     load_toolpaths(gcode_result, build_volume, exclude_bounding_box);
 
+    // BBS: data for rendering color arrangement recommendation
+    m_nozzle_nums = print.config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    std::vector<int>         filament_maps = print.get_filament_maps();
+    std::vector<std::string> color_opt     = print.config().option<ConfigOptionStrings>("filament_colour")->values;
+    std::vector<std::string> type_opt      = print.config().option<ConfigOptionStrings>("filament_type")->values;
+    for (auto extruder_id : m_extruder_ids) {
+        if (filament_maps[extruder_id] == 1) {
+            m_left_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id});
+        } else {
+            m_right_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id});
+        }
+    }
     //BBS: add mutex for protection of gcode result
     if (m_layers.empty()) {
         gcode_result.unlock();
@@ -1243,6 +1245,8 @@ void GCodeViewer::reset()
     m_print_statistics.reset();
     m_custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     m_sequential_view.gcode_window.reset();
+    m_left_extruder_filament.clear();
+    m_right_extruder_filament.clear();
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -4400,8 +4404,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ImGui::SameLine();
     imgui.title(_u8L("Color Arrangement Recommendation"));
     //BBS AMS containers
+    int AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
+    float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * 80.0f + 70.0f ) * m_scale;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
-    ImGui::BeginChild("#AMS", ImVec2(0, 230.0f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+    ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
         // BBS save time;
         imgui.text(_u8L("Since you set 1 AMS"));
@@ -4415,7 +4421,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         float available_width   = ImGui::GetContentRegionAvail().x;
         float available_height = ImGui::GetContentRegionAvail().y;
         float half_width       = available_width * 0.5f;
-        float spacing           = 12.0f * m_scale;
+        float spacing           = 18.0f * m_scale;
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.3f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
@@ -4427,8 +4433,9 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_left_extruder_filament) {
-                imgui.filament_group(extruder_filament.first, extruder_filament.second.c_str());
+                imgui.filament_group(extruder_filament.type, extruder_filament.hex_color.c_str(), extruder_filament.filament_id);
                 if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
+                index++;
             }
             ImGui::EndChild();
         }
@@ -4441,8 +4448,9 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_right_extruder_filament) {
-                imgui.filament_group(extruder_filament.first, extruder_filament.second.c_str());
+                imgui.filament_group(extruder_filament.type, extruder_filament.hex_color.c_str(), extruder_filament.filament_id);
                 if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
+                index++;
             }
             ImGui::EndChild();
         }
@@ -4788,9 +4796,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return;
     }
 
-    render_legend_color_arr_recommen(window_padding);
+    if(m_nozzle_nums > 1)
+        render_legend_color_arr_recommen(window_padding);
 
     //BBS display Color Scheme
+    ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding });
 
     //imgui.bold_text(_u8L("Color Scheme"));

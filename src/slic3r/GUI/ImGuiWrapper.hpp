@@ -155,8 +155,8 @@ public:
     void text_wrapped(const wxString &label, float wrap_width);
     void tooltip(const char *label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
-    void filament_group(const std::string &filament_type, const char *hex_color);
-    void                   sub_title(const std::string &label);
+    void filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id);
+    void sub_title(const std::string &label);
 
 
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).

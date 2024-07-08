@@ -3160,13 +3160,17 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
     }
 }
 
-void ImGuiWrapper::filament_group(const std::string &filament_type, const char *hex_color)
+void ImGuiWrapper::filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id)
 {
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     static ImTextureID transparent;
     ImVec2             img_size = {30.0f, 45.0f};
     ImVec2             text_size     = ImGui::CalcTextSize(filament_type.c_str());
+    ImVec2             id_text_size = this->calc_text_size(id);
+    unsigned char rgb[3];
+
     BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + "/images/filament_green.svg", img_size.x, img_size.y, transparent, hex_color);
     ImGui::BeginGroup();
     {
@@ -3175,6 +3179,11 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     // image border test
     // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
     ImVec2 current_cursor = ImGui::GetCursorPos();
+    ImGui::SetCursorPos({current_cursor.x + (img_size.x - id_text_size.x) * 0.5f + 2, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f - 2});
+    Slic3r::GUI::BitmapCache::parse_color(hex_color, rgb);
+    float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+    ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
+    this->text_colored(text_color, id.c_str());
     ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_size.x) * 0.5f, current_cursor.y + 40});
     this->text(filament_type);
     ImGui::EndGroup();
