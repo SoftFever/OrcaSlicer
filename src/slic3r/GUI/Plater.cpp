@@ -9817,7 +9817,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         double speed = CalibPressureAdvance::find_optimal_PA_speed(
             wxGetApp().preset_bundle->full_config(),
             print_config.get_abs_value("line_width", nozzle_diameter),
-            print_config.get_abs_value("layer_height"), 0);
+            print_config.get_abs_value("layer_height"), 0, 0);
         print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
 
         speeds.assign({speed});
@@ -10006,7 +10006,7 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto wall_speed = CalibPressureAdvance::find_optimal_PA_speed(
         full_config, full_config.get_abs_value("line_width", nozzle_diameter),
-        full_config.get_abs_value("layer_height"), 0);
+        full_config.get_abs_value("layer_height"), 0, 0);
     obj_cfg.set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
     obj_cfg.set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
     obj_cfg.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));

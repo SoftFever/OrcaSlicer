@@ -177,7 +177,7 @@ struct DrawBoxOptArgs
 class CalibPressureAdvance
 {
 public:
-    static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int filament_idx = 0);
+    static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id = 0, int filament_idx = 0);
 
 protected:
     CalibPressureAdvance()  = default;

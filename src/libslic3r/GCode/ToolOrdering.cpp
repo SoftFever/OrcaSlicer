@@ -1195,7 +1195,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return;
 
     size_t nozzle_nums = print_config->nozzle_diameter.values.size();
-    if (nozzle_nums > 1) {
+    if (nozzle_nums > 1 && print_config->option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value == FilamentMapMode::fmmAuto) {
         std::vector<int> filament_maps = m_print->get_filament_maps();
 
         if (print_config->print_sequence != PrintSequence::ByObject) {

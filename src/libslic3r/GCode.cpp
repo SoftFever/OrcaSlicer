@@ -3097,7 +3097,7 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
 // Do not process this piece of G-code by the time estimator, it already knows the values through another sources.
 void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print, int extruder_id)
 {
-    int matched_machine_limit_idx = extruder_id * 2;
+    int matched_machine_limit_idx = get_extruder_id(extruder_id) * 2;
     const auto flavor = print.config().gcode_flavor.value;
     if ((flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware || flavor == gcfRepRapFirmware) &&
         print.config().emit_machine_limits_to_gcode.value == true) {
