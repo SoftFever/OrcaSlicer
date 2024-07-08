@@ -739,8 +739,20 @@ void Sidebar::priv::sync_extruder_list()
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtBigTraffic);
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtNormal);
-    AMSCountPopupWindow::SetAMSCount(0, 0, 0);
-    AMSCountPopupWindow::SetAMSCount(1, 1, 1);
+    MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (obj == nullptr) {
+        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
+        dlg.ShowModal();
+        return;
+    }
+    int left = 0, right = 0;
+    for (auto ams : obj->amsList) {
+        // Main (first) extruder at right
+        if (ams.second->nozzle == 0) ++right;
+        else ++left;
+    }
+    AMSCountPopupWindow::SetAMSCount(0, left, obj->vt_slot.size() > 1);
+    AMSCountPopupWindow::SetAMSCount(1, right, 1);
     AMSCountPopupWindow::UpdateAMSCount(0, m_left_ams_count);
     AMSCountPopupWindow::UpdateAMSCount(1, m_right_ams_count);
 }
