@@ -541,6 +541,8 @@ public:
             if (inherits->size() != rhs->size())
                 throw ConfigurationError("ConfigOptionVector::set_with_nil(): rhs size different with inherits size");
 
+            this->values.resize(inherits->size(), this->values.front());
+
             for (size_t i = 0; i < inherits_opt->size(); i= i+stride) {
                 bool set_nil = true;
                 for (size_t j = 0; j < stride; j++) {
