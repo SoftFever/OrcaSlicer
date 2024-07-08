@@ -51,6 +51,12 @@ enum TrayType {
     EMPTY
 };
 
+enum ShowType {
+    LEFT,   //  only show left ams and left ext
+    RIGHT,  //only show right ams and right ext
+    LEFT_AND_RIGHT  //show left and right ams at the same time
+};
+
 struct TrayData
 {
     TrayType        type;
@@ -147,31 +153,35 @@ public:
     AmsMapingPopup(wxWindow *parent);
     ~AmsMapingPopup() {};
 
-    wxWindow*                send_win{nullptr};
-    wxStaticText *           m_warning_text{nullptr}; 
+    wxWindow* send_win{ nullptr };
+    wxStaticText *           m_warning_text{nullptr};
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
     std::vector<wxWindow*>   m_amsmapping_container_list;
     std::vector<MappingItem*> m_mapping_item_list;
 
     bool        m_has_unmatch_filament {false};
-    bool        m_supporting_mix_print {false};
+    bool        m_supporting_mix_print {false};     //For single extruder, can ams and ext print together?
     int         m_current_filament_id;
+    ShowType    m_show_type;
     std::string m_tag_material;
-    wxBoxSizer *m_sizer_main{nullptr}; 
-    wxBoxSizer *m_sizer_ams{nullptr}; 
-    wxBoxSizer *m_sizer_ams_left{nullptr}; 
-    wxBoxSizer *m_sizer_ams_right{nullptr}; 
+    wxBoxSizer *m_sizer_main{nullptr};
+    wxBoxSizer *m_sizer_ams{nullptr};
+    wxBoxSizer *m_sizer_ams_left{nullptr};
+    wxBoxSizer *m_sizer_ams_right{nullptr};
     wxBoxSizer* m_sizer_ams_basket_left{ nullptr };
     wxBoxSizer* m_sizer_ams_basket_right{ nullptr };
-    wxBoxSizer *m_sizer_list{nullptr}; 
+    wxBoxSizer *m_sizer_list{nullptr};
     wxWindow   *m_parent_item{nullptr};
 
-    MappingItem* m_left_extra_slot{nullptr}; 
+    MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
 
     wxPanel*     m_left_marea_panel;
     wxPanel*     m_right_marea_panel;
+
+    wxBoxSizer* m_sizer_split_ams_left;
+    wxBoxSizer* m_sizer_split_ams_right;
 
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
     wxString     format_text(wxString &m_msg);
@@ -190,6 +200,7 @@ public:
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
     void         set_parent_item(wxWindow* item) {m_parent_item = item;};
+    void         set_show_type(ShowType type) { m_show_type = type; };
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 

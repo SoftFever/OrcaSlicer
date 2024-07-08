@@ -1311,6 +1311,9 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
 }
 
 bool SelectMachineDialog::is_two_nozzle_same() {
+    //if two extruder are same and can be mix-used, return true
+    //else return false
+    //wait to fill
     return false;
 }
 
@@ -2927,7 +2930,9 @@ void SelectMachineDialog::update_show_status()
         do_ams_mapping(obj_);
     }
 
-    if (!m_mapping_popup.m_supporting_mix_print)
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
     {
         bool useAms = false;
         bool useExt = false;
@@ -3440,7 +3445,24 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev_manager) return;
             MachineObject *obj_ = dev_manager->get_selected_machine();
-
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            if (nozzle_nums > 1)
+            {
+                if (is_two_nozzle_same())
+                {
+                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+                }
+                else if (m_filaments_map[extruder] == 1)
+                {
+                    m_mapping_popup.set_show_type(ShowType::LEFT);
+                }
+                else if(m_filaments_map[extruder] == 2)
+                {
+                    m_mapping_popup.set_show_type(ShowType::RIGHT);
+                }
+            }
+            //m_mapping_popup.set_show_type(ShowType::RIGHT);
             if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
@@ -3494,11 +3516,15 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     }
     else
     {
+        m_filament_left_panel->Hide();
+        m_filament_right_panel->Hide();
+        m_filament_panel->Show();
+        //m_filament_panel_left_sizer->Layout();
         m_sizer_ams_mapping->SetCols(8);
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();
     }
-    
+
     // reset_ams_material();//show "-"
 }
 

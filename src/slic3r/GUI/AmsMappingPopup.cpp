@@ -283,13 +283,13 @@ void MaterialItem::doRender(wxDC &dc)
     
 }
 
- AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
+AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
     : PopupWindow(parent, wxBORDER_NONE)
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
      #if __APPLE__
-     Bind(wxEVT_LEFT_DOWN, &AmsMapingPopup::on_left_down, this); 
+     Bind(wxEVT_LEFT_DOWN, &AmsMapingPopup::on_left_down, this);
      #endif
 
 
@@ -324,7 +324,7 @@ void MaterialItem::doRender(wxDC &dc)
      m_left_marea_panel = new wxPanel(this);
      m_right_marea_panel = new wxPanel(this);
 
-
+     auto sizer_temp = new wxBoxSizer(wxHORIZONTAL);
      /*left ext*/
      m_left_extra_slot = new MappingItem(m_left_marea_panel);
      m_left_extra_slot->m_ams_id = VIRTUAL_TRAY_DEPUTY_ID;
@@ -332,8 +332,14 @@ void MaterialItem::doRender(wxDC &dc)
      m_left_extra_slot->SetSize(wxSize(FromDIP(48), FromDIP(60)));
      m_left_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_left_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
-     
-    
+
+     auto left_panel = new wxPanel(m_left_marea_panel);
+     left_panel->SetSize(wxSize(FromDIP(182), FromDIP(60)));
+     left_panel->SetMinSize(wxSize(FromDIP(182), FromDIP(60)));
+     left_panel->SetMaxSize(wxSize(FromDIP(182), FromDIP(60)));
+
+     sizer_temp->Add(m_left_extra_slot);
+     sizer_temp->Add(left_panel);
 
      /*right ext*/
      m_right_extra_slot = new MappingItem(m_right_marea_panel);
@@ -342,11 +348,37 @@ void MaterialItem::doRender(wxDC &dc)
      m_right_extra_slot->SetSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
-     
-     m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("Left Ams")), 0, wxEXPAND, 0);
+
+     m_sizer_split_ams_left = new wxBoxSizer(wxHORIZONTAL);
+     auto ams_title_text = new Label(parent, _L("Left Ams"));
+     ams_title_text->SetFont(::Label::Body_13);
+     ams_title_text->SetForegroundColour(0x909090);
+     auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+     m_split_left_line->SetBackgroundColour(0xeeeeee);
+     m_split_left_line->SetMinSize(wxSize(-1, 1));
+     m_split_left_line->SetMaxSize(wxSize(-1, 1));
+     m_sizer_split_ams_left->Add(0, 0, 0, wxEXPAND, 0);
+     m_sizer_split_ams_left->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
+     m_sizer_split_ams_left->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+     m_sizer_ams_left->Add(m_sizer_split_ams_left, 0, wxEXPAND, 0);
+
+     m_sizer_split_ams_right = new wxBoxSizer(wxHORIZONTAL);
+     ams_title_text = new Label(parent, _L("Right Ams"));
+     ams_title_text->SetFont(::Label::Body_13);
+     ams_title_text->SetForegroundColour(0x909090);
+     auto m_split_right_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+     m_split_right_line->SetBackgroundColour(0xeeeeee);
+     m_split_right_line->SetMinSize(wxSize(-1, 1));
+     m_split_right_line->SetMaxSize(wxSize(-1, 1));
+     m_sizer_split_ams_right->Add(0, 0, 0, wxEXPAND, 0);
+     m_sizer_split_ams_right->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
+     m_sizer_split_ams_right->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+     m_sizer_ams_right->Add(m_sizer_split_ams_right, 0, wxEXPAND, 0);
+
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
+     //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
+     m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
      m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("Right Ams")), 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -357,7 +389,8 @@ void MaterialItem::doRender(wxDC &dc)
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
      m_right_marea_panel->SetSizer(m_sizer_ams_right);
 
-     m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
+     //m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
+     m_sizer_ams->Add(m_left_marea_panel, 0, wxRIGHT, FromDIP(10));
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
      m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND, FromDIP(0));
 
@@ -367,8 +400,10 @@ void MaterialItem::doRender(wxDC &dc)
      m_warning_text->SetFont(::Label::Body_12);
      auto cant_not_match_tip = _L("Note: Only the AMS slots loaded with the same material type can be selected.");
      m_warning_text->SetLabel(format_text(cant_not_match_tip));
-     m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
-     m_warning_text->Wrap(FromDIP(248));
+     /*m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
+     m_warning_text->Wrap(FromDIP(248));*/
+     /*m_warning_text->SetMinSize(wxSize(FromDIP(496), FromDIP(-1)));
+     m_warning_text->Wrap(FromDIP(496));*/
 
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
      m_sizer_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
@@ -389,18 +424,18 @@ void MaterialItem::doRender(wxDC &dc)
 
  wxBoxSizer* AmsMapingPopup::create_split_sizer(wxWindow* parent, wxString text)
  {
-     wxBoxSizer* sizer_split_left_ams = new wxBoxSizer(wxHORIZONTAL);
-     auto left_ams_title_text = new Label(parent, text);
-     left_ams_title_text->SetFont(::Label::Body_13);
-     left_ams_title_text->SetForegroundColour(0x909090);
-     auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-     m_split_left_line->SetBackgroundColour(0xeeeeee);
-     m_split_left_line->SetMinSize(wxSize(-1, 1));
-     m_split_left_line->SetMaxSize(wxSize(-1, 1));
-     sizer_split_left_ams->Add(0, 0, 0, wxEXPAND, 0);
-     sizer_split_left_ams->Add(left_ams_title_text, 0, wxALIGN_CENTER, 0);
-     sizer_split_left_ams->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
-     return sizer_split_left_ams;
+    wxBoxSizer* sizer_split_ams = new wxBoxSizer(wxHORIZONTAL);
+    auto ams_title_text = new Label(parent, text);
+    ams_title_text->SetFont(::Label::Body_13);
+    ams_title_text->SetForegroundColour(0x909090);
+    auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_split_left_line->SetBackgroundColour(0xeeeeee);
+    m_split_left_line->SetMinSize(wxSize(-1, 1));
+    m_split_left_line->SetMaxSize(wxSize(-1, 1));
+    sizer_split_ams->Add(0, 0, 0, wxEXPAND, 0);
+    sizer_split_ams->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
+    sizer_split_ams->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+    return sizer_split_ams;
  }
 
  wxString AmsMapingPopup::format_text(wxString &m_msg)
@@ -497,14 +532,14 @@ void AmsMapingPopup::update_ams_data_multi_machines()
     Fit();
 }
 
-void AmsMapingPopup::update(MachineObject* obj) 
-{ 
+void AmsMapingPopup::update(MachineObject* obj)
+{
     //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_extder_data.nozzle.size();
     BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->amsList.size();
 
 
     if (!obj) {return;}
-   
+
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
     }
@@ -513,14 +548,51 @@ void AmsMapingPopup::update(MachineObject* obj)
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
 
+
     /*ext*/
-    if (obj->vt_slot.size() == 1) {
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    if (nozzle_nums == 1) {
+        m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
+        m_warning_text->Wrap(FromDIP(248));
         m_left_marea_panel->Hide();
-        m_right_extra_slot->Hide();
-    }
-    else if (obj->vt_slot.size() > 1) {
-        m_left_marea_panel->Show();
+        m_left_extra_slot->Hide();
+        //m_left_marea_panel->Show();
+        m_right_marea_panel->Show();
         m_right_extra_slot->Show();
+    }
+    else if (nozzle_nums > 1) {
+        m_left_marea_panel->Hide();
+        m_right_marea_panel->Hide();
+        m_left_extra_slot->Hide();
+        m_right_extra_slot->Hide();
+        if (m_show_type != ShowType::LEFT_AND_RIGHT)
+        {
+            m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
+            m_warning_text->Wrap(FromDIP(248));
+        }
+        if (m_show_type == ShowType::LEFT)
+        {
+            m_sizer_split_ams_left->Show(false);
+            m_left_marea_panel->Show();
+            m_left_extra_slot->Show();
+        }
+        else if (m_show_type == ShowType::RIGHT)
+        {
+            m_sizer_split_ams_right->Show(false);
+            m_right_marea_panel->Show();
+            m_right_extra_slot->Show();
+        }
+        else if (m_show_type == ShowType::LEFT_AND_RIGHT)
+        {
+            m_warning_text->SetMinSize(wxSize(FromDIP(496), FromDIP(-1)));
+            m_warning_text->Wrap(FromDIP(496));
+            m_left_marea_panel->Show();
+            m_left_extra_slot->Show();
+            m_right_marea_panel->Show();
+            m_right_extra_slot->Show();
+        }
+
     }
 
     for (int i = 0; i < obj->vt_slot.size(); i++) {

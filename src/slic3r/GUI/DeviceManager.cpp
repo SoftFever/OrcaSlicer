@@ -918,11 +918,11 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
-            else if (ams->second->nozzle == 0 && ext_first)
+            else if (ams->second->nozzle == 0 && ext_second)
             {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
-            else if (ams->second->nozzle == 1 && ext_second)
+            else if (ams->second->nozzle == 1 && ext_first)
             {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
