@@ -12007,7 +12007,7 @@ msgstr ""
 "gedruckt werden."
 
 msgid "Interlocking beam width"
-msgstr "Interlock-Struktur-Breite
+msgstr "Interlock-Struktur-Breite"
 
 msgid "The width of the interlocking structure beams."
 msgstr "Die Breite der Interlock-Strukturen."
