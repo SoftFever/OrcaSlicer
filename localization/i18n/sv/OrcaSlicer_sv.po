@@ -586,7 +586,7 @@ msgstr "Visa trådram"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kan inte tillämpas när processen förhandsgranskas."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -653,7 +653,7 @@ msgstr "Yta"
 msgid "Horizontal text"
 msgstr "Vågrät text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mus flytta uppåt eller nedåt"
 
 msgid "Rotate text"
@@ -986,7 +986,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -2142,8 +2142,8 @@ msgstr[0] ""
 msgstr[1] ""
 "Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 "Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
 "modellobjekten misslyckades"
@@ -2600,7 +2600,7 @@ msgstr "Timeout för sändning av utskriftsuppgift."
 msgid "Service Unavailable"
 msgstr "Tjänsten är inte tillgänglig"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Okänt fel"
 
 msgid "Sending print configuration"
@@ -6261,10 +6261,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."

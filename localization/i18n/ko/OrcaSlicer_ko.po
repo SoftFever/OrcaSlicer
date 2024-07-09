@@ -596,7 +596,7 @@ msgstr "와이어프레임 보기"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "미리 보기 진행 시 적용할 수 없습니다."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -665,7 +665,7 @@ msgstr "표면"
 msgid "Horizontal text"
 msgstr "가로 텍스트"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 마우스 위 or 아래"
 
 msgid "Rotate text"
@@ -1004,7 +1004,7 @@ msgstr "텍스트 방향을 카메라 쪽으로 향하게 합니다."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "정확히 동일한 글꼴(\"%1%\")을 로드할 수 없습니다. 응용 프로그램이 유사한 항목"
@@ -2170,8 +2170,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "다음 모델 개체가 수리되었습니다"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "다음 모델 개체 교정을 실패하였습니다"
 
 msgid "Repairing was canceled"
@@ -2615,7 +2615,7 @@ msgstr "출력 작업 전송 시간이 초과되었습니다."
 msgid "Service Unavailable"
 msgstr "서비스 사용 불가"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "알 수 없는 오류."
 
 msgid "Sending print configuration"
@@ -6257,7 +6257,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "모델 메쉬에 대해 부울 연산을 수행할 수 없습니다. 긍정적인 부분만 유지됩니다. "
 "메쉬를 수정하고 재시도해 볼 수 있습니다."

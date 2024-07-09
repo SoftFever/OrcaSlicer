@@ -598,7 +598,7 @@ msgstr "Mostrar estructura de alambre"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "No se puede aplicar cuando la vista previa del proceso."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -667,7 +667,7 @@ msgstr "Superficie"
 msgid "Horizontal text"
 msgstr "Texto horizontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mover ratón arriba u abajo"
 
 msgid "Rotate text"
@@ -1016,7 +1016,7 @@ msgstr "Orienta el texto hacia la cámara."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "No se puede cargar exactamente la misma fuente(\"%1%\"). La aplicación "
@@ -2232,8 +2232,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Se ha reparado el siguiente modelo de objeto"
 msgstr[1] "Se han reparado los siguientes objetos del modelo"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "No se ha podido reparar el siguiente objeto modelo"
 msgstr[1] "No se han podido reparar los siguientes objetos del modelo"
 
@@ -2697,7 +2697,7 @@ msgstr "Tarea de envío de impresión fallida."
 msgid "Service Unavailable"
 msgstr "Servicio No Disponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Error Desconocido."
 
 msgid "Sending print configuration"
@@ -6468,7 +6468,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "No se pueden realizar operaciones booleanas en las mallas del modelo. Sólo "
 "se conservarán las partes positivas. Puede arreglar las mallas e intentarlo "

@@ -600,7 +600,7 @@ msgstr "Mostra estructura de xarxa"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "No es pot aplicar quan es previsualitza el processament."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -669,7 +669,7 @@ msgstr "Superfície"
 msgid "Horizontal text"
 msgstr "Text horitzontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Majúscules + Ratolí pujar o baixar"
 
 msgid "Rotate text"
@@ -1015,7 +1015,7 @@ msgstr "Orientar/alinear el text vers la càmera."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "No es pot carregar exactament el mateix tipus de lletra( \"%1%\" ), "
@@ -2215,8 +2215,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "S'ha reparat el següent objecte del model"
 msgstr[1] "S'han reparat els següents objectes del model"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "No s'ha pogut reparar el següent objecte del model"
 msgstr[1] "No s'han pogut reparar els següents objectes del model"
 
@@ -2673,7 +2673,7 @@ msgstr "Ha expirat el temps d'enviament de la tasca d'impressió."
 msgid "Service Unavailable"
 msgstr "Servei no disponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Error desconegut."
 
 msgid "Sending print configuration"
@@ -6434,7 +6434,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "No s'ha pogut realitzar l'operació booleana a les malles del model. Només "
 "s'exportaran les parts positives. Proveu d'arreglar les malles i tornar-ho a "

@@ -603,7 +603,7 @@ msgstr "Показати каркас"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Не можна застосовувати під час попереднього перегляду процесу."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -670,7 +670,7 @@ msgstr "Поверхня"
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + переміщення миші вгору або вниз"
 
 msgid "Rotate text"
@@ -1014,7 +1014,7 @@ msgstr "Зорієнтувати текст у напрямку камери."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Не вдається завантажити точно такий самий шрифт(\"%1%\"). Програма вибрала "
@@ -2204,8 +2204,8 @@ msgstr[0] "Наступна частина моделі успішно відр�
 msgstr[1] "Наступні частини моделі успішно відремонтовані"
 msgstr[2] "Наступні частини моделі успішно відремонтовані"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Не вдалося полагодити таку частину моделі"
 msgstr[1] "Не вдалося полагодити такі частини моделі"
 msgstr[2] "Не вдалося полагодити такі частини моделі"
@@ -2664,7 +2664,7 @@ msgstr "Час відправлення завдання на друк закі�
 msgid "Service Unavailable"
 msgstr "Сервіс недоступний"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Невідома помилка."
 
 msgid "Sending print configuration"
@@ -6414,7 +6414,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
 "позитивні частини. Ви можете виправити сітки і спробувати ще раз."

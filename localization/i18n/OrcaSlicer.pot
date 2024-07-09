@@ -587,7 +587,7 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr ""
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -654,7 +654,7 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr ""
 
 msgid "Rotate text"
@@ -987,7 +987,7 @@ msgstr ""
 
 #, possible-boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -2117,8 +2117,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2544,7 +2544,7 @@ msgstr ""
 msgid "Service Unavailable"
 msgstr ""
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr ""
 
 msgid "Sending print configuration"
@@ -5961,7 +5961,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 
 #, possible-boost-format

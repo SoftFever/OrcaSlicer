@@ -601,7 +601,7 @@ msgstr "Gittermodell anzeigen"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kann nicht angewendet werden, wenn die Vorschau angezeigt wird."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -670,7 +670,7 @@ msgstr "Oberfläche"
 msgid "Horizontal text"
 msgstr "Horizontaler Text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Umschalttaste + Mausbewegung nach oben oder unten"
 
 msgid "Rotate text"
@@ -1016,7 +1016,7 @@ msgstr "Ortne den Text zur Kamera aus."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Kann genau dieselbe Schriftart (\"%1%\") nicht laden. Die Anwendung hat eine "
@@ -2226,8 +2226,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Das folgende Modellobjekt wurde repariert"
 msgstr[1] "Die folgenden Modellobjekte wurde repariert"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Reparatur des folgenden Modellobjekts fehlgeschlagen"
 msgstr[1] "Reparatur der folgenden Modellobjekte fehlgeschlagen"
 
@@ -2693,7 +2693,7 @@ msgstr "Zeitüberschreitung beim Senden des Druckauftrags."
 msgid "Service Unavailable"
 msgstr "Der Dienst ist nicht verfügbar"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Unbekannter Fehler."
 
 msgid "Sending print configuration"
@@ -6501,7 +6501,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Die Boolesche Operation auf den Modellnetzen kann nicht durchgeführt werden. "
 "Nur positive Teile werden beibehalten. Sie können die Netze reparieren und "

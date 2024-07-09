@@ -602,7 +602,7 @@ msgstr "Mostrar wireframe"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr ""
 "Não é possível aplicar quando a visualização do processo está em andamento."
 
@@ -672,7 +672,7 @@ msgstr "Superfície"
 msgid "Horizontal text"
 msgstr "Texto horizontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mover mouse para cima ou para baixo"
 
 msgid "Rotate text"
@@ -1016,7 +1016,7 @@ msgstr "Orientar o texto em direção à câmera."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Não é possível carregar a mesma fonte exatamente (\"%1%\"). A aplicação "
@@ -2208,8 +2208,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "O seguinte objeto do modelo foi reparado"
 msgstr[1] "Os seguintes objetos do modelo foram reparados"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Falha ao reparar o seguinte objeto do modelo"
 msgstr[1] "Falha ao reparar os seguintes objetos do modelo"
 
@@ -2664,7 +2664,7 @@ msgstr "O envio da tarefa de impressão expirou."
 msgid "Service Unavailable"
 msgstr "Serviço Indisponível"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Erro Desconhecido."
 
 msgid "Sending print configuration"
@@ -6421,7 +6421,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Não é possível executar a operação booleana em malhas de modelo. Somente "
 "partes positivas serão mantidas. Você pode consertar as malhas e tentar "

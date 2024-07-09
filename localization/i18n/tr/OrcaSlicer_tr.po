@@ -596,7 +596,7 @@ msgstr "Wireframe göster"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "İşlem önizlemesi sırasında uygulanamaz."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -665,7 +665,7 @@ msgstr "Yüzey"
 msgid "Horizontal text"
 msgstr "Yatay metin"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
 
 msgid "Rotate text"
@@ -1010,7 +1010,7 @@ msgstr "Metni kameraya doğru yönlendirin."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Tam olarak aynı yazı tipi yüklenemiyor(\"%1%\"). Uygulama benzer bir "
@@ -2187,8 +2187,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Aşağıdaki model nesnesi onarıldı"
 msgstr[1] "Aşağıdaki model objeler onarıldı"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Aşağıdaki model nesnesi onarılamadı"
 msgstr[1] "Aşağıdaki model nesneleri onarılamadı"
 
@@ -2644,7 +2644,7 @@ msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Bilinmeyen Hata."
 
 msgid "Sending print configuration"
@@ -6365,7 +6365,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca olumlu kısımlar "
 "tutulacaktır. Kafesleri düzeltip tekrar deneyebilirsiniz."

@@ -589,7 +589,7 @@ msgstr "ワイヤフレームを表示"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "プレビュー処理中は適用できません"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -656,8 +656,8 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Horizontal text"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
+msgstr "Shift + Mouse move up or down"
 
 msgid "Rotate text"
 msgstr "Rotate text"
@@ -1000,7 +1000,7 @@ msgstr "テキストの向きをカメラ側にする。"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "全く同じフォント(\"%1%\")を読み込むことができません。アプリケーションは似たよ"
@@ -2152,8 +2152,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下のモデルオブジェクトが修復されました。"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下のオブジェクトを修復てきませんでした"
 
 msgid "Repairing was canceled"
@@ -2600,7 +2600,7 @@ msgstr "Print task sending times out."
 msgid "Service Unavailable"
 msgstr "サービスは利用できません"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "不明なエラー"
 
 msgid "Sending print configuration"
@@ -6205,10 +6205,10 @@ msgstr "%sを送信しました、プリンターにて確認できます"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."

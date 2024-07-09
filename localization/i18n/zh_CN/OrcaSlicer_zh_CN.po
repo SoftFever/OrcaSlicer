@@ -588,7 +588,7 @@ msgstr "显示线框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -655,7 +655,7 @@ msgstr "附着曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 鼠标上移或下移"
 
 msgid "Rotate text"
@@ -992,7 +992,7 @@ msgstr "选择文字使其面向摄像头"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "不能加载完全相同的字体(\"%1%\")。应用程序选择了一种类似的字体（\"%2%\"）。你"
@@ -2127,8 +2127,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下模型对象已被修复"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
@@ -2561,7 +2561,7 @@ msgstr "发送打印任务超时。"
 msgid "Service Unavailable"
 msgstr "服务不可用"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "未知错误"
 
 msgid "Sending print configuration"
@@ -6097,7 +6097,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 

@@ -601,7 +601,7 @@ msgstr "Afficher le maillage"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Ne peut pas s'appliquer lors du processus de prévisualisation."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -668,7 +668,7 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Texte horizontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Maj + souris vers le haut ou vers le bas"
 
 msgid "Rotate text"
@@ -1020,7 +1020,7 @@ msgstr "Orienter le texte vers la caméra."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Impossible de charger exactement la même police (« %1% »). L’application a "
@@ -2234,8 +2234,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "L'objet modèle suivant a été réparé"
 msgstr[1] "L'objet modèle suivant a été réparé"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Échec de la réparation de l'objet modèle suivant"
 msgstr[1] "Échec de la réparation des objets de modèle suivants"
 
@@ -2695,7 +2695,7 @@ msgstr "L'envoi de la tâche d'impression est interrompu."
 msgid "Service Unavailable"
 msgstr "Service Indisponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Erreur inconnue."
 
 msgid "Sending print configuration"
@@ -6485,7 +6485,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Impossible d’effectuer une opération booléenne sur les mailles du modèle. "
 "Seules les parties positives seront conservées. Vous pouvez corriger les "

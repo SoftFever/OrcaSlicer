@@ -11458,7 +11458,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
         
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-        "Only positive parts will be kept. You may fix the meshes and try agian.");
+        "Only positive parts will be kept. You may fix the meshes and try again.");
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
