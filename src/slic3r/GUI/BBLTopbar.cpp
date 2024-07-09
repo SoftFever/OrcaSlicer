@@ -553,7 +553,7 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
         mouse.Skip();
         return;
     }
-#ifdef __W1XMSW__
+#ifdef __WXMSW__
     wxPoint mouse_pos = ::wxGetMousePosition();
     ::PostMessage((HWND) m_frame->GetHandle(), WM_NCLBUTTONDBLCLK, HTCAPTION, MAKELPARAM(mouse_pos.x, mouse_pos.y));
     return;
