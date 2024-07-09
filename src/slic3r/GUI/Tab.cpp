@@ -2302,6 +2302,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_bridging");
         optgroup->append_single_option_line("wipe_tower_cone_angle");
         optgroup->append_single_option_line("wipe_tower_extra_spacing");
+        optgroup->append_single_option_line("wipe_tower_extra_flow");
         optgroup->append_single_option_line("wipe_tower_max_purge_speed");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
@@ -3444,7 +3445,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_moves", "semm");
         optgroup->append_single_option_line("filament_cooling_initial_speed", "semm");
         optgroup->append_single_option_line("filament_cooling_final_speed", "semm");
-
+        optgroup->append_single_option_line("filament_stamping_loading_speed");
+        optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             wxGetApp().UpdateDarkUI(ramming_dialog_btn);

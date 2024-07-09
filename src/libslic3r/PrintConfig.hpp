@@ -1130,6 +1130,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               filament_multitool_ramming))
     ((ConfigOptionFloats,              filament_multitool_ramming_volume))
     ((ConfigOptionFloats,              filament_multitool_ramming_flow))
+    ((ConfigOptionFloats,              filament_stamping_loading_speed))
+    ((ConfigOptionFloats,              filament_stamping_distance))
     ((ConfigOptionBool,                purge_in_prime_tower))
     ((ConfigOptionBool,                enable_filament_ramming))
     ((ConfigOptionBool,                support_multi_bed_types))
@@ -1238,6 +1240,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              prime_tower_brim_width))
     ((ConfigOptionFloat,              wipe_tower_bridging))
+    ((ConfigOptionPercent,            wipe_tower_extra_flow))
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
 

@@ -1883,6 +1883,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 4 });
 
+    def = this->add("filament_stamping_loading_speed", coFloats);
+    def->label = L("Stamping loading speed");
+    def->tooltip = L("Speed used for stamping.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
+    def = this->add("filament_stamping_distance", coFloats);
+    def->label = L("Stamping distance measured from the center of the cooling tube");
+    def->tooltip = L("If set to nonzero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
+                     "This option configures how long this movement should be before the filament is retracted again.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed.");
@@ -4957,6 +4972,15 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.));
+
+    def = this->add("wipe_tower_extra_flow", coPercent);
+    def->label = L("MATHIEU TEST: extra flow");
+    def->tooltip = L("");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 100.;
+    def->max = 300.;
+    def->set_default_value(new ConfigOptionPercent(100.));
 
     def = this->add("idle_temperature", coInts);
     def->label = L("Idle temperature");
