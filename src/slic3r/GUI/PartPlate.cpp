@@ -5368,12 +5368,11 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	rectangle.push_back(Vec2d(x, y+h));
 	ExPolygon poly;
 
-	for (int i = 0; i < 4; i++) {
-		for (const auto& p : rectangle) {
-			Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
-			poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
-		}
+	for (const auto& p : rectangle) {
+		Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
+		poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
 	}
+
 
 	if (!buffer)
         buffer = new GLModel();
