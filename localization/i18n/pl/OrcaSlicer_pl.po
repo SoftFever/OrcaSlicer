@@ -18514,12 +18514,6 @@ msgstr ""
 #~ "Jeśli pierwszy zaznaczony element to część, to drugi powinien być częścią "
 #~ "tego samego obiektu."
 
-#~ msgid "Failed to repair following model object"
-#~ msgid_plural "Failed to repair following model objects"
-#~ msgstr[0] "Nie udało się naprawić następującego obiektu modelu"
-#~ msgstr[1] "Nie udało się naprawić następujących obiektów modelu"
-#~ msgstr[2] "Nie udało się naprawić następujących obiektów modelu"
-
 #~ msgid ""
 #~ "One cell can only be copied to one or multiple cells in the same column."
 #~ msgstr ""
