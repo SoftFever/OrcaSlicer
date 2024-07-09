@@ -4901,15 +4901,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0.;
     def->max = 90.;
     def->set_default_value(new ConfigOptionFloat(0.));
-
-    def = this->add("wipe_tower_extra_spacing", coPercent);
-    def->label = L("Wipe tower purge lines spacing");
-    def->tooltip = L("Spacing of purge lines on the wipe tower.");
-    def->sidetext = L("%");
-    def->mode = comAdvanced;
-    def->min = 100.;
-    def->max = 300.;
-    def->set_default_value(new ConfigOptionPercent(100.));
     
     def = this->add("wipe_tower_max_purge_speed", coFloat);
     def->label = L("Maximum wipe tower print speed");
@@ -4973,9 +4964,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.));
 
+    def = this->add("wipe_tower_extra_spacing", coPercent);
+    def->label = L("Wipe tower purge lines spacing");
+    def->tooltip = L("Spacing of purge lines on the wipe tower.");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 100.;
+    def->max = 300.;
+    def->set_default_value(new ConfigOptionPercent(100.));
+
     def = this->add("wipe_tower_extra_flow", coPercent);
-    def->label = L("MATHIEU TEST: extra flow");
-    def->tooltip = L("");
+    def->label = L("Extra flow for purging");
+    def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower "
+                     "than they normally would be. The spacing is adjusted automatically.");
     def->sidetext = L("%");
     def->mode = comAdvanced;
     def->min = 100.;

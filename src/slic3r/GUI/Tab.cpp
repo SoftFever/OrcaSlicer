@@ -3465,14 +3465,10 @@ void TabFilament::build()
             return sizer;
         });
 
-        // Orca: multi tool is not supported yet.
-#define ORCA_MULTI_TOOL
-#ifdef ORCA_MULTI_TOOL
         optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"));
         optgroup->append_single_option_line("filament_multitool_ramming");
         optgroup->append_single_option_line("filament_multitool_ramming_volume");
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
-#endif
 
         page     = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
