@@ -154,6 +154,11 @@ typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
 using namespace std::literals;
 namespace pt = boost::property_tree;
 
+struct StaticBambuLib
+{
+    static void reset();
+};
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1512,6 +1517,7 @@ void GUI_App::restart_networking()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, mainframe %1%")%mainframe;
     on_init_network(true);
+    StaticBambuLib::reset();
     if(m_agent) {
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
