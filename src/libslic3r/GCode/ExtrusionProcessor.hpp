@@ -118,7 +118,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
             if ((curr.distance > -boundary_offset && curr.distance < boundary_offset + 2.0f) ||
                 (next.distance > -boundary_offset && next.distance < boundary_offset + 2.0f)) {
                 double line_len = (next.position - curr.position).norm();
-                if (line_len > 0.8f) {
+                if (line_len > 2.0f) {
                     double a0 = std::clamp((curr.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double a1 = std::clamp(1.0f - (next.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double t0 = std::min(a0, a1);
@@ -323,7 +323,7 @@ public:
                     	//  The whole segment gets slower unnecesarily. For these long lines, we do additional check whether it is worth slowing down.
                     	// NOTE that this is still quite rough approximation, e.g. we are still checking lines only near the middle point
                     	// TODO maybe split the lines into smaller segments before running this alg? but can be demanding, and GCode will be huge
-                    	if (len > 2) {
+                    	if (len > 4) {
                         	Vec2d dir   = Vec2d(next.position - curr.position) / len;
                         	Vec2d right = Vec2d(-dir.y(), dir.x());
 
