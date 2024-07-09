@@ -2897,7 +2897,7 @@ msgstr "Sie müssen zuerst den Materialtyp und die Farbe auswählen."
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
+msgstr "Bitte geben Sie einen gültigen Wert ein (K in %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
@@ -3341,11 +3341,11 @@ msgid "Edit multiple printers"
 msgstr "Mehrere Drucker bearbeiten"
 
 msgid "Select connected printers (0/6)"
-msgstr ""
+msgstr "Verbundene Drucker auswählen (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printers (%d/6)"
-msgstr ""
+msgstr "Verbundene Drucker auswählen (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
@@ -5947,7 +5947,7 @@ msgid "View all object's settings"
 msgstr "Alle Einstellungen des Objekts anzeigen"
 
 msgid "Material settings"
-msgstr ""
+msgstr "Material-Einstellungen"
 
 msgid "Remove current plate (if not last one)"
 msgstr "entferne aktuelle Platte (wenn nicht die letzte)"
@@ -6026,7 +6026,7 @@ msgid "Search plate, object and part."
 msgstr "Suche Platte, Objekt und Teil."
 
 msgid "Pellets"
-msgstr ""
+msgstr "Pellets"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6665,19 +6665,19 @@ msgid "Choose Download Directory"
 msgstr "Wählen Sie das Download-Verzeichnis"
 
 msgid "Associate"
-msgstr ""
+msgstr "Zuordnen"
 
 msgid "with OrcaSlicer so that Orca can open models from"
-msgstr ""
+msgstr "mit OrcaSlicer, damit öffnet Orca Modelle von"
 
 msgid "Current Association: "
-msgstr ""
+msgstr "Aktuelle Zuordnung: "
 
 msgid "Current Instance"
-msgstr ""
+msgstr "Aktuelle Instanz"
 
 msgid "Current Instance Path: "
-msgstr ""
+msgstr "Aktueller Instanzpfad: "
 
 msgid "General Settings"
 msgstr "Allgemeine Einstellungen"
@@ -11046,7 +11046,7 @@ msgstr ""
 "verwendet, er ist also wichtig und sollte genau sein"
 
 msgid "Pellet flow coefficient"
-msgstr ""
+msgstr "Pellet-Flusskoeffizient"
 
 msgid ""
 "Pellet flow coefficient is emperically derived and allows for volume "
@@ -11057,6 +11057,13 @@ msgid ""
 "\n"
 "filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
 msgstr ""
+"Der Pellet-Flusskoeffizient wird empirisch abgeleitet und ermöglicht die "
+"Volumenberechnung für Pellet-Drucker.\n"
+"\n"
+"Intern wird er in den Filamentdurchmesser umgerechnet. Alle anderen "
+"Volumenberechnungen bleiben gleich.\n"
+"\n"
+"Filamentdurchmesser = sqrt( (4 * Pellet-Flusskoeffizient) / PI )"
 
 msgid "Shrinkage"
 msgstr "Schrumpfung"
@@ -11851,10 +11858,10 @@ msgid "Klipper"
 msgstr "Klipper"
 
 msgid "Pellet Modded Printer"
-msgstr ""
+msgstr "Pellet-Modifizierter Drucker"
 
 msgid "Enable this option if your printer uses pellets instead of filaments"
-msgstr ""
+msgstr "aktivieren Sie diese Option, wenn Ihr Drucker Pellets anstelle von Filamenten verwendet"
 
 msgid "Support multi bed types"
 msgstr "Unterstützung mehrerer Betttypen"
@@ -11937,7 +11944,7 @@ msgstr ""
 "rauen Oberflächen führen kann."
 
 msgid "Top/Bottom solid infill/wall overlap"
-msgstr ""
+msgstr "Überlappung des oberen/unteren massiven Füllung/Wand"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -11979,57 +11986,68 @@ msgstr ""
 "Funktion."
 
 msgid "Interlocking depth of a segmented region"
-msgstr "Verriegelungstiefe eines segmentierten Bereichs"
+msgstr "Interlock-Struktur-Tiefe eines segmentierten Bereichs"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
-"Verriegelungstiefe eines segmentierten Bereichs. Null deaktiviert diese "
+"Interlock-Struktur-Tiefe eines segmentierten Bereichs. Null deaktiviert diese "
 "Funktion."
 
 msgid "Use beam interlocking"
-msgstr ""
+msgstr "Verwende Interlock-Strukturen"
 
 msgid ""
 "Generate interlocking beam structure at the locations where different "
 "filaments touch. This improves the adhesion between filaments, especially "
 "models printed in different materials."
 msgstr ""
+"Erzeugen Sie eine verzahnte Struktur an den Stellen, an denen sich "
+"unterschiedliche Filamente berühren. Dies verbessert die Haftung zwischen den "
+"Filamenten, insbesondere bei Modellen, die aus verschiedenen Materialien "
+"gedruckt werden."
 
 msgid "Interlocking beam width"
-msgstr ""
+msgstr "Interlock-Struktur-Breite
 
 msgid "The width of the interlocking structure beams."
-msgstr ""
+msgstr "Die Breite der Interlock-Strukturen."
 
 msgid "Interlocking direction"
-msgstr ""
+msgstr "Interlock-Struktur Ausrichtung"
 
 msgid "Orientation of interlock beams."
-msgstr ""
+msgstr "Ausrichtung der Interlock-Strukturen."
 
 msgid "Interlocking beam layers"
-msgstr ""
+msgstr "Interlock-Struktur Schichten" 
 
 msgid ""
 "The height of the beams of the interlocking structure, measured in number of "
 "layers. Less layers is stronger, but more prone to defects."
 msgstr ""
+"Die Höhe der Balken der Interlock-Strukture, gemessen in Anzahl von "
+"Schichten. Weniger Schichten sind stärker, aber anfälliger für Fehler."
 
 msgid "Interlocking depth"
-msgstr ""
+msgstr "Interlock-Struktur Tiefe"
 
 msgid ""
 "The distance from the boundary between filaments to generate interlocking "
 "structure, measured in cells. Too few cells will result in poor adhesion."
 msgstr ""
+"Der Abstand von der Grenze zwischen den Filamenten, um die Interlock-Strukturen-"
+"zu generieren, gemessen in Zellen. Zu wenige Zellen führen zu einer schlechten "
+"Haftung."
 
 msgid "Interlocking boundary avoidance"
-msgstr ""
+msgstr "Vermeidung von Interlock-Strukturgrenzen"
 
 msgid ""
 "The distance from the outside of a model where interlocking structures will "
 "not be generated, measured in cells."
 msgstr ""
+"Der Abstand von der Außenseite eines Modells, an dem keine Interlock-Strukturen "
+"generiert werden, gemessen in Zellen."
 
 msgid "Ironing Type"
 msgstr "Glättungsmethode"
@@ -12746,12 +12764,14 @@ msgid "Spiral"
 msgstr "Spirale"
 
 msgid "Traveling angle"
-msgstr ""
+msgstr "Bewegungswinkel"
 
 msgid ""
 "Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
+"Bewegungswinkel für den Z-Hub-Typ \"Steigung\" und \"Spirale\". Wenn Sie es "
+"auf 90° einstellen, erhalten Sie eine normale Anhebung"
 
 msgid "Only lift Z above"
 msgstr "Nur Z anheben über"
@@ -15516,7 +15536,7 @@ msgid "Upload to storage"
 msgstr "Hochladen in den Speicher"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Wechseln Sie nach dem Hochladen zum Geräte-Tab."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
