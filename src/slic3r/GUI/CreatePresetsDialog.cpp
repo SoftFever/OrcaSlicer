@@ -315,7 +315,7 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
     int          row          = 1;
     for (std::shared_ptr<Preset> preset : printer_and_preset.second) {
         wxString     preset_name = wxString::FromUTF8(preset->name);
-        wxTreeItemId childId1    = treeCtrl->AppendItem(rootId, preset_name);
+        treeCtrl->AppendItem(rootId, preset_name);
         row++;
     }
 
@@ -671,8 +671,6 @@ bool CreateFilamentPresetDialog::is_check_box_selected()
 
 wxBoxSizer *CreateFilamentPresetDialog::create_item(FilamentOptionType option_type)
 {
-
-    wxSizer *item = nullptr;
     switch (option_type) {
         case VENDOR:             return create_vendor_item();
         case TYPE:               return create_type_item();
@@ -3092,10 +3090,6 @@ bool CreatePrinterPresetDialog::check_printable_area() {
     if (x == 0 || y == 0) {
         return false;
     }
-    double x0 = 0.0;
-    double y0 = 0.0;
-    double x1 = x;
-    double y1 = y;
     if (dx >= x || dy >= y) {
         return false;
     }
@@ -4633,7 +4627,6 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
         WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
-            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             std::set<std::shared_ptr<Preset>> inherit_preset_names;
             std::set<std::shared_ptr<Preset>> root_preset_names;
             for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_preset : m_printer_compatible_presets) {

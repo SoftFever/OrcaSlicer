@@ -435,8 +435,6 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
     auto bold_pair = std::vector<std::pair<int, int>>();
     
-    auto index     = 0;
-
     auto b_first_list  = std::vector<int>();
     auto b_second_list = std::vector<int>();
 

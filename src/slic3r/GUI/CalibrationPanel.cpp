@@ -670,9 +670,6 @@ bool CalibrationPanel::Show(bool show) {
 
 void CalibrationPanel::on_printer_clicked(wxMouseEvent& event)
 {
-    auto mouse_pos = ClientToScreen(event.GetPosition());
-    wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
-
     if (!m_side_tools->is_in_interval()) {
         wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;

@@ -451,8 +451,6 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     auto use_ams = false;
 
     AmsRadioSelectorList::Node* node = m_radio_group.GetFirst();
-    auto                     groupid = 0;
-
 
     while (node) {
         AmsRadioSelector* rs = node->GetData();
@@ -639,7 +637,7 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
 
     int result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
         if (m_is_canceled) return;
-        bool     cancelled = false;
+        // bool     cancelled = false;
         wxString msg = _L("Preparing print job");
         //m_status_bar->update_status(msg, cancelled, 10, true);
         //m_export_3mf_cancel = cancel = cancelled;
@@ -935,7 +933,6 @@ void SendMultiMachinePage::on_set_finish_mapping(wxCommandEvent& evt)
 
     if (selection_data_arr.size() == 6) {
         auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-        int  old_filament_id = (int)wxAtoi(selection_data_arr[5]);
 
         int ctype = 0;
         std::vector<wxColour> material_cols;
@@ -1385,7 +1382,6 @@ void SendMultiMachinePage::sync_ams_list()
     BitmapCache    bmcache;
     MaterialHash::iterator iter = m_material_list.begin();
     while (iter != m_material_list.end()) {
-        int       id = iter->first;
         Material* item = iter->second;
         item->item->Destroy();
         delete item;
@@ -1414,7 +1410,6 @@ void SendMultiMachinePage::sync_ams_list()
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_material_list.begin();
             while (iter != m_material_list.end()) {
-                int           id = iter->first;
                 Material* item = iter->second;
                 MaterialItem* m = item->item;
                 m->on_normal();
@@ -1423,9 +1418,6 @@ void SendMultiMachinePage::sync_ams_list()
 
             m_current_filament_id = extruder;
             item->on_selected();
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
             // update ams data
             if (get_value_radio("use_ams")) {

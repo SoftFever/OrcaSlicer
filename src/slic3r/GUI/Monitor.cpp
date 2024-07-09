@@ -306,9 +306,6 @@ void MonitorPanel::on_timer()
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 {
-    auto mouse_pos = ClientToScreen(event.GetPosition());
-    wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
-
     if (!m_side_tools->is_in_interval()) {
         wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
@@ -434,7 +431,6 @@ bool MonitorPanel::Show(bool show)
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
 
-    NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         start_update();
@@ -485,7 +481,6 @@ void MonitorPanel::show_status(int status)
     if (!m_initialized) return;
     if (last_status == status)return;
     if ((last_status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
-        NetworkAgent* agent = wxGetApp().getAgent();
         json j;
         j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
         if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) {

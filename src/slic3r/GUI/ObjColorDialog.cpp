@@ -241,7 +241,6 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
     }
     //end first cluster
     //draw ui
-    auto sizer_width = FromDIP(300);
     // Create two switched panels with their own sizers
     m_sizer_simple          = new wxBoxSizer(wxVERTICAL);
     m_page_simple			= new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -671,7 +670,6 @@ void ObjColorPanel::draw_table()
     m_scrolledWindow->SetSizer(m_gridsizer);
     int totalHeight = row_height *(row+1) * 2;
     m_scrolledWindow->SetVirtualSize(MIN_OBJCOLOR_DIALOG_WIDTH, totalHeight);
-    auto look = FIX_SCROLL_HEIGTH;
     if (totalHeight > FIX_SCROLL_HEIGTH) {
         m_scrolledWindow->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));
         m_scrolledWindow->SetMaxSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));

@@ -527,7 +527,6 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent &event)
     const auto key = event.GetKeyCode();
 
     IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
-    IMSlider *m_moves_slider  = m_canvas->get_gcode_viewer().get_moves_slider();
     if (key == 'L') {
         if(!m_layers_slider->switch_one_layer_mode())
             event.Skip();

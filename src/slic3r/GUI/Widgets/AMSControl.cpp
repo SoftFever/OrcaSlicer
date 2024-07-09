@@ -1371,7 +1371,6 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     m_info     = info;
     m_canindex = canindex;
     // road type
-    auto mode = AMSRoadMode::AMS_ROAD_MODE_END;
     if (m_canindex == 0 && maxcan == 1) {
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE;
     } else if (m_canindex == 0 && maxcan > 1) {
@@ -3100,7 +3099,6 @@ void AMSControl::SetClibrationLink(wxString link)
 void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 {
     AmsCansHash::iterator iter             = m_ams_cans_list.begin();
-    auto                  count_item_index = 0;
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
@@ -3112,7 +3110,6 @@ void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 {
     AmsCansHash::iterator iter             = m_ams_cans_list.begin();
-    auto                  count_item_index = 0;
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];

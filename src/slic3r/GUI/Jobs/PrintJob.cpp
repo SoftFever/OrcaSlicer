@@ -134,7 +134,6 @@ void PrintJob::process(Ctl &ctl)
     wxString error_str;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
-    AppConfig* config = wxGetApp().app_config;
 
     if (this->connection_type == "lan") {
         msg = _u8L("Sending print job over LAN");
@@ -149,9 +148,7 @@ void PrintJob::process(Ctl &ctl)
     int result = -1;
     std::string http_body;
 
-    int total_plate_num = plate_data.plate_count;
     if (!plate_data.is_valid) {
-        total_plate_num =  m_plater->get_partplate_list().get_plate_count();
         PartPlate *plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
         if (plate == nullptr) {
             plate = m_plater->get_partplate_list().get_curr_plate();

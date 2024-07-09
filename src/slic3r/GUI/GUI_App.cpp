@@ -301,7 +301,6 @@ public:
             memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
-            int text_width = memDC.GetTextExtent(text).GetWidth();
             wxRect text_rect(wxPoint(0, m_action_line_y_position), wxPoint(width, m_action_line_y_position + text_height));
             memDC.DrawLabel(text, text_rect, wxALIGN_CENTER);
 
@@ -963,7 +962,7 @@ void GUI_App::post_init()
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
     if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
         CallAfter([this] {
-            bool cw_showed = this->config_wizard_startup();
+            this->config_wizard_startup();
 
             std::string http_url = get_http_url(app_config->get_country_code());
             std::string language = GUI::into_u8(current_language_code());
@@ -1316,7 +1315,6 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
             bool cancel = false;
-            int percent = 0;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
             file.write(body.c_str(), body.size());
             file.close();
@@ -3830,10 +3828,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     auto keyCode = key_event_node.get<int>("key");
                     auto ctrlKey = key_event_node.get<bool>("ctrl");
                     auto shiftKey = key_event_node.get<bool>("shift");
-                    auto cmdKey = key_event_node.get<bool>("cmd");
 
                     wxKeyEvent e(wxEVT_CHAR_HOOK);
 #ifdef __APPLE__
+                    auto cmdKey = key_event_node.get<bool>("cmd");
                     e.SetControlDown(cmdKey);
                     e.SetRawControlDown(ctrlKey);
 #else
@@ -4786,8 +4784,6 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                             });
                         }
 
-                        unsigned int http_code = 200;
-
                         /* get list witch need to be deleted*/
                         std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
@@ -5467,7 +5463,7 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 
 void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
 {
-    bool app_layout_changed = false;
+    // bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor

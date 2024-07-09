@@ -231,7 +231,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     static bool last_spiral_vase_status = false;
 
-    const bool was_empty = m_ticks.empty();
+    // const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
     const std::vector<CustomGCode::Item> &heights = custom_gcode_per_print_z.gcodes;
@@ -1034,8 +1034,6 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
             context.IO.MouseClicked[0])
             m_show_menu = false;
         
-        ImVec2 bar_center = higher_handle.GetCenter();
-
         // draw ticks
         draw_ticks(one_slideable_region);
         // draw colored band
