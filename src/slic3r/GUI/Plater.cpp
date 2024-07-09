@@ -4455,8 +4455,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             const Vec3d ratio = size.cwiseQuotient(bed_size);
             const double max_ratio = std::max(ratio(0), ratio(1));
             if (max_ratio > 10000) {
-                MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
-                                  wxICON_QUESTION | wxYES);
+                MessageDialog dlg(q, _L("Your object appears to be too large. It will be scaled down to fit the heat bed automatically."), _L("Object too large"),
+                                  wxICON_QUESTION | wxOK);
                 dlg.ShowModal();
                 // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
                 // so scale down the mesh
