@@ -2796,7 +2796,7 @@ void Print::_make_wipe_tower()
                     unsigned int pre_filament_id = nozzle_cur_filament_ids[nozzle_id];
 
                     float volume_to_purge = 0;
-                    if (pre_filament_id != unsigned int(-1) && pre_filament_id != filament_id) {
+                    if (pre_filament_id != (unsigned int)(-1) && pre_filament_id != filament_id) {
                         volume_to_purge = multi_extruder_flush[nozzle_id][pre_filament_id][filament_id];
                         volume_to_purge *= m_config.flush_multiplier.get_at(nozzle_id);
                         volume_to_purge = pre_filament_id == -1 ? 0 :

@@ -959,7 +959,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_last_result_id = gcode_result.id;
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
-     
+
     m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
     //BBS: add only gcode mode
@@ -4377,7 +4377,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 {
     ImGuiWrapper &imgui = *wxGetApp().imgui();
 
-    auto link_text = [&](std::string &label) {
+    auto link_text = [&](const std::string &label) {
         ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
 
         ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
@@ -5269,7 +5269,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 columns_offsets.push_back({ buf, color_print_offsets[_u8L("Tower")] });
             }
             if ((displayed_columns & ~ColumnData::Model) > 0) {
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m, 
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m,
                     (total_model_used_filament_g + total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g) / unit_conver);
                 columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
             }

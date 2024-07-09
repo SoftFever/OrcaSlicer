@@ -217,6 +217,7 @@ private:
     const DynamicPrintConfig*  m_print_full_config = nullptr;
     const PrintConfig*         m_print_config_ptr = nullptr;
     const PrintObject*         m_print_object_ptr = nullptr;
+    Print*                     m_print;
     bool                       m_is_BBL_printer = false;
 };
 

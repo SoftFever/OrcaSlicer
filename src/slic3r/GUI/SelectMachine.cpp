@@ -611,6 +611,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
+    
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
@@ -1208,7 +1209,7 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
             mapping_item["filamentId"] = "";
             mapping_item["filamentType"] = "";
 
-            
+
 
             for (int k = 0; k < m_ams_mapping_result.size(); k++) {
                 if (m_ams_mapping_result[k].id == i) {
@@ -3406,7 +3407,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         MaterialItem* item = nullptr;
         if (use_double_extruder)
         {
-            
+
             if (m_filaments_map[extruder] == 1)
             {
                 item = new MaterialItem(m_filament_left_panel, colour_rgb, _L(display_materials[extruder]));

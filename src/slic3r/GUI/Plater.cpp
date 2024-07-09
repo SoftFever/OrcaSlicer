@@ -1620,8 +1620,6 @@ void Sidebar::msw_rescale()
     //BBS
     p->m_bed_type_list->Rescale();
     p->m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
-    p->m_left_extruder_list->Rescale();
-    p->m_right_extruder_list->Rescale();
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
@@ -13367,7 +13365,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments);
 
     // update customize gcode
-    for (auto& item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
+    for (auto item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
         auto iter = std::remove_if(item->second.gcodes.begin(), item->second.gcodes.end(), [filament_id](const Item& gcode_item) {
             return (gcode_item.type == CustomGCode::Type::ToolChange && gcode_item.extruder == filament_id + 1);
         });

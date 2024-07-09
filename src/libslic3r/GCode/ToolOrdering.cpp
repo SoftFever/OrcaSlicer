@@ -216,6 +216,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     m_is_BBL_printer = object.print()->is_BBL_printer();
     m_print_full_config = &object.print()->full_print_config();
     m_print_object_ptr = &object;
+    m_print = const_cast<Print*>(object.print());
     if (object.layers().empty())
         return;
 
@@ -260,6 +261,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 {
     m_is_BBL_printer = print.is_BBL_printer();
     m_print_full_config = &print.full_print_config();
+    m_print = const_cast<Print *>(&print);  // for update the context of print
     m_print_config_ptr = &print.config();
 
     // Initialize the print layers for all objects and all layers.

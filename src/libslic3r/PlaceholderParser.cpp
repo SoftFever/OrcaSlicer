@@ -1570,13 +1570,12 @@ namespace client
             expr::random(param1, param2, ctx->context_data->rng);
         }
 
-        static void filament_change(const MyContext* ctx, expr<Iterator>& param)
+        static void filament_change(const MyContext* ctx, expr& param)
         {
             MyContext *context = const_cast<MyContext *>(ctx);
             context->current_extruder_id = param.as_i();
         }
 
-        template <typename Iterator>
         static void throw_exception(const std::string &msg, const IteratorRange &it_range)
         {
             // An asterix is added to the start of the string to differentiate the boost::spirit::info::tag content
@@ -2170,7 +2169,7 @@ namespace client
                                                                     [ px::bind(&expr::max, _val, _2) ]
                 |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')')
                                                                     [ px::bind(&MyContext::random, _r1, _val, _2) ]
-                |   (kw["filament_change"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&MyContext::filament_change<Iterator>, _r1, _1) ]
+                |   (kw["filament_change"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&MyContext::filament_change, _r1, _1) ]
                 |   (kw["digits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))
                                                                     [ px::bind(&expr::digits<false>, _val, _2, _3) ]
                 |   (kw["zdigits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))

@@ -3191,7 +3191,7 @@ std::vector<int> PartPlate::get_filament_maps()
     return filament_maps;
 }
 
-void PartPlate::set_filament_maps(std::vector<int>& f_maps)
+void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
 {
     std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
 

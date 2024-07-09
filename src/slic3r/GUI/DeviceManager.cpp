@@ -887,7 +887,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
-    
+
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
 
         std::string ams_id = ams->second->id;
@@ -949,7 +949,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             info.slot_id = std::to_string(0);
             tray_filaments.emplace(std::make_pair(info.tray_id, info));
         }
-        
+
     }
     if (ext_second)
     {

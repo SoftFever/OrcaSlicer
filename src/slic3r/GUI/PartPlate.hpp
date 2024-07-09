@@ -485,7 +485,7 @@ public:
     void set_filament_map_mode(FilamentMapMode& mode);
 
     std::vector<int> get_filament_maps();
-    void set_filament_maps(std::vector<int>& f_maps);
+    void set_filament_maps(const std::vector<int>& f_maps);
 
     void set_filament_count(int filament_count);
     void on_filament_added();

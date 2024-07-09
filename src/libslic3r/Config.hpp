@@ -30,7 +30,6 @@ namespace Slic3r {
     {
         double  value;
         bool    percent;
-
     private:
         friend class cereal::access;
         template<class Archive> void serialize(Archive& ar) { ar(this->value); ar(this->percent); }
