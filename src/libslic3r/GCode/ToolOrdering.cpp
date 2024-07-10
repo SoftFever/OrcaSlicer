@@ -146,12 +146,9 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
 {
     int cost = 0;
 
-    if (filament_sequences) {
-        filament_sequences->clear();
-        filament_sequences->resize(layer_filaments.size());
-    }
-
+    //TODO: handle case with custom sequence
     std::vector<std::set<int>>groups(2);
+    std::vector<std::vector<std::vector<unsigned>>> layer_sequences(2);
     for (int i = 0; i < filament_maps.size(); ++i) {
         if (filament_maps[i] == 0)
             groups[0].insert(filament_lists[i]);
@@ -176,7 +173,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
                 }
                 assert(lf.size() == unsign_custom_extruder_seq.size());
                 if (filament_sequences)
-                    (*filament_sequences)[layer] = unsign_custom_extruder_seq;
+                    layer_sequences[idx].emplace_back(unsign_custom_extruder_seq);
 
                 current_extruder_id = unsign_custom_extruder_seq.back();
                 continue;
@@ -193,12 +190,28 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
             assert(sequence.size()==filament_used_in_group.size());
 
             if (filament_sequences)
-                (*filament_sequences)[layer].insert((*filament_sequences)[layer].end(), sequence.begin(), sequence.end());
+                layer_sequences[idx].emplace_back(sequence);
 
             if (!sequence.empty())
                 current_extruder_id = sequence.back();
             cost += tmp_cost;
             layer += 1;
+        }
+    }
+
+    if (filament_sequences) {
+        filament_sequences->clear();
+        filament_sequences->resize(layer_filaments.size());
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+            auto& curr_layer_seq = (*filament_sequences)[layer];
+            if (layer & 1) {
+                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
+                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
+            }
+            else {
+                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
+                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
+            }
         }
     }
 

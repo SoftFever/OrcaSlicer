@@ -9,8 +9,8 @@
 
 #include <boost/container/small_vector.hpp>
 #include "../FilamentGroup.hpp"
-#include "ExtrusionEntity.hpp"
-#include "PrintConfig.hpp"
+#include "../ExtrusionEntity.hpp"
+#include "../PrintConfig.hpp"
 
 namespace Slic3r {
 
