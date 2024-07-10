@@ -3355,10 +3355,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");
-    //def->tooltip = L("This option will drop the temperature of the inactive extruders to prevent oozing. "
-    //               "It will enable a tall skirt automatically and move extruders outside such "
-    //               "skirt when changing temperatures.");
-    def->mode = comDevelop;
+    def->tooltip = L("This option will drop the temperature of the inactive extruders to prevent oozing.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("filename_format", coString);
@@ -4002,7 +4000,7 @@ void PrintConfigDef::init_fff_params()
     def->category = "Extruders";
     def->tooltip = "Filament to print solid infill";
     def->min = 1;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("internal_solid_infill_line_width", coFloatOrPercent);
@@ -4079,7 +4077,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "∆°C";
     def->min = -max_temp;
     def->max = max_temp;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-5));
 
     def = this->add("machine_start_gcode", coString);

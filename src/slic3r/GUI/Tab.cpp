@@ -1656,9 +1656,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     //Orca: sync filament num if it's a multi tool printer
     if (opt_key == "extruders_count" && !m_config->opt_bool("single_extruder_multi_material")){
         auto num_extruder = boost::any_cast<size_t>(value);
-        wxColour new_col = Plater::get_next_color_for_filament();
-        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        wxGetApp().preset_bundle->set_num_filaments(num_extruder, new_color);
+        wxGetApp().preset_bundle->set_num_filaments(num_extruder);
         wxGetApp().plater()->on_filaments_change(num_extruder);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -2277,22 +2275,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_auto_brim");
         optgroup->append_single_option_line("tree_support_brim_width");
         
-    page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
-        optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
-        optgroup->append_single_option_line("skirt_loops");
-        optgroup->append_single_option_line("min_skirt_length");
-        optgroup->append_single_option_line("skirt_distance");
-        optgroup->append_single_option_line("skirt_height");
-        optgroup->append_single_option_line("skirt_speed");
-        optgroup->append_single_option_line("draft_shield");
-        
-        optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
-        optgroup->append_single_option_line("brim_type", "auto-brim");
-        optgroup->append_single_option_line("brim_width", "auto-brim#manual");
-        optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
-        optgroup->append_single_option_line("brim_ears_max_angle");
-        optgroup->append_single_option_line("brim_ears_detection_length");
-
+    page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower");
         optgroup->append_single_option_line("prime_tower_width");
@@ -2321,6 +2304,31 @@ void TabPrint::build()
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
         optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
         optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
+        optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        optgroup->append_single_option_line("interlocking_beam");
+        optgroup->append_single_option_line("mmu_segmented_region_max_width");
+        optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
+        optgroup->append_single_option_line("interlocking_beam_width");
+        optgroup->append_single_option_line("interlocking_orientation");
+        optgroup->append_single_option_line("interlocking_beam_layer_count");
+        optgroup->append_single_option_line("interlocking_depth");
+        optgroup->append_single_option_line("interlocking_boundary_avoidance");
+
+page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
+        optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
+        optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("min_skirt_length");
+        optgroup->append_single_option_line("skirt_distance");
+        optgroup->append_single_option_line("skirt_height");
+        optgroup->append_single_option_line("skirt_speed");
+        optgroup->append_single_option_line("draft_shield");
+        
+        optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
+        optgroup->append_single_option_line("brim_type", "auto-brim");
+        optgroup->append_single_option_line("brim_width", "auto-brim#manual");
+        optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
+        optgroup->append_single_option_line("brim_ears_max_angle");
+        optgroup->append_single_option_line("brim_ears_detection_length");
 
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
@@ -2335,16 +2343,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
-
-        optgroup = page->new_optgroup(L("Advanced"), L"advanced");
-        optgroup->append_single_option_line("interlocking_beam");
-        optgroup->append_single_option_line("mmu_segmented_region_max_width");
-        optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
-        optgroup->append_single_option_line("interlocking_beam_width");
-        optgroup->append_single_option_line("interlocking_orientation");
-        optgroup->append_single_option_line("interlocking_beam_layer_count");
-        optgroup->append_single_option_line("interlocking_depth");
-        optgroup->append_single_option_line("interlocking_boundary_avoidance");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
@@ -2365,13 +2363,13 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
-    page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
+
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
         option = optgroup->get_option("notes");
         option.opt.full_width = true;
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
-
+        
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -4459,6 +4457,7 @@ void TabPrinter::toggle_options()
         }
         toggle_option("extruders_count", !bSEMM);
         toggle_option("manual_filament_change", bSEMM);
+        toggle_option("purge_in_prime_tower", bSEMM);
     }
     wxString extruder_number;
     long val = 1;

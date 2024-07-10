@@ -672,7 +672,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);
-    
+
+    auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
+    toggle_field("purge_in_prime_tower", bSEMM);
+
+    for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
+        toggle_line(el, !bSEMM);
+
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
 
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
@@ -682,7 +688,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "single_extruder_multi_material_priming"})
       toggle_line(el, have_prime_tower);
 
-    toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
+    toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);
