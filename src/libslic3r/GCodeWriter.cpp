@@ -46,11 +46,10 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
-    m_extruder = nullptr; // this points to object inside `m_extruders`, so should be cleared too
-    m_extruders.clear();
-    m_extruders.reserve(extruder_ids.size());
+    m_filament_extruders.clear();
+    m_filament_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
-        m_extruders.emplace_back(Extruder(extruder_id, &this->config, config.single_extruder_multi_material.value));
+        m_filament_extruders.emplace_back(Extruder(extruder_id, &this->config, config.single_extruder_multi_material.value));
 
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -407,10 +406,10 @@ std::string GCodeWriter::reset_e(bool force)
         || FLAVOR_IS(gcfSailfish))
         return "";
 
-    if (m_extruder != nullptr) {
-        if (is_zero(m_extruder->E()) && ! force)
+    if (m_curr_extruder_id!=-1 && m_curr_filament_extruder[m_curr_extruder_id] != nullptr) {
+        if (is_zero(m_curr_filament_extruder[m_curr_extruder_id]->E()) && ! force)
             return "";
-        m_extruder->reset_E();
+        m_curr_filament_extruder[m_curr_extruder_id]->reset_E();
     }
 
     if (! this->config.use_relative_e_distances) {
@@ -452,12 +451,13 @@ std::string GCodeWriter::toolchange_prefix() const
            FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
 }
 
-std::string GCodeWriter::toolchange(unsigned int extruder_id)
+std::string GCodeWriter::toolchange(unsigned int filament_id)
 {
     // set the new extruder
-	auto it_extruder = Slic3r::lower_bound_by_predicate(m_extruders.begin(), m_extruders.end(), [extruder_id](const Extruder &e) { return e.id() < extruder_id; });
-    assert(it_extruder != m_extruders.end() && it_extruder->id() == extruder_id);
-    m_extruder = &*it_extruder;
+    auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
+    assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
+    m_curr_extruder_id = filament_extruder_iter->extruder_id();
+    m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
@@ -465,9 +465,9 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     if (this->multiple_extruders || (this->config.filament_diameter.values.size() > 1 && !is_bbl_printers())) {
         // BBS
         if (this->m_is_bbl_printers)
-            gcode << "M1020 S" << extruder_id;
+            gcode << "M1020 S" << filament_id;
         else
-            gcode << this->toolchange_prefix() << extruder_id;
+            gcode << this->toolchange_prefix() << filament_id;
         //BBS
         if (GCodeWriter::full_gcode_comment)
             gcode << " ; change extruder";
@@ -550,7 +550,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             //BBS: SpiralLift
             if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
                 //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
-                double radius = delta(2) / (2 * PI * atan(this->extruder()->travel_slope()));
+                double radius = delta(2) / (2 * PI * atan(this->filament()->travel_slope()));
                 Vec2d ij_offset = radius * delta_no_z.normalized();
                 ij_offset = { -ij_offset(1), ij_offset(0) };
                 slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
@@ -558,11 +558,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             //BBS: LazyLift
             else if (m_to_lift_type == LiftType::LazyLift &&
                 this->is_current_position_clear() &&
-                atan2(delta(2), delta_no_z.norm()) < this->extruder()->travel_slope()) {
+                atan2(delta(2), delta_no_z.norm()) < this->filament()->travel_slope()) {
                 //BBS: check whether we can make a travel like
                 //   _____
                 //  /       to make the z list early to avoid to hit some warping place when travel is long.
-                Vec2d temp = delta_no_z.normalized() * delta(2) / tan(this->extruder()->travel_slope());
+                Vec2d temp = delta_no_z.normalized() * delta(2) / tan(this->filament()->travel_slope());
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
@@ -719,7 +719,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
         force_no_extrusion = true;
 
     if (!force_no_extrusion)
-        m_extruder->extrude(dE);
+        filament()->extrude(dE);
 
     //BBS: take plate offset into consider
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
@@ -727,7 +727,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
     if (!force_no_extrusion)
-        w.emit_e(m_extruder->E());
+        w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -741,7 +741,7 @@ std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& cent
     m_pos(0) = point(0);
     m_pos(1) = point(1);
     if (!force_no_extrusion)
-        m_extruder->extrude(dE);
+        filament()->extrude(dE);
 
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
 
@@ -749,7 +749,7 @@ std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& cent
     w.emit_xy(point_on_plate);
     w.emit_ij(center_offset);
     if (!force_no_extrusion)
-        w.emit_e(m_extruder->E());
+        w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -760,7 +760,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     m_pos = point;
     m_lifted = 0;
     if (!force_no_extrusion)
-        m_extruder->extrude(dE);
+        filament()->extrude(dE);
 
     //BBS: take plate offset into consider
     Vec3d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset, point(2) };
@@ -768,7 +768,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
     if (!force_no_extrusion)
-        w.emit_e(m_extruder->E());
+        w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -776,22 +776,22 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
 
 std::string GCodeWriter::retract(bool before_wipe, double retract_length)
 {
-    double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
+    double factor = before_wipe ? filament()->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        retract_length > EPSILON ? retract_length : factor * m_extruder->retraction_length(),
-        factor * m_extruder->retract_restart_extra(),
+        retract_length > EPSILON ? retract_length : factor * filament()->retraction_length(),
+        factor * filament()->retract_restart_extra(),
         "retract"
     );
 }
 
 std::string GCodeWriter::retract_for_toolchange(bool before_wipe, double retract_length)
 {
-    double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
+    double factor = before_wipe ? filament()->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        retract_length > EPSILON ? retract_length : factor * m_extruder->retract_length_toolchange(),
-        factor * m_extruder->retract_restart_extra_toolchange(),
+        retract_length > EPSILON ? retract_length : factor * filament()->retract_length_toolchange(),
+        factor * filament()->retract_restart_extra_toolchange(),
         "retract for toolchange"
     );
 }
@@ -805,15 +805,15 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         length = 1;
 
     std::string gcode;
-    if (double dE = m_extruder->retract(length, restart_extra);  !is_zero(dE)) {
+    if (double dE = filament()->retract(length, restart_extra);  !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
         }
         else {
             // BBS
             GCodeG1Formatter w;
-            w.emit_e(m_extruder->E());
-            w.emit_f(m_extruder->retract_speed() * 60.);
+            w.emit_e(filament()->E());
+            w.emit_f(filament()->retract_speed() * 60.);
             // BBS
             w.emit_comment(GCodeWriter::full_gcode_comment, comment);
             gcode = w.string();
@@ -833,7 +833,7 @@ std::string GCodeWriter::unretract()
     if (FLAVOR_IS(gcfMakerWare))
         gcode = "M101 ; extruder on\n";
 
-    if (double dE = m_extruder->unretract(); !is_zero(dE)) {
+    if (double dE = filament()->unretract(); !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
             gcode += this->reset_e();
@@ -842,8 +842,8 @@ std::string GCodeWriter::unretract()
             //BBS
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             GCodeG1Formatter w;
-            w.emit_e(m_extruder->E());
-            w.emit_f(m_extruder->deretract_speed() * 60.);
+            w.emit_e(filament()->E());
+            w.emit_f(filament()->deretract_speed() * 60.);
             //BBS
             w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
             gcode += w.string();
@@ -861,7 +861,7 @@ std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
     // check whether the above/below conditions are met
     double target_lift = 0;
     {
-        int extruder_id = m_extruder->extruder_id();
+        int extruder_id = filament()->extruder_id();
         double above = this->config.retract_lift_above.get_at(extruder_id);
         double below = this->config.retract_lift_below.get_at(extruder_id);
         if (m_pos(2) >= above && (below == 0 || m_pos(2) <= below))
@@ -983,6 +983,21 @@ void GCodeWriter::add_object_change_labels(std::string& gcode)
 {
     add_object_end_labels(gcode);
     add_object_start_labels(gcode);
+}
+
+std::string GCodeWriter::set_extruder(unsigned int filament_id)
+{
+    auto filament_ext_it = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
+    unsigned int extruder_id = filament_ext_it->extruder_id();
+    assert(filament_ext_it != m_filament_extruders.end() && filament_ext_it->id() == filament_id);
+    //TODO: optmize here, pass extruder_id to toolchange
+    return this->need_toolchange(filament_id) ? this->toolchange(filament_id) : "";
+}
+
+
+bool GCodeWriter::need_toolchange(unsigned int filament_id)const
+{
+    return filament()==nullptr || filament()->id()!=filament_id;
 }
 
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {

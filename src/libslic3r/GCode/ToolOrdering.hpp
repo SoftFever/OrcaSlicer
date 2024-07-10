@@ -8,7 +8,7 @@
 #include <utility>
 
 #include <boost/container/small_vector.hpp>
-#include "FilamentGroup.hpp"
+#include "../FilamentGroup.hpp"
 #include "ExtrusionEntity.hpp"
 #include "PrintConfig.hpp"
 

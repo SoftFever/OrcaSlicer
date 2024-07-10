@@ -214,7 +214,7 @@ double Extruder::retract_restart_extra_toolchange() const
 
 double Extruder::travel_slope() const
 {
-    return m_config->travel_slope.get_at(m_id) * PI / 180;
+    return m_config->travel_slope.get_at(extruder_id()) * PI / 180;
 }
 
 }

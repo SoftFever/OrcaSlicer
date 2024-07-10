@@ -36,7 +36,7 @@ namespace Slic3r
             return count;
         };
 
-        uint64_t max_group_num = (1 << m_filament_num);
+        uint64_t max_group_num = static_cast<uint64_t>(1 << m_filament_num);
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_label;
 
@@ -46,7 +46,7 @@ namespace Slic3r
                 continue;
             std::set<int>group_0, group_1;
             for (int j = 0; j < m_filament_num; ++j) {
-                if (i & (1 << j))
+                if (i & static_cast<uint64_t>(1 << j))
                     group_1.insert(m_used_filaments[j]);
                 else
                     group_0.insert(m_used_filaments[j]);

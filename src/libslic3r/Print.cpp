@@ -2769,14 +2769,7 @@ void Print::_make_wipe_tower()
                 multi_extruder_flush.emplace_back(wipe_volumes);
             }
 
-            // todo multi_extruders: get filament_maps
-            std::vector<int> filament_maps;
-            for (int i = 0; i <= number_of_extruders / 2; ++i) {
-                filament_maps.push_back(1);
-            }
-            for (int i = number_of_extruders / 2 + 1; i < number_of_extruders; ++i) {
-                filament_maps.push_back(2);
-            }
+            std::vector<int>filament_maps = get_filament_maps();
 
             std::vector<unsigned int> nozzle_cur_filament_ids(nozzle_nums, -1);
             unsigned int current_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
@@ -2806,6 +2799,7 @@ void Print::_make_wipe_tower()
                     wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
                                                m_config.prime_volume, volume_to_purge);
                     current_filament_id                = filament_id;
+                    nozzle_cur_filament_ids[nozzle_id]   = filament_id;
                 }
                 layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 

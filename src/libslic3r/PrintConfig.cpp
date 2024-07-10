@@ -56,7 +56,7 @@ namespace Slic3r {
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
 {
     if (filament_id < config.filament_map.size()) {
-        return config.filament_map.get_at(filament_id);
+        return config.filament_map.get_at(filament_id)-1;
     }
     return 0;
 }
