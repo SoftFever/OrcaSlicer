@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -589,7 +589,7 @@ msgstr "ワイヤフレームを表示"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "プレビュー処理中は適用できません"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -656,8 +656,8 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Horizontal text"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
+msgstr "Shift + Mouse move up or down"
 
 msgid "Rotate text"
 msgstr "Rotate text"
@@ -1000,7 +1000,7 @@ msgstr "テキストの向きをカメラ側にする。"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "全く同じフォント(\"%1%\")を読み込むことができません。アプリケーションは似たよ"
@@ -1618,7 +1618,7 @@ msgstr "押出線幅"
 msgid "Wipe options"
 msgstr "拭き上げ設定"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "ベッド接着"
 
 msgid "Add part"
@@ -1897,12 +1897,6 @@ msgstr "自動向き調整"
 msgid "Auto orient the object to improve print quality."
 msgstr "オブジェクトの向きを自動的に調整する"
 
-msgid "Split the selected object into mutiple objects"
-msgstr "選択したオブジェクトを複数のオブジェクトに分割"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "選択したオブジェクトを複数のパーツに分割"
-
 msgid "Select All"
 msgstr "全てを選択"
 
@@ -2158,8 +2152,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下のモデルオブジェクトが修復されました。"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下のオブジェクトを修復てきませんでした"
 
 msgid "Repairing was canceled"
@@ -2606,7 +2600,7 @@ msgstr "Print task sending times out."
 msgid "Service Unavailable"
 msgstr "サービスは利用できません"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "不明なエラー"
 
 msgid "Sending print configuration"
@@ -3554,7 +3548,7 @@ msgstr ""
 "値を0にリセットします。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5685,6 +5679,9 @@ msgstr "プリセットを比較"
 msgid "View all object's settings"
 msgstr "全てのオブジェクトの設定"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5760,6 +5757,9 @@ msgstr "フィラメントを選択"
 
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5988,7 +5988,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirm Save As"
 
 msgid "Delete object which is a part of cut object"
@@ -6205,10 +6205,10 @@ msgstr "%sを送信しました、プリンターにて確認できます"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6357,6 +6357,21 @@ msgstr "閲覧"
 
 msgid "Choose Download Directory"
 msgstr "ダウンロードフォルドを選択"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "一般設定"
@@ -6551,36 +6566,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -10275,6 +10260,19 @@ msgstr ""
 "押出制御に使用されるパラメータなので、精確なフィラメント直径を入力してくださ"
 "い"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10671,7 +10669,7 @@ msgstr "1層目の高さ"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "1層目の高さです。高さを大きくすればプレートとの接着性が良くなります。"
 
 msgid "Speed of initial layer except the solid infill part"
@@ -10946,6 +10944,12 @@ msgstr "プリンターが対応するG-code"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11048,6 +11052,51 @@ msgstr "Interlocking depth of a segmented region"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "Interlocking depth of a segmented region. Zero disables this feature."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "アイロン面"
@@ -11667,6 +11716,14 @@ msgstr "スロープ"
 
 msgid "Spiral"
 msgstr "スパイラル"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "これ以上でリフトZ"
@@ -14363,7 +14420,7 @@ msgstr "Import Preset"
 msgid "Create Type"
 msgstr "Create Type"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14412,10 +14469,10 @@ msgstr "Preset path was not found; please reselect vendor."
 msgid "The printer model was not found, please reselect."
 msgstr "The printer model was not found, please reselect."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
