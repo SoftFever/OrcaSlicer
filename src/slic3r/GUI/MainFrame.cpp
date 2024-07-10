@@ -1460,8 +1460,7 @@ bool MainFrame::can_export_all_gcode() const
 bool MainFrame::can_print_3mf() const
 {
     if (m_plater && !m_plater->model().objects.empty()) {
-        if (wxGetApp().preset_bundle->printers.get_edited_preset().is_custom_defined())
-            return false;
+        //
     }
     return true;
 }

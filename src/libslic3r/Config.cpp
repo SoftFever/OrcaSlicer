@@ -809,7 +809,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 key_values.emplace(BBL_JSON_KEY_VERSION, it.value());
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_IS_CUSTOM)) {
-                key_values.emplace(BBL_JSON_KEY_IS_CUSTOM, it.value());
+                //skip it
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
                 key_values.emplace(BBL_JSON_KEY_NAME, it.value());
@@ -1388,15 +1388,13 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 }
 
 //BBS: add json support
-void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
+void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version) const
 {
     json j;
     //record the headers
     j[BBL_JSON_KEY_VERSION] = version;
     j[BBL_JSON_KEY_NAME] = name;
     j[BBL_JSON_KEY_FROM] = from;
-    if (!is_custom.empty())
-        j[BBL_JSON_KEY_IS_CUSTOM] = is_custom;
 
     //record all the key-values
     for (const std::string &opt_key : this->keys())

@@ -4721,7 +4721,6 @@ void GUI_App::sync_preset(Preset* preset)
     long long update_time = 0;
     // only sync user's preset
     if (!preset->is_user()) return;
-    if (preset->is_custom_defined()) return;
 
     auto setting_id = preset->setting_id;
     std::map<std::string, std::string> values_map;

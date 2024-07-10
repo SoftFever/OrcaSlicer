@@ -608,7 +608,6 @@ public:
     void update_values_to_printer_extruders(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
     void update_values_to_printer_extruders_for_multiple_filaments(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
 
-    bool is_custom_defined();
 };
 extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;

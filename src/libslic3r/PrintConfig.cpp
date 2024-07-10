@@ -7990,15 +7990,6 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
 }
 
 
-bool DynamicPrintConfig::is_custom_defined()
-{
-    auto* is_custom_defined = dynamic_cast<const ConfigOptionStrings*>(this->option("is_custom_defined"));
-    if (!is_custom_defined || is_custom_defined->empty())
-        return false;
-    if (is_custom_defined->get_at(0) == "1")
-        return true;
-    return false;
-}
 
 //BBS: pass map to recording all invalid valies
 //FIXME localize this function.
