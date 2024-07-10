@@ -603,7 +603,7 @@ msgstr "Показати каркас"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Не можна застосовувати під час попереднього перегляду процесу."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -670,7 +670,7 @@ msgstr "Поверхня"
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + переміщення миші вгору або вниз"
 
 msgid "Rotate text"
@@ -1014,7 +1014,7 @@ msgstr "Зорієнтувати текст у напрямку камери."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Не вдається завантажити точно такий самий шрифт(\"%1%\"). Програма вибрала "
@@ -1651,7 +1651,7 @@ msgstr "Ширина екструзії"
 msgid "Wipe options"
 msgstr "Параметри очищення"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Прилипання до столу"
 
 msgid "Add part"
@@ -1936,12 +1936,6 @@ msgstr "Автоматична орієнтація"
 msgid "Auto orient the object to improve print quality."
 msgstr "Автоматично орієнтуйте об'єкт для покращення якості друку."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Розділити вибраний об'єкт на кілька об'єктів"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Розділити вибраний об'єкт на кілька частин"
-
 msgid "Select All"
 msgstr "Вибрати все"
 
@@ -2210,8 +2204,8 @@ msgstr[0] "Наступна частина моделі успішно відр�
 msgstr[1] "Наступні частини моделі успішно відремонтовані"
 msgstr[2] "Наступні частини моделі успішно відремонтовані"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Не вдалося полагодити таку частину моделі"
 msgstr[1] "Не вдалося полагодити такі частини моделі"
 msgstr[2] "Не вдалося полагодити такі частини моделі"
@@ -2670,7 +2664,7 @@ msgstr "Час відправлення завдання на друк закі�
 msgid "Service Unavailable"
 msgstr "Сервіс недоступний"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Невідома помилка."
 
 msgid "Sending print configuration"
@@ -3669,7 +3663,7 @@ msgstr ""
 "Це значення буде скинуто на 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6197,7 +6191,7 @@ msgstr ""
 "Файл %s вже існує.\n"
 "Бажаєте замінити його?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Підтвердити збереження як"
 
 msgid "Delete object which is a part of cut object"
@@ -6420,7 +6414,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
 "позитивні частини. Ви можете виправити сітки і спробувати ще раз."
@@ -11333,7 +11327,7 @@ msgstr "Початкова висота шару"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Висота вихідного шару. Незначна товщина початкової висоти шару може "
 "поліпшити прилипання до столу"
@@ -15506,7 +15500,7 @@ msgstr "Імпорт набору параметрів"
 msgid "Create Type"
 msgstr "Тип"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Модель не знайдено. Будь ласка, перевиберіть виробника."
 
 msgid "Select Model"
@@ -15557,10 +15551,10 @@ msgstr "Шлях до налаштувань не знайдено. Будь л�
 msgid "The printer model was not found, please reselect."
 msgstr "Модель принтера не було знайдено. Будь ласка, перевиберіть її."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Діаметр сопла не знайдено. Будь ласка, перевиберіть його."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Налаштування принтера не знайдено. Будь ласка, перевиберіть його."
 
 msgid "Printer Preset"

@@ -588,7 +588,7 @@ msgstr "显示线框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -655,7 +655,7 @@ msgstr "附着曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 鼠标上移或下移"
 
 msgid "Rotate text"
@@ -992,7 +992,7 @@ msgstr "选择文字使其面向摄像头"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "不能加载完全相同的字体(\"%1%\")。应用程序选择了一种类似的字体（\"%2%\"）。你"
@@ -1601,7 +1601,7 @@ msgstr "挤出宽度"
 msgid "Wipe options"
 msgstr "擦除选项"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "热床粘接"
 
 msgid "Add part"
@@ -1880,12 +1880,6 @@ msgstr "自动朝向"
 msgid "Auto orient the object to improve print quality."
 msgstr "自动调整对象朝向以提高打印质量。"
 
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所选对象为多个零件"
-
 msgid "Select All"
 msgstr "全选"
 
@@ -2133,8 +2127,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下模型对象已被修复"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
@@ -2567,7 +2561,7 @@ msgstr "发送打印任务超时。"
 msgid "Service Unavailable"
 msgstr "服务不可用"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "未知错误"
 
 msgid "Sending print configuration"
@@ -3492,7 +3486,7 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5893,7 +5887,7 @@ msgstr ""
 "文件 %s 已经存在\n"
 "您是否要替换它？"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "确认另存为"
 
 msgid "Delete object which is a part of cut object"
@@ -6103,7 +6097,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 
@@ -10564,7 +10558,7 @@ msgstr "首层层高"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "首层层高"
 
 msgid "Speed of initial layer except the solid infill part"
@@ -14291,7 +14285,7 @@ msgstr "导入预设"
 msgid "Create Type"
 msgstr "创建类型"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
 msgid "Select Model"
@@ -14340,10 +14334,10 @@ msgstr "预设路径未找到，请重新选择供应商。"
 msgid "The printer model was not found, please reselect."
 msgstr "未找到打印机型号，请重新选择。"
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "未找到喷嘴直径，请重新选择。"
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer Preset"
