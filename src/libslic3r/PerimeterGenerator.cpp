@@ -1099,7 +1099,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     // split the polygons with top/not_top
     // get the offset from solid surface anchor
     coord_t offset_top_surface =
-        scale_(1.5 * (config->wall_loops.value == 0
+        scale_(0.7 * (config->wall_loops.value == 0
                           ? 0.
                           : unscaled(double(ext_perimeter_width +
                                             perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
