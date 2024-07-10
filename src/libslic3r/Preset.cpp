@@ -1346,12 +1346,40 @@ Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
 
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+        if (!extruder_id_name.empty()) {
+            dirty_options.emplace_back(extruder_id_name);
+        }
+        if (!extruder_variant_name.empty()) {
+            dirty_options.emplace_back(extruder_variant_name);
+        }
+
         for (auto option: dirty_options)
         {
             ConfigOption *opt_src = preset.config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            opt_dst->set(opt_src);
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+                opt_dst->set(opt_src);
+            else {
+                ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
+                ConfigOptionVectorBase* opt_vec_inherit = static_cast<ConfigOptionVectorBase*>(parent_preset->config.option(option));
+                if (opt_vec_src->size() == 1)
+                    opt_dst->set(opt_src);
+                else if (key_set1->find(option) != key_set1->end()) {
+                    opt_vec_dst->set_with_nil(opt_vec_src, opt_vec_inherit, 1);
+                }
+                else if (key_set2->find(option) != key_set2->end()) {
+                    opt_vec_dst->set_with_nil(opt_vec_src, opt_vec_inherit, 2);
+                }
+                else
+                    opt_dst->set(opt_src);
+            }
         }
+
         new_preset->config = temp_config;
     }
 
@@ -1418,6 +1446,10 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
     std::vector<Preset*>::iterator it;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %project_presets.size();
+    std::string extruder_id_name, extruder_variant_name;
+    std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+    Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
     lock();
     for (it = project_presets.begin(); it != project_presets.end(); it++) {
         Preset* preset = *it;
@@ -1455,11 +1487,13 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
             }
             else {
                 // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                preset->config = default_preset.config;
-                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find parent for config %1%!")%preset->file;
-                //continue;
+                //BBS 202407: don't load project embedded preset when can not find inherit
+                //preset->config = default_preset.config;
+                BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset->file;
+                continue;
             }
-            preset->config.apply(std::move(config));
+            preset->config.update_diff_values_to_child_config(config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
+            //preset->config.apply(std::move(config));
             Preset::normalize(preset->config);
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys = Preset::remove_invalid_keys(preset->config, default_preset.config);

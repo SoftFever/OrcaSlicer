@@ -8819,7 +8819,11 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     int cur_variant_count = cur_extruder_variants.size();
     int target_variant_count = target_extruder_variants.size();
 
-    variant_index.resize(cur_variant_count, -1);
+    if (cur_variant_count > 0)
+        variant_index.resize(cur_variant_count, -1);
+    else
+        variant_index.resize(1, 0);
+
     if (target_variant_count == 0) {
         variant_index[0] = 0;
     }
