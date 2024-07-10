@@ -197,7 +197,7 @@ public:
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
-    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>> all_layer_filaments, const PrintConfig *print_config);
+    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig *print_config);
 
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);
@@ -208,7 +208,7 @@ private:
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
-    std::vector<int>    get_recommended_filament_maps();
+    //std::vector<int>    get_recommended_filament_maps();
     void                reorder_extruders_for_minimum_flush_volume();
 
     // BBS

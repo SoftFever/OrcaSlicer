@@ -151,8 +151,7 @@ public:
     std::map<int, DynamicPrintConfig> filament_ams_list;
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
-    // todo multi_extruders: delete mutable
-    mutable std::vector<int>    extruder_filament_counts;
+    std::vector<int>    extruder_filament_counts;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;

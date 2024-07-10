@@ -971,14 +971,9 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
     return flush_volume;
 }
 
-std::vector<int> ToolOrdering::get_recommended_filament_maps()
+std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig *print_config)
 {
-    const PrintConfig *print_config = m_print_config_ptr;
-    if (!print_config && m_print_object_ptr) {
-        print_config = &(m_print_object_ptr->print()->config());
-    }
-
-    if (!print_config || m_layer_tools.empty())
+    if (!print_config || layer_filaments.empty())
         return std::vector<int>();
 
     const unsigned int number_of_extruders = (unsigned int) (print_config->filament_colour.values.size() + EPSILON);
@@ -1016,15 +1011,11 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps()
         return false;
     };
 
-
-
     std::vector<unsigned int>used_filaments;
-    std::vector<std::vector<unsigned int>>layer_filaments;
-    for (auto& lt : m_layer_tools) {
-        layer_filaments.emplace_back(lt.extruders);
-        for (auto& extruder : lt.extruders) {
-            if (std::find(used_filaments.begin(), used_filaments.end(), extruder) == used_filaments.end())
-                used_filaments.emplace_back(extruder);
+    for (auto& one_layer_filaments : layer_filaments) {
+        for (unsigned int filament : one_layer_filaments) {
+            if (std::find(used_filaments.begin(), used_filaments.end(), filament) == used_filaments.end())
+            used_filaments.emplace_back(filament);
         }
     }
     std::sort(used_filaments.begin(), used_filaments.end());
@@ -1044,146 +1035,6 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps()
             ret[used_filaments[idx]] = 1;
     }
     return ret;
-}
-
-// for print by object
-std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>> all_layer_filaments, const PrintConfig *print_config)
-{
-    //if (!print_config && m_print_object_ptr) { print_config = &(m_print_object_ptr->print()->config()); }
-
-    if (!print_config || all_layer_filaments.empty())
-        return std::vector<int>();
-
-    const unsigned int number_of_extruders = (unsigned int) (print_config->filament_colour.values.size() + EPSILON);
-
-    // get flush matrix
-    std::vector<FlushMatrix> nozzle_flush_mtx;
-    size_t                   nozzle_nums = print_config->nozzle_diameter.values.size();
-    for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-        std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(print_config->flush_volumes_matrix.values, nozzle_id, nozzle_nums)));
-        std::vector<std::vector<float>> wipe_volumes;
-        for (unsigned int i = 0; i < number_of_extruders; ++i)
-            wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
-
-        nozzle_flush_mtx.emplace_back(wipe_volumes);
-    }
-
-    auto extruders_to_hash_key = [](const std::vector<unsigned int> &extruders, std::optional<unsigned int> initial_extruder_id) -> uint32_t {
-        uint32_t hash_key = 0;
-        // high 16 bit define initial extruder ,low 16 bit define extruder set
-        if (initial_extruder_id) hash_key |= (1 << (16 + *initial_extruder_id));
-        for (auto item : extruders) hash_key |= (1 << item);
-        return hash_key;
-    };
-
-    std::vector<LayerPrintSequence> other_layers_seqs;
-    const ConfigOptionInts *        other_layers_print_sequence_op      = print_config->option<ConfigOptionInts>("other_layers_print_sequence");
-    const ConfigOptionInt *         other_layers_print_sequence_nums_op = print_config->option<ConfigOptionInt>("other_layers_print_sequence_nums");
-    if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
-        const std::vector<int> &print_sequence = other_layers_print_sequence_op->values;
-        int                     sequence_nums  = other_layers_print_sequence_nums_op->value;
-        other_layers_seqs                      = get_other_layers_print_sequence(sequence_nums, print_sequence);
-    }
-
-    // other_layers_seq: the layer_idx and extruder_idx are base on 1
-    auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int> &out_seq) -> bool {
-        for (size_t idx = other_layers_seqs.size() - 1; idx != size_t(-1); --idx) {
-            const auto &other_layers_seq = other_layers_seqs[idx];
-            if (layer_idx + 1 >= other_layers_seq.first.first && layer_idx + 1 <= other_layers_seq.first.second) {
-                out_seq = other_layers_seq.second;
-                return true;
-            }
-        }
-        return false;
-    };
-
-    std::set<unsigned int> filaments;
-    for (int i = 0; i < all_layer_filaments.size(); ++i) {
-        for (unsigned int filament : all_layer_filaments[i])
-            filaments.insert(filament);
-    }
-
-    auto extruder_group = generate_combinations(std::vector<unsigned int>(filaments.begin(), filaments.end()));
-
-    std::vector<int> recommended_filament_maps;
-    float            min_flush_volume = std::numeric_limits<float>::max();
-    for (auto iter = extruder_group.begin(); iter != extruder_group.end(); ++iter) {
-        std::vector<int> filament_maps;
-        filament_maps.resize(number_of_extruders);
-        for (unsigned int e : iter->first) {
-            filament_maps[e] = 0;
-        }
-        for (unsigned int e : iter->second) {
-            filament_maps[e] = 1;
-        }
-
-        std::optional<unsigned int>              current_extruder_id;
-        std::vector<std::optional<unsigned int>> nozzle_to_cur_filaments;
-        nozzle_to_cur_filaments.resize(nozzle_nums);
-
-        float flush_volume_cost = 0;
-        for (int i = 0; i < all_layer_filaments.size(); ++i) {
-            std::vector<unsigned int> layer_filaments = all_layer_filaments[i];
-            if (layer_filaments.empty())
-                continue;
-
-            std::vector<int> custom_extruder_seq;
-            if (get_custom_seq(i, custom_extruder_seq) && !custom_extruder_seq.empty()) {
-                std::vector<unsigned int> unsign_custom_extruder_seq;
-                for (int extruder : custom_extruder_seq) {
-                    unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
-                    auto         it              = std::find(layer_filaments.begin(), layer_filaments.end(), unsign_extruder);
-                    if (it != layer_filaments.end()) {
-                        unsign_custom_extruder_seq.emplace_back(unsign_extruder);
-                        nozzle_to_cur_filaments[filament_maps[unsign_extruder]] = unsign_extruder;
-                    }
-                }
-
-                layer_filaments     = unsign_custom_extruder_seq;
-                current_extruder_id = layer_filaments.back();
-                flush_volume_cost += get_flush_volume(filament_maps, layer_filaments, nozzle_flush_mtx, nozzle_nums);
-                continue;
-            }
-
-            // The algorithm complexity is O(n2*2^n)
-            if (i != 0) {
-                std::vector<std::vector<unsigned int>> nozzle_filaments;
-                nozzle_filaments.resize(nozzle_nums);
-
-                for (unsigned int filament_id : layer_filaments)
-                {
-                    nozzle_filaments[filament_maps[filament_id]].emplace_back(filament_id);
-                }
-
-                for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                    float f_cost                = 0;
-                    nozzle_filaments[nozzle_id] = get_extruders_order(nozzle_flush_mtx[nozzle_id], nozzle_filaments[nozzle_id], nozzle_to_cur_filaments[nozzle_id], &f_cost);
-                    std::vector<uint8_t> hash_val;
-                    hash_val.reserve(nozzle_filaments[nozzle_id].size());
-                    for (auto item : nozzle_filaments[nozzle_id]) hash_val.emplace_back(static_cast<uint8_t>(item));
-                    flush_volume_cost += f_cost;
-                    nozzle_to_cur_filaments[nozzle_id] = nozzle_filaments[nozzle_id].back();
-                }
-
-                //layer_filaments.clear();
-                //for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                //    layer_filaments.insert(layer_filaments.end(), nozzle_filaments[nozzle_id].begin(), nozzle_filaments[nozzle_id].end());
-                //}
-            }
-            current_extruder_id = layer_filaments.back();
-        }
-
-        if (flush_volume_cost == 0) {
-            recommended_filament_maps = filament_maps;
-            break;
-        }
-
-        if (flush_volume_cost < min_flush_volume) {
-            min_flush_volume          = flush_volume_cost;
-            recommended_filament_maps = filament_maps;
-        }
-    }
-    return recommended_filament_maps;
 }
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
@@ -1214,12 +1065,23 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         }
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
-    
+
     std::vector<int>filament_maps(number_of_extruders, 0);
     if (nozzle_nums > 1) {
         filament_maps = m_print->get_filament_maps();
-        if (print_config->print_sequence != PrintSequence::ByObject) {
-            filament_maps = get_recommended_filament_maps();
+        if (print_config->print_sequence != PrintSequence::ByObject && m_print->objects().size() == 1) {
+            const PrintConfig *print_config = m_print_config_ptr;
+            if (!print_config && m_print_object_ptr) {
+                print_config = &(m_print_object_ptr->print()->config());
+            }
+
+            std::vector<std::vector<unsigned int>> layer_filaments;
+            for (auto& lt : m_layer_tools) {
+               layer_filaments.emplace_back(lt.extruders);
+            }
+
+            filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config);
+
             if (filament_maps.empty())
                 return;
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });

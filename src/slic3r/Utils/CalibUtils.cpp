@@ -1229,6 +1229,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->task_ams_mapping_info = "";
     print_job->task_use_ams = select_ams == "[254]" ? false : true;
 
+    std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
+    print_job->task_ams_mapping2 = new_ams_mapping;
+
     CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
