@@ -1069,7 +1069,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     std::vector<int>filament_maps(number_of_extruders, 0);
     if (nozzle_nums > 1) {
         filament_maps = m_print->get_filament_maps();
-        if (print_config->print_sequence != PrintSequence::ByObject && m_print->objects().size() == 1) {
+        if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
             const PrintConfig *print_config = m_print_config_ptr;
             if (!print_config && m_print_object_ptr) {
                 print_config = &(m_print_object_ptr->print()->config());
