@@ -120,8 +120,10 @@ public:
     bool        is_instance_coordinates() const { return m_coordinates_type == ECoordinatesType::Instance; }
     bool        is_local_coordinates() const { return m_coordinates_type == ECoordinatesType::Local; }
 
+    const Cache& get_cache() {return m_cache; }
     void reset_cache() { m_cache.reset(); }
 
+    void limit_scaling_ratio(Vec3d &scaling_factor) const;
     void on_change(const std::string& opt_key, int axis, double new_value);
     bool render_combo(ImGuiWrapper *imgui_wrapper, const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width);
     void do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);

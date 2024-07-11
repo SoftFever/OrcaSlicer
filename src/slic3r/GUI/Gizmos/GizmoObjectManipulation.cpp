@@ -400,18 +400,23 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
         transformation_type.set_relative();
 
     Vec3d scaling_factor = m_uniform_scale ? scale(axis) * Vec3d::Ones() : scale;
-    for (size_t i = 0; i < scaling_factor.size(); i++) {//range protect //scaling_factor too big has problem
-        if (scaling_factor[i] * m_unscale_size[i] > MAX_NUM) {
-            scaling_factor[i] = MAX_NUM/ m_unscale_size[i];
-        }
-    }
+    limit_scaling_ratio(scaling_factor);
+
     selection.setup_cache();
     selection.scale(scaling_factor, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }
 
 
-void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, double new_value)
+void GizmoObjectManipulation::limit_scaling_ratio(Vec3d &scaling_factor) const{
+    for (size_t i = 0; i < scaling_factor.size(); i++) { // range protect //scaling_factor too big has problem
+        if (scaling_factor[i] * m_unscale_size[i] > MAX_NUM) {
+            scaling_factor[i] = MAX_NUM / m_unscale_size[i];
+        }
+    }
+}
+
+void GizmoObjectManipulation::on_change(const std::string &opt_key, int axis, double new_value)
 {
     if (!m_cache.is_valid())
         return;

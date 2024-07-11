@@ -61,7 +61,7 @@ public:
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
 
-    const Vec3d& get_scale() const { return m_scale; }
+    const Vec3d &get_scale();
     void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
 
     const Vec3d& get_offset() const { return m_offset; }
