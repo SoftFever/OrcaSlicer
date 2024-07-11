@@ -3115,8 +3115,8 @@ double Model::getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
     }
     return thermalLength;
 }
-// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered
-double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
+// max printing speed, difference in bed temperature and envirument temperature and bed adhesion coefficients are considered
+double ModelInstance::get_auto_brim_width(double deltaT, double adhesion) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
     double maxSpeed = Model::findMaxSpeed(object);
@@ -3127,7 +3127,7 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     double thermalLength = sqrt(bbox_size(0)* bbox_size(0) + bbox_size(1)* bbox_size(1));
     double thermalLengthRef = Model::getThermalLength(object->volumes);
 
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
+    double brim_width = adhesion * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;

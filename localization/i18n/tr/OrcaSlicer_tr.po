@@ -596,7 +596,7 @@ msgstr "Wireframe göster"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "İşlem önizlemesi sırasında uygulanamaz."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -665,7 +665,7 @@ msgstr "Yüzey"
 msgid "Horizontal text"
 msgstr "Yatay metin"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
 
 msgid "Rotate text"
@@ -1010,7 +1010,7 @@ msgstr "Metni kameraya doğru yönlendirin."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Tam olarak aynı yazı tipi yüklenemiyor(\"%1%\"). Uygulama benzer bir "
@@ -1644,7 +1644,7 @@ msgstr "Ekstrüzyon Genişliği"
 msgid "Wipe options"
 msgstr "Temizleme seçenekleri"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Etek"
 
 msgid "Add part"
@@ -1929,12 +1929,6 @@ msgstr "Otomatik yönlendirme"
 msgid "Auto orient the object to improve print quality."
 msgstr "Baskı kalitesini artırmak için nesneyi otomatik olarak yönlendirin."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Seçilen nesneyi birden fazla nesneye bölme"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Seçilen nesneyi birden fazla parçaya böl"
-
 msgid "Select All"
 msgstr "Hepsini seç"
 
@@ -2193,8 +2187,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Aşağıdaki model nesnesi onarıldı"
 msgstr[1] "Aşağıdaki model objeler onarıldı"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Aşağıdaki model nesnesi onarılamadı"
 msgstr[1] "Aşağıdaki model nesneleri onarılamadı"
 
@@ -2650,7 +2644,7 @@ msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Bilinmeyen Hata."
 
 msgid "Sending print configuration"
@@ -3637,7 +3631,7 @@ msgstr ""
 "Değer 0'a sıfırlanacaktır."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6147,7 +6141,7 @@ msgstr ""
 "%s dosyası zaten mevcut\n"
 "değiştirmek istiyor musun?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Farklı Kaydetmeyi Onayla"
 
 msgid "Delete object which is a part of cut object"
@@ -6371,7 +6365,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca olumlu kısımlar "
 "tutulacaktır. Kafesleri düzeltip tekrar deneyebilirsiniz."
@@ -15440,7 +15434,7 @@ msgstr "Ön Ayarı İçe Aktar"
 msgid "Create Type"
 msgstr "Tür Oluştur"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Model bulunamadı, lütfen satıcıyı seçin."
 
 msgid "Select Model"
@@ -15489,10 +15483,10 @@ msgstr "Ön ayar yolu bulunamıyor, lütfen satıcıyı yeniden seçin."
 msgid "The printer model was not found, please reselect."
 msgstr "Yazıcı modeli bulunamadı, lütfen yeniden seçin."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Nozul çapı bulunamadı, lütfen yeniden seçin."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Yazıcı ön ayarı bulunamadı, lütfen yeniden seçin."
 
 msgid "Printer Preset"

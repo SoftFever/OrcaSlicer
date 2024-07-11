@@ -596,7 +596,7 @@ msgstr "와이어프레임 보기"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "미리 보기 진행 시 적용할 수 없습니다."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -665,7 +665,7 @@ msgstr "표면"
 msgid "Horizontal text"
 msgstr "가로 텍스트"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 마우스 위 or 아래"
 
 msgid "Rotate text"
@@ -1004,7 +1004,7 @@ msgstr "텍스트 방향을 카메라 쪽으로 향하게 합니다."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "정확히 동일한 글꼴(\"%1%\")을 로드할 수 없습니다. 응용 프로그램이 유사한 항목"
@@ -1632,7 +1632,7 @@ msgstr "압출 너비"
 msgid "Wipe options"
 msgstr "닦기 옵션"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "베드 안착"
 
 msgid "Add part"
@@ -1917,12 +1917,6 @@ msgstr "자동 방향 지정"
 msgid "Auto orient the object to improve print quality."
 msgstr "개체의 방향을 자동으로 지정하여 출력 품질을 향상시킵니다."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "선택한 개체를 여러 개체로 분할"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "선택한 개체를 여러 부품으로 분할"
-
 msgid "Select All"
 msgstr "모두 선택"
 
@@ -2176,8 +2170,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "다음 모델 개체가 수리되었습니다"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "다음 모델 개체 교정을 실패하였습니다"
 
 msgid "Repairing was canceled"
@@ -2621,7 +2615,7 @@ msgstr "출력 작업 전송 시간이 초과되었습니다."
 msgid "Service Unavailable"
 msgstr "서비스 사용 불가"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "알 수 없는 오류."
 
 msgid "Sending print configuration"
@@ -3580,7 +3574,7 @@ msgstr ""
 "값이 0으로 재설정됩니다."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6041,7 +6035,7 @@ msgstr ""
 "파일 %s이(가) 이미 존재합니다.\n"
 "파일을 바꾸시겠습니까?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "다른 이름으로 저장 확인"
 
 msgid "Delete object which is a part of cut object"
@@ -6263,7 +6257,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "모델 메쉬에 대해 부울 연산을 수행할 수 없습니다. 긍정적인 부분만 유지됩니다. "
 "메쉬를 수정하고 재시도해 볼 수 있습니다."
@@ -10989,7 +10983,7 @@ msgstr "초기 레이어 높이"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "초기 레이어의 높이입니다. 초기 레이어 높이를 약간 두껍게 하면 빌드 플레이트 "
 "접착력을 향상시킬 수 있습니다"
@@ -15007,7 +15001,7 @@ msgstr "사전 설정 가져오기"
 msgid "Create Type"
 msgstr "유형 생성"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "모델을 찾을 수 없습니다. 공급업체를 다시 선택하세요."
 
 msgid "Select Model"
@@ -15056,10 +15050,10 @@ msgstr "사전 설정 경로를 찾을 수 없습니다. 공급업체를 다시 
 msgid "The printer model was not found, please reselect."
 msgstr "프린터 모델을 찾을 수 없습니다. 다시 선택하세요."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "노즐 직경이 마음에 들지 않으면 다시 선택하세요."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "프린터 사전 설정이 마음에 들지 않습니다. 다시 선택하세요."
 
 msgid "Printer Preset"
