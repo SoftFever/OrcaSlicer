@@ -586,7 +586,7 @@ msgstr "Visa trådram"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kan inte tillämpas när processen förhandsgranskas."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -653,7 +653,7 @@ msgstr "Yta"
 msgid "Horizontal text"
 msgstr "Vågrät text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mus flytta uppåt eller nedåt"
 
 msgid "Rotate text"
@@ -986,7 +986,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1599,7 +1599,7 @@ msgstr "Extruderings Bredd"
 msgid "Wipe options"
 msgstr "Avstryknings val"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Byggplattans vidhäftningsförmåga"
 
 msgid "Add part"
@@ -1879,12 +1879,6 @@ msgstr "Auto placera"
 msgid "Auto orient the object to improve print quality."
 msgstr "Auto placera objektet för att förbättra utskriftskvaliteten."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Dela det valda objektet till multipla objekt"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dela det valda objektet till multipla delar"
-
 msgid "Select All"
 msgstr "Välj Alla"
 
@@ -2148,8 +2142,8 @@ msgstr[0] ""
 msgstr[1] ""
 "Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 "Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
 "modellobjekten misslyckades"
@@ -2606,7 +2600,7 @@ msgstr "Timeout för sändning av utskriftsuppgift."
 msgid "Service Unavailable"
 msgstr "Tjänsten är inte tillgänglig"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Okänt fel"
 
 msgid "Sending print configuration"
@@ -3583,7 +3577,7 @@ msgstr ""
 "Värdet kommer att återställas till 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6047,7 +6041,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Bekräfta Spara som"
 
 msgid "Delete object which is a part of cut object"
@@ -6267,10 +6261,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -10792,7 +10786,7 @@ msgstr "Första lagerhöjd"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
 "byggplattan"
@@ -14560,7 +14554,7 @@ msgstr "Importera inställning"
 msgid "Create Type"
 msgstr "Skapa typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14609,10 +14603,10 @@ msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 msgid "The printer model was not found, please reselect."
 msgstr "Printer modellen hittades inte, välj igen."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"

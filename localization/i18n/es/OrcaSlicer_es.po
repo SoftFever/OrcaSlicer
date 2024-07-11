@@ -598,7 +598,7 @@ msgstr "Mostrar estructura de alambre"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "No se puede aplicar cuando la vista previa del proceso."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -667,7 +667,7 @@ msgstr "Superficie"
 msgid "Horizontal text"
 msgstr "Texto horizontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mover ratón arriba u abajo"
 
 msgid "Rotate text"
@@ -1016,7 +1016,7 @@ msgstr "Orienta el texto hacia la cámara."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "No se puede cargar exactamente la misma fuente(\"%1%\"). La aplicación "
@@ -1676,7 +1676,7 @@ msgstr "Ancho de Extrusión"
 msgid "Wipe options"
 msgstr "Opciones de limpieza"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Adhesión a la cama"
 
 msgid "Add part"
@@ -1962,12 +1962,6 @@ msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Orienta automáticamente el objeto para mejorar la calidad de la impresión."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Dividir el objeto seleccionado en múltiples objetos"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dividir el objeto seleccionado en múltiples piezas"
-
 msgid "Select All"
 msgstr "Seleccionar Todo"
 
@@ -2238,8 +2232,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Se ha reparado el siguiente modelo de objeto"
 msgstr[1] "Se han reparado los siguientes objetos del modelo"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "No se ha podido reparar el siguiente objeto modelo"
 msgstr[1] "No se han podido reparar los siguientes objetos del modelo"
 
@@ -2703,7 +2697,7 @@ msgstr "Tarea de envío de impresión fallida."
 msgid "Service Unavailable"
 msgstr "Servicio No Disponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Error Desconocido."
 
 msgid "Sending print configuration"
@@ -3709,7 +3703,7 @@ msgstr ""
 "El valor se restablecerá a 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6249,7 +6243,7 @@ msgstr ""
 "El archivo %s ya existe\n"
 "¿Desea reemplazarlo?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Salvar Como"
 
 msgid "Delete object which is a part of cut object"
@@ -6474,7 +6468,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "No se pueden realizar operaciones booleanas en las mallas del modelo. Sólo "
 "se conservarán las partes positivas. Puede arreglar las mallas e intentarlo "
@@ -11481,7 +11475,7 @@ msgstr "Altura de la primera capa"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Altura de la primera capa. Hacer que la altura de la primera capa sea "
 "ligeramente gruesa puede mejorar la adherencia de la bandeja de impresión"
@@ -15748,7 +15742,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crear Tipo"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "No se encuentra el modelo, vuelva a seleccionar fabricante."
 
 msgid "Select Model"
@@ -15800,11 +15794,11 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "No se ha encontrado el modelo de impresora, vuelva a seleccionarlo."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr ""
 "El diámetro de la boquilla no es adecuado, vuelva a seleccionar el lugar."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 "El perfil de impresora se ha encontrado, por favor, vuelva a seleccionarlo."
 
