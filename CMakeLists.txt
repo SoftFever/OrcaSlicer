@@ -258,6 +258,11 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # Ignore signed/unsigned comparison warnings
     add_compile_options(-Wno-sign-compare)
 
+    # The mismatch of tabs and spaces throughout the project can sometimes
+    # cause this warning to appear even though the indentation is fine.
+    # Some includes also cause the warning
+    add_compile_options(-Wno-misleading-indentation)
+
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
