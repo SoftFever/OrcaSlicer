@@ -1385,8 +1385,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
         /* update bed shape */
         Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (printer_tab) {
-            printer_tab->on_preset_loaded();
             printer_tab->update();
+            printer_tab->on_preset_loaded();
         }
 
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
