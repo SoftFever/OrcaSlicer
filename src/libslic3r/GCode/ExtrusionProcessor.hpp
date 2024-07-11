@@ -38,7 +38,8 @@ template<bool SCALED_INPUT, bool ADD_INTERSECTIONS, bool PREV_LAYER_BOUNDARY_OFF
 std::vector<ExtendedPoint> estimate_points_properties(const POINTS                           &input_points,
                                                       const AABBTreeLines::LinesDistancer<L> &unscaled_prev_layer,
                                                       float                                   flow_width,
-                                                      float                                   max_line_length = -1.0f)
+                                                      float                                   max_line_length = -1.0f,
+                                                      float                                   min_distance = -1.0f)
 {
     bool   looped     = input_points.front() == input_points.back();
     std::function<size_t(size_t,size_t)> get_prev_index = [](size_t idx, size_t count) {
@@ -118,7 +119,14 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
             if ((curr.distance > -boundary_offset && curr.distance < boundary_offset + 2.0f) ||
                 (next.distance > -boundary_offset && next.distance < boundary_offset + 2.0f)) {
                 double line_len = (next.position - curr.position).norm();
-                if (line_len > 2.0f) {
+                //IG Debug: printf("Line. Length: %f, curr dist %f, next dist %f\n",line_len,curr.distance,next.distance);
+                
+                // ORCA: Segment path to smaller lines by adding additional points only if the path has an overhang that
+                // will trigger a slowdown and the path is also reasonably large, i.e. 2mm in length or more
+                // If there is no overhang in the start/end point, dont segment it.
+                // Ignore this check if the control of segmentation for overhangs is disabled (min_distance=-1)
+                if ((min_distance > 0 && ((std::abs(curr.distance) > min_distance) || (std::abs(next.distance) > min_distance)) && line_len >= 2.f) ||
+                    (min_distance <= 0 && line_len > 4.0f)) {
                     double a0 = std::clamp((curr.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double a1 = std::clamp(1.0f - (next.distance + 3 * boundary_offset) / line_len, 0.0, 1.0);
                     double t0 = std::min(a0, a1);
@@ -131,7 +139,13 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                         ExtendedPoint new_p{};
                         new_p.position = p0;
                         new_p.distance = float(p0_dist + boundary_offset);
-                        new_points.push_back(new_p);
+                        if( (std::abs(p0_dist) > min_distance) || (min_distance<=0)){
+                            // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
+                            // or if this option is disabled (min_distance<=0)
+                            new_points.push_back(new_p);
+                            //IG Debug: double LEN_IG = (new_p.position - curr.position).norm();
+                            //IG Debug: printf("New segment length 1: %f Distance %f\n",LEN_IG,new_p.distance);
+                        }
                     }
                     if (t1 > 0.0) {
                         auto p1     = curr.position + t1 * (next.position - curr.position);
@@ -140,7 +154,13 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                         ExtendedPoint new_p{};
                         new_p.position = p1;
                         new_p.distance = float(p1_dist + boundary_offset);
-                        new_points.push_back(new_p);
+                        if( (std::abs(p1_dist) > min_distance) || (min_distance<=0)){ 
+                            // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
+                            // or if this option is disabled (min_distance<=0)
+                            new_points.push_back(new_p);
+                            //IG Debug: double LEN_IG = (new_p.position - curr.position).norm();
+                            //IG Debug: printf("New segment length 2: %f Distance %f\n",LEN_IG, new_p.distance);
+                        }
                     }
                 }
             }
@@ -300,9 +320,37 @@ public:
                 last_section = section;
             }
         }
+        
+        // Orca: Find the smallest overhang distance where speed adjustments begin
+        float smallest_distance_with_lower_speed = std::numeric_limits<float>::infinity(); // Initialize to a large value
+        bool found = false;
+        for (const auto& section : speed_sections) {
+            if (section.second <= original_speed) {
+                if (section.first < smallest_distance_with_lower_speed) {
+                    smallest_distance_with_lower_speed = section.first;
+                    found = true;
+                }
+            }
+        }
 
-        std::vector<ExtendedPoint> extended_points =
-            estimate_points_properties<true, true, true, true>(path.polyline.points, prev_layer_boundaries[current_object], path.width);
+        // If overhang distance was found, then we shouldn't split the lines
+        if (!found)// IG Debug: {
+            smallest_distance_with_lower_speed=-1.f;
+            // No distance found where speed < original_speed
+            // Handle as needed, e.g., log a message, set a default value, etc.
+            // IG Debug:printf("No speed section found with speed less than original_speed.\n");
+            
+            // IG Debug:}  else {
+        // IG Debug:  printf("Smallest distance with speed less than original_speed: %f\n", smallest_distance_with_lower_speed);
+        // IG Debug:}
+
+        // Orca: Pass to the point properties estimator the smallest ovehang distance that triggers a slowdown (smallest_distance_with_lower_speed)
+        std::vector<ExtendedPoint> extended_points = estimate_points_properties<true, true, true, true>
+                                                                (path.polyline.points,
+                                                                 prev_layer_boundaries[current_object],
+                                                                 path.width,
+                                                                 -1,
+                                                                 smallest_distance_with_lower_speed);
         const auto width_inv = 1.0f / path.width;
         std::vector<ProcessedPoint> processed_points;
         processed_points.reserve(extended_points.size());
@@ -323,7 +371,7 @@ public:
                     	//  The whole segment gets slower unnecesarily. For these long lines, we do additional check whether it is worth slowing down.
                     	// NOTE that this is still quite rough approximation, e.g. we are still checking lines only near the middle point
                     	// TODO maybe split the lines into smaller segments before running this alg? but can be demanding, and GCode will be huge
-                    	if (len > 4) {
+                    	if (len > 2) {
                         	Vec2d dir   = Vec2d(next.position - curr.position) / len;
                         	Vec2d right = Vec2d(-dir.y(), dir.x());
 
@@ -371,15 +419,17 @@ public:
                     while (distance > speed_sections[section_idx + 1].first) {
                         section_idx++;
                     }
+                    // IG Debug:  printf("Speed section index: %d, width:%f, original speed: %f, new speed:%f, distance:%f\n",section_idx, speed_sections[section_idx].first, original_speed,speed_sections[section_idx].second,distance );
                     float t = (distance - speed_sections[section_idx].first) /
                               (speed_sections[section_idx + 1].first - speed_sections[section_idx].first);
                     t           = std::clamp(t, 0.0f, 1.0f);
                     final_speed = (1.0f - t) * speed_sections[section_idx].second + t * speed_sections[section_idx + 1].second;
                 }
-                return final_speed;
+                return round(final_speed);
             };
             
             float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            // IG Debug: printf("ext_perimeter_speed %f, original_speed %f  \n", ext_perimeter_speed, original_speed );
             if(slowdown_for_curled_edges) {
                 float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
             	extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed
