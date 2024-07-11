@@ -1345,7 +1345,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
         return poly;
     };
 
-    feedrate = first_layer ? m_first_layer_speed * 60.f : m_perimeter_speed * 60.f;
+    feedrate = first_layer ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_perimeter_speed * 60.f);
 
     // outer contour (always)
     bool infill_cone = first_layer && m_wipe_tower_width > 2*spacing && m_wipe_tower_depth > 2*spacing;

@@ -600,7 +600,7 @@ msgstr "Zobrazit drátěný model"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Nelze použít při náhledu procesu."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -669,7 +669,7 @@ msgstr "Povrch"
 msgid "Horizontal text"
 msgstr "Vodorovný text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + pohyb myši nahoru nebo dolů"
 
 msgid "Rotate text"
@@ -1008,7 +1008,7 @@ msgstr "Orientovat text směrem ke kameře."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Nelze načíst přesně stejné písmo(\"%1%\"). Aplikace vybrala podobné "
@@ -1641,7 +1641,7 @@ msgstr "Šířka Extruze"
 msgid "Wipe options"
 msgstr "Možnosti čištění"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Přilnavost k Podložce"
 
 msgid "Add part"
@@ -1920,12 +1920,6 @@ msgstr "Automatická orientace"
 msgid "Auto orient the object to improve print quality."
 msgstr "Automaticky orientovat objekt pro zlepšení kvality tisku."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Rozdělit vybraný objekt na více objektů"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Rozdělit vybraný objekt na více částí"
-
 msgid "Select All"
 msgstr "Vybrat vše"
 
@@ -2192,8 +2186,8 @@ msgstr[0] "Následující objekt modelu byl opraven"
 msgstr[1] "Následující objekty modelu byly opraveny"
 msgstr[2] "Následující objekty modelu byly opraveny"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Nepodařilo se opravit následující objekt modelu"
 msgstr[1] "Nepodařilo se opravit následující objekty modelu"
 msgstr[2] "Nepodařilo se opravit následující objekty modelu"
@@ -2644,7 +2638,7 @@ msgstr ""
 msgid "Service Unavailable"
 msgstr "Služba není k dispozici"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Neznámá chyba."
 
 msgid "Sending print configuration"
@@ -3613,7 +3607,7 @@ msgstr ""
 "Hodnota bude resetována na 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -6082,7 +6076,7 @@ msgid ""
 "Do you want to replace it?"
 msgstr ""
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr ""
 
 msgid "Delete object which is a part of cut object"
@@ -6303,7 +6297,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 
 #, boost-format
@@ -10907,7 +10901,7 @@ msgstr "Výška první vrstvy"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Výška první vrstvy. Mírně tlustá první vrstva může zlepšit přilnavost k "
 "podložce"
@@ -14831,7 +14825,7 @@ msgstr ""
 msgid "Create Type"
 msgstr ""
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr ""
 
 msgid "Select Model"
@@ -14880,10 +14874,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr ""
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr ""
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 
 msgid "Printer Preset"
