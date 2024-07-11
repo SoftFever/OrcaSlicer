@@ -1,0 +1,30 @@
+{
+  "type": "filament",
+  "fan_cooling_layer_time": ["60"],
+  "fan_max_speed": ["60"],
+  "fan_min_speed": ["20"],
+  "filament_cost": ["6"],
+  "filament_diameter": ["1.12838"],
+  "filament_max_volumetric_speed": ["250"],
+  "filament_settings_id": ["PLA"],
+  "filament_vendor": ["Generic"],
+  "from": "system",
+  "inherits": "fdm_filament_pla",
+  "is_custom_defined": "0",
+  "name": "Ginger Generic PLA",
+  "nozzle_temperature": ["210"],
+  "nozzle_temperature_initial_layer": ["210"],
+  "nozzle_temperature_range_high": ["220"],
+  "pellet_flow_coefficient": ["1"],
+  "required_nozzle_HRC": ["0"],
+  "slow_down_layer_time": ["20"],
+  "slow_down_min_speed": ["3"],
+  "version": "0.1.0.0",
+  "compatible_printers": [
+    "ginger G1 1.2 nozzle",
+    "ginger G1 3.0 nozzle",
+    "ginger G1 5.0 nozzle",
+    "ginger G1 8.0 nozzle"
+  ],
+  "instantiation": "true"
+}
