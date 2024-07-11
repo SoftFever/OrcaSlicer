@@ -107,6 +107,9 @@ var LangText = {
     t113: "You may change your choice in preference anytime.",
     orca1: "Edit Project Info",
     orca2: "no model information",
+    orca3: "Stealth Mode",
+    orca4: "This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function.",
+    orca5: "Enable Stealth Mode.",
   },
     ca_ES: {
     t1: "Benvingut a Orca Slicer",
