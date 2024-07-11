@@ -330,7 +330,7 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
 
         // fill holes
         typedef boost::graph_traits<_EpicMesh>::halfedge_descriptor      halfedge_descriptor;
-        typedef boost::graph_traits<_EpicMesh>::vertex_descriptor        vertex_descriptor;
+//        typedef boost::graph_traits<_EpicMesh>::vertex_descriptor        vertex_descriptor;
         std::vector<halfedge_descriptor> border_cycles;
         CGAL::Polygon_mesh_processing::extract_boundary_cycles(out, std::back_inserter(border_cycles));
         for (halfedge_descriptor h : border_cycles)
