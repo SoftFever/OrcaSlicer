@@ -2527,7 +2527,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {
