@@ -129,13 +129,13 @@ then
         # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
         cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
-        cmake --build deps/build/release
+        cmake --build deps/build/release -j 1
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
     cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
-    cmake --build deps/build
+    cmake --build deps/build -j 1
 fi
 
 
