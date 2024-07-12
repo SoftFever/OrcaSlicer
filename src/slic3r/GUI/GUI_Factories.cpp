@@ -263,7 +263,7 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     { L("Extruders")            , "blank_14"    },
     { L("Extrusion Width")      , "blank_14"    },
     { L("Wipe options")         , "blank_14"    },
-    { L("Bed adhension")        , "blank_14"    },
+    { L("Bed adhesion")         , "blank_14"    },
 //  { L("Speed > Acceleration") , "time"        },
     { L("Advanced")             , "blank_14"    },
     // BBS: remove SLA categories
@@ -1441,10 +1441,10 @@ void MenuFactory::create_bbl_part_menu()
     if (!split_menu)
         return;
 
-    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into mutiple objects"),
+    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
         [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", menu,
         []() { return plater()->can_split(true); }, m_parent);
-    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into mutiple parts"),
+    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
         [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", menu,
         []() { return plater()->can_split(false); }, m_parent);
 
