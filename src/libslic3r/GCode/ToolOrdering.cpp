@@ -157,10 +157,12 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
     }
 
     for (size_t idx = 0; idx < groups.size();++idx) {
+        // case with one group
+        if (groups[idx].empty())
+            continue;
         std::optional<unsigned int>current_extruder_id;
         int layer = 0;
         for (const auto& lf : layer_filaments) {
-
             std::vector<int>custom_filament_seq;
             if (get_custom_seq && (*get_custom_seq)(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
                 std::vector<unsigned int> unsign_custom_extruder_seq;
@@ -199,18 +201,23 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
         }
     }
 
+    // if only have one group,we need to check whether layer sequence[idx] is valid
     if (filament_sequences) {
         filament_sequences->clear();
         filament_sequences->resize(layer_filaments.size());
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
             auto& curr_layer_seq = (*filament_sequences)[layer];
             if (layer & 1) {
-                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
-                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
+                if (!layer_sequences[1].empty())
+                    curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
+                if (!layer_sequences[0].empty())
+                    curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
             }
             else {
-                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
-                curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
+                if (!layer_sequences[0].empty())
+                    curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
+                if (!layer_sequences[1].empty())
+                    curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
             }
         }
     }
@@ -1020,20 +1027,25 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     }
     std::sort(used_filaments.begin(), used_filaments.end());
 
-    FilamentGroup fg(
-        nozzle_flush_mtx,
-        used_filaments.size(),
-        { 16,16 }
-    );
-    fg.get_custom_seq = get_custom_seq;
-    fg.calc_filament_group(layer_filaments);
+    std::vector<int>ret(number_of_extruders,0);
+    // if mutli_extruder, calc group,otherwise set to 0
+    if (nozzle_nums == 2)
+    {
+        FilamentGroup fg(
+            nozzle_flush_mtx,
+            used_filaments.size(),
+            { 16,16 }
+        );
+        fg.get_custom_seq = get_custom_seq;
+        fg.calc_filament_group(layer_filaments);
 
-    std::vector<int>ret(number_of_extruders);
-    auto filament_map = fg.get_filament_map();
-    for (size_t idx = 0; idx < filament_map.size(); ++idx) {
-        if (filament_map[idx])
-            ret[used_filaments[idx]] = 1;
+        auto filament_map = fg.get_filament_map();
+        for (size_t idx = 0; idx < filament_map.size(); ++idx) {
+            if (filament_map[idx])
+                ret[used_filaments[idx]] = 1;
+        }
     }
+
     return ret;
 }
 
