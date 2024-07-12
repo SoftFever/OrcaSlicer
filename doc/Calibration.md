@@ -45,6 +45,9 @@ Steps
 Orca Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
 
 > [!WARNING]
+> For Marlin: Linear advance must be enabled in firmware (M900). **Not all printers have it enabled by default.**
+
+> [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.
 > 
 > ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
