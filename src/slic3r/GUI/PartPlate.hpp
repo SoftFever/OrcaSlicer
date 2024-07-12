@@ -487,6 +487,7 @@ public:
     std::vector<int> get_filament_maps();
     void set_filament_maps(const std::vector<int>& f_maps);
 
+    void on_extruder_count_changed(int extruder_count);
     void set_filament_count(int filament_count);
     void on_filament_added();
     void on_filament_deleted(int filament_count, int filament_id);
@@ -871,6 +872,8 @@ public:
     void show_cali_texture(bool show = true);
     void init_cali_texture_info();
     void load_cali_textures();
+
+    void on_extruder_count_changed(int extruder_count);
 
     void set_filament_count(int filament_count);
     void on_filament_deleted(int filament_count, int filament_id);

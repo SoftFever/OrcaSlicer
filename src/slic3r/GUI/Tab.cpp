@@ -4273,6 +4273,8 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
         m_preset_bundle->update_multi_material_filament_presets();
         is_count_changed = true;
+
+        wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
     }
     // Orca: support multi tool
     else if (m_extruders_count == 1 &&
