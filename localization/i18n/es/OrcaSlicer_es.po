@@ -12810,7 +12810,7 @@ msgid "Speed of retractions"
 msgstr "Velocidad de las retracciones"
 
 msgid "Deretraction Speed"
-msgstr "Velocidad de deretracción"
+msgstr "Velocidad de desretracción"
 
 msgid ""
 "Speed for reloading filament into extruder. Zero means same speed with "
@@ -13345,10 +13345,10 @@ msgstr ""
 "cama de impresión, establecer este valor a -0,3 compensará este desfase."
 
 msgid "Enable support"
-msgstr "Habilitar el soporte"
+msgstr "Habilitar los soportes"
 
 msgid "Enable support generation."
-msgstr "Habilitar la generación de soporte."
+msgstr "Habilitar la generación de soportes."
 
 msgid ""
 "normal(auto) and tree(auto) is used to generate support automatically. If "
