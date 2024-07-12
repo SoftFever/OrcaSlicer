@@ -1106,6 +1106,10 @@ void GUI_App::shutdown()
 
 std::string GUI_App::get_http_url(std::string country_code, std::string path)
 {
+    if (app_config->get_stealth_mode()) {
+        return "";
+    }
+
     std::string url;
     if (country_code == "US") {
         url = "https://api.bambulab.com/";
@@ -1196,6 +1200,12 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         j["result"] = "failed";
         j["error_msg"] = "app_config is nullptr";
         return -1;
+    }
+
+    if (app_config->get_stealth_mode()) {
+        j["result"] = "failed";
+        j["error_msg"] = "stealth_mode is enabled";
+        return -2;
     }
 
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
@@ -4403,6 +4413,7 @@ void GUI_App::on_check_privacy_update(wxCommandEvent& evt)
 
 void GUI_App::check_privacy_version(int online_login)
 {
+    return; // orca: not used
     update_http_extra_header();
     std::string query_params = "?policy/privacy=00.00.00.00";
     std::string url = get_http_url(app_config->get_country_code()) + query_params;
