@@ -18,6 +18,7 @@ orcaslicer_add_cmake_project(Boost
         -DBOOST_EXCLUDE_LIBRARIES:STRING=contract|fiber|numpy|stacktrace|wave|test
         -DBOOST_LOCALE_ENABLE_ICU:BOOL=OFF # do not link to libicu, breaks compatibility between distros
         -DBUILD_TESTING:BOOL=OFF
+        -DBOOST_ENABLE_MPI=ON
         "${_context_abi_line}"
         "${_context_arch_line}"
 )
