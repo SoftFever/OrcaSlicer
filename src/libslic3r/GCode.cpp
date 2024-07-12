@@ -258,7 +258,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         unsigned int extruder_id = gcodegen.writer().extruder()->id();
         const auto& filament_idle_temp = gcodegen.config().idle_temperature;
-        if (filament_idle_temp.get_at(extruder_id) > 0) {
+        if (filament_idle_temp.get_at(extruder_id) == 0) {
             // There is no idle temperature defined in filament settings.
             // Use the delta value from print config.
             if (gcodegen.config().standby_temperature_delta.value != 0) {

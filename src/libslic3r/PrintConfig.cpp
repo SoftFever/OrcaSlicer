@@ -4073,7 +4073,7 @@ void PrintConfigDef::init_fff_params()
     // TRN PrintSettings : "Ooze prevention" > "Temperature variation"
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
-                     "is defined.");
+                     "is set to non zero value.");
     def->sidetext = "∆°C";
     def->min = -max_temp;
     def->max = max_temp;

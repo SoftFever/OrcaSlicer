@@ -1162,10 +1162,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
         if (! m_config.use_relative_e_distances)
             return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
-        if (m_config.ooze_prevention)
-            return { L("Ooze prevention is currently not supported with the prime tower enabled.") };
 
-        // BBS: remove following logic and _L()
+        if (m_config.ooze_prevention && m_config.single_extruder_multi_material)
+            return {L("Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off.")};
+            
 #if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
