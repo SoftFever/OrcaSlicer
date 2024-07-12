@@ -20,6 +20,9 @@
         "0x0"
     ],
     "gcode_flavor": "marlin",
+    "grab_length" : [
+        "0"
+    ],
     "silent_mode": "0",
     "long_retractions_when_cut": [
         "0"

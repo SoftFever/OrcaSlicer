@@ -6480,6 +6480,8 @@ std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool b
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_filament_id) : m_config.nozzle_temperature.get_at(previous_filament_id);
+        //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
+        float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * 2.4;
         if (previous_extruder_id != extruder_id) {
             //calc flush volume between the same extruder id
             int previous_filament_id_in_new_extruder = m_writer.filament(extruder_id) != nullptr ? m_writer.filament(extruder_id)->id() : -1;
@@ -6494,6 +6496,7 @@ std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool b
             wipe_volume = flush_matrix[previous_filament_id * number_of_extruders + filament_id];
             wipe_volume *= m_config.flush_multiplier.get_at(extruder_id);  // if is multi_extruder only use the fist extruder matrix
         }
+        wipe_volume = std::max(0.f, wipe_volume-grab_purge_volume);
 
         old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(previous_filament_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
