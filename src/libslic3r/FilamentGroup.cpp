@@ -3,7 +3,7 @@
 
 namespace Slic3r
 {
-    int FilamentGroup::calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments)
+    int FilamentGroup::calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments,const FGStrategy& g_strategy)
     {
         std::set<unsigned int>used_filaments;
         for (const auto& lf : layer_filaments)
@@ -17,15 +17,15 @@ namespace Slic3r
         if (m_filament_num <= 1)
             return 0;
         if (m_filament_num < 10)
-            return calc_filament_group_by_enum(layer_filaments);
+            return calc_filament_group_by_enum(layer_filaments,g_strategy);
         else
-            return calc_filament_group_by_pam(layer_filaments,300);
+            return calc_filament_group_by_pam(layer_filaments,g_strategy,300);
 
     }
 
-    int FilamentGroup::calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments)
+    int FilamentGroup::calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments,const FGStrategy& g_strategy)
     {
-        auto bit_count_one = [](int n)
+        auto bit_count_one = [](uint64_t n)
         {
             int count = 0;
             while (n != 0)
@@ -36,14 +36,26 @@ namespace Slic3r
             return count;
         };
 
+        bool have_enough_size = (m_filament_num <= (m_max_group_size[0] + m_max_group_size[1]));
+
         uint64_t max_group_num = static_cast<uint64_t>(1 << m_filament_num);
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_label;
 
         for (uint64_t i = 0; i < max_group_num; ++i) {
             int num_to_group_1 = bit_count_one(i);
-            if (num_to_group_1 > m_max_group_size[1] || (m_filament_num - num_to_group_1) > m_max_group_size[0])
+            int num_to_group_0 = m_filament_num - num_to_group_1;
+            bool should_accept = false;
+            if (have_enough_size)
+                should_accept = (num_to_group_0 <= m_max_group_size[0] && num_to_group_1 <= m_max_group_size[1]);
+            else if (g_strategy == FGStrategy::BestCost)
+                should_accept = true;
+            else if (g_strategy == FGStrategy::BestFit)
+                should_accept = (num_to_group_0 >= m_max_group_size[0] && num_to_group_1 >= m_max_group_size[1]);
+
+            if (!should_accept)
                 continue;
+
             std::set<int>group_0, group_1;
             for (int j = 0; j < m_filament_num; ++j) {
                 if (i & static_cast<uint64_t>(1 << j))
@@ -52,29 +64,26 @@ namespace Slic3r
                     group_0.insert(m_used_filaments[j]);
             }
 
-            if (group_0.size() < m_max_group_size[0] && group_1.size() < m_max_group_size[1]){
+            std::vector<int>filament_maps(m_filament_num);
+            for (int i = 0; i < m_filament_num; ++i) {
+                if (group_0.find(m_used_filaments[i]) != group_0.end())
+                    filament_maps[i] = 0;
+                if (group_1.find(m_used_filaments[i]) != group_1.end())
+                    filament_maps[i] = 1;
+            }
 
-                std::vector<int>filament_maps(m_filament_num);
-                for (int i = 0; i < m_filament_num; ++i) {
-                    if (group_0.find(m_used_filaments[i]) != group_0.end())
-                        filament_maps[i] = 0;
-                    if (group_1.find(m_used_filaments[i]) != group_1.end())
-                        filament_maps[i] = 1;
-                }
+            int total_cost = reorder_filaments_for_minimum_flush_volume(
+                m_used_filaments,
+                filament_maps,
+                layer_filaments,
+                m_flush_matrix,
+                get_custom_seq,
+                nullptr
+            );
 
-                int total_cost = reorder_filaments_for_minimum_flush_volume(
-                    m_used_filaments,
-                    filament_maps,
-                    layer_filaments,
-                    m_flush_matrix,
-                    get_custom_seq,
-                    nullptr
-                );
-
-                if (total_cost < best_cost) {
-                    best_cost = total_cost;
-                    best_label = filament_maps;
-                }
+            if (total_cost < best_cost) {
+                best_cost = total_cost;
+                best_label = filament_maps;
             }
         }
 
@@ -83,7 +92,7 @@ namespace Slic3r
         return best_cost;
     }
 
-    int FilamentGroup::calc_filament_group_by_pam(const std::vector<std::vector<unsigned int>>& layer_filaments, int timeout_ms)
+    int FilamentGroup::calc_filament_group_by_pam(const std::vector<std::vector<unsigned int>>& layer_filaments,const FGStrategy& g_strategy, int timeout_ms)
     {
         //calc pair counts
         std::vector<std::vector<int>>count_matrix(m_filament_num,std::vector<int>(m_filament_num));
@@ -116,7 +125,7 @@ namespace Slic3r
         }
 
         KMediods PAM(distance_matrix, m_filament_num,m_max_group_size);
-        PAM.fit(timeout_ms);
+        PAM.fit(g_strategy,timeout_ms);
         this->m_filament_labels = PAM.get_filament_labels();
 
         int cost = reorder_filaments_for_minimum_flush_volume(
@@ -132,7 +141,7 @@ namespace Slic3r
     }
 
 
-    void KMediods::fit( int timeout_ms)
+    void KMediods::fit(const FGStrategy&g_strategy , int timeout_ms)
     {
         std::vector<int>best_medoids;
         std::vector<int>best_labels;
@@ -151,7 +160,7 @@ namespace Slic3r
             else
                 medoids = initialize(INIT_TYPE::Random);
 
-            labels = assign_label(medoids);
+            labels = assign_label(medoids,g_strategy);
             int cost = calc_cost(labels, medoids);
 
             for (int i = 0; i < m_filament_num; ++i) {
@@ -161,7 +170,7 @@ namespace Slic3r
                 for (int j = 0; j < 2; ++j) {
                     std::vector<int> new_medoids = medoids;
                     new_medoids[j] = i;
-                    std::vector<int> new_labels = assign_label(new_medoids);
+                    std::vector<int> new_labels = assign_label(new_medoids,g_strategy);
                     int new_cost = calc_cost(new_labels, new_medoids);
 
                     if (new_cost < cost)
@@ -182,14 +191,14 @@ namespace Slic3r
             }
             count += 1;
 
-            if (T.time_machine_end() > timeout_ms)
+            if (T.time_machine_end() > timeout_ms || m_medoids_set.size() == (m_filament_num * (m_filament_num - 1) / 2))
                 break;
         }
 
         this->m_filament_labels = best_labels;
     }
 
-    std::vector<int> KMediods::assign_label(const std::vector<int>& medoids) const
+    std::vector<int> KMediods::assign_label(const std::vector<int>& medoids,const FGStrategy&g_strategy) const
     {
         std::vector<int>labels(m_filament_num);
         struct Comp {
@@ -205,15 +214,34 @@ namespace Slic3r
             min_heap.push({ i,distancec_to_0 - distancec_to_1 });
         }
         std::set<int> group_0, group_1;
-        while (!min_heap.empty()) {
-            auto top = min_heap.top();
-            min_heap.pop();
-            if (group_0.size() < m_max_group_size[0] && (top.second <= 0 || group_1.size() >= m_max_group_size[1]))
-                group_0.insert(top.first);
-            else
-                group_1.insert(top.first);
-
+        bool have_enough_size = (m_filament_num <= (m_max_group_size[0] + m_max_group_size[1]));
+        if (have_enough_size || g_strategy == FGStrategy::BestFit) {
+            while (!min_heap.empty()) {
+                auto top = min_heap.top();
+                min_heap.pop();
+                if (group_0.size() < m_max_group_size[0] && (top.second <= 0 || group_1.size() >= m_max_group_size[1]))
+                    group_0.insert(top.first);
+                else if (group_1.size() < m_max_group_size[1] && (top.second > 0 || group_0.size() >= m_max_group_size[0]))
+                    group_1.insert(top.first);
+                else {
+                    if (top.second <= 0)
+                        group_0.insert(top.first);
+                    else
+                        group_1.insert(top.first);
+                }
+            }
         }
+        else if (g_strategy == FGStrategy::BestCost) {
+            while (!min_heap.empty()) {
+                auto top = min_heap.top();
+                min_heap.pop();
+                if (top.second <= 0)
+                    group_0.insert(top.first);
+                else
+                    group_1.insert(top.first);
+            }
+        }
+
         for (auto& item : group_0)
             labels[item] = 0;
         for (auto& item : group_1)

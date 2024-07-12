@@ -26,9 +26,15 @@ namespace Slic3r
         }
     };
 
+    enum FGStrategy {
+        BestCost,
+        BestFit
+    };
 
     class FilamentGroup
     {
+    public:
+
     public:
         FilamentGroup(const std::vector<FlushMatrix>& flush_matrix, const int filament_num, const std::vector<int>& max_group_size) :
             m_flush_matrix{ flush_matrix },
@@ -36,9 +42,9 @@ namespace Slic3r
             m_max_group_size{ max_group_size }
         {}
 
-        int calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments);
-        int calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments);
-        int calc_filament_group_by_pam(const std::vector<std::vector<unsigned int>>& layer_filaments, int timeout_ms = 300);
+        int calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments, const FGStrategy& g_strategy = FGStrategy::BestFit);
+        int calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments,const FGStrategy& g_strategy);
+        int calc_filament_group_by_pam(const std::vector<std::vector<unsigned int>>& layer_filaments,const FGStrategy& g_strategy,int timeout_ms = 300);
 
         std::vector<int> get_filament_map() const {return m_filament_labels;}
 
@@ -68,14 +74,14 @@ namespace Slic3r
             m_filament_num{ filament_num },
             m_max_group_size{ max_group_size } {}
 
-        void fit(int timeout_ms = 300);
+        void fit(const FGStrategy& g_strategy,int timeout_ms = 300);
         std::vector<int>get_filament_labels()const {
             return m_filament_labels;
         }
 
     private:
         std::vector<int>initialize(INIT_TYPE type)const;
-        std::vector<int>assign_label(const std::vector<int>& medoids)const;
+        std::vector<int>assign_label(const std::vector<int>& medoids,const FGStrategy&g_strategy)const;
         int calc_cost(const std::vector<int>& labels, const std::vector<int>& medoids)const;
     private:
         std::vector<std::vector<float>>m_distance_matrix;

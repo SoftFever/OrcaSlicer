@@ -1037,7 +1037,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             { 16,16 }
         );
         fg.get_custom_seq = get_custom_seq;
-        fg.calc_filament_group(layer_filaments);
+        fg.calc_filament_group(layer_filaments,FGStrategy::BestFit);
 
         auto filament_map = fg.get_filament_map();
         for (size_t idx = 0; idx < filament_map.size(); ++idx) {
