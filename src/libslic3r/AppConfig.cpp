@@ -262,6 +262,10 @@ void AppConfig::set_defaults()
         set_bool("show_splash_screen", true);
     }
 
+    if(get("auto_arrange").empty()) {
+        set_bool("auto_arrange", true);
+    }
+
     if (get("show_model_mesh").empty()) {
         set_bool("show_model_mesh", false);
     }
