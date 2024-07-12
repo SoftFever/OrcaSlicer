@@ -149,7 +149,7 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
     // Orca
-    void show_add_del_filament_button(bool bshow);
+    void show_SEMM_buttons(bool bshow);
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();

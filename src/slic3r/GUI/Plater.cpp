@@ -1280,7 +1280,7 @@ void Sidebar::update_all_preset_comboboxes()
         p->m_filament_icon->SetBitmap_("filament");
     }
 
-    show_add_del_filament_button(cfg.opt_bool("single_extruder_multi_material"));
+    show_SEMM_buttons(cfg.opt_bool("single_extruder_multi_material"));
 
     //p->m_staticText_filament_settings->Update();
 
@@ -1845,12 +1845,14 @@ void Sidebar::sync_ams_list()
     Layout();
 }
 
-void Sidebar::show_add_del_filament_button(bool bshow)
+void Sidebar::show_SEMM_buttons(bool bshow)
 {
     if(p->m_bpButton_add_filament)
         p->m_bpButton_add_filament->Show(bshow);
     if(p->m_bpButton_del_filament)
         p->m_bpButton_del_filament->Show(bshow);
+    if (p->m_flushing_volume_btn)
+        p->m_flushing_volume_btn->Show(bshow);
     Layout();
 }
 
