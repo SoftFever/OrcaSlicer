@@ -94,6 +94,7 @@ struct PlateData
     bool            toolpath_outside {false};
     bool            is_label_object_enabled {false};
     int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
+    std::vector<int>          filament_maps;
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
 

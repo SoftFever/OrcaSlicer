@@ -208,7 +208,6 @@ private:
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
-    //std::vector<int>    get_recommended_filament_maps();
     void                reorder_extruders_for_minimum_flush_volume();
 
     // BBS
