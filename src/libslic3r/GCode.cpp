@@ -1105,14 +1105,14 @@ void GCode::PlaceholderParserIntegration::init(const GCodeWriter &writer)
     const std::vector<Extruder> &extruders = writer.extruders();
     if (! extruders.empty()) {
         this->num_extruders = extruders.back().id() + 1;
-        this->e_retracted.assign(num_extruders, 0);
-        this->e_restart_extra.assign(num_extruders, 0);
+        this->e_retracted.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
+        this->e_restart_extra.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
         this->opt_e_retracted = new ConfigOptionFloats(e_retracted);
         this->opt_e_restart_extra = new ConfigOptionFloats(e_restart_extra);
         this->output_config.set_key_value("e_retracted", this->opt_e_retracted);
         this->output_config.set_key_value("e_restart_extra", this->opt_e_restart_extra);
         if (! writer.config.use_relative_e_distances) {
-            e_position.assign(num_extruders, 0);
+            e_position.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
             opt_e_position = new ConfigOptionFloats(e_position);
             this->output_config.set_key_value("e_position", opt_e_position);
         }
@@ -1144,8 +1144,8 @@ void GCode::PlaceholderParserIntegration::update_from_gcodewriter(const GCodeWri
     if (this->num_extruders > 0) {
         const std::vector<Extruder> &extruders = writer.extruders();
         assert(! extruders.empty() && num_extruders == extruders.back().id() + 1);
-        this->e_retracted.assign(num_extruders, 0);
-        this->e_restart_extra.assign(num_extruders, 0);
+        this->e_retracted.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
+        this->e_restart_extra.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
         this->opt_extruded_volume->values.assign(num_extruders, 0);
         this->opt_extruded_weight->values.assign(num_extruders, 0);
         double total_volume = 0.;
@@ -1165,7 +1165,7 @@ void GCode::PlaceholderParserIntegration::update_from_gcodewriter(const GCodeWri
         opt_e_retracted->values = this->e_retracted;
         opt_e_restart_extra->values = this->e_restart_extra;
         if (! writer.config.use_relative_e_distances) {
-            this->e_position.assign(num_extruders, 0);
+            this->e_position.assign(MAXIMUM_EXTRUDER_NUMBER, 0);
             for (const Extruder &e : extruders)
                 this->e_position[e.id()] = e.position();
             this->opt_e_position->values = this->e_position;
@@ -1179,11 +1179,11 @@ void GCode::PlaceholderParserIntegration::validate_output_vector_variables()
     if (this->opt_position->values.size() != 3)
         throw Slic3r::RuntimeError("\"position\" output variable must not be resized by the script.");
     if (this->num_extruders > 0) {
-        if (this->opt_e_position && this->opt_e_position->values.size() != this->num_extruders)
+        if (this->opt_e_position && this->opt_e_position->values.size() != MAXIMUM_EXTRUDER_NUMBER)
             throw Slic3r::RuntimeError("\"e_position\" output variable must not be resized by the script.");
-        if (this->opt_e_retracted->values.size() != this->num_extruders)
+        if (this->opt_e_retracted->values.size() != MAXIMUM_EXTRUDER_NUMBER)
             throw Slic3r::RuntimeError("\"e_retracted\" output variable must not be resized by the script.");
-        if (this->opt_e_restart_extra->values.size() != this->num_extruders)
+        if (this->opt_e_restart_extra->values.size() != MAXIMUM_EXTRUDER_NUMBER)
             throw Slic3r::RuntimeError("\"e_restart_extra\" output variable must not be resized by the script.");
     }
 }

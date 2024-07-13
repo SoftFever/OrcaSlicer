@@ -4100,7 +4100,7 @@ if (is_marlin_flavor)
         def.label   = L("Extruders");
         def.tooltip = L("Number of extruders of the printer.");
         def.min     = 1;
-        def.max     = 256;
+        def.max     = MAXIMUM_EXTRUDER_NUMBER;
         def.mode    = comAdvanced;
         Option option(def, "extruders_count");
         optgroup->append_single_option_line(option);

@@ -942,8 +942,8 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // Orca: limit filament choices to 64
-        if (p->combos_filament.size() >= 64)
+        // Orca: limit filament choices to MAXIMUM_EXTRUDER_NUMBER
+        if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
@@ -1642,8 +1642,7 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 }
 
 void Sidebar::add_filament() {
-    // BBS: limit filament choices to 16
-    if (p->combos_filament.size() >= 16) return;
+    if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
 }
@@ -1667,7 +1666,7 @@ void Sidebar::delete_filament() {
 }
 
 void Sidebar::add_custom_filament(wxColour new_col) {
-    if (p->combos_filament.size() >= 16) return;
+    if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER) return;
 
     int         filament_count = p->combos_filament.size() + 1;
     std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
@@ -3763,7 +3762,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
 
                         int filament_size = sidebar->combos_filament().size();
-                        while (filament_size < 16 && filament_size < size) {
+                        while (filament_size < MAXIMUM_EXTRUDER_NUMBER && filament_size < size) {
                             int         filament_count = filament_size + 1;
                             wxColour    new_col        = Plater::get_next_color_for_filament();
                             std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();

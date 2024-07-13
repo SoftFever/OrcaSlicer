@@ -7310,9 +7310,9 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     //    def->label = L("Initial filament type");
     //    def->tooltip = L("String containing filament type of the first used extruder.");
 
-    //    def = this->add("has_single_extruder_multi_material_priming", coBool);
-    //    def->label = L("Has single extruder MM priming");
-    //    def->tooltip = L("Are the extra multi-material priming regions used in this print?");
+    def          = this->add("has_single_extruder_multi_material_priming", coBool);
+    def->label   = L("Has single extruder MM priming");
+    def->tooltip = L("Are the extra multi-material priming regions used in this print?");
 
     new_def("initial_no_support_extruder", coInt, "Initial no support extruder", "Zero-based index of the first extruder used for printing without support. Same as initial_no_support_tool.");
     new_def("in_head_wrap_detect_zone", coBool, "In head wrap detect zone", "Indicates if the first layer overlaps with the head wrap zone.");
