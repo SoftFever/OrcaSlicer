@@ -128,14 +128,14 @@ then
     then
         # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
-        cmake --build deps/build/release
+        /usr/bin/cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
+        /usr/bin/cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
-    cmake --build deps/build
+    echo "/usr/bin/cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
+    /usr/bin/cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
+    /usr/bin/cmake --build deps/build
 fi
 
 
@@ -157,17 +157,17 @@ then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
+    echo -e "/usr/bin/cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
+    /usr/bin/cmake -S . -B build -G Ninja \
         -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" \
         -DSLIC3R_STATIC=1 \
         -DORCA_TOOLS=ON \
         ${BUILD_ARGS}
     echo "done"
     echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
+    /usr/bin/cmake --build build --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    /usr/bin/cmake --build build --target OrcaSlicer_profile_validator
     ./run_gettext.sh
     echo "done"
 fi
