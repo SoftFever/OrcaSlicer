@@ -77,7 +77,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     sizer_download_failed->Add(m_statictext_download_failed, 0, wxALIGN_CENTER | wxALL, 5);
 
     auto m_download_hyperlink = new wxHyperlinkCtrl(m_panel_download_failed, wxID_ANY, _L("click here to see more info"), download_failed_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    sizer_download_failed->Add(m_download_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    sizer_download_failed->Add(m_download_hyperlink, 0, wxALIGN_CENTER | wxALL, 0);
 
 
     m_panel_download_failed->SetSizer(sizer_download_failed);
