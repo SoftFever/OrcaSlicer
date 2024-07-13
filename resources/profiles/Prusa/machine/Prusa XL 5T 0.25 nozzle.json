@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "setting_id": "GM003",
+    "setting_id": "GM_PRUSA_007",
     "name": "Prusa XL 5T 0.25 nozzle",
     "from": "system",
     "instantiation": "true",

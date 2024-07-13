@@ -43,6 +43,7 @@
     "filament_cost": [
         "20"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "220"
     ],

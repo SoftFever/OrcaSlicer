@@ -37,6 +37,7 @@
     "hot_plate_temp_initial_layer" : [
         "60"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "220"
     ],

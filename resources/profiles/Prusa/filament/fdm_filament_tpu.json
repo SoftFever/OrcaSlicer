@@ -40,6 +40,7 @@
     "filament_retraction_length": [
         "0.4"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "240"
     ],
