@@ -2039,10 +2039,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("elefant_foot_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation_layers");
         optgroup->append_single_option_line("precise_outer_wall", "Precise-wall");
+        optgroup->append_single_option_line("precise_z_height", "precise-z-height");
         optgroup->append_single_option_line("hole_to_polyhole");
         optgroup->append_single_option_line("hole_to_polyhole_threshold");
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
-        optgroup->append_single_option_line("precise_z_height");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "parameter/ironing");
@@ -3223,7 +3223,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("pellet_flow_coefficient");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3654,7 +3654,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("pellet_modded_printer");
         optgroup->append_single_option_line("support_multi_bed_types","bed-types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
@@ -3676,6 +3675,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
@@ -4363,7 +4363,7 @@ void TabPrinter::toggle_options()
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer"})
           toggle_line(el, !is_BBL_printer);
     }
 

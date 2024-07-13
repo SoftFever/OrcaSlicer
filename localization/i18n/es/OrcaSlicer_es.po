@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -598,7 +598,7 @@ msgstr "Mostrar estructura de alambre"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "No se puede aplicar cuando la vista previa del proceso."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -667,7 +667,7 @@ msgstr "Superficie"
 msgid "Horizontal text"
 msgstr "Texto horizontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mover ratón arriba u abajo"
 
 msgid "Rotate text"
@@ -1016,7 +1016,7 @@ msgstr "Orienta el texto hacia la cámara."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "No se puede cargar exactamente la misma fuente(\"%1%\"). La aplicación "
@@ -1676,7 +1676,7 @@ msgstr "Ancho de Extrusión"
 msgid "Wipe options"
 msgstr "Opciones de limpieza"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Adhesión a la cama"
 
 msgid "Add part"
@@ -1962,12 +1962,6 @@ msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Orienta automáticamente el objeto para mejorar la calidad de la impresión."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Dividir el objeto seleccionado en múltiples objetos"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dividir el objeto seleccionado en múltiples piezas"
-
 msgid "Select All"
 msgstr "Seleccionar Todo"
 
@@ -2238,8 +2232,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Se ha reparado el siguiente modelo de objeto"
 msgstr[1] "Se han reparado los siguientes objetos del modelo"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "No se ha podido reparar el siguiente objeto modelo"
 msgstr[1] "No se han podido reparar los siguientes objetos del modelo"
 
@@ -2703,7 +2697,7 @@ msgstr "Tarea de envío de impresión fallida."
 msgid "Service Unavailable"
 msgstr "Servicio No Disponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Error Desconocido."
 
 msgid "Sending print configuration"
@@ -3709,7 +3703,7 @@ msgstr ""
 "El valor se restablecerá a 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5920,6 +5914,9 @@ msgstr "Comparar justes"
 msgid "View all object's settings"
 msgstr "Ver todos los ajustes del objeto"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr "Quitar bandeja actual (si no es la última)"
 
@@ -5995,6 +5992,9 @@ msgstr "Elegir filamentos para usar"
 
 msgid "Search plate, object and part."
 msgstr "Buscar placa, objeto y parte."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6243,7 +6243,7 @@ msgstr ""
 "El archivo %s ya existe\n"
 "¿Desea reemplazarlo?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Salvar Como"
 
 msgid "Delete object which is a part of cut object"
@@ -6468,7 +6468,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "No se pueden realizar operaciones booleanas en las mallas del modelo. Sólo "
 "se conservarán las partes positivas. Puede arreglar las mallas e intentarlo "
@@ -6625,6 +6625,21 @@ msgstr "Explorar"
 
 msgid "Choose Download Directory"
 msgstr "Elegir Directorio de Descarga"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Configuración General"
@@ -6843,42 +6858,6 @@ msgstr "Asociar enlaces web a OrcaSlicer"
 
 msgid "Associate URLs to OrcaSlicer"
 msgstr "Asociar URLs a OrcaSlicer"
-
-msgid "Current association: "
-msgstr "Asociación actual:"
-
-msgid "Associate prusaslicer://"
-msgstr "Asociar prusaslicer://"
-
-msgid "Not associated to any application"
-msgstr "No asociado a ninguna aplicación"
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-"Asociar OrcaSlicer con prusaslicer:// enlaces para que Orca puede abrir "
-"modelos de Printables.com"
-
-msgid "Associate bambustudio://"
-msgstr "Asociar bambustudio://"
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-"Asociar OrcaSlicer con bambustudio:// enlaces para que Orca puede abrir "
-"modelos de makerworld.com"
-
-msgid "Associate cura://"
-msgstr "Asociar cura://"
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
-msgstr ""
-"Asociar OrcaSlicer con enlaces cura:// para que Orca pueda abrir modelos "
-"desde thingiverse.com"
 
 msgid "Maximum recent projects"
 msgstr "Proyectos recientes máximos"
@@ -7399,8 +7378,8 @@ msgid ""
 "start printing."
 msgstr ""
 "Hay algunos filamentos desconocidos en los mapeados AMS. Por favor, "
-"compruebe si son los filamentos requeridos. Si lo son, presione "
-"\"Confirmar\" para empezar a imprimir."
+"compruebe si son los filamentos requeridos. Si lo son, presione \"Confirmar"
+"\" para empezar a imprimir."
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
@@ -7765,8 +7744,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Cuando grabamos timelapse sin cabezal de impresión, es recomendable añadir "
 "un \"Torre de Purga de Intervalo\" \n"
@@ -11023,6 +11002,19 @@ msgstr ""
 "El diámetro del filamento se utiliza para calcular la extrusión en el G-"
 "Code, por lo que es importante y debe ser preciso"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Contracción"
 
@@ -11483,7 +11475,7 @@ msgstr "Altura de la primera capa"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Altura de la primera capa. Hacer que la altura de la primera capa sea "
 "ligeramente gruesa puede mejorar la adherencia de la bandeja de impresión"
@@ -11527,10 +11519,10 @@ msgstr "Velocidad máxima del ventilador en la capa"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La velocidad de ventilador se incrementará linealmente de cero a "
 "\"close_fan_the_first_x_layers\" al máximo de capa \"full_fan_speed_layer\". "
@@ -11818,6 +11810,12 @@ msgstr "Con qué tipo de G-Code es compatible la impresora"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr "Admite varios tipos de cama"
 
@@ -11941,6 +11939,51 @@ msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Profundidad de entrelazado de una región segmentada. Zero desactiva esta "
 "característica."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Tipo de alisado"
@@ -12670,6 +12713,14 @@ msgstr "Pendiente"
 
 msgid "Spiral"
 msgstr "Espiral"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Solo elevar Z por encima"
@@ -14901,12 +14952,12 @@ msgstr ""
 "wiki.\n"
 "\n"
 "Normalmente la calibración es innecesaria. Cuando se inicia una impresión de "
-"un solo color/material, con la opción \"calibración de la dinámica de "
-"flujo\" marcada en el menú de inicio de impresión, la impresora seguirá el "
-"camino antiguo, calibrar el filamento antes de la impresión; cuando se "
-"inicia una impresión de varios colores/materiales, la impresora utilizará el "
-"parámetro de compensación por defecto para el filamento durante cada cambio "
-"de filamento que tendrá un buen resultado en la mayoría de los casos.\n"
+"un solo color/material, con la opción \"calibración de la dinámica de flujo"
+"\" marcada en el menú de inicio de impresión, la impresora seguirá el camino "
+"antiguo, calibrar el filamento antes de la impresión; cuando se inicia una "
+"impresión de varios colores/materiales, la impresora utilizará el parámetro "
+"de compensación por defecto para el filamento durante cada cambio de "
+"filamento que tendrá un buen resultado en la mayoría de los casos.\n"
 "\n"
 "Tenga en cuenta que hay algunos casos que pueden hacer que los resultados de "
 "la calibración no sean fiables, como una adhesión insuficiente en la placa "
@@ -15662,8 +15713,8 @@ msgstr ""
 "¿Quieres reescribirlo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Cambiaríamos el nombre de los preajustes a \"Número de serie del Vendedor "
@@ -15691,7 +15742,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crear Tipo"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "No se encuentra el modelo, vuelva a seleccionar fabricante."
 
 msgid "Select Model"
@@ -15743,11 +15794,11 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "No se ha encontrado el modelo de impresora, vuelva a seleccionarlo."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr ""
 "El diámetro de la boquilla no es adecuado, vuelva a seleccionar el lugar."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 "El perfil de impresora se ha encontrado, por favor, vuelva a seleccionarlo."
 
@@ -17006,6 +17057,42 @@ msgstr ""
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de deformaciones."
 
+#~ msgid "Current association: "
+#~ msgstr "Asociación actual:"
+
+#~ msgid "Associate prusaslicer://"
+#~ msgstr "Asociar prusaslicer://"
+
+#~ msgid "Not associated to any application"
+#~ msgstr "No asociado a ninguna aplicación"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "models from Printable.com"
+#~ msgstr ""
+#~ "Asociar OrcaSlicer con prusaslicer:// enlaces para que Orca puede abrir "
+#~ "modelos de Printables.com"
+
+#~ msgid "Associate bambustudio://"
+#~ msgstr "Asociar bambustudio://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with bambustudio:// links so that Orca can open "
+#~ "models from makerworld.com"
+#~ msgstr ""
+#~ "Asociar OrcaSlicer con bambustudio:// enlaces para que Orca puede abrir "
+#~ "modelos de makerworld.com"
+
+#~ msgid "Associate cura://"
+#~ msgstr "Asociar cura://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with cura:// links so that Orca can open models from "
+#~ "thingiverse.com"
+#~ msgstr ""
+#~ "Asociar OrcaSlicer con enlaces cura:// para que Orca pueda abrir modelos "
+#~ "desde thingiverse.com"
+
 #~ msgid ""
 #~ "File size exceeds the 100MB upload limit. Please upload your file through "
 #~ "the panel."
@@ -17451,8 +17538,8 @@ msgstr ""
 #~ msgstr "Capas de baja densidad (EXPERIMENTAL)"
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "Cambiaremos el nombre de los perfiles a \"Tipo Número de Serie @impresora "
