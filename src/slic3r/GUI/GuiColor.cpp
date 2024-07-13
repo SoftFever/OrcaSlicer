@@ -29,4 +29,14 @@ float calc_color_distance(wxColour c1, wxColour c2)
 
     return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
 }
+
+float calc_color_distance(RGBA c1, RGBA c2)
+{
+    float lab[2][3];
+    RGB2Lab(c1[0], c1[1], c1[2], &lab[0][0], &lab[0][1], &lab[0][2]);
+    RGB2Lab(c2[0], c2[1], c2[2], &lab[1][0], &lab[1][1], &lab[1][2]);
+
+    return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
+}
+
 } }
