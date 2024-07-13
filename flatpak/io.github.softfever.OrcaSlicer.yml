@@ -228,12 +228,6 @@ modules:
         dest: external-packages/GMP
         sha256: eae9326beb4158c386e39a356818031bd28f3124cf915f8c5b1dc4c7a36b4d7c
 
-      # OpenMPI
-      - type: file
-        url: https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.3.tar.bz2
-        dest: external-packages/OpenMPI
-        sha256: 990582f206b3ab32e938aa31bbf07c639368e4405dca196fabe7f0f76eeda90b
-
       # MPFR
       - type: file
         url: https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.bz2

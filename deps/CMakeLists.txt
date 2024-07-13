@@ -274,7 +274,6 @@ endif ()
 set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
 
 # The order of includes respects the dependencies between libraries
-include(OpenMPI/openmpi.cmake)
 include(Boost/Boost.cmake)
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
@@ -344,7 +343,6 @@ include(OCCT/OCCT.cmake)
 include(OpenCV/OpenCV.cmake)
 
 set(_dep_list
-    dep_OpenMPI
     dep_Boost
     dep_TBB
     ${OPENSSL_PKG}
