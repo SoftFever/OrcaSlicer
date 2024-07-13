@@ -13,7 +13,7 @@ endif ()
 orcaslicer_add_cmake_project(Boost
     URL "https://github.com/boostorg/boost/releases/download/boost-1.84.0/boost-1.84.0.tar.gz"
     URL_HASH SHA256=4d27e9efed0f6f152dc28db6430b9d3dfb40c0345da7342eaa5a987dde57bd95
-    PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/boost_odeint_disable.patch
+    PATCH_COMMAND git apply --directory ${BINARY_DIR_REL}/dep_Boost-prefix/src/dep_Boost --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/boost_odeint_disable.patch
     LIST_SEPARATOR |
     CMAKE_ARGS
         -DBOOST_EXCLUDE_LIBRARIES:STRING=contract|fiber|numpy|stacktrace|wave|test
