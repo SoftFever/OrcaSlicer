@@ -2881,7 +2881,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "Factores de Calibración de Dinámicas de Caudal"
 
 msgid "PA Profile"
-msgstr "Perfil de Avance de Presión Líneal"
+msgstr "Perfil de Avance de Presión Lineal"
 
 msgid "Factor K"
 msgstr "Factor K"
