@@ -305,7 +305,7 @@ private:
     void            _do_export(Print &print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb);
 
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
-    static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
+    static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print, bool first_only = false);
 
     LayerResult process_layer(
         const Print                     &print,

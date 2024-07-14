@@ -1300,7 +1300,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 // Prepare for non-sequential printing of multiple objects: Support resp. object layers with nearly identical print_z
 // will be printed for  all objects at once.
 // Return a list of <print_z, per object LayerToPrint> items.
-std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print& print)
+std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collect_layers_to_print(const Print& print, bool first_only)
 {
     struct OrderingItem {
         coordf_t    print_z;
@@ -1328,6 +1328,8 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
             ordering_item.print_z = ltp.print_z();
             ordering_item.layer_idx = &ltp - &front;
             ordering.emplace_back(ordering_item);
+            if (first_only)
+                break;
         }
     }
 
@@ -2553,6 +2555,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
             size_t finished_objects = 0;
             const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
+
+            if (print.config().first_layer_at_once)
+                this->process_layers(print, tool_ordering, print_object_instances_ordering, collect_layers_to_print(print, true), file);
+
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
                 const PrintObject &object = *(*print_object_instance_sequential_active)->print_object;
                 if (&object != prev_object || tool_ordering.first_extruder() != final_extruder_id) {
@@ -2606,7 +2612,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
-                this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
+
+                std::vector<GCode::LayerToPrint> layers = collect_layers_to_print(object);
+                if (print.config().first_layer_at_once)
+                    layers.erase(layers.begin());
+                this->process_layers(print, tool_ordering, layers, *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
                 //BBS: close powerlost recovery
                 {
                     if (is_bbl_printers && m_second_layer_things_done) {

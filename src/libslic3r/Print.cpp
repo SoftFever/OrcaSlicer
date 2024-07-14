@@ -241,6 +241,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "print_sequence"
+            || opt_key == "first_layer_at_once"
             || opt_key == "filament_type"
             || opt_key == "chamber_temperature"
             || opt_key == "nozzle_temperature_initial_layer"
