@@ -348,7 +348,8 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE }
+    { "Textured PEI Plate", btPTE },
+    { "Textured PLU Plate", btPTL }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -691,6 +692,16 @@ void PrintConfigDef::init_fff_params()
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
+    def             = this->add("textured_plu_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Textured PLU Plate");
+    def->sidetext   = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 300;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("cool_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -730,6 +741,16 @@ void PrintConfigDef::init_fff_params()
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
+    def             = this->add("textured_plu_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Textured PLU Plate");
+    def->sidetext   = L("°C");
+    def->min        = 0;
+    def->max        = 300;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("curr_bed_type", coEnum);
     def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
@@ -739,10 +760,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
+    def->enum_values.emplace_back("Textured PLU Plate");
     def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
+    def->enum_labels.emplace_back(L("Textured PLU Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS

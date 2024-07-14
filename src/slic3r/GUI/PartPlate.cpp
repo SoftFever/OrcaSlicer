@@ -5428,6 +5428,8 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
 	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
+	BedTextureInfo::TexturePart ptl_part1(10, 80, 10, 160, "bbl_bed_ptl_left.svg");
+	BedTextureInfo::TexturePart ptl_part2(74, -10, 148,  12, "bbl_bed_ptl_bottom.svg");
 	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
@@ -5440,6 +5442,8 @@ void PartPlateList::init_bed_type_info()
 	bed_texture_info[btPEI].parts.push_back(pei_part2);
 	bed_texture_info[btPTE].parts.push_back(pte_part1);
 	bed_texture_info[btPTE].parts.push_back(pte_part2);
+	bed_texture_info[btPTL].parts.push_back(ptl_part1);
+	bed_texture_info[btPTL].parts.push_back(ptl_part2);
 
 	auto  bed_ext     = get_extents(m_shape);
 	int   bed_width   = bed_ext.size()(0);

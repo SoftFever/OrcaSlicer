@@ -3284,6 +3284,11 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
 
+        line = {L("Textured PLU Plate"), L("Bed temperature when Textured PLU Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate")};
+        line.append_option(optgroup->get_option("textured_plu_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("textured_plu_plate_temp"));
+        optgroup->append_line(line);
+
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -3538,6 +3543,7 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+        toggle_line("textured_plu_plate_temp_initial_layer", support_multi_bed_types);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
 

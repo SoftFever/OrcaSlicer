@@ -26,6 +26,7 @@ enum MachineBedType {
     BED_TYPE_PE,
     BED_TYPE_PEI,
     BED_TYPE_PTE,
+    BED_TYPE_PTL,
     BED_TYPE_COUNT,
 };
 

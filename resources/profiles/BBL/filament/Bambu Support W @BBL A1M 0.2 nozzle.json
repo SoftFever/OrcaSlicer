@@ -35,6 +35,12 @@
     "textured_plate_temp_initial_layer": [
         "60"
     ],
+    "textured_plu_plate_temp": [
+        "35"
+    ],
+    "textured_plu_plate_temp_initial_layer": [
+        "35"
+    ],
     "compatible_printers": [
         "Bambu Lab A1 mini 0.2 nozzle"
     ]

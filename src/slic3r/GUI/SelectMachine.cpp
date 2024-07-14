@@ -900,7 +900,8 @@ static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
     _L("Bambu Engineering Plate"),
     _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bambu Textured PEI Plate")};
+    _L("Bambu Textured PEI Plate"),
+    _L("Bambu Textured PLU Plate")};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
@@ -908,6 +909,7 @@ static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     "pe",
     "pei",
     "pte",
+    "ptl",
 };
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
