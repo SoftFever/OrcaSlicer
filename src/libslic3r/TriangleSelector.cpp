@@ -1576,7 +1576,7 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i32 &vertices, cons
         this->get_facets_split_by_tjoints(
             { vertices(0), midpoints(0), midpoints(2) },
             { this->neighbor_child(neighbors(0), vertices(1), vertices(0), Partition::Second),
-              -1, 
+              -1,
               this->neighbor_child(neighbors(2), vertices(0), vertices(2), Partition::First) },
               out_triangles);
         this->get_facets_split_by_tjoints(
@@ -1769,7 +1769,7 @@ void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs
             auto state = is_split ? EnforcerBlockerType::NONE : EnforcerBlockerType((code & 0b1100) == 0b1100 ? next_nibble() + 3 : code >> 2);
 
             // BBS
-            if (state > max_ebt)
+            if (state > max_ebt || state == to_delete_filament)
                 state = EnforcerBlockerType::NONE;
 
             if (to_delete_filament != EnforcerBlockerType::NONE && state != EnforcerBlockerType::NONE) {

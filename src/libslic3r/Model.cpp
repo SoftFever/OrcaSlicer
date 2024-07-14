@@ -2486,7 +2486,7 @@ void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_cou
     std::vector<int> used_extruders = get_extruders();
     for (int extruder_id : used_extruders) {
         if (extruder_id == filament_id) {
-            mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count + 1), (EnforcerBlockerType) filament_id);
+            mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count + 1), (EnforcerBlockerType)(filament_id + 1));
             break;
         }
     }
