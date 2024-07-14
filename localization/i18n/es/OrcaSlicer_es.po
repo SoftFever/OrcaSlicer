@@ -764,7 +764,7 @@ msgid "Text doesn't show current horizontal alignment."
 msgstr "El texto no muestra la alineación horizontal actual."
 
 msgid "Revert font changes."
-msgstr "Revertir cambios de fuente."
+msgstr "Deshacer cambios de fuente."
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
@@ -906,23 +906,23 @@ msgid "Set bold"
 msgstr "Aplicar negrita"
 
 msgid "Revert text size."
-msgstr "Revertir tamaño de texto."
+msgstr "Deshacer tamaño de texto."
 
 msgid "Revert embossed depth."
-msgstr "Revertir profundidad en relieve."
+msgstr "Deshacer profundidad en relieve."
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
-"Las opciones avanzadas no pueden modificarse para la fuente seleccionada. \n"
+"Las opciones avanzadas no pueden modificarse para la fuente seleccionada.\n"
 "Seleccione otra fuente."
 
 msgid "Revert using of model surface."
-msgstr "Revertir el uso de la superficie del modelo."
+msgstr "Deshacer el uso de la superficie del modelo."
 
 msgid "Revert Transformation per glyph."
-msgstr "Revertir Transformación por glifo."
+msgstr "Deshacer Transformación por glifo."
 
 msgid "Set global orientation for whole text."
 msgstr "Establece la orientación global para todo el texto."
@@ -955,20 +955,20 @@ msgid "Bottom"
 msgstr "Bajo"
 
 msgid "Revert alignment."
-msgstr "Revertir alineamiento."
+msgstr "Deshacer alineamiento."
 
 #. TRN EmbossGizmo: font units
 msgid "points"
 msgstr "puntos"
 
 msgid "Revert gap between characters"
-msgstr "Revertir el espacio entre caracteres"
+msgstr "Deshacer el espacio entre caracteres"
 
 msgid "Distance between characters"
-msgstr "Distancia entre carácteres"
+msgstr "Distancia entre caracteres"
 
 msgid "Revert gap between lines"
-msgstr "Revertir el espacio entre líneas"
+msgstr "Deshacer el espacio entre líneas"
 
 msgid "Distance between lines"
 msgstr "Distancia entre líneas"
@@ -2932,7 +2932,7 @@ msgid "Nozzle temperature"
 msgstr "Temperatura de la boquilla"
 
 msgid "Bed Temperature"
-msgstr "Temperatura de cama"
+msgstr "Temperatura de Cama"
 
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
@@ -3523,7 +3523,7 @@ msgid "Name is invalid;"
 msgstr "El nombre es inválido"
 
 msgid "illegal characters:"
-msgstr "carácteres no permitidos:"
+msgstr "Caracteres no permitidos:"
 
 msgid "illegal suffix:"
 msgstr "sufijo no permitido:"
@@ -6269,8 +6269,8 @@ msgstr ""
 "El archivo %s ya existe\n"
 "¿Desea reemplazarlo?"
 
-msgid "Confirm Save As"
-msgstr "Salvar Como"
+msgid "Comfirm Save As"
+msgstr "Confirmar Guardar como"
 
 msgid "Delete object which is a part of cut object"
 msgstr "Borrar objeto el cual es una pieza del objeto cortado"
@@ -6472,7 +6472,7 @@ msgid "Save G-code file as:"
 msgstr "Guardar archivo G-Code como:"
 
 msgid "Save SLA file as:"
-msgstr "Salvar archivo SLA como:"
+msgstr "Guardar archivo SLA como:"
 
 msgid "The provided file name is not valid."
 msgstr "El nombre de archivo proporcionado no es válido."
@@ -15145,7 +15145,7 @@ msgid "Input Value"
 msgstr "Valor de entrada"
 
 msgid "Save to Filament Preset"
-msgstr "Salvar Perfil de Filamento"
+msgstr "Guardar Perfil de Filamento"
 
 msgid "Preset"
 msgstr "Perfil"
