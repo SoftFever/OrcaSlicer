@@ -1,10 +1,10 @@
 {
     "type": "process",
     "setting_id": "GP005",
-    "name": "0.16mm Optimal @InfiMech TX",
-    "from": "system",
-    "instantiation": "true",
-    "inherits": "fdm_process_common",
+    "name": "0.16mm Optimal @InfiMech TX HSN",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_process_common_HSN",
     
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
@@ -34,7 +34,7 @@
     "top_shell_thickness": "1",
     "top_surface_line_width": "0.42",
 	"compatible_printers": [
-        "InfiMech TX 0.4 nozzle"
+        "InfiMech TX HSN 0.4 nozzle"
     ]
     
 

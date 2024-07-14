@@ -1,10 +1,10 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.12mm Fine @InfiMech TX",
+    "name": "0.12mm Fine @InfiMech TX HSN",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_process_common",
+    "inherits": "fdm_process_common_HSN",
 
     "bottom_shell_layers": "5",
     "overhang_1_4_speed": "50",
@@ -18,12 +18,12 @@
     "inner_wall_speed": "350",  
     "internal_solid_infill_speed": "350",
     "layer_height": "0.12",
-    "print_settings_id": "0.12mm Fine @InfiMech TX",
+    "print_settings_id": "0.12mm Fine @InfiMech TX HSN",
     "sparse_infill_speed": "400",
     "exclude_object": "1",
     "internal_bridge_speed": "50",
     "compatible_printers": [
-        "InfiMech TX 0.4 nozzle"
+        "InfiMech TX HSN 0.4 nozzle"
     ]
 
 
