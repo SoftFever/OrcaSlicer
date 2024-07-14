@@ -984,7 +984,7 @@ void WipeTower2::toolchange_Unload(
     }
 
     const int& number_of_cooling_moves = m_filpar[m_current_tool].cooling_moves;
-    const bool cooling_will_happen = m_semm && number_of_cooling_moves > 0;
+    const bool cooling_will_happen = m_semm && number_of_cooling_moves > 0 && m_cooling_tube_length != 0;
     bool change_temp_later = false;
 
     // Wipe tower should only change temperature with single extruder MM. Otherwise, all temperatures should
