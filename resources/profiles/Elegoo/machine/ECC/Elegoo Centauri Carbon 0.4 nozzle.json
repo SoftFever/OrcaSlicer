@@ -1,0 +1,55 @@
+{
+  "type": "machine",
+  "name": "Elegoo Centauri Carbon 0.4 nozzle",
+  "inherits": "fdm_elegoo_3dp_001_common",
+  "from": "system",
+  "setting_id": "ECC04",
+  "instantiation": "true",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printer_model": "Elegoo Centauri Carbon",
+  "printer_variant": "0.4",
+  "auxiliary_fan": "1",
+  "printable_area": [
+    "0x0",
+    "256x0",
+    "256x256",
+    "0x256"
+  ],
+  "printable_height": "250",
+  "retract_lift_below": [
+      "255"
+  ],
+  "bed_exclude_area": [
+    "246x0",
+    "256x0",
+    "256x20",
+    "246x20"
+  ],
+  "thumbnails": [
+  "144x144"
+  ],
+  "machine_max_acceleration_travel": [
+    "20000",
+    "20000"
+  ],
+  "default_filament_profile": [
+    "Elegoo PLA @ECC"
+  ],
+  "default_print_profile": "0.20mm Standard @Elegoo CC 0.4 nozzle",
+  "extruder_offset": [
+    "0x0"
+  ],
+  "machine_load_filament_time": "29",
+  "machine_unload_filament_time": "28",
+  "nozzle_type": "hardened_steel",
+  "scan_first_layer": "1",
+  "upward_compatible_machine": [
+  ],
+  "gcode_flavor": "klipper",
+  "change_filament_gcode": "M600",
+  "machine_pause_gcode": "PAUSE",
+  "machine_start_gcode": ";;===== date: 20240520 =====================\n;printer_model:[printer_model]\n;initial_filament:{filament_type[initial_extruder]}\n;curr_bed_type:{curr_bed_type}\nM400 ; wait for buffer to clear\nM220 S100 ;Set the feed speed to 100%\nM221 S100 ;Set the flow rate to 100%\nM104 S140\nM190 S[bed_temperature_initial_layer_single]\n\n\n;=============turn on fans to prevent PLA jamming=================\n{if filament_type[initial_no_support_extruder]==\"PLA\"}\n    {if (bed_temperature[initial_no_support_extruder] >50)||(bed_temperature_initial_layer[initial_no_support_extruder] >50)}\n    M106 P3 S0\n    {elsif (bed_temperature[initial_no_support_extruder] >45)||(bed_temperature_initial_layer[initial_no_support_extruder] >45)}\n    M106 P3 S180\n    {endif};Prevent PLA from jamming\n{endif}\n\n\n\nG90\nG28 ;home\nG1 Z10 F300\n;=======起始擦料动作=======\n;=======吐料开始========\nM83\nG92 E0\nG1 X202 Y{print_bed_max[1]*0.9} F{travel_speed*60} ; Move print head up 移动到废料槽\nG1 Y265 F1200\nM109 S{min(300,nozzle_temperature_initial_layer[initial_no_support_extruder]+10)}\nG1 E15 F{min(400, filament_max_volumetric_speed[initial_no_support_extruder]/2.4053*60)} \nM400\nG4 P1000\nG1 E15 F{min(400, filament_max_volumetric_speed[initial_no_support_extruder]/2.4053*60)} \nM400\nG4 P1000\nG1 E30 F{min(400, filament_max_volumetric_speed[initial_no_support_extruder]/2.4053*60)} \nM400\nG4 P1000\nG1 E15 F{min(400, filament_max_volumetric_speed[initial_no_support_extruder]/2.4053*60)} \nM400\nG4 P1000\nG1 E30 F{min(400, filament_max_volumetric_speed[initial_no_support_extruder]/2.4053*60)} \nM400\n;#######让喷嘴泄压，同时快速降温#######\nM104 S{max(180,nozzle_temperature_initial_layer[initial_extruder] -50)}\nM106 P2 S150\nM106 S255\nG4 P10000\nG1 E-8 F60 ;慢慢回抽，避免继续漏料\n;########刮去吐出来的废料#########\nG1 X193 F20000\nG1 Y250 F20000\nG1 X202 F20000\nG1 Y265 F1200\nM400\nG1 X193 F20000\nG1 Y250 F20000\nG1 X202 F20000\nG1 Y265 F1200\nM400\nG1 X193 F20000\nG1 Y250 F20000\nG1 X202 F20000\nG1 Y265 F1200\nM400\n;移动到擦拭硅胶位置，清洁喷嘴表面残余材料，同时降温至归零温度\nM104 S0\nG0 X150 Y263 Z4 F20000\nG0 Z0.5 F900\nG0 X180 F600\nG0 X150 F600\nG0 X180 F600\nG0 X165 F600\nG2 I1 J0 F600\nG2 I1 J0 F600\nG2 I1.5 J0 F600\nG2 I1 J0 F1200\nG2 I1.5 J0 F1200\nG2 I1.5 J0 F1200\nM109 S140\nM190 S[bed_temperature_initial_layer_single]\n;关闭风扇，快速Z归零\nM106 P2 S0\nM106 S0\nG0 Z3 F900\nG0 X130 Y130 Z10 F20000\nG28 Z\n\n;磨掉喷嘴上粘附的材料\nG1 X130 Y260 Z1 F20000\n\nG0 Z0.5 F20000\nG0 X125 Y260 Z-0.05\nG0 Z0.5 F20000\nG0 X125 Y261.5\nG0 Z-0.05\nG0 X131 F211\nG0 X124\nG0 X128\nG2 I0.5 J0 F300\nG2 I0.5 J0 F300\nG0 Z-0.1\nG2 I0.5 J0 F300\nG2 I0.5 J0 F300\nG2 I0.5 J0 F3000\nG2 I0.5 J0 F3000\nG0 Z-0.05\nG2 I0.5 J0 F3000\nG2 I0.5 J0 F3000\n\nG0 Z2 F900\nG0 X130 Y130 Z10 F20000\n\nG28 Z\nM400\n;恢复电流\nSET_TMC_CURRENT_stepper_x CURRENT=1.2\nSET_TMC_CURRENT_stepper_y CURRENT=1.2\nSET_TMC_CURRENT_stepper_z CURRENT=0.8\n;\n;=======吐料结束========\nG1 X{print_bed_max[0]*0.5-50} Y0 F6000\nG1 Z0.3 F300\nM109 S[nozzle_temperature_initial_layer]\nM83\nG92 E0 ;Reset Extruder\nG1 E4 F900\nG1 X{print_bed_max[0]*0.5+50} E15 F6000 ;Draw the first line\nG1 Y-1.5 F2000\n;压力提前值打印开始\n;划线阶段判断压力提前值\n;enable_pressure_advance:{enable_pressure_advance[initial_extruder]}\n;如果启用压力提前控制，则应用\n{if enable_pressure_advance[initial_extruder] == \"true\"}\nSET_PRESSURE_ADVANCE ADVANCE=[pressure_advance] ;\nM400\n{endif}\n\nM204 S{min(10000,max(1000,outer_wall_acceleration))} ;划线前应用外墙打印加速度\nG1 E0.3 F1800\nG4 P1000\nG1 F600\nG1  X{print_bed_max[0]*0.5+30} E2\nG1 F6000\nG1 X{print_bed_max[0]*0.5-10} E4\nG1 F600\nG1 X{print_bed_max[0]*0.5-30} E2\nG1 F6000\nG1 X{print_bed_max[0]*0.5-50} E2\n;压力提前值打印结束\n\n\nG1 Z0.4 F120.0 ;Move to side a little\nG1 X{print_bed_max[0]*0.5-45} Y1.5 F3000\nG92 E0 ;Reset Extruder\n;LAYER_COUNT:[total_layer_count]\n;LAYER:0",
+  "machine_end_gcode": ";===== date: 20240627 =====================\nSET_VELOCITY_LIMIT ACCEL=5000\nM204 S[machine_max_acceleration_extruding]\nM400 ; wait for buffer to clear\nM140 S0 ;Turn-off bed\nM106 S255 ;冷却喷嘴，避免漏料\n;切料\nM83\nG92 E0 ; zero the extruder\nG2 I1 J0 Z{max_layer_z+0.5} E-1  F3000 ; lower z a little\nG90\nSET_TMC_CURRENT_stepper_x CURRENT=0.8\nSET_TMC_CURRENT_stepper_y CURRENT=0.8\nSET_TMC_CURRENT_stepper_z CURRENT=0.5\nG1 X256 Y25 Z{min(max_layer_z+100, printable_height)} E-2 F30000 ; Move print head up\nG1 E-10 F1200\nM400\nG1 Y3 F300\nG1 E-1 F300\nM400\nG1 Y250 F{travel_speed*60} ; Move print head up\nG1 X202\nG1 Y265 F1200\nG1 E10 F90\nG92 E0\nG1 E-10 F1200\nG92 E0\nG1 X130 Y256 F{travel_speed*60} \nG1 Z{min(max_layer_z+100, printable_height-2)} F600\n;打印头停靠完成\n;结束动作完成\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM106 S0 ; turn off fan\nM106 P2 S0 ; turn off remote part cooling fan\nM106 P3 S0 ; turn off chamber cooling fan\nM84 ;Disable all steppers"
+}

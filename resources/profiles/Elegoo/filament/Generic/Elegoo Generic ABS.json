@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic ABS",
+    "inherits": "Elegoo Generic ABS @base",
+    "from": "system",
+    "setting_id": "EGABS00",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo Centauri Carbon 0.8 nozzle"
+    ]
+}

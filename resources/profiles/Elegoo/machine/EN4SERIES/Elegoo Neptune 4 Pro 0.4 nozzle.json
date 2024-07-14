@@ -1,0 +1,28 @@
+{
+  "type": "machine",
+  "name": "Elegoo Neptune 4 Pro 0.4 nozzle",
+  "from": "system",
+  "setting_id": "EN4PRO04",
+  "instantiation": "true",
+  "inherits": "Elegoo Neptune 4 0.4 nozzle",
+  "printer_model": "Elegoo Neptune 4 Pro",
+  "default_print_profile": "0.20mm Standard @Elegoo N4Pro 0.4 nozzle",
+  "gcode_flavor": "klipper",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printer_variant": "0.4",
+  "printable_area": [
+    "0x0",
+    "230x0",
+    "230x230",
+    "0x230"
+  ],
+  "printable_height": "265",
+  "retract_lift_below": [
+      "264"
+  ],
+  "default_filament_profile": [
+    "Elegoo PLA"
+  ]
+}

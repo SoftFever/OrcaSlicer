@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "Elegoo TPU 95A @base",
+    "inherits": "fdm_filament_tpu",
+    "from": "system",
+    "filament_id": "ETPU95AB00",
+    "instantiation": "false",
+    "filament_max_volumetric_speed": [
+      "3.6"
+    ],
+    "filament_vendor": [
+        "Elegoo"
+    ],
+    "nozzle_temperature": [
+        "230"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "230"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
+}
