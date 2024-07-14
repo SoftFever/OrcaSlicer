@@ -964,7 +964,7 @@ msgid "Revert gap between characters"
 msgstr "Deshacer el espacio entre caracteres"
 
 msgid "Distance between characters"
-msgstr "Distancia entre carácteres"
+msgstr "Distancia entre caracteres"
 
 msgid "Revert gap between lines"
 msgstr "Deshacer el espacio entre líneas"
@@ -2937,7 +2937,7 @@ msgid "Nozzle temperature"
 msgstr "Temperatura de la boquilla"
 
 msgid "Bed Temperature"
-msgstr "Temperatura de cama"
+msgstr "Temperatura de Cama"
 
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
