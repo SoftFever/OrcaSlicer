@@ -16,12 +16,68 @@
 #include <cassert>
 #include <limits>
 #include <algorithm>
+#include <unordered_map>
 
 #include <libslic3r.h>
+#include <boost/multiprecision/cpp_int.hpp>
 
 namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
+
+
+
+//solve the probleme by forcasting one layer
+static std::vector<unsigned int>solve_extruder_order_with_forcast(const std::vector<std::vector<float>>wipe_volumes,
+                                                                  std::vector<unsigned int> curr_layer_extruders,
+                                                                  std::vector<unsigned int> next_layer_extruders,
+                                                                  const std::optional<unsigned int>& start_extruder_id,
+                                                                  float* min_cost)
+{
+    std::sort(curr_layer_extruders.begin(), curr_layer_extruders.end());
+    std::sort(next_layer_extruders.begin(), next_layer_extruders.end());
+    float best_cost = std::numeric_limits<float>::max();
+    std::vector<unsigned int>best_seq;
+
+    do {
+        std::optional<unsigned int>prev_extruder_1 = start_extruder_id;
+        float curr_layer_cost = 0;
+        for (size_t idx = 0; idx < curr_layer_extruders.size(); ++idx) {
+            if (prev_extruder_1)
+                curr_layer_cost += wipe_volumes[*prev_extruder_1][curr_layer_extruders[idx]];
+            prev_extruder_1 = curr_layer_extruders[idx];
+        }
+        if (curr_layer_cost > best_cost)
+            continue;
+        do {
+            std::optional<unsigned int>prev_extruder_2 = prev_extruder_1;
+            float total_cost = curr_layer_cost;
+
+            for (size_t idx = 0; idx < next_layer_extruders.size(); ++idx) {
+                if (prev_extruder_2)
+                    total_cost += wipe_volumes[*prev_extruder_2][next_layer_extruders[idx]];
+                prev_extruder_2 = next_layer_extruders[idx];
+            }
+
+            if (total_cost < best_cost) {
+                best_cost = total_cost;
+                best_seq = curr_layer_extruders;
+            }
+        } while (std::next_permutation(next_layer_extruders.begin(), next_layer_extruders.end()));
+    } while (std::next_permutation(curr_layer_extruders.begin(),curr_layer_extruders.end()));
+
+    if (min_cost) {
+        float real_cost = 0;
+        std::optional<unsigned int>prev_extruder = start_extruder_id;
+        for (size_t idx = 0; idx < best_seq.size(); ++idx) {
+            if (prev_extruder)
+                real_cost += wipe_volumes[*prev_extruder][best_seq[idx]];
+            prev_extruder = best_seq[idx];
+        }
+        *min_cost = real_cost;
+    }
+    return best_seq;
+}
 
 
 // Shortest hamilton path problem
@@ -92,49 +148,23 @@ static std::vector<unsigned int> solve_extruder_order(const std::vector<std::vec
     return path;
 }
 
-std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes, std::vector<unsigned int> all_extruders, std::optional<unsigned int>start_extruder_id, float* cost = nullptr)
+std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,
+                                              const std::vector<unsigned int>& curr_layer_extruders,
+                                              const std::vector<unsigned int>&next_layer_extruders,
+                                              const std::optional<unsigned int>&start_extruder_id,
+                                              bool use_forcast = false,
+                                              float* cost = nullptr)
 {
-    if (all_extruders.size() <= 1) {
+    if (curr_layer_extruders.size() <= 1) {
         if (cost)
             *cost = 0;
-        return all_extruders;
+        return curr_layer_extruders;
     }
 
-#define USE_DP_OPTIMIZE
-#ifdef USE_DP_OPTIMIZE
-    return solve_extruder_order(wipe_volumes, all_extruders, start_extruder_id, cost);
-#else
-    if (all_extruders.size() > 1) {
-        int begin_index = 0;
-        auto iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
-        if (iter != all_extruders.end()) {
-            for (int i = 0; i < all_extruders.size(); ++i) {
-                if (all_extruders[i] == start_extruder_id) {
-                    std::swap(all_extruders[i], all_extruders[0]);
-                }
-            }
-            begin_index = 1;
-        }
-
-        std::pair<float, std::vector<unsigned int>> volumes_to_extruder_order;
-        volumes_to_extruder_order.first = 10000 * all_extruders.size();
-        std::sort(all_extruders.begin() + begin_index, all_extruders.end());
-        do {
-            float flush_volume = 0;
-            for (int i = 0; i < all_extruders.size() - 1; ++i) {
-                flush_volume += wipe_volumes[all_extruders[i]][all_extruders[i + 1]];
-            }
-            if (flush_volume < volumes_to_extruder_order.first) {
-                volumes_to_extruder_order = std::pair(flush_volume, all_extruders);
-            }
-        } while (std::next_permutation(all_extruders.begin() + begin_index, all_extruders.end()));
-
-        if (volumes_to_extruder_order.second.size() > 0)
-            return volumes_to_extruder_order.second;
-    }
-    return all_extruders;
-
-#endif // OPTIMIZE
+    if (use_forcast)
+        return solve_extruder_order_with_forcast(wipe_volumes, curr_layer_extruders, next_layer_extruders, start_extruder_id, cost);
+    else
+        return solve_extruder_order(wipe_volumes, curr_layer_extruders, start_extruder_id, cost);
 }
 
 int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&filament_lists,
@@ -144,11 +174,14 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
                                                std::optional<std::function<bool(int,std::vector<int>&)>> get_custom_seq,
                                                std::vector<std::vector<unsigned int>>* filament_sequences)
 {
+    constexpr int max_n_with_forcast = 5;
     int cost = 0;
+    std::vector<std::set<unsigned int>>groups(2); //save the grouped filaments
+    std::vector<std::vector<std::vector<unsigned int>>> layer_sequences(2); //save the reordered filament sequence by group
+    std::unordered_map<size_t, std::vector<int>> custom_layer_filament_map; //save the custom layers,second key stores the last extruder of that layer by group
+    std::unordered_map<size_t, std::vector<unsigned int>> custom_layer_sequence_map; // save the filament sequences of custom layer
 
-    //TODO: handle case with custom sequence
-    std::vector<std::set<int>>groups(2);
-    std::vector<std::vector<std::vector<unsigned>>> layer_sequences(2);
+    // group the filament
     for (int i = 0; i < filament_maps.size(); ++i) {
         if (filament_maps[i] == 0)
             groups[0].insert(filament_lists[i]);
@@ -156,38 +189,105 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
             groups[1].insert(filament_lists[i]);
     }
 
+    // store custom layer sequence
+    for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+        const auto& curr_lf = layer_filaments[layer];
+
+        std::vector<int>custom_filament_seq;
+        if (get_custom_seq && (*get_custom_seq)(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
+            std::vector<unsigned int> unsign_custom_extruder_seq;
+            for (int extruder : custom_filament_seq) {
+                unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
+                auto it = std::find(curr_lf.begin(), curr_lf.end(), unsign_extruder);
+                if (it != curr_lf.end())
+                    unsign_custom_extruder_seq.emplace_back(unsign_extruder);
+            }
+            assert(curr_lf.size() == unsign_custom_extruder_seq.size());
+
+            custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
+            custom_layer_filament_map[layer].resize(2, -1);
+
+            for (auto iter = unsign_custom_extruder_seq.rbegin(); iter != unsign_custom_extruder_seq.rend(); ++iter) {
+                if (groups[0].find(*iter) != groups[0].end() && custom_layer_filament_map[layer][0] == -1)
+                    custom_layer_filament_map[layer][0] = *iter;
+                if (groups[1].find(*iter) != groups[1].end() && custom_layer_filament_map[layer][1] == -1)
+                    custom_layer_filament_map[layer][1] = *iter;
+            }
+        }
+    }
+
+    using uint128_t = boost::multiprecision::uint128_t;
+    auto extruders_to_hash_key = [](const std::vector<unsigned int>& curr_layer_extruders,
+        const std::vector<unsigned int>& next_layer_extruders,
+        const std::optional<unsigned int>& prev_extruder,
+        bool use_forcast)->uint128_t
+        {
+            uint128_t hash_key = 0;
+            //31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
+            if (prev_extruder)
+                hash_key |= (uint128_t(1) << (64 + *prev_extruder));
+
+            if (use_forcast) {
+                for (auto item : next_layer_extruders)
+                    hash_key |= (uint128_t(1) << (32 + item));
+            }
+
+            for (auto item : curr_layer_extruders)
+                hash_key |= (uint128_t(1) << item);
+            return hash_key;
+        };
+
+
+    // get best layer sequence by group
     for (size_t idx = 0; idx < groups.size();++idx) {
         // case with one group
         if (groups[idx].empty())
             continue;
+        bool use_forcast = groups[idx].size() <= max_n_with_forcast;
         std::optional<unsigned int>current_extruder_id;
-        int layer = 0;
-        for (const auto& lf : layer_filaments) {
+
+        std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
+
+        for(size_t layer=0;layer<layer_filaments.size();++layer){
+            const auto& curr_lf = layer_filaments[layer];
             std::vector<int>custom_filament_seq;
             if (get_custom_seq && (*get_custom_seq)(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
-                std::vector<unsigned int> unsign_custom_extruder_seq;
-                for (int extruder : custom_filament_seq) {
-                    unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
-                    auto it = std::find(lf.begin(), lf.end(), unsign_extruder);
-                    if (it != lf.end()) {
-                        unsign_custom_extruder_seq.emplace_back(unsign_extruder);
-                    }
-                }
-                assert(lf.size() == unsign_custom_extruder_seq.size());
+                if (custom_layer_filament_map[layer][idx] != -1)
+                    current_extruder_id = (unsigned int)(custom_layer_filament_map[layer][idx]);
+                //insert an empty array
                 if (filament_sequences)
-                    layer_sequences[idx].emplace_back(unsign_custom_extruder_seq);
-
-                current_extruder_id = unsign_custom_extruder_seq.back();
+                    layer_sequences[idx].emplace_back(std::vector<unsigned int>());
                 continue;
             }
 
-            std::vector<unsigned>filament_used_in_group;
-            for (const auto& filament : lf) {
+            std::vector<unsigned int>filament_used_in_group;
+            for (const auto& filament : curr_lf) {
                 if (groups[idx].find(filament) != groups[idx].end())
                     filament_used_in_group.emplace_back(filament);
             }
+
+            std::vector<unsigned int>filament_used_in_group_next_layer;
+            {
+                std::vector<unsigned int>next_lf;
+                if (layer + 1 < layer_filaments.size())
+                    next_lf = layer_filaments[layer + 1];
+                for (const auto& filament : next_lf) {
+                    if (groups[idx].find(filament) != groups[idx].end())
+                        filament_used_in_group_next_layer.emplace_back(filament);
+                }
+            }
+
             float tmp_cost = 0;
-            auto sequence = get_extruders_order(flush_matrix[idx], filament_used_in_group, current_extruder_id, &tmp_cost);
+            std::vector<unsigned int>sequence;
+            uint128_t hash_key = extruders_to_hash_key(filament_used_in_group, filament_used_in_group_next_layer, current_extruder_id, use_forcast);
+            if (auto iter = caches.find(hash_key); iter != caches.end()) {
+                tmp_cost = iter->second.first;
+                sequence = iter->second.second;
+            }
+            else {
+                sequence = get_extruders_order(flush_matrix[idx], filament_used_in_group, filament_used_in_group_next_layer,current_extruder_id,use_forcast,&tmp_cost);
+                caches[hash_key] = { tmp_cost,sequence };
+            }
 
             assert(sequence.size()==filament_used_in_group.size());
 
@@ -197,16 +297,20 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
             if (!sequence.empty())
                 current_extruder_id = sequence.back();
             cost += tmp_cost;
-            layer += 1;
         }
     }
 
+    // get the final layer sequences
     // if only have one group,we need to check whether layer sequence[idx] is valid
     if (filament_sequences) {
         filament_sequences->clear();
         filament_sequences->resize(layer_filaments.size());
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
             auto& curr_layer_seq = (*filament_sequences)[layer];
+            if (custom_layer_sequence_map.find(layer) != custom_layer_sequence_map.end()) {
+                curr_layer_seq = custom_layer_sequence_map[layer];
+                continue;
+            }
             if (layer & 1) {
                 if (!layer_sequences[1].empty())
                     curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
@@ -1051,7 +1155,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
 {
-    const PrintConfig *print_config = m_print_config_ptr;
+    const PrintConfig* print_config = m_print_config_ptr;
     if (!print_config && m_print_object_ptr) {
         print_config = &(m_print_object_ptr->print()->config());
     }
@@ -1059,7 +1163,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     if (!print_config || m_layer_tools.empty())
         return;
 
-    const unsigned int number_of_extruders = (unsigned int) (print_config->filament_colour.values.size() + EPSILON);
+    const unsigned int number_of_extruders = (unsigned int)(print_config->filament_colour.values.size() + EPSILON);
 
     using FlushMatrix = std::vector<std::vector<float>>;
     size_t             nozzle_nums = print_config->nozzle_diameter.values.size();
@@ -1082,14 +1186,14 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     if (nozzle_nums > 1) {
         filament_maps = m_print->get_filament_maps();
         if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
-            const PrintConfig *print_config = m_print_config_ptr;
+            const PrintConfig* print_config = m_print_config_ptr;
             if (!print_config && m_print_object_ptr) {
                 print_config = &(m_print_object_ptr->print()->config());
             }
 
             std::vector<std::vector<unsigned int>> layer_filaments;
             for (auto& lt : m_layer_tools) {
-               layer_filaments.emplace_back(lt.extruders);
+                layer_filaments.emplace_back(lt.extruders);
             }
 
             filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config);
@@ -1104,25 +1208,25 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
 
     std::vector<std::vector<unsigned int>>filament_sequences;
     std::vector<unsigned int>filament_lists(number_of_extruders);
-    std::iota(filament_lists.begin(),filament_lists.end(),0);
+    std::iota(filament_lists.begin(), filament_lists.end(), 0);
     std::vector<std::vector<unsigned int>>layer_filaments;
     for (auto& lt : m_layer_tools) {
         layer_filaments.emplace_back(lt.extruders);
     }
 
     std::vector<LayerPrintSequence> other_layers_seqs;
-    const ConfigOptionInts *        other_layers_print_sequence_op      = print_config->option<ConfigOptionInts>("other_layers_print_sequence");
-    const ConfigOptionInt *         other_layers_print_sequence_nums_op = print_config->option<ConfigOptionInt>("other_layers_print_sequence_nums");
+    const ConfigOptionInts* other_layers_print_sequence_op = print_config->option<ConfigOptionInts>("other_layers_print_sequence");
+    const ConfigOptionInt* other_layers_print_sequence_nums_op = print_config->option<ConfigOptionInt>("other_layers_print_sequence_nums");
     if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
-        const std::vector<int> &print_sequence = other_layers_print_sequence_op->values;
-        int                     sequence_nums  = other_layers_print_sequence_nums_op->value;
-        other_layers_seqs                      = get_other_layers_print_sequence(sequence_nums, print_sequence);
+        const std::vector<int>& print_sequence = other_layers_print_sequence_op->values;
+        int                     sequence_nums = other_layers_print_sequence_nums_op->value;
+        other_layers_seqs = get_other_layers_print_sequence(sequence_nums, print_sequence);
     }
 
     // other_layers_seq: the layer_idx and extruder_idx are base on 1
-    auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int> &out_seq) -> bool {
+    auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int>& out_seq) -> bool {
         for (size_t idx = other_layers_seqs.size() - 1; idx != size_t(-1); --idx) {
-            const auto &other_layers_seq = other_layers_seqs[idx];
+            const auto& other_layers_seq = other_layers_seqs[idx];
             if (layer_idx + 1 >= other_layers_seq.first.first && layer_idx + 1 <= other_layers_seq.first.second) {
                 out_seq = other_layers_seq.second;
                 return true;
