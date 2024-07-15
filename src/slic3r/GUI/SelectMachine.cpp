@@ -1789,7 +1789,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    if (obj && obj->is_support_flow_calibration) {
+    if (obj && obj->is_support_auto_flow_calibration) {
         select_flow->Show();
     } else {
         select_flow->Hide();
@@ -2450,14 +2450,14 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
             preset_nozzle_type = "stainless_steel";
         }
 
-        tag_nozzle_type = obj_->nozzle_type;
+        tag_nozzle_type = obj_->m_nozzle_data.nozzles[0].type;
 
         auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
         if (opt_nozzle_diameters != nullptr) {
             for (auto i = 0; i < extruders.size(); i++) {
                 auto extruder = extruders[i] - 1;
                 preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
-                if (preset_nozzle_diameters != obj_->nozzle_diameter) {
+                if (preset_nozzle_diameters != obj_->m_nozzle_data.nozzles[0].diameter) {
                     is_same_nozzle_diameters = false;
                 }
             }
@@ -2487,10 +2487,10 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
 
     NozzleType nozzle_type = NozzleType::ntUndefine;
 
-    if (obj_->nozzle_type == "stainless_steel") {
+    if (obj_->m_nozzle_data.nozzles[0].type == "stainless_steel") {
         nozzle_type = NozzleType::ntStainlessSteel;
     }
-    else if (obj_->nozzle_type == "hardened_steel") {
+    else if (obj_->m_nozzle_data.nozzles[0].type == "hardened_steel") {
         nozzle_type = NozzleType::ntHardenedSteel;
     }
 
@@ -2511,7 +2511,7 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
             return is_same_nozzle_type;
         }
         else {
-            tag_nozzle_type = obj_->nozzle_type;
+            tag_nozzle_type = DeviceManager::nozzle_type_conver(obj_->m_nozzle_data.nozzles[0].type);
         }
 
         iter++;
@@ -2540,7 +2540,7 @@ bool SelectMachineDialog::is_same_printer_model()
     // Orca: ignore P1P -> P1S
     if (source_model != target_model) {
         if ((source_model == "C12" && target_model == "C11") || (source_model == "C11" && target_model == "C12") ||
-            (obj_->is_support_p1s_plus && (source_model == "C12"))) {
+            ((obj_->is_support_upgrade_kit && obj_->installed_upgrade_kit) && (source_model == "C12"))) {
             return true;
         }
 
@@ -2549,7 +2549,7 @@ bool SelectMachineDialog::is_same_printer_model()
         return false;
     }
 
-    if (obj_->is_support_p1s_plus) {
+    if (obj_->is_support_upgrade_kit && obj_->installed_upgrade_kit) {
         BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
         return false;
@@ -2704,13 +2704,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::string filament_type;
     std::string tag_nozzle_type;
 
-    if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
+    if (!obj_->m_nozzle_data.nozzles[0].type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_nozzle_data.nozzles[0].diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
@@ -2721,9 +2721,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             is_printing_block = true;
-            nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
+            nozzle_diameter =  wxString::Format("%.1f", obj_->m_nozzle_data.nozzles[0].diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_nozzle_data.nozzles[0].type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }

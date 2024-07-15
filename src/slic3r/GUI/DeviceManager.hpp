@@ -135,20 +135,37 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+
+struct AmsSlot
+{
+    std::string ams_id;
+    std::string slot_id;
+};
+
 struct Nozzle
 {
-    int info{0};
-    int snow{0};
-    int spre{0};
-    int star{0};
-    int stat{0};
+    std::string type;  //0-hardened_steel 1-stainless_steel
+    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+    int exist{0}; //0-Not Installed 1-Wrong extruder 2-No enablement 3-Enable
+    int ext_has_filament{0};
+    int buffer_has_filament{0};
+    int flow_type{0};//0-common 1-high flow
+
     int temp{0};
+    int target_temp{0};
+    AmsSlot spre;   //tray_pre
+    AmsSlot snow;   //tray_now
+    AmsSlot star;   //tray_tar
+    int ams_stat{0}; ;
+    int rfid_stat{0}; ;
 };
 
 struct NozzleData
 {
-    std::map<std::string, Nozzle> nozzle; /*0 - main nozzle 1 - slave nozzle*/
-    int info{0};
+    int current_nozzle_id{0};
+    int target_nozzle_id{0};
+    int total_nozzle_count {0};
+    std::vector<Nozzle> nozzles;
 };
 
 struct RatingInfo {
@@ -438,9 +455,7 @@ public:
     std::string dev_id;
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
-    float       nozzle_diameter { 0.0f };
     int         subscribe_counter{3};
-    std::string nozzle_type;
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     std::string dev_connection_name;    /* lan | eth */
@@ -563,8 +578,8 @@ public:
     int    last_online_version = -1;
 
     /* temperature */
-    float  nozzle_temp;
-    float  nozzle_temp_target;
+    //float  nozzle_temp;
+    //float  nozzle_temp_target;
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
@@ -774,7 +789,9 @@ public:
     bool is_support_ai_monitoring {false};
     bool is_support_lidar_calibration {false};
     bool is_support_build_plate_marker_detect{false};
+    bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
+    bool is_support_auto_flow_calibration{false};
     bool is_support_print_without_sd{false};
     bool is_support_print_all{false};
     bool is_support_send_to_sdcard {false};
@@ -797,12 +814,14 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
-    bool is_support_p1s_plus{false};
+    //bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_agora{false};
+    bool is_support_upgrade_kit{false};
 
+    bool installed_upgrade_kit{false};
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
 
@@ -890,7 +909,6 @@ public:
     int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
-    int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
@@ -1000,14 +1018,17 @@ public:
     std::string get_string_from_fantype(FanType type);
 
     /*for more extruder*/
-    bool            is_enable_np{ false };
-    NozzleData      m_np_nozzle_data;
+    bool                        is_enable_np{ false };
+    NozzleData                  m_nozzle_data;
 
     /* Device Filament Check */
     std::set<std::string> m_checked_filament;
     std::string m_printer_preset_name;
     std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
     void update_filament_list();
+
+    /*for parse new info*/
+    void parse_new_info(json print);
     int get_flag_bits(std::string str, int start, int count = 1);
     int get_flag_bits(int num, int start, int count = 1);
     void update_printer_preset_name(const std::string &nozzle_diameter_str);
@@ -1033,6 +1054,11 @@ public:
 
     void keep_alive();
     void check_pushing();
+
+    static float nozzle_diameter_conver(int diame);
+    static int nozzle_diameter_conver(float diame);
+    static std::string nozzle_type_conver(int type);
+    static int nozzle_type_conver(std::string& type);
 
     MachineObject* get_default_machine();
     MachineObject* get_local_selected_machine();
