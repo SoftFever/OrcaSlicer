@@ -100,9 +100,9 @@ body:
             You can export the project file from the application menu in `File`->`Save project as...`, then zip it
           * A **log file** for crashes and similar issues.
             You can find your log file here:
-            Windows: `%APPDATA%\OrcaSlicer\log` or usually `C:\Users\<your username>\AppData\Roaming\OrcaSlicer\log`
-            MacOS: `$HOME/Library/Application Support/OrcaSlicer/log`
-            Linux: `$HOME/.config/OrcaSlicer/log`
+            Windows: `%APPDATA%\ElegooSlicer\log` or usually `C:\Users\<your username>\AppData\Roaming\ElegooSlicer\log`
+            MacOS: `$HOME/Library/Application Support/ElegooSlicer/log`
+            Linux: `$HOME/.config/ElegooSlicer/log`
             If Orca Slicer still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`
             You can zip the log directory, or just select the newest logs when this issue happens, and zip them
   - type: textarea

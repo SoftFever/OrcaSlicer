@@ -25,7 +25,7 @@
 #define PRESET_PROFILES_DIR "profiles"
 #define PRESET_PROFILES_TEMOLATE_DIR "profiles_template"
 #define PRESET_TEMPLATE_DIR "Template"
-#define PRESET_CUSTOM_VENDOR "Custom"
+#define PRESET_CUSTOM_VENDOR "Elegoo"
 
 //BBS: iot preset type strings
 #define PRESET_IOT_PRINTER_TYPE     "printer"
