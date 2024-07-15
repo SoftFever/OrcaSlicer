@@ -4,6 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFT02",
     "cool_plate_temp" : [
         "60"
     ],

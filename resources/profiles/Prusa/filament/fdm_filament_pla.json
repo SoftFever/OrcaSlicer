@@ -4,6 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFL99",
     "fan_cooling_layer_time": [
         "100"
     ],
