@@ -16,7 +16,7 @@ on:
 
 jobs:
   build_orca:
-    name: Build OrcaSlicer
+    name: Build ElegooSlicer
     runs-on: ${{ inputs.os }}
     env:
       date:
@@ -168,7 +168,7 @@ jobs:
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip ElegooSlicer_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/ElegooSlicer'
 
       - name: Pack PDB
         if: inputs.os == 'windows-latest'
@@ -180,15 +180,15 @@ jobs:
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_Windows_${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          name: ElegooSlicer_Windows_${{ env.ver }}_portable
+          path: ${{ github.workspace }}/build/ElegooSlicer_Windows_${{ env.ver }}_portable.zip
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-         name: OrcaSlicer_Windows_${{ env.ver }}
-         path: ${{ github.workspace }}/build/OrcaSlicer*.exe
+         name: ElegooSlicer_Windows_${{ env.ver }}
+         path: ${{ github.workspace }}/build/ElegooSlicer*.exe
 
       - name: Upload artifacts Win PDB
         if: inputs.os == 'windows-latest'
@@ -201,10 +201,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-#           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+#           upload_url: https://uploads.github.com/repos/SoftFever/ElegooSlicer/releases/137995723/assets{?name,label}
 #           release_id: 137995723
-          asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
-          asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          asset_path: ${{ github.workspace }}/build/ElegooSlicer_Windows_${{ env.ver }}_portable.zip
+          asset_name: ElegooSlicer_Windows_${{ env.ver }}_portable.zip
           asset_content_type: application/x-zip-compressed
 #           max_releases: 1
 
@@ -212,10 +212,10 @@ jobs:
 #         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
 #         uses: WebFreak001/deploy-nightly@v3.1.0
 #         with:
-#           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+#           upload_url: https://uploads.github.com/repos/SoftFever/ElegooSlicer/releases/137995723/assets{?name,label}
 #           release_id: 137995723
-#           asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
-#           asset_name: OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
+#           asset_path: ${{ github.workspace }}/build/ElegooSlicer_Windows_Installer_${{ env.ver }}.exe
+#           asset_name: ElegooSlicer_Windows_Installer_${{ env.ver }}.exe
 #           asset_content_type: application/x-msdownload
 #           max_releases: 1
 

@@ -7,9 +7,9 @@ if "%1"=="pack" (
     setlocal ENABLEDELAYEDEXPANSION 
     cd %WP%/deps/build
     for /f "tokens=2-4 delims=/ " %%a in ('date /t') do set build_date=%%c%%b%%a
-    echo packing deps: OrcaSlicer_dep_win64_!build_date!_vs2022.zip
+    echo packing deps: ElegooSlicer_dep_win64_!build_date!_vs2022.zip
 
-    %WP%/tools/7z.exe a OrcaSlicer_dep_win64_!build_date!_vs2022.zip OrcaSlicer_dep
+    %WP%/tools/7z.exe a ElegooSlicer_dep_win64_!build_date!_vs2022.zip ElegooSlicer_dep
     exit /b 0
 )
 
@@ -37,7 +37,7 @@ setlocal DISABLEDELAYEDEXPANSION
 cd deps
 mkdir %build_dir%
 cd %build_dir%
-set DEPS=%CD%/OrcaSlicer_dep
+set DEPS=%CD%/ElegooSlicer_dep
 
 if "%1"=="slicer" (
     GOTO :slicer
@@ -58,7 +58,7 @@ mkdir %build_dir%
 cd %build_dir%
 
 echo on
-cmake .. -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+cmake .. -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./ElegooSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
 cmake --build . --config %build_type% --target ALL_BUILD -- -m
 @echo off
 cd ..
