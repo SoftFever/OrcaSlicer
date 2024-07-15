@@ -1398,10 +1398,10 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
         field->toggle(toggle);
 }
 
-void Tab::toggle_line(const std::string &opt_key, bool toggle)
+void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index)
 {
     if (!m_active_page) return;
-    Line *line = m_active_page->get_line(opt_key);
+    Line *line = m_active_page->get_line(opt_key, opt_index);
     if (line) line->toggle_visible = toggle;
 };
 
@@ -6577,7 +6577,8 @@ void Tab::update_extruder_variants(int extruder_id)
             }
             m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
             m_extruder_switch->SetValue(extruder_id == 1);
-            m_extruder_switch->Enable();
+            m_extruder_switch->Enable(true);
+            assert(m_extruder_switch->IsEnabled());
         } else {
             m_extruder_switch->Enable(false);
             m_main_sizer->Show(m_extruder_switch, false);
@@ -6810,19 +6811,33 @@ void Page::refresh()
 Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*/) const
 {
     Field *field = nullptr;
+    auto   opt_key2 = opt_key;
+    if (opt_index >= 256) {
+        auto iter = m_opt_id_map.find(opt_key + '#' + std::to_string(opt_index - 256));
+        if (iter != m_opt_id_map.end())
+            opt_key2 = iter->second;
+    }
     for (auto opt : m_optgroups) {
-        field = opt->get_fieldc(opt_key, opt_index);
+        field = opt->get_fieldc(opt_key2, opt_index);
         if (field != nullptr) return field;
     }
     return field;
 }
 
-Line *Page::get_line(const t_config_option_key &opt_key)
+Line *Page::get_line(const t_config_option_key &opt_key, int opt_index)
 {
-    for (auto opt : m_optgroups)
-        if (Line* line = opt->get_line(opt_key))
-            return line;
-    return nullptr;
+    Line *line = nullptr;
+    auto   opt_key2 = opt_key;
+    if (opt_index >= 256) {
+        auto iter = m_opt_id_map.find(opt_key + '#' + std::to_string(opt_index - 256));
+        if (iter != m_opt_id_map.end())
+            opt_key2 = iter->second;
+    }
+    for (auto opt : m_optgroups) {
+        line = opt->get_line(opt_key2);
+        if (line != nullptr) return line;
+    }
+    return line;
 }
 
 bool Page::set_value(const t_config_option_key &opt_key, const boost::any &value)
@@ -7206,11 +7221,11 @@ ConfigManipulation Tab::get_config_manipulation()
     };
 
     auto cb_toggle_field = [this](const t_config_option_key& opt_key, bool toggle, int opt_index) {
-        return toggle_option(opt_key, toggle, opt_index);
+        return toggle_option(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
     };
 
-    auto cb_toggle_line = [this](const t_config_option_key& opt_key, bool toggle) {
-        return toggle_line(opt_key, toggle);
+    auto cb_toggle_line = [this](const t_config_option_key &opt_key, bool toggle, int opt_index) {
+        return toggle_line(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
     };
 
     auto cb_value_change = [this](const std::string& opt_key, const boost::any& value) {

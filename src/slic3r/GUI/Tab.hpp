@@ -96,7 +96,7 @@ public:
     void        sys_color_changed();
     void        refresh();
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
-    Line *      get_line(const t_config_option_key &opt_key);
+    Line *      get_line(const t_config_option_key &opt_key, int opt_index = -1);
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	// BBS. Add is_extruder_og parameter.
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
@@ -388,7 +388,7 @@ public:
 
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
     void            toggle_option(const std::string &opt_key, bool toggle, int opt_index = -1);
-    void            toggle_line(const std::string &opt_key, bool toggle); // BBS: hide some line
+    void            toggle_line(const std::string &opt_key, bool toggle, int opt_index = -1); // BBS: hide some line
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText, wxString text = wxEmptyString);
 	bool			current_preset_is_dirty() const;
 	bool			saved_preset_is_dirty() const;

@@ -42,14 +42,14 @@ void ConfigManipulation::toggle_field(const std::string &opt_key, const bool tog
     cb_toggle_field(opt_key, toggle, opt_index);
 }
 
-void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle)
+void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle, int opt_index)
 {
     if (local_config) {
         if (local_config->option(opt_key) == nullptr)
             return;
     }
     if (cb_toggle_line)
-        cb_toggle_line(opt_key, toggle);
+        cb_toggle_line(opt_key, toggle, opt_index);
 }
 
 void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrintConfig *config) {
