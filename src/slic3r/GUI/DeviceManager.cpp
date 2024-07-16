@@ -914,65 +914,36 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.ams_id = ams->first.c_str();
                 info.slot_id = tray->first.c_str();
             }
-            if (!ext_first && !ext_second)
-            {
-                tray_filaments.emplace(std::make_pair(tray_index, info));
-            }
-            else if (ams->second->nozzle == 0 && ext_second)
-            {
-                tray_filaments.emplace(std::make_pair(tray_index, info));
-            }
-            else if (ams->second->nozzle == 1 && ext_first)
+            if ((!ext_first && !ext_second) || (ams->second->nozzle == 0 && ext_first) || (ams->second->nozzle == 1 && ext_second))
             {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
     }
-    if (ext_first)
+
+    if (ext_first || ext_second)
     {
-        auto tray = vt_slot.begin();
-        if (tray != vt_slot.end())
+        for (auto tray : vt_slot)
         {
-            FilamentInfo info;
-            info.color = tray->color;
-            //info.color = "EEEEEEFF";
-            info.type = tray->get_filament_type();
-            //info.type = "PLA"; //temp change
-            info.tray_id = atoi(tray->id.c_str());
-            info.id = atoi(tray->id.c_str());
-            info.filament_id = tray->setting_id;
-            info.ctype = tray->ctype;
-            info.colors = tray->cols;
+            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && ext_first) || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && ext_second))
+            {
 
-            /*for new ams mapping*/
-            info.ams_id = tray->id.c_str();
-            info.slot_id = std::to_string(0);
-            tray_filaments.emplace(std::make_pair(info.tray_id, info));
-        }
+                FilamentInfo info;
+                info.color = tray.color;
+                //info.color = "EEEEEEFF";
+                info.type = tray.get_filament_type();
+                //info.type = "PLA"; //temp change
+                info.tray_id = atoi(tray.id.c_str());
+                info.id = atoi(tray.id.c_str());
+                info.filament_id = tray.setting_id;
+                info.ctype = tray.ctype;
+                info.colors = tray.cols;
 
-    }
-    if (ext_second)
-    {
-
-        auto tray = vt_slot.begin();
-        tray++;
-        if (tray != vt_slot.end())
-        {
-            FilamentInfo info;
-            info.color = tray->color;
-            //info.color = "EEEEEEFF";
-            info.type = tray->get_filament_type();
-            //info.type = "PLA"; //temp change
-            info.tray_id = atoi(tray->id.c_str());
-            info.id = atoi(tray->id.c_str());
-            info.filament_id = tray->setting_id;
-            info.ctype = tray->ctype;
-            info.colors = tray->cols;
-
-            /*for new ams mapping*/
-            info.ams_id = tray->id.c_str();
-            info.slot_id = std::to_string(0);
-            tray_filaments.emplace(std::make_pair(info.tray_id, info));
+                /*for new ams mapping*/
+                info.ams_id = tray.id.c_str();
+                info.slot_id = std::to_string(0);
+                tray_filaments.emplace(std::make_pair(info.tray_id, info));
+            }
         }
     }
 
