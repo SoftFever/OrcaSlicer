@@ -76,7 +76,6 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake
             brew install automake texinfo ninja libtool
             brew list
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
