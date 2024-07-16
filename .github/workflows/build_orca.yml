@@ -36,6 +36,10 @@ jobs:
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
 
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
+          
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |

@@ -41,6 +41,10 @@ jobs:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
 
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
+
       - name: setup dev on Windows
         if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
