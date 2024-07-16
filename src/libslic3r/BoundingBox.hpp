@@ -217,7 +217,9 @@ public:
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {}
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {}
 
-    BoundingBox inflated(coordf_t delta) const throw() { BoundingBox out(*this); out.offset(delta); return out; }
+    BoundingBox inflated(coordf_t delta) const noexcept { BoundingBox out(*this); out.offset(delta); return out; }
+
+    BoundingBox scaled(double factor) const;
 
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };

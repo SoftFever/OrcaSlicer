@@ -1049,7 +1049,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipGyroid:
         case ipHilbertCurve:
         case ipArchimedeanChords:
-        case ipOctagramSpiral: break;
+        case ipOctagramSpiral: 
+        case ipZigZag: break;
         }
 
         // Create the filler object.

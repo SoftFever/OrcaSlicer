@@ -139,6 +139,11 @@ public:
     // Do not sort the fill lines to optimize the print head path?
     virtual bool no_sort() const { return false; }
 
+    virtual bool is_self_crossing() = 0;
+
+    // Return true if infill has a consistent pattern between layers.
+    virtual bool has_consistent_pattern() const { return false; }
+
     // Perform the fill.
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
     virtual ThickPolylines fill_surface_arachne(const Surface* surface, const FillParams& params);
@@ -165,11 +170,11 @@ protected:
 
     // The expolygon may be modified by the method to avoid a copy.
     virtual void    _fill_surface_single(
-        const FillParams                & /* params */, 
+        const FillParams                & /* params */,
         unsigned int                      /* thickness_layers */,
-        const std::pair<float, Point>   & /* direction */, 
+        const std::pair<float, Point>   & /* direction */,
         ExPolygon                         /* expolygon */,
-        Polylines                       & /* polylines_out */) {};
+        Polylines                       & /* polylines_out */) {}
 
     // Used for concentric infill to generate ThickPolylines using Arachne.
     virtual void _fill_surface_single(const FillParams& params,

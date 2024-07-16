@@ -1352,8 +1352,11 @@ static SegmentIntersection& end_of_vertical_run(SegmentedIntersectionLine &il, S
 	return const_cast<SegmentIntersection&>(end_of_vertical_run(std::as_const(il), std::as_const(start)));
 }
 
-static void traverse_graph_generate_polylines(
-	const ExPolygonWithOffset& poly_with_offset, const FillParams& params, const coord_t link_max_length, std::vector<SegmentedIntersectionLine>& segs, Polylines& polylines_out)
+static void traverse_graph_generate_polylines(const ExPolygonWithOffset              &poly_with_offset,
+                                              const FillParams                       &params,
+                                              std::vector<SegmentedIntersectionLine> &segs,
+                                              const bool                              consistent_pattern,
+                                              Polylines                              &polylines_out)
 {
     // For each outer only chords, measure their maximum distance to the bow of the outer contour.
     // Mark an outer only chord as consumed, if the distance is low.
@@ -1387,34 +1390,28 @@ static void traverse_graph_generate_polylines(
         pointLast = polylines_out.back().points.back();
     for (;;) {
         if (i_intersection == -1) {
-            // The path has been interrupted. Find a next starting point, closest to the previous extruder position.
-            coordf_t dist2min = std::numeric_limits<coordf_t>().max();
-            for (int i_vline2 = 0; i_vline2 < int(segs.size()); ++ i_vline2) {
+            // The path has been interrupted. Find a next starting point.
+            for (int i_vline2 = 0; i_vline2 < int(segs.size()); ++i_vline2) {
                 const SegmentedIntersectionLine &vline = segs[i_vline2];
-                if (! vline.intersections.empty()) {
+                if (!vline.intersections.empty()) {
                     assert(vline.intersections.size() > 1);
                     // Even number of intersections with the loops.
                     assert((vline.intersections.size() & 1) == 0);
                     assert(vline.intersections.front().type == SegmentIntersection::OUTER_LOW);
-                    for (int i = 0; i < int(vline.intersections.size()); ++ i) {
-                        const SegmentIntersection& intrsctn = vline.intersections[i];
+
+                    // For infill that needs to be consistent between layers (like Zig Zag),
+                    // we are switching between forward and backward passes based on the line index.
+                    const bool forward_pass = !consistent_pattern || (i_vline2 % 2 == 0);
+                    for (int i = 0; i < int(vline.intersections.size()); ++i) {
+                        const int                  intrsctn_idx = forward_pass ? i : int(vline.intersections.size()) - i - 1;
+                        const SegmentIntersection &intrsctn     = vline.intersections[intrsctn_idx];
                         if (intrsctn.is_outer()) {
-                            assert(intrsctn.is_low() || i > 0);
-                            bool consumed = intrsctn.is_low() ?
-                                intrsctn.consumed_vertical_up :
-                                vline.intersections[i - 1].consumed_vertical_up;
-                            if (! consumed) {
-                                coordf_t dist2 = sqr(coordf_t(pointLast(0) - vline.pos)) + sqr(coordf_t(pointLast(1) - intrsctn.pos()));
-                                if (dist2 < dist2min) {
-                                    dist2min = dist2;
-                                    i_vline = i_vline2;
-                                    i_intersection = i;
-                                    //FIXME We are taking the first left point always. Verify, that the caller chains the paths
-                                    // by a shortest distance, while reversing the paths if needed.
-                                    //if (polylines_out.empty())
-                                        // Initial state, take the first line, which is the first from the left.
-                                    goto found;
-                                }
+                            assert(intrsctn.is_low() || intrsctn_idx > 0);
+                            const bool consumed = intrsctn.is_low() ? intrsctn.consumed_vertical_up : vline.intersections[intrsctn_idx - 1].consumed_vertical_up;
+                            if (!consumed) {
+                                i_vline        = i_vline2;
+                                i_intersection = intrsctn_idx;
+                                goto found;
                             }
                         }
                     }
@@ -1487,9 +1484,13 @@ static void traverse_graph_generate_polylines(
             // 1) Find possible connection points on the previous / next vertical line.
         	int  i_prev = it->left_horizontal();
         	int  i_next = it->right_horizontal();
-            bool intersection_prev_valid = intersection_on_prev_vertical_line_valid(segs, i_vline, i_intersection);
+
+            // To ensure pattern consistency between layers for Zig Zag infill, we always
+            // try to connect to the next vertical line and never to the previous vertical line.
+            bool intersection_prev_valid = intersection_on_prev_vertical_line_valid(segs, i_vline, i_intersection) && !consistent_pattern;
             bool intersection_next_valid = intersection_on_next_vertical_line_valid(segs, i_vline, i_intersection);
             bool intersection_horizontal_valid = intersection_prev_valid || intersection_next_valid;
+
             // Mark both the left and right connecting segment as consumed, because one cannot go to this intersection point as it has been consumed.
             if (i_prev != -1)
                 segs[i_vline - 1].intersections[i_prev].consumed_perimeter_right = true;
@@ -2737,6 +2738,17 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
     }
 }
 
+// The extended bounding box of the whole object that covers any rotation of every layer.
+BoundingBox FillRectilinear::extended_object_bounding_box() const {
+    BoundingBox out = this->bounding_box;
+    out.merge(Point(out.min.y(), out.min.x()));
+    out.merge(Point(out.max.y(), out.max.x()));
+
+    // The bounding box is scaled by sqrt(2.) to ensure that the bounding box
+    // covers any possible rotations.
+    return out.scaled(sqrt(2.));
+}
+
 bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
 {
     // At the end, only the new polylines will be rotated back.
@@ -2766,11 +2778,14 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
         return true;
     }
 
-    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
+    // For infill that needs to be consistent between layers (like Zig Zag),
+    // we use bounding box of whole object to match vertical lines between layers.
+    BoundingBox bounding_box_src = poly_with_offset.bounding_box_src();
+    BoundingBox bounding_box     = this->has_consistent_pattern() ? this->extended_object_bounding_box() : bounding_box_src;
 
     // define flow spacing according to requested density
     if (params.full_infill() && !params.dont_adjust) {
-        line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
+        line_spacing = this->_adjust_solid_spacing(bounding_box_src.size().x(), line_spacing);
         this->spacing = unscale<double>(line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
@@ -2848,8 +2863,9 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 		    std::vector<MonotonicRegionLink> path = chain_monotonic_regions(regions, poly_with_offset, segs, rng);
 		    polylines_from_paths(path, poly_with_offset, segs, polylines_out);
         }
-	} else
-		traverse_graph_generate_polylines(poly_with_offset, params, this->link_max_length, segs, polylines_out);
+	} else {
+		traverse_graph_generate_polylines(poly_with_offset, params, segs, this->has_consistent_pattern(), polylines_out);
+    }
 
 #ifdef SLIC3R_DEBUG
     {
