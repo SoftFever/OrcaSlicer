@@ -2445,7 +2445,12 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
 // ORCA:
 // Inner Outer Inner wall ordering mode perimeter order optimisation functions
 
-// Function to convert the junctions of an ExtrusionLine to a vector of Points
+/**
+ * @brief Converts the junctions of an ExtrusionLine to a vector of Points.
+ *
+ * @param line The input ExtrusionLine containing junctions to be converted.
+ * @return std::vector<Point> A vector containing points extracted from the junctions of the input ExtrusionLine.
+ */
 std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) {
     std::vector<Point> points;
     for (const auto& junction : line.junctions) {
@@ -2454,7 +2459,13 @@ std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) 
     return points;
 }
 
-// Function to calculate the minimum distance between any two points from two sets of points
+/**
+ * @brief Calculates the minimum distance between any two points from two sets of points.
+ *
+ * @param A The first set of points.
+ * @param B The second set of points.
+ * @return double The minimum distance between any two points from sets A and B.
+ */
 double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>& B) {
     double min_distance = std::numeric_limits<double>::infinity();
     for (const auto& a : A) {
@@ -2466,7 +2477,14 @@ double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>&
     return min_distance;
 }
 
-// Function to calculate the proportion of points in B that are within the threshold distance of any point in A
+/**
+ * @brief Calculates the proportion of points in B that are within the threshold distance of any point in A.
+ *
+ * @param A The first set of points.
+ * @param B The second set of points.
+ * @param threshold The distance threshold to consider for proximity.
+ * @return double The proportion of points in B within the threshold distance of any point in A.
+ */
 double proportionWithinThresholdIOI(const std::vector<Point>& A, const std::vector<Point>& B, double threshold) {
     size_t count_within_threshold = 0;
     for (const auto& b : B) {
@@ -2480,7 +2498,15 @@ double proportionWithinThresholdIOI(const std::vector<Point>& A, const std::vect
     return static_cast<double>(count_within_threshold) / B.size();
 }
 
-// Function to find all perimeters touching a given set of reference points with at least 20% proximity
+/**
+ * @brief Finds all perimeters touching a given set of reference points with at least 20% proximity.
+ *
+ * @param entities The list of PerimeterGeneratorArachneExtrusion entities.
+ * @param referenceIndices A set of indices representing the reference points.
+ * @param threshold The distance threshold to consider for proximity.
+ * @param onlyInset2OrMore Flag to consider only perimeters with inset_idx >= 2.
+ * @return std::vector<int> A vector of indices representing the touching perimeters.
+ */
 std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGeneratorArachneExtrusion>& entities, const std::unordered_set<int>& referenceIndices, size_t threshold, bool onlyInset2OrMore) {
     std::unordered_set<int> touchingIndices;
     const double proximityRatioThreshold = 0.20;
@@ -2510,10 +2536,17 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
     return std::vector<int>(touchingIndices.begin(), touchingIndices.end());
 }
 
-// Function to reorder perimeters based on the proximity to the reference perimeter and second level proximity
-// It is implementing a process similar to bredth first traveral in tree structures and here describes the process of finding all perimeters
-// touching the external perimeter first and then finding all perimeters touching these new ones.
-// This approach ensures a level-by-level traversal, similar to how BFS works in graph theory.
+/**
+ * @brief Reorders perimeters based on proximity to the reference perimeter using a BFS-like approach.
+ *
+ * This approach finds all perimeters touching the external perimeter first and then finds all perimeters touching these new ones.
+ * It ensures a level-by-level traversal, similar to BFS in graph theory.
+ *
+ * @param entities The list of PerimeterGeneratorArachneExtrusion entities.
+ * @param referenceIndex The index of the reference perimeter.
+ * @param threshold The distance threshold to consider for proximity.
+ * @return std::vector<PerimeterGeneratorArachneExtrusion> The reordered list of perimeters based on proximity.
+ */
 std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(
     std::vector<PerimeterGeneratorArachneExtrusion> entities, int referenceIndex, size_t threshold) {
 
@@ -2578,7 +2611,14 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
     return reordered;
 }
 
-// Function to reorder the vector to bring contours to the front
+/**
+ * @brief Reorders the vector to bring contours to the front.
+ *
+ * This function uses a stable partition to move all contour elements to the front of the vector,
+ * while maintaining the relative order of non-contour elements.
+ *
+ * @param ordered_extrusions The vector of PerimeterGeneratorArachneExtrusion to reorder.
+ */
 void bringContoursToFront(std::vector<PerimeterGeneratorArachneExtrusion>& ordered_extrusions) {
     std::stable_partition(ordered_extrusions.begin(), ordered_extrusions.end(), [](const PerimeterGeneratorArachneExtrusion& extrusion) {
         return extrusion.extrusion->is_contour();
