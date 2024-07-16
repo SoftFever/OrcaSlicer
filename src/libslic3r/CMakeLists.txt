@@ -586,6 +586,10 @@ target_link_libraries(libslic3r
     opencv_world
     )
 
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(libslic3r PUBLIC BOOST_ALL_DYN_LINK)
+endif()
+
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)
     if (NOT APPLE)

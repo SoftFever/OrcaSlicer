@@ -44,6 +44,22 @@ modules:
       - type: archive
         url: http://mirrors.ircam.fr/pub/x.org/individual/app/xprop-1.2.5.tar.gz
         sha256: b7bf6b6be6cf23e7966a153fc84d5901c14f01ee952fbd9d930aa48e2385d670
+  - name: python-flit_core
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/c4/e6/c1ac50fe3eebb38a155155711e6e864e254ce4b6e17fe2429b4c4d5b9e80/flit_core-3.9.0.tar.gz
+        sha256: 72ad266176c4a3fcfab5f2930d76896059851240570ce9a98733b658cb786eba
+  - name: python-packaging
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/51/65/50db4dda066951078f0a96cf12f4b9ada6e4b811516bf0262c0f4f7064d4/packaging-24.1.tar.gz
+        sha256: 026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002
   - name: python-setuptools_scm
     buildsystem: simple
     build-commands:

@@ -12,7 +12,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
-
 #include <float.h>
 
 namespace {
@@ -6120,7 +6119,7 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
         auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(thumbnails_str, extention);
 
         if (errors != enum_bitmask<ThumbnailError>()) {
-            std::string error_str = "\n" + format("Invalid value provided for parameter %1%: %2%", "thumbnails", thumbnails_str);
+            std::string error_str = "\n" + Slic3r::format("Invalid value provided for parameter %1%: %2%", "thumbnails", thumbnails_str);
             error_str += GCodeThumbnails::get_error_string(errors);
             throw BadOptionValueException(error_str);
         }
@@ -6129,7 +6128,7 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
             const auto& extentions = ConfigOptionEnum<GCodeThumbnailsFormat>::get_enum_names();
             thumbnails_str.clear();
             for (const auto& [ext, size] : thumbnails_list)
-                thumbnails_str += format("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(ext)]);
+                thumbnails_str += Slic3r::format("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(ext)]);
             thumbnails_str.resize(thumbnails_str.length() - 2);
 
             config.set_key_value("thumbnails", new ConfigOptionString(thumbnails_str));
