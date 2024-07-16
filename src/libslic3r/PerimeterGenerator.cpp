@@ -2445,7 +2445,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
 // ORCA:
 // Inner Outer Inner wall ordering mode perimeter order optimisation functions
 
-// Inner Outer Inner wall ordering mode- Function to convert the junctions of an ExtrusionLine to a vector of Points
+// Function to convert the junctions of an ExtrusionLine to a vector of Points
 std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) {
     std::vector<Point> points;
     for (const auto& junction : line.junctions) {
@@ -2454,7 +2454,7 @@ std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) 
     return points;
 }
 
-// Inner Outer Inner wall ordering mode - Function to calculate the minimum distance between any two points from two sets of points
+// Function to calculate the minimum distance between any two points from two sets of points
 double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>& B) {
     double min_distance = std::numeric_limits<double>::infinity();
     for (const auto& a : A) {
@@ -2466,72 +2466,123 @@ double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>&
     return min_distance;
 }
 
-// Inner Outer Inner wall ordering mode - Function to calculate the proportion of points in B that are within the threshold distance of any point in A
+// Function to calculate the proportion of points in B that are within the threshold distance of any point in A
 double proportionWithinThresholdIOI(const std::vector<Point>& A, const std::vector<Point>& B, double threshold) {
     size_t count_within_threshold = 0;
     for (const auto& b : B) {
         for (const auto& a : A) {
             if (a.distance_to(b) < threshold) {
                 ++count_within_threshold;
-                break;
+                break; // Stop checking once a point within threshold is found
             }
         }
     }
     return static_cast<double>(count_within_threshold) / B.size();
 }
 
-// Inner Outer Inner wall ordering mode - Function to find the closest perimeter to a reference perimeter within a threshold and with at least 20% of points proximate
-int findClosestPerimeterIndexIOI(const std::vector<PerimeterGeneratorArachneExtrusion>& entities, const PerimeterGeneratorArachneExtrusion& referenceEntity, size_t threshold, bool onlyInset2OrMore) {
-    std::vector<Point> referencePoints = extrusionLineToPointsIOI(*referenceEntity.extrusion);
-    int closestIndex = -1;
-    double minDistance = static_cast<double>(threshold);
+// Function to find all perimeters touching a given set of reference points with at least 20% proximity
+std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGeneratorArachneExtrusion>& entities, const std::unordered_set<int>& referenceIndices, size_t threshold, bool onlyInset2OrMore) {
+    std::unordered_set<int> touchingIndices;
     const double proximityRatioThreshold = 0.20;
 
-    for (size_t i = 0; i < entities.size(); ++i) {
-        const auto& entity = entities[i];
-        if (entity.extrusion->is_closed && entity.extrusion != referenceEntity.extrusion) {
-            if (onlyInset2OrMore && entity.extrusion->inset_idx < 2) {
-                continue;
-            }
-            std::vector<Point> points = extrusionLineToPointsIOI(*entity.extrusion);
-            double distance = minimumDistanceIOI(referencePoints, points);
-            double proportion = proportionWithinThresholdIOI(referencePoints, points, minDistance);
-            if (distance < minDistance && proportion >= proximityRatioThreshold) {
-                minDistance = distance;
-                closestIndex = static_cast<int>(i);
+    for (const int refIdx : referenceIndices) {
+        const auto& referenceEntity = entities[refIdx];
+        std::vector<Point> referencePoints = extrusionLineToPointsIOI(*referenceEntity.extrusion);
+        for (size_t i = 0; i < entities.size(); ++i) {
+            // Skip already considered references
+            if (referenceIndices.count(i) > 0) continue;
+
+            const auto& entity = entities[i];
+            if (entity.extrusion != referenceEntity.extrusion) {
+                if (onlyInset2OrMore && entity.extrusion->inset_idx < 2) {
+                    continue; // Skip if only considering inset_idx >= 2
+                }
+                std::vector<Point> points = extrusionLineToPointsIOI(*entity.extrusion);
+                double distance = minimumDistanceIOI(referencePoints, points);
+                double proportion = proportionWithinThresholdIOI(referencePoints, points, threshold);
+                // Add to touchingIndices if within threshold distance and proportion is sufficient
+                if (distance < threshold && proportion >= proximityRatioThreshold) {
+                    touchingIndices.insert(i);
+                }
             }
         }
     }
-    return closestIndex;
+    return std::vector<int>(touchingIndices.begin(), touchingIndices.end());
 }
 
-// Inner Outer Inner wall ordering mode - Function to reorder perimeters based on the proximity to the reference perimeter within a threshold
-std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximity( std::vector<PerimeterGeneratorArachneExtrusion> entities, int referenceIndex, size_t threshold)
-{
+// Function to reorder perimeters based on the proximity to the reference perimeter and second level proximity
+// It is implementing a process similar to bredth first traveral in tree structures and here describes the process of finding all perimeters
+// touching the external perimeter first and then finding all perimeters touching these new ones.
+// This approach ensures a level-by-level traversal, similar to how BFS works in graph theory.
+std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(
+    std::vector<PerimeterGeneratorArachneExtrusion> entities, int referenceIndex, size_t threshold) {
+
     std::vector<PerimeterGeneratorArachneExtrusion> reordered;
-    reordered.push_back(entities[referenceIndex]);
-    entities.erase(entities.begin() + referenceIndex);
+    std::unordered_set<int> firstLevelIndices;
+    firstLevelIndices.insert(referenceIndex);
 
-    bool foundInset2 = false;
+    // Find first level touching perimeters
+    std::vector<int> firstLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, firstLevelIndices, threshold, false);
 
-    while (true) {
-        int closestIndex = findClosestPerimeterIndexIOI(entities, reordered.back(), threshold, foundInset2);
-        if (closestIndex == -1) {
-            break;
-        }
-        reordered.push_back(entities[closestIndex]);
-        if (entities[closestIndex].extrusion->inset_idx >= 2) {
-            foundInset2 = true;  // Once we find the first inset_idx >= 2, we only consider inset_idx >= 2
-        }
-        entities.erase(entities.begin() + closestIndex);
+    // Bring the largest first level perimeter to the front
+    // The longest first neighbour is most likely the dominant proximate perimeter
+    // hence printing it immediately after the external perimeter should speed things up
+    if (!firstLevelTouchingIndices.empty()) {
+        auto maxIt = std::max_element(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), [&entities](int a, int b) {
+            return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
+        });
+        std::iter_swap(maxIt, firstLevelTouchingIndices.begin());
     }
 
-    // Append any remaining entities that were not within the threshold
-    for (const auto& entity : entities) {
-        reordered.push_back(entity);
+    // Insert first level perimeters into reordered list
+    reordered.push_back(entities[referenceIndex]);
+    for (int idx : firstLevelTouchingIndices) {
+        reordered.push_back(entities[idx]);
+    }
+
+    // Find second level touching perimeters
+    std::unordered_set<int> secondLevelIndices(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end());
+    std::vector<int> secondLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, secondLevelIndices, threshold, true);
+
+    // Bring the largest second level perimeter to the end
+    // The longest second level perimeter is most likely the dominant second internal perimeter
+    // hence printing it immediately before the external perimeter should give the nozzle the max
+    // opportunity to equalize pressure and minimize travel to the external perimeter.
+    if (!secondLevelTouchingIndices.empty()) {
+        auto maxIt = std::max_element(secondLevelTouchingIndices.begin(), secondLevelTouchingIndices.end(), [&entities](int a, int b) {
+            return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
+        });
+        std::iter_swap(maxIt, secondLevelTouchingIndices.end() - 1);
+    }
+
+    // Insert second level perimeters into reordered list
+    for (int idx : secondLevelTouchingIndices) {
+        // Ensure no duplicates
+        if (std::find(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), idx) == firstLevelTouchingIndices.end()) {
+            reordered.push_back(entities[idx]);
+        }
+    }
+
+    // Append any remaining entities that were not included
+    std::unordered_set<int> includedIndices;
+    includedIndices.insert(referenceIndex);
+    includedIndices.insert(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end());
+    includedIndices.insert(secondLevelTouchingIndices.begin(), secondLevelTouchingIndices.end());
+
+    for (size_t i = 0; i < entities.size(); ++i) {
+        if (includedIndices.count(i) == 0) {
+            reordered.push_back(entities[i]);
+        }
     }
 
     return reordered;
+}
+
+// Function to reorder the vector to bring contours to the front
+void bringContoursToFront(std::vector<PerimeterGeneratorArachneExtrusion>& ordered_extrusions) {
+    std::stable_partition(ordered_extrusions.begin(), ordered_extrusions.end(), [](const PerimeterGeneratorArachneExtrusion& extrusion) {
+        return extrusion.extrusion->is_contour();
+    });
 }
 // ORCA:
 // Inner Outer Inner wall ordering mode perimeter order optimisation functions ended
@@ -2867,10 +2918,16 @@ void PerimeterGenerator::process_arachne()
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
                 int outer, first_internal, second_internal, max_internal, current_perimeter; // allocate index values
                 
+                if(layer_id==39){
+                    printf("Here");
+                }
+                // To address any remaining scenarios where the contour is not first on the list as arachne sometimes reorders the perimeters when clustering
+                // for OI mode that is used the basis for IOI
+                bringContoursToFront(ordered_extrusions);
                 // Re-order extrusions based on distance
                 // Greedy algorithm, will aggresively optimise for the appearance of the outermost perimeter
                 coord_t sort_dist = this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing();
-                ordered_extrusions = reorderIOIPerimetersByProximity(ordered_extrusions, 0, sort_dist); // Index 0 is always the outermost contour (external model surface)
+                ordered_extrusions = reorderIOIPerimetersByProximityBFS(ordered_extrusions, 0, sort_dist); // Index 0 is always the outermost contour (external model surface)
                 
                 // Initiate reorder sequence to bring any index 1 (first internal) perimeters ahead of any second internal perimeters
                 // Leaving these out of order will result in print defects on the external wall as they will be extruded prior to any
