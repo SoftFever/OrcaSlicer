@@ -2480,11 +2480,7 @@ void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &tran
         return;
 
     Points pts;
-    Vec3d rotation = transformation.get_rotation();
-    Vec3d mirror = transformation.get_mirror();
-    Vec3d scale = transformation.get_scaling_factor();
-    //rotation(2) = 0.f;
-    Transform3d new_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, scale, mirror);
+    Transform3d new_matrix = transformation.get_matrix_no_offset();
 
     pts.reserve(its.vertices.size());
     // Using the shared vertices should be a bit quicker than using the STL faces.
@@ -3119,8 +3115,8 @@ double Model::getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
     }
     return thermalLength;
 }
-// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered
-double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
+// max printing speed, difference in bed temperature and envirument temperature and bed adhesion coefficients are considered
+double ModelInstance::get_auto_brim_width(double deltaT, double adhesion) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
     double maxSpeed = Model::findMaxSpeed(object);
@@ -3131,7 +3127,7 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     double thermalLength = sqrt(bbox_size(0)* bbox_size(0) + bbox_size(1)* bbox_size(1));
     double thermalLengthRef = Model::getThermalLength(object->volumes);
 
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
+    double brim_width = adhesion * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;
@@ -3217,10 +3213,10 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
-    Transform3d trafo_instance =
-        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation, get_scaling_factor(), get_mirror());
-
-    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    Geometry::Transformation t(m_transformation);
+    t.set_offset(get_offset().z() * Vec3d::UnitZ());
+    t.set_rotation(rotation);
+    Polygon p = get_object()->convex_hull_2d(t.get_matrix());
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};

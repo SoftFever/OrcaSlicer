@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -600,7 +600,7 @@ msgstr "Pokaż siatkę"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Nie można zastosować w czasie podglądu procesu."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -669,7 +669,7 @@ msgstr "Powierzchnia"
 msgid "Horizontal text"
 msgstr "Tekst poziomy"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Przesuń myszką w górę lub w dół"
 
 msgid "Rotate text"
@@ -1014,7 +1014,7 @@ msgstr "Orientuj tekst w moim kierunku."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Nie można załadować dokładnie tej samej czcionki (\"%1%\"). Aplikacja "
@@ -1652,7 +1652,7 @@ msgstr "Szerokość ekstruzji"
 msgid "Wipe options"
 msgstr "Opcje czyszczenia"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Przyczepność do podłoża"
 
 msgid "Add part"
@@ -1937,12 +1937,6 @@ msgstr "Automatyczna orientacja"
 msgid "Auto orient the object to improve print quality."
 msgstr "Automatyczna orientacja obiektu w celu poprawy jakości druku."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Podziel wybrany obiekt na wiele obiektów"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Podziel wybrany obiekt na wiele części"
-
 msgid "Select All"
 msgstr "Zaznacz wszystko"
 
@@ -2213,8 +2207,8 @@ msgstr[0] "Następujący obiekt modelu został naprawiony"
 msgstr[1] "Następujące obiekty modelu zostały naprawione"
 msgstr[2] "Następujące obiekty modelu zostały naprawione"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Nie udało się naprawić następującego obiektu modelu"
 msgstr[1] "Nie udało się naprawić następujących obiektów modelu"
 msgstr[2] "Nie udało się naprawić następujących obiektów modelu"
@@ -2676,7 +2670,7 @@ msgstr "Przekroczono limit czasu wysyłania zadania drukowania."
 msgid "Service Unavailable"
 msgstr "Usługa niedostępna"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Nieznany błąd."
 
 msgid "Sending print configuration"
@@ -3678,7 +3672,7 @@ msgstr ""
 "Wartość zostanie zresetowana do 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5881,6 +5875,9 @@ msgstr "Porównaj profile"
 msgid "View all object's settings"
 msgstr "Wyświetl wszystkie ustawienia obiektów"
 
+msgid "Material settings"
+msgstr "Ustawienia materiału"
+
 msgid "Remove current plate (if not last one)"
 msgstr "Usuń bieżący stół (jeśli nie jest ostatnim)"
 
@@ -5956,6 +5953,9 @@ msgstr "Wybierz filamenty do użycia"
 
 msgid "Search plate, object and part."
 msgstr "Szukaj stołu, obiektu i części."
+
+msgid "Pellets"
+msgstr "Granulat"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6199,7 +6199,7 @@ msgstr ""
 "Plik %s już istnieje\n"
 "Czy chcesz go zastąpić?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Potwierdź Zapisz jako"
 
 msgid "Delete object which is a part of cut object"
@@ -6422,7 +6422,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Nie można wykonać operacji boolowskich na siatkach modelu. Eksportowane będą "
 "tylko części dodatnie"
@@ -6578,6 +6578,21 @@ msgstr "Przeglądaj"
 
 msgid "Choose Download Directory"
 msgstr "Wybierz Katalog Pobierania"
+
+msgid "Associate"
+msgstr "Powiąż"
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr "aktualne skojarzenie z OrcaSlicer, aby Orca mogła otwierać modele z"
+
+msgid "Current Association: "
+msgstr "Aktualnie powiązano:"
+
+msgid "Current Instance"
+msgstr "Aktualna instancja"
+
+msgid "Current Instance Path: "
+msgstr "Aktualna ścieżka instancji:"
 
 msgid "General Settings"
 msgstr "Ustawienia Ogólne"
@@ -6798,42 +6813,6 @@ msgstr "Powiąż linki z OrcaSlicer"
 
 msgid "Associate URLs to OrcaSlicer"
 msgstr "Powiąż URL z OrcaSlicer"
-
-msgid "Current association: "
-msgstr "Aktualnie powiązano: "
-
-msgid "Associate prusaslicer://"
-msgstr "z prusaslicer://"
-
-msgid "Not associated to any application"
-msgstr "Nie skojarzony z żadną aplikacją"
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-"Powiąż OrcaSlicer z linkami prusaslicer://, aby Orca mogła otwierać modele z "
-"Printable.com"
-
-msgid "Associate bambustudio://"
-msgstr "z bambustudio://"
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-"Powiąż OrcaSlicer z linkami bambustudio://, aby Orca mogła otwierać modele z "
-"makerworld.com"
-
-msgid "Associate cura://"
-msgstr "z cura://"
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
-msgstr ""
-"Powiąż OrcaSlicer z linkami cura://, aby Orca mogła otwierać modele z "
-"thingiverse.com"
 
 msgid "Maximum recent projects"
 msgstr "Maksymalna liczba ostatnich projektów"
@@ -10950,6 +10929,26 @@ msgstr ""
 "Średnica filamentu jest używana do obliczania ekstruzji w G-code, więc jest "
 "bardzo ważna i powinna być dokładna"
 
+msgid "Pellet flow coefficient"
+msgstr "Współczynnik przepływu granulatu"
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+"Współczynnik przepływu granulatu (Pellet) jest empirycznie wyprowadzony i "
+"umożliwia obliczanie objętości w drukarkach korzystających z granulatów.\n"
+"\n"
+"Wewnętrznie jest przeliczany na średnicę filamentu. Wszystkie pozostałe "
+"obliczenia objętości pozostają bez zmian.\n"
+"\n"
+"średnica_filamentu = sqrt( (4 * współczynnik_przepływu_granulatu) / PI )"
+
 msgid "Shrinkage"
 msgstr "Skurcz"
 
@@ -11404,7 +11403,7 @@ msgstr "Wysokość pierwszej warstwy"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Wysokość pierwszej warstwy. Nieznaczne zwiększenie grubości pierwszej "
 "warstwy może poprawić przyczepność do stołu"
@@ -11739,6 +11738,12 @@ msgstr "Z jakim rodzajem G-code drukarka jest kompatybilna"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr "Drukarka do druku granulatem"
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr "Włącz tę opcję, jeśli Twoja drukarka używa granulatu zamiast filamentu"
+
 msgid "Support multi bed types"
 msgstr "Wspiera różne typy płyt roboczych"
 
@@ -11859,6 +11864,51 @@ msgstr "Głębokość zazębiania się podzielonego na segmenty obszaru"
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Głębokość blokowania obszaru segmentowego. Wartość zero wyłącza tę funkcję."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Rodzaj prasowania"
@@ -12590,6 +12640,16 @@ msgstr "Ukośny"
 msgid "Spiral"
 msgstr "Spiralny"
 
+msgid "Traveling angle"
+msgstr "Kąt ruchu"
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
+"Kąt ruchu dla typu Z-hop: \"Ukośny\" i \"Spiralny\". Ustawienie go na 90° "
+"skutkuje standardowym uniesieniem."
+
 msgid "Only lift Z above"
 msgstr "Z-hop tylko powyżej"
 
@@ -12701,7 +12761,7 @@ msgid "Aligned"
 msgstr "Wyrównany"
 
 msgid "Back"
-msgstr "Z tyłu"
+msgstr "Tył"
 
 msgid "Random"
 msgstr "Losowo"
@@ -15209,7 +15269,7 @@ msgid "PETG"
 msgstr "PETG"
 
 msgid "PCTG"
-msgstr ""
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
@@ -15310,7 +15370,7 @@ msgid "Upload to storage"
 msgstr "Prześlij do pamięci"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Przełącz na zakładkę \"Urządzenie\" po przesłaniu zadania"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15570,7 +15630,7 @@ msgstr "Importuj Profil wstępny"
 msgid "Create Type"
 msgstr "Utwórz Typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Nie znaleziono modelu, proszę wybrać dostawcę ponownie."
 
 msgid "Select Model"
@@ -15622,10 +15682,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "Model drukarki nie został znaleziony, proszę wybrać ponownie"
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Średnica dyszy nie została znaleziona, proszę wybrać ponownie."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Profil drukarki nie został znaleziony, proszę wybrać ponownie."
 
 msgid "Printer Preset"
@@ -16002,10 +16062,11 @@ msgid "Refresh Printers"
 msgstr "Odśwież drukarki"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Wyświetl interfejs użytkownika serwera druku w zakładce \"Urządzenie\""
 
 msgid "Replace the BambuLab's device tab with print host webui"
 msgstr ""
+"Zamień zakładkę urządzeń BambuLab na interfejs użytkownika serwera druku"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16453,8 +16514,8 @@ msgstr "Pomyślnie połączono z SimplyPrint!"
 msgid "Could not connect to SimplyPrint"
 msgstr "Nie można połączyć się z SimplyPrint"
 
-msgid "Internel error"
-msgstr ""
+msgid "Internal error"
+msgstr "Błąd wewnętrzny"
 
 msgid "Unknown error"
 msgstr "Nieznany błąd"
@@ -16869,6 +16930,42 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
+
+#~ msgid "Current association: "
+#~ msgstr "Aktualnie powiązano: "
+
+#~ msgid "Associate prusaslicer://"
+#~ msgstr "z prusaslicer://"
+
+#~ msgid "Not associated to any application"
+#~ msgstr "Nie skojarzony z żadną aplikacją"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "models from Printable.com"
+#~ msgstr ""
+#~ "Powiąż OrcaSlicer z linkami prusaslicer://, aby Orca mogła otwierać "
+#~ "modele z Printable.com"
+
+#~ msgid "Associate bambustudio://"
+#~ msgstr "z bambustudio://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with bambustudio:// links so that Orca can open "
+#~ "models from makerworld.com"
+#~ msgstr ""
+#~ "Powiąż OrcaSlicer z linkami bambustudio://, aby Orca mogła otwierać "
+#~ "modele z makerworld.com"
+
+#~ msgid "Associate cura://"
+#~ msgstr "z cura://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with cura:// links so that Orca can open models from "
+#~ "thingiverse.com"
+#~ msgstr ""
+#~ "Powiąż OrcaSlicer z linkami cura://, aby Orca mogła otwierać modele z "
+#~ "thingiverse.com"
 
 #~ msgid ""
 #~ "File size exceeds the 100MB upload limit. Please upload your file through "
@@ -18416,12 +18513,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Jeśli pierwszy zaznaczony element to część, to drugi powinien być częścią "
 #~ "tego samego obiektu."
-
-#~ msgid "Failed to repair following model object"
-#~ msgid_plural "Failed to repair following model objects"
-#~ msgstr[0] "Nie udało się naprawić następującego obiektu modelu"
-#~ msgstr[1] "Nie udało się naprawić następujących obiektów modelu"
-#~ msgstr[2] "Nie udało się naprawić następujących obiektów modelu"
 
 #~ msgid ""
 #~ "One cell can only be copied to one or multiple cells in the same column."

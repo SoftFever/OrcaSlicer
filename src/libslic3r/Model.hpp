@@ -1322,7 +1322,7 @@ public:
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
     //BBS
-    double get_auto_brim_width(double deltaT, double adhension) const;
+    double get_auto_brim_width(double deltaT, double adhesion) const;
     double get_auto_brim_width() const;
     // BBS
     Polygon convex_hull_2d();

@@ -10,13 +10,20 @@
   1. [Max Volumetric speed](#Max-Volumetric-speed)
   2. [VFA]  
 
-**NOTE**: After completing the calibration process, remember to create a new project in order to exit the calibration mode.  
-**NOTE2**: @ItsDeidara has made a webpage to help with the calculation. Check it out if those equations give you a headache [here](https://orcalibrate.com/).
+> [!IMPORTANT]
+> After completing the calibration process, remember to create a new project in order to exit the calibration mode.
+
+> [!TIP]
+> @ItsDeidara has made a webpage to help with the calculation. Check it out if those equations give you a headache [here](https://orcalibrate.com/).
+
 # Flow rate
- ##### *NOTE: For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.*  
- ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)  
-----------------------------------------
+> [!WARNING]
+> For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
+> 
+> ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)  
+
 ![flowrate](./images/flow-calibration.gif)
+
 Calibrating the flow rate involves a two-step process.  
 Steps
 1. Select the printer, filament, and process you would like to use for the test.
@@ -26,7 +33,7 @@ Steps
 ![flowrate-pass1_resize](https://user-images.githubusercontent.com/103989404/210138585-98821729-b19e-4452-a08d-697f147d36f0.jpg)
 ![0-5](https://user-images.githubusercontent.com/103989404/210138714-63daae9c-6778-453a-afa9-9a976d61bfd5.jpg)
 
-5. Update the flow ratio in the filament settings using the following equation: `FlowRatio_old*(100 + modifier)/100`. If your previous flow ratio was `0.98` and you selected the block with a flow rate modifier of `+5`, the new value should be calculated as follows: `0.98x(100+5)/100 = 1.029`. ** Remember** to save the filament profile.
+5. Update the flow ratio in the filament settings using the following equation: `FlowRatio_old*(100 + modifier)/100`. If your previous flow ratio was `0.98` and you selected the block with a flow rate modifier of `+5`, the new value should be calculated as follows: `0.98x(100+5)/100 = 1.029`.** Remember** to save the filament profile.
 6. Perform the `Pass 2` calibration. This process is similar to `Pass 1`, but a new project with ten blocks will be generated. The flow rate modifiers for this project will range from `-9 to 0`.
 7. Repeat steps 4 and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. ** Remember ** to save the filament profile.  
 ![pass2](https://user-images.githubusercontent.com/103989404/210139072-f2fa91a6-4e3b-4d2a-81f2-c50155e1ff6d.jpg)
@@ -35,9 +42,15 @@ Steps
 
 # Pressure Advance
 
-Orca Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.  
- ##### *NOTE: For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.*  
- ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)  
+Orca Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
+
+> [!WARNING]
+> For Marlin: Linear advance must be enabled in firmware (M900). **Not all printers have it enabled by default.**
+
+> [!WARNING]
+> For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.
+> 
+> ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
 
 ### Line method
 
@@ -126,7 +139,8 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 
 ![image](./images/max_volumetric_flow.jpg)
 
- #### *NOTE You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.*
+> [!NOTE]
+> You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.
 
 ***
 *Credits:*  

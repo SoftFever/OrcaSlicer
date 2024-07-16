@@ -268,7 +268,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloat>("elefant_foot_compensation")->value > 1)
     {
-        const wxString msg_text = _(L("Too large elefant foot compensation is unreasonable.\n"
+        const wxString msg_text = _(L("Too large elephant foot compensation is unreasonable.\n"
                                       "If really have serious elephant foot effect, please check other settings.\n"
                                       "For example, whether bed temperature is too high.\n\n"
                                       "The value will be reset to 0."));
@@ -763,6 +763,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
     toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
     toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+
+    bool use_beam_interlocking = config->opt_bool("interlocking_beam");
+    toggle_line("mmu_segmented_region_interlocking_depth", !use_beam_interlocking);
+    toggle_line("interlocking_beam_width", use_beam_interlocking);
+    toggle_line("interlocking_orientation", use_beam_interlocking);
+    toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
+    toggle_line("interlocking_depth", use_beam_interlocking);
+    toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

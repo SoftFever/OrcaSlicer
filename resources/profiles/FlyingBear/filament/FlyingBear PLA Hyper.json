@@ -22,6 +22,7 @@
         "0.02"
     ],
     "compatible_printers": [
-      "FlyingBear Reborn3 0.4 nozzle"
+      "FlyingBear Reborn3 0.4 nozzle",
+      "FlyingBear Ghost 6 0.4 nozzle"
     ]
 }
