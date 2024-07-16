@@ -4403,9 +4403,11 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::SameLine();
     imgui.title(_u8L("Color Arrangement Recommendation"));
-    //BBS AMS containers
-    int AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
-    float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * 80.0f + 70.0f ) * m_scale;
+    // BBS AMS containers
+    float line_height          = ImGui::GetFrameHeight();
+    int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
+    float three_words_width    = imgui.calc_text_size("ABC").x;
+    float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.5f + line_height) + (line_height * 4));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
@@ -4426,8 +4428,8 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
         ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + 24.0f * m_scale), IM_COL32(0, 0, 0, 64));
-        ImGui::BeginChild("#LeftAMS", ImVec2(half_width, available_height - 20 * m_scale), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 64));
+        ImGui::BeginChild("#LeftAMS", ImVec2(half_width, available_height - line_height * .95f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
             imgui.bold_text(_u8L("Left"));
             ImGui::Dummy({window_padding, window_padding});
@@ -4441,8 +4443,8 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
         ImGui::SameLine();
         cursor_pos = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + 24.0f * m_scale), IM_COL32(0, 0, 0, 64));
-        ImGui::BeginChild("#RightAMS", ImVec2(half_width, available_height - 20 * m_scale), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 64));
+        ImGui::BeginChild("#RightAMS", ImVec2(half_width, available_height - line_height * .95f), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
             imgui.bold_text(_u8L("Right"));
             ImGui::Dummy({window_padding, window_padding});
@@ -4760,9 +4762,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine(window_padding * 2); // ORCA Ignores item spacing to get perfect window margins since since this part uses dummies for window padding
     std::string title = _u8L("Slicing Result");
     imgui.bold_text(title);
-    ImVec2 longest_text_size = imgui.calc_text_size(_u8L("Since you set 1 AMS (change) ,this arrangement would be optimal."));
-    ImVec2 title_text_size   = imgui.calc_text_size(title);
-    ImGui::SameLine(0, longest_text_size.x - title_text_size.x);
+    // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
+    float single_word_width = imgui.calc_text_size("ABCD").x;
+    float title_width       = imgui.calc_text_size(title).x;
+    float spacing           = 18.0f * m_scale;
+    ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon;

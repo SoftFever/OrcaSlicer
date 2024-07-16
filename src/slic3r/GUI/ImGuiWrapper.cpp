@@ -3166,9 +3166,11 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     static ImTextureID transparent;
-    ImVec2             img_size = {30.0f, 45.0f};
-    ImVec2             text_size     = ImGui::CalcTextSize(filament_type.c_str());
-    ImVec2             id_text_size = this->calc_text_size(id);
+    ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
+    // BBS image sizing based on text width (DPI scaling)
+    float         img_width    = ImGui::CalcTextSize("ABC").x;
+    ImVec2        img_size     = {img_width, img_width * 1.5f};
+    ImVec2        id_text_size = this->calc_text_size(id);
     unsigned char rgb[3];
 
     BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + "/images/filament_green.svg", img_size.x, img_size.y, transparent, hex_color);
@@ -3184,7 +3186,7 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
     ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
     this->text_colored(text_color, id.c_str());
-    ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_size.x) * 0.5f, current_cursor.y + 40});
+        ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_size.x) * 0.5f, current_cursor.y + img_size.y});
     this->text(filament_type);
     ImGui::EndGroup();
     }
