@@ -4695,7 +4695,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
             auto result = MessageBox(q->GetHandle(),
                 wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path),
-                _L("Comfirm Save As"),
+                _L("Confirm Save As"),
                 MB_YESNO | MB_ICONWARNING);
             if (result != IDYES)
                 return wxEmptyString;
@@ -11458,7 +11458,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
         
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-        "Only positive parts will be kept. You may fix the meshes and try agian.");
+        "Only positive parts will be kept. You may fix the meshes and try again.");
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
@@ -13260,6 +13260,8 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
+    if (wxGetApp().app_config->get("auto_arrange") == "true")
+        this->arrange();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)

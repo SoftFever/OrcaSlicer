@@ -587,7 +587,7 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr ""
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -654,7 +654,7 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr ""
 
 msgid "Rotate text"
@@ -987,7 +987,7 @@ msgstr ""
 
 #, possible-boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1590,7 +1590,7 @@ msgstr ""
 msgid "Wipe options"
 msgstr ""
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr ""
 
 msgid "Add part"
@@ -1869,12 +1869,6 @@ msgstr ""
 msgid "Auto orient the object to improve print quality."
 msgstr ""
 
-msgid "Split the selected object into mutiple objects"
-msgstr ""
-
-msgid "Split the selected object into mutiple parts"
-msgstr ""
-
 msgid "Select All"
 msgstr ""
 
@@ -2123,8 +2117,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2550,7 +2544,7 @@ msgstr ""
 msgid "Service Unavailable"
 msgstr ""
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr ""
 
 msgid "Sending print configuration"
@@ -3429,7 +3423,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5761,7 +5755,7 @@ msgid ""
 "Do you want to replace it?"
 msgstr ""
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr ""
 
 msgid "Delete object which is a part of cut object"
@@ -5967,7 +5961,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 
 #, possible-boost-format
@@ -10130,7 +10124,7 @@ msgstr ""
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
@@ -10494,6 +10488,51 @@ msgid "Interlocking depth of a segmented region"
 msgstr ""
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
 msgstr ""
 
 msgid "Ironing Type"
@@ -13512,7 +13551,7 @@ msgstr ""
 msgid "Create Type"
 msgstr ""
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr ""
 
 msgid "Select Model"
@@ -13561,10 +13600,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr ""
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr ""
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 
 msgid "Printer Preset"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -588,7 +588,7 @@ msgstr "显示线框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -655,7 +655,7 @@ msgstr "附着曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 鼠标上移或下移"
 
 msgid "Rotate text"
@@ -992,7 +992,7 @@ msgstr "选择文字使其面向摄像头"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "不能加载完全相同的字体(\"%1%\")。应用程序选择了一种类似的字体（\"%2%\"）。你"
@@ -1601,7 +1601,7 @@ msgstr "挤出宽度"
 msgid "Wipe options"
 msgstr "擦除选项"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "热床粘接"
 
 msgid "Add part"
@@ -1880,12 +1880,6 @@ msgstr "自动朝向"
 msgid "Auto orient the object to improve print quality."
 msgstr "自动调整对象朝向以提高打印质量。"
 
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所选对象为多个零件"
-
 msgid "Select All"
 msgstr "全选"
 
@@ -2133,8 +2127,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下模型对象已被修复"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
@@ -2567,7 +2561,7 @@ msgstr "发送打印任务超时。"
 msgid "Service Unavailable"
 msgstr "服务不可用"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "未知错误"
 
 msgid "Sending print configuration"
@@ -3492,7 +3486,7 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5599,6 +5593,9 @@ msgstr "比较预设"
 msgid "View all object's settings"
 msgstr "查看所有对象的配置"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr "移除当前板（如果不是最后一个）"
 
@@ -5674,6 +5671,9 @@ msgstr "配置可选择的材料"
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5887,7 +5887,7 @@ msgstr ""
 "文件 %s 已经存在\n"
 "您是否要替换它？"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "确认另存为"
 
 msgid "Delete object which is a part of cut object"
@@ -6097,7 +6097,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 
@@ -6242,6 +6242,21 @@ msgstr "浏览"
 
 msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "通用设置"
@@ -6429,36 +6444,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -10161,6 +10146,19 @@ msgid ""
 "and should be accurate"
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "耗材收缩率"
 
@@ -10560,7 +10558,7 @@ msgstr "首层层高"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "首层层高"
 
 msgid "Speed of initial layer except the solid infill part"
@@ -10837,6 +10835,12 @@ msgstr "打印机兼容的G-code风格'"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr "支持多种打印床类型"
 
@@ -10941,6 +10945,51 @@ msgstr "分割区域的交错深度"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "分割区域的交错深度。0 则禁用此功能。"
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -11570,6 +11619,14 @@ msgstr "梯形"
 
 msgid "Spiral"
 msgstr "螺旋"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "仅在高度以上抬Z"
@@ -14228,7 +14285,7 @@ msgstr "导入预设"
 msgid "Create Type"
 msgstr "创建类型"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
 msgid "Select Model"
@@ -14277,10 +14334,10 @@ msgstr "预设路径未找到，请重新选择供应商。"
 msgid "The printer model was not found, please reselect."
 msgstr "未找到打印机型号，请重新选择。"
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "未找到喷嘴直径，请重新选择。"
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer Preset"

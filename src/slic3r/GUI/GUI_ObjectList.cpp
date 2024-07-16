@@ -5412,7 +5412,7 @@ void ObjectList::fix_through_netfabb()
         msg += "\n\n";
     }
     if (!failed_models.empty()) {
-        msg += _L_PLURAL("Failed to repair folowing model object", "Failed to repair folowing model objects", failed_models.size()) + ":\n";
+        msg += _L_PLURAL("Failed to repair following model object", "Failed to repair following model objects", failed_models.size()) + ":\n";
         for (auto& model : failed_models)
             msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
     }

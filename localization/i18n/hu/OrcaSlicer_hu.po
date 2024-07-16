@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -586,7 +586,7 @@ msgstr "Drótváz megjelenítése"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Nem használható folyamat előnézetben."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -654,8 +654,8 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Horizontal text"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
+msgstr "Shift + Mouse move up or down"
 
 msgid "Rotate text"
 msgstr "Rotate text"
@@ -987,7 +987,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1604,7 +1604,7 @@ msgstr "Extrudálási szélesség"
 msgid "Wipe options"
 msgstr "Törlés opciók"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Asztalra tapadás"
 
 msgid "Add part"
@@ -1887,12 +1887,6 @@ msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Az objektum automatikus tájolása a nyomtatási minőség javítása érdekében."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
-
 msgid "Select All"
 msgstr "Összes kijelölése"
 
@@ -2161,8 +2155,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "A következő modell sikeresen megjavítva"
 msgstr[1] "A következő modellek sikeresen megjavítva"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Nem sikerült megjavítani a következő modellt"
 msgstr[1] "Nem sikerült megjavítani a következő modelleket"
 
@@ -2618,7 +2612,7 @@ msgstr "Időtúllépés a nyomtatási feladat küldése során."
 msgid "Service Unavailable"
 msgstr "Szolgáltatás nem elérhető"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Ismeretlen hiba."
 
 msgid "Sending print configuration"
@@ -3608,7 +3602,7 @@ msgstr ""
 "Az érték 0-ra áll vissza."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5765,6 +5759,9 @@ msgstr "Beállítások összehasonlítása"
 msgid "View all object's settings"
 msgstr "Összes objektum beállításainak megtekintése"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5840,6 +5837,9 @@ msgstr "Használni kívánt filament beállítása"
 
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6075,7 +6075,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Mentés másként megerősítése"
 
 msgid "Delete object which is a part of cut object"
@@ -6296,10 +6296,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6442,6 +6442,21 @@ msgstr "Tallózás"
 
 msgid "Choose Download Directory"
 msgstr "Válassz letöltési mappát"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Általános beállítások"
@@ -6648,36 +6663,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -10507,6 +10492,19 @@ msgstr ""
 "A filament átmérő a G-kódban az extrudálás kiszámításához szükséges, ezért "
 "fontos, hogy pontos legyen"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10909,7 +10907,7 @@ msgstr "Kezdő rétegmagasság"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Kezdőréteg magassága. A vastagabb kezdőréteg javíthatja a tárgy asztalhoz "
 "való tapadását"
@@ -11197,6 +11195,12 @@ msgstr "Milyen G-kóddal kompatibilis a nyomtató."
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11303,6 +11307,51 @@ msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Szegmentált régió összekapcsolódási mélysége. A 0 érték letiltja ezt a "
 "funkciót."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Vasalás típusa"
@@ -11945,6 +11994,14 @@ msgstr "Lejtő"
 
 msgid "Spiral"
 msgstr "Spirál"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Z emelés csak efelett"
@@ -14666,7 +14723,7 @@ msgstr "Beállítás importálása"
 msgid "Create Type"
 msgstr "Típus létrehozása"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14718,10 +14775,10 @@ msgstr "Útvonal nem található. Kérjük, válaszd ki újra a gyártót."
 msgid "The printer model was not found, please reselect."
 msgstr "A nyomtató modellje nem található, kérjük, válaszd ki újra."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
