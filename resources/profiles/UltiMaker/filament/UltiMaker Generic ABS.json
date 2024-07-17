@@ -7,10 +7,10 @@
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
     "filament_flow_ratio": [
-        "0.926"
+        "0.94"
     ],
     "filament_max_volumetric_speed": [
-        "2"
+        "4.5"
     ],
 	"compatible_printers": [
 		"UltiMaker 2 0.4 nozzle"

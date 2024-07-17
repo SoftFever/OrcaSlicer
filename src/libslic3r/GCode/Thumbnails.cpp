@@ -1,10 +1,13 @@
 #include "Thumbnails.hpp"
 #include "../miniz_extension.hpp"
+#include "format.hpp"
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <qoi/qoi.h>
 #include <jpeglib.h>
 #include <jerror.h>
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 namespace Slic3r::GCodeThumbnails {
 
@@ -592,7 +595,7 @@ std::string get_error_string(const ThumbnailErrors& errors)
     std::string error_str;
 
     if (errors.has(ThumbnailError::InvalidVal))
-        error_str += "\n - " + format("Invalid input format. Expected vector of dimensions in the following format: \"%1%\"", "XxY/EXT, XxY/EXT, ...");
+        error_str += "\n - " + Slic3r::format("Invalid input format. Expected vector of dimensions in the following format: \"%1%\"", "XxY/EXT, XxY/EXT, ...");
     if (errors.has(ThumbnailError::OutOfRange))
         error_str += "\n - Input value is out of range";
     if (errors.has(ThumbnailError::InvalidExt))

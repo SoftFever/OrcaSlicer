@@ -2,6 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 
 #include "GCode/Thumbnails.hpp"
 #include <set>
@@ -11,7 +12,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
-
 #include <float.h>
 
 namespace {
@@ -1785,6 +1785,38 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
+    /*
+        Large format printers with print volumes in the order of 1m^3 generally use pellets for printing.
+        The overall tech is very similar to FDM printing. 
+        It is FDM printing, but instead of filaments, it uses pellets.
+
+        The difference here is that where filaments have a filament_diameter that is used to calculate 
+        the volume of filament ingested, pellets have a particular flow_coefficient that is empirically 
+        devised for that particular pellet.
+
+        pellet_flow_coefficient is basically a measure of the packing density of a particular pellet.
+        Shape, material and density of an individual pellet will determine the packing density and
+        the only thing that matters for 3d printing is how much of that pellet material is extruded by 
+        one turn of whatever feeding mehcanism/gear your printer uses. You can emperically derive that
+        for your own pellets for a particular printer model.
+
+        We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it 
+        does already with very minor adjustments.
+
+        filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )
+
+        sqrt just makes the relationship between flow_coefficient and volume linear.
+
+        higher packing density -> more material extruded by single turn -> higher pellet_flow_coefficient -> treated as if a filament of larger diameter is being used
+        All other calculations remain the same for slicing.
+    */
+
+    def = this->add("pellet_flow_coefficient", coFloats);
+    def->label = L("Pellet flow coefficient");
+    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloats{ 0.4157 });
+
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage");
     // xgettext:no-c-format, no-boost-format
@@ -2311,7 +2343,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
     def->category = L("Quality");
-    def->tooltip = L("Height of initial layer. Making initial layer height to be thick slightly can improve build plate adhension");
+    def->tooltip = L("Height of initial layer. Making initial layer height to be thick slightly can improve build plate adhesion");
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.2));
@@ -2638,6 +2670,12 @@ void PrintConfigDef::init_fff_params()
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    def          = this->add("pellet_modded_printer", coBool);
+    def->label   = L("Pellet Modded Printer");
+    def->tooltip = L("Enable this option if your printer uses pellets instead of filaments");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
     def->tooltip = L("Enable this option if you want to use multiple bed types");
@@ -2770,6 +2808,56 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Advanced");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("interlocking_beam", coBool);
+    def->label    = L("Use beam interlocking");
+    def->tooltip  = L("Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials.");
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("interlocking_beam_width", coFloat);
+    def->label    = L("Interlocking beam width");
+    def->tooltip  = L("The width of the interlocking structure beams.");
+    def->sidetext = L("mm");
+    def->min      = 0.01;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.8));
+
+    def           = this->add("interlocking_orientation", coFloat);
+    def->label    = L("Interlocking direction");
+    def->tooltip  = L("Orientation of interlock beams.");
+    def->sidetext = L("°");
+    def->min      = 0;
+    def->max      = 360;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(22.5));
+
+    def           = this->add("interlocking_beam_layer_count", coInt);
+    def->label    = L("Interlocking beam layers");
+    def->tooltip  = L("The height of the beams of the interlocking structure, measured in number of layers. Less layers is stronger, but more prone to defects.");
+    def->min      = 1;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(2));
+
+    def           = this->add("interlocking_depth", coInt);
+    def->label    = L("Interlocking depth");
+    def->tooltip  = L("The distance from the boundary between filaments to generate interlocking structure, measured in cells. Too few cells will result in poor adhesion.");
+    def->min      = 1;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(2));
+
+    def           = this->add("interlocking_boundary_avoidance", coInt);
+    def->label    = L("Interlocking boundary avoidance");
+    def->tooltip  = L("The distance from the outside of a model where interlocking structures will not be generated, measured in cells.");
+    def->min      = 0;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(2));
 
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
@@ -3555,6 +3643,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSlope });
+
+    def = this->add("travel_slope", coFloats);
+    def->label = L("Traveling angle");
+    def->tooltip = L("Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results in Normal Lift");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
+    def->min = 1;
+    def->max = 90;
+    def->set_default_value(new ConfigOptionFloats { 3 });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Only lift Z above");
@@ -5112,7 +5209,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
@@ -5134,7 +5231,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types"
+        "z_hop_types",
+        "travel_slope"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
@@ -5972,7 +6070,7 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
         auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(thumbnails_str, extention);
 
         if (errors != enum_bitmask<ThumbnailError>()) {
-            std::string error_str = "\n" + format("Invalid value provided for parameter %1%: %2%", "thumbnails", thumbnails_str);
+            std::string error_str = "\n" + Slic3r::format("Invalid value provided for parameter %1%: %2%", "thumbnails", thumbnails_str);
             error_str += GCodeThumbnails::get_error_string(errors);
             throw BadOptionValueException(error_str);
         }
@@ -5981,7 +6079,7 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
             const auto& extentions = ConfigOptionEnum<GCodeThumbnailsFormat>::get_enum_names();
             thumbnails_str.clear();
             for (const auto& [ext, size] : thumbnails_list)
-                thumbnails_str += format("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(ext)]);
+                thumbnails_str += Slic3r::format("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(ext)]);
             thumbnails_str.resize(thumbnails_str.length() - 2);
 
             config.set_key_value("thumbnails", new ConfigOptionString(thumbnails_str));

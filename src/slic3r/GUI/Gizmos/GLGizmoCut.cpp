@@ -631,7 +631,7 @@ bool GLGizmoCut3D::render_slider_double_input(const std::string& label, float& v
     float min_tolerance = tolerance_in < 0.f ? UndefMinVal : 0.f;
     const float max_tolerance_v = max_tolerance > 0.f ? std::min(max_tolerance, 0.5f * mean_size) : 0.5f * mean_size;
 
-    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, max_tolerance_v, format.c_str(), 1.f, true,
+    m_imgui->bbl_slider_float_style("##tolerance_" + label, &tolerance, min_tolerance, max_tolerance_v, format.c_str(), 1.f, true,
                                     _L("Tolerance"));
 
     left_width += (slider_with + item_in_gap);
@@ -699,7 +699,7 @@ bool GLGizmoCut3D::render_reset_button(const std::string& label_id, const std::s
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0.4f, 0.4f, 0.4f, 1.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, {0.4f, 0.4f, 0.4f, 1.0f});
 
-    const bool revert = m_imgui->button(wxString(ImGui::RevertBtn) + "##" + label_id);
+    const bool revert = m_imgui->button(wxString(ImGui::RevertBtn) + "##" + wxString::FromUTF8(label_id));
 
     ImGui::PopStyleColor(3);
 
@@ -2534,7 +2534,7 @@ void GLGizmoCut3D::render_groove_float_input(const std::string& label, float& in
 
     m_imgui->disabled_begin(is_approx(in_val, init_val) && is_approx(in_tolerance, 0.1f));
         const std::string act_name = _u8L("Reset");
-        if (render_reset_button(("##groove_" + label + act_name).c_str(), act_name)) {
+        if (render_reset_button("##groove_" + label + act_name, act_name)) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), GUI::format("%1%: %2%", act_name, label), UndoRedo::SnapshotType::GizmoAction);
             in_val = init_val;
             in_tolerance = 0.1f;
@@ -2574,7 +2574,7 @@ bool GLGizmoCut3D::render_angle_input(const std::string& label, float& in_val, c
     const float old_val = val;
 
     const std::string format = "%.0f " + _u8L("°");
-    m_imgui->bbl_slider_float_style(("##angle_" + label).c_str(), &val, min_val, max_val, format.c_str(), 1.f, true, from_u8(label));
+    m_imgui->bbl_slider_float_style("##angle_" + label, &val, min_val, max_val, format.c_str(), 1.f, true, from_u8(label));
 
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(input_width);
@@ -2597,7 +2597,7 @@ bool GLGizmoCut3D::render_angle_input(const std::string& label, float& in_val, c
 
     m_imgui->disabled_begin(is_approx(in_val, init_val));
     const std::string act_name = _u8L("Reset");
-    if (render_reset_button(("##angle_" + label + act_name).c_str(), act_name)) {
+    if (render_reset_button("##angle_" + label + act_name, act_name)) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), GUI::format("%1%: %2%", act_name, label), UndoRedo::SnapshotType::GizmoAction);
         in_val = init_val;
         is_changed = true;
@@ -2640,7 +2640,7 @@ void GLGizmoCut3D::render_snap_specific_input(const std::string& label, const wx
 
     float val = in_val * 100.f;
     const float old_val = val;
-    m_imgui->bbl_slider_float_style(("##snap_" + label).c_str(), &val, min_val, max_val, format.c_str(), 1.f, true, tooltip);
+    m_imgui->bbl_slider_float_style("##snap_" + label, &val, min_val, max_val, format.c_str(), 1.f, true, tooltip);
 
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(input_width);
@@ -2655,7 +2655,7 @@ void GLGizmoCut3D::render_snap_specific_input(const std::string& label, const wx
 
     m_imgui->disabled_begin(is_approx(in_val, init_val));
     const std::string act_name = _u8L("Reset");
-    if (render_reset_button(("##snap_" + label + act_name).c_str(), act_name)) {
+    if (render_reset_button("##snap_" + label + act_name, act_name)) {
         in_val = init_val;
         is_changed = true;
     }
@@ -2690,7 +2690,7 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
         const bool is_cut_plane_init = m_rotation_m.isApprox(Transform3d::Identity()) && m_bb_center.isApprox(m_plane_center);
         m_imgui->disabled_begin(is_cut_plane_init);
             std::string act_name = _u8L("Reset cutting plane");
-            if (render_reset_button("cut_plane", into_u8(act_name))) {
+            if (render_reset_button("cut_plane", act_name)) {
                 Plater::TakeSnapshot snapshot(wxGetApp().plater(), act_name, UndoRedo::SnapshotType::GizmoAction);
                 reset_cut_plane();
             }
@@ -2710,7 +2710,7 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
 
             m_imgui->disabled_begin(is_cut_plane_init && !has_connectors);
                 act_name = _u8L("Reset cut");
-                if (m_imgui->button(act_name, _u8L("Reset cutting plane and remove connectors"))) {
+                if (m_imgui->button(wxString::FromUTF8(act_name), _L("Reset cutting plane and remove connectors"))) {
                     Plater::TakeSnapshot snapshot(wxGetApp().plater(), act_name, UndoRedo::SnapshotType::GizmoAction);
                     reset_cut_plane();
                     reset_connectors();

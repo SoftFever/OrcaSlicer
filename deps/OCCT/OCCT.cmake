@@ -22,6 +22,7 @@ orcaslicer_add_cmake_project(OCCT
 	#-DUSE_FREETYPE=OFF
         -DUSE_FFMPEG=OFF
         -DUSE_VTK=OFF
+        -DBUILD_DOC_Overview=OFF
         -DBUILD_MODULE_ApplicationFramework=OFF
         #-DBUILD_MODULE_DataExchange=OFF
         -DBUILD_MODULE_Draw=OFF
