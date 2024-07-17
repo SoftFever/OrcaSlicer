@@ -2373,6 +2373,7 @@ struct Plater::priv
     void delete_all_objects_from_model();
     void reset(bool apply_presets_change = false);
     void center_selection();
+    void drop_selection();
     void mirror(Axis axis);
     void split_object();
     void split_volume();
@@ -4960,6 +4961,11 @@ void Plater::priv::reset(bool apply_presets_change)
 void Plater::priv::center_selection()
 {
     view3D->center_selected();
+}
+
+void Plater::priv::drop_selection()
+{
+    view3D->drop_selected();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -13190,6 +13196,7 @@ void Plater::suppress_background_process(const bool stop_background_process)
 }
 
 void Plater::center_selection()     { p->center_selection(); }
+void Plater::drop_selection()       { p->drop_selection(); }
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }

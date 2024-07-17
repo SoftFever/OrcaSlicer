@@ -4875,6 +4875,14 @@ void GLCanvas3D::do_center()
     m_selection.center();
 }
 
+void GLCanvas3D::do_drop()
+{
+    if (m_model == nullptr)
+        return;
+
+    m_selection.drop();
+}
+
 void GLCanvas3D::do_center_plate(const int plate_idx) {
     if (m_model == nullptr)
         return;
