@@ -604,22 +604,24 @@ void AmsMapingPopup::update(MachineObject* obj)
         td.ams_id   = std::stoi(tray_data->id);
         td.slot_id  = 0;
 
-        if (!tray_data->is_exists) {
-            td.type = EMPTY;
+        /*if (tray_data->is_exists) {
+            //td.type = EMPTY;
+            td.type = THIRD;
         }
         else {
-            if (!tray_data->is_tray_info_ready()) {
-                td.type = THIRD;
-            }
-            else {
-                td.type = NORMAL;
-                td.colour = AmsTray::decode_color(tray_data->color);
-                td.name = tray_data->get_display_filament_type();
-                td.filament_type = tray_data->get_filament_type();
-                td.ctype = tray_data->ctype;
-                for (auto col : tray_data->cols) {
-                    td.material_cols.push_back(AmsTray::decode_color(col));
-                }
+        }*/
+
+        if (!tray_data->is_tray_info_ready()) {
+            td.type = THIRD;
+        }
+        else {
+            td.type = NORMAL;
+            td.colour = AmsTray::decode_color(tray_data->color);
+            td.name = tray_data->get_display_filament_type();
+            td.filament_type = tray_data->get_filament_type();
+            td.ctype = tray_data->ctype;
+            for (auto col : tray_data->cols) {
+                td.material_cols.push_back(AmsTray::decode_color(col));
             }
         }
 
@@ -839,7 +841,8 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 
     // third party
     if (tray_data.type == THIRD) {
-        item->set_data(wxColour(0xCE, 0xCE, 0xCE), "?", tray_data);
+        item->set_data(tray_data.colour, "?", tray_data);
+        //item->set_data(wxColour(0xCE, 0xCE, 0xCE), "?", tray_data);
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
             item->send_event(m_current_filament_id);
             Dismiss();

@@ -1055,6 +1055,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
 
     int filament_result = 0;
     if (nozzle_nums > 1)
@@ -1062,7 +1063,6 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         //get nozzle property, the nozzles are same?, wait fill
         if (!is_two_nozzle_same())
         {
-            m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
             std::vector<FilamentInfo>           m_ams_mapping_result_first;
             std::vector<FilamentInfo>           m_ams_mapping_result_second;
             std::vector<FilamentInfo>           m_filament_first;
@@ -1127,16 +1127,80 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         else {
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, true, true);
         }
+
+        for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
+        {
+            if (it->ams_id == "")
+            {
+                if (m_filaments_map[it->id] == 1)
+                {
+                    if (obj_->vt_slot.size() == 2)
+                    {
+                        it->ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
+                        it->color = obj_->vt_slot[1].color;
+                        it->type = obj_->vt_slot[1].type;
+                        it->colors = obj_->vt_slot[1].cols;
+                        it->tray_id = VIRTUAL_TRAY_DEPUTY_ID;
+                    }
+                    else
+                    {
+                        it->ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+                        it->color = obj_->vt_slot[0].color;
+                        it->type = obj_->vt_slot[0].type;
+                        it->colors = obj_->vt_slot[0].cols;
+                        it->tray_id = VIRTUAL_TRAY_MAIN_ID;
+                    }
+                    it->slot_id = "0";
+                }
+                else if (m_filaments_map[it->id] == 2)
+                {
+                    it->ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+                    it->color = obj_->vt_slot[0].color;
+                    it->type = obj_->vt_slot[0].type;
+                    it->colors = obj_->vt_slot[0].cols;
+                    it->slot_id = "0";
+                    it->tray_id = VIRTUAL_TRAY_MAIN_ID;
+                }
+            }
+        }
     }
 
     else {
         if (obj_->is_support_amx_ext_mix_mapping())
         {
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, true, false);
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, false, true);
+            for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
+            {
+                if (it->ams_id == "")
+                {
+                    it->ams_id = VIRTUAL_TRAY_MAIN_ID;
+                    it->color = obj_->vt_slot[0].color;
+                    it->type = obj_->vt_slot[0].type;
+                    it->colors = obj_->vt_slot[0].cols;
+                    it->slot_id = "0";
+                    it->tray_id = VIRTUAL_TRAY_MAIN_ID;
+                }
+            }
         }
         else {
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, false, false);
+            if (obj_->amsList.empty())
+            {
+                for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
+                {
+                    if (it->ams_id == "")
+                    {
+                        it->ams_id = VIRTUAL_TRAY_MAIN_ID;
+                        it->color = obj_->vt_slot[0].color;
+                        it->type = obj_->vt_slot[0].type;
+                        it->colors = obj_->vt_slot[0].cols;
+                        it->slot_id = "0";
+                        it->tray_id = VIRTUAL_TRAY_MAIN_ID;
+                    }
+                }
+            }
         }
+
     }
 
     if (filament_result == 0) {

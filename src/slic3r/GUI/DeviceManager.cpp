@@ -914,7 +914,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.ams_id = ams->first.c_str();
                 info.slot_id = tray->first.c_str();
             }
-            if ((!ext_first && !ext_second) || (ams->second->nozzle == 0 && ext_first) || (ams->second->nozzle == 1 && ext_second))
+
+            //first: left,nozzle=1,map=1   second: right,nozzle=0,map=2
+            if ((!ext_first && !ext_second) || (ams->second->nozzle == 0 && ext_second) || (ams->second->nozzle == 1 && ext_first))
             {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
@@ -925,7 +927,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     {
         for (auto tray : vt_slot)
         {
-            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && ext_first) || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && ext_second))
+            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && ext_second) || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && ext_first))
             {
 
                 FilamentInfo info;
