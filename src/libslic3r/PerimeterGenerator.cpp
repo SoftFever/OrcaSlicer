@@ -2460,20 +2460,58 @@ std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) 
 }
 
 /**
- * @brief Calculates the minimum distance between any two points from two sets of points.
+ * @brief Calculates the squared distance between two points.
  *
- * @param A The first set of points.
- * @param B The second set of points.
- * @return double The minimum distance between any two points from sets A and B.
+ * @param a The first point.
+ * @param b The second point.
+ * @return double The squared distance between the two points.
+ */
+double squaredDistance(const Point& a, const Point& b) {
+    return (a.x() - b.x()) * (a.x() - b.x()) + (a.y() - b.y()) * (a.y() - b.y());
+}
+
+/**
+ * @brief Calculates the squared distance between a point and a line segment.
+ *
+ * @param p The point.
+ * @param v The starting point of the line segment.
+ * @param w The ending point of the line segment.
+ * @return double The squared distance between the point and the line segment.
+ */
+double squaredDistanceToSegment(const Point& p, const Point& v, const Point& w) {
+    double l2 = squaredDistance(v, w);
+    if (l2 == 0.0) return squaredDistance(p, v);
+    double t = std::max(0.0, std::min(1.0, ((p.x() - v.x()) * (w.x() - v.x()) + (p.y() - v.y()) * (w.y() - v.y())) / l2));
+    Point projection{v.x() + t * (w.x() - v.x()), v.y() + t * (w.y() - v.y())};
+    return squaredDistance(p, projection);
+}
+
+/**
+ * @brief Calculates the minimum distance between any two polylines defined by sets of points.
+ *
+ * @param A The first set of points defining a polyline.
+ * @param B The second set of points defining a polyline.
+ * @return double The minimum distance between the two polylines.
  */
 double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>& B) {
     double min_distance = std::numeric_limits<double>::infinity();
-    for (const auto& a : A) {
+
+    // Calculate the minimum distance between segments in A and points in B
+    for (size_t i = 0; i < A.size() - 1; ++i) {
         for (const auto& b : B) {
-            double distance = a.distance_to(b);
-            min_distance = std::min(min_distance, distance);
+            double distance = squaredDistanceToSegment(b, A[i], A[i + 1]);
+            min_distance = std::min(min_distance, std::sqrt(distance));
         }
     }
+
+    // Calculate the minimum distance between segments in B and points in A
+    for (size_t i = 0; i < B.size() - 1; ++i) {
+        for (const auto& a : A) {
+            double distance = squaredDistanceToSegment(a, B[i], B[i + 1]);
+            min_distance = std::min(min_distance, std::sqrt(distance));
+        }
+    }
+
     return min_distance;
 }
 
@@ -2548,6 +2586,78 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
  * @return std::vector<PerimeterGeneratorArachneExtrusion> The reordered list of perimeters based on proximity.
  */
 std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(
+    std::vector<PerimeterGeneratorArachneExtrusion> entities, size_t threshold) {
+
+    std::vector<PerimeterGeneratorArachneExtrusion> reordered;
+    std::unordered_set<int> includedIndices;
+
+    // Function to reorder perimeters starting from a given reference index
+    auto reorderFromReference = [&](int referenceIndex) {
+        std::unordered_set<int> firstLevelIndices;
+        firstLevelIndices.insert(referenceIndex);
+
+        // Find first level touching perimeters
+        std::vector<int> firstLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, firstLevelIndices, threshold, false);
+        // Bring the largest first level perimeter to the front
+        // The longest first neighbour is most likely the dominant proximate perimeter
+        // hence printing it immediately after the external perimeter should speed things up
+        if (!firstLevelTouchingIndices.empty()) {
+            auto maxIt = std::max_element(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), [&entities](int a, int b) {
+                return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
+            });
+            std::iter_swap(maxIt, firstLevelTouchingIndices.begin());
+        }
+        // Insert first level perimeters into reordered list
+        reordered.push_back(entities[referenceIndex]);
+        includedIndices.insert(referenceIndex);
+
+        for (int idx : firstLevelTouchingIndices) {
+            if (includedIndices.count(idx) == 0) {
+                reordered.push_back(entities[idx]);
+                includedIndices.insert(idx);
+            }
+        }
+
+        // Find second level touching perimeters, excluding first level touching perimeters
+        std::unordered_set<int> secondLevelIndices(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end());
+        std::vector<int> secondLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, secondLevelIndices, threshold, true);
+
+        // Bring the largest second level perimeter to the end
+        if (!secondLevelTouchingIndices.empty()) {
+            auto maxIt = std::max_element(secondLevelTouchingIndices.begin(), secondLevelTouchingIndices.end(), [&entities](int a, int b) {
+                return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
+            });
+            std::iter_swap(maxIt, secondLevelTouchingIndices.end() - 1);
+        }
+
+        // Insert second level perimeters into reordered list
+        for (int idx : secondLevelTouchingIndices) {
+            if (includedIndices.count(idx) == 0) {
+                reordered.push_back(entities[idx]);
+                includedIndices.insert(idx);
+            }
+        }
+    };
+
+    // Loop through all perimeters and reorder starting from each inset index 0 perimeter
+    for (size_t refIdx = 0; refIdx < entities.size(); ++refIdx) {
+        if (entities[refIdx].extrusion->inset_idx == 0 && includedIndices.count(refIdx) == 0) {
+            reorderFromReference(refIdx);
+        }
+    }
+
+    // Append any remaining entities that were not included
+    for (size_t i = 0; i < entities.size(); ++i) {
+        if (includedIndices.count(i) == 0) {
+            reordered.push_back(entities[i]);
+        }
+    }
+
+    return reordered;
+}
+
+
+/*std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(
     std::vector<PerimeterGeneratorArachneExtrusion> entities, int referenceIndex, size_t threshold) {
 
     std::vector<PerimeterGeneratorArachneExtrusion> reordered;
@@ -2609,7 +2719,7 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
     }
 
     return reordered;
-}
+}*/
 
 /**
  * @brief Reorders the vector to bring contours to the front.
@@ -2967,7 +3077,7 @@ void PerimeterGenerator::process_arachne()
                 // Re-order extrusions based on distance
                 // Greedy algorithm, will aggresively optimise for the appearance of the outermost perimeter
                 coord_t sort_dist = this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing();
-                ordered_extrusions = reorderIOIPerimetersByProximityBFS(ordered_extrusions, 0, sort_dist); // Index 0 is always the outermost contour (external model surface)
+                ordered_extrusions = reorderIOIPerimetersByProximityBFS(ordered_extrusions, sort_dist); // Index 0 is always the outermost contour (external model surface)
                 
                 // Initiate reorder sequence to bring any index 1 (first internal) perimeters ahead of any second internal perimeters
                 // Leaving these out of order will result in print defects on the external wall as they will be extruded prior to any
