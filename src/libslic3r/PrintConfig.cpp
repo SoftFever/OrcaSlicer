@@ -513,6 +513,41 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string>& strs)
+{
+    std::vector<std::map<int, int>> extruder_ams_counts;
+    for (const std::string& str : strs) {
+        std::map<int, int> ams_count_info;
+        std::vector<std::string> ams_infos;
+        boost::algorithm::split(ams_infos, str, boost::algorithm::is_any_of("|"));
+        for (const std::string& ams_info : ams_infos) {
+            std::vector<std::string> numbers;
+            boost::algorithm::split(numbers, ams_info, boost::algorithm::is_any_of("#"));
+            assert(numbers.size() == 2);
+            ams_count_info.insert(std::make_pair(stoi(numbers[0]), stoi(numbers[1])));
+        }
+        extruder_ams_counts.emplace_back(ams_count_info);
+    }
+    return extruder_ams_counts;
+}
+
+std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count)
+{
+    std::vector<std::string> extruder_ams_count_str;
+    for (size_t i = 0; i < extruder_ams_count.size(); ++i) {
+        std::ostringstream oss;
+        const auto &item = extruder_ams_count[i];
+        for (auto it = item.begin(); it != item.end(); ++it) {
+            oss << it->first << "#" << it->second;
+            if (std::next(it) != item.end()) {
+                oss << "|";
+            }
+        }
+        extruder_ams_count_str.push_back(oss.str());
+    }
+    return extruder_ams_count_str;
+}
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -4413,10 +4448,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("extruder_filament_count", coInts);
-    def->label = "Extruder filament count";
-    def->tooltip = "Filament counts per extruder";
-    def->set_default_value(new ConfigOptionInts { 1 });
+    def = this->add("extruder_ams_count", coStrings);
+    def->label = "Extruder ams count";
+    def->tooltip = "Ams counts of per extruder";
+    def->set_default_value(new ConfigOptionStrings { });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_extruder_id", coInts);

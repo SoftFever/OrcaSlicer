@@ -1159,7 +1159,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
         }
         else {
-            print_diff_set.erase("extruder_filament_count");
+            print_diff_set.erase("extruder_ams_count");
             std::vector<int> old_filament_map = m_config.filament_map.values;
             std::vector<int> new_filament_map = new_full_config.option<ConfigOptionInts>("filament_map", true)->values;
 

@@ -1726,6 +1726,13 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     }
     filament_colors.resize(filament_presets.size(), "#26A69A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+
+    std::vector<std::string> extruder_ams_count_str;
+    if (config.has("presets", "extruder_ams_count")) {
+        boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
+    }
+    this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
+
     std::vector<std::string> matrix;
     if (config.has_printer_setting(initial_printer_profile_name, "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get_printer_setting(initial_printer_profile_name, "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
@@ -1812,6 +1819,7 @@ void PresetBundle::export_selections(AppConfig &config)
     CNumericLocalesSetter locales_setter;
     std::string           filament_colors = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_colour")->values, ",");
     config.set_printer_setting(printer_name, "filament_colors", filament_colors);
+
     std::string flush_volumes_matrix = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values |
                                                              boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
                                                          "|");
@@ -2416,7 +2424,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
     //BBS: add logic for settings check between different system presets
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
-    out.option<ConfigOptionInts>("extruder_filament_count", true)->values = this->extruder_filament_counts;
+    out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -2587,11 +2595,12 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             }
         }
     }
-    //no need to parse extruder_filament_count
-    std::vector<int> extruder_filament_count              = std::move(config.option<ConfigOptionInts>("extruder_filament_count", true)->values);
-    config.erase("extruder_filament_count");
-    if (this->extruder_filament_counts.empty())
-        this->extruder_filament_counts = extruder_filament_count;
+    //no need to parse extruder_ams_count
+    std::vector<std::string> extruder_ams_count = std::move(config.option<ConfigOptionStrings>("extruder_ams_count", true)->values);
+    config.erase("extruder_ams_count");
+    if (this->extruder_ams_counts.empty())
+        this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
+
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.

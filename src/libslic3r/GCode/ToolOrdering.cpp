@@ -1135,10 +1135,24 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     // if mutli_extruder, calc group,otherwise set to 0
     if (nozzle_nums == 2)
     {
+        std::vector<std::string> extruder_ams_count_str = print_config->extruder_ams_count.values;
+        auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
+        std::vector<int> group_size = { 16, 16 };
+        if (extruder_ams_counts.size() > 0) {
+            assert(extruder_ams_counts.size() == 2);
+            for (int i = 0; i < extruder_ams_counts.size(); ++i) {
+                group_size[i] = 0;
+                const auto &ams_count = extruder_ams_counts[i];
+                for (auto iter = ams_count.begin(); iter != ams_count.end(); ++iter) {
+                    group_size[i] += iter->first * iter->second;
+                }
+            }
+        }
+
         FilamentGroup fg(
             nozzle_flush_mtx,
             used_filaments.size(),
-            { 16,16 }
+            group_size
         );
         fg.get_custom_seq = get_custom_seq;
         fg.calc_filament_group(layer_filaments,FGStrategy::BestFit);

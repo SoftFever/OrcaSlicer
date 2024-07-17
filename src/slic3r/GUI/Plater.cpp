@@ -707,34 +707,44 @@ public:
 
     static void SetAMSCount(int index, int ams4, int ams1)
     {
-        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
-        std::vector<std::string> counts;
-        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
-        counts.resize(2);
-        counts[index] = (boost::format("%d/%d") % ams4 % ams1).str();
-        wxGetApp().app_config->set("preset", "ams_count", boost::algorithm::join(counts, "|"));
+        PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+        preset_bundle.extruder_ams_counts.resize(2);
+        auto &ams_map = preset_bundle.extruder_ams_counts[index];
+        ams_map[4] = ams4;
+        ams_map[1] = ams1;
+
+        std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
+        std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
+        wxGetApp().app_config->set("presets", "extruder_ams_count", extruder_ams_count_str);
     }
 
     static void GetAMSCount(int index, int & ams4, int & ams1)
     {
-        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
-        std::vector<std::string> counts;
-        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
-        counts.resize(2);
-        std::vector<std::string> counts2;
-        boost::algorithm::split(counts2, counts[index], boost::algorithm::is_any_of("/"));
-        counts2.resize(2);
-        ams4 = std::atoi(counts2[0].c_str());
-        ams1 = std::atoi(counts2[1].c_str());
+        PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+        if (preset_bundle.extruder_ams_counts.empty()) {
+            ams4 = 0;
+            ams1 = 0;
+        }
+        else {
+            assert(preset_bundle.extruder_ams_counts.size() == 2);
+            ams4 = preset_bundle.extruder_ams_counts[index][4];
+            ams1 = preset_bundle.extruder_ams_counts[index][1];
+        }
     }
 
     static void UpdateAMSCount(int index, wxStaticText *text)
     {
-        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
-        std::vector<std::string> counts;
-        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
-        counts.resize(2);
-        text->SetLabel(from_u8(counts[index]));
+        std::vector<std::map<int, int>> &ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
+        ams_counts.resize(2);
+        std::map<int, int>& ams_map = ams_counts[index];
+        if (ams_map.find(4) == ams_map.end()) {
+            ams_map[4] = 0;
+        }
+        if (ams_map.find(1) == ams_map.end()) {
+            ams_map[1] = 0;
+        }
+        std::string ams_info = std::to_string(ams_map[4]) + "/" + std::to_string(ams_map[1]);
+        text->SetLabel(from_u8(ams_info));
     }
 };
 
