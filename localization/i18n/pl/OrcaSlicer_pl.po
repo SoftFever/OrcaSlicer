@@ -11866,7 +11866,7 @@ msgstr ""
 "wyłącza tę funkcję."
 
 msgid "Use beam interlocking"
-msgstr "Użyj struktury zatrzaskowej"
+msgstr "Użyj struktury zazębiającej"
 
 msgid ""
 "Generate interlocking beam structure at the locations where different "
@@ -11878,25 +11878,25 @@ msgstr ""
 "modelach drukowanych z różnych materiałów."
 
 msgid "Interlocking beam width"
-msgstr "Szerokość struktury zatrzaskowej"
+msgstr "Szerokość zazębiania"
 
 msgid "The width of the interlocking structure beams."
-msgstr "Określa szerokość struktury zatrzaskowej"
+msgstr "Określa szerokość struktury zazębiającej"
 
 msgid "Interlocking direction"
-msgstr "Kierunek zatrzasku"
+msgstr "Kierunek zazębiania"
 
 msgid "Orientation of interlock beams."
 msgstr "Orientacja struktury zatrzaskowej"
 
 msgid "Interlocking beam layers"
-msgstr "Liczba warstw struktury zatrzaskowej"
+msgstr "Liczba warstw zazębienia"
 
 msgid ""
 "The height of the beams of the interlocking structure, measured in number of "
 "layers. Less layers is stronger, but more prone to defects."
 msgstr ""
-"Wysokość struktury zatrzaskowej wyrażona w liczbie warstw. Mniejsza liczba "
+"Wysokość struktury zazębiającej wyrażona w liczbie warstw. Mniejsza liczba "
 "warstw oznacza większą wytrzymałość, ale większą podatność na wady."
 
 msgid "Interlocking depth"
@@ -11907,17 +11907,17 @@ msgid ""
 "structure, measured in cells. Too few cells will result in poor adhesion."
 msgstr ""
 "Odległość od granicy między filamentami potrzebna do generowania struktur "
-"zatrzaskowych, mierzona w komórkach. Zbyt mało komórek skutkuje słabą "
+"zazębiających, mierzona w komórkach. Zbyt mało komórek skutkuje słabą "
 "adhezją."
 
 msgid "Interlocking boundary avoidance"
-msgstr "Unikanie granic struktury zatrzaskowej"
+msgstr "Odległość zapobiegająca zazębieniu"
 
 msgid ""
 "The distance from the outside of a model where interlocking structures will "
 "not be generated, measured in cells."
 msgstr ""
-"Odległość od zewnętrznej strony modelu, gdzie struktury zatrzaskowe nie będą "
+"Odległość od zewnętrznej strony modelu, gdzie struktury zazębiające nie będą "
 "generowane, mierzona w komórkach."
 
 msgid "Ironing Type"
