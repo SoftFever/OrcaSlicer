@@ -4394,7 +4394,12 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             lineStart.x      = ImGui::GetItemRectMin().x;
             ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
 
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                Plater *plater = wxGetApp().plater();
+                wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
+                evt.SetEventObject(plater);
+                wxPostEvent(plater, evt);
+            }
         }
     };
 

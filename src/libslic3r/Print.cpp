@@ -2626,6 +2626,11 @@ std::vector<int> Print::get_filament_maps() const
     return m_config.filament_map.values;
 }
 
+FilamentMapMode Print::get_filament_map_mode() const
+{
+    return m_config.filament_map_mode;
+}
+
 size_t Print::get_extruder_id(unsigned int filament_id) const
 {
     std::vector<int> filament_map = get_filament_maps();

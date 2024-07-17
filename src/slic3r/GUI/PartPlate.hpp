@@ -139,6 +139,7 @@ private:
     PickingModel m_orient_icon;
     PickingModel m_lock_icon;
     PickingModel m_plate_settings_icon;
+    PickingModel m_plate_filament_map_icon;
     PickingModel m_plate_name_edit_icon;
     PickingModel m_move_front_icon;
     GLModel m_plate_idx_icon;
@@ -198,7 +199,8 @@ private:
 
 public:
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 8;
+    static const unsigned int PLATE_FILAMENT_MAP_ID = 8;
+    static const unsigned int GRABBER_COUNT = 9;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;
@@ -482,7 +484,7 @@ public:
     void print() const;
 
     FilamentMapMode get_filament_map_mode();
-    void set_filament_map_mode(FilamentMapMode& mode);
+    void set_filament_map_mode(const FilamentMapMode& mode);
 
     std::vector<int> get_filament_maps();
     void set_filament_maps(const std::vector<int>& f_maps);
@@ -574,6 +576,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_texture;
     GLTexture m_plate_settings_hovered_texture;
     GLTexture m_plate_settings_changed_hovered_texture;
+    GLTexture m_plate_set_filament_map_texture;
+    GLTexture m_plate_set_filament_map_hovered_texture;
     GLTexture m_plate_name_edit_texture;
     GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];

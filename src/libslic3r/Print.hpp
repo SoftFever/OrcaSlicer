@@ -936,6 +936,7 @@ public:
 
     void update_filament_maps_to_config(std::vector<int> f_maps);
     std::vector<int> get_filament_maps() const;
+    FilamentMapMode  get_filament_map_mode() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
 
