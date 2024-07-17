@@ -7194,22 +7194,38 @@ std::set<std::string> print_options_with_variant = {
 std::set<std::string> filament_options_with_variant = {
     "filament_max_volumetric_speed",
     //"filament_extruder_id",
-    "filament_extruder_variant"
+    "filament_extruder_variant",
+    "filament_retraction_length",
+    "filament_z_hop",
+    "filament_z_hop_types",
+    "filament_retraction_speed",
+    "filament_deretraction_speed",
+    "filament_retraction_minimum_travel",
+    "filament_retract_when_changing_layer",
+     "filament_wipe",
+    //BBS
+    "filament_wipe_distance",
+    "filament_retract_before_wipe",
+    "filament_long_retractions_when_cut",
+    "filament_retraction_distances_when_cut",
+    "nozzle_temperature_initial_layer",
+    "nozzle_temperature"
+
 };
 
 // Parameters that are the same as the number of extruders
 std::set<std::string> printer_extruder_options = {
     "extruder_type",
     "nozzle_diameter",
-    "nozzle_volume_type"
+    "nozzle_volume_type",
+    "min_layer_height",
+    "max_layer_height"
 };
 
 std::set<std::string> printer_options_with_variant_1 = {
-    /*"min_layer_height",
-    "max_layer_height",*/
-    //"retraction_length",
+    "retraction_length",
     "z_hop",
-    //"retract_lift_above",
+    "retract_lift_above",
     "retract_lift_below",
     "z_hop_types",
     "retraction_speed",
@@ -7217,10 +7233,11 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retraction_minimum_travel",
     "retract_when_changing_layer",
     "wipe",
-    //"wipe_distance",
+    "wipe_distance",
     "retract_before_wipe",
     "retract_length_toolchange",
-    //"retraction_distances_when_cut",
+    "long_retractions_when_cut",
+    "retraction_distances_when_cut",
     "printer_extruder_id",
     "printer_extruder_variant"
 };
