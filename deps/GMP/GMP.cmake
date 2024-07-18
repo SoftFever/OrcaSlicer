@@ -5,14 +5,14 @@ if (MSVC)
     set(_output ${DESTDIR}/include/gmp.h)
 
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
-        list(APPEND _output ${DESTDIR}/lib/gmp-10.lib
+        list(APPEND _output ${DESTDIR}/lib/gmp.lib
                             ${DESTDIR}/bin/gmp-10.dll)
-        set(_gmplib winarm64/gmp-10.lib)
+        set(_gmplib winarm64/gmp.lib)
         set(_gmpdll winarm64/gmp-10.dll)
     else()
-        list(APPEND _output ${DESTDIR}/lib/libgmp-10.lib
+        list(APPEND _output ${DESTDIR}/lib/libgmp.lib
                             ${DESTDIR}/bin/libgmp-10.dll)
-        set(_gmplib win${DEPS_BITS}/libgmp-10.lib)
+        set(_gmplib win${DEPS_BITS}/libgmp.lib)
         set(_gmpdll win${DEPS_BITS}/libgmp-10.dll)
     endif()           
 
