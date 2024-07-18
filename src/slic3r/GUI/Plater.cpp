@@ -1203,9 +1203,6 @@ bool Sidebar::priv::switch_diameter(bool single)
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
-    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
-    printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " begin sync_extruder_list";
@@ -2913,7 +2910,8 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     if (!obj) return filament_ams_list;
 
     auto build_tray_config = [](AmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1% setting_id %2% color %3%") % name % tray.setting_id % tray.color;
+        BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
+                    % name % tray.setting_id % tray.type % tray.color;
         DynamicPrintConfig tray_config;
         tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
         tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});

@@ -2853,17 +2853,27 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     for (int i = 0; i < int(opt_cur->values.size()); i++)
     {
         int init_id = i <= opt_init_max_id ? i : 0;
-        if (opt_cur->values[i] != opt_init->values[init_id]
-                && (strict || !(opt_cur->is_nil(i) || opt_init->is_nil(init_id))))
-            vec.emplace_back(opt_key + "#" + std::to_string(i));
+        if (opt_cur->values[i] != opt_init->values[init_id]) {
+            if (opt_cur->nullable()) {
+                if (opt_cur->is_nil(i)) {
+                    if (strict && !opt_init->is_nil(init_id))
+                        vec.emplace_back(opt_key + "#" + std::to_string(i));
+                } else {
+                    if (strict || !opt_init->is_nil(init_id))
+                        vec.emplace_back(opt_key + "#" + std::to_string(i));
+                }
+            } else {
+                vec.emplace_back(opt_key + "#" + std::to_string(i));
+            }
+        }
     }
 }
 
 // Use deep_diff to correct return of changed options, considering individual options for each extruder.
-inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = false)
+inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = true)
 {
     t_config_option_keys diff;
-    t_config_option_keys keys = config_this.keys();
+    t_config_option_keys keys;
     if (strict) {
         t_config_option_keys keys_this = config_this.keys();
         t_config_option_keys keys_other = config_other.keys();

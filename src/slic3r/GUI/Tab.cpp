@@ -58,7 +58,7 @@
 
 namespace Slic3r {
 
-t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = false);
+t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = true);
 
 namespace GUI {
 
@@ -923,10 +923,14 @@ void Tab::update_changed_ui()
         it.second = m_opt_status_value;
 
     for (auto opt_key : dirty_options) {
-        m_options_list[opt_key] &= ~osInitValue;
+        auto iter = m_options_list.find(opt_key);
+        if (iter != m_options_list.end())
+            iter->second &= ~osInitValue;
     }
     for (auto opt_key : nonsys_options) {
-        m_options_list[opt_key] &= ~osSystemValue;
+        auto iter = m_options_list.find(opt_key);
+        if (iter != m_options_list.end())
+            iter->second &= ~osSystemValue;
     }
 
     decorate();
@@ -994,8 +998,12 @@ void TabFilament::init_options_list()
     if (!m_options_list.empty())
         m_options_list.clear();
 
-    for (const std::string& opt_key : m_config->keys())
-        m_options_list.emplace(opt_key, m_opt_status_value);
+    for (const std::string &opt_key : m_config->keys()) {
+        if (filament_options_with_variant.find(opt_key) == filament_options_with_variant.end())
+            m_options_list.emplace(opt_key, m_opt_status_value);
+        else
+            m_options_list.emplace(opt_key + "#0", m_opt_status_value);
+    }
 }
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
@@ -2876,11 +2884,11 @@ void TabPrintModel::update_model_config()
             std::vector<std::string> global_diffs; // all diff keys to global config
             for (auto & config : m_object_configs) {
                 all_keys = concat(all_keys, variant_keys(config.second->get()));
-                auto diffs = deep_diff(config.second->get(), global_config);
+                auto diffs = deep_diff(config.second->get(), global_config, false);
                 global_diffs = concat(global_diffs, diffs);
                 diff_config.apply_only(config.second->get(), diffs);
                 if (&config.second->get() == &local_config) continue;
-                local_diffs = concat(local_diffs, deep_diff(local_config, config.second->get(), true));
+                local_diffs = concat(local_diffs, deep_diff(local_config, config.second->get()));
             }
             m_null_keys = intersect(global_diffs, local_diffs);
             m_config->apply(diff_config);
@@ -3565,9 +3573,9 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
                                             // "filament_seam_gap"
                                         };
 
-    const int extruder_idx = 0; // #ys_FIXME
+    const int extruder_idx = m_variant_combo->GetSelection(); // #ys_FIXME
 
-    const bool have_retract_length = m_config->option("filament_retraction_length")->is_nil() ||
+    const bool have_retract_length = dynamic_cast<ConfigOptionVectorBase *>(m_config->option("filament_retraction_length"))->is_nil(extruder_idx) ||
                                      m_config->opt_float("filament_retraction_length", extruder_idx) > 0;
 
     for (const std::string& opt_key : opt_keys)
@@ -3575,24 +3583,24 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
         bool is_checked = opt_key=="filament_retraction_length" ? true : have_retract_length;
         m_overrides_options[opt_key]->Enable(is_checked);
 
-        is_checked &= !m_config->option(opt_key)->is_nil();
+        is_checked &= !dynamic_cast<ConfigOptionVectorBase*>(m_config->option(opt_key))->is_nil(extruder_idx);
         m_overrides_options[opt_key]->SetValue(is_checked);
 
-        Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
+        Field* field = optgroup->get_fieldc(opt_key, 0);
         if (field == nullptr) continue;
 
         if (opt_key == "filament_long_retractions_when_cut") {
             int machine_enabled_level = printers_config->option<ConfigOptionInt>(
                 "enable_long_retraction_when_cut")->value;
             bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
-            toggle_line(opt_key, machine_enabled);
+                toggle_line(opt_key, machine_enabled, extruder_idx + 256);
             field->toggle(is_checked && machine_enabled);
         } else if (opt_key == "filament_retraction_distances_when_cut") {
             int machine_enabled_level = printers_config->option<ConfigOptionInt>(
                 "enable_long_retraction_when_cut")->value;
             bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
             bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
-            toggle_line(opt_key, filament_enabled && machine_enabled);
+            toggle_line(opt_key, filament_enabled && machine_enabled, extruder_idx + 256);
             field->toggle(is_checked && filament_enabled && machine_enabled);
         } else {
             if (!is_checked) {

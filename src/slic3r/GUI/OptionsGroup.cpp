@@ -951,7 +951,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         {
         case coPercents:
         case coFloats: {
-            if (config.option(opt_key)->is_nil())
+            if (opt_index < 0 ? config.option(opt_key)->is_nil() : dynamic_cast<ConfigOptionVectorBase const*>(config.option(opt_key))->is_nil(opt_index))
                 ret = _(L("N/A"));
             else {
                 double val = opt->type == coFloats ?
@@ -961,7 +961,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             }
             break;
         case coFloatsOrPercents: {
-            if (config.option(opt_key)->is_nil())
+            if (opt_index < 0 ? config.option(opt_key)->is_nil() : dynamic_cast<ConfigOptionVectorBase const*>(config.option(opt_key))->is_nil(opt_index))
                 ret = _(L("N/A"));
             else {
                 const auto& value = config.option<ConfigOptionFloatsOrPercentsNullable>(opt_key)->get_at(idx);
