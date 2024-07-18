@@ -2561,7 +2561,7 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
 /**
  * @brief Reorders perimeters based on proximity to the reference perimeter using a BFS-like approach.
  *
- * This approach finds all perimeters touching the external perimeter first and then finds all perimeters touching these new ones.
+ * This approach finds all perimeters touching the external perimeter first and then finds all perimeters touching these new ones until none are left
  * It ensures a level-by-level traversal, similar to BFS in graph theory.
  *
  * @param entities The list of PerimeterGeneratorArachneExtrusion entities.
@@ -2570,8 +2570,7 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
  * @param threshold_internal The distance threshold to consider for proximity.
  * @return std::vector<PerimeterGeneratorArachneExtrusion> The reordered list of perimeters based on proximity.
  */
-std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS( std::vector<PerimeterGeneratorArachneExtrusion> entities, size_t threshold_external, size_t threshold_internal ) {
-
+std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(std::vector<PerimeterGeneratorArachneExtrusion> entities, size_t threshold_external, size_t threshold_internal) {
     std::vector<PerimeterGeneratorArachneExtrusion> reordered;
     std::unordered_set<int> includedIndices;
 
@@ -2589,7 +2588,7 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
             auto maxIt = std::max_element(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), [&entities](int a, int b) {
                 return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
             });
-            std::iter_swap(maxIt, firstLevelTouchingIndices.end()-1);
+            std::iter_swap(maxIt, firstLevelTouchingIndices.end() - 1);
         }
         // Insert first level perimeters into reordered list
         reordered.push_back(entities[referenceIndex]);
@@ -2602,30 +2601,42 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
             }
         }
 
-        // Find second level touching perimeters, excluding first level touching perimeters
-        std::unordered_set<int> secondLevelIndices(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end());
-        std::vector<int> secondLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, secondLevelIndices, threshold_external, threshold_internal , 2);
+        // Loop through all inset indices above 1
+        size_t currentInsetIndex = 2;
+        while (true) {
+            std::unordered_set<int> currentLevelIndices(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end());
+            std::vector<int> currentLevelTouchingIndices = findAllTouchingPerimetersIOI(entities, currentLevelIndices, threshold_external, threshold_internal, currentInsetIndex);
 
-        // Exclude any already included indices as prat of the first level search from the second level touching indices results
-        secondLevelTouchingIndices.erase(
-            std::remove_if(secondLevelTouchingIndices.begin(), secondLevelTouchingIndices.end(),
-                [&](int idx) { return includedIndices.count(idx) > 0; }),
-            secondLevelTouchingIndices.end());
-        
-        // Bring the largest second level perimeter to the end
-        if (!secondLevelTouchingIndices.empty()) {
-            auto maxIt = std::max_element(secondLevelTouchingIndices.begin(), secondLevelTouchingIndices.end(), [&entities](int a, int b) {
-                return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
-            });
-            std::iter_swap(maxIt, secondLevelTouchingIndices.begin());
-        }
-
-        // Insert second level perimeters into reordered list
-        for (int idx : secondLevelTouchingIndices) {
-            if (includedIndices.count(idx) == 0) {
-                reordered.push_back(entities[idx]);
-                includedIndices.insert(idx);
+            // Break if no more touching perimeters are found
+            if (currentLevelTouchingIndices.empty()) {
+                break;
             }
+
+            // Exclude any already included indices from the current level touching indices
+            currentLevelTouchingIndices.erase(
+                std::remove_if(currentLevelTouchingIndices.begin(), currentLevelTouchingIndices.end(),
+                    [&](int idx) { return includedIndices.count(idx) > 0; }),
+                currentLevelTouchingIndices.end());
+
+            // Bring the largest current level perimeter to the end
+            if (!currentLevelTouchingIndices.empty()) {
+                auto maxIt = std::max_element(currentLevelTouchingIndices.begin(), currentLevelTouchingIndices.end(), [&entities](int a, int b) {
+                    return entities[a].extrusion->getLength() < entities[b].extrusion->getLength();
+                });
+                std::iter_swap(maxIt, currentLevelTouchingIndices.begin());
+            }
+
+            // Insert current level perimeters into reordered list
+            for (int idx : currentLevelTouchingIndices) {
+                if (includedIndices.count(idx) == 0) {
+                    reordered.push_back(entities[idx]);
+                    includedIndices.insert(idx);
+                }
+            }
+
+            // Prepare for the next level
+            firstLevelTouchingIndices = currentLevelTouchingIndices;
+            currentInsetIndex++;
         }
     };
 
@@ -2646,8 +2657,9 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
     return reordered;
 }
 
+
 /**
- * @brief Reorders the vector to bring contours to the front.
+ * @brief Reorders the vector to bring external perimeter contours to the front.
  *
  * This function uses a stable partition to move all contour elements to the front of the vector,
  * while maintaining the relative order of non-contour elements.
