@@ -208,7 +208,7 @@ private:
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
-    void                reorder_extruders_for_minimum_flush_volume();
+    void                reorder_extruders_for_minimum_flush_volume(bool reorder_first_layer);
 
     // BBS
     std::vector<unsigned int> generate_first_layer_tool_order(const Print& print);

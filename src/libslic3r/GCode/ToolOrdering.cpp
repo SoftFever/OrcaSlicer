@@ -178,8 +178,8 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
     int cost = 0;
     std::vector<std::set<unsigned int>>groups(2); //save the grouped filaments
     std::vector<std::vector<std::vector<unsigned int>>> layer_sequences(2); //save the reordered filament sequence by group
-    std::unordered_map<size_t, std::vector<int>> custom_layer_filament_map; //save the custom layers,second key stores the last extruder of that layer by group
-    std::unordered_map<size_t, std::vector<unsigned int>> custom_layer_sequence_map; // save the filament sequences of custom layer
+    std::map<size_t, std::vector<int>> custom_layer_filament_map; //save the custom layers,second key stores the last extruder of that layer by group
+    std::map<size_t, std::vector<unsigned int>> custom_layer_sequence_map; // save the filament sequences of custom layer
 
     // group the filament
     for (int i = 0; i < filament_maps.size(); ++i) {
@@ -305,13 +305,25 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
     if (filament_sequences) {
         filament_sequences->clear();
         filament_sequences->resize(layer_filaments.size());
+
+        bool last_group = 0;
+        //if last_group == 0,print group 0 first ,else print group 1 first
+        if (!custom_layer_sequence_map.empty()) {
+            int custom_first_layer = custom_layer_sequence_map.begin()->first;
+            bool custom_first_group = groups[0].count(custom_first_layer) ? 0 : 1;
+            last_group = (custom_first_layer & 1) ? !custom_first_group : custom_first_group;
+        }
+
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
             auto& curr_layer_seq = (*filament_sequences)[layer];
             if (custom_layer_sequence_map.find(layer) != custom_layer_sequence_map.end()) {
                 curr_layer_seq = custom_layer_sequence_map[layer];
+                if (!curr_layer_seq.empty()) {
+                    last_group = groups[0].count(curr_layer_seq.back()) ? 0 : 1;
+                }
                 continue;
             }
-            if (layer & 1) {
+            if (last_group) {
                 if (!layer_sequences[1].empty())
                     curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
                 if (!layer_sequences[0].empty())
@@ -323,6 +335,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
                 if (!layer_sequences[1].empty())
                     curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
             }
+            last_group = !last_group;
         }
     }
 
@@ -827,7 +840,7 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
         }
 
     // reorder the extruders for minimum flush volume
-    reorder_extruders_for_minimum_flush_volume();
+    reorder_extruders_for_minimum_flush_volume(true);
 }
 
 // BBS
@@ -898,7 +911,7 @@ void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0
         }
 
     // reorder the extruders for minimum flush volume
-    reorder_extruders_for_minimum_flush_volume();
+    reorder_extruders_for_minimum_flush_volume(false);
 }
 
 void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height)
@@ -1167,7 +1180,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     return ret;
 }
 
-void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
+void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first_layer)
 {
     const PrintConfig* print_config = m_print_config_ptr;
     if (!print_config && m_print_object_ptr) {
@@ -1238,8 +1251,17 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         other_layers_seqs = get_other_layers_print_sequence(sequence_nums, print_sequence);
     }
 
+    std::vector<unsigned int>first_layer_filaments;
+    if (!m_layer_tools.empty())
+        first_layer_filaments = m_layer_tools[0].extruders;
+
     // other_layers_seq: the layer_idx and extruder_idx are base on 1
-    auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int>& out_seq) -> bool {
+    auto get_custom_seq = [&other_layers_seqs,&reorder_first_layer,&first_layer_filaments](int layer_idx, std::vector<int>& out_seq) -> bool {
+        if (!reorder_first_layer && layer_idx == 0) {
+            out_seq.resize(first_layer_filaments.size());
+            std::transform(first_layer_filaments.begin(), first_layer_filaments.end(), out_seq.begin(), [](auto item) {return item + 1; });
+            return true;
+        }
         for (size_t idx = other_layers_seqs.size() - 1; idx != size_t(-1); --idx) {
             const auto& other_layers_seq = other_layers_seqs[idx];
             if (layer_idx + 1 >= other_layers_seq.first.first && layer_idx + 1 <= other_layers_seq.first.second) {
