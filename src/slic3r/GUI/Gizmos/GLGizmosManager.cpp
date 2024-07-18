@@ -373,6 +373,9 @@ void GLGizmosManager::update_assemble_view_data()
 void GLGizmosManager::update_data()
 {
     if (!m_enabled) return;
+
+    const Selection& selection = m_parent.get_selection();
+
     if (m_common_gizmos_data)
         m_common_gizmos_data->update(get_current()
                                    ? get_current()->get_requirements()
@@ -383,8 +386,10 @@ void GLGizmosManager::update_data()
     if (m_current != Flatten && !m_gizmos.empty()) m_gizmos[Flatten]->data_changed(m_serializing);
 
     //BBS: GUI refactor: add object manipulation in gizmo
-    m_object_manipulation.update_ui_from_settings();
-    m_object_manipulation.UpdateAndShow(true);
+    if (!selection.is_empty()) {
+        m_object_manipulation.update_ui_from_settings();
+        m_object_manipulation.UpdateAndShow(true);
+    }
 }
 
 bool GLGizmosManager::is_running() const
