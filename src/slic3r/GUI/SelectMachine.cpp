@@ -3571,6 +3571,10 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
     if (use_double_extruder)
     {
+        m_filament_left_panel->Show();
+        m_filament_right_panel->Show();
+        m_filament_panel->Hide();
+
         m_sizer_ams_mapping_left->SetCols(4);
         m_sizer_ams_mapping_left->Layout();
         //m_filament_panel_left_sizer->Layout();
