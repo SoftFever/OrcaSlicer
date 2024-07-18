@@ -4,10 +4,7 @@ find_package(OpenGL QUIET REQUIRED)
 
 orcaslicer_add_cmake_project(
   GLEW
-  GIT_REPOSITORY "https://github.com/nigels-com/glew"
-  GIT_SHALLOW ON
-  CMAKE_ARGS
-    -DBUILD_UTILS=OFF
+  SOURCE_DIR  ${CMAKE_CURRENT_LIST_DIR}/glew
 )
 
 if (MSVC)
