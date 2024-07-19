@@ -3448,7 +3448,7 @@ msgid "There are no tasks to be sent!"
 msgstr "No hay tareas que enviar."
 
 msgid "No historical tasks!"
-msgstr "Sin tareas históricas"
+msgstr "Sin historial de tareas."
 
 msgid "Loading..."
 msgstr "Cargando..."
