@@ -57,7 +57,7 @@ msgid "Highlight overhang areas"
 msgstr "Resaltar las zonas de voladizos"
 
 msgid "Gap fill"
-msgstr "Rellenar hueco"
+msgstr "Rellenar huecos"
 
 msgid "Perform"
 msgstr "Realizar"
@@ -72,7 +72,7 @@ msgid "Smart fill angle"
 msgstr "Ángulo de relleno en puente"
 
 msgid "On overhangs only"
-msgstr "Solo voladizos"
+msgstr "Solo en voladizos"
 
 msgid "Auto support threshold angle: "
 msgstr "Ángulo del umbral de soporte automático: "
@@ -87,7 +87,7 @@ msgid "Fill"
 msgstr "Llenar"
 
 msgid "Gap Fill"
-msgstr "Rellenar hueco"
+msgstr "Rellenar huecos"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
@@ -486,7 +486,7 @@ msgid "After cut"
 msgstr "Después del corte"
 
 msgid "Cut to parts"
-msgstr "Separar en piezas"
+msgstr "Cortar en piezas"
 
 msgid "Perform cut"
 msgstr "Realizar corte"
