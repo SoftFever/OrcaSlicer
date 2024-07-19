@@ -20,8 +20,8 @@ enum class CalibMode : int {
     Calib_Flow_Rate,
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,
-    Calib_VFA_Tower
-
+    Calib_VFA_Tower,
+    Calib_Retraction_tower
 };
 
 enum class CalibState { Start = 0, Preset, Calibration, CoarseSave, FineCalibration, Save, Finish };
