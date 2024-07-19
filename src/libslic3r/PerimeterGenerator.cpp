@@ -2516,12 +2516,13 @@ double minimumDistanceIOI(const std::vector<Point>& A, const std::vector<Point>&
 }
 
 /**
- * @brief Finds all perimeters touching a given set of reference points with at least 20% proximity.
+ * @brief Finds all perimeters touching a given set of reference lines, given as indexes.
  *
  * @param entities The list of PerimeterGeneratorArachneExtrusion entities.
  * @param referenceIndices A set of indices representing the reference points.
- * @param threshold The distance threshold to consider for proximity.
- * @param onlyInset2OrMore Flag to consider only perimeters with inset_idx >= 2. If False, it will only find inset index 1
+ * @param threshold_external The distance threshold to consider for proximity for a reference perimeter with inset index 0
+ * @param threshold_internal The distance threshold to consider for proximity for a reference perimeter with inset index 1+
+ * @param considered_inset_idx What perimeter inset index are we searching for (eg. if we are searching for first internal perimeters proximate to the current reference perimeter, this value should be set to 1 etc).
  * @return std::vector<int> A vector of indices representing the touching perimeters.
  */
 // TODO: Optimise for perimeter sequencing beyond the first, second and third index to reduce travel moves
@@ -2566,8 +2567,8 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
  *
  * @param entities The list of PerimeterGeneratorArachneExtrusion entities.
  * @param referenceIndex The index of the reference perimeter.
- * @param threshold_external The distance threshold from an external perimeter to consider for proximity.
- * @param threshold_internal The distance threshold to consider for proximity.
+ * @param threshold_external The distance threshold to consider for proximity for a reference perimeter with inset index 0
+ * @param threshold_internal The distance threshold to consider for proximity for a reference perimeter with inset index 1+
  * @return std::vector<PerimeterGeneratorArachneExtrusion> The reordered list of perimeters based on proximity.
  */
 std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityBFS(std::vector<PerimeterGeneratorArachneExtrusion> entities, size_t threshold_external, size_t threshold_internal) {
@@ -2659,9 +2660,9 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderIOIPerimetersByProximityB
 
 
 /**
- * @brief Reorders the vector to bring external perimeter contours to the front.
+ * @brief Reorders the vector to bring external perimeter (i.e. paths with inset index 0) that are also contours (i.e. external facing lines) to the front.
  *
- * This function uses a stable partition to move all contour elements to the front of the vector,
+ * This function uses a stable partition to move all external perimeter contour elements to the front of the vector,
  * while maintaining the relative order of non-contour elements.
  *
  * @param ordered_extrusions The vector of PerimeterGeneratorArachneExtrusion to reorder.
