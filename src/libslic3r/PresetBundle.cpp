@@ -2173,7 +2173,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
     // BBS
     size_t  num_filaments = this->filament_presets.size();
 
-    if (filament_maps.empty()) {
+    //in some middle state, they may be different
+    if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);
     }
 
