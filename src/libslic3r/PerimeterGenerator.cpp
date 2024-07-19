@@ -3050,7 +3050,8 @@ void PerimeterGenerator::process_arachne()
                                 }
                                 break;
                         }
-                        if(outer >-1 && first_internal>-1 && second_internal>-1 && reordered_extrusions[arr_i].extrusion->inset_idx == 0){  // found a new external perimeter after we've found all three perimeters to re-order -> this means we entered a new island.
+                        if(outer >-1 && first_internal>-1 && reordered_extrusions[arr_i].extrusion->inset_idx == 0){  // found a new external perimeter after we've found at least a first internal perimeter to re-order.
+                                                                                                                      // This means we entered a new island.
                             arr_i=arr_i-1; //step back one perimeter
                             max_internal = arr_i; // new maximum internal perimeter is now this as we have found a new external perimeter, hence a new island.
                             break; // exit the for loop
@@ -3058,7 +3059,7 @@ void PerimeterGenerator::process_arachne()
                     }
                     
                     // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
-                    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
+                    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found all three perimeters to re-order? If not the perimeters will be processed outside in.
                         std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
                         inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
                         // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
@@ -3078,8 +3079,7 @@ void PerimeterGenerator::process_arachne()
                         
                         for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
                             ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
-                    } else
-                        break;
+                    }
                     // go to the next perimeter from the current position to continue scanning for external walls in the same island
                     position = arr_i + 1;
                 }
