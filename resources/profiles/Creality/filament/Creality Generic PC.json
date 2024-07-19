@@ -1,13 +1,6 @@
 {
     "type": "filament",
-<<<<<<<< HEAD:resources/profiles/Creality/filament/Creality Generic PC.json
     "name": "Creality Generic PC",
-========
-    "filament_id": "GFC99",
-    "name": "OrcaArena Generic PC @base",
-    "from": "system",
-    "instantiation": "false",
->>>>>>>> 7f8855b5b (Fix a regression: Generic filament profiles conflicts #981):resources/profiles/OrcaArena/filament/OrcaArena Generic PC @base.json
     "inherits": "fdm_filament_pc",
     "from": "system",
     "filament_id": "GFC99",
