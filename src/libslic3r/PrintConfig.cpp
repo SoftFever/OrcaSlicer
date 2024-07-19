@@ -1651,18 +1651,6 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 0 });
-    
-    def = this->add("support_material_interface_fan_speed", coInts);
-    def->label = L("Support interface fan speed");
-    def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
-        "\nSet to -1 to disable this override."
-        "\nCan only be overriden by disable_fan_first_layers.");
-    def->sidetext = L("%");
-    def->min = -1;
-    def->max = 100;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInts{ -1 });
-    
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");
