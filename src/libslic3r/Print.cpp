@@ -148,6 +148,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retraction_minimum_travel",
         "retract_before_wipe",
         "retract_when_changing_layer",
+        "retract_on_top_layer",
         "retraction_length",
         "retract_length_toolchange",
         "z_hop",
