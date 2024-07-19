@@ -144,7 +144,7 @@ void Field::PostInitialize()
 	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
 	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
     if (getWindow()) {
-        if (m_opt.readonly) { 
+        if (m_opt.readonly) {
             this->disable();
         } else {
             this->enable();
@@ -236,7 +236,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
     }
 
 	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" + 
+        tooltip_text = tooltip + "\n" +
         _(L("parameter name")) + "\t: " + opt_id;
  #endif
 	return tooltip_text;
@@ -289,7 +289,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
         const char dec_sep = is_decimal_separator_point() ? '.' : ',';
         const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
-        // Replace the first incorrect separator in decimal number, 
+        // Replace the first incorrect separator in decimal number,
         // if this value doesn't "N/A" value in some language
         if (!is_na_value && str.Replace(dec_sep_alt, dec_sep, false) != 0)
             set_value(str, false);
@@ -358,8 +358,9 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         m_value = val;
 		break; }
 	case coString:
-	case coStrings:
-    case coFloatOrPercent: {
+    case coStrings:
+    case coFloatOrPercent:
+    case coFloatsOrPercents: {
         if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
         {
             double val = 0.;
@@ -645,9 +646,9 @@ struct myEvtHandler : wxEvtHandler
             // In Field, All Bind has id, but for TextInput, ComboBox, SpinInput, all not
             if (entry->m_id != wxID_ANY && entry->m_lastId == wxID_ANY)
                 Unbind(entry->m_eventType,
-                    wxEventFunctorRef{entry->m_fn}, 
-                    entry->m_id, 
-                    entry->m_lastId, 
+                    wxEventFunctorRef{entry->m_fn},
+                    entry->m_id,
+                    entry->m_lastId,
                     entry->m_callbackUserData);
             //DoUnbind(entry->m_id, entry->m_lastId, entry->m_eventType, *entry->m_fn, entry->m_callbackUserData);
         }
@@ -985,7 +986,7 @@ void CheckBox::BUILD() {
 
 	// BBS: use ::CheckBox
     static Builder<::CheckBox> builder;
-	auto temp = builder.build(m_parent); 
+	auto temp = builder.build(m_parent);
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	//temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
@@ -1133,8 +1134,8 @@ void SpinCtrl::BUILD() {
         propagate_value();
 	}), temp->GetId());
 
-    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
-    
+    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId());
+
     temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent & e)
     {
         e.Skip();
@@ -1196,7 +1197,7 @@ void SpinCtrl::propagate_value()
             on_kill_focus();
 	} else {
         auto ctrl = dynamic_cast<SpinInput *>(window);
-        if (m_value.empty() 
+        if (m_value.empty()
             ? !ctrl->GetTextCtrl()->GetLabel().IsEmpty()
             : ctrl->GetValue() != boost::any_cast<int>(m_value))
             on_change_field();
@@ -1279,7 +1280,7 @@ void Choice::BUILD()
     auto         dynamic_list = dynamic_lists.find(m_opt.opt_key);
     if (dynamic_list != dynamic_lists.end())
         m_list = dynamic_list->second;
-    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open 
+    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open
             && m_list == nullptr) {
         m_is_editable = true;
         static Builder<choice_ctrl> builder1;
@@ -1531,7 +1532,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			field->SetSelection(idx);
 
         if (!m_value.empty() && m_opt.opt_key == "sparse_infill_density") {
-            // If m_value was changed before, then update m_value here too to avoid case 
+            // If m_value was changed before, then update m_value here too to avoid case
             // when control's value is already changed from the ConfigManipulation::update_print_fff_config(),
             // but m_value doesn't respect it.
             if (double val; text_value.ToDouble(&val))
