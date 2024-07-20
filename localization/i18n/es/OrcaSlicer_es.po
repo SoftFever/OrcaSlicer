@@ -4306,7 +4306,7 @@ msgid "Model Filament"
 msgstr "Modelo Filamento"
 
 msgid "Prepare time"
-msgstr "Planificar tiempo"
+msgstr "Tiempo estimado"
 
 msgid "Model printing time"
 msgstr "Tiempo de impresión del modelo"
@@ -7220,13 +7220,13 @@ msgid "Bambu Engineering Plate"
 msgstr "Bandeja de Ingeniería Bambú"
 
 msgid "Bambu Smooth PEI Plate"
-msgstr "Placa PEI Lisa Bambu"
+msgstr "Bandeja PEI Lisa Bambu"
 
 msgid "High temperature Plate"
 msgstr "Bandeja de Alta Temperatura"
 
 msgid "Bambu Textured PEI Plate"
-msgstr "Placa PEI Texturizada Bambu"
+msgstr "Bandeja PEI Texturizada Bambu"
 
 msgid "Send print job to"
 msgstr "Enviar el trabajo de impresión a"
@@ -9030,7 +9030,7 @@ msgstr ""
 "siguiente arranque de la impresora o cuando arranque Orca Slicer."
 
 msgid "Extension Board"
-msgstr "Placa de ampliación"
+msgstr "Placa de Ampliación"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "El guardado de objetos en el 3mf no ha funcionado."
