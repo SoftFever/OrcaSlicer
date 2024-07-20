@@ -1929,7 +1929,7 @@ msgid "Add Primitive"
 msgstr "Añadir Primitivo"
 
 msgid "Add Handy models"
-msgstr "Añadir modelos prácticos"
+msgstr "Añadir Modelos Prácticos"
 
 msgid "Add Models"
 msgstr "Añadir Modelos"
@@ -11327,7 +11327,7 @@ msgid "Lightning"
 msgstr "Rayo"
 
 msgid "Cross Hatch"
-msgstr "Escotilla Transversal"
+msgstr "Rayado Cruzado"
 
 msgid "Sparse infill anchor length"
 msgstr "Longitud del anclaje de relleno de baja densidad"
