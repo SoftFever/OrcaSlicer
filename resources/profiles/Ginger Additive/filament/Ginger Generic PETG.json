@@ -1,0 +1,29 @@
+{
+  "type": "filament",
+  "enable_overhang_bridge_fan": ["0"],
+  "fan_max_speed": ["0"],
+  "fan_min_speed": ["0"],
+  "filament_diameter": ["1.12838"],
+  "filament_max_volumetric_speed": ["220"],
+  "filament_settings_id": ["PETG"],
+  "filament_type": ["PETG"],
+  "filament_vendor": ["Generic"],
+  "from": "system",
+  "hot_plate_temp": ["100"],
+  "hot_plate_temp_initial_layer": ["90"],
+  "inherits": "fdm_filament_petg",
+  "is_custom_defined": "0",
+  "name": "Ginger Generic PETG",
+  "pellet_flow_coefficient": ["1"],
+  "pressure_advance": ["0.01"],
+  "slow_down_layer_time": ["30"],
+  "slow_down_min_speed": ["1"],
+  "version": "0.1.0.0",
+  "compatible_printers": [
+    "ginger G1 1.2 nozzle",
+    "ginger G1 3.0 nozzle",
+    "ginger G1 5.0 nozzle",
+    "ginger G1 8.0 nozzle"
+  ],
+  "instantiation": "true"
+}

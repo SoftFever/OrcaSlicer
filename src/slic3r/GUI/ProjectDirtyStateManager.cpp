@@ -17,8 +17,7 @@ namespace GUI {
 
 void ProjectDirtyStateManager::update_from_undo_redo_stack(bool dirty)
 {
-    if (!m_plater_dirty)
-        m_plater_dirty = dirty;
+    m_plater_dirty = dirty;
     if (const Plater *plater = wxGetApp().plater(); plater && wxGetApp().initialized())
         wxGetApp().mainframe->update_title();
 }

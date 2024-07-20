@@ -1181,12 +1181,11 @@ void Sidebar::update_all_preset_comboboxes()
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     bool is_bbl_vendor = preset_bundle.is_bbl_vendor();
-    const bool use_bbl_network = preset_bundle.use_bbl_network();
 
     auto p_mainframe = wxGetApp().mainframe;
     auto cfg = preset_bundle.printers.get_edited_preset().config;
 
-    if (use_bbl_network) {
+    if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
@@ -1204,9 +1203,10 @@ void Sidebar::update_all_preset_comboboxes()
         else {
             if (!url.Lower().starts_with("http"))
                 url = wxString::Format("http://%s", url);
-            if (cfg.has("printhost_apikey"))
+            const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+            if (cfg.has("printhost_apikey") && (host_type != htSimplyPrint))
                 apikey = cfg.opt_string("printhost_apikey");
-            print_btn_type = MainFrame::PrintSelectType::eSendGcode;
+            print_btn_type = preset_bundle.is_bbl_vendor() ? MainFrame::PrintSelectType::ePrintPlate : MainFrame::PrintSelectType::eSendGcode;
         }
 
         p_mainframe->load_printer_url(url, apikey);
@@ -1215,6 +1215,17 @@ void Sidebar::update_all_preset_comboboxes()
         p_mainframe->set_print_button_to_default(print_btn_type);
 
     }
+
+    if (cfg.opt_bool("pellet_modded_printer")) {
+		p->m_staticText_filament_settings->SetLabel(_L("Pellets"));
+        p->m_filament_icon->SetBitmap_("pellets");
+    } else {
+		p->m_staticText_filament_settings->SetLabel(_L("Filament"));
+        p->m_filament_icon->SetBitmap_("filament");
+    }
+
+    //p->m_staticText_filament_settings->Update();
+
 
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
         m_bed_type_list->Enable();
@@ -1250,7 +1261,7 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer->update();
 
     // Orca:: show device tab based on vendor type
-    p_mainframe->show_device(use_bbl_network);
+    p_mainframe->show_device(preset_bundle.use_bbl_device_tab());
     p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
@@ -2572,6 +2583,7 @@ struct Plater::priv
     //BBS store bbs project name
     wxString get_project_name();
     void set_project_name(const wxString& project_name);
+    void update_title_dirty_status();
 
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
@@ -4683,7 +4695,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
             auto result = MessageBox(q->GetHandle(),
                 wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path),
-                _L("Comfirm Save As"),
+                _L("Confirm Save As"),
                 MB_YESNO | MB_ICONWARNING);
             if (result != IDYES)
                 return wxEmptyString;
@@ -7069,12 +7081,18 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
 
-    //BBS
-    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
-    m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
-    m_select_machine_dlg->ShowModal();
-    record_start_print_preset("print_plate");
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.use_bbl_network()) {
+        // BBS
+        if (!m_select_machine_dlg)
+            m_select_machine_dlg = new SelectMachineDialog(q);
+        m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
+        m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
+        m_select_machine_dlg->ShowModal();
+        record_start_print_preset("print_plate");
+    } else {
+        q->send_gcode_legacy(PLATE_CURRENT_IDX, nullptr, true);
+    }
 }
 
 void Plater::priv::on_action_send_to_multi_machine(SimpleEvent&)
@@ -7104,7 +7122,7 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
     int old_sel = e.GetOldSelection();
-    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->use_bbl_network() && new_sel == MainFrame::tpMonitor) {
+    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->use_bbl_device_tab() && new_sel == MainFrame::tpMonitor) {
         if (!wxGetApp().getAgent()) {
             e.Veto();
             BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") % old_sel % new_sel;
@@ -7159,12 +7177,18 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
 
-    //BBS
-    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
-    m_select_machine_dlg->prepare(PLATE_ALL_IDX);
-    m_select_machine_dlg->ShowModal();
-    record_start_print_preset("print_all");
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.use_bbl_network()) {
+        // BBS
+        if (!m_select_machine_dlg)
+            m_select_machine_dlg = new SelectMachineDialog(q);
+        m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
+        m_select_machine_dlg->prepare(PLATE_ALL_IDX);
+        m_select_machine_dlg->ShowModal();
+        record_start_print_preset("print_all");
+    } else {
+        q->send_gcode_legacy(PLATE_ALL_IDX, nullptr, true);
+    }
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -7635,6 +7659,25 @@ void Plater::priv::set_project_name(const wxString& project_name)
     if (!m_project_name.IsEmpty())
         wxGetApp().mainframe->update_title_colour_after_set_title();
 #endif
+}
+
+void Plater::priv::update_title_dirty_status()
+{
+    if (m_project_name.empty())
+        return;
+
+    wxString title;
+    if (is_project_dirty())
+        title = "*" + m_project_name;
+    else
+        title = m_project_name;
+
+#ifdef __WINDOWS__
+    wxGetApp().mainframe->topbar()->SetTitle(title);
+#else
+    wxGetApp().mainframe->SetTitle(title);
+    wxGetApp().mainframe->update_title_colour_after_set_title();    
+#endif    
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
@@ -8513,6 +8556,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     }
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
+    update_title_dirty_status();
 }
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
@@ -8929,6 +8973,7 @@ int Plater::save_project(bool saveAs)
     }
     catch (...) {}
 
+    update_title_dirty_status();
     return wxID_YES;
 }
 
@@ -11413,7 +11458,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
         
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-        "Only positive parts will be kept. You may fix the meshes and try agian.");
+        "Only positive parts will be kept. You may fix the meshes and try again.");
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
@@ -12332,7 +12377,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool use_3mf)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -12343,6 +12388,8 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
     PrintHostJob upload_job(physical_printer_config);
     if (upload_job.empty())
         return;
+
+    upload_job.upload_data.use_3mf = use_3mf;
 
     // Obtain default output path
     fs::path default_output_file;
@@ -12362,6 +12409,9 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    if (use_3mf) {
+        default_output_file.replace_extension("3mf");
+    }
 
     // Repetier specific: Query the server for the list of file groups.
     wxArrayString groups;
@@ -12383,8 +12433,11 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         }
     }
 
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, storage_paths, storage_names);
+    auto config = get_app_config();
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, storage_paths, storage_names, config->get_bool("open_device_tab_post_upload"));
     if (dlg.ShowModal() == wxID_OK) {
+        config->set_bool("open_device_tab_post_upload", dlg.switch_to_device_tab());
+        upload_job.switch_to_device_tab    = dlg.switch_to_device_tab();
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.post_action = dlg.post_action();
         upload_job.upload_data.group       = dlg.group();
@@ -12395,6 +12448,19 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
             GUI::MessageDialog dlg(nullptr, _L("Is the printer ready? Is the print sheet in place, empty and clean?"), _L("Upload and Print"), wxOK | wxCANCEL);
             if (dlg.ShowModal() != wxID_OK)
                 return;
+        }
+
+        if (use_3mf) {
+            // Process gcode
+            const int result = send_gcode(plate_idx, nullptr);
+
+            if (result < 0) {
+                wxString msg = _L("Abnormal print file data. Please slice again");
+                show_error(this, msg, false);
+                return;
+            }
+
+            upload_job.upload_data.source_path = p->m_print_job_data._3mf_path;
         }
 
         p->export_gcode(fs::path(), false, std::move(upload_job));
@@ -12745,8 +12811,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (update_scheduled)
         update();
 
-    if (p->main_frame->is_loaded())
+    if (p->main_frame->is_loaded()) {
         this->p->schedule_background_process();
+        update_title_dirty_status();
+    }
 }
 
 void Plater::set_bed_shape() const
@@ -13192,6 +13260,8 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
+    if (wxGetApp().app_config->get("auto_arrange") == "true")
+        this->arrange();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
@@ -14247,6 +14317,11 @@ bool Plater::PopupObjectTableBySelection()
     const wxPoint pos = wxPoint(0, 0);  //Fake position
     wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx, item);
     return p->PopupObjectTable(obj_idx, vol_idx, pos);
+}
+
+void Plater::update_title_dirty_status()
+{
+    p->update_title_dirty_status();
 }
 
 

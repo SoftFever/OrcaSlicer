@@ -7,7 +7,7 @@
     "inherits": "fdm_dremel_common",
     "printer_model": "Dremel 3D40",
     "printer_variant": "0.4",
-    "printer_structure": "Hbot",
+    "printer_structure": "hbot",
     "gcode_flavor": "marlin",
     "default_filament_profile": [
       "Dremel Generic PLA @3D40 all"
@@ -61,7 +61,7 @@
         "1"
     ],
     "retract_lift_enforce": [
-        "Top Surfaces"
+        "Top Only"
     ],
     "wipe": [
         "1"

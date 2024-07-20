@@ -1418,6 +1418,19 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+
+    if (opt_key == "pellet_flow_coefficient") 
+    {
+        double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
+        m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
+	}
+
+    if (opt_key == "filament_diameter") {
+        double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
+        m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
+    }
+    
+
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
@@ -2026,10 +2039,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("elefant_foot_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation_layers");
         optgroup->append_single_option_line("precise_outer_wall", "Precise-wall");
+        optgroup->append_single_option_line("precise_z_height", "precise-z-height");
         optgroup->append_single_option_line("hole_to_polyhole");
         optgroup->append_single_option_line("hole_to_polyhole_threshold");
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
-        optgroup->append_single_option_line("precise_z_height");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "parameter/ironing");
@@ -2298,8 +2311,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        optgroup->append_single_option_line("interlocking_beam");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
+        optgroup->append_single_option_line("interlocking_beam_width");
+        optgroup->append_single_option_line("interlocking_orientation");
+        optgroup->append_single_option_line("interlocking_beam_layer_count");
+        optgroup->append_single_option_line("interlocking_depth");
+        optgroup->append_single_option_line("interlocking_boundary_avoidance");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
@@ -3092,7 +3111,7 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
-                                        "filament_z_hop_types", 
+                                        "filament_z_hop_types",
                                         "filament_retract_lift_above",
                                         "filament_retract_lift_below",
                                         "filament_retract_lift_enforce",
@@ -3204,6 +3223,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3519,6 +3539,10 @@ void TabFilament::toggle_options()
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
 
+        bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
+
+        toggle_line("pellet_flow_coefficient", is_pellet_printer);
+        toggle_line("filament_diameter", !is_pellet_printer);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
@@ -3651,6 +3675,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
@@ -4157,6 +4182,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
             optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+            optgroup->append_single_option_line("travel_slope", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -4337,7 +4363,7 @@ void TabPrinter::toggle_options()
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer"})
           toggle_line(el, !is_BBL_printer);
     }
 
@@ -4421,6 +4447,8 @@ void TabPrinter::toggle_options()
         toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
         toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
         //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
+        
+        toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
