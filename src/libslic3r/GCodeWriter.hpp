@@ -82,7 +82,7 @@ public:
     std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
-    void       set_position(const Vec3d& in) { m_pos = in; }
+    void        set_position(const Vec3d& in) { m_pos = in; }
     double      get_zhop() const { return m_lifted; }
 
     //BBS: set offset for gcode writer
