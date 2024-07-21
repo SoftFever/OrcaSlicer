@@ -667,8 +667,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("print_order", !have_sequential_printing);
     
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
-    toggle_field("standby_temperature_delta", have_ooze_prevention);
-    
+    toggle_line("standby_temperature_delta", have_ooze_prevention);
+    toggle_line("preheat_time", have_ooze_prevention);
+    int preheat_steps = config->opt_int("preheat_steps");
+    toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
+
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);

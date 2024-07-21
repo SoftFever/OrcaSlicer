@@ -4079,6 +4079,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-5));
 
+    def = this->add("preheat_time", coFloat);
+    def->label = L("Preheat time");
+    def->tooltip = L("To reduce the waiting time after tool change, Orca can preheat the next tool while the current tool is still in use. "
+                     "This setting specifies the time in seconds to preheat the next tool. Orca will insert a M104 command to preheat the tool in advance.");
+    def->sidetext = "s";
+    def->min = 0;
+    def->max = 120;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(30.0));
+
+    def = this->add("preheat_steps", coInt);
+    def->label = L("Preheat steps");
+    def->tooltip = L("Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
+    // def->sidetext = "";
+    def->min = 1;
+    def->max = 10;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInt(1));
+
+
     def = this->add("machine_start_gcode", coString);
     def->label = L("Start G-code");
     def->tooltip = L("Start G-code when start the whole printing");

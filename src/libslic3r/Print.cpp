@@ -161,6 +161,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "use_firmware_retraction",
         "slow_down_layer_time",
         "standby_temperature_delta",
+        "preheat_time",
+        "preheat_steps",
         "machine_start_gcode",
         "filament_start_gcode",
         "change_filament_gcode",

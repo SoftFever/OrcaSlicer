@@ -731,6 +731,8 @@ class Print;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
         bool m_single_extruder_multi_material;
+        float m_preheat_time;
+        int m_preheat_steps;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

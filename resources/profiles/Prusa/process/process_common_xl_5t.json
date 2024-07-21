@@ -10,5 +10,7 @@
     "wipe_tower_rotation_angle": "90",
     "single_extruder_multi_material_priming": "0",
     "ooze_prevention": "1",
-	"standby_temperature_delta": "-40"
+	"standby_temperature_delta": "-40",
+    "preheat_time": "120",
+    "preheat_steps": "10"
 }

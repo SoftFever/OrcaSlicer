@@ -1058,7 +1058,12 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     // Orca: 
     m_is_XL_printer = is_XL_printer(config);
-    m_result.backtrace_enabled = m_is_XL_printer || ( !m_single_extruder_multi_material && extruders_count > 1);
+    m_preheat_time = config.preheat_time;
+    m_preheat_steps = config.preheat_steps;
+    // sanity check
+    if(m_preheat_steps < 1)
+        m_preheat_steps = 1;
+    m_result.backtrace_enabled = m_preheat_time > 0 && (m_is_XL_printer || (!m_single_extruder_multi_material && extruders_count > 1));
 
     m_extruder_offsets.resize(extruders_count);
     m_extruder_colors.resize(extruders_count);
@@ -1570,6 +1575,8 @@ void GCodeProcessor::reset()
     m_detect_layer_based_on_tag = false;
 
     m_seams_count = 0;
+    m_preheat_time = 0.f;
+    m_preheat_steps = 1;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
@@ -4465,7 +4472,7 @@ void GCodeProcessor::run_post_process()
         struct Backtrace
         {
             float time{ 60.0f };
-            unsigned int steps{ 10 };
+            int steps{ 10 };
             float time_step() const { return time / float(steps); }
         };
 
@@ -4601,11 +4608,18 @@ void GCodeProcessor::run_post_process()
         void insert_lines(const Backtrace& backtrace, const std::string& cmd,
             std::function<std::string(unsigned int, const std::vector<float>&)> line_inserter,
             std::function<std::string(const std::string&)> line_replacer) {
+            // Orca: find start pos by seaching G28/G29/PRINT_START/START_PRINT commands
+            auto is_start_pos = [](const std::string& curr_cmd) {
+                return boost::iequals(curr_cmd, "G28") 
+                || boost::iequals(curr_cmd, "G29") 
+                || boost::iequals(curr_cmd, "PRINT_START") 
+                || boost::iequals(curr_cmd, "START_PRINT");
+            };
             assert(!m_lines.empty());
             const float time_step = backtrace.time_step();
             size_t rev_it_dist = 0; // distance from the end of the cache of the starting point of the backtrace
             float last_time_insertion = 0.0f; // used to avoid inserting two lines at the same time
-            for (unsigned int i = 0; i < backtrace.steps; ++i) {
+            for (int i = 0; i < backtrace.steps; ++i) {
                 const float backtrace_time_i = (i + 1) * time_step;
                 const float time_threshold_i = m_times[Normal] - backtrace_time_i;
                 auto rev_it = m_lines.rbegin() + rev_it_dist;
@@ -4613,18 +4627,15 @@ void GCodeProcessor::run_post_process()
 
                 std::string curr_cmd = GCodeReader::GCodeLine::extract_cmd(rev_it->line);
                 // backtrace into the cache to find the place where to insert the line
-                while (rev_it != m_lines.rend() && rev_it->times[Normal] > time_threshold_i && curr_cmd != cmd && curr_cmd != "G28" && curr_cmd != "G29") {
+                while (rev_it != m_lines.rend() && rev_it->times[Normal] > time_threshold_i && curr_cmd != cmd && !is_start_pos(curr_cmd)) {
                     rev_it->line = line_replacer(rev_it->line);
                     ++rev_it;
                     if (rev_it != m_lines.rend())
                         curr_cmd = GCodeReader::GCodeLine::extract_cmd(rev_it->line);
                 }
 
-                // we met the previous evenience of cmd, or a G28/G29 command. stop inserting lines
-                // Orca: 1. Use boost::iequals to handle g28/g29 cases 
-                //       2. Handle PRINT_START and START_PRINT to the stop condition
-                if (rev_it != m_lines.rend() && (curr_cmd == cmd || boost::iequals(curr_cmd, "G28") || boost::iequals(curr_cmd, "G29") ||
-                                                 boost::iequals(curr_cmd, "PRINT_START") || boost::iequals(curr_cmd, "START_PRINT")))
+                // we met the previous evenience of cmd, or the start position, stop inserting lines
+                if (rev_it != m_lines.rend() && (curr_cmd == cmd || is_start_pos(curr_cmd)))
                     break;
 
                 // insert the line for the current step
@@ -4970,8 +4981,8 @@ void GCodeProcessor::run_post_process()
                         out += " S" + std::to_string(temperature) + "\n";
                         return out;
                     } else {
-                        std::string comment = "preheat tool " + std::to_string(tool_number) +
-                                              "time: " + std::to_string(std::round(time_diffs[0])) + "s";
+                        std::string comment = "preheat T" + std::to_string(tool_number) +
+                                              " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
                         return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
                     }
                 },
@@ -4983,7 +4994,7 @@ void GCodeProcessor::run_post_process()
                         reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
 
                         float val;
-                        if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos && m_is_XL_printer) {
+                        if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
                             if (static_cast<int>(val) == tool_number)
                                 return std::string("; removed M104\n");
                         }
@@ -4998,7 +5009,7 @@ void GCodeProcessor::run_post_process()
 
     unsigned int line_id = 0;
     // Backtrace data for Tx gcode lines
-    static const ExportLines::Backtrace backtrace_T = { 120.0f, 10 };
+    const ExportLines::Backtrace backtrace_T = { m_preheat_time, m_preheat_steps };
     // In case there are multiple sources of backtracing, keeps track of the longest backtrack time needed
     // to flush the backtrace cache accordingly
     float max_backtrace_time = 120.0f;
