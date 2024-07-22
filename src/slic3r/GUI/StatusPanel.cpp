@@ -3686,34 +3686,26 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
-        std::string ams_id;
-        int ams_id_int = 0;
-        int tray_id_int = 0;
-        int tray_id = event.GetInt();
-        if (tray_id == VIRTUAL_TRAY_ID) {
-            ams_id = std::to_string(tray_id);
-        }
-        else{
-            ams_id = std::to_string(tray_id / 4);
-        }
 
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            tray_id_int = VIRTUAL_TRAY_ID;
+        int ams_id = event.GetInt();
+        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+
+       /* if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
+            tray_id_int = VIRTUAL_TRAY_MAIN_ID;
             m_filament_setting_dlg->ams_id = ams_id_int;
             m_filament_setting_dlg->tray_id = tray_id_int;
             wxString k_val;
             wxString n_val;
-            k_val = wxString::Format("%.3f", obj->vt_tray.k);
-            n_val = wxString::Format("%.3f", obj->vt_tray.n);
+            k_val = wxString::Format("%.3f", obj->vt_slot[0].k);
+            n_val = wxString::Format("%.3f", obj->vt_slot[0].n);
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
-        } else {
+        } else {*/
             //std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
             try {
-                ams_id_int = tray_id / 4;
-                tray_id_int = tray_id % 4;
-                m_filament_setting_dlg->ams_id = ams_id_int;
-                m_filament_setting_dlg->tray_id = tray_id_int;
+                m_filament_setting_dlg->ams_id  = ams_id;
+                m_filament_setting_dlg->slot_id = slot_id;
+                //m_filament_setting_dlg->tray_id = 254;
 
                 std::string sn_number;
                 std::string filament;
@@ -3721,9 +3713,9 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                 std::string temp_min;
                 wxString k_val;
                 wxString n_val;
-                auto it = obj->amsList.find(std::to_string(ams_id_int));
+                auto        it = obj->amsList.find(std::to_string(ams_id));
                 if (it != obj->amsList.end()) {
-                    auto tray_it = it->second->trayList.find(std::to_string(tray_id));
+                    auto tray_it = it->second->trayList.find(std::to_string(slot_id));
                     if (tray_it != it->second->trayList.end()) {
                         k_val = wxString::Format("%.3f", tray_it->second->k);
                         n_val = wxString::Format("%.3f", tray_it->second->n);
@@ -3761,7 +3753,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             catch (...) {
                 ;
             }
-        }
+        //}
     }
 }
 
@@ -3776,12 +3768,16 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
     current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
 
     if (obj) {
-        int tray_id = event.GetInt();
-        int ams_id = tray_id;
         m_filament_setting_dlg->obj = obj;
+
+        int ams_id                     = event.GetInt();
+        int slot_id                    = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+
         m_filament_setting_dlg->ams_id = ams_id;
+        m_filament_setting_dlg->slot_id  = slot_id;
+        m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
+
         try {
-            m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
             std::string sn_number;
             std::string filament;
             std::string temp_max;

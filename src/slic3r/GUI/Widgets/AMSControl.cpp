@@ -262,7 +262,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
     vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    m_vams_lib = new AMSLib(vams_panel, "0", m_vams_info);
+    m_vams_lib = new AMSLib(vams_panel, m_vams_info.can_id, m_vams_info);
+    m_vams_lib->m_slot_id = m_vams_info.can_id;
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
     m_vams_lib->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {

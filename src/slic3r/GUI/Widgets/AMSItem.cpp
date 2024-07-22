@@ -100,7 +100,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.n = it->second->n;
             }
         } else {
-            info.can_id         = i;
+            //info.can_id = i;
+            info.can_id         = std::to_string(i);
             info.material_state = AMSCanType::AMS_CAN_TYPE_EMPTY;
         }
         cans.push_back(info);
@@ -1332,9 +1333,10 @@ void AMSLib::Update(Caninfo info, std::string ams_idx, bool refresh)
     if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
         transparent_changed = true;
     }
+
     m_info = info;
     m_ams_id = ams_idx;
-    Layout();
+    m_slot_id = info.can_id;
     if (refresh) Refresh();
 }
 
@@ -1352,9 +1354,10 @@ void AMSLib::OnSelected()
 
 void AMSLib::post_event(wxCommandEvent &&event)
 {
-    int tray_id = atoi(m_ams_id.c_str()) * 4 + atoi(m_info.can_id.c_str());
+    //int tray_id = atoi(m_ams_id.c_str()) * 4 + atoi(m_info.can_id.c_str());
     //event.SetString(m_info.can_id);
-    event.SetInt(tray_id);
+    event.SetString(m_slot_id);
+    event.SetInt(std::stoi(m_ams_id));
     event.SetEventObject(m_parent);
     wxPostEvent(m_parent, event);
     event.Skip();
@@ -1759,7 +1762,9 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         });
 
 
-    m_panel_lib->m_ams_model = m_ams_model;
+    m_panel_lib->m_ams_model   = m_ams_model;
+    m_panel_lib->m_ams_id      = m_info.ams_id;
+    m_panel_lib->m_slot_id     = caninfo.can_id;
     m_panel_lib->m_info.can_id = caninfo.can_id;
     m_panel_lib->m_can_index = canindex;
 
