@@ -308,7 +308,7 @@ void organic_draw_branches(
     SupportGeneratorLayersPtr       &intermediate_layers,
     SupportGeneratorLayerStorage    &layer_storage,
 
-    std::function<void()>            throw_on_cancel);
+    std::function<void()> throw_on_cancel);
 
 } // namespace TreeSupport3D
 

@@ -845,14 +845,8 @@ void PrintObject::clear_support_layers()
 std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 {
     if (!m_tree_support_preview_cache) {
-        const coordf_t layer_height = m_config.layer_height.value;
         const coordf_t xy_distance = m_config.support_object_xy_distance.value;
-        const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
-        const coordf_t max_move_distance
-            = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
-        const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
-
-        m_tree_support_preview_cache = std::make_shared<TreeSupportData>(*this, xy_distance, max_move_distance, radius_sample_resolution);
+        m_tree_support_preview_cache = std::make_shared<TreeSupportData>(*this, xy_distance, g_config_tree_support_collision_resolution);
     }
 
     return m_tree_support_preview_cache;

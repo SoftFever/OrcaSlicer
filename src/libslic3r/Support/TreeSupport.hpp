@@ -28,9 +28,9 @@ struct LayerHeightData
 {
     coordf_t print_z       = 0;
     coordf_t height        = 0;
-    size_t   next_layer_nr = 0;
+    size_t   obj_layer_nr  = 0;
     LayerHeightData()      = default;
-    LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
+    LayerHeightData(coordf_t z, coordf_t h, size_t obj_layer) : print_z(z), height(h), obj_layer_nr(obj_layer) {}
     coordf_t bottom_z() {
         return print_z - height;
     }
@@ -202,7 +202,7 @@ public:
      * \param radius_sample_resolution Sample size used to round requested node radii.
      * \param collision_resolution
      */
-    TreeSupportData(const PrintObject& object, coordf_t max_move, coordf_t radius_sample_resolution, coordf_t collision_resolution);
+    TreeSupportData(const PrintObject& object, coordf_t radius_sample_resolution, coordf_t collision_resolution);
     ~TreeSupportData() {
         clear_nodes();
     }
@@ -305,11 +305,7 @@ public:
      */
     coordf_t m_xy_distance;
 
-    /*!
-     * \brief The maximum distance that the centrepoint of a tree branch may
-     * move in consequtive layers
-     */
-    coordf_t m_max_move;
+    double branch_scale_factor = 1.0; // tan(45 degrees)
 
     /*!
      * \brief Sample resolution for radius values.
@@ -327,6 +323,8 @@ public:
 
     // union contours of all layers below
     std::vector<ExPolygons> m_layer_outlines_below;
+
+    std::vector<double> m_max_move_distances;
 
     /*!
      * \brief Caches for the collision, avoidance and internal model polygons
@@ -366,6 +364,10 @@ public:
      */
     TreeSupport(PrintObject& object, const SlicingParameters &slicing_params);
 
+    void move_bounds_to_contact_nodes(std::vector<TreeSupport3D::SupportElements> &move_bounds,
+                                      PrintObject                                 &print_object,
+                                      const TreeSupport3D::TreeSupportSettings    &config);
+
     /*!
      * \brief Create the areas that need support.
      *
@@ -377,6 +379,19 @@ public:
 
     void detect_overhangs(bool check_support_necessity = false);
 
+    SupportNode* create_node(const Point  position,
+        const int    distance_to_top,
+        const int    obj_layer_nr,
+        const int    support_roof_layers_below,
+        const bool   to_buildplate,
+        SupportNode* parent,
+        coordf_t     print_z_,
+        coordf_t     height_,
+        coordf_t     dist_mm_to_top_ = 0,
+        coordf_t     radius_ = 0)
+    {
+        return m_ts_data->create_node(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
+    }
 
     int  avg_node_per_layer = 0;
     float nodes_angle = 0;
@@ -419,12 +434,17 @@ private:
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
 
     float    DO_NOT_MOVER_UNDER_MM = 0.0;
-    coordf_t MAX_BRANCH_RADIUS = 10.0;
-    coordf_t MIN_BRANCH_RADIUS = 0.5;
-    coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
-    coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
-    float tree_support_branch_diameter_angle = 5.0;
-    coord_t m_min_radius = scale_(1); // in mm
+    coordf_t base_radius                        = 0.0;
+    const coordf_t MAX_BRANCH_RADIUS = 10.0;
+    const coordf_t MIN_BRANCH_RADIUS = 0.4;
+    const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
+    const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
+    const double tree_support_branch_diameter_angle = 5.0;
+    const double diameter_angle_scale_factor = tan(tree_support_branch_diameter_angle*M_PI/180.0);
+    // minimum roof area (1 mm^2), area smaller than this value will not have interface
+    const double minimum_roof_area{SQ(scaled<double>(1.))};
+    float        top_z_distance = 0.0;
+
     bool  is_strong = false;
     bool  is_slim                            = false;
     bool  with_infill                        = false;
@@ -492,8 +512,10 @@ private:
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
     // get unscaled radius(mm) of node based on the distance mm to top
     coordf_t calc_branch_radius(coordf_t base_radius, coordf_t mm_to_top, double diameter_angle_scale_factor, bool use_min_distance=true);
-    coordf_t get_radius(const SupportNode* node, coordf_t base_radius);
+    coordf_t   calc_radius(coordf_t mm_to_top);
+    coordf_t get_radius(const SupportNode* node);
     ExPolygons get_avoidance(coordf_t radius, size_t obj_layer_nr);
+    // layer's expolygon expanded by radius+m_xy_distance
     ExPolygons get_collision(coordf_t radius, size_t layer_nr);
     // get Polygons instead of ExPolygons
     Polygons get_collision_polys(coordf_t radius, size_t layer_nr);

@@ -68,28 +68,28 @@ using namespace std::literals;
 static inline void validate_range(const Point &pt)
 {
     static constexpr const int32_t hi = 65536 * 16384;
-    if (pt.x() > hi || pt.y() > hi || -pt.x() > hi || -pt.y() > hi) 
-      throw ClipperLib::clipperException("Coordinate outside allowed range");    
+    if (pt.x() > hi || pt.y() > hi || -pt.x() > hi || -pt.y() > hi)
+      throw ClipperLib::clipperException("Coordinate outside allowed range");
 }
 
-static inline void validate_range(const Points &points) 
+static inline void validate_range(const Points &points)
 {
     for (const Point &p : points)
         validate_range(p);
 }
 
-static inline void validate_range(const MultiPoint &mp) 
+static inline void validate_range(const MultiPoint &mp)
 {
     validate_range(mp.points);
 }
 
-static inline void validate_range(const Polygons &polygons) 
+static inline void validate_range(const Polygons &polygons)
 {
     for (const Polygon &p : polygons)
         validate_range(p);
 }
 
-static inline void validate_range(const Polylines &polylines) 
+static inline void validate_range(const Polylines &polylines)
 {
     for (const Polyline &p : polylines)
         validate_range(p);
@@ -136,7 +136,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 
     size_t largest_printed_mesh_idx = 0;
 
-    // Group all meshes that can be processed together. NOTE this is different from mesh-groups! Only one setting object is needed per group, 
+    // Group all meshes that can be processed together. NOTE this is different from mesh-groups! Only one setting object is needed per group,
     // as different settings in the same group may only occur in the tip, which uses the original settings objects from the meshes.
     for (size_t object_id : print_object_ids) {
         const PrintObject       &print_object  = *print.get_object(object_id);
@@ -228,7 +228,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
-        [&print_object, &config, &print_config, &enforcers_layers, &blockers_layers, 
+        [&print_object, &config, &print_config, &enforcers_layers, &blockers_layers,
          support_auto, support_enforce_layers, support_threshold_auto, tan_threshold, enforcer_overhang_offset, num_raft_layers, radius_sample_resolution, &throw_on_cancel, &out]
         (const tbb::blocked_range<LayerIndex> &range) {
         for (LayerIndex layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
@@ -263,7 +263,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     overhangs = diff(overhangs, offset_ex(union_(blockers_layers[layer_id]), scale_(radius_sample_resolution)), ApplySafetyOffset::Yes);
                 if (config.bridge_no_support) {
                     for (const LayerRegion *layerm : current_layer.regions())
-                        remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
+                        remove_bridges_from_contacts(print_config, lower_layer, *layerm,
                             float(layerm->flow(frExternalPerimeter).scaled_width()), overhangs);
                 }
             }
@@ -284,7 +284,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     enforced_overhangs = diff(offset(union_ex(enforced_overhangs), enforcer_overhang_offset),
                         lower_layer.lslices);
 #ifdef TREESUPPORT_DEBUG_SVG
-//                    if (! intersecting_edges(enforced_overhangs).empty()) 
+//                    if (! intersecting_edges(enforced_overhangs).empty())
                     {
                         static int irun = 0;
                         SVG::export_expolygons(debug_out_path("treesupport-self-intersections-%d.svg", ++irun),
@@ -297,7 +297,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     overhangs = overhangs.empty() ? std::move(enforced_overhangs) : union_(overhangs, enforced_overhangs);
                     //check_self_intersections(overhangs, "generate_overhangs - enforcers");
                 }
-            }   
+            }
             out[layer_id + num_raft_layers] = std::move(overhangs);
             throw_on_cancel();
         }
@@ -460,7 +460,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
         return true;
     if (config.support_rests_on_model && (p.second != LineStatus::TO_BP && p.second != LineStatus::TO_BP_SAFE))
         return ! contains(
-            p.second == LineStatus::TO_MODEL_GRACIOUS || p.second == LineStatus::TO_MODEL_GRACIOUS_SAFE ? 
+            p.second == LineStatus::TO_MODEL_GRACIOUS || p.second == LineStatus::TO_MODEL_GRACIOUS_SAFE ?
                 volumes.getAvoidance(config.getRadius(0), current_layer - 1, p.second == LineStatus::TO_MODEL_GRACIOUS_SAFE ? AvoidanceType::FastSafe : AvoidanceType::Fast, true, min_xy_dist) :
                 volumes.getCollision(config.getRadius(0), current_layer - 1, min_xy_dist),
             p.first);
@@ -532,7 +532,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
             // Squared distance of "start_pt" from the ray (p0, p1).
             double l2_from_line = xf.squaredNorm();
             // Squared distance of an intersection point of a circle with center at the foot point.
-            if (double l2_intersection = dist2 - l2_from_line; 
+            if (double l2_intersection = dist2 - l2_from_line;
                 l2_intersection > - SCALED_EPSILON) {
                 // The ray (p0, p1) touches or intersects a circle centered at "start_pt" with radius "dist".
                 // Distance of the circle intersection point from the foot point.
@@ -627,7 +627,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
                     } else {
                         if (current_point == next_point->first) {
                             // In case a fixpoint is encountered, better aggressively overcompensate so the code does not become stuck here...
-                            BOOST_LOG_TRIVIAL(warning) << "Tree Support: Encountered a fixpoint in polyline_sample_next_point_at_distance. This is expected to happen if the distance (currently " << next_distance << 
+                            BOOST_LOG_TRIVIAL(warning) << "Tree Support: Encountered a fixpoint in polyline_sample_next_point_at_distance. This is expected to happen if the distance (currently " << next_distance <<
                                 ") is smaller than 100";
                             tree_supports_show_error("Encountered issue while placing tips. Some tips may be missing."sv, true);
                             if (next_distance > 2 * current_distance)
@@ -693,9 +693,9 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
     int divisor = static_cast<int>(angles.size());
     int index = ((layer_idx % divisor) + divisor) % divisor;
     const AngleRadians fill_angle = angles[index];
-    Infill roof_computation(pattern, true /* zig_zaggify_infill */, connect_polygons, polygon, 
-        roof ? config.support_roof_line_width : config.support_line_width, support_infill_distance, support_roof_overlap, infill_multiplier, 
-        fill_angle, z, support_shift, config.resolution, wall_line_count, infill_origin, 
+    Infill roof_computation(pattern, true /* zig_zaggify_infill */, connect_polygons, polygon,
+        roof ? config.support_roof_line_width : config.support_line_width, support_infill_distance, support_roof_overlap, infill_multiplier,
+        fill_angle, z, support_shift, config.resolution, wall_line_count, infill_origin,
         perimeter_gaps, connected_zigzags, use_endpieces, false /* skip_some_zags */, zag_skip_count, pocket_size);
     Polygons polygons;
     Polygons lines;
@@ -712,7 +712,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
 
     filler->layer_id = layer_idx;
     filler->spacing  = flow.spacing();
-    filler->angle = roof ? 
+    filler->angle = roof ?
         //fixme support_layer.interface_id() instead of layer_idx
         (support_params.interface_angle + (layer_idx & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)) :
         support_params.base_angle;
@@ -783,7 +783,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
             result = union_(offset(to_polylines(first), scaled<float>(0.002), jtMiter, 1.2), offset(to_polylines(second), scaled<float>(0.002), jtMiter, 1.2));
         }
     }
-    
+
     return result;
 }
 
@@ -800,7 +800,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
 {
     bool do_final_difference = last_step_offset_without_check == 0;
     Polygons ret = safe_union(me); // ensure sane input
-    
+
     // Trim the collision polygons with the region of interest for diff() efficiency.
     Polygons collision_trimmed_buffer;
     auto collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons& {
@@ -882,7 +882,7 @@ public:
     // called by sample_overhang_area()
     void add_points_along_lines(
         // Insert points (tree tips or top contact interfaces) along these lines.
-        LineInformations    lines, 
+        LineInformations    lines,
         // Start at this layer.
         LayerIndex          insert_layer_idx,
         // Insert this number of interface layers.
@@ -922,7 +922,7 @@ public:
                 // add all points that would not be valid
                 for (const LineInformation &line : points)
                     for (const std::pair<Point, LineStatus> &point_data : line)
-                        add_point_as_influence_area(point_data, this_layer_idx, 
+                        add_point_as_influence_area(point_data, this_layer_idx,
                             // don't move until
                             roof_tip_layers - dtt_roof_tip,
                             // supports roof
@@ -1009,7 +1009,7 @@ private:
     // Temps
     coord_t m_base_radius;
     Polygon                                       m_base_circle;
-    
+
     // Mutexes, guards
     std::mutex                                          m_mutex_movebounds;
     std::vector<std::unordered_set<Point, PointHash>>   m_already_inserted;
@@ -1093,10 +1093,10 @@ void finalize_raft_contact(
 // Produce
 // 1) Maximum num_support_roof_layers roof (top interface & contact) layers.
 // 2) Tree tips supporting either the roof layers or the object itself.
-// num_support_roof_layers should always be respected: 
+// num_support_roof_layers should always be respected:
 // If num_support_roof_layers contact layers could not be produced, then the tree tip
 // is augmented with SupportElementState::missing_roof_layers
-// and the top "missing_roof_layers" of such particular tree tips are supposed to be coverted to 
+// and the top "missing_roof_layers" of such particular tree tips are supposed to be coverted to
 // roofs aka interface layers by the tool path generator.
 void sample_overhang_area(
     // Area to support
@@ -1108,18 +1108,18 @@ void sample_overhang_area(
     const size_t                         layer_idx,
     // Maximum number of roof (contact, interface) layers between the overhang and tree tips to be generated.
     const size_t                         num_support_roof_layers,
-    // 
+    //
     const coord_t                        connect_length,
     // Configuration classes
-    const TreeSupportMeshGroupSettings  &mesh_group_settings,
+    const TreeSupportMeshGroupSettings& mesh_group_settings,
     // Configuration & Output
-    RichInterfacePlacer                 &interface_placer)
+    RichInterfacePlacer& interface_placer)
 {
-    // Assumption is that roof will support roof further up to avoid a lot of unnecessary branches. Each layer down it is checked whether the roof area 
-    // is still large enough to be a roof and aborted as soon as it is not. This part was already reworked a few times, and there could be an argument 
+    // Assumption is that roof will support roof further up to avoid a lot of unnecessary branches. Each layer down it is checked whether the roof area
+    // is still large enough to be a roof and aborted as soon as it is not. This part was already reworked a few times, and there could be an argument
     // made to change it again if there are actual issues encountered regarding supporting roofs.
-    // Main problem is that some patterns change each layer, so just calculating points and checking if they are still valid an layer below is not useful, 
-    // as the pattern may be different one layer below. Same with calculating which points are now no longer being generated as result from 
+    // Main problem is that some patterns change each layer, so just calculating points and checking if they are still valid an layer below is not useful,
+    // as the pattern may be different one layer below. Same with calculating which points are now no longer being generated as result from
     // a decreasing roof, as there is no guarantee that a line will be above these points. Implementing a separate roof support behavior
     // for each pattern harms maintainability as it very well could be >100 LOC
     auto generate_roof_lines = [&interface_placer, &mesh_group_settings](const Polygons &area, LayerIndex layer_idx) -> Polylines {
@@ -1186,10 +1186,10 @@ void sample_overhang_area(
 
     if (overhang_lines.empty()) {
         // support_line_width to form a line here as otherwise most will be unsupported. Technically this violates branch distance, but not only is this the only reasonable choice,
-        // but it ensures consistant behaviour as some infill patterns generate each line segment as its own polyline part causing a similar line forming behaviour. 
+        // but it ensures consistant behaviour as some infill patterns generate each line segment as its own polyline part causing a similar line forming behaviour.
         // This is not doen when a roof is above as the roof will support the model and the trees only need to support the roof
-        bool supports_roof   = dtt_roof > 0;
-        bool continuous_tips = ! supports_roof && large_horizontal_roof;
+        bool supports_roof = dtt_roof > 0;
+        bool continuous_tips = !supports_roof && large_horizontal_roof;
         Polylines polylines = ensure_maximum_distance_polyline(
             generate_support_infill_lines(overhang_area, interface_placer.support_parameters, supports_roof, layer_idx - layer_generation_dtt,
                 supports_roof ? mesh_group_settings.support_roof_line_distance : mesh_group_settings.support_tree_branch_distance),
@@ -1200,10 +1200,10 @@ void sample_overhang_area(
         const size_t min_support_points = std::max(coord_t(1), std::min(coord_t(3), coord_t(total_length(overhang_area) / connect_length)));
         if (point_count <= min_support_points) {
             // add the outer wall (of the overhang) to ensure it is correct supported instead. Try placing the support points in a way that they fully support the outer wall, instead of just the with half of the the support line width.
-            // I assume that even small overhangs are over one line width wide, so lets try to place the support points in a way that the full support area generated from them 
-            // will support the overhang (if this is not done it may only be half). This WILL NOT be the case when supporting an angle of about < 60� so there is a fallback, 
+            // I assume that even small overhangs are over one line width wide, so lets try to place the support points in a way that the full support area generated from them
+            // will support the overhang (if this is not done it may only be half). This WILL NOT be the case when supporting an angle of about < 60 degrees so there is a fallback,
             // as some support is better than none.
-            Polygons reduced_overhang_area = offset(union_ex(overhang_area), - interface_placer.config.support_line_width / 2.2, jtMiter, 1.2);
+            Polygons reduced_overhang_area = offset(union_ex(overhang_area), -interface_placer.config.support_line_width / 2.2, jtMiter, 1.2);
             polylines = ensure_maximum_distance_polyline(
                 to_polylines(
                     ! reduced_overhang_area.empty() &&
@@ -1269,11 +1269,11 @@ static void generate_initial_areas(
 
     const coord_t connect_length = (config.support_line_width * 100. / mesh_group_settings.support_tree_top_rate) + std::max(2. * config.min_radius - 1.0 * config.support_line_width, 0.0);
     // As r*r=x*x+y*y (circle equation): If a circle with center at (0,0) the top most point is at (0,r) as in y=r.
-    // This calculates how far one has to move on the x-axis so that y=r-support_line_width/2. 
+    // This calculates how far one has to move on the x-axis so that y=r-support_line_width/2.
     // In other words how far does one need to move on the x-axis to be support_line_width/2 away from the circle line.
     // As a circle is round this length is identical for every axis as long as the 90 degrees angle between both remains.
-    const coord_t circle_length_to_half_linewidth_change = config.min_radius < config.support_line_width ? 
-        config.min_radius / 2 : 
+    const coord_t circle_length_to_half_linewidth_change = config.min_radius < config.support_line_width ?
+        config.min_radius / 2 :
         scale_(sqrt(sqr(unscale<double>(config.min_radius)) - sqr(unscale<double>(config.min_radius - config.support_line_width / 2))));
     // Extra support offset to compensate for larger tip radiis. Also outset a bit more when z overwrites xy, because supporting something with a part of a support line is better than not supporting it at all.
     //FIXME Vojtech: This is not sufficient for support enforcers to work.
@@ -1286,14 +1286,16 @@ static void generate_initial_areas(
     const size_t  num_support_roof_layers = mesh_group_settings.support_roof_layers;
     const bool    roof_enabled        = num_support_roof_layers > 0;
     const bool    force_tip_to_roof   = roof_enabled && (interface_placer.support_parameters.soluble_interface || sqr<double>(config.min_radius) * M_PI > mesh_group_settings.minimum_roof_area);
-    // cap for how much layer below the overhang a new support point may be added, as other than with regular support every new inserted point 
-    // may cause extra material and time cost.  Could also be an user setting or differently calculated. Idea is that if an overhang 
-    // does not turn valid in double the amount of layers a slope of support angle would take to travel xy_distance, nothing reasonable will come from it. 
+    // cap for how much layer below the overhang a new support point may be added, as other than with regular support every new inserted point
+    // may cause extra material and time cost.  Could also be an user setting or differently calculated. Idea is that if an overhang
+    // does not turn valid in double the amount of layers a slope of support angle would take to travel xy_distance, nothing reasonable will come from it.
     // The 2*z_distance_delta is only a catch for when the support angle is very high.
     // Used only if not min_xy_dist.
     coord_t max_overhang_insert_lag = 0;
     if (config.z_distance_top_layers > 0) {
         max_overhang_insert_lag = 2 * config.z_distance_top_layers;
+
+    //FIXME
         if (mesh_group_settings.support_angle > EPSILON && mesh_group_settings.support_angle < 0.5 * M_PI - EPSILON) {
             //FIXME mesh_group_settings.support_angle does not apply to enforcers and also it does not apply to automatic support angle (by half the external perimeter width).
             //used by max_overhang_insert_lag, only if not min_xy_dist.
@@ -1339,12 +1341,12 @@ static void generate_initial_areas(
                 relevant_forbidden = offset(union_ex(relevant_forbidden_raw), scaled<float>(0.005), jtMiter, 1.2);
             }
 
-            // every overhang has saved if a roof should be generated for it. This can NOT be done in the for loop as an area may NOT have a roof 
-            // even if it is larger than the minimum_roof_area when it is only larger because of the support horizontal expansion and 
+            // every overhang has saved if a roof should be generated for it. This can NOT be done in the for loop as an area may NOT have a roof
+            // even if it is larger than the minimum_roof_area when it is only larger because of the support horizontal expansion and
             // it would not have a roof if the overhang is offset by support roof horizontal expansion instead. (At least this is the current behavior of the regular support)
             Polygons overhang_regular;
             {
-                // When support_offset = 0 safe_offset_inc will only be the difference between overhang_raw and relevant_forbidden, that has to be calculated anyway. 
+                // When support_offset = 0 safe_offset_inc will only be the difference between overhang_raw and relevant_forbidden, that has to be calculated anyway.
                 overhang_regular = safe_offset_inc(overhang_raw, mesh_group_settings.support_offset, relevant_forbidden, config.min_radius * 1.75 + config.xy_min_distance, 0, 1);
                 //check_self_intersections(overhang_regular, "overhang_regular1");
 
@@ -1363,7 +1365,7 @@ static void generate_initial_areas(
                 for (coord_t extra_total_offset_acc = 0; ! remaining_overhang.empty() && extra_total_offset_acc + config.support_line_width / 8 < extra_outset; ) {
                     const coord_t offset_current_step = std::min(
                         extra_total_offset_acc + 2 * config.support_line_width > config.min_radius ?
-                            config.support_line_width / 8 : 
+                            config.support_line_width / 8 :
                             circle_length_to_half_linewidth_change,
                         extra_outset - extra_total_offset_acc);
                     extra_total_offset_acc += offset_current_step;
@@ -1383,10 +1385,10 @@ static void generate_initial_areas(
                     LineInformations overhang_lines;
                     {
                         //Vojtech: Generate support heads at support_tree_branch_distance spacing by producing a zig-zag infill at support_tree_branch_distance spacing,
-                        // which is then resmapled 
-                        // support_line_width to form a line here as otherwise most will be unsupported. Technically this violates branch distance, 
-                        // mbut not only is this the only reasonable choice, but it ensures consistent behavior as some infill patterns generate 
-                        // each line segment as its own polyline part causing a similar line forming behavior. Also it is assumed that 
+                        // which is then resmapled
+                        // support_line_width to form a line here as otherwise most will be unsupported. Technically this violates branch distance,
+                        // mbut not only is this the only reasonable choice, but it ensures consistent behavior as some infill patterns generate
+                        // each line segment as its own polyline part causing a similar line forming behavior. Also it is assumed that
                         // the area that is valid a layer below is to small for support roof.
                         Polylines polylines = ensure_maximum_distance_polyline(
                             generate_support_infill_lines(remaining_overhang, support_params, false, layer_idx, mesh_group_settings.support_tree_branch_distance),
@@ -1404,7 +1406,7 @@ static void generate_initial_areas(
                     }
                     for (size_t lag_ctr = 1; lag_ctr <= max_overhang_insert_lag && !overhang_lines.empty() && layer_idx - coord_t(lag_ctr) >= 1; lag_ctr++) {
                         // get least restricted avoidance for layer_idx-lag_ctr
-                        const Polygons &relevant_forbidden_below = config.support_rests_on_model ? 
+                        const Polygons &relevant_forbidden_below = config.support_rests_on_model ?
                             volumes.getCollision(config.getRadius(0), layer_idx - lag_ctr, min_xy_dist) :
                             volumes.getAvoidance(config.getRadius(0), layer_idx - lag_ctr, AvoidanceType::Fast, false, min_xy_dist);
                         // it is not required to offset the forbidden area here as the points wont change: If points here are not inside the forbidden area neither will they be later when placing these points, as these are the same points.
@@ -1442,8 +1444,9 @@ static void generate_initial_areas(
             // or roof is enabled and these are the thin overhangs at object slopes (not horizontal overhangs).
             if (mesh_group_settings.minimum_support_area > 0)
                 remove_small(overhang_regular, mesh_group_settings.minimum_support_area);
+
             for (ExPolygon &support_part : union_ex(overhang_regular)) {
-                sample_overhang_area(to_polygons(std::move(support_part)), 
+                sample_overhang_area(to_polygons(std::move(support_part)),
                     false, layer_idx, num_support_roof_layers, connect_length,
                     mesh_group_settings, rich_interface_placer);
                 throw_on_cancel();
@@ -1485,7 +1488,7 @@ static unsigned int move_inside(const Polygons &polygons, Point &from, int dista
             }
             int64_t dot_prod = ab.dot(ap);
             if (dot_prod <= 0) { // x is projected to before ab
-                if (projected_p_beyond_prev_segment) { 
+                if (projected_p_beyond_prev_segment) {
                     //  case which looks like:   > .
                     projected_p_beyond_prev_segment = false;
                     Point& x = p1;
@@ -1520,7 +1523,7 @@ static unsigned int move_inside(const Polygons &polygons, Point &from, int dista
                 p0 = p1;
                 p1 = p2;
                 continue;
-            } else { 
+            } else {
                 // x is projected to a point properly on the line segment (not onto a vertex). The case which looks like | .
                 projected_p_beyond_prev_segment = false;
                 Point x = a + (ab.cast<double>() * (double(dot_prod) / double(ab_length2))).cast<coord_t>();
@@ -1594,7 +1597,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
     Polygons                    &to_bp_data,
     Polygons                    &to_model_data,
     Polygons                    &increased,
-    const coord_t                overspeed, 
+    const coord_t                overspeed,
     const bool                   mergelayer)
 {
     SupportElementState current_elem{ SupportElementState::propagate_down(parent.state) };
@@ -1607,18 +1610,18 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
     if (settings.move) {
         increased = relevant_offset;
         if (overspeed > 0) {
-            const coord_t safe_movement_distance = 
-                (current_elem.use_min_xy_dist ? config.xy_min_distance : config.xy_distance) + 
+            const coord_t safe_movement_distance =
+                (current_elem.use_min_xy_dist ? config.xy_min_distance : config.xy_distance) +
                 (std::min(config.z_distance_top_layers, config.z_distance_bottom_layers) > 0 ? config.min_feature_size : 0);
             // The difference to ensure that the result not only conforms to wall_restriction, but collision/avoidance is done later.
             // The higher last_safe_step_movement_distance comes exactly from the fact that the collision will be subtracted later.
-            increased = safe_offset_inc(increased, overspeed, volumes.getWallRestriction(support_element_collision_radius(config, parent.state), layer_idx, parent.state.use_min_xy_dist), 
+            increased = safe_offset_inc(increased, overspeed, volumes.getWallRestriction(support_element_collision_radius(config, parent.state), layer_idx, parent.state.use_min_xy_dist),
                 safe_movement_distance, safe_movement_distance + radius, 1);
         }
         if (settings.no_error && settings.move)
             // as ClipperLib::jtRound has to be used for offsets this simplify is VERY important for performance.
             polygons_simplify(increased, scaled<float>(0.025), polygons_strictly_simple);
-    } else 
+    } else
         // if no movement is done the areas keep parent area as no move == offset(0)
         increased = parent.influence_area;
 
@@ -1627,7 +1630,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         if (! current_elem.to_buildplate && area(to_bp_data) > _tiny_area_threshold) {
             // mostly happening in the tip, but with merges one should check every time, just to be sure.
             current_elem.to_buildplate = true; // sometimes nodes that can reach the buildplate are marked as cant reach, tainting subtrees. This corrects it.
-            BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong to model value on layer " << layer_idx - 1 << " targeting " << 
+            BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong to model value on layer " << layer_idx - 1 << " targeting " <<
                 current_elem.target_height << " with radius " << radius;
         }
     }
@@ -1638,7 +1641,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         if (!current_elem.to_model_gracious) {
             if (mergelayer && area(to_model_data) >= _tiny_area_threshold) {
                 current_elem.to_model_gracious = true;
-                BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong non gracious value on layer " << layer_idx - 1 << " targeting " << 
+                BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong non gracious value on layer " << layer_idx - 1 << " targeting " <<
                     current_elem.target_height << " with radius " << radius;
             } else
                 // Cannot route to gracious areas. Push the tree away from object and route it down anyways.
@@ -1659,8 +1662,8 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
                 to_bp_data_2 = diff_clipped(increased, volumes.getAvoidance(next_radius, layer_idx - 1, settings.type, false, settings.use_min_distance));
             Polygons to_model_data_2;
             if (config.support_rests_on_model && !current_elem.to_buildplate)
-                to_model_data_2 = diff_clipped(increased, 
-                    current_elem.to_model_gracious ? 
+                to_model_data_2 = diff_clipped(increased,
+                    current_elem.to_model_gracious ?
                         volumes.getAvoidance(next_radius, layer_idx - 1, settings.type, true, settings.use_min_distance) :
                         volumes.getCollision(next_radius, layer_idx - 1, settings.use_min_distance));
             Polygons check_layer_data_2 = current_elem.to_buildplate ? to_bp_data_2 : to_model_data_2;
@@ -1675,8 +1678,8 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
             while (current_ceil_radius < target_radius && validWithRadius(volumes.getRadiusNextCeil(current_ceil_radius + 1, settings.use_min_distance)))
                 current_ceil_radius = volumes.getRadiusNextCeil(current_ceil_radius + 1, settings.use_min_distance);
             size_t resulting_eff_dtt = current_elem.effective_radius_height;
-            while (resulting_eff_dtt + 1 < current_elem.distance_to_top && 
-                config.getRadius(resulting_eff_dtt + 1, current_elem.elephant_foot_increases) <= current_ceil_radius && 
+            while (resulting_eff_dtt + 1 < current_elem.distance_to_top &&
+                config.getRadius(resulting_eff_dtt + 1, current_elem.elephant_foot_increases) <= current_ceil_radius &&
                 config.getRadius(resulting_eff_dtt + 1, current_elem.elephant_foot_increases) <= support_element_radius(config, current_elem))
                 ++ resulting_eff_dtt;
             current_elem.effective_radius_height = resulting_eff_dtt;
@@ -1684,7 +1687,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         radius = support_element_collision_radius(config, current_elem);
 
         const coord_t foot_radius_increase = std::max(config.bp_radius_increase_per_layer - config.branch_radius_increase_per_layer, 0.0);
-        // Is nearly all of the time 1, but sometimes an increase of 1 could cause the radius to become bigger than recommendedMinRadius, 
+        // Is nearly all of the time 1, but sometimes an increase of 1 could cause the radius to become bigger than recommendedMinRadius,
         // which could cause the radius to become bigger than precalculated.
         double planned_foot_increase = std::min(1.0, double(config.recommendedMinRadius(layer_idx - 1) - support_element_radius(config, current_elem)) / foot_radius_increase);
 //FIXME
@@ -1701,14 +1704,14 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
             if (current_elem.to_buildplate)
                 to_bp_data = safe_union(diff_clipped(increased, volumes.getAvoidance(radius, layer_idx - 1, settings.type, false, settings.use_min_distance)));
             if (config.support_rests_on_model && (!current_elem.to_buildplate || mergelayer))
-                to_model_data = safe_union(diff_clipped(increased, 
-                    current_elem.to_model_gracious ? 
+                to_model_data = safe_union(diff_clipped(increased,
+                    current_elem.to_model_gracious ?
                         volumes.getAvoidance(radius, layer_idx - 1, settings.type, true, settings.use_min_distance) :
                         volumes.getCollision(radius, layer_idx - 1, settings.use_min_distance)
                 ));
             check_layer_data = current_elem.to_buildplate ? to_bp_data : to_model_data;
             if (area(check_layer_data) < _tiny_area_threshold) {
-                BOOST_LOG_TRIVIAL(error) << "Lost area by doing catch up from " << ceil_radius_before << " to radius " << 
+                BOOST_LOG_TRIVIAL(error) << "Lost area by doing catch up from " << ceil_radius_before << " to radius " <<
                     volumes.ceilRadius(support_element_collision_radius(config, current_elem), settings.use_min_distance);
                 tree_supports_show_error("Area lost catching up radius. May not cause visible malformation."sv, true);
             }
@@ -1746,7 +1749,7 @@ struct SupportElementMerging {
 
     const Eigen::AlignedBox<coord_t, 2>&    bbox() const { return bbox_data;}
     const Point                             centroid() const { return (bbox_data.min() + bbox_data.max()) / 2; }
-    void                                    set_bbox(const BoundingBox& abbox) 
+    void                                    set_bbox(const BoundingBox& abbox)
         { Point eps { coord_t(SCALED_EPSILON), coord_t(SCALED_EPSILON) }; bbox_data = { abbox.min - eps, abbox.max + eps }; }
 
     // Called by the AABBTree builder to get an index into the vector of source elements.
@@ -1778,7 +1781,7 @@ static void increase_areas_one_layer(
     // New areas at the layer below layer_idx
     std::vector<SupportElementMerging>  &merging_areas,
     // Layer above merging_areas.
-    const LayerIndex                     layer_idx, 
+    const LayerIndex                     layer_idx,
     // Layer elements above merging_areas.
     SupportElements                     &layer_elements,
     // If false, the merging_areas will not be merged for performance reasons.
@@ -1794,7 +1797,7 @@ static void increase_areas_one_layer(
             assert(merging_area.parents.size() == 1);
             SupportElement          &parent         = layer_elements[merging_area.parents.front()];
             SupportElementState      elem           = SupportElementState::propagate_down(parent.state);
-            const Polygons          &wall_restriction = 
+            const Polygons          &wall_restriction =
                 // Abstract representation of the model outline. If an influence area would move through it, it could teleport through a wall.
                 volumes.getWallRestriction(support_element_collision_radius(config, parent.state), layer_idx, parent.state.use_min_xy_dist);
 
@@ -1825,10 +1828,10 @@ static void increase_areas_one_layer(
              *  layer z-1:dddddxxxxxxxxxx
              *  For more detailed visualisation see calculateWallRestrictions
              */
-            const coord_t safe_movement_distance = 
-                (elem.use_min_xy_dist ? config.xy_min_distance : config.xy_distance) + 
+            const coord_t safe_movement_distance =
+                (elem.use_min_xy_dist ? config.xy_min_distance : config.xy_distance) +
                 (std::min(config.z_distance_top_layers, config.z_distance_bottom_layers) > 0 ? config.min_feature_size : 0);
-            if (ceiled_parent_radius == volumes.ceilRadius(projected_radius_increased, parent.state.use_min_xy_dist) || 
+            if (ceiled_parent_radius == volumes.ceilRadius(projected_radius_increased, parent.state.use_min_xy_dist) ||
                 projected_radius_increased < config.increase_radius_until_radius)
                 // If it is guaranteed possible to increase the radius, the maximum movement speed can be increased, as it is assumed that the maximum movement speed is the one of the slower moving wall
                 extra_speed += projected_radius_delta;
@@ -1837,7 +1840,7 @@ static void increase_areas_one_layer(
                 // Ensure that the slow movement distance can not become larger than the fast one.
                 extra_slow_speed += std::min(projected_radius_delta, (config.maximum_move_distance + extra_speed) - (config.maximum_move_distance_slow + extra_slow_speed));
 
-            if (config.layer_start_bp_radius > layer_idx && 
+            if (config.layer_start_bp_radius > layer_idx &&
                 config.recommendedMinRadius(layer_idx - 1) < config.getRadius(elem.effective_radius_height + 1, elem.elephant_foot_increases)) {
                 // can guarantee elephant foot radius increase
                 if (ceiled_parent_radius == volumes.ceilRadius(config.getRadius(parent.state.effective_radius_height + 1, parent.state.elephant_foot_increases + 1), parent.state.use_min_xy_dist))
@@ -1872,7 +1875,7 @@ static void increase_areas_one_layer(
             if (elem.last_area_increase.move && elem.last_area_increase.no_error && elem.can_use_safe_radius && !mergelayer &&
                 !avoidance_speed_mismatch && (elem.distance_to_top >= config.tip_layers || parent_moved_slow)) {
                 // assume that the avoidance type that was best for the parent is best for me. Makes this function about 7% faster.
-                insertSetting({ elem.last_area_increase.type, elem.last_area_increase.increase_speed < config.maximum_move_distance ? slow_speed : fast_speed, 
+                insertSetting({ elem.last_area_increase.type, elem.last_area_increase.increase_speed < config.maximum_move_distance ? slow_speed : fast_speed,
                     increase_radius, elem.last_area_increase.no_error, !use_min_radius, elem.last_area_increase.move }, true);
                 insertSetting({ elem.last_area_increase.type, elem.last_area_increase.increase_speed < config.maximum_move_distance ? slow_speed : fast_speed,
                     !increase_radius, elem.last_area_increase.no_error, !use_min_radius, elem.last_area_increase.move }, true);
@@ -1892,7 +1895,7 @@ static void increase_areas_one_layer(
                 insertSetting({ AvoidanceType::Fast, fast_speed, !increase_radius, no_error, !use_min_radius, move }, true);
             } else {
                 insertSetting({ AvoidanceType::Slow, slow_speed, increase_radius, no_error, !use_min_radius, move }, true);
-                // while moving fast to be able to increase the radius (b) may seems preferable (over a) this can cause the a sudden skip in movement, 
+                // while moving fast to be able to increase the radius (b) may seems preferable (over a) this can cause the a sudden skip in movement,
                 // which looks similar to a layer shift and can reduce stability.
                 // as such idx have chosen to only use the user setting for radius increases as a friendly recommendation.
                 insertSetting({ AvoidanceType::Slow, slow_speed, !increase_radius, no_error, !use_min_radius, move }, true); // a
@@ -1929,9 +1932,9 @@ static void increase_areas_one_layer(
             for (const AreaIncreaseSettings &settings : order) {
                 if (settings.move) {
                     if (offset_slow.empty() && (settings.increase_speed == slow_speed || ! offset_independant_faster)) {
-                        // offsetting in 2 steps makes our offsetted area rounder preventing (rounding) errors created by to pointy areas. At this point one can see that the Polygons class 
+                        // offsetting in 2 steps makes our offsetted area rounder preventing (rounding) errors created by to pointy areas. At this point one can see that the Polygons class
                         // was never made for precision in the single digit micron range.
-                        offset_slow = safe_offset_inc(parent.influence_area, extra_speed + extra_slow_speed + config.maximum_move_distance_slow, 
+                        offset_slow = safe_offset_inc(parent.influence_area, extra_speed + extra_slow_speed + config.maximum_move_distance_slow,
                             wall_restriction, safe_movement_distance, offset_independant_faster ? safe_movement_distance + radius : 0, 2);
 #ifdef TREESUPPORT_DEBUG_SVG
                         SVG::export_expolygons(debug_out_path("treesupport-increase_areas_one_layer-slow-%d-%ld.svg", layer_idx, int(merging_area_idx)),
@@ -1941,7 +1944,7 @@ static void increase_areas_one_layer(
                     }
                     if (offset_fast.empty() && settings.increase_speed != slow_speed) {
                         if (offset_independant_faster)
-                            offset_fast = safe_offset_inc(parent.influence_area, extra_speed + config.maximum_move_distance, 
+                            offset_fast = safe_offset_inc(parent.influence_area, extra_speed + config.maximum_move_distance,
                                 wall_restriction, safe_movement_distance, offset_independant_faster ? safe_movement_distance + radius : 0, 1);
                         else {
                             const coord_t delta_slow_fast = config.maximum_move_distance - (config.maximum_move_distance_slow + extra_slow_speed);
@@ -1956,12 +1959,12 @@ static void increase_areas_one_layer(
                 }
                 std::optional<SupportElementState> result;
                 inc_wo_collision.clear();
-                if (!settings.no_error) { 
+                if (!settings.no_error) {
                     // ERROR CASE
                     // if the area becomes for whatever reason something that clipper sees as a line, offset would stop working, so ensure that even if it would be a line wrongly, it still actually has an area that can be increased
                     Polygons lines_offset = offset(to_polylines(parent.influence_area), scaled<float>(0.005), jtMiter, 1.2);
                     Polygons base_error_area = union_(parent.influence_area, lines_offset);
-                    result = increase_single_area(volumes, config, settings, layer_idx, parent, 
+                    result = increase_single_area(volumes, config, settings, layer_idx, parent,
                         base_error_area, to_bp_data, to_model_data, inc_wo_collision, (config.maximum_move_distance + extra_speed) * 1.5, mergelayer);
 #ifdef TREE_SUPPORT_SHOW_ERRORS
                     BOOST_LOG_TRIVIAL(error)
@@ -1970,7 +1973,7 @@ static void increase_areas_one_layer(
 #endif // TREE_SUPPORT_SHOW_ERRORS
                           << "Influence area could not be increased! Data about the Influence area: "
                              "Radius: " << radius << " at layer: " << layer_idx - 1 << " NextTarget: " << elem.layer_idx << " Distance to top: " << elem.distance_to_top <<
-                             " Elephant foot increases " << elem.elephant_foot_increases << " use_min_xy_dist " << elem.use_min_xy_dist << " to buildplate " << elem.to_buildplate << 
+                             " Elephant foot increases " << elem.elephant_foot_increases << " use_min_xy_dist " << elem.use_min_xy_dist << " to buildplate " << elem.to_buildplate <<
                              " gracious " << elem.to_model_gracious << " safe " << elem.can_use_safe_radius << " until move " << elem.dont_move_until << " \n "
                              "Parent " << &parent << ": Radius: " << support_element_collision_radius(config, parent.state) << " at layer: " << layer_idx << " NextTarget: " << parent.state.layer_idx <<
                              " Distance to top: " << parent.state.distance_to_top << " Elephant foot increases " << parent.state.elephant_foot_increases << "  use_min_xy_dist " << parent.state.use_min_xy_dist <<
@@ -2002,7 +2005,7 @@ static void increase_areas_one_layer(
                         elem.use_min_xy_dist = false;
                     if (!settings.no_error)
 #ifdef TREE_SUPPORT_SHOW_ERRORS
-                        BOOST_LOG_TRIVIAL(error) 
+                        BOOST_LOG_TRIVIAL(error)
 #else // TREE_SUPPORT_SHOW_ERRORS
                         BOOST_LOG_TRIVIAL(info)
 #endif // TREE_SUPPORT_SHOW_ERRORS
@@ -2029,7 +2032,7 @@ static void increase_areas_one_layer(
                         merging_area.areas.to_model_areas = std::move(to_model_data);
                 }
             } else {
-                // If the bottom most point of a branch is set, later functions will assume that the position is valid, and ignore it. 
+                // If the bottom most point of a branch is set, later functions will assume that the position is valid, and ignore it.
                 // But as branches connecting with the model that are to small have to be culled, the bottom most point has to be not set.
                 // A point can be set on the top most tip layer (maybe more if it should not move for a few layers).
                 parent.state.result_on_layer_reset();
@@ -2073,7 +2076,7 @@ static void increase_areas_one_layer(
     out.elephant_foot_increases = 0;
     if (config.bp_radius_increase_per_layer > 0) {
         coord_t foot_increase_radius = std::abs(std::max(support_element_collision_radius(config, second), support_element_collision_radius(config, first)) - support_element_collision_radius(config, out));
-        // elephant_foot_increases has to be recalculated, as when a smaller tree with a larger elephant_foot_increases merge with a larger branch 
+        // elephant_foot_increases has to be recalculated, as when a smaller tree with a larger elephant_foot_increases merge with a larger branch
         // the elephant_foot_increases may have to be lower as otherwise the radius suddenly increases. This results often in a non integer value.
         out.elephant_foot_increases = foot_increase_radius / (config.bp_radius_increase_per_layer - config.branch_radius_increase_per_layer);
     }
@@ -2096,8 +2099,8 @@ static bool merge_influence_areas_two_elements(
 {
     // Don't merge gracious with a non gracious area as bad placement could negatively impact reliability of the whole subtree.
     const bool merging_gracious_and_non_gracious = dst.state.to_model_gracious != src.state.to_model_gracious;
-    // Could cause some issues with the increase of one area, as it is assumed that if the smaller is increased 
-    // by the delta to the larger it is engulfed by it already. But because a different collision 
+    // Could cause some issues with the increase of one area, as it is assumed that if the smaller is increased
+    // by the delta to the larger it is engulfed by it already. But because a different collision
     // may be removed from the in draw_area() generated circles, this assumption could be wrong.
     const bool merging_min_and_regular_xy        = dst.state.use_min_xy_dist != src.state.use_min_xy_dist;
 
@@ -2141,10 +2144,10 @@ static bool merge_influence_areas_two_elements(
             if (increased_to_model_radius > config.max_to_model_radius_increase)
                 return false;
         }
-        // if a merge could place a stable branch on unstable ground, would be increasing the radius further 
-        // than allowed to when merging to model and to_bp trees or would merge to model before it is known 
+        // if a merge could place a stable branch on unstable ground, would be increasing the radius further
+        // than allowed to when merging to model and to_bp trees or would merge to model before it is known
         // they will even been drawn the merge is skipped
-        if (! dst.state.supports_roof && ! src.state.supports_roof && 
+        if (! dst.state.supports_roof && ! src.state.supports_roof &&
             std::max(src.state.distance_to_top, dst.state.distance_to_top) < config.min_dtt_to_model)
             return false;
     }
@@ -2155,7 +2158,7 @@ static bool merge_influence_areas_two_elements(
         return false;
 
     // the bigger radius is used to verify that the area is still valid after the increase with the delta.
-    // If there were a point where the big influence area could be valid with can_use_safe_radius 
+    // If there were a point where the big influence area could be valid with can_use_safe_radius
     // the element would already be can_use_safe_radius.
     // the smaller radius, which gets increased by delta may reach into the area where use_min_xy_dist is no longer required.
     const bool use_min_radius = bigger_rad.state.use_min_xy_dist && smaller_rad.state.use_min_xy_dist;
@@ -2186,7 +2189,7 @@ static bool merge_influence_areas_two_elements(
 
     const auto _tiny_area_threshold = tiny_area_threshold();
     // dont use empty as a line is not empty, but for this use-case it very well may be (and would be one layer down as union does not keep lines)
-    // check if the overlap is large enough (Small ares tend to attract rounding errors in clipper). 
+    // check if the overlap is large enough (Small ares tend to attract rounding errors in clipper).
     if (area(intersect) <= _tiny_area_threshold)
         return false;
 
@@ -2208,7 +2211,7 @@ static bool merge_influence_areas_two_elements(
     Point new_pos = move_inside_if_outside(intersect, dst.state.next_position);
 
     SupportElementState new_state = merge_support_element_states(dst.state, src.state, new_pos, layer_idx - 1, config);
-    new_state.increased_to_model_radius = increased_to_model_radius == 0 ? 
+    new_state.increased_to_model_radius = increased_to_model_radius == 0 ?
         // increased_to_model_radius was not set yet. Propagate maximum.
         std::max(dst.state.increased_to_model_radius, src.state.increased_to_model_radius) :
         increased_to_model_radius;
@@ -2296,7 +2299,7 @@ static SupportElementMerging* merge_influence_areas_two_sets(
     SupportElementMerging * const dst_begin, SupportElementMerging *       dst_end,
     SupportElementMerging *       src_begin, SupportElementMerging * const src_end)
 {
-    // Merging src into dst. 
+    // Merging src into dst.
     // Areas of src should not overlap with areas of another elements of src.
     // Areas of dst should not overlap with areas of another elements of dst.
     // The memory from dst_begin to src_end is reserved for the merging operation,
@@ -2349,8 +2352,8 @@ static SupportElementMerging* merge_influence_areas_two_sets(
  * \param layer_idx[in] The current layer.
  */
 static void merge_influence_areas(
-    const TreeModelVolumes             &volumes, 
-    const TreeSupportSettings          &config, 
+    const TreeModelVolumes             &volumes,
+    const TreeSupportSettings          &config,
     const LayerIndex                    layer_idx,
     std::vector<SupportElementMerging> &influence_areas,
     std::function<void()>               throw_on_cancel)
@@ -2538,7 +2541,7 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
             throw_on_cancel();
         }
 
-    BOOST_LOG_TRIVIAL(info) << "Time spent with creating influence areas' subtasks: Increasing areas " << dur_inc.count() / 1000000 << 
+    BOOST_LOG_TRIVIAL(info) << "Time spent with creating influence areas' subtasks: Increasing areas " << dur_inc.count() / 1000000 <<
         " ms merging areas: " << (dur_total - dur_inc).count() / 1000000 << " ms";
 }
 
@@ -2567,7 +2570,7 @@ static void set_points_on_areas(const SupportElement &elem, SupportElements *lay
             // if the value was set somewhere else it it kept. This happens when a branch tries not to move after being unable to create a roof.
             if (! next_elem.state.result_on_layer_is_set()) {
                 // Move inside has edgecases (see tests) so DONT use Polygons.inside to confirm correct move, Error with distance 0 is <= 1
-                // it is not required to check if how far this move moved a point as is can be larger than maximum_movement_distance. 
+                // it is not required to check if how far this move moved a point as is can be larger than maximum_movement_distance.
                 // While this seems like a problem it may for example occur after merges.
                 next_elem.state.result_on_layer = move_inside_if_outside(next_elem.influence_area, elem.state.result_on_layer);
                 // do not call recursive because then amount of layers would be restricted by the stack size
@@ -2592,9 +2595,9 @@ static void set_to_model_contact_simple(SupportElement &elem)
  * \param layer_idx[in] The current layer.
  */
 static void set_to_model_contact_to_model_gracious(
-    const TreeModelVolumes          &volumes, 
-    const TreeSupportSettings       &config, 
-    std::vector<SupportElements>    &move_bounds, 
+    const TreeModelVolumes          &volumes,
+    const TreeSupportSettings       &config,
+    std::vector<SupportElements>    &move_bounds,
     SupportElement                  &first_elem,
     std::function<void()>            throw_on_cancel)
 {
@@ -2663,7 +2666,7 @@ static void remove_deleted_elements(std::vector<SupportElements> &move_bounds)
                 assert(i == layer.size() || i + 1 < layer.size());
                 if (i + 1 < int32_t(layer.size())) {
                     element = std::move(layer.back());
-                    layer.pop_back();                    
+                    layer.pop_back();
                     // Mark the current element as deleted.
                     map_current[i] = -1;
                     // Mark the moved element as moved to index i.
@@ -2692,7 +2695,7 @@ static void create_nodes_from_area(
     std::vector<SupportElements> &move_bounds,
     std::function<void()>         throw_on_cancel)
 {
-    // Initialize points on layer 0, with a "random" point in the influence area. 
+    // Initialize points on layer 0, with a "random" point in the influence area.
     // Point is chosen based on an inaccurate estimate where the branches will split into two, but every point inside the influence area would produce a valid result.
     {
         SupportElements *layer_above = move_bounds.size() > 1 ? &move_bounds[1] : nullptr;
@@ -2912,11 +2915,11 @@ static std::pair<int, int> discretize_circle(const Vec3f &center, const Vec3f &n
 
 // Returns Z span of the generated mesh.
 static std::pair<float, float> extrude_branch(
-    const std::vector<const SupportElement*>    &path,
-    const TreeSupportSettings                   &config,
-    const SlicingParameters                     &slicing_params,
-    const std::vector<SupportElements>          &move_bounds,
-    indexed_triangle_set                        &result)
+    const std::vector<const SupportElement*>&path,
+    const TreeSupportSettings               &config,
+    const SlicingParameters                 &slicing_params,
+    const std::vector<SupportElements>      &move_bounds,
+    indexed_triangle_set                    &result)
 {
     Vec3d p1, p2, p3;
     Vec3d v1, v2;
@@ -2925,10 +2928,6 @@ static std::pair<float, float> extrude_branch(
     assert(path.size() >= 2);
     static constexpr const float eps = 0.015f;
     std::pair<int, int> prev_strip;
-
-//    char fname[2048];
-//    static int irun = 0;
-
     float zmin = 0;
     float zmax = 0;
 
@@ -3074,7 +3073,7 @@ static void organic_smooth_branches_avoid_collisions(
         Vec3f                 position;
         // Previous position, for Laplacian smoothing.
         Vec3f                 prev_position;
-        // 
+        //
         Vec3f                 last_collision;
         double                last_collision_depth;
         // Minimum Z for which the sphere collision will be evaluated.
@@ -3174,7 +3173,7 @@ static void organic_smooth_branches_avoid_collisions(
                         // Collision detected to be removed.
                         // Nudge the circle center away from the collision.
                         if (collision_sphere.last_collision_depth > EPSILON)
-                            // a little bit of hysteresis to detect end of 
+                            // a little bit of hysteresis to detect end of
                             ++ num_moved;
                         // Shift by maximum 2mm.
                         double nudge_dist = std::min(std::max(0., collision_sphere.last_collision_depth + collision_extra_gap), max_nudge_collision_avoidance);
@@ -3379,7 +3378,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // Generator for model collision, avoidance and internal guide volumes.
         TreeModelVolumes volumes{ print_object, build_volume, config.maximum_move_distance, config.maximum_move_distance_slow, processing.second.front(),
 #ifdef SLIC3R_TREESUPPORTS_PROGRESS
-            m_progress_multiplier, m_progress_offset, 
+            m_progress_multiplier, m_progress_offset,
 #endif // SLIC3R_TREESUPPORTS_PROGRESS
             /* additional_excluded_areas */{} };
 
@@ -3396,8 +3395,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         for (size_t i = 0; i < print_object.layer_count(); i++) {
             for (ExPolygon& expoly : print_object.get_layer(i)->loverhangs) {
                 Polygons polys = to_polygons(expoly);
-                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) {
-                    polys = offset(to_polygons(expoly), scale_(0.2));
+                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) { polys = offset(polys, scale_(0.2));
                 }
                 append(overhangs[i + num_raft_layers], polys);
             }
@@ -3491,6 +3489,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                 *print.get_object(processing.second.front()), volumes, config, move_bounds,
                 bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage,
                 throw_on_cancel);
+
+            //tree_support->move_bounds_to_contact_nodes(move_bounds, print_object, config);
 
             remove_undefined_layers();
 
