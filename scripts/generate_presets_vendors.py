@@ -94,7 +94,7 @@ filament_vendors = [
     'Formfutura',
     'Francofil',
     'FilamentOne',
-    'Filx',
+    'Fil X',
     'GEEETECH',
     'Giantarm',
     'Gizmo Dorks',

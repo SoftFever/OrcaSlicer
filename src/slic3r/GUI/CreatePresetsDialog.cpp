@@ -47,7 +47,7 @@ static const std::vector<std::string> filament_vendors =
      "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",
      "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",
      "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FilamentOne",
-     "FilX",                   "GEEETECH",               "Giantarm",               "Gizmo Dorks",            "GreenGate3D",
+     "Fil X",                   "GEEETECH",               "Giantarm",               "Gizmo Dorks",            "GreenGate3D",
      "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",                  "IIID Max",
      "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",              "Keene Village Plastics",
      "Kexcelled",              "MakerBot",               "MatterHackers",          "MIKA3D",                 "NinjaTek",
