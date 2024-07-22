@@ -665,7 +665,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
     toggle_field("print_order", !have_sequential_printing);
+
+    toggle_field("single_extruder_multi_material", !is_BBL_Printer);
     
+    auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
+
+    toggle_field("ooze_prevention", !bSEMM);
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_line("standby_temperature_delta", have_ooze_prevention);
     toggle_line("preheat_time", have_ooze_prevention);
@@ -675,9 +680,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);
-
-    auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
-    toggle_field("purge_in_prime_tower", bSEMM);
 
     for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
         toggle_line(el, !bSEMM);
@@ -689,7 +691,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "wipe_tower_bridging", "wipe_tower_extra_flow",
                     "wipe_tower_no_sparse_layers",
                     "single_extruder_multi_material_priming"})
-      toggle_line(el, have_prime_tower);
+      toggle_line(el, have_prime_tower && !is_BBL_Printer);
 
     toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     

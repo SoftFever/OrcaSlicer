@@ -4447,9 +4447,15 @@ void TabPrinter::toggle_options()
 
     if (m_active_page->title() == L("Multimaterial")) {
         // SoftFever: hide specific settings for BBL printer
-        for (auto el :
-             {"purge_in_prime_tower", "enable_filament_ramming", "cooling_tube_retraction", "cooling_tube_length", "parking_pos_retraction", "extra_loading_move", "high_current_on_filament_swap",  })
-          toggle_option(el, !is_BBL_printer);
+        for (auto el : {
+                 "enable_filament_ramming",
+                 "cooling_tube_retraction",
+                 "cooling_tube_length",
+                 "parking_pos_retraction",
+                 "extra_loading_move",
+                 "high_current_on_filament_swap",
+             })
+            toggle_option(el, !is_BBL_printer);
 
         auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
         if (!bSEMM && m_config->opt_bool("manual_filament_change")) {
@@ -4459,7 +4465,7 @@ void TabPrinter::toggle_options()
         }
         toggle_option("extruders_count", !bSEMM);
         toggle_option("manual_filament_change", bSEMM);
-        toggle_option("purge_in_prime_tower", bSEMM);
+        toggle_option("purge_in_prime_tower", bSEMM && !is_BBL_printer);
     }
     wxString extruder_number;
     long val = 1;
