@@ -115,7 +115,7 @@
 	"role_based_wipe_speed": "1",
 	"seam_gap": "10%",
 	"seam_position": "aligned",
-	"single_extruder_multi_material_priming": "1",
+	"single_extruder_multi_material_priming": "0",
 	"skirt_distance": "2",
 	"skirt_height": "1",
 	"skirt_loops": "0",

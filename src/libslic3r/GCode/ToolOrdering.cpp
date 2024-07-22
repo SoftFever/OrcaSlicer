@@ -875,7 +875,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return false;
     };
 
-    std::optional<unsigned int>current_extruder_id;
+    std::optional<unsigned int>current_extruder_id(-1);
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())

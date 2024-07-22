@@ -2581,6 +2581,7 @@ void Print::_make_wipe_tower()
     for (unsigned int i = 0; i<number_of_extruders; ++i)
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
 
+    const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
     // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
     if (!m_config.purge_in_prime_tower && !is_BBL_printer()) {
         for (unsigned int i = 0; i < number_of_extruders; ++i) {
@@ -2593,7 +2594,7 @@ void Print::_make_wipe_tower()
     }
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int) -1, bUseWipeTower2 ? true : false);
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
@@ -2636,7 +2637,7 @@ void Print::_make_wipe_tower()
     }
     this->throw_if_canceled();
 
-    if (is_BBL_printer()) {
+    if (!bUseWipeTower2) {
         // in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
         WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
                              m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);

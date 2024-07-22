@@ -2147,7 +2147,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             throw Slic3r::SlicingError(_(L("No object can be printed. Maybe too small")));
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
         // Orca: support all extruder priming
-        initial_extruder_id = (has_wipe_tower && !print.config().single_extruder_multi_material_priming) ?
+        initial_extruder_id = (!is_bbl_printers && has_wipe_tower && !print.config().single_extruder_multi_material_priming) ?
             // The priming towers will be skipped.
             tool_ordering.all_extruders().back() :
             // Don't skip the priming towers.
@@ -6157,13 +6157,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     std::string toolchange_gcode_parsed;
     //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
     if (!change_filament_gcode.empty() && !(m_config.manual_filament_change.value && m_toolchange_count == 1)) {
-        dyn_config.set_key_value("previous_extruder",
-                             new ConfigOptionInt((int) (m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
-        dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int) extruder_id));
-        dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
         dyn_config.set_key_value("toolchange_z", new ConfigOptionFloat(print_z));
-        dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
 
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         check_add_eol(toolchange_gcode_parsed);
