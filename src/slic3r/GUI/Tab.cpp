@@ -500,7 +500,7 @@ void Tab::create_preset_tab()
 
     m_main_sizer->Add(m_tabctrl, 0, wxEXPAND | wxALL, 0 );
 
-    if (dynamic_cast<TabPrint *>(this)) {
+    if (dynamic_cast<TabPrinter *>(this) || dynamic_cast<TabPrint *>(this)) {
         m_extruder_switch = new SwitchButton(panel);
         m_extruder_switch->SetMaxSize({em_unit(this) * 24, -1});
         m_extruder_switch->SetLabels(_L("Left"), _L("Right"));
@@ -4581,7 +4581,7 @@ PageShp TabPrinter::build_kinematics_page()
         }
 
     const std::vector<std::string> axes{ "x", "y", "z", "e" };
-        optgroup = page->new_optgroup(L("Acceleration limitation"), "param_acceleration");
+    optgroup = page->new_optgroup(L("Acceleration limitation"), "param_acceleration");
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_acceleration_" + axis);
         }
@@ -5022,6 +5022,14 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
+    auto nozzle_volumes = m_config->option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto extruders      = m_config->option<ConfigOptionEnumsGeneric>("extruder_type");
+        auto get_index_for_extruder =
+            [this, &extruders, &nozzle_volumes](int extruder_id, int stride = 1) {
+        return m_config->get_index_for_extruder(extruder_id + 1, "printer_extruder_id",
+            ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), "printer_extruder_variant", stride);
+    };
+
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
@@ -5079,7 +5087,8 @@ void TabPrinter::toggle_options()
         val > 0 && (size_t)val <= m_extruders_count))
     {
         size_t i = size_t(val - 1);
-        bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
+        int variant_index = get_index_for_extruder(i);
+        bool have_retract_length = m_config->opt_float("retraction_length", variant_index) > 0;
 
         toggle_option("extruder_printable_area", false, i);          // disable
         toggle_line("extruder_printable_area", m_preset_bundle->get_printer_extruder_count() == 2, i);  //hide
@@ -5142,12 +5151,11 @@ void TabPrinter::toggle_options()
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 
-        bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
+        bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", variant_index) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
 
-        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
-        toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
-        //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
+        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"), i);
+        toggle_line("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut", variant_index), i);
 
         toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
     }
@@ -6775,7 +6783,7 @@ void Tab::switch_excluder(int extruder_id)
         {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
         {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
     };
-    if (m_extruder_switch) {
+    if (m_extruder_switch && m_type != Preset::TYPE_PRINTER) {
         int current_extruder = m_extruder_switch->GetValue() ? 1 : 0;
         if (extruder_id == -1)
             extruder_id = current_extruder;
@@ -6783,24 +6791,28 @@ void Tab::switch_excluder(int extruder_id)
             return;
     }
     auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
+            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
-            ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
+            ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second, stride);
     };
     auto index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
     if (index < 0)
         return;
     for (auto page : m_pages) {
         bool is_extruder = false;
-        page->m_opt_id_map.clear();
-        if (m_extruder_switch == nullptr && page->title().StartsWith("Extruder")) {
-            int extruder_id2 = std::atoi(page->title().Mid(9).ToUTF8()) - 1;
-            if (extruder_id >= 0 && extruder_id2 != extruder_id)
-                continue;
-            if (extruder_id2 > 0)
-                index = get_index_for_extruder(extruder_id2);
-            is_extruder = true;
+        if (m_type == Preset::TYPE_PRINTER) {
+            if (page->title().StartsWith("Extruder")) {
+                int extruder_id2 = std::atoi(page->title().Mid(9).ToUTF8()) - 1;
+                if (extruder_id >= 0 && extruder_id2 != extruder_id)
+                    continue;
+                if (extruder_id2 > 0)
+                    index = get_index_for_extruder(extruder_id2);
+                is_extruder = true;
+            } else if (page->title().StartsWith("Speed limitation")) {
+                index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id, 2);
+            }
         }
+        page->m_opt_id_map.clear();
         for (auto group : page->m_optgroups) {
             for (auto &opt : group->opt_map()) {
                 auto iter = std::find(printer_extruder_options.begin(), printer_extruder_options.end(), opt.second.first);
@@ -7004,6 +7016,9 @@ Line *Page::get_line(const t_config_option_key &opt_key, int opt_index)
         auto iter = m_opt_id_map.find(opt_key + '#' + std::to_string(opt_index - 256));
         if (iter != m_opt_id_map.end())
             opt_key2 = iter->second;
+    } else if (opt_index >= 0) {
+        assert(opt_key.find('#') == std::string::npos);
+        opt_key2 = opt_key + '#' + std::to_string(opt_index);
     }
     for (auto opt : m_optgroups) {
         line = opt->get_line(opt_key2);
