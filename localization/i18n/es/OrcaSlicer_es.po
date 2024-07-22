@@ -7743,7 +7743,7 @@ msgstr ""
 "Característica experimental: Retraer y cortar el filamento a mayor distancia "
 "durante los cambios de filamento para minimizar el flujo. Aunque puede "
 "reducir notablemente el flujo, también puede elevar el riesgo de atascos de "
-"boquilla u otras complicaciones de impresión. Por favor, utilice con el "
+"boquilla u otras complicaciones de impresión. Por favor, utilícelo con el "
 "último firmware de la impresora."
 
 msgid ""
