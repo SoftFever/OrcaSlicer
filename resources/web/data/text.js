@@ -324,7 +324,7 @@ var LangText = {
     t112: "Unirse al programa",
     t113: "Puede cambiar su elección en preferencias en cualquier momento.",
     orca1: "Editar información del proyecto",
-    orca2: "no hay información sobre el modelo",
+    orca2: "No hay información sobre el modelo",
   },
   de_DE: {
     t1: "Willkommen im Orca Slicer",
