@@ -156,6 +156,10 @@ private:
 class ToolOrdering
 {
 public:
+    enum FlushCalcMode {
+        Normal=0,
+        OneExtruder
+    };
     ToolOrdering() = default;
 
     // For the use case when each object is printed separately
@@ -166,8 +170,10 @@ public:
     // (print->config().print_sequence == PrintSequence::ByObject is false).
     ToolOrdering(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
 
-    void 				clear() {
-        m_layer_tools.clear(); m_tool_order_cache.clear();
+    void    clear() {
+        m_layer_tools.clear();
+        m_curr_flush_info = { 0,0 };
+        m_one_extruder_flush_info = { 0,0 };
     }
 
     // Only valid for non-sequential print:
@@ -199,6 +205,9 @@ public:
 
     static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig *print_config);
 
+    // first val: flush weight  second val: change count
+    std::pair<int, int>  get_flush_info(int mode) const { return mode == FlushCalcMode::OneExtruder ? m_one_extruder_flush_info : m_curr_flush_info; }
+
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
@@ -221,12 +230,14 @@ private:
     unsigned int               m_last_printing_extruder  = (unsigned int)-1;
     // All extruders, which extrude some material over m_layer_tools.
     std::vector<unsigned int>  m_all_printing_extruders;
-    std::unordered_map<uint32_t, std::vector<uint8_t>> m_tool_order_cache;
     const DynamicPrintConfig*  m_print_full_config = nullptr;
     const PrintConfig*         m_print_config_ptr = nullptr;
     const PrintObject*         m_print_object_ptr = nullptr;
     Print*                     m_print;
     bool                       m_is_BBL_printer = false;
+
+    std::pair<int, int> m_curr_flush_info{ 0,0 };
+    std::pair<int, int> m_one_extruder_flush_info{ 0,0 };
 };
 
 } // namespace SLic3r

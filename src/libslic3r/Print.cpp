@@ -2069,6 +2069,12 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         	m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
+
+            std::pair<int, int> curr_info = m_tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::Normal);
+            std::pair<int, int> single_extruder_info = m_tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::OneExtruder);
+
+            this->m_statistics_by_extruder_count.filament_flush_weight = { curr_info.first,single_extruder_info.first };
+            this->m_statistics_by_extruder_count.filament_change_count = { curr_info.second,single_extruder_info.second };
         }
         this->set_done(psWipeTower);
     }
@@ -2702,6 +2708,12 @@ void Print::_make_wipe_tower()
     const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int) -1, bUseWipeTower2 ? true : false);
+
+    std::pair<int, int> curr_info = m_wipe_tower_data.tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::Normal);
+    std::pair<int, int> single_extruder_info = m_wipe_tower_data.tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::OneExtruder);
+
+    this->m_statistics_by_extruder_count.filament_flush_weight = { curr_info.first,single_extruder_info.first };
+    this->m_statistics_by_extruder_count.filament_change_count = { curr_info.second,single_extruder_info.second };
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.

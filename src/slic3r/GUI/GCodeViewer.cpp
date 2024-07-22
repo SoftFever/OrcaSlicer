@@ -4416,6 +4416,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
+        auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
         // BBS save time;
         imgui.text(_u8L("Since you set 1 AMS"));
         ImGui::SameLine();
@@ -4423,8 +4424,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         link_text(_u8L("(change)"));
         ImGui::SameLine();
         imgui.text(_u8L(",this arrangement would be optimal."));
-        imgui.text(_u8L("It will save 738g filament and 23 minutes"));
-
+        int delta_filament_weight = stats_by_extruder.filament_flush_weight[1] - stats_by_extruder.filament_flush_weight[0];
+        int delta_filament_change = stats_by_extruder.filament_change_count[1] - stats_by_extruder.filament_change_count[0];
+        imgui.text(from_u8((boost::format(_u8L("Info by single extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.filament_flush_weight[1] % stats_by_extruder.filament_change_count[1]).str()));
+        imgui.text(from_u8((boost::format(_u8L("Info by multi  extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.filament_flush_weight[0] % stats_by_extruder.filament_change_count[0]).str()));
         float available_width   = ImGui::GetContentRegionAvail().x;
         float available_height = ImGui::GetContentRegionAvail().y;
         float half_width       = available_width * 0.5f;
