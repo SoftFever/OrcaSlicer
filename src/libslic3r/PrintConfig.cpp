@@ -4091,7 +4091,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Single Extruder Multi Material");
     def->tooltip = L("Use single nozzle to print multi filament");
     def->mode = comAdvanced;
-    def->readonly = true;
+    // def->readonly = true;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("manual_filament_change", coBool);

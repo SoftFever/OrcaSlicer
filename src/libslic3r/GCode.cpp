@@ -251,33 +251,29 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
         return ok;
     }
-
+    
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
     {
         std::string gcode;
 
-        // move to the nearest standby point
-        if (!this->standby_points.empty()) {
-            // get current position in print coordinates
-            Vec3d writer_pos = gcodegen.writer().get_position();
-            Point pos = Point::new_scale(writer_pos(0), writer_pos(1));
-
-            // find standby point
-            Point standby_point;
-            pos.nearest_point(this->standby_points, &standby_point);
-
-            /*  We don't call gcodegen.travel_to() because we don't need retraction (it was already
-                triggered by the caller) nor reduce_crossing_wall and also because the coordinates
-                of the destination point must not be transformed by origin nor current extruder offset.  */
-            gcode += gcodegen.writer().travel_to_xy(unscale(standby_point),
-                "move to standby position");
-        }
-
-        if (gcodegen.config().standby_temperature_delta.value != 0) {
-            // we assume that heating is always slower than cooling, so no need to block
-            gcode += gcodegen.writer().set_temperature
-            (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false, gcodegen.writer().extruder()->id());
-        }
+        unsigned int extruder_id = gcodegen.writer().extruder()->id();
+        // const ConfigOptionIntsNullable& filament_idle_temp = gcodegen.config().idle_temperature;
+        // if (filament_idle_temp.is_nil(extruder_id)) {
+        //     // There is no idle temperature defined in filament settings.
+        //     // Use the delta value from print config.
+        //     if (gcodegen.config().standby_temperature_delta.value != 0) {
+        //         // we assume that heating is always slower than cooling, so no need to block
+        //         gcode += gcodegen.writer().set_temperature
+        //         (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false, extruder_id);
+        //         gcode.pop_back();
+        //         gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
+        //     }
+        // } else {
+            // Use the value from filament settings. That one is absolute, not delta.
+            gcode += gcodegen.writer().set_temperature(68, false, extruder_id);
+            gcode.pop_back();
+            gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
+        // }
 
         return gcode;
     }
@@ -6016,30 +6012,31 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         this->placeholder_parser().set("current_extruder", extruder_id);
-        this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
-        this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
         std::string gcode;
         // Append the filament start G-code.
-        const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(extruder_id);
-        if (! filament_start_gcode.empty()) {
-            // Process the filament_start_gcode for the filament.
-            gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, extruder_id);
+        const std::string &start_filament_gcode = m_config.filament_start_gcode.get_at(extruder_id);
+        if (! start_filament_gcode.empty()) {
+            // Process the start_filament_gcode for the filament.
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z",   new ConfigOptionFloat(this->writer().get_position().z() - m_config.z_offset.value));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(extruder_id)));
+            gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id, &config);
             check_add_eol(gcode);
         }
-        if (m_config.enable_pressure_advance.get_at(extruder_id)) {
-            gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
-        }
-
         gcode += m_writer.toolchange(extruder_id);
         return gcode;
     }
 
-    // BBS. Should be placed before retract.
-    m_toolchange_count++;
+    std::string gcode{};
+    // if (!this->m_config.complete_objects.value) {
+    //     gcode += this->m_label_objects.maybe_stop_instance();
+    // }
 
     // prepend retraction on the current extruder
-    std::string gcode = this->retract(true, false);
+    gcode += this->retract(true, false);
 
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();
@@ -6054,142 +6051,38 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
         unsigned int        old_extruder_id     = m_writer.extruder()->id();
         const std::string  &filament_end_gcode  = m_config.filament_end_gcode.get_at(old_extruder_id);
         if (! filament_end_gcode.empty()) {
-            gcode += placeholder_parser_process("filament_end_gcode", filament_end_gcode, old_extruder_id);
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position().z() - m_config.z_offset.value));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(old_extruder_id)));
+            gcode += placeholder_parser_process("filament_end_gcode", filament_end_gcode, old_extruder_id, &config);
             check_add_eol(gcode);
         }
     }
 
-
-    // If ooze prevention is enabled, park current extruder in the nearest
-    // standby point and set it to the standby temperature.
+    gcode += "; mark log, new id" + std::to_string(extruder_id);
+    gcode += "; current id:" + (m_writer.extruder() != nullptr ? std::to_string(m_writer.extruder()->id()) : "not set");
+    gcode += '\n';
+    // If ooze prevention is enabled, set current extruder to the standby temperature.
     if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
-    // BBS
-    float new_retract_length = m_config.retraction_length.get_at(extruder_id);
-    float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
-    int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id): m_config.nozzle_temperature.get_at(extruder_id);
-    // BBS: if print_z == 0 use first layer temperature
-    if (abs(print_z) < EPSILON)
-        new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(extruder_id);
-
-    Vec3d nozzle_pos = m_writer.get_position();
-    float old_retract_length, old_retract_length_toolchange, wipe_volume;
-    int old_filament_temp, old_filament_e_feedrate;
-
-    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
-    //BBS: add handling for filament change in start gcode
-    int previous_extruder_id = -1;
-    if (m_writer.extruder() != nullptr || m_start_gcode_filament != -1) {
-        std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
-        const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-        if (m_writer.extruder() != nullptr)
-            assert(m_writer.extruder()->id() < number_of_extruders);
-        else
-            assert(m_start_gcode_filament < number_of_extruders);
-
-        previous_extruder_id = m_writer.extruder() != nullptr ? m_writer.extruder()->id() : m_start_gcode_filament;
-        old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
-        old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
-        old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
-        if (m_config.purge_in_prime_tower || is_BBL_Printer()) {
-            wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
-            wipe_volume *= m_config.flush_multiplier;
-        } else {
-            wipe_volume = m_config.prime_volume;
-        }
-        old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
-        old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-        //BBS: must clean m_start_gcode_filament
-        m_start_gcode_filament = -1;
-    } else {
-        old_retract_length = 0.f;
-        old_retract_length_toolchange = 0.f;
-        old_filament_temp = 0;
-        wipe_volume = 0.f;
-        old_filament_e_feedrate = 200;
-    }
-    float wipe_length = wipe_volume / filament_area;
-    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(extruder_id) / filament_area);
-    new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
-
-    DynamicConfig dyn_config;
-    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
-    dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)extruder_id));
-    dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-    dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
-    dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(m_config.use_relative_e_distances));
-    dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
-    //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
-    //slicing error in old change_filament_gcode in old 3MF
-    dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
-    dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
-    dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
-    dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
-    dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
-    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
-    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
-    dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(nozzle_pos(0)));
-    dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(nozzle_pos(1)));
-    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
-    dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
-    dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
-    dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
-    dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
-    dyn_config.set_key_value("travel_point_1_x", new ConfigOptionFloat(float(travel_point_1.x())));
-    dyn_config.set_key_value("travel_point_1_y", new ConfigOptionFloat(float(travel_point_1.y())));
-    dyn_config.set_key_value("travel_point_2_x", new ConfigOptionFloat(float(travel_point_2.x())));
-    dyn_config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
-    dyn_config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
-    dyn_config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
-
-    dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));
-
-    int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
-    float flush_unit = wipe_length / flush_count;
-    int flush_idx = 0;
-    for (; flush_idx < flush_count; flush_idx++) {
-        char key_value[64] = { 0 };
-        snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
-        dyn_config.set_key_value(key_value, new ConfigOptionFloat(flush_unit));
-    }
-
-    for (; flush_idx < g_max_flush_count; flush_idx++) {
-        char key_value[64] = { 0 };
-        snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
-        dyn_config.set_key_value(key_value, new ConfigOptionFloat(0.f));
-    }
-
-    // Process the custom change_filament_gcode.
-    const std::string& change_filament_gcode = m_config.change_filament_gcode.value;
+    const std::string& toolchange_gcode = "";
     std::string toolchange_gcode_parsed;
-    //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
-    if (!change_filament_gcode.empty() && !(m_config.manual_filament_change.value && m_toolchange_count == 1)) {
-        toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
-        check_add_eol(toolchange_gcode_parsed);
+
+    // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
+    if (!toolchange_gcode.empty()) {
+        DynamicConfig config;
+        config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1 )));
+        config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
+        config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
+        config.set_key_value("toolchange_z",      new ConfigOptionFloat(print_z));
+        config.set_key_value("max_layer_z",       new ConfigOptionFloat(m_max_layer_z));
+        toolchange_gcode_parsed = placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
         gcode += toolchange_gcode_parsed;
-
-        //BBS
-        {
-            //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
-            //Set this flag so that normal lift will be used the first time after tool change.
-            gcode += ";_FORCE_RESUME_FAN_SPEED\n";
-            m_writer.set_current_position_clear(false);
-            //BBS: check whether custom gcode changes the z position. Update if changed
-            double temp_z_after_tool_change;
-            if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_parsed, temp_z_after_tool_change)) {
-                Vec3d pos = m_writer.get_position();
-                pos(2) = temp_z_after_tool_change;
-                m_writer.set_position(pos);
-            }
-        }
-    }
-
-    // BBS. Reset old extruder E-value.
-    // Keep retract length because Custom GCode will guarantee retract length be the same as toolchange
-    if (m_config.single_extruder_multi_material) {
-        m_writer.reset_e();
+        check_add_eol(gcode);
     }
 
     // We inform the writer about what is happening, but we may not use the resulting gcode.
@@ -6209,14 +6102,17 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     }
 
     this->placeholder_parser().set("current_extruder", extruder_id);
-    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
-    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
     // Append the filament start G-code.
-    const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(extruder_id);
-    if (! filament_start_gcode.empty()) {
-        // Process the filament_start_gcode for the new filament.
-        gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, extruder_id);
+    const std::string &start_filament_gcode = m_config.filament_start_gcode.get_at(extruder_id);
+    if (! start_filament_gcode.empty()) {
+        // Process the start_filament_gcode for the new filament.
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(this->writer().get_position().z() - m_config.z_offset.value));
+        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(extruder_id)));
+        gcode += this->placeholder_parser_process("start_filament_gcode", start_filament_gcode, extruder_id, &config);
         check_add_eol(gcode);
     }
     // Set the new extruder to the operating temperature.

@@ -45,7 +45,7 @@ public:
     bool enable;
     Points standby_points;
 
-    OozePrevention() : enable(false) {}
+    OozePrevention() : enable(true) {}
     std::string pre_toolchange(GCode &gcodegen);
     std::string post_toolchange(GCode &gcodegen);
 
