@@ -3223,9 +3223,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("filament_flow_ratio");
-    
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
@@ -3249,6 +3246,7 @@ void TabFilament::build()
 
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
