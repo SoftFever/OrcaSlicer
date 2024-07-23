@@ -214,7 +214,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
                                                std::optional<std::function<bool(int,std::vector<int>&)>> get_custom_seq,
                                                std::vector<std::vector<unsigned int>>* filament_sequences)
 {
-    constexpr int max_n_with_forcast = 5;
+    constexpr int max_n_with_forcast = 7;
     int cost = 0;
     std::vector<std::set<unsigned int>>groups(2); //save the grouped filaments
     std::vector<std::vector<std::vector<unsigned int>>> layer_sequences(2); //save the reordered filament sequence by group
@@ -283,7 +283,6 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
         // case with one group
         if (groups[idx].empty())
             continue;
-        bool use_forcast = groups[idx].size() <= max_n_with_forcast;
         std::optional<unsigned int>current_extruder_id;
 
         std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
@@ -317,6 +316,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>&f
                 }
             }
 
+            bool use_forcast = (groups[0].size()<=max_n_with_forcast && groups[1].size()<=max_n_with_forcast) ;
             float tmp_cost = 0;
             std::vector<unsigned int>sequence;
             uint128_t hash_key = extruders_to_hash_key(filament_used_in_group, filament_used_in_group_next_layer, current_extruder_id, use_forcast);
