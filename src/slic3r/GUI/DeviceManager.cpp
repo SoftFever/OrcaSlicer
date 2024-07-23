@@ -4366,8 +4366,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ;
                         }
                     }
-                    for (auto &filament_id : need_checked_filament_id)
-                        m_checked_filament.insert(filament_id);
+
+                    /*parse new print data*/
+                    try {
+                        parse_new_info(jj);
+                    } catch (...) {}
 #pragma endregion
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
@@ -4822,13 +4825,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
             }
-
-            /*parse new print data*/
-            try
-            {
-                parse_new_info(jj);
-            }
-            catch (...){}
         }
 
         if (!key_field_only) {

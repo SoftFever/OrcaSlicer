@@ -3690,70 +3690,52 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
         int ams_id = event.GetInt();
         int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
 
-       /* if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
-            tray_id_int = VIRTUAL_TRAY_MAIN_ID;
-            m_filament_setting_dlg->ams_id = ams_id_int;
-            m_filament_setting_dlg->tray_id = tray_id_int;
-            wxString k_val;
-            wxString n_val;
-            k_val = wxString::Format("%.3f", obj->vt_slot[0].k);
-            n_val = wxString::Format("%.3f", obj->vt_slot[0].n);
-            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-            m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
-        } else {*/
-            //std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
-            try {
-                m_filament_setting_dlg->ams_id  = ams_id;
-                m_filament_setting_dlg->slot_id = slot_id;
-                //m_filament_setting_dlg->tray_id = 254;
+        try {
+            m_filament_setting_dlg->ams_id  = ams_id;
+            m_filament_setting_dlg->slot_id = slot_id;
 
-                std::string sn_number;
-                std::string filament;
-                std::string temp_max;
-                std::string temp_min;
-                wxString k_val;
-                wxString n_val;
-                auto        it = obj->amsList.find(std::to_string(ams_id));
-                if (it != obj->amsList.end()) {
-                    auto tray_it = it->second->trayList.find(std::to_string(slot_id));
-                    if (tray_it != it->second->trayList.end()) {
-                        k_val = wxString::Format("%.3f", tray_it->second->k);
-                        n_val = wxString::Format("%.3f", tray_it->second->n);
-                        wxColor color = AmsTray::decode_color(tray_it->second->color);
-                        //m_filament_setting_dlg->set_color(color);
+            std::string sn_number;
+            std::string filament;
+            std::string temp_max;
+            std::string temp_min;
+            wxString    k_val;
+            wxString    n_val;
+            auto        it = obj->amsList.find(std::to_string(ams_id));
+            if (it != obj->amsList.end()) {
+                auto tray_it = it->second->trayList.find(std::to_string(slot_id));
+                if (tray_it != it->second->trayList.end()) {
+                    k_val         = wxString::Format("%.3f", tray_it->second->k);
+                    n_val         = wxString::Format("%.3f", tray_it->second->n);
+                    wxColor color = AmsTray::decode_color(tray_it->second->color);
+                    // m_filament_setting_dlg->set_color(color);
 
-                        std::vector<wxColour> cols;
-                        for (auto col : tray_it->second->cols) {
-                            cols.push_back( AmsTray::decode_color(col));
-                        }
-                        m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
-                        m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+                    std::vector<wxColour> cols;
+                    for (auto col : tray_it->second->cols) { cols.push_back(AmsTray::decode_color(col)); }
+                    m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
+                    m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
 
-                        if (m_filament_setting_dlg->ams_filament_id.empty()) {
-                            m_filament_setting_dlg->set_empty_color(color);
-                        }
-                        else {
-                            m_filament_setting_dlg->set_color(color);
-                            m_filament_setting_dlg->set_colors(cols);
-                        }
+                    if (m_filament_setting_dlg->ams_filament_id.empty()) {
+                        m_filament_setting_dlg->set_empty_color(color);
+                    } else {
+                        m_filament_setting_dlg->set_color(color);
+                        m_filament_setting_dlg->set_colors(cols);
+                    }
 
-                        m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
-                        if (!m_filament_setting_dlg->m_is_third) {
-                            sn_number = tray_it->second->uuid;
-                            filament = tray_it->second->sub_brands;
-                            temp_max = tray_it->second->nozzle_temp_max;
-                            temp_min = tray_it->second->nozzle_temp_min;
-                        }
+                    m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
+                    if (!m_filament_setting_dlg->m_is_third) {
+                        sn_number = tray_it->second->uuid;
+                        filament  = tray_it->second->sub_brands;
+                        temp_max  = tray_it->second->nozzle_temp_max;
+                        temp_min  = tray_it->second->nozzle_temp_min;
                     }
                 }
+            }
 
-                m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-                m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
-            }
-            catch (...) {
-                ;
-            }
-        //}
+            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+        } catch (...) {
+            ;
+        }
     }
 }
 

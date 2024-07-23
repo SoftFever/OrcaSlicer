@@ -604,7 +604,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             obj->command_ams_filament_settings(ams_id, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
         else {
-            obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+            if (obj->is_enable_np) {
+                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+            } else {
+                obj->command_ams_filament_settings(ams_id, ams_id * 4 + slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+            }
         }
     }
 
