@@ -4901,7 +4901,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      auto size = GetSize();
      dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(20), (size.y - m_bitmap.GetBmpSize().y) / 2));
      dc.SetFont(::Label::Head_13);
-     dc.SetTextForeground(wxColour(38, 46, 48));
+     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // ORCA fix text not visible on dark theme
      wxString txt = _L("Bind with Pin Code");
      auto txt_size = dc.GetTextExtent(txt);
      dc.DrawText(txt, wxPoint(FromDIP(40), (size.y - txt_size.y) / 2));
