@@ -2795,34 +2795,6 @@ void PerimeterGenerator::process_arachne()
                                              wall_0_inset, layer_height, input_params);
 
         std::vector<Arachne::VariableWidthLines> perimeters = wallToolPaths.getToolPaths();
-        
-        // Orca: Inner outer inner mode optimisation -
-        // Always bring the dominant contour first on the extrusions list. Fixes scenario where
-        // a non contour outer wall is printed first in inner outer inner mode
-        if ( perimeters.size() > 0 && out_shell.empty() && (this->config->wall_sequence == WallSequence::InnerOuterInner) ) {
-            std::vector<Arachne::ExtrusionLine> external_lines = perimeters[0]; // get external walls (contour or holes) of that island
-            // Separate contours and holes
-            std::vector<Arachne::ExtrusionLine> contours;
-            std::vector<Arachne::ExtrusionLine> holes;
-            for (const Arachne::ExtrusionLine& el : external_lines)
-                if (el.is_contour())
-                    contours.push_back(el);
-                 else
-                     holes.push_back(el);
-            // Sort contours by length. This way we bring forward the most "dominant" external perimeter of that island to be printed first, with less
-            // dominant external features printed later. While it is unlikely that more than one contour will exist for a single island, this
-            // also serves as a failsafe in the scenario it happens with any odd geometry.
-            std::sort(contours.begin(), contours.end(), [](const Arachne::ExtrusionLine& a, const Arachne::ExtrusionLine& b) {
-                return a.getLength() > b.getLength(); // Sort in descending order of length
-            });
-            // Concatenate sorted contours and non-contours
-            external_lines.clear();
-            external_lines.insert(external_lines.end(), contours.begin(), contours.end());
-            external_lines.insert(external_lines.end(), holes.begin(), holes.end());
-
-            // Update the perimeters with the sorted external_lines
-            perimeters[0] = external_lines;
-        }
 
         if (!out_shell.empty()) {
             // Combine outer shells
