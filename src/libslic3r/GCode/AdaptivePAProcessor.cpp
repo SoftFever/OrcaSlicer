@@ -248,7 +248,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                     predicted_pa = (*interpolator)(mm3mm_value * adaptive_PA_speed, accel_value);
                     
                     // This is a bridge, use the dedicated PA setting.
-                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > 0)
+                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > EPSILON)
                         predicted_pa = m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id);
                     
                     if (predicted_pa < 0) { // If extrapolation fails, fall back to the default PA for the extruder.
@@ -259,7 +259,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 if(m_config.gcode_comments) {
                     // Output debug GCode comments
                     output << pa_change_line << '\n'; // Output PA change command tag
-                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > 0)
+                    if(isBridge && m_config.adaptive_pressure_advance_bridges.get_at(m_last_extruder_id) > EPSILON)
                         output << "; APA Model Override (bridge)\n";
                     output << "; APA Current Speed: " << std::to_string(m_current_feedrate) << "\n";
                     output << "; APA Next Speed: " << std::to_string(m_next_feedrate) << "\n";
