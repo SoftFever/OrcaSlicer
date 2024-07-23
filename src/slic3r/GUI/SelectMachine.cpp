@@ -2579,7 +2579,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
-            is_printing_block  = true;
+            // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
@@ -4901,7 +4901,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      auto size = GetSize();
      dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(20), (size.y - m_bitmap.GetBmpSize().y) / 2));
      dc.SetFont(::Label::Head_13);
-     dc.SetTextForeground(wxColour(38, 46, 48));
+     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // ORCA fix text not visible on dark theme
      wxString txt = _L("Bind with Pin Code");
      auto txt_size = dc.GetTextExtent(txt);
      dc.DrawText(txt, wxPoint(FromDIP(40), (size.y - txt_size.y) / 2));

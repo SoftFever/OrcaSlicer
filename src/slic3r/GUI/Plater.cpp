@@ -834,7 +834,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
     p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed),
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#BFE1DE"), StateColor::Pressed), // ORCA
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
 
@@ -1215,6 +1215,17 @@ void Sidebar::update_all_preset_comboboxes()
         p_mainframe->set_print_button_to_default(print_btn_type);
 
     }
+
+    if (cfg.opt_bool("pellet_modded_printer")) {
+		p->m_staticText_filament_settings->SetLabel(_L("Pellets"));
+        p->m_filament_icon->SetBitmap_("pellets");
+    } else {
+		p->m_staticText_filament_settings->SetLabel(_L("Filament"));
+        p->m_filament_icon->SetBitmap_("filament");
+    }
+
+    //p->m_staticText_filament_settings->Update();
+
 
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
         m_bed_type_list->Enable();
@@ -2572,6 +2583,7 @@ struct Plater::priv
     //BBS store bbs project name
     wxString get_project_name();
     void set_project_name(const wxString& project_name);
+    void update_title_dirty_status();
 
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
@@ -4683,7 +4695,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
             auto result = MessageBox(q->GetHandle(),
                 wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path),
-                _L("Comfirm Save As"),
+                _L("Confirm Save As"),
                 MB_YESNO | MB_ICONWARNING);
             if (result != IDYES)
                 return wxEmptyString;
@@ -7649,6 +7661,25 @@ void Plater::priv::set_project_name(const wxString& project_name)
 #endif
 }
 
+void Plater::priv::update_title_dirty_status()
+{
+    if (m_project_name.empty())
+        return;
+
+    wxString title;
+    if (is_project_dirty())
+        title = "*" + m_project_name;
+    else
+        title = m_project_name;
+
+#ifdef __WINDOWS__
+    wxGetApp().mainframe->topbar()->SetTitle(title);
+#else
+    wxGetApp().mainframe->SetTitle(title);
+    wxGetApp().mainframe->update_title_colour_after_set_title();    
+#endif    
+}
+
 void Plater::priv::set_project_filename(const wxString& filename)
 {
     boost::filesystem::path full_path = into_path(filename);
@@ -8525,6 +8556,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     }
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
+    update_title_dirty_status();
 }
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
@@ -8941,6 +8973,7 @@ int Plater::save_project(bool saveAs)
     }
     catch (...) {}
 
+    update_title_dirty_status();
     return wxID_YES;
 }
 
@@ -11425,7 +11458,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
         
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-        "Only positive parts will be kept. You may fix the meshes and try agian.");
+        "Only positive parts will be kept. You may fix the meshes and try again.");
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
@@ -12778,8 +12811,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (update_scheduled)
         update();
 
-    if (p->main_frame->is_loaded())
+    if (p->main_frame->is_loaded()) {
         this->p->schedule_background_process();
+        update_title_dirty_status();
+    }
 }
 
 void Plater::set_bed_shape() const
@@ -13225,6 +13260,8 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
+    if (wxGetApp().app_config->get("auto_arrange") == "true")
+        this->arrange();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
@@ -14280,6 +14317,11 @@ bool Plater::PopupObjectTableBySelection()
     const wxPoint pos = wxPoint(0, 0);  //Fake position
     wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx, item);
     return p->PopupObjectTable(obj_idx, vol_idx, pos);
+}
+
+void Plater::update_title_dirty_status()
+{
+    p->update_title_dirty_status();
 }
 
 

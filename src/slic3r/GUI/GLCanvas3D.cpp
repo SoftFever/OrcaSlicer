@@ -7852,7 +7852,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
     //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
     //use white text as the background switch to black
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1)); // ORCA Plate number text > Add support for dark mode
     ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA using background color with opacity creates a second color. This prevents secondary color 
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);

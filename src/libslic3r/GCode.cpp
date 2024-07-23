@@ -1977,7 +1977,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
-    if (m_config.small_area_infill_flow_compensation.value && !print.config().small_area_infill_flow_compensation_model.empty())
+    if (!print.config().small_area_infill_flow_compensation_model.empty())
         m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
 
     file.write_format("; HEADER_BLOCK_START\n");
@@ -5442,7 +5442,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         continue;
                     path_length += line_length;
                     auto dE = e_per_mm * line_length;
-                    if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
+                    if (!this->on_first_layer() && m_small_area_infill_flow_compensator
+                            && m_config.small_area_infill_flow_compensation.value) {
                         auto oldE = dE;
                         dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -5482,7 +5483,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             if (line_length < EPSILON)
                                 continue;
                             auto dE = e_per_mm * line_length;
-                            if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
+                            if (!this->on_first_layer() && m_small_area_infill_flow_compensator
+                                    && m_config.small_area_infill_flow_compensation.value) {
                                 auto oldE = dE;
                                 dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -5505,7 +5507,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             continue;
                         const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                         auto dE = e_per_mm * arc_length;
-                        if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
+                        if (!this->on_first_layer() && m_small_area_infill_flow_compensator
+                                && m_config.small_area_infill_flow_compensation.value) {
                             auto oldE = dE;
                             dE = m_small_area_infill_flow_compensator->modify_flow(arc_length, dE, path.role());
 
@@ -5593,7 +5596,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 last_set_speed = new_speed;
             }
             auto dE = e_per_mm * line_length;
-            if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
+            if (!this->on_first_layer() && m_small_area_infill_flow_compensator
+                     && m_config.small_area_infill_flow_compensation.value) {
                 auto oldE = dE;
                 dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -5894,7 +5898,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     float max_z_hop = 0.f;
     for (int i = 0; i < m_config.z_hop.size(); i++)
         max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
-    float travel_len_thresh = scale_(max_z_hop / tan(GCodeWriter::slope_threshold));
+    float travel_len_thresh = scale_(max_z_hop / tan(this->writer().extruder()->travel_slope()));
     float accum_len = 0.f;
     Polyline clipped_travel;
 
