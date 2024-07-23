@@ -14452,8 +14452,25 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
     FilamentMapDialog filament_dlg(this, config(), curr_plate->get_filament_maps(), curr_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto);
     if (filament_dlg.ShowModal() == wxID_OK) {
-        curr_plate->set_filament_maps(filament_dlg.get_filament_maps());
-        curr_plate->set_filament_map_mode(filament_dlg.is_auto() ? FilamentMapMode::fmmAuto : FilamentMapMode::fmmManual);
+        std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
+        std::vector<int> old_filament_maps = curr_plate->get_filament_maps();
+        FilamentMapMode  new_map_mode = filament_dlg.is_auto() ? FilamentMapMode::fmmAuto : FilamentMapMode::fmmManual;
+        FilamentMapMode  old_map_mode = curr_plate->get_filament_map_mode();
+        bool             need_invalidate   = false;
+        if (new_map_mode != old_map_mode) {
+            curr_plate->set_filament_map_mode(new_map_mode);
+            need_invalidate = true;
+        }
+        if (new_filament_maps != old_filament_maps) {
+            curr_plate->set_filament_maps(new_filament_maps);
+            if (new_map_mode == FilamentMapMode::fmmManual)
+                need_invalidate = true;
+        }
+        if (need_invalidate) {
+            curr_plate->update_slice_result_valid_state(false);
+            set_plater_dirty(true);
+            update();
+        }
     }
     return;
 }
