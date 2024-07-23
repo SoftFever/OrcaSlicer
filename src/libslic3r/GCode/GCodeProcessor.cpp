@@ -4943,14 +4943,14 @@ void GCodeProcessor::run_post_process()
                     // found an invalid value, clamp it to a valid one
                     tool_number = std::clamp<int>(0, m_extruder_temps_config.size() - 1, tool_number);
                     // emit warning
-                    std::string warning = _u8L("GCode Post-Processor encountered an invalid toolchange, maybe from a custom gcode:");
+                    std::string warning = "GCode Post-Processor encountered an invalid toolchange, maybe from a custom gcode:";
                     warning += "\n> ";
                     warning += gcode_line;
-                    warning += _u8L("Generated M104 lines may be incorrect.");
+                    warning += "Generated M104 lines may be incorrect.";
                     BOOST_LOG_TRIVIAL(error) << warning;
                     // Orca todo
-                    // if (m_print != nullptr)
-                    //     m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
+                    if (m_print != nullptr)
+                        m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
                 }
             }
             export_lines.insert_lines(
