@@ -293,6 +293,8 @@ public:
     //BBS: GUI refactor: GLToolbar adjust
     float get_scaled_total_height() const;
     float get_scaled_total_width() const;
+    float get_unscaled_total_height() const;
+    float get_unscaled_total_width() const;
     GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
 

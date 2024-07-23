@@ -395,10 +395,26 @@ float GLToolbar::get_width()
     if (m_layout.dirty)
         calc_layout();
 
-    return m_layout.width;
+    return m_layout.width * m_layout.scale;
 }
 
 float GLToolbar::get_height()
+{
+    if (m_layout.dirty)
+        calc_layout();
+
+    return m_layout.height * m_layout.scale;
+}
+
+float GLToolbar::get_width_unscaled()
+{
+    if (m_layout.dirty)
+        calc_layout();
+
+    return m_layout.width;
+}
+
+float GLToolbar::get_height_unscaled()
 {
     if (m_layout.dirty)
         calc_layout();
@@ -682,7 +698,7 @@ float GLToolbar::get_width_horizontal() const
     if (m_items.size() > 1)
         size += ((float)m_items.size() - 1.0f) * m_layout.gap_size;
 
-    return size * m_layout.scale;
+    return size;
 }
 
 //BBS: GUI refactor: GLToolbar
@@ -704,12 +720,12 @@ float GLToolbar::get_width_vertical() const
         }
     }
 
-    return (2.0f * m_layout.border + m_layout.icons_size + max_extra_text_size) * m_layout.scale;
+    return (2.0f * m_layout.border + m_layout.icons_size + max_extra_text_size);
 }
 
 float GLToolbar::get_height_horizontal() const
 {
-    return (2.0f * m_layout.border + m_layout.icons_size) * m_layout.scale;
+    return (2.0f * m_layout.border + m_layout.icons_size);
 }
 
 float GLToolbar::get_height_vertical() const
@@ -734,7 +750,7 @@ float GLToolbar::get_main_size() const
     if (m_items.size() > 1)
         size += ((float)m_items.size() - 1.0f) * m_layout.gap_size;
 
-    return size * m_layout.scale;
+    return size;
 }
 
 int GLToolbar::get_visible_items_cnt() const
