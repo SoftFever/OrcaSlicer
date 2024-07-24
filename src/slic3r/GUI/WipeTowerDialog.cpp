@@ -223,7 +223,7 @@ std::string RammingPanel::get_parameters()
 
 #ifdef _WIN32
 #define style wxSP_ARROW_KEYS | wxBORDER_SIMPLE
-#else 
+#else
 #define style wxSP_ARROW_KEYS
 #endif
 
@@ -272,20 +272,22 @@ wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::WindowButtonGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
-    ComboBox *extruder_combo = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-    extruder_combo->AppendString(_L("extruder 1"));
-    extruder_combo->AppendString(_L("extruder 2"));
-    extruder_combo->SetSelection(0);
-    extruder_combo->Bind(wxEVT_COMBOBOX, &WipingPanel::on_select_extruder, this);
-    btn_sizer->Add(extruder_combo);
+    if (m_nozzle_nums == 2) {
+        ComboBox *extruder_combo = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+        extruder_combo->AppendString(_L("Left extruder"));
+        extruder_combo->AppendString(_L("Right extruder"));
+        extruder_combo->SetSelection(0);
+        extruder_combo->Bind(wxEVT_COMBOBOX, &WipingPanel::on_select_extruder, this);
+        btn_sizer->Add(extruder_combo);
+    }
 
     return btn_sizer;
 }
 void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    for (auto button_item : m_button_list) 
+    for (auto button_item : m_button_list)
     {
-        if (button_item.first == wxRESET) 
+        if (button_item.first == wxRESET)
         {
             button_item.second->Rescale();
         }
@@ -309,13 +311,13 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
-    
+
 
     m_panel_wiping = new WipingPanel(this, matrix, extruders, 0, extruder_colours, nullptr, extra_flush_volume, flush_multiplier, nozzle_nums);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
-    
+
     // set min sizer width according to extruders count
     auto sizer_width = (int)((sqrt(matrix.size()) + 2.8)*ITEM_WIDTH());
     sizer_width = sizer_width > MIN_WIPING_DIALOG_WIDTH ? sizer_width : MIN_WIPING_DIALOG_WIDTH;
@@ -346,7 +348,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
         if (e.GetKeyCode() == WXK_ESCAPE) {
             if (this->IsModal())
                 this->EndModal(wxID_CANCEL);
-            else 
+            else
                 this->Close();
         }
         else
@@ -387,7 +389,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
-WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, 
+WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders,
     size_t                          cur_extruder_id,
     const std::vector<std::string>& extruder_colours, Button* calc_button,
     const std::vector<int>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
@@ -494,7 +496,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_sizer_advanced->AddSpacer(FromDIP(10));
     auto calc_btn_sizer = create_calc_btn_sizer(m_page_advanced);
     m_sizer_advanced->Add(calc_btn_sizer, 0, wxEXPAND | wxLEFT, FromDIP(30));
-    
+
     //m_sizer_advanced->AddSpacer(FromDIP(10));
     m_sizer_advanced->AddSpacer(FromDIP(5));
     header_line_panel = new wxPanel(m_page_advanced, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -508,14 +510,14 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16)));
         icon->SetCanFocus(false);
         icon_list1.push_back(icon);
-        
+
         header_line_sizer->AddSpacer(ICON_GAP);
         header_line_sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, HEADER_VERT_PADDING);
     }
     header_line_sizer->AddSpacer(HEADER_END_PADDING);
-    
+
     m_sizer_advanced->Add(header_line_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
-    
+
     create_panels(m_page_advanced, m_number_of_extruders);
 
     //m_sizer_advanced->AddSpacer(BTN_SIZE.y);
@@ -587,7 +589,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     }
     this->update_warning_texts();
 
-    m_page_advanced->Hide(); 
+    m_page_advanced->Hide();
 
     // Now the same for simple mode:
     gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString("")), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
@@ -612,7 +614,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             const bool parsed = e.GetString().ToLong(&value);
             int tmp_value = parsed && value >= INT_MIN && value <= INT_MAX ? (int)value : INT_MIN;
 
-            // Forcibly set the input value for SpinControl, since the value 
+            // Forcibly set the input value for SpinControl, since the value
             // inserted from the keyboard or clipboard is not updated under OSX
             if (tmp_value != INT_MIN) {
                 spin_ctrl->SetValue(tmp_value);
@@ -651,7 +653,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     this->Layout();
 
     toggle_advanced(); // to show/hide what is appropriate
-    
+
     header_line_panel->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
         wxPaintDC dc(header_line_panel);
         wxString from_text = _L("From");
