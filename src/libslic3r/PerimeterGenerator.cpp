@@ -2537,7 +2537,7 @@ void PerimeterGenerator::process_arachne()
             
             coord_t perimeter_width = this->perimeter_flow.scaled_width();
             // skip if the exposed area is smaller than "min_width_top_surface"
-            double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2. + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
+            double min_width_top_surface = scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width)));
 
             // Get top ExPolygons from current infill contour.
             Polygons upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, infill_contour_bbox);
