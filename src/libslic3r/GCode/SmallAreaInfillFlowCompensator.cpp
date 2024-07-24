@@ -17,6 +17,9 @@
 #include "SmallAreaInfillFlowCompensator.hpp"
 #include <boost/log/trivial.hpp>
 
+#define TK_SPLINE_OUTER_NAMESPACE Slic3r
+#include "spline/spline.h"
+
 namespace Slic3r {
 
 bool nearly_equal(double a, double b)
@@ -79,6 +82,9 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
         BOOST_LOG_TRIVIAL(error) << "Error parsing small area infill compensation model: " << e.what();
     }
 }
+
+SmallAreaInfillFlowCompensator::~SmallAreaInfillFlowCompensator() = default;
+
 double SmallAreaInfillFlowCompensator::flow_comp_model(const double line_length)
 {
     if(flowModel == nullptr)

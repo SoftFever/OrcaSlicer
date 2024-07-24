@@ -46,9 +46,13 @@
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
+#ifndef TK_SPLINE_OUTER_NAMESPACE
+#define TK_SPLINE_OUTER_NAMESPACE
+#endif // TK_SPLINE_OUTER_NAMESPACE
+
 // unnamed namespace only because the implementation is in this
 // header file and we don't want to export symbols to the obj files
-namespace
+namespace TK_SPLINE_OUTER_NAMESPACE
 {
 
 namespace tk

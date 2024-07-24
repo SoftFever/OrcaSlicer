@@ -4,17 +4,20 @@
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
-#include "spline/spline.h"
 #include <memory>
 
 namespace Slic3r {
+
+namespace tk {
+class spline;
+} // namespace tk
 
 class SmallAreaInfillFlowCompensator
 {
 public:
     SmallAreaInfillFlowCompensator() = delete;
     explicit SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig& config);
-    ~SmallAreaInfillFlowCompensator() = default;
+    ~SmallAreaInfillFlowCompensator();
 
     double modify_flow(const double line_length, const double dE, const ExtrusionRole role);
 
