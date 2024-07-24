@@ -1181,26 +1181,6 @@ float GLGizmosManager::get_scaled_total_width() const
 #endif
 }
 
-float GLGizmosManager::get_unscaled_total_height() const
-{
-//BBS: GUI refactor: to support top layout
-#if BBS_TOOLBAR_ON_TOP
-    return 2.0f * m_layout.border + m_layout.icons_size;
-#else
-    return (2.0f * m_layout.border + (float)get_selectable_idxs().size() * m_layout.stride_y() - m_layout.gap_y);
-#endif
-}
-
-float GLGizmosManager::get_unscaled_total_width() const
-{
-//BBS: GUI refactor: to support top layout
-#if BBS_TOOLBAR_ON_TOP
-    return (2.0f * m_layout.border + (float)get_selectable_idxs().size() * m_layout.stride_x() - m_layout.gap_x);
-#else
-    return 2.0f * m_layout.border + m_layout.icons_size;
-#endif
-}
-
 GLGizmoBase* GLGizmosManager::get_current() const
 {
     return ((m_current == Undefined) || m_gizmos.empty()) ? nullptr : m_gizmos[m_current].get();

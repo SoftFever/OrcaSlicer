@@ -386,9 +386,6 @@ public:
     float get_width();
     float get_height();
 
-    float get_width_unscaled();
-    float get_height_unscaled();
-
     void select_item(const std::string& name);
 
     bool is_item_pressed(const std::string& name) const;
