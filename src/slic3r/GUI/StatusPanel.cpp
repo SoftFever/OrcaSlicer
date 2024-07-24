@@ -2619,7 +2619,6 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);
-
         m_ams_control->show_auto_refill(false);
     }
     else {
@@ -3894,6 +3893,8 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 {
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_selected_ams_id = std::to_string(event.GetInt());
+
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             //update_ams_control_state(curr_ams_id, true);
             return;
@@ -3921,7 +3922,17 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 
 void StatusPanel::on_ams_guide(wxCommandEvent& event)
 {
-    wxString ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    wxString ams_wiki_url;
+    if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::GENERIC_AMS) {
+        ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    }
+    else if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::AMS_LITE) {
+        ams_wiki_url = "https://wiki.bambulab.com/en/ams-lite";
+    }
+    else {
+        ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    }
+
     wxLaunchDefaultBrowser(ams_wiki_url);
 }
 
