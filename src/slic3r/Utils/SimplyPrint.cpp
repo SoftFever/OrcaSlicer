@@ -2,14 +2,29 @@
 
 #include <openssl/sha.h>
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/nowide/fstream.hpp>
+#include <boost/filesystem.hpp>
 
 #include "nlohmann/json.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 
 
 namespace Slic3r {
+
+// to make testing easier
+//#define SIMPLYPRINT_TEST
+
+#ifdef SIMPLYPRINT_TEST
+#define URL_BASE_HOME "https://test.simplyprint.io"
+#define URL_BASE_API "https://testapi.simplyprint.io"
+#else
+#define URL_BASE_HOME "https://simplyprint.io"
+#define URL_BASE_API "https://api.simplyprint.io"
+#endif
 
 static constexpr boost::asio::ip::port_type CALLBACK_PORT = 21328;
 static const std::string CALLBACK_URL = "http://localhost:21328/callback";
@@ -17,7 +32,13 @@ static const std::string RESPONSE_TYPE  = "code";
 static const std::string CLIENT_ID = "simplyprintorcaslicer";
 static const std::string CLIENT_SCOPES = "user.read files.temp_upload";
 static const std::string OAUTH_CREDENTIAL_PATH = "simplyprint_oauth.json";
-static const std::string TOKEN_URL = "https://simplyprint.io/api/oauth2/Token";
+static const std::string TOKEN_URL = URL_BASE_API"/oauth2/Token";
+#ifdef SIMPLYPRINT_TEST
+static constexpr uint64_t MAX_SINGLE_UPLOAD_FILE_SIZE = 100000ull; // Max file size that can be uploaded in a single http request
+#else
+static constexpr uint64_t MAX_SINGLE_UPLOAD_FILE_SIZE = 100000000ull; // Max file size that can be uploaded in a single http request
+#endif
+static const std::string CHUNCK_RECEIVE_URL = URL_BASE_API"/0/files/ChunkReceive";
 
 static std::string generate_verification_code(int code_length = 32)
 {
@@ -55,6 +76,9 @@ static std::string url_encode(const std::vector<std::pair<std::string, std::stri
     q.reserve(query.size());
 
     std::transform(query.begin(), query.end(), std::back_inserter(q), [](const auto& kv) {
+        if (kv.second.empty()) {
+            return Http::url_encode(kv.first);
+        }
         return Http::url_encode(kv.first) + "=" + Http::url_encode(kv.second);
     });
 
@@ -62,6 +86,19 @@ static std::string url_encode(const std::vector<std::pair<std::string, std::stri
 }
 
 static void set_auth(Http& http, const std::string& access_token) { http.header("Authorization", "Bearer " + access_token); }
+
+static bool should_open_in_external_browser()
+{
+    const auto& app = wxGetApp();
+
+    if (app.preset_bundle->use_bbl_device_tab()) {
+        // When using bbl device tab, we always need to open external browser
+        return true;
+    }
+
+    // Otherwise, if user choose to switch to device tab, then don't bother opening external browser
+    return !app.app_config->get_bool("open_device_tab_post_upload");
+}
 
 SimplyPrint::SimplyPrint(DynamicPrintConfig* config)
 {
@@ -85,7 +122,7 @@ GUI::OAuthParams SimplyPrint::get_oauth_params() const
         {"code_challenge", code_challenge},
         {"code_challenge_method", "S256"},
     };
-    const auto login_url = (boost::format("https://simplyprint.io/panel/oauth2/authorize?%s") % url_encode(query_parameters)).str();
+    const auto login_url = (boost::format(URL_BASE_HOME"/panel/oauth2/authorize?%s") % url_encode(query_parameters)).str();
 
     return GUI::OAuthParams{
         login_url,
@@ -94,8 +131,8 @@ GUI::OAuthParams SimplyPrint::get_oauth_params() const
         CALLBACK_URL,
         CLIENT_SCOPES,
         RESPONSE_TYPE,
-        "https://simplyprint.io/login-success",
-        "https://simplyprint.io/login-success",
+        URL_BASE_HOME"/login-success",
+        URL_BASE_HOME"/login-success",
         TOKEN_URL,
         verification_code,
         state,
@@ -224,7 +261,7 @@ bool SimplyPrint::test(wxString& curl_msg) const
 
     return do_api_call(
         [](bool is_retry) {
-            auto http = Http::get("https://api.simplyprint.io/oauth2/TokenInfo");
+            auto http = Http::get(URL_BASE_API"/oauth2/TokenInfo");
             http.header("Accept", "application/json");
             return http;
         },
@@ -239,30 +276,31 @@ bool SimplyPrint::test(wxString& curl_msg) const
         });
 }
 
-bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+bool SimplyPrint::do_temp_upload(const boost::filesystem::path& file_path,
+                                 const std::string&             chunk_id,
+                                 const std::string&             filename,
+                                 ProgressFn                     prorgess_fn,
+                                 ErrorFn                        error_fn) const
 {
-    if (cred.find("access_token") == cred.end()) {
-        error_fn(_L("SimplyPrint account not linked. Go to Connect options to set it up."));
+    if (file_path.empty() == chunk_id.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid arguments: both file_path and chunk_id are set or not provided";
+        error_fn(_L("Internal error"));
         return false;
     }
-
-    // If file is over 100 MB, fail
-    if (boost::filesystem::file_size(upload_data.source_path) > 104857600ull) {
-        error_fn(_L("File size exceeds the 100MB upload limit. Please upload your file through the panel."));
-        return false;
-    }
-
-    const auto filename = upload_data.upload_path.filename().string();
 
     return do_api_call(
-        [&upload_data, &prorgess_fn, &filename](bool is_retry) {
-            auto http = Http::post("https://simplyprint.io/api/files/TempUpload");
-            http.form_add_file("file", upload_data.source_path.string(), filename)
-                .on_progress([&prorgess_fn](Http::Progress progress, bool& cancel) { prorgess_fn(std::move(progress), cancel); });
+        [&file_path, &chunk_id, &prorgess_fn, &filename](bool is_retry) {
+            auto http = Http::post(URL_BASE_HOME"/api/files/TempUpload");
+            if (!file_path.empty()) {
+                http.form_add_file("file", file_path, filename);
+            } else {
+                http.form_add("chunkId", chunk_id);
+            }
+            http.on_progress([&prorgess_fn](Http::Progress progress, bool& cancel) { prorgess_fn(std::move(progress), cancel); });
 
             return http;
         },
-        [&error_fn, &filename](std::string body, unsigned status) {
+        [&error_fn, &filename, this](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File uploaded: HTTP %1%: %2%") % status % body;
 
             // Get file UUID
@@ -281,8 +319,15 @@ bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Er
             const std::string uuid = j["uuid"];
 
             // Launch external browser for file importing after uploading
-            const auto url = "https://simplyprint.io/panel?" + url_encode({{"import", "tmp:" + uuid}, {"filename", filename}});
-            wxLaunchDefaultBrowser(url);
+            const auto url = URL_BASE_HOME"/panel?" + url_encode({{"import", "tmp:" + uuid}, {"filename", filename}});
+
+            if (should_open_in_external_browser()) {
+                wxLaunchDefaultBrowser(url);
+            } else {
+                const auto mainframe = GUI::wxGetApp().mainframe;
+                mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+                mainframe->load_printer_url(url);
+            }
 
             return true;
         },
@@ -291,6 +336,157 @@ bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Er
             error_fn(format_error(body, error, status));
             return false;
         });
+}
+
+bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, const std::string& filename, ProgressFn prorgess_fn, ErrorFn error_fn) const
+{
+    const auto file_size = boost::filesystem::file_size(file_path);
+#ifdef SIMPLYPRINT_TEST
+    constexpr auto buffer_size = MAX_SINGLE_UPLOAD_FILE_SIZE;
+#else
+    constexpr auto buffer_size = MAX_SINGLE_UPLOAD_FILE_SIZE - 1000000;
+#endif
+
+    const auto chunk_amount = (size_t)ceil((double) file_size / buffer_size);
+
+    std::string chunk_id;
+    std::string delete_token;
+
+    // Tell SimplyPrint that the upload has failed and the chunks should be deleted
+    // Note: any error happens here won't be notified to the user
+    const auto clean_up = [this, &chunk_id, &delete_token]() {
+        if (chunk_id.empty()) {
+            // The initial upload failed, do nothing
+            BOOST_LOG_TRIVIAL(warning) << "SimplyPrint: Initial chunk upload failed, skip delete";
+            return;
+        }
+
+        assert(!delete_token.empty());
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: Deleting file chunk %s...") % chunk_id;
+        const std::vector<std::pair<std::string, std::string>> query_parameters{
+            {"id", chunk_id},
+            {"temp", "true"},
+            {"delete", delete_token},
+        };
+        const auto url = (boost::format("%s?%s") % CHUNCK_RECEIVE_URL % url_encode(query_parameters)).str();
+        do_api_call(
+            [&url](bool is_retry) {
+                auto http = Http::get(url);
+                return http;
+            },
+            [&chunk_id](std::string body, unsigned status) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File chunk %1% deleted: HTTP %2%: %3%") % chunk_id % status % body;
+                return true;
+            },
+            [&chunk_id](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("SimplyPrint: Error deleting file chunk %1%: %2%, HTTP %3%, body: `%4%`") %
+                                                  chunk_id % error % status % body;
+                return false;
+            });
+    };
+
+    // Do chunk upload
+    for (size_t i = 0; i < chunk_amount; i++) {
+        std::string url;
+        {
+            std::vector<std::pair<std::string, std::string>> query_parameters{
+                {"i", std::to_string(i)},
+                {"temp", "true"},
+            };
+            if (i == 0) {
+                query_parameters.emplace_back("filename", filename);
+                query_parameters.emplace_back("chunks", std::to_string(chunk_amount));
+                query_parameters.emplace_back("totalsize", std::to_string(file_size));
+            } else {
+                query_parameters.emplace_back("id", chunk_id);
+            }
+            url = (boost::format("%s?%s") % CHUNCK_RECEIVE_URL % url_encode(query_parameters)).str();
+        }
+
+        // Calculate the offset and length of current chunk
+        const boost::filesystem::ifstream::off_type offset = i * buffer_size;
+        const size_t length = i == (chunk_amount - 1) ? file_size - offset : buffer_size;
+
+        const bool succ = do_api_call(
+            [&url, &file_path, &filename, i, chunk_amount, file_size, offset, length, prorgess_fn](bool is_retry) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: Start uploading file chunk [%1%/%2%]...") % (i + 1) % chunk_amount;
+                auto http = Http::post(url);
+                http.form_add_file("file", file_path, filename, offset, length);
+
+                http.on_progress([&prorgess_fn, file_size, offset](Http::Progress progress, bool& cancel) {
+                    progress.ultotal = file_size;
+                    progress.ulnow += offset;
+
+                    prorgess_fn(std::move(progress), cancel);
+                });
+
+                return http;
+            },
+            [&error_fn, i, chunk_amount, this, &chunk_id, &delete_token](std::string body, unsigned status) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File chunk [%1%/%2%] uploaded: HTTP %3%: %4%") % (i + 1) % chunk_amount % status % body;
+                if (i == 0) {
+                    // First chunk, parse chunk id
+                    const auto j = nlohmann::json::parse(body, nullptr, false, true);
+                    if (j.is_discarded()) {
+                        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: " << body;
+                        error_fn(_L("Unknown error"));
+                        return false;
+                    }
+
+                    if (j.find("id") == j.end() || j.find("delete_token") == j.end()) {
+                        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: " << body;
+                        error_fn(_L("Unknown error"));
+                        return false;
+                    }
+
+                    const unsigned long id = j["id"];
+
+                    chunk_id = std::to_string(id);
+                    delete_token = j["delete_token"];
+                }
+                return true;
+            },
+            [this, &error_fn, i, chunk_amount](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("SimplyPrint: Error uploading file chunk [%1%/%2%]: %3%, HTTP %4%, body: `%5%`") %
+                                                (i + 1) % chunk_amount % error % status % body;
+                error_fn(format_error(body, error, status));
+                return false;
+            });
+
+        if (!succ) {
+            clean_up();
+            return false;
+        }
+    }
+
+    assert(!chunk_id.empty());
+
+    // Finally, complete the upload using the chunk id
+    const bool succ = do_temp_upload({}, chunk_id, filename, prorgess_fn, error_fn);
+    if (!succ) {
+        clean_up();
+    }
+
+    return succ;
+}
+
+
+bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+{
+    if (cred.find("access_token") == cred.end()) {
+        error_fn(_L("SimplyPrint account not linked. Go to Connect options to set it up."));
+        return false;
+    }
+    const auto filename = upload_data.upload_path.filename().string();
+
+    if (boost::filesystem::file_size(upload_data.source_path) > MAX_SINGLE_UPLOAD_FILE_SIZE) {
+        // If file is over 100 MB, do chunk upload
+        return do_chunk_upload(upload_data.source_path, filename, prorgess_fn, error_fn);
+    } else {
+        // Normal upload
+        return do_temp_upload(upload_data.source_path, {}, filename, prorgess_fn, error_fn);
+    }
 }
 
 } // namespace Slic3r

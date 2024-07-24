@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/Config.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
@@ -267,7 +263,7 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     { L("Extruders")            , "blank_14"    },
     { L("Extrusion Width")      , "blank_14"    },
     { L("Wipe options")         , "blank_14"    },
-    { L("Bed adhension")        , "blank_14"    },
+    { L("Bed adhesion")         , "blank_14"    },
 //  { L("Speed > Acceleration") , "time"        },
     { L("Advanced")             , "blank_14"    },
     // BBS: remove SLA categories
@@ -544,15 +540,15 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                 if (file_name == L("Orca Cube"))
                     file_name = "OrcaCube_v2.3mf";
                 else if (file_name == L("3DBenchy"))
-                    file_name = "3DBenchy.stl";
+                    file_name = "3DBenchy.3mf";
                 else if (file_name == L("Autodesk FDM Test"))
-                    file_name = "ksr_fdmtest_v4.stl";
+                    file_name = "ksr_fdmtest_v4.3mf";
                 else if (file_name == L("Voron Cube"))
-                    file_name = "Voron_Design_Cube_v7.stl";
+                    file_name = "Voron_Design_Cube_v7.3mf";
                 else if (file_name == L("Stanford Bunny"))
-                    file_name = "Stanford_Bunny.stl";
+                    file_name = "Stanford_Bunny.3mf";
                 else if (file_name == L("Orca String Hell")) {
-                    file_name     = "Orca_stringhell.stl";
+                    file_name     = "Orca_stringhell.3mf";
                     is_stringhell = true;
                 } else
                     return;
@@ -1445,10 +1441,10 @@ void MenuFactory::create_bbl_part_menu()
     if (!split_menu)
         return;
 
-    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into mutiple objects"),
+    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
         [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", menu,
         []() { return plater()->can_split(true); }, m_parent);
-    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into mutiple parts"),
+    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
         [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", menu,
         []() { return plater()->can_split(false); }, m_parent);
 

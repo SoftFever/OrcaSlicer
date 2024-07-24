@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav
-///|/ Copyright (c) 2021 Pascal de Bruijn @pmjdebruijn
-///|/ Copyright (c) 2021 Sebastian Hammerl
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "UnsavedChangesDialog.hpp"
 
 #include <cstddef>
@@ -1365,9 +1359,6 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             return get_thumbnails_string(points.values);
         }
         else if (opt_key == "bed_exclude_area") {
-            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        }
-        else if (opt_key == "thumbnails") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
         else if (opt_key == "head_wrap_detect_zone") {

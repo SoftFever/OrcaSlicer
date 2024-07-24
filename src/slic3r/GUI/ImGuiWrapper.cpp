@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2019 Jason Tibbitts @jasontibbitts
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "ImGuiWrapper.hpp"
 
 #include <cstdio>
@@ -168,7 +163,7 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = COL_BUTTON_HOVERED;
 //BBS
 
 const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.0f);
-const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = ImVec4(0.86f, 0.99f, 0.91f, 1.0f);
+const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255.f, 0.25f }; // ORCA used on various places like text selection bg. Replaced with orca color
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f, 1.0f };
@@ -2590,20 +2585,20 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     } else {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     }

@@ -278,7 +278,7 @@ bool GLGizmoText::on_init()
     m_desc["surface"]         = _L("Surface");
     m_desc["horizontal_text"] = _L("Horizontal text");
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
+    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or down");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     return true;
@@ -386,7 +386,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
             return false;
 
         Plater *plater = wxGetApp().plater();
-        if (!plater)
+        if (!plater || m_thickness <= 0)
             return true;
 
         ModelObject *model_object = selection.get_model()->objects[m_object_idx];

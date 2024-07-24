@@ -1,12 +1,3 @@
-#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
-#/|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
-#/|/ Copyright (c) 2020 Sergey Kovalev @RandoMan70
-#/|/ Copyright (c) 2021 Boleslaw Ciesielski
-#/|/ Copyright (c) 2019 Spencer Owen @spuder
-#/|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
-#/|/
-#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r_gui)
 
@@ -622,7 +613,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-#target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
@@ -666,8 +656,17 @@ endif ()
 # link these libraries.
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
+    if (FLATPAK)
+        # I don't know why this is needed, but for whatever reason slic3r isn't
+        # linking to X11 and webkit2gtk. force it.
+        find_package(X11 REQUIRED)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(webkit2gtk REQUIRED webkit2gtk-4.1)
+        target_link_libraries (libslic3r_gui ${X11_LIBRARIES} ${webkit2gtk_LIBRARIES})
+    endif()
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} fontconfig)
+
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

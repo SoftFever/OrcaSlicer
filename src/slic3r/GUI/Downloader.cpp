@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2023 David Kocík @kocikdav, Oleksandra Iushchenko @YuSanka
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Downloader.hpp"
 #include "GUI_App.hpp"
 #include "NotificationManager.hpp"
@@ -148,7 +144,7 @@ void Downloader::start_download(const std::string& full_url)
 
     // Orca: Replace PS workaround for "mysterious slash" with a more dynamic approach
     // Windows seems to have fixed the issue and this provides backwards compatability for those it still affects
-	boost::regex re(R"(^(orcaslicer|prusaslicer):\/\/open[\/]?\?file=)", boost::regbase::icase);
+	boost::regex re(R"(^(orcaslicer|prusaslicer|bambustudio|cura):\/\/open[\/]?\?file=)", boost::regbase::icase);
     boost::smatch results;
 
 	if (!boost::regex_search(full_url, results, re)) {
@@ -161,23 +157,18 @@ void Downloader::start_download(const std::string& full_url)
 	}
     size_t id = get_next_id();
     std::string escaped_url = FileGet::escape_url(full_url.substr(results.length()));
-	// Orca:: any website that supports orcaslicer://open/?file= can be downloaded
-	
-	// if (!boost::starts_with(escaped_url, "https://") || !FileGet::is_subdomain(escaped_url, "printables.com")) {
-	// 	std::string msg = format(_L("Download won't start. Download URL doesn't point to https://printables.com : %1%"), escaped_url);
-	// 	BOOST_LOG_TRIVIAL(error) << msg;
-	// 	NotificationManager* ntf_mngr = wxGetApp().notification_manager();
-	// 	ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::ErrorNotificationLevel,
-    //                                 "Download failed. Download URL doesn't point to https://printables.com.");
-	// 	return;
-	// }
-	
-	std::string text(escaped_url);
-    m_downloads.emplace_back(std::make_unique<Download>(id, std::move(escaped_url), this, m_dest_folder));
-	NotificationManager* ntf_mngr = wxGetApp().notification_manager();
-	ntf_mngr->push_download_URL_progress_notification(id, m_downloads.back()->get_filename(), std::bind(&Downloader::user_action_callback, this, std::placeholders::_1, std::placeholders::_2));
-	m_downloads.back()->start();
-	BOOST_LOG_TRIVIAL(debug) << "started download";
+    if (is_bambustudio_open(full_url) || (is_orca_open(full_url) && is_makerworld_link(full_url)))
+        plater->request_model_download(escaped_url);
+    else {
+        std::string text(escaped_url);
+        m_downloads.emplace_back(std::make_unique<Download>(id, std::move(escaped_url), this, m_dest_folder));
+        NotificationManager* ntf_mngr = wxGetApp().notification_manager();
+        ntf_mngr->push_download_URL_progress_notification(id, m_downloads.back()->get_filename(),
+                                                          std::bind(&Downloader::user_action_callback, this, std::placeholders::_1,
+                                                                    std::placeholders::_2));
+        m_downloads.back()->start();
+    }
+    BOOST_LOG_TRIVIAL(debug) << "started download";
 }
 
 void Downloader::on_progress(wxCommandEvent& event)

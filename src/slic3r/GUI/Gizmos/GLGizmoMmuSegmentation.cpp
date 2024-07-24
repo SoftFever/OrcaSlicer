@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Bubník @bubnikv
-///|/ Copyright (c) 2021 Justin Schuh @jschuh
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "GLGizmoMmuSegmentation.hpp"
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -519,12 +514,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.5f));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));						// ORCA: Fixes icon rendered without colors while using Light theme
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));                     // ORCA Removes button background on dark mode
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));                       // ORCA Fixes icon rendered without colors while using Light theme
         if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button,			ImVec4(0.f, 0.59f, 0.53f, 0.25f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	ImVec4(0.f, 0.59f, 0.53f, 0.25f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,	ImVec4(0.f, 0.59f, 0.53f, 0.30f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_Border,			ImGuiWrapper::COL_ORCA);			// ORCA use orca color for border on selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Button,          ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,   ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,    ImVec4(0.f, 0.59f, 0.53f, 0.30f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Border,          ImGuiWrapper::COL_ORCA);            // ORCA use orca color for border on selected tool / brush
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
@@ -534,7 +530,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
-        ImGui::PopStyleColor(1);
+        ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(1);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {

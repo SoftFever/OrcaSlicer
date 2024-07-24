@@ -20,7 +20,7 @@
     "layer_height": "0.24",
     "print_settings_id": "0.24mm Draft @InfiMech TX",
     "sparse_infill_speed": "230",
-    "exclude_object": "0",
+    "exclude_object": "1",
     "internal_bridge_speed": "50",
     "compatible_printers": [
         "InfiMech TX 0.4 nozzle"

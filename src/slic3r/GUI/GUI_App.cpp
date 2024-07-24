@@ -804,63 +804,39 @@ void GUI_App::post_init()
 
     m_open_method = "double_click";
     bool switch_to_3d = false;
-    if (!this->init_params->input_files.empty()) {
 
+    if (!this->init_params->input_files.empty()) {
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
-
-
-
-        if (this->init_params->input_files.size() == 1 &&
-            (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
-             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
-
-            if (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")||
-             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
-                switch_to_3d = true;
-                start_download(this->init_params->input_files.front());
-            } else if (vector<string> input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file="); input_str_arr.size() > 1) {
-                std::string download_origin_url;
-                for (auto input_str : input_str_arr) {
-                    if (!input_str.empty())
-                        download_origin_url = input_str;
-                }
-
-                std::string download_file_url = url_decode(download_origin_url);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
-                if (!download_file_url.empty() &&
-                    (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-                    request_model_download(download_file_url);
-                }
-            }
-            m_open_method = "makerworld";
-        }
-        else {
+        const auto first_url = this->init_params->input_files.front();
+        if (this->init_params->input_files.size() == 1 && is_supported_open_protocol(first_url)) {
+            switch_to_3d = true;
+            start_download(first_url);
+            m_open_method = "url";
+        } else {
             switch_to_3d = true;
             if (this->init_params->input_gcode) {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
                 m_open_method = "gcode";
-            }
-            else {
+            } else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 wxArrayString input_files;
-                for (auto & file : this->init_params->input_files) {
+                for (auto& file : this->init_params->input_files) {
                     input_files.push_back(wxString::FromUTF8(file));
                 }
                 this->plater()->set_project_filename(_L("Untitled"));
                 this->plater()->load_files(input_files);
                 try {
                     if (!input_files.empty()) {
-                        std::string file_path = input_files.front().ToStdString();
+                        std::string           file_path = input_files.front().ToStdString();
                         std::filesystem::path path(file_path);
                         m_open_method = "file_" + path.extension().string();
                     }
-                }
-                catch (...) {
+                } catch (...) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
                     m_open_method = "file";
                 }
@@ -1703,6 +1679,9 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
+                                obj->set_access_code("");
+                                obj->erase_user_access_code();
+                                m_device_manager->localMachineList.erase(obj->dev_id);
                                 m_device_manager->set_selected_machine("", true);
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
@@ -2630,10 +2609,6 @@ bool GUI_App::on_init_inner()
 #endif
             this->post_init();
 
-            if (!m_download_file_url.empty()) {
-                request_model_download(m_download_file_url);
-                m_download_file_url = "";
-            }
             update_publish_status();
         }
 
@@ -2901,7 +2876,7 @@ void GUI_App::init_label_colours()
 #if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
-    m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+    m_color_highlight_default       = is_dark_mode ? wxColour("#36363B") : wxColour("#F1F1F1"); // ORCA row highlighting
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);
     m_color_default_btn_label       = is_dark_mode ? wxColour(255, 255, 254): wxColour(0,0,0);
     m_color_selected_btn_bg         = is_dark_mode ? wxColour(84, 84, 91)   : wxColour(206, 206, 206);
@@ -3296,7 +3271,10 @@ void GUI_App::check_printer_presets()
 #endif
 }
 
-void GUI_App::recreate_GUI(const wxString& msg_name)
+void switch_window_pools();
+void release_window_pools();
+
+void GUI_App::recreate_GUI(const wxString &msg_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
@@ -3304,12 +3282,18 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     update_http_extra_header();
 
     mainframe->shutdown();
-
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
     dlg.Update(10, _L("Rebuild") + dots);
 
     MainFrame *old_main_frame = mainframe;
+    struct ClientData : wxClientData
+    {
+        ~ClientData() { release_window_pools(); }
+    };
+    old_main_frame->SetClientObject(new ClientData);
+
+    switch_window_pools();
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
@@ -4099,27 +4083,9 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 void GUI_App::check_track_enable()
 {
     // Orca: alaways disable track event
-    return;
-    if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
-        //enable track event
-        json header_json;
-        header_json["ver"] = SLIC3R_VERSION;
-        wxString os_desc = wxGetOsDescription();
-        int major = 0, minor = 0, micro = 0;
-        header_json["os"] = std::string(os_desc.ToUTF8());
-        header_json["name"] = std::string(SLIC3R_APP_NAME);
-        header_json["uuid"] = app_config->get("slicer_uuid");
-        if (m_agent) {
-            m_agent->track_enable(true);
-            m_agent->track_header(header_json.dump());
-        }
-        /* record studio start event */
-        json j;
-        j["user_mode"] = this->get_mode_str();
-        j["open_method"] = m_open_method;
-        if (m_agent) {
-            m_agent->track_event("studio_launch", j.dump());
-        }
+    if (m_agent) {
+        m_agent->track_enable(false);
+        m_agent->track_remove_files();
     }
 }
 
@@ -5879,32 +5845,9 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
-
     if (url.empty())
         return;
-
-    if (boost::starts_with(url, "orcasliceropen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
-
-        std::string download_origin_url;
-        for (auto input_str : input_str_arr) {
-            if (!input_str.empty()) download_origin_url = input_str;
-        }
-
-        std::string download_file_url = url_decode(download_origin_url);
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
-        if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-
-            if (m_post_initialized) {
-                request_model_download(download_file_url);
-            }
-            else {
-                m_download_file_url = download_file_url;
-            }
-        }
-    } else if (boost::starts_with(url, "prusasliceropen://"))
-        start_download(boost::nowide::narrow(url));
+    start_download(boost::nowide::narrow(url));
 }
 
 // wxWidgets override to get an event on open files.
@@ -6638,10 +6581,7 @@ bool GUI_App::check_url_association(std::wstring url_prefix, std::wstring& reg_b
     reg_bin = key_full.QueryDefaultValue().ToStdWstring();
 
     boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
-    // wxString    wbinary       = wxString::FromUTF8(binary_path.string());
-    // std::string binary_string = (boost::format("%1%") % wbinary).str();
-    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" L\"%1\"";
-    // return boost::iequals(key_string,(boost::format("%1%") % reg_bin).str());
+    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" \"%1\"";
     return key_string == reg_bin;
 #else
     return false;
@@ -6670,8 +6610,8 @@ void GUI_App::associate_url(std::wstring url_prefix)
         key_full.Create(false);
     }
     key_full = key_string;
-#elif defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
-    DesktopIntegrationDialog::perform_downloader_desktop_integration();
+#elif defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)
+    DesktopIntegrationDialog::perform_downloader_desktop_integration(boost::nowide::narrow(url_prefix));
 #endif // WIN32
 }
 
@@ -6703,6 +6643,7 @@ void GUI_App::start_download(std::string url)
     }
     m_downloader->init(dest_folder);
     m_downloader->start_download(url);
+
 }
 
 bool is_support_filament(int extruder_id)

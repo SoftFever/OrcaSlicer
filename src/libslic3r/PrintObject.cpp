@@ -1,12 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Hejl @hejllukas, Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Roman Beránek @zavorka
-///|/ Copyright (c) 2021 Justin Schuh @jschuh
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2016 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
@@ -933,8 +924,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
         } else if (
-               opt_key == "small_area_infill_flow_compensation"
-            || opt_key == "small_area_infill_flow_compensation_model") {
+            opt_key == "small_area_infill_flow_compensation_model") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
@@ -967,7 +957,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slowdown_for_curled_perimeters"
             || opt_key == "make_overhang_printable"
             || opt_key == "make_overhang_printable_angle"
-            || opt_key == "make_overhang_printable_hole_size") {
+            || opt_key == "make_overhang_printable_hole_size"
+            || opt_key == "interlocking_beam"
+            || opt_key == "interlocking_orientation"
+            || opt_key == "interlocking_beam_layer_count"
+            || opt_key == "interlocking_depth"
+            || opt_key == "interlocking_boundary_avoidance"
+            || opt_key == "interlocking_beam_width") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
@@ -1046,8 +1042,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers") {
 
-            steps.emplace_back(posPrepareInfill);
-
+            steps.emplace_back(posSlice);
+#if (0)
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
             const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
             assert(old_shell_layers && new_shell_layers);
@@ -1063,6 +1059,7 @@ bool PrintObject::invalidate_state_by_config_options(
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
             }
+#endif
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
@@ -1088,7 +1085,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
-            || opt_key == "initial_layer_line_width") {
+            || opt_key == "initial_layer_line_width"
+            || opt_key == "small_area_infill_flow_compensation") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posPrepareInfill);

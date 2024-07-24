@@ -1,10 +1,3 @@
-#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Vojtěch Král @vojtechkral
-#/|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
-#/|/ Copyright (c) 2023 Mimoja @Mimoja
-#/|/ Copyright (c) 2022 ole00 @ole00
-#/|/
-#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r)
 
@@ -454,8 +447,12 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
-        GCode/Thumbnails.cpp
-        GCode/Thumbnails.hpp
+    GCode/Thumbnails.cpp
+    GCode/Thumbnails.hpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -582,6 +579,10 @@ target_link_libraries(libslic3r
     qoi
     opencv_world
     )
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(libslic3r PUBLIC BOOST_ALL_DYN_LINK)
+endif()
 
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)

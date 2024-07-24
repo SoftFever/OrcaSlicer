@@ -1,13 +1,6 @@
 // Orca: This file is ported from latest PrusaSlicer
 
 // Original PrusaSlicer Copyright:
-///|/ Copyright (c) Prusa Research 2017 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/ Copyright (c) 2020 Paul Arden @ardenpm
-///|/ Copyright (c) 2019 Thomas Moore
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "WipeTower2.hpp"
 
 #include <cassert>
@@ -1352,7 +1345,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
         return poly;
     };
 
-    feedrate = first_layer ? m_first_layer_speed * 60.f : m_perimeter_speed * 60.f;
+    feedrate = first_layer ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_perimeter_speed * 60.f);
 
     // outer contour (always)
     bool infill_cone = first_layer && m_wipe_tower_width > 2*spacing && m_wipe_tower_depth > 2*spacing;

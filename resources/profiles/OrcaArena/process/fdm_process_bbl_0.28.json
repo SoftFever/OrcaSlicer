@@ -19,5 +19,5 @@
     "internal_solid_infill_speed": "200",
     "top_surface_speed": "200",
     "gap_infill_speed": "200",
-    "support_threshold_angle": "40"
+    "support_threshold_angle": "30"
 }

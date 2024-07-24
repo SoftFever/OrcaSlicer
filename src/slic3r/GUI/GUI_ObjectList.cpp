@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, David Kocík @kocikdav, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Mathias Rasmussen
-///|/ Copyright (c) 2020 rongith
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
@@ -5418,7 +5412,7 @@ void ObjectList::fix_through_netfabb()
         msg += "\n\n";
     }
     if (!failed_models.empty()) {
-        msg += _L_PLURAL("Failed to repair folowing model object", "Failed to repair folowing model objects", failed_models.size()) + ":\n";
+        msg += _L_PLURAL("Failed to repair following model object", "Failed to repair following model objects", failed_models.size()) + ":\n";
         for (auto& model : failed_models)
             msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
     }
@@ -5662,11 +5656,22 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         if (type & itLayerRoot)
             continue;
 
+        // BBS: handle extruder 0 for part, use it's parent extruder
+        int new_extruder = extruder;
+        if (extruder == 0) {
+            if (type & itObject) {
+                new_extruder = 1;
+            }
+            else if ((type & itVolume) && (m_objects_model->GetVolumeType(sel_item) == ModelVolumeType::MODEL_PART)) {
+                new_extruder = m_objects_model->GetExtruderNumber(m_objects_model->GetParent(sel_item));
+            }
+        }
+
         ModelConfig& config = get_item_config(item);
         if (config.has("extruder"))
-            config.set("extruder", extruder);
+            config.set("extruder", new_extruder);
         else
-            config.set_key_value("extruder", new ConfigOptionInt(extruder));
+            config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
 
         // for object, clear all its part volume's extruder config
         if (type & itObject) {
@@ -5677,7 +5682,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
             }
         }
 
-        const wxString extruder_str = wxString::Format("%d", extruder);
+        const wxString extruder_str = wxString::Format("%d", new_extruder);
         m_objects_model->SetExtruder(extruder_str, item);
     }
 

@@ -43,8 +43,9 @@
         "; filament start gcode\n"
     ],
     "compatible_printers": [
-		"FLSun Q5 0.4 nozzle",
-		"FLSun QQ-S Pro 0.4 nozzle",
-		"FLSun V400 0.4 nozzle"
+        "FLSun Q5 0.4 nozzle",
+        "FLSun QQ-S Pro 0.4 nozzle",
+        "FLSun Super Racer 0.4 nozzle",
+        "FLSun V400 0.4 nozzle"
     ]
 }

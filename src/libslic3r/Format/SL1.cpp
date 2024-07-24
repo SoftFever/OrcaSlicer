@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "SL1.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/Time.hpp"

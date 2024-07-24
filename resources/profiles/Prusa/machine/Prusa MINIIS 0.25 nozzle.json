@@ -9,7 +9,7 @@
   "printer_model": "MINIIS",
   "printer_variant": "0.25",
   "default_filament_profile": [
-      "Prusa Generic PLA @MINIIS"
+      "Prusa Generic PLA @MINIIS 0.25"
   ],
   "default_print_profile": "0.12mm Standard @MINIIS",
   "nozzle_diameter": [
@@ -26,5 +26,11 @@
   ],
   "retraction_minimum_travel": [
     "1.0"
-  ]
+  ],
+      "thumbnails": [
+        "16x16/QOI",
+        "220x124/QOI",
+        "200x240/QOI",
+        "640x480/PNG"
+    ]
 }

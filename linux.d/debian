@@ -20,7 +20,6 @@ REQUIRED_DEV_PACKAGES=(
     libssl-dev
     libtool
     libudev-dev
-    libwebkit2gtk-4.0-dev
     ninja-build
     texinfo
     wget
@@ -38,6 +37,15 @@ then
     then
         REQUIRED_DEV_PACKAGES+=(libssl-dev libcurl4-openssl-dev)
     fi
+
+    # check which version of libwebkit2gtk is available
+    if [ "$(apt show --quiet libwebkit2gtk-4.0-dev)" != "" ]
+    then
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.0-dev)
+    else
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
+    fi
+
     # TODO: optimize this by checking which, if any, packages are already installed
 
     # install them all at once

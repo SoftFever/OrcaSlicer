@@ -5,28 +5,28 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "cool_plate_temp" : [
-        "80"
+        "90"
     ],
     "eng_plate_temp" : [
-        "80"
+        "90"
     ],
     "hot_plate_temp" : [
-        "80"
+        "90"
     ],
     "textured_plate_temp" : [
-        "80"
+        "90"
     ],
     "cool_plate_temp_initial_layer" : [
-        "80"
+        "90"
     ],
     "eng_plate_temp_initial_layer" : [
-        "80"
+        "90"
     ],
     "hot_plate_temp_initial_layer" : [
-        "80"
+        "90"
     ],
     "textured_plate_temp_initial_layer" : [
-        "80"
+        "90"
     ],
     "slow_down_for_layer_cooling": [
         "1"
