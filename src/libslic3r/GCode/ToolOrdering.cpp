@@ -193,9 +193,17 @@ std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<floa
                                               bool use_forcast = false,
                                               float* cost = nullptr)
 {
-    if (curr_layer_extruders.size() <= 1) {
+    if (curr_layer_extruders.empty()) {
         if (cost)
             *cost = 0;
+        return curr_layer_extruders;
+    }
+    if (curr_layer_extruders.size() == 1) {
+        if (cost) {
+            *cost = 0;
+            if (start_extruder_id)
+                *cost = wipe_volumes[*start_extruder_id][curr_layer_extruders[0]];
+        }
         return curr_layer_extruders;
     }
 
