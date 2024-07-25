@@ -2509,7 +2509,7 @@ void PerimeterGenerator::process_arachne()
         if (apply_precise_outer_wall)
            wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
 
-        //PS
+        //PS: One wall top surface for Arachne
         ExPolygons top_expolygons;
         // Calculate how many inner loops remain when TopSurfaces is selected.
         const int inner_loop_number = (config->only_one_wall_top && upper_slices != nullptr) ? loop_number - 1 : -1;
@@ -2536,12 +2536,9 @@ void PerimeterGenerator::process_arachne()
             infill_contour_bbox.offset(SCALED_EPSILON);
             
             coord_t perimeter_width = this->perimeter_flow.scaled_width();
-            // skip if the exposed area is smaller than "min_width_top_surface"
-            double min_width_top_surface = scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width)));
 
             // Get top ExPolygons from current infill contour.
             Polygons upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, infill_contour_bbox);
-            upper_slices_clipped          = offset(upper_slices_clipped, min_width_top_surface);
             top_expolygons = diff_ex(infill_contour, upper_slices_clipped);
 
             if (!top_expolygons.empty()) {
@@ -2555,8 +2552,13 @@ void PerimeterGenerator::process_arachne()
                 }
 
                 // Filter out areas that are too thin and expand top surface polygons a bit to hide the wall line.
-                const float top_surface_min_width = std::max<float>(float(ext_perimeter_spacing) / 4.f + scaled<float>(0.00001), float(perimeter_width) / 4.f);
-                top_expolygons = offset2_ex(top_expolygons, -top_surface_min_width, top_surface_min_width + float(perimeter_width));
+                // ORCA: skip if the top surface area is smaller than "min_width_top_surface"
+                const float top_surface_min_width = std::max<float>(float(ext_perimeter_spacing) / 4.f + scaled<float>(0.00001), float(scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width)))) / 4.f);
+                // Shrink the polygon to remove the small areas, then expand it back out plus a maragin to hide the wall line a little.
+                // ORCA: Expand the polygon with half the perimeter width in addition to the contracted amount,
+                // not the full perimeter width as PS does, to enable thin lettering to print on the top surface without nozzle collisions
+                // due to thin lines being generated
+                top_expolygons = offset2_ex(top_expolygons, -top_surface_min_width, top_surface_min_width + float(perimeter_width * 0.85));
 
                 // Get the not-top ExPolygons (including bridges) from current slices and expanded real top ExPolygons (without bridges).
                 const ExPolygons not_top_expolygons = diff_ex(infill_contour, top_expolygons);
