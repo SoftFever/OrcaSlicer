@@ -882,13 +882,13 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     }
 
     std::string first_added_filament;
-    auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
+    /*auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
         if (m_appconfig_new.has_section(section_name)) {
             // get first of new added preset names
             const std::map<std::string, std::string>& old_presets = app_config->has_section(section_name) ? app_config->get_section(section_name) : std::map<std::string, std::string>();
             first_added_preset = get_first_added_preset(old_presets, m_appconfig_new.get_section(section_name));
         }
-    };
+    };*/
     // Not switch filament
     //get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
 
@@ -949,7 +949,6 @@ bool GuideFrame::run()
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
         if (app.preset_bundle->printers.only_default_printers()) {
             //we install the default here
-            bool apply_keeped_changes = false;
             //clear filament section and use default materials
             app.app_config->set_variant(PresetBundle::BBL_BUNDLE,
                 PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
@@ -1129,7 +1128,7 @@ int GuideFrame::LoadProfile()
 
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1148,7 +1147,7 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1530,9 +1529,6 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Vendor: " << strVendor <<", tFilaList Add: " << s1;
         }
 
-        int nFalse  = 0;
-        int nModel  = 0;
-        int nFinish = 0;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% filaments") % nsize;
         for (int n = 0; n < nsize; n++) {
             json OneFF = pFilament.at(n);
@@ -1642,7 +1638,7 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

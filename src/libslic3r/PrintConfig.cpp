@@ -1681,6 +1681,60 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
+    
+    // Orca: Adaptive pressure advance option and calibration values
+    def = this->add("adaptive_pressure_advance", coBools);
+    def->label = L("Enable adaptive pressure advance (beta)");
+    def->tooltip = L("With increasing print speeds (and hence increasing volumetric flow through the nozzle) and increasing accelerations, "
+                     "it has been observed that the effective PA value typically decreases. "
+                     "This means that a single PA value is not always 100% optimal for all features and a compromise value is usually used "
+                     "that does not cause too much bulging on features with lower flow speed and accelerations while also not causing gaps on faster features.\n\n"
+                     "This feature aims to address this limitation by modeling the response of your printer's extrusion system depending "
+                     "on the volumetric flow speed and acceleration it is printing at. Internally, it generates a fitted model that can extrapolate the needed pressure "
+                     "advance for any given volumetric flow speed and acceleration, which is then emmited to the printer depending on the current print conditions.\n\n"
+                     "When enabled, the pressure advance value above is overriden. However, a reasonable default value above is "
+                     "strongly recomended to act as a fallback and for when tool changing.\n\n");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{ false });
+    
+    // Orca: Adaptive pressure advance option and calibration values
+    def = this->add("adaptive_pressure_advance_model", coStrings);
+    def->label = L("Adaptive pressure advance measurements (beta)");
+    def->tooltip = L("Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a comma. "
+                     "One set of values per line. For example\n"
+                     "0.04,3.96,3000\n0.033,3.96,10000\n0.029,7.91,3000\n0.026,7.91,10000\n\n"
+                     "How to calibrate:\n"
+                     "1. Run the pressure advance test for at least 3 speeds per acceleration value. It is recommended that the test is run "
+                     "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
+                     "print speed in your profile (usually its the sparse or solid infill). Then run them for the same speeds for the slowest and fastest print accelerations,"
+                     "and no faster than the recommended maximum acceleration as given by the klipper input shaper.\n"
+                     "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting "
+                     "flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible "
+                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly."
+                     "The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test."
+                     "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile\n\n"
+                     "");
+    def->mode = comAdvanced;
+    //def->gui_flags = "serialized";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 15;
+    def->set_default_value(new ConfigOptionStrings{"0,0,0\n0,0,0"});
+    
+    def = this->add("adaptive_pressure_advance_overhangs", coBools);
+    def->label = L("Enable adaptive pressure advance for overhangs (beta)");
+    def->tooltip = L("Enable adaptive PA for overhangs as well as when flow changes within the same feature. This is an experimental option, "
+                     "as if the PA profile is not set accurately, it will cause uniformity issues on the external surfaces before and after overhangs.\n");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{ false });
+    
+    def = this->add("adaptive_pressure_advance_bridges", coFloats);
+    def->label = L("Pressure advance for bridges");
+    def->tooltip = L("Pressure advance value for bridges. Set to 0 to disable. \n\n A lower PA value when printing bridges helps reduce the appearance of slight under extrusion "
+                     "immediately after bridges. This is caused by the pressure drop in the nozzle when printing in the air and a lower PA helps counteract this.");
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0.0 });
 
     def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");
