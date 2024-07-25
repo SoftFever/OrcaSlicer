@@ -14450,7 +14450,7 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 {
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-    FilamentMapDialog filament_dlg(this, config(), curr_plate->get_filament_maps(), curr_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto);
+    FilamentMapDialog filament_dlg(this, config(), curr_plate->get_filament_maps(), curr_plate->get_extruders(true), curr_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto);
     if (filament_dlg.ShowModal() == wxID_OK) {
         std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
         std::vector<int> old_filament_maps = curr_plate->get_filament_maps();

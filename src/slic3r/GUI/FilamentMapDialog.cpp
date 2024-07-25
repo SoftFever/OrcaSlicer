@@ -41,7 +41,11 @@ wxColour hex_to_color(const std::string &hex)
     return wxColour(r, g, b, a);
 }
 
-FilamentMapDialog::FilamentMapDialog(wxWindow *parent, const DynamicPrintConfig *config, const std::vector<int> &filament_map, bool is_auto)
+FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
+    const DynamicPrintConfig *config,
+    const std::vector<int> &filament_map,
+    const std::vector<int> &extruders,
+    bool is_auto)
     : wxDialog(parent, wxID_ANY, _L("Filament arrangement method of plate"), wxDefaultPosition, wxSize(2000, 1500))
     , m_config(config)
     , m_filament_map(filament_map)
@@ -71,6 +75,10 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent, const DynamicPrintConfig 
 
     std::vector<std::string> filament_color = config->option<ConfigOptionStrings>("filament_colour")->values;
     for (size_t i = 0; i < filament_map.size(); ++i) {
+        auto iter = std::find(extruders.begin(), extruders.end(), i + 1);
+        if (iter == extruders.end())
+            continue;
+
         if (filament_map[i] == 1) {
             m_left_panel->AddColorBlock(hex_to_color(filament_color[i]), i + 1);
         }

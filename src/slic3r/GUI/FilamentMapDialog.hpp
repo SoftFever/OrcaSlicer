@@ -15,7 +15,11 @@ class DragDropPanel;
 class FilamentMapDialog : public wxDialog
 {
 public:
-    FilamentMapDialog(wxWindow *parent, const DynamicPrintConfig *config, const std::vector<int> &filament_map, bool is_auto);
+    FilamentMapDialog(wxWindow *parent,
+        const DynamicPrintConfig *config,
+        const std::vector<int> &filament_map,
+        const std::vector<int> &extruders,
+        bool is_auto);
 
     bool is_auto() const;
     const std::vector<int>& get_filament_maps() { return m_filament_map; }
