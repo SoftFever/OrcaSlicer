@@ -19,6 +19,14 @@
         {
             "name": "FLSun V400",
             "sub_path": "machine/FLSun V400.json"
+        },
+		 {
+            "name": "FLSun S1",
+            "sub_path": "machine/FLSun S1.json"
+        },
+		 {
+            "name": "FLSun T1",
+            "sub_path": "machine/FLSun T1.json"
         }
     ],
     "process_list": [
@@ -65,6 +73,14 @@
         {
             "name": "0.20mm Standard @FLSun V400",
             "sub_path": "process/0.20mm Standard @FLSun V400.json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun S1",
+            "sub_path": "process/0.20mm Standard @FLSun S1.json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun T1",
+            "sub_path": "process/0.20mm Standard @FLSun T1.json"
         },
         {
             "name": "0.24mm Draft @FLSun Q5",
@@ -167,6 +183,14 @@
         {
             "name": "FLSun Generic PA-CF",
             "sub_path": "filament/FLSun Generic PA-CF.json"
+        },
+        {
+            "name": "FLSun Generic PLA-HS-S1",
+            "sub_path": "filament/FLSun Generic PLA-HS-S1.json"
+        },
+        {
+            "name": "FLSun Generic PLA-HS-T1",
+            "sub_path": "filament/FLSun Generic PLA-HS-T1.json"
         }
     ],
     "machine_list": [
@@ -189,6 +213,14 @@
         {
             "name": "FLSun V400 0.4 nozzle",
             "sub_path": "machine/FLSun V400 0.4 nozzle.json"
+        },
+		{
+            "name": "FLSun T1 0.4 nozzle",
+            "sub_path": "machine/FLSun T1 0.4 nozzle.json"
+        },
+        {
+            "name": "FLSun S1 0.4 nozzle",
+            "sub_path": "machine/FLSun S1 0.4 nozzle.json"
         }
     ]
 }
