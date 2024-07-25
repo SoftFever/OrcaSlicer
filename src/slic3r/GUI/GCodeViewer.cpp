@@ -4424,10 +4424,18 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         link_text(_u8L("(change)"));
         ImGui::SameLine();
         imgui.text(_u8L(",this arrangement would be optimal."));
-        int delta_filament_weight = stats_by_extruder.filament_flush_weight[1] - stats_by_extruder.filament_flush_weight[0];
-        int delta_filament_change = stats_by_extruder.filament_change_count[1] - stats_by_extruder.filament_change_count[0];
-        imgui.text(from_u8((boost::format(_u8L("Info by single extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.filament_flush_weight[1] % stats_by_extruder.filament_change_count[1]).str()));
-        imgui.text(from_u8((boost::format(_u8L("Info by multi  extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.filament_flush_weight[0] % stats_by_extruder.filament_change_count[0]).str()));
+        auto config = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
+        auto filament_map_mode = config.filament_map_mode.value;
+
+        if (filament_map_mode == fmmAuto) {
+            imgui.text(from_u8((boost::format(_u8L("Info by multi  extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count).str()));
+            imgui.text(from_u8((boost::format(_u8L("Info by single extruder : %1%g filament and %2% filament changes")) % stats_by_extruder.stats_by_single_extruder.filament_flush_weight % stats_by_extruder.stats_by_single_extruder.filament_change_count).str()));
+        }
+        else if (filament_map_mode == fmmManual) {
+            imgui.text(from_u8((boost::format(_u8L("Info by manual mode : %1%g filament and %2% filament changes")) % stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count).str()));
+            imgui.text(from_u8((boost::format(_u8L("Info by auto   mode : %1%g filament and %2% filament changes")) % stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count).str()));
+        }
+
         float available_width   = ImGui::GetContentRegionAvail().x;
         float available_height = ImGui::GetContentRegionAvail().y;
         float half_width       = available_width * 0.5f;

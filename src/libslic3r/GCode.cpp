@@ -2046,6 +2046,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     unsigned int initial_non_support_extruder_id;
     unsigned int final_extruder_id   = (unsigned int)-1;
     bool         has_wipe_tower      = false;
+    print.m_statistics_by_extruder_count.clear();
+
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
     std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
     if (print.config().print_sequence == PrintSequence::ByObject) {
@@ -2056,6 +2058,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+            {   //save the flush statitics stored in tool ordering by object
+                print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+            }
             if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
                 //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
                 initial_non_support_extruder_id = initial_extruder_id;
@@ -2096,6 +2103,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
         tool_ordering = print.tool_ordering();
+        {   //save the flush statitics stored in tool ordering
+            print.m_statistics_by_extruder_count.stats_by_single_extruder = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
+            print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
+            print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+        }
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.

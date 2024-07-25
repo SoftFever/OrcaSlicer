@@ -826,12 +826,14 @@ class ConstPrintRegionPtrsAdaptor : public ConstVectorOfPtrsAdaptor<PrintRegion>
 
 struct StatisticsByExtruderCount
 {
-    // multi extruder always comes first
-    std::vector<int> filament_flush_weight{ 0,0 };
-    std::vector<int> filament_change_count{ 0,0 };
+    // flush weight comes first,then comes filament change time
+    FilamentChangeStats stats_by_single_extruder;
+    FilamentChangeStats stats_by_multi_extruder_auto;
+    FilamentChangeStats stats_by_multi_extruder_manual;
     void clear() {
-        filament_flush_weight.clear();
-        filament_change_count.clear();
+        stats_by_single_extruder.clear();
+        stats_by_multi_extruder_auto.clear();
+        stats_by_multi_extruder_manual.clear();
     }
 };
 
@@ -1074,7 +1076,7 @@ private:
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
-    StatisticsByExtruderCount                m_statistics_by_extruder_count;
+    StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
     //BBS: plate's origin
     Vec3d   m_origin;

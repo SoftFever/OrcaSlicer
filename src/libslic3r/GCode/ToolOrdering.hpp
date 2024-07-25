@@ -101,6 +101,37 @@ private:
     const LayerTools* m_layer_tools = nullptr;    // so we know which LayerTools object this belongs to
 };
 
+
+struct FilamentChangeStats
+{
+    int filament_flush_weight{0};
+    int filament_change_count{0};
+    int extruder_change_count{0};
+
+    void clear(){
+        filament_flush_weight = 0;
+        filament_change_count = 0;
+        extruder_change_count = 0;
+    }
+
+    FilamentChangeStats& operator+=(const FilamentChangeStats& other) {
+        this->filament_flush_weight += other.filament_flush_weight;
+        this->filament_change_count += other.filament_change_count;
+        this->extruder_change_count += other.extruder_change_count;
+        return *this;
+    }
+
+    FilamentChangeStats operator+(const FilamentChangeStats& other){
+        FilamentChangeStats ret;
+        ret.filament_flush_weight = this->filament_flush_weight + other.filament_flush_weight;
+        ret.filament_change_count = this->filament_change_count + other.filament_change_count;
+        ret.extruder_change_count = this->extruder_change_count + other.extruder_change_count;
+        return ret;
+    }
+
+};
+
+
 class LayerTools
 {
 public:
@@ -156,9 +187,10 @@ private:
 class ToolOrdering
 {
 public:
-    enum FlushCalcMode {
-        Normal=0,
-        OneExtruder
+    enum FilamentChangeMode {
+        SingleExt,
+        MultiExtAuto,
+        MultiExtManual
     };
     ToolOrdering() = default;
 
@@ -172,8 +204,9 @@ public:
 
     void    clear() {
         m_layer_tools.clear();
-        m_curr_flush_info = { 0,0 };
-        m_one_extruder_flush_info = { 0,0 };
+        m_stats_by_single_extruder.clear();
+        m_stats_by_multi_extruder_auto.clear();
+        m_stats_by_multi_extruder_manual.clear();
     }
 
     // Only valid for non-sequential print:
@@ -205,8 +238,8 @@ public:
 
     static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig *print_config);
 
-    // first val: flush weight  second val: change count
-    std::pair<int, int>  get_flush_info(int mode) const { return mode == FlushCalcMode::OneExtruder ? m_one_extruder_flush_info : m_curr_flush_info; }
+    // should be called after doing reorder
+    FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
 
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);
@@ -236,8 +269,9 @@ private:
     Print*                     m_print;
     bool                       m_is_BBL_printer = false;
 
-    std::pair<int, int> m_curr_flush_info{ 0,0 };
-    std::pair<int, int> m_one_extruder_flush_info{ 0,0 };
+    FilamentChangeStats        m_stats_by_single_extruder;
+    FilamentChangeStats        m_stats_by_multi_extruder_manual;
+    FilamentChangeStats        m_stats_by_multi_extruder_auto;
 };
 
 } // namespace SLic3r
