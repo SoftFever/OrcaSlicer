@@ -675,10 +675,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
     
-    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
+    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed","wipe_tower_pulsatile_purge", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
         toggle_line(el, have_prime_tower && purge_in_primetower);
     
-    toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
+    bool pulsatile_purge = config->opt_bool("wipe_tower_pulsatile_purge");
+    for (auto el : {"wipe_tower_pulse_low_speed","wipe_tower_pulse_high_speed","wipe_tower_retraction_distance","wipe_tower_retraction_speed"})
+        toggle_line(el, have_prime_tower  && purge_in_primetower && pulsatile_purge);
+    
+    toggle_line("prime_volume",have_prime_tower && purge_in_primetower);
     
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);
