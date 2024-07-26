@@ -141,6 +141,7 @@ private:
     PickingModel m_lock_icon;
     PickingModel m_plate_settings_icon;
     PickingModel m_plate_name_edit_icon;
+    PickingModel m_move_front_icon;
     GLModel m_plate_idx_icon;
     GLTexture m_texture;
 
@@ -199,7 +200,8 @@ private:
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 7;
+    static const unsigned int GRABBER_COUNT = 8;
+    //static const unsigned int GRABBER_COUNT = 7;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;

@@ -1035,6 +1035,13 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			else
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
+			if (hover_id == 7) {
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_del_hovered_texture);
+                show_tooltip("Move plate to the front");
+            } else
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_del_texture);
+
+
 			if (m_partplate_list->render_plate_settings) {
 				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
@@ -1336,6 +1343,7 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 
     canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
     register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(6));
+    register_model_for_picking(canvas, m_move_front_icon, picking_id_component(7));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -2651,6 +2659,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(2, m_arrange_icon);
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
+        calc_vertex_for_icons(5, m_move_front_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
