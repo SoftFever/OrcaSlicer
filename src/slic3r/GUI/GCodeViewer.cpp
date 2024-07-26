@@ -1134,7 +1134,7 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     ColorRGBA default_color;
     decode_color("#FF8000", default_color);
 	// ensure there are enough colors defined
-    while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count)) {
+    while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.filaments_count)) {
         m_tools.m_tool_colors.push_back(default_color);
         m_tools.m_tool_visibles.push_back(true);
     }
@@ -2351,7 +2351,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     if (m_moves_count == 0)
         return;
 
-    m_extruders_count = gcode_result.extruders_count;
+    m_extruders_count = gcode_result.filaments_count;
 
     unsigned int progress_count = 0;
     static const unsigned int progress_threshold = 1000;
@@ -5301,7 +5301,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::SameLine();
         imgui.text(_u8L("Filament change times") + ":");
         ImGui::SameLine();
-        ::sprintf(buf, "%d", m_print_statistics.total_filamentchanges);
+        ::sprintf(buf, "%d", m_print_statistics.total_filament_changes);
         imgui.text(buf);
 
         //BBS display cost

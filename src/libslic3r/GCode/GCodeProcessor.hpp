@@ -84,7 +84,8 @@ class Print;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
-        unsigned int                                        total_filamentchanges;
+        unsigned int                                        total_filament_changes;
+        unsigned int                                        total_extruder_changes;
 
         PrintEstimatedStatistics() { reset(); }
 
@@ -100,7 +101,8 @@ class Print;
             total_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
-            total_filamentchanges = 0;
+            total_filament_changes = 0;
+            total_extruder_changes = 0;
         }
     };
 
@@ -209,7 +211,7 @@ class Print;
         bool support_traditional_timelapse{true};
         float printable_height;
         SettingsIds settings_ids;
-        size_t extruders_count;
+        size_t filaments_count;
         bool backtrace_enabled;
         std::vector<std::string> extruder_colors;
         std::vector<float> filament_diameters;
@@ -247,7 +249,7 @@ class Print;
             timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
-            extruders_count = other.extruders_count;
+            filaments_count = other.filaments_count;
             extruder_colors = other.extruder_colors;
             filament_diameters = other.filament_diameters;
             filament_densities = other.filament_densities;
@@ -473,6 +475,48 @@ class Print;
             void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f);
         };
 
+        struct UsedFilaments  // filaments per ColorChange
+        {
+            double color_change_cache;
+            std::vector<double> volumes_per_color_change;
+
+            double model_extrude_cache;
+            std::map<size_t, double> model_volumes_per_filament;
+
+            double wipe_tower_cache;
+            std::map<size_t, double>wipe_tower_volumes_per_filament;
+
+            double support_volume_cache;
+            std::map<size_t, double>support_volumes_per_filament;
+
+            //BBS: the flush amount of every filament
+            std::map<size_t, double> flush_per_filament;
+
+            double total_volume_cache;
+            std::map<size_t, double>total_volumes_per_filament;
+
+            double role_cache;
+            std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
+
+            void reset();
+
+            void increase_support_caches(double extruded_volume);
+            void increase_model_caches(double extruded_volume);
+            void increase_wipe_tower_caches(double extruded_volume);
+
+            void process_color_change_cache();
+            void process_model_cache(GCodeProcessor* processor);
+            void process_wipe_tower_cache(GCodeProcessor* processor);
+            void process_support_cache(GCodeProcessor* processor);
+            void process_total_volume_cache(GCodeProcessor* processor);
+
+            void update_flush_per_filament(size_t extrude_id, float flush_length);
+            void process_role_cache(GCodeProcessor* processor);
+            void process_caches(GCodeProcessor* processor);
+
+            friend class GCodeProcessor;
+        };
+
         struct TimeProcessor
         {
             struct Planner
@@ -502,49 +546,6 @@ class Print;
 
             void reset();
         };
-
-        struct UsedFilaments  // filaments per ColorChange
-        {
-            double color_change_cache;
-            std::vector<double> volumes_per_color_change;
-
-            double model_extrude_cache;
-            std::map<size_t, double> model_volumes_per_extruder;
-
-            double wipe_tower_cache;
-            std::map<size_t, double>wipe_tower_volumes_per_extruder;
-
-            double support_volume_cache;
-            std::map<size_t, double>support_volumes_per_extruder;
-
-            //BBS: the flush amount of every filament
-            std::map<size_t, double> flush_per_filament;
-
-            double total_volume_cache;
-            std::map<size_t, double>total_volumes_per_extruder;
-
-            double role_cache;
-            std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
-
-            void reset();
-
-            void increase_support_caches(double extruded_volume);
-            void increase_model_caches(double extruded_volume);
-            void increase_wipe_tower_caches(double extruded_volume);
-
-            void process_color_change_cache();
-            void process_model_cache(GCodeProcessor* processor);
-            void process_wipe_tower_cache(GCodeProcessor* processor);
-            void process_support_cache(GCodeProcessor* processor);
-            void process_total_volume_cache(GCodeProcessor* processor);
-
-            void update_flush_per_filament(size_t extrude_id, float flush_length);
-            void process_role_cache(GCodeProcessor* processor);
-            void process_caches(GCodeProcessor* processor);
-
-            friend class GCodeProcessor;
-        };
-
     public:
         class SeamsDetector
         {
@@ -710,8 +711,10 @@ class Print;
         float m_fan_speed; // percentage
         float m_z_offset; // mm
         ExtrusionRole m_extrusion_role;
+        std::vector<int> m_filament_maps;
+        std::vector<unsigned char> m_last_filament_id;
+        std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
-        unsigned char m_last_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
         ExtruderTemps m_extruder_temps_config;
@@ -946,6 +949,8 @@ class Print;
         void process_T(const std::string_view command);
         void process_M1020(const GCodeReader::GCodeLine &line);
 
+        void process_filament_change(int id);
+
         // post process the file with the given filename to:
         // 1) add remaining time lines M73 and update moves' gcode ids accordingly
         // 2) update used filament data
@@ -970,6 +975,7 @@ class Print;
         void  set_travel_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
+        float get_extruder_change_time(size_t extruder_id);
         int   get_filament_vitrification_temperature(size_t extrude_id);
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
@@ -981,11 +987,12 @@ class Print;
         //BBS:
         void update_slice_warnings();
 
-        //TODO: get matched extruder id
-        int extruder_id(unsigned int filament_id) {
-            int extruder_id = 0;
-            return extruder_id;
-        }
+        // get current used filament
+        int get_filament_id(bool force_initialize = true) const;
+        // get last used filament in the same extruder with current filament
+        int get_last_filament_id(bool force_initialize = true) const;
+        //get current used extruder
+        int get_extruder_id(bool force_initialize = true)const;
    };
 
 } /* namespace Slic3r */
