@@ -4425,38 +4425,38 @@ msgstr "默认视图"
 
 #. TRN To be shown in the main menu View->Top
 msgid "Top"
-msgstr "顶部"
+msgstr "上"
 
 msgid "Top View"
 msgstr "顶部视图"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr "底部"
+msgstr "下"
 
 msgid "Bottom View"
 msgstr "底部视图"
 
 msgid "Front"
-msgstr "前面"
+msgstr "前"
 
 msgid "Front View"
 msgstr "前视图"
 
 msgid "Rear"
-msgstr "后面"
+msgstr "后"
 
 msgid "Rear View"
 msgstr "后视图"
 
 msgid "Left"
-msgstr "左面"
+msgstr "左"
 
 msgid "Left View"
 msgstr "左视图"
 
 msgid "Right"
-msgstr "右面"
+msgstr "右"
 
 msgid "Right View"
 msgstr "右视图"
@@ -8177,7 +8177,7 @@ msgid "Camera view - Bottom"
 msgstr "摄像机视角 - 底部"
 
 msgid "Camera view - Front"
-msgstr "摄像机视角 - 前面"
+msgstr "摄像机视角 - 正面"
 
 msgid "Camera view - Behind"
 msgstr "摄像机视角 - 后面"
@@ -9435,7 +9435,7 @@ msgid "Slow down for overhang"
 msgstr "悬垂降速"
 
 msgid "Enable this option to slow printing down for different overhang degree"
-msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
+msgstr "启用此选项将降低不同悬垂程度的走线的打印速度"
 
 msgid "Slow down for curled perimeters"
 msgstr "翘边降速"
@@ -10691,12 +10691,18 @@ msgid ""
 "quality as line segments are converted to arcs by the slicer and then back "
 "to line segments by the firmware."
 msgstr ""
+"启用此设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。\n"
+"\n"
+"请注意：对于使用Klipper的打印机，建议禁用此选项。\n"
+"Klipper打印机并不会从圆弧拟合中受益，因为这些命令会被固件\n"
+"重新分割为线段。由于切片软件将线段转换为圆弧后再次被转换为\n"
+"线段进行打印，这样操作会导致打印件表面质量下降。"
 
 msgid "Add line number"
 msgstr "标注行号"
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
-msgstr "打开这个设置，G-code的每一行的开头会增加Nx标注行号。"
+msgstr "启用该设置，G-code的每一行的开头会增加Nx标注行号。"
 
 msgid "Scan first layer"
 msgstr "首层扫描"
@@ -15048,43 +15054,43 @@ msgstr ""
 "耗时较长。"
 
 msgid "Connected to Obico successfully!"
-msgstr ""
+msgstr "已成功连接到Obico"
 
 msgid "Could not connect to Obico"
-msgstr ""
+msgstr "无法连接到Obico"
 
 msgid "Connected to SimplyPrint successfully!"
-msgstr ""
+msgstr "已成功连接到SimplyPrint"
 
 msgid "Could not connect to SimplyPrint"
-msgstr ""
+msgstr "无法连接到SimplyPrint"
 
 msgid "Internal error"
-msgstr ""
+msgstr "内部错误"
 
 msgid "Unknown error"
-msgstr ""
+msgstr "未知错误"
 
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
+msgstr "尚未连接到SimplyPrint账户，前往连接选项来进行配置。"
 
 msgid "Connection to Flashforge works correctly."
-msgstr ""
+msgstr "与Flashforge的连接工作正常。"
 
 msgid "Could not connect to Flashforge"
-msgstr ""
+msgstr "无法连接至Flashforge"
 
 msgid "The provided state is not correct."
-msgstr ""
+msgstr "提供的状态不正确。"
 
 msgid "Please give the required permissions when authorizing this application."
-msgstr ""
+msgstr "在您为此应用程序进行授权时，请允许所需的权限。"
 
 msgid "Something unexpected happened when trying to log in, please try again."
-msgstr ""
+msgstr "在尝试登录时发生了异常，请重试。"
 
 msgid "User cancelled."
-msgstr ""
+msgstr "用户已取消。"
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15092,6 +15098,8 @@ msgid ""
 "Did you know that turning on precise wall can improve precision and layer "
 "consistency?"
 msgstr ""
+"精准外墙尺寸\n"
+"您知道吗？您可以启用精准外墙尺寸选项，提高精度和层一致性。"
 
 #: resources/data/hints.ini: [hint:Sandwich mode]
 msgid ""
@@ -15452,7 +15460,7 @@ msgstr ""
 #~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
 #~ "fitting tolerance is same with resolution"
 #~ msgstr ""
-#~ "打开这个设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
+#~ "启用此设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
 
 #~ msgid ""
 #~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
