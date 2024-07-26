@@ -658,6 +658,9 @@ public:
         height = m_plate_height;
     }
 
+    // Pantheon: update plates after moving plate to the front
+    void update_plates();
+
     /*basic plate operations*/
     //create an empty plate and return its index
     int create_plate(bool adjust_position = true);

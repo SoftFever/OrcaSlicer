@@ -3528,6 +3528,13 @@ void PartPlateList::reinit()
 /*basic plate operations*/
 //create an empty plate, and return its index
 //these model instances which are not in any plates should not be affected also
+
+void PartPlateList::update_plates()
+{
+    update_all_plates_pos_and_size(true, false);
+    set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+}
+
 int PartPlateList::create_plate(bool adjust_position)
 {
 	PartPlate* plate = NULL;
