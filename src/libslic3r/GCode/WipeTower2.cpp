@@ -814,7 +814,7 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
     writer.speed_override_backup();
 	writer.speed_override(100);
 
-	Vec2f initial_position = cleaning_box.ld + Vec2f(-m_perimeter_width*1.5, m_depth_traversed);
+	Vec2f initial_position = cleaning_box.ld + Vec2f(-m_perimeter_width*2, m_depth_traversed);
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     // Increase the extruder driver current to allow fast ramming.
