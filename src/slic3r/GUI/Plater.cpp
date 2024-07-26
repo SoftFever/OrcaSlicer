@@ -13865,21 +13865,14 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             ret = -1;
         }
     } else if ((action == 7) && (!right_click)) {
-        // TODO: move plate to the front
-        //ret = delete_plate(plate_index);
+        // move plate to the front
         ret = p->partplate_list.move_plate_to_index(plate_index,0);
-        // BBS: update the current print to the current plate
-
-        //wxGetApp().obj_list()->reload_all_plates(true);
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
         p->sidebar->obj_list()->reload_all_plates();
-        //p->partplate_list.compute_origin_using_new_size();
         p->partplate_list.update_plates();
         update();
         p->partplate_list.select_plate(0);
-        wxGetApp().plater()->get_current_canvas3D()->reload_scene(true, true);
-
     }
 
     else

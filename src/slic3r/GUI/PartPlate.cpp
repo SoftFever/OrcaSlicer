@@ -1036,10 +1036,10 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
 			if (hover_id == 7) {
-                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_del_hovered_texture);
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_hovered_texture);
                 show_tooltip("Move plate to the front");
             } else
-                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_del_texture);
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_texture);
 
 
 			if (m_partplate_list->render_plate_settings) {
@@ -3232,6 +3232,23 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	
+	// if (m_move_front_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_dark.svg" : "plate_move_front.svg");
+        if (!m_move_front_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    // if (m_move_front_hovered_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_hover_dark.svg" : "plate_move_front_hover.svg");
+        if (!m_move_front_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -3367,6 +3384,8 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+    m_move_front_hovered_texture.reset();
+    m_move_front_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
