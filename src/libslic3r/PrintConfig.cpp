@@ -4939,7 +4939,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_retraction_distance", coFloat);
     def->label = L("Retraction distance");
     def->tooltip = L("The retraction distance used to pulse the filament with during purging.");
-    def->sidetext = L("mm/s");
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->min = 0.1;
     def->set_default_value(new ConfigOptionFloat(3.));
