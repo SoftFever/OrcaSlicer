@@ -1117,6 +1117,7 @@ void WipeTower2::toolchange_Wipe(
 		}
 
 		float traversed_x = writer.x();
+        bool deretract = false;
        if(!m_wipe_tower_pulsatile_purge || is_first_layer()){
             if (m_left_to_right)
                 writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), wipe_speed);
@@ -1127,7 +1128,7 @@ void WipeTower2::toolchange_Wipe(
                 if(i % 3 == 0 && i != 0){ // print every third left to right extrusion slowly, followed by a retraction and de-retraction to dislodge stuck filament in the nozzle walls
                     writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), m_wipe_tower_pulse_low_speed * 60.); // print slowly with low filament flow to allow for any "stuck" filament to the nozzle walls to move
                     writer.retract(m_wipe_tower_retraction_distance,m_wipe_tower_retraction_speed*60.); // retract fast to create turbulence in the nozzle and disrupt the filament laminar flow
-                    writer.retract(-m_wipe_tower_retraction_distance,5*60.); // deretract slowly to ramp up pressure and allow the filament to flow through again without shearing off the nozzle walls
+                    deretract = true;
                 }
                 else
                     writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5f*m_perimeter_width), writer.y(), m_wipe_tower_pulse_high_speed * 60.);
@@ -1145,7 +1146,13 @@ void WipeTower2::toolchange_Wipe(
 			break;
 		}
 		// stepping to the next line:
-        writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5f*m_perimeter_width, writer.y() + dy);
+        if(deretract){
+            writer.travel(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5f*m_perimeter_width, writer.y() + dy);
+            writer.retract(-m_wipe_tower_retraction_distance,5*60.); // deretract slowly to ramp up pressure and allow the filament to flow through again without shearing off the nozzle walls
+        }else{
+            writer.extrude(writer.x() + (i % 4 == 0 ? -1.f : (i % 4 == 1 ? 1.f : 0.f)) * 1.5f*m_perimeter_width, writer.y() + dy);
+
+        }
 		m_left_to_right = !m_left_to_right;
 	}
 
