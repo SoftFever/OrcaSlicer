@@ -7,15 +7,16 @@ msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-06-30 15:44+0200\n"
-"PO-Revision-Date: 2023-04-01 13:21+0800\n"
-"Last-Translator: SoftFever <softfeverever@gmail.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2024-07-27 05:38+0000\n"
+"Last-Translator: Weblate Admin <mail@bysb.net>\n"
+"Language-Team: Chinese (Simplified) <https://weblate.bysb.net/projects/"
+"orca-slicer/orcaslicer-main/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Weblate 5.3.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -355,6 +356,8 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
+"单击以翻转剖切面\n"
+"拖动以移动剖切面"
 
 msgid ""
 "Click to flip the cut plane\n"
@@ -372,7 +375,7 @@ msgid "Mode"
 msgstr "模式"
 
 msgid "Change cut mode"
-msgstr ""
+msgstr "更改切割模式"
 
 msgid "Tolerance"
 msgstr "容差"
@@ -381,7 +384,7 @@ msgid "Drag"
 msgstr "拖拽"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "绘制切线"
 
 msgid "Left click"
 msgstr "左击"
@@ -423,7 +426,7 @@ msgid "Bulge proportion related to radius"
 msgstr ""
 
 msgid "Space"
-msgstr "空格键"
+msgstr "间隔"
 
 msgid "Space proportion related to radius"
 msgstr ""
@@ -441,14 +444,14 @@ msgid "Flip cut plane"
 msgstr "翻转剖切面"
 
 msgid "Groove change"
-msgstr ""
+msgstr "槽变化"
 
 msgid "Reset"
 msgstr "重置"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr ""
+msgstr "已编辑"
 
 msgid "Cut position"
 msgstr "切割位置"
@@ -498,12 +501,12 @@ msgstr "检测到无效连接件"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
+msgstr[0] "%1$d 个连接件超出了切割轮廓"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
+msgstr[0] "%1$d 个连接件超出了对象"
 
 msgid "Some connectors are overlapped"
 msgstr "存在连接件相互重叠"
@@ -515,7 +518,7 @@ msgid "Cut plane is placed out of object"
 msgstr "剖切面放置在对象之外"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "槽所在的切割平面无效"
 
 msgid "Connector"
 msgstr "连接件"
@@ -666,11 +669,11 @@ msgstr "文本形状"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr ""
+msgstr "旋转文字"
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr ""
+msgstr "移动文字"
 
 msgid "Set Mirror"
 msgstr "设置镜像"
@@ -900,44 +903,44 @@ msgid "Revert using of model surface."
 msgstr "恢复使用模型曲面。"
 
 msgid "Revert Transformation per glyph."
-msgstr ""
+msgstr "恢复按字符变形选项。"
 
 msgid "Set global orientation for whole text."
-msgstr ""
+msgstr "为整段文本使用同一基准。"
 
 msgid "Set position and orientation per glyph."
-msgstr ""
+msgstr "为每个字符独立计算位置和方向。"
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr "左面"
+msgstr "左对齐"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr "居中"
+msgstr "水平居中"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr "右面"
+msgstr "右对齐"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr "顶部"
+msgstr "顶对齐"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr ""
+msgstr "垂直居中"
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr "底部"
+msgstr "底对齐"
 
 msgid "Revert alignment."
-msgstr ""
+msgstr "还原对齐。"
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr ""
+msgstr "点"
 
 msgid "Revert gap between characters"
 msgstr "恢复字间距"
@@ -952,13 +955,13 @@ msgid "Distance between lines"
 msgstr "行间距"
 
 msgid "Undo boldness"
-msgstr ""
+msgstr "撤销粗细调整"
 
 msgid "Tiny / Wide glyphs"
-msgstr "细小/宽大的字形"
+msgstr "细小/粗大的字形"
 
 msgid "Undo letter's skew"
-msgstr "撤消字母的歪斜"
+msgstr "撤消字母的斜体效果"
 
 msgid "Italic strength ratio"
 msgstr "倾斜强度比"
@@ -1039,12 +1042,12 @@ msgstr "行间距"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "粗细"
+msgstr "仿字重"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr "斜率"
+msgstr "仿斜体"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1067,11 +1070,11 @@ msgstr "收集"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr ""
+msgstr "旋转SVG图形"
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
-msgstr ""
+msgstr "移动SVG图形"
 
 msgid "Enter SVG gizmo"
 msgstr ""
@@ -1087,26 +1090,26 @@ msgstr "SVG矢量图"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr ""
+msgstr "不透明度 (%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr ""
+msgstr "渐变 (%1%)"
 
 msgid "Undefined fill type"
-msgstr ""
+msgstr "未定义的填充类型"
 
 msgid "Linear gradient"
-msgstr ""
+msgstr "线性渐变"
 
 msgid "Radial gradient"
-msgstr ""
+msgstr "径向渐变"
 
 msgid "Open filled path"
 msgstr ""
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "未定义的描边类型"
 
 msgid "Path can't be healed from selfintersection and multiple points."
 msgstr ""
@@ -1118,7 +1121,7 @@ msgstr ""
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr ""
+msgstr "形状已被标记为不可见 (%1%)."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
@@ -1127,25 +1130,25 @@ msgstr ""
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr ""
+msgstr "形状 (%1%) 的描边太细了（不小于 %2% mm）。"
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr ""
 
 msgid "Face the camera"
-msgstr ""
+msgstr "面向摄像机"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
-msgstr ""
+msgstr "未知文件名"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr ""
+msgstr "SVG文件路径：\"%1%\""
 
 msgid "Reload SVG file from disk."
-msgstr ""
+msgstr "从磁盘重新加载SVG文件。"
 
 msgid "Change file"
 msgstr ""
@@ -1173,10 +1176,10 @@ msgid "Save as"
 msgstr "另存为"
 
 msgid "Save SVG file"
-msgstr ""
+msgstr "保存SVG文件"
 
 msgid "Save as '.svg' file"
-msgstr ""
+msgstr "另存为“.svg”文件"
 
 msgid "Size in emboss direction."
 msgstr ""
@@ -1406,6 +1409,8 @@ msgid ""
 "features.\n"
 "Click Yes to install it now."
 msgstr ""
+"Orca Slicer 依赖 Microsoft WebView2 运行时以运行部分功能。\n"
+"请点击 Yes 进行安装。"
 
 msgid "WebView2 Runtime"
 msgstr "WebView2 运行库"
@@ -1441,6 +1446,9 @@ msgid ""
 "Please note, application settings will be lost, but printer profiles will "
 "not be affected."
 msgstr ""
+"OrcaSlicer 配置文件无法解析，可能已经损坏。\n"
+"OrcaSlicer 已尝试重新创建配置文件。\n"
+"请注意，您的程序设置会丢失，但打印机配置文件不会受到影响。"
 
 msgid "Rebuild"
 msgstr "重新构建"
@@ -1695,6 +1703,13 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"该模型顶面具有文字浮雕。\n"
+"为了获得最佳效果，我们推荐您将“单层墙阈值”设置为 0 "
+"以使“仅首层单层墙”效果最佳。\n"
+"\n"
+"自动调整这些设置？\n"
+"是 - 自动调整这些设置\n"
+"否 - 不用为我调整这些设置"
 
 msgid "Text"
 msgstr "文字浮雕"
@@ -1899,7 +1914,7 @@ msgid "arrange current plate"
 msgstr "在当前盘执行自动摆放"
 
 msgid "Reload All"
-msgstr ""
+msgstr "重新加载全部"
 
 msgid "reload all from disk"
 msgstr ""
@@ -2306,7 +2321,7 @@ msgid "Check the status of current system services"
 msgstr "请检查当前系统服务状态"
 
 msgid "code"
-msgstr ""
+msgstr "代码"
 
 msgid "Failed to connect to cloud service"
 msgstr "无法连接到云服务"
@@ -2477,7 +2492,7 @@ msgid "Orienting"
 msgstr "自动朝向中..."
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "自动朝向已取消。"
 
 msgid "Filling"
 msgstr "正在填充"
@@ -2654,7 +2669,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Orca Slicer 基于 PrusaSlicer 以及 BambuStudio 开发"
 
 msgid "Libraries"
 msgstr "库"
@@ -2672,10 +2687,10 @@ msgid "Orca Slicer "
 msgstr "逆戟鲸切片"
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
-msgstr ""
+msgstr "OrcaSlicer基于BambuStudio、PrusaSlicer 以及SuperSlicer开发。"
 
 msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
-msgstr ""
+msgstr "BambuStudio基于PrusaResearch的PrusaSlicer开发而来。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "PrusaSlicer最初是基于Alessandro Ranellucci的Slic3r。"
@@ -2713,7 +2728,7 @@ msgstr "最小"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
-msgstr "输入的范围在 %1% 和 %2% 之间"
+msgstr "输入的范围应当在 %1% 和 %2% 之间"
 
 msgid "SN"
 msgstr "序列号"
@@ -2851,7 +2866,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "当前舱内湿度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2912,10 +2927,10 @@ msgstr ""
 "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
 msgid "DRY"
-msgstr ""
+msgstr "干燥"
 
 msgid "WET"
-msgstr ""
+msgstr "潮湿"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -3300,13 +3315,13 @@ msgid "Timelapse"
 msgstr "延时摄影"
 
 msgid "Flow Dynamic Calibration"
-msgstr ""
+msgstr "动态流量校准"
 
 msgid "Send Options"
 msgstr "发送选项"
 
 msgid "Send to"
-msgstr ""
+msgstr "发送至"
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3770,7 +3785,7 @@ msgstr "缺省"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "编辑自定义G-code (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
@@ -3809,7 +3824,7 @@ msgid "Temperatures"
 msgstr "温度"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "时间戳"
 
 #, boost-format
 msgid "Specific for %1%"
@@ -4302,10 +4317,10 @@ msgid "Enable"
 msgstr "开启"
 
 msgid "Hostname or IP"
-msgstr ""
+msgstr "主机名或IP地址"
 
 msgid "Custom camera source"
-msgstr ""
+msgstr "自定义摄像机源"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "显示\"直播视频流\"指南"
@@ -4498,10 +4513,10 @@ msgid "Load a model"
 msgstr "加载模型"
 
 msgid "Import Zip Archive"
-msgstr ""
+msgstr "导入 ZIP 压缩文件"
 
 msgid "Load models contained within a zip archive"
-msgstr ""
+msgstr "从 ZIP 压缩文件中导入一个或多个模型"
 
 msgid "Import Configs"
 msgstr "导入预设"
@@ -4769,6 +4784,8 @@ msgid ""
 "Hint: Make sure you have added the corresponding printer before importing "
 "the configs."
 msgstr ""
+"\n"
+"注意：请确保您在导入配置前，已经添加了相应的打印机。"
 
 msgid "Import result"
 msgstr "导入结果"
@@ -5122,7 +5139,7 @@ msgid "Camera Setting"
 msgstr "相机设置"
 
 msgid "Switch Camera View"
-msgstr ""
+msgstr "切换相机视图"
 
 msgid "Control"
 msgstr "控制"
@@ -5380,7 +5397,7 @@ msgid "Latest Version: "
 msgstr "最新版本："
 
 msgid "Not for now"
-msgstr ""
+msgstr "暂不"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -5594,7 +5611,7 @@ msgid "View all object's settings"
 msgstr "查看所有对象的配置"
 
 msgid "Material settings"
-msgstr ""
+msgstr "材料设置"
 
 msgid "Remove current plate (if not last one)"
 msgstr "移除当前板（如果不是最后一个）"
@@ -5612,7 +5629,7 @@ msgid "Lock current plate"
 msgstr "锁定当前板"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "编辑当前盘名"
 
 msgid "Customize current plate"
 msgstr "自定义当前板"
@@ -6285,7 +6302,8 @@ msgstr "局域网模式"
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
-msgstr ""
+msgstr "停止向拓竹科技服务器发送数据。如果您不使用Bambu "
+"Lab的打印机或仅使用局域网模式，则可以安全地启用此功能。"
 
 msgid "Enable network plugin"
 msgstr "启用网络插件"
@@ -6303,7 +6321,7 @@ msgid "Units"
 msgstr "单位"
 
 msgid "Allow only one OrcaSlicer instance"
-msgstr ""
+msgstr "同时仅运行一个 OrcaSlicer 实例"
 
 msgid ""
 "On OSX there is always only one instance of app running by default. However "
@@ -6317,28 +6335,32 @@ msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
 "same OrcaSlicer is already running, that instance will be reactivated "
 "instead."
-msgstr ""
+msgstr "如果启用，当您在已经启动一个 OrcaSlicer 实例时再次启动 OrcaSlicer ，"
+"将会激活您已经启动的 OrcaSlicer 实例。"
 
 msgid "Home"
 msgstr "首页"
 
 msgid "Default Page"
-msgstr ""
+msgstr "起始页"
 
 msgid "Set the page opened on startup."
-msgstr ""
+msgstr "设置启动OrcaSlicer时首先显示的页面。"
 
 msgid "Touchpad"
-msgstr ""
+msgstr "触控板"
 
 msgid "Camera style"
-msgstr ""
+msgstr "视角控制模式"
 
 msgid ""
 "Select camera navigation style.\n"
 "Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
+"选择摄像机的导航模式。\n"
+"缺省：鼠标左键+拖动 旋转，鼠标右键+拖动 平移；\n"
+"触控板：Alt+拖动 旋转，Shift+拖动 平移。"
 
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
@@ -6355,10 +6377,10 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "如果启用，使用自由视角。如果未启用，使用约束视角。"
 
 msgid "Reverse mouse zoom"
-msgstr ""
+msgstr "反转鼠标缩放"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "如果启用，使用鼠标滚轮缩放的方向会反转。"
 
 msgid "Show splash screen"
 msgstr "显示启动画面"
@@ -6386,15 +6408,15 @@ msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr "如果启用，会在每一次更换材料时自动计算。"
 
 msgid "Remember printer configuration"
-msgstr ""
+msgstr "记住打印机选项"
 
 msgid ""
 "If enabled, Orca will remember and switch filament/process configuration for "
 "each printer automatically."
-msgstr ""
+msgstr "如果启用，Orca会自动记录并切换您不同打印机之间的耗材配置与打印参数。"
 
 msgid "Multi-device Management(Take effect after restarting Orca)."
-msgstr ""
+msgstr "多设备管理 （重启Orca后生效）"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6796,13 +6818,13 @@ msgid "Bambu Engineering Plate"
 msgstr "工程打印热床"
 
 msgid "Bambu Smooth PEI Plate"
-msgstr ""
+msgstr "光面PEI打印板"
 
 msgid "High temperature Plate"
 msgstr "高温打印热床"
 
 msgid "Bambu Textured PEI Plate"
-msgstr ""
+msgstr "纹理PEI打印板"
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
@@ -7750,6 +7772,8 @@ msgid ""
 "You can discard the preset values you have modified, or choose to transfer "
 "the modified values to the new project"
 msgstr ""
+"\n"
+"您可以放弃已修改的预设值，或者将修改后的值转移到新项目"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
