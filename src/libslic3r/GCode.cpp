@@ -4574,6 +4574,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // if spiral vase, we have to ensure that all contour are in the same orientation.
         loop.make_counter_clockwise();
     }
+    if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
+        loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
