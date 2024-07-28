@@ -22,13 +22,15 @@ if not "%1"=="" (
     )
     if "%1"=="-option" (
         set buildoption="%2"
+        shift
     )
     shift
     GOTO :parse
 )
 
-if %buildoption%=="pack"
+if %buildoption%=="pack" (
     GOTO :pack
+)
 
 GOTO :build
 
