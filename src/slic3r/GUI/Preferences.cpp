@@ -1004,7 +1004,7 @@ void PreferencesDialog::create()
     SetSizer(main_sizer);
     Layout();
     Fit();
-    int screen_height = wxGetDisplaySize().GetY();
+    int screen_height = wxDisplay(m_parent).GetClientArea().GetHeight();
     if (this->GetSize().GetY() > screen_height)
         this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
 
