@@ -5225,7 +5225,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     bool variable_speed = false;
     std::vector<ProcessedPoint> new_points {};
-    //IG Debug: printf("Layer: %d\n", m_layer_index + 1);
 
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
