@@ -369,9 +369,8 @@ private:
     // as calculated and stored in the m_multi_segment_path_average_mm3_per_mm value
     double          m_multi_flow_segment_path_average_mm3_per_mm = 0;
     bool            m_multi_flow_segment_path_pa_set = false;
-    // Adaptive PA last set speed and flow to enable issuing of PA change commands when adaptive PA for overhangs
+    // Adaptive PA last set flow to enable issuing of PA change commands when adaptive PA for overhangs
     // is enabled
-    double          m_last_set_speed = 0;
     double          m_last_mm3_mm = 0;
     // Orca: Adaptive PA code segment end
 

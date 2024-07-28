@@ -5529,7 +5529,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (!variable_speed) {
         // F is mm per minute.
-        if( (std::abs(m_last_set_speed - F) > EPSILON) || (std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON) ){
+        if( (std::abs(writer().get_current_speed() - F) > EPSILON) || (std::abs(_mm3_per_mm - m_last_mm3_mm) > EPSILON) ){
             // ORCA: Adaptive PA code segment when adjusting PA within the same feature
             // There is a speed change coming out of an overhang region
             // or a flow change, so emit the flag to evaluate PA for the upcomming extrusion
@@ -5540,7 +5540,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                EXTRUDER_CONFIG(enable_pressure_advance) &&
                EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs) &&
                !evaluate_adaptive_pa){
-                if(m_last_set_speed > F){ // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
+                if(writer().get_current_speed() > F){ // Ramping down speed - use overhang logic where the minimum speed is used between current and upcoming extrusion
                     if(m_config.gcode_comments){
                         sprintf(buf, "; Ramp down-non-variable\n");
                         gcode += buf;
@@ -5573,7 +5573,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 }
                 gcode += buf;
                 m_last_mm3_mm = _mm3_per_mm;
-                m_last_set_speed = F;
             }
             // ORCA: End of adaptive PA code segment
         }
@@ -5813,7 +5812,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                 0);
                     }
                     gcode += buf;
-                    m_last_set_speed = new_speed;
                     m_last_mm3_mm = _mm3_per_mm;
                 }
             }// ORCA: End of adaptive PA code segment
