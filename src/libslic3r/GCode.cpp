@@ -4558,7 +4558,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         loop.make_counter_clockwise();
     }
     if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
-        loop.make_clockwise();
+        loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
