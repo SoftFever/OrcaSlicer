@@ -10,6 +10,9 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
+    "filament_type": [
+      "SBS"
+    ],
     "filament_density": [
         "1.24"
     ],
