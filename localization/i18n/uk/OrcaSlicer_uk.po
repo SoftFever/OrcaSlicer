@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "PO-Revision-Date: 2024-06-30 23:05+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
@@ -603,7 +603,7 @@ msgstr "Показати каркас"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Не можна застосовувати під час попереднього перегляду процесу."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -670,7 +670,7 @@ msgstr "Поверхня"
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + переміщення миші вгору або вниз"
 
 msgid "Rotate text"
@@ -1014,7 +1014,7 @@ msgstr "Зорієнтувати текст у напрямку камери."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Не вдається завантажити точно такий самий шрифт(\"%1%\"). Програма вибрала "
@@ -1651,7 +1651,7 @@ msgstr "Ширина екструзії"
 msgid "Wipe options"
 msgstr "Параметри очищення"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Прилипання до столу"
 
 msgid "Add part"
@@ -1936,12 +1936,6 @@ msgstr "Автоматична орієнтація"
 msgid "Auto orient the object to improve print quality."
 msgstr "Автоматично орієнтуйте об'єкт для покращення якості друку."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Розділити вибраний об'єкт на кілька об'єктів"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Розділити вибраний об'єкт на кілька частин"
-
 msgid "Select All"
 msgstr "Вибрати все"
 
@@ -2210,8 +2204,8 @@ msgstr[0] "Наступна частина моделі успішно відр�
 msgstr[1] "Наступні частини моделі успішно відремонтовані"
 msgstr[2] "Наступні частини моделі успішно відремонтовані"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Не вдалося полагодити таку частину моделі"
 msgstr[1] "Не вдалося полагодити такі частини моделі"
 msgstr[2] "Не вдалося полагодити такі частини моделі"
@@ -2670,7 +2664,7 @@ msgstr "Час відправлення завдання на друк закі�
 msgid "Service Unavailable"
 msgstr "Сервіс недоступний"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Невідома помилка."
 
 msgid "Sending print configuration"
@@ -3669,7 +3663,7 @@ msgstr ""
 "Це значення буде скинуто на 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5875,6 +5869,9 @@ msgstr "Порівняти пресети"
 msgid "View all object's settings"
 msgstr "Переглянути всі налаштування об'єкта"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr "Видалити поточну пластину (якщо вона не є остання)"
 
@@ -5950,6 +5947,9 @@ msgstr "Встановіть нитки для використання"
 
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6191,7 +6191,7 @@ msgstr ""
 "Файл %s вже існує.\n"
 "Бажаєте замінити його?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Підтвердити збереження як"
 
 msgid "Delete object which is a part of cut object"
@@ -6414,7 +6414,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
 "позитивні частини. Ви можете виправити сітки і спробувати ще раз."
@@ -6567,6 +6567,21 @@ msgstr "Переглядати"
 
 msgid "Choose Download Directory"
 msgstr "Виберіть каталог завантаження"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Загальні налаштування"
@@ -6787,42 +6802,6 @@ msgstr "Асоціювати веб-посилання з OrcaSlicer"
 
 msgid "Associate URLs to OrcaSlicer"
 msgstr "Асоціювати URL-адреси з OrcaSlicer"
-
-msgid "Current association: "
-msgstr "Поточна асоціація: "
-
-msgid "Associate prusaslicer://"
-msgstr "Асоціювати prusaslicer://"
-
-msgid "Not associated to any application"
-msgstr "Не пов'язаний з жодним додатком"
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-"Асоціювати OrcaSlicer з prusaslicer:// посиланнями щоб Orca могла відкривати "
-"моделі прямо з Printable.com"
-
-msgid "Associate bambustudio://"
-msgstr "Асоціювати bambustudio://"
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-"Асоціювати OrcaSlicer з bambustudio:// посиланнями щоб Orca могла відкривати "
-"моделі прямо з makerworld.com"
-
-msgid "Associate cura://"
-msgstr "Асоціювати cura://"
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
-msgstr ""
-"Асоціювати OrcaSlicer з cura:// посиланнями щоб Orca могла відкривати моделі "
-"прямо з thingiverse.com"
 
 msgid "Maximum recent projects"
 msgstr "Максимум останніх проектів"
@@ -7691,8 +7670,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -10885,6 +10864,19 @@ msgstr ""
 "Діаметр нитки використовується для розрахунку екструзії в gcode, тому він "
 "важливий імає бути точним"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Усадка"
 
@@ -11335,7 +11327,7 @@ msgstr "Початкова висота шару"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Висота вихідного шару. Незначна товщина початкової висоти шару може "
 "поліпшити прилипання до столу"
@@ -11377,10 +11369,10 @@ msgstr "Повна швидкість вентилятора на шарі"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Швидкість вентилятора лінійно збільшується від нуля на "
 "рівні«close_fan_the_first_x_layers» до максимуму на рівні "
@@ -11667,6 +11659,12 @@ msgstr "З яким gcode сумісний принтер"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr "Підтримка різних типів поверхонь стола"
 
@@ -11789,6 +11787,51 @@ msgstr "Глибина взаємного взаємодії сегментов�
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Глибина взаємного взаємодії сегментованої області. Нуль вимикає цю функцію."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Тип Розглажування"
@@ -12506,6 +12549,14 @@ msgstr "Схил"
 
 msgid "Spiral"
 msgstr "Спіраль"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Підіймати Z лише вище"
@@ -13605,9 +13656,9 @@ msgstr ""
 "Залежно від тривалості операції витирання, швидкості та тривалості "
 "втягування екструдера/нитки, може знадобитися рух накату для нитки. \n"
 "\n"
-"Якщо встановити значення у параметрі \"Кількість втягування перед "
-"витиранням\" нижче, надлишкове втягування буде виконано перед витиранням, "
-"інакше воно буде виконано після нього."
+"Якщо встановити значення у параметрі \"Кількість втягування перед витиранням"
+"\" нижче, надлишкове втягування буде виконано перед витиранням, інакше воно "
+"буде виконано після нього."
 
 msgid ""
 "The wiping tower can be used to clean up the residue on the nozzle and "
@@ -15419,8 +15470,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Ми б перейменували попередні налаштування на «Вибраний вами серійний "
@@ -15449,7 +15500,7 @@ msgstr "Імпорт набору параметрів"
 msgid "Create Type"
 msgstr "Тип"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Модель не знайдено. Будь ласка, перевиберіть виробника."
 
 msgid "Select Model"
@@ -15500,10 +15551,10 @@ msgstr "Шлях до налаштувань не знайдено. Будь л�
 msgid "The printer model was not found, please reselect."
 msgstr "Модель принтера не було знайдено. Будь ласка, перевиберіть її."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Діаметр сопла не знайдено. Будь ласка, перевиберіть його."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Налаштування принтера не знайдено. Будь ласка, перевиберіть його."
 
 msgid "Printer Preset"
@@ -16748,6 +16799,42 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Current association: "
+#~ msgstr "Поточна асоціація: "
+
+#~ msgid "Associate prusaslicer://"
+#~ msgstr "Асоціювати prusaslicer://"
+
+#~ msgid "Not associated to any application"
+#~ msgstr "Не пов'язаний з жодним додатком"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "models from Printable.com"
+#~ msgstr ""
+#~ "Асоціювати OrcaSlicer з prusaslicer:// посиланнями щоб Orca могла "
+#~ "відкривати моделі прямо з Printable.com"
+
+#~ msgid "Associate bambustudio://"
+#~ msgstr "Асоціювати bambustudio://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with bambustudio:// links so that Orca can open "
+#~ "models from makerworld.com"
+#~ msgstr ""
+#~ "Асоціювати OrcaSlicer з bambustudio:// посиланнями щоб Orca могла "
+#~ "відкривати моделі прямо з makerworld.com"
+
+#~ msgid "Associate cura://"
+#~ msgstr "Асоціювати cura://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with cura:// links so that Orca can open models from "
+#~ "thingiverse.com"
+#~ msgstr ""
+#~ "Асоціювати OrcaSlicer з cura:// посиланнями щоб Orca могла відкривати "
+#~ "моделі прямо з thingiverse.com"
 
 #~ msgid ""
 #~ "File size exceeds the 100MB upload limit. Please upload your file through "
