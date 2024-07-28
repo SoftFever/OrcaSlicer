@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
-"PO-Revision-Date: 2024-06-23 19:21+0300\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
+"PO-Revision-Date: 2024-07-11 00:22+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -596,7 +596,7 @@ msgstr "Wireframe göster"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "İşlem önizlemesi sırasında uygulanamaz."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -665,7 +665,7 @@ msgstr "Yüzey"
 msgid "Horizontal text"
 msgstr "Yatay metin"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
 
 msgid "Rotate text"
@@ -1010,8 +1010,8 @@ msgstr "Metni kameraya doğru yönlendirin."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar one(\"%2%"
-"\"). You have to specify font for enable edit text."
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
+"one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Tam olarak aynı yazı tipi yüklenemiyor(\"%1%\"). Uygulama benzer bir uygulama "
 "seçti(\"%2%\"). Metni düzenlemeyi etkinleştirmek için yazı tipini belirtmeniz "
@@ -1644,7 +1644,7 @@ msgstr "Ekstrüzyon Genişliği"
 msgid "Wipe options"
 msgstr "Temizleme seçenekleri"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Etek"
 
 msgid "Add part"
@@ -1929,12 +1929,6 @@ msgstr "Otomatik yönlendirme"
 msgid "Auto orient the object to improve print quality."
 msgstr "Baskı kalitesini artırmak için nesneyi otomatik olarak yönlendirin."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Seçilen nesneyi birden fazla nesneye bölme"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Seçilen nesneyi birden fazla parçaya böl"
-
 msgid "Select All"
 msgstr "Hepsini seç"
 
@@ -2192,8 +2186,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "Aşağıdaki model nesnesi onarıldı"
 msgstr[1] "Aşağıdaki model objeler onarıldı"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Aşağıdaki model nesnesi onarılamadı"
 msgstr[1] "Aşağıdaki model nesneleri onarılamadı"
 
@@ -2646,7 +2640,7 @@ msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Bilinmeyen Hata."
 
 msgid "Sending print configuration"
@@ -3629,7 +3623,7 @@ msgstr ""
 "Değer 0'a sıfırlanacaktır."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5811,6 +5805,9 @@ msgstr "Ön ayarları karşılaştır"
 msgid "View all object's settings"
 msgstr "Nesnenin tüm ayarları"
 
+msgid "Material settings"
+msgstr "Malzeme ayarları"
+
 msgid "Remove current plate (if not last one)"
 msgstr "Mevcut tablayı kaldırın (eğer sonuncusu değilse)"
 
@@ -5886,6 +5883,9 @@ msgstr "Kullanılacak filamentleri ayarla"
 
 msgid "Search plate, object and part."
 msgstr "Arama plakası, nesne ve parça."
+
+msgid "Pellets"
+msgstr "Peletler"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6127,7 +6127,7 @@ msgstr ""
 "%s dosyası zaten mevcut\n"
 "değiştirmek istiyor musun?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Farklı Kaydetmeyi Onayla"
 
 msgid "Delete object which is a part of cut object"
@@ -6351,7 +6351,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts will "
-"be kept. You may fix the meshes and try agian."
+"be kept. You may fix the meshes and try again."
 msgstr ""
 "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca olumlu kısımlar "
 "tutulacaktır. Kafesleri düzeltip tekrar deneyebilirsiniz."
@@ -6501,6 +6501,21 @@ msgstr "Aç"
 
 msgid "Choose Download Directory"
 msgstr "İndirme Dizini seçin"
+
+msgid "Associate"
+msgstr "Ortak"
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr "Orca’nın modelleri açabilmesi için OrcaSlicer ile"
+
+msgid "Current Association: "
+msgstr "Mevcut Ortak:"
+
+msgid "Current Instance"
+msgstr "Mevcut Örnek"
+
+msgid "Current Instance Path: "
+msgstr "Mevcut Örnek Yolu:"
 
 msgid "General Settings"
 msgstr "Genel Ayarlar"
@@ -6715,42 +6730,6 @@ msgstr "Web bağlantılarını OrcaSlicer ile ilişkilendirin"
 
 msgid "Associate URLs to OrcaSlicer"
 msgstr "URL’leri OrcaSlicer ile ilişkilendirin"
-
-msgid "Current association: "
-msgstr "Mevcut dernek:"
-
-msgid "Associate prusaslicer://"
-msgstr "Ortak prusaslicer://"
-
-msgid "Not associated to any application"
-msgstr "Herhangi bir uygulamayla ilişkili değil"
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-"Orca’nın Printable.com’daki modelleri açabilmesi için OrcaSlicer’ı "
-"prusaslicer:// bağlantılarıyla ilişkilendirin"
-
-msgid "Associate bambustudio://"
-msgstr "Bambstudio’yu ilişkilendirin://"
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-"Orca’nın makerworld.com’daki modelleri açabilmesi için OrcaSlicer’ı "
-"bambustudio:// bağlantılarıyla ilişkilendirin"
-
-msgid "Associate cura://"
-msgstr "Cura’yı ilişkilendirin://"
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
-msgstr ""
-"Orca’nın thingiverse.com’daki modelleri açabilmesi için OrcaSlicer’ı cura:// "
-"bağlantılarıyla ilişkilendirin"
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -10786,6 +10765,26 @@ msgstr ""
 "Filament çapı, gcode'da ekstrüzyonu hesaplamak için kullanılır; bu nedenle "
 "önemlidir ve doğru olmalıdır"
 
+msgid "Pellet flow coefficient"
+msgstr "Pelet akış katsayısı"
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+"Pelet akış katsayısı ampirik olarak türetilir ve pelet yazıcıları için hacim "
+"hesaplamasına olanak tanır.\n"
+"\n"
+"Dahili olarak filament_çapına dönüştürülür. Diğer tüm hacim hesaplamaları "
+"aynı kalır.\n"
+"\n"
+"filament_çapı = sqrt( (4 * pellet_akış_katsayısı) / PI )"
+
 msgid "Shrinkage"
 msgstr "Büzüşme"
 
@@ -11551,6 +11550,12 @@ msgstr "Yazıcının ne tür bir gcode ile uyumlu olduğu"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr "Pelet Modlu Yazıcı"
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr "Yazıcınız filament yerine pellet kullanıyorsa bu seçeneği etkinleştirin"
+
 msgid "Support multi bed types"
 msgstr "Çoklu tabla"
 
@@ -11673,6 +11678,60 @@ msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Bölümlere ayrılmış bir bölgenin birbirine kenetlenen derinliği. 0 bu özelliği "
 "devre dışı bırakır."
+
+msgid "Use beam interlocking"
+msgstr "Işın kilitlemeyi kullanın"
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+"Farklı filamentlerin temas ettiği yerlerde birbirine kenetlenen ışın yapısı "
+"oluşturun. Bu, özellikle farklı malzemelerle basılan modeller olmak üzere "
+"filamentler arasındaki yapışmayı artırır."
+
+msgid "Interlocking beam width"
+msgstr "Kilitli ışın genişliği"
+
+msgid "The width of the interlocking structure beams."
+msgstr "Birbirine kenetlenen yapı kirişlerinin genişliği."
+
+msgid "Interlocking direction"
+msgstr "Kilitleme yönü"
+
+msgid "Orientation of interlock beams."
+msgstr "Kilitleme kirişlerinin yönelimi."
+
+msgid "Interlocking beam layers"
+msgstr "Birbirine kenetlenen kiriş katmanları"
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+"Birbirine kenetlenen yapının kirişlerinin yüksekliği, katman sayısıyla "
+"ölçülür. Daha az katman daha güçlüdür ancak kusurlara daha yatkındır."
+
+msgid "Interlocking depth"
+msgstr "Kilitleme derinliği"
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+"Hücrelerde ölçülen, birbirine kenetlenen yapıyı oluşturmak için filamentler "
+"arasındaki sınırdan mesafe. Çok az hücre yapışmanın zayıf olmasına neden olur."
+
+msgid "Interlocking boundary avoidance"
+msgstr "Birbirine kenetlenen sınırdan kaçınma"
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+"Birbirine kenetlenen yapıların oluşturulmayacağı bir modelin dışına olan "
+"mesafe, hücrelerde ölçülür."
 
 msgid "Ironing Type"
 msgstr "Ütüleme tipi"
@@ -12381,6 +12440,14 @@ msgstr "Eğim"
 
 msgid "Spiral"
 msgstr "Spiral"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results in "
+"Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Z'yi sadece şu değerin üstündeki durumlarda kaldır"
@@ -14969,7 +15036,7 @@ msgid "PETG"
 msgstr "PETG"
 
 msgid "PCTG"
-msgstr ""
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
@@ -15068,7 +15135,7 @@ msgid "Upload to storage"
 msgstr "Depolama alanına yükle"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Yüklemeden sonra Cihaz sekmesine geçin."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15323,7 +15390,7 @@ msgstr "Ön Ayarı İçe Aktar"
 msgid "Create Type"
 msgstr "Tür Oluştur"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "Model bulunamadı, lütfen satıcıyı seçin."
 
 msgid "Select Model"
@@ -15372,10 +15439,10 @@ msgstr "Ön ayar yolu bulunamıyor, lütfen satıcıyı yeniden seçin."
 msgid "The printer model was not found, please reselect."
 msgstr "Yazıcı modeli bulunamadı, lütfen yeniden seçin."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "Nozul çapı bulunamadı, lütfen yeniden seçin."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "Yazıcı ön ayarı bulunamadı, lütfen yeniden seçin."
 
 msgid "Printer Preset"
@@ -15745,10 +15812,11 @@ msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Aygıt sekmesinde yazdırma ana bilgisayarı web arayüzünü görüntüleyin"
 
 msgid "Replace the BambuLab's device tab with print host webui"
 msgstr ""
+"BambuLab’ın aygıt sekmesini yazdırma ana bilgisayarı web arayüzüyle değiştirin"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16198,7 +16266,7 @@ msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint'e bağlanılamadı"
 
 msgid "Internal error"
-msgstr ""
+msgstr "İç hata"
 
 msgid "Unknown error"
 msgstr "Bilinmeyen hata"
@@ -16612,6 +16680,42 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid "Current association: "
+#~ msgstr "Mevcut dernek:"
+
+#~ msgid "Associate prusaslicer://"
+#~ msgstr "Ortak prusaslicer://"
+
+#~ msgid "Not associated to any application"
+#~ msgstr "Herhangi bir uygulamayla ilişkili değil"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "models from Printable.com"
+#~ msgstr ""
+#~ "Orca’nın Printable.com’daki modelleri açabilmesi için OrcaSlicer’ı "
+#~ "prusaslicer:// bağlantılarıyla ilişkilendirin"
+
+#~ msgid "Associate bambustudio://"
+#~ msgstr "Bambstudio’yu ilişkilendirin://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with bambustudio:// links so that Orca can open "
+#~ "models from makerworld.com"
+#~ msgstr ""
+#~ "Orca’nın makerworld.com’daki modelleri açabilmesi için OrcaSlicer’ı "
+#~ "bambustudio:// bağlantılarıyla ilişkilendirin"
+
+#~ msgid "Associate cura://"
+#~ msgstr "Cura’yı ilişkilendirin://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with cura:// links so that Orca can open models from "
+#~ "thingiverse.com"
+#~ msgstr ""
+#~ "Orca’nın thingiverse.com’daki modelleri açabilmesi için OrcaSlicer’ı "
+#~ "cura:// bağlantılarıyla ilişkilendirin"
 
 #~ msgid ""
 #~ "File size exceeds the 100MB upload limit. Please upload your file through "

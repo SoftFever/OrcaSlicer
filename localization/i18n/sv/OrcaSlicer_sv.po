@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -586,7 +586,7 @@ msgstr "Visa trådram"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kan inte tillämpas när processen förhandsgranskas."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -653,7 +653,7 @@ msgstr "Yta"
 msgid "Horizontal text"
 msgstr "Vågrät text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mus flytta uppåt eller nedåt"
 
 msgid "Rotate text"
@@ -986,7 +986,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1599,7 +1599,7 @@ msgstr "Extruderings Bredd"
 msgid "Wipe options"
 msgstr "Avstryknings val"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Byggplattans vidhäftningsförmåga"
 
 msgid "Add part"
@@ -1879,12 +1879,6 @@ msgstr "Auto placera"
 msgid "Auto orient the object to improve print quality."
 msgstr "Auto placera objektet för att förbättra utskriftskvaliteten."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Dela det valda objektet till multipla objekt"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dela det valda objektet till multipla delar"
-
 msgid "Select All"
 msgstr "Välj Alla"
 
@@ -2148,8 +2142,8 @@ msgstr[0] ""
 msgstr[1] ""
 "Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 "Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
 "modellobjekten misslyckades"
@@ -2606,7 +2600,7 @@ msgstr "Timeout för sändning av utskriftsuppgift."
 msgid "Service Unavailable"
 msgstr "Tjänsten är inte tillgänglig"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Okänt fel"
 
 msgid "Sending print configuration"
@@ -3583,7 +3577,7 @@ msgstr ""
 "Värdet kommer att återställas till 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5731,6 +5725,9 @@ msgstr "Jämför inställningar"
 msgid "View all object's settings"
 msgstr "Se alla objektens inställningar"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5806,6 +5803,9 @@ msgstr "Ställ in filament som ska användas"
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6041,7 +6041,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Bekräfta Spara som"
 
 msgid "Delete object which is a part of cut object"
@@ -6261,10 +6261,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6405,6 +6405,21 @@ msgstr "Sök"
 
 msgid "Choose Download Directory"
 msgstr "Välj Nedladdnings Register"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Allmänna inställningar"
@@ -6599,36 +6614,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -10405,6 +10390,19 @@ msgstr ""
 "Filament diametern används för att beräkna extruderingen i G-kod, viktigt "
 "att detta är rätt"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10788,7 +10786,7 @@ msgstr "Första lagerhöjd"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
 "byggplattan"
@@ -11078,6 +11076,12 @@ msgstr "Vilken typ av G-kod är skrivaren kompatibel med"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11180,6 +11184,51 @@ msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Sammankopplingsdjup för en segmenterad region. Noll inaktiverar denna "
 "funktion."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Stryknings typ"
@@ -11806,6 +11855,14 @@ msgstr "Lutning"
 
 msgid "Spiral"
 msgstr "Spiral"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr ""
@@ -14497,7 +14554,7 @@ msgstr "Importera inställning"
 msgid "Create Type"
 msgstr "Skapa typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14546,10 +14603,10 @@ msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 msgid "The printer model was not found, please reselect."
 msgstr "Printer modellen hittades inte, välj igen."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
