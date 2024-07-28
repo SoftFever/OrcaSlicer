@@ -50,6 +50,9 @@ jobs:
           - os: ubuntu-20.04
           - os: ubuntu-24.04
           - os: windows-latest
+            arch: x64
+        # - os: windows-latest
+        #   arch: arm64
           - os: macos-14
             arch: x86_64
           - os: macos-14
