@@ -4,6 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFN99",
     "cool_plate_temp" : [
         "0"
     ],
@@ -43,6 +44,7 @@
     "filament_cost": [
         "20"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "290"
     ],

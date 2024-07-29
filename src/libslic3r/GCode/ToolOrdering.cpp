@@ -307,7 +307,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Print& print)
 {
     std::vector<unsigned int> tool_order;
-    int initial_extruder_id = -1;
     std::map<int, double> min_areas_per_extruder;
 
     for (auto object : print.objects()) {
@@ -336,7 +335,6 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         }
     }
 
-    double max_minimal_area = 0.;
     for (auto ape : min_areas_per_extruder) {
         auto iter = tool_order.begin();
         for (; iter != tool_order.end(); iter++) {
@@ -369,7 +367,6 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
 std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const PrintObject& object)
 {
     std::vector<unsigned int> tool_order;
-    int initial_extruder_id = -1;
     std::map<int, double> min_areas_per_extruder;
     auto first_layer = object.get_layer(0);
     for (auto layerm : first_layer->regions()) {
@@ -394,7 +391,6 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         }
     }
 
-    double max_minimal_area = 0.;
     for (auto ape : min_areas_per_extruder) {
         auto iter = tool_order.begin();
         for (; iter != tool_order.end(); iter++) {
@@ -875,7 +871,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return false;
     };
 
-    std::optional<unsigned int>current_extruder_id;
+    std::optional<unsigned int>current_extruder_id(-1);
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())

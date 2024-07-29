@@ -435,8 +435,6 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
     auto bold_pair = std::vector<std::pair<int, int>>();
     
-    auto index     = 0;
-
     auto b_first_list  = std::vector<int>();
     auto b_second_list = std::vector<int>();
 
@@ -815,9 +813,9 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
-    wxDataViewItem    item;
-    wxDataViewColumn *col;
-    wxWindow *        win = this;
+    // wxDataViewItem    item;
+    // wxDataViewColumn *col;
+    // wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
     // search_list->Select(item);
