@@ -780,11 +780,8 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
 
     assert(debug::verify_vertices_on_contour(vd, lines));
 
-    auto count = 0;
-
     for (const VD::edge_type &edge : vd.edges())
         if (edge.vertex1() == nullptr) {
-            count++;
             // Infinite Voronoi edge separating two Point sites or a Point site and a Segment site.
             // Infinite edge is always outside and it references at least one valid vertex.
             assert(edge.is_infinite());
@@ -800,7 +797,7 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
             // Opposite edge of an infinite edge is certainly not active.
             annotate_edge(edge.twin(), edge.is_secondary() ? EdgeCategory::PointsToContour : EdgeCategory::PointsOutside);
             if (edge.vertex0() != nullptr) {
-                annotate_vertex(edge.vertex0(), edge.is_secondary() ? VertexCategory::OnContour : VertexCategory::Outside);
+                //annotate_vertex(edge.vertex0(), edge.is_secondary() ? VertexCategory::OnContour : VertexCategory::Outside);
             } 
             // edge.vertex1() is null, it is implicitely outside.
             if (cell->contains_segment())
