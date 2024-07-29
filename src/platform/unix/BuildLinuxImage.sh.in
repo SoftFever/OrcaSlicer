@@ -37,7 +37,7 @@ echo -n "[9/9] Generating Linux app..."
 cat << EOF >@SLIC3R_APP_CMD@
 #!/bin/bash
 DIR=\$(readlink -f "\$0" | xargs dirname)
-export LD_LIBRARY_PATH="\$DIR/bin"
+export LD_LIBRARY_PATH="\$DIR/bin:\$LD_LIBRARY_PATH"
 
 # FIXME: OrcaSlicer segfault workarounds
 # 1) OrcaSlicer will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)

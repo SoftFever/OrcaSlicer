@@ -6,6 +6,7 @@
 #undef PI
 
 #include <boost/next_prior.hpp>
+#include "boost/log/trivial.hpp"
 // Include igl first. It defines "L" macro which then clashes with our localization
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #undef L
@@ -27,7 +28,6 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 // BBS: for boolean using mcut
 #include "mcut/include/mcut/mcut.h"
-#include "boost/log/trivial.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -589,7 +589,7 @@ msgstr "Draadmodel tonen"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kan niet toepassen bij een voorvertoning."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -657,7 +657,7 @@ msgstr "Oppervlak"
 msgid "Horizontal text"
 msgstr "Horizontale tekst"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Muis op of neer"
 
 msgid "Rotate text"
@@ -991,7 +991,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1615,7 +1615,7 @@ msgstr "Extrusiebreedte"
 msgid "Wipe options"
 msgstr "Veeg opties"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Printbed hechting"
 
 msgid "Add part"
@@ -1897,12 +1897,6 @@ msgid "Auto orient the object to improve print quality."
 msgstr ""
 "Automatisch oriënteren van het object om de printkwaliteit te verbeteren."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Splits het geselecteerde object op in meerdere objecten"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Splits het geselecteerde object op in meerdere onderdelen"
-
 msgid "Select All"
 msgstr "Alles selecteren"
 
@@ -2179,8 +2173,8 @@ msgstr[1] ""
 "De volgende model objecten zijn gerepareerd@De volgende model objecten zijn "
 "gerepareerd"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Repareren van de volgende modellen is mislukt@"
 msgstr[1] "Repareren van de volgende modellen is mislukt@"
 
@@ -2635,7 +2629,7 @@ msgstr "Het verzenden van de printtaak loopt uit."
 msgid "Service Unavailable"
 msgstr "Service niet beschikbaar"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Onbekende fout."
 
 msgid "Sending print configuration"
@@ -3638,7 +3632,7 @@ msgstr ""
 "De waarde wordt teruggezet naar 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -5806,6 +5800,9 @@ msgstr "Instellingen vergelijken"
 msgid "View all object's settings"
 msgstr "Alle instellingen van het object weergeven"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5881,6 +5878,9 @@ msgstr "Stel filamenten in om te gebruiken"
 
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6128,7 +6128,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Opslaan als bevestigen"
 
 msgid "Delete object which is a part of cut object"
@@ -6351,10 +6351,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6500,6 +6500,21 @@ msgstr "Browsen"
 
 msgid "Choose Download Directory"
 msgstr "Kies Downloadmap"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Algemene instellingen"
@@ -6707,36 +6722,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -10607,6 +10592,19 @@ msgstr ""
 "Filamentdiameter wordt gebruikt om de extrusie in de G-code te berekenen, "
 "het is dus belangrijk dat deze nauwkeurig wordt ingegeven"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -11010,7 +11008,7 @@ msgstr "Laaghoogte van de eerste laag"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Dit is de hoogte van de eerste laag. Door de hoogte van de eerste laag hoger "
 "te maken, kan de hechting op het printbed worden verbeterd."
@@ -11304,6 +11302,12 @@ msgstr "Het type G-code waarmee de printer compatibel is"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11408,6 +11412,51 @@ msgstr "Insluitdiepte van een gesegmenteerde regio"
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 "Insluitdiepte van een gesegmenteerd gebied. Nul schakelt deze functie uit."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Strijk type"
@@ -12060,6 +12109,14 @@ msgstr "Helling"
 
 msgid "Spiral"
 msgstr "Spiraal"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Beweeg Z alleen omhoog boven"
@@ -14798,7 +14855,7 @@ msgstr "Preset importeren"
 msgid "Create Type"
 msgstr "Type maken"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14847,10 +14904,10 @@ msgstr "Preset-pad niet gevonden; selecteer leverancier opnieuw."
 msgid "The printer model was not found, please reselect."
 msgstr "Het printermodel is niet gevonden, selecteer opnieuw."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
