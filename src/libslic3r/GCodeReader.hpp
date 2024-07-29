@@ -50,7 +50,7 @@ public:
         bool extruding(const GCodeReader &reader)  const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) > 0; }
         bool retracting(const GCodeReader &reader) const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) < 0; }
         bool travel()     const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && ! this->has(E); }
-        void set(const GCodeReader &reader, const Axis axis, const float new_value, const int decimal_digits = 3);
+        void set(const Axis axis, const float new_value, const int decimal_digits = 3);
 
         bool  has_x() const { return this->has(X); }
         bool  has_y() const { return this->has(Y); }
@@ -103,6 +103,7 @@ public:
     void reset() { memset(m_position, 0, sizeof(m_position)); }
     void apply_config(const GCodeConfig &config);
     void apply_config(const DynamicPrintConfig &config);
+    const GCodeConfig& config() { return m_config; };
 
     template<typename Callback>
     void parse_buffer(const std::string &buffer, Callback callback)

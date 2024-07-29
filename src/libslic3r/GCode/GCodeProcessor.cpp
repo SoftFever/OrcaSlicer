@@ -70,7 +70,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN",
     " WIPE_TOWER_START",
-    " WIPE_TOWER_END"
+    " WIPE_TOWER_END",
+    " PA_CHANGE:"
 };
 
 const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
@@ -90,7 +91,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN",
     " WIPE_TOWER_START",
-    " WIPE_TOWER_END"
+    " WIPE_TOWER_END",
+    " PA_CHANGE:"
 };
 
 
@@ -695,7 +697,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     if (!disable_m73 && !processed &&!is_temporary_decoration(gcode_line) &&
                         (GCodeReader::GCodeLine::cmd_is(gcode_line, "G1") || 
                             GCodeReader::GCodeLine::cmd_is(gcode_line, "G2") ||
-                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G3"))) {
+                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G3") ||
+                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G10")||
+                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G11"))) {
                         // remove temporary lines, add lines M73 where needed
                         unsigned int extra_lines_count = process_line_move(g1_lines_counter ++);
                         if (extra_lines_count > 0)
@@ -3477,7 +3481,6 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         arc_length = ((int)line.p()) * 2 * PI * (start_point - m_arc_center).norm();
     //BBS: Attention! arc_onterpolation does not support P mode while P is not 1.
     arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
-    float radian = ArcSegment::calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f start_dir = Circle::calc_tangential_vector(start_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f end_dir = Circle::calc_tangential_vector(end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
 
@@ -3838,14 +3841,18 @@ void GCodeProcessor::process_G29(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
 {
-    // stores retract move
-    store_move_vertex(EMoveType::Retract);
+    GCodeReader::GCodeLine g10;
+    g10.set(Axis::E, -this->m_parser.config().retraction_length.get_at(m_extruder_id));
+    g10.set(Axis::F,  this->m_parser.config().retraction_speed.get_at(m_extruder_id) * 60);
+    process_G1(g10);
 }
 
 void GCodeProcessor::process_G11(const GCodeReader::GCodeLine& line)
 {
-    // stores unretract move
-    store_move_vertex(EMoveType::Unretract);
+    GCodeReader::GCodeLine g11;
+    g11.set(Axis::E, this->m_parser.config().retraction_length.get_at(m_extruder_id) + this->m_parser.config().retract_restart_extra.get_at(m_extruder_id));
+    g11.set(Axis::F, this->m_parser.config().deretraction_speed.get_at(m_extruder_id) * 60);
+    process_G1(g11);
 }
 
 void GCodeProcessor::process_G20(const GCodeReader::GCodeLine& line)

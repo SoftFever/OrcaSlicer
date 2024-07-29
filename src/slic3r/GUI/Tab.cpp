@@ -1222,7 +1222,7 @@ void Tab::msw_rescale()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    for (ScalableBitmap& bmp : m_scaled_icons_list)
+    // for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1256,7 +1256,7 @@ void Tab::sys_color_changed()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    for (ScalableBitmap& bmp : m_scaled_icons_list)
+    // for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1616,19 +1616,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             wxGetApp().plater()->update();
         }
     }
-
-
-    // -1 means caculate all
-    auto update_flush_volume = [](int idx = -1) {
-        if (idx < 0) {
-            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
-            for (size_t i = 0; i < filament_size; ++i)
-                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
-        }
-        else
-            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
-        };
-
 
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
@@ -2614,8 +2601,6 @@ void TabPrintModel::update_model_config()
             // Reset m_config manually because there's no corresponding config in m_parent_tab->m_config
             for (auto plate_item : m_object_configs) {
                 const DynamicPrintConfig& plate_config = plate_item.second->get();
-                BedType plate_bed_type = (BedType)0;
-                PrintSequence plate_print_seq = (PrintSequence)0;
                 if (!plate_config.has("curr_bed_type")) {
                     // same as global
                     DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
@@ -2926,7 +2911,6 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
 
 void TabPrintPlate::notify_changed(ObjectBase* object)
 {
-    auto plate = dynamic_cast<PartPlate*>(object);
     auto objects_list = wxGetApp().obj_list();
     wxDataViewItemArray items;
     objects_list->GetSelections(items);
@@ -3249,11 +3233,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("filament_flow_ratio");
-
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
@@ -3276,6 +3255,25 @@ void TabFilament::build()
             on_value_change(opt_key, value);
         };
 
+        // Orca: New section to focus on flow rate and PA to declutter general section
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("filament_flow_ratio");
+
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
+
+        // Orca: adaptive pressure advance and calibration model
+        optgroup->append_single_option_line("adaptive_pressure_advance");
+        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
+        optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
+    
+        option = optgroup->get_option("adaptive_pressure_advance_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
+        //
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
@@ -3563,9 +3561,18 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+        
+        // Orca: adaptive pressure advance and calibration model
+        // If PA is not enabled, disable adaptive pressure advance and hide the model section
+        // If adaptive PA is not enabled, hide the adaptive PA model section
+        toggle_option("adaptive_pressure_advance", pa);
+        toggle_option("adaptive_pressure_advance_overhangs", pa);
+        bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", 0);
+        toggle_line("adaptive_pressure_advance_overhangs", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
-
         toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
     }
@@ -4748,14 +4755,14 @@ void Tab::rebuild_page_tree()
     if (sel_item == m_last_select_item)
         m_last_select_item = item;
     else
-        m_last_select_item = NULL;
+        m_last_select_item = 0;
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
     //BBS: GUI refactor
     if (item >= 0)
     {
-        bool ret = update_current_page_in_background(item);
+        update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
          if (m_parent->is_active_and_shown_tab(this)) // FIX: modify state not update
@@ -5575,7 +5582,6 @@ void Tab::delete_preset()
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         is_base_preset = true;
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
-            Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
             int process_preset_num     = 0;
             for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
@@ -5839,7 +5845,6 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
-            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
             BedShapeDialog dlg(this);
             dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
                 *m_config->option<ConfigOptionString>("bed_custom_texture"),

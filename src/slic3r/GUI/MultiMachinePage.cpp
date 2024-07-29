@@ -19,7 +19,7 @@ MultiMachinePage::MultiMachinePage(wxWindow* parent, wxWindowID id, const wxPoin
     wxGetApp().UpdateDarkUIWin(this);
 
     init_timer();
-    Bind(wxEVT_TIMER, &MultiMachinePage::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
 }
 
 MultiMachinePage::~MultiMachinePage()
@@ -59,7 +59,7 @@ bool MultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(2000);
-        wxPostEvent(this, wxTimerEvent());
+        on_timer();
     }
     else {
         m_refresh_timer->Stop();
@@ -97,7 +97,7 @@ void MultiMachinePage::init_timer()
     //wxPostEvent(this, wxTimerEvent());
 }
 
-void MultiMachinePage::on_timer(wxTimerEvent& event)
+void MultiMachinePage::on_timer()
 {
     m_local_task_manager->update_page();
     m_cloud_task_manager->update_page();
