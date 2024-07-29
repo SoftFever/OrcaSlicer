@@ -797,7 +797,7 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
             // Opposite edge of an infinite edge is certainly not active.
             annotate_edge(edge.twin(), edge.is_secondary() ? EdgeCategory::PointsToContour : EdgeCategory::PointsOutside);
             if (edge.vertex0() != nullptr) {
-                //annotate_vertex(edge.vertex0(), edge.is_secondary() ? VertexCategory::OnContour : VertexCategory::Outside);
+                annotate_vertex(edge.vertex0(), edge.is_secondary() ? VertexCategory::OnContour : VertexCategory::Outside);
             } 
             // edge.vertex1() is null, it is implicitely outside.
             if (cell->contains_segment())
