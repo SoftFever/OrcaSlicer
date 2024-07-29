@@ -2585,7 +2585,7 @@ void PerimeterGenerator::process_arachne()
             } else {
                 // There is no top surface ExPolygon, so we call Arachne again with parameters
                 // like when the single perimeter feature is disabled.
-                Arachne::WallToolPaths no_single_perimeter_tool_paths(last_p, ext_perimeter_spacing, perimeter_spacing, coord_t(inner_loop_number + 2), 0, layer_height, input_params_tmp);
+                Arachne::WallToolPaths no_single_perimeter_tool_paths(last_p, bead_width_0, perimeter_spacing, coord_t(inner_loop_number + 2), wall_0_inset, layer_height, input_params_tmp);
                 perimeters     = no_single_perimeter_tool_paths.getToolPaths();
                 infill_contour = union_ex(no_single_perimeter_tool_paths.getInnerContour());
             }
