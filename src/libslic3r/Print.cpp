@@ -161,6 +161,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "use_firmware_retraction",
         "slow_down_layer_time",
         "standby_temperature_delta",
+        "preheat_time",
+        "preheat_steps",
         "machine_start_gcode",
         "filament_start_gcode",
         "change_filament_gcode",
@@ -252,6 +254,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_unloading_speed_start"
             || opt_key == "filament_toolchange_delay"
             || opt_key == "filament_cooling_moves"
+            || opt_key == "filament_stamping_loading_speed"
+            || opt_key == "filament_stamping_distance"
             || opt_key == "filament_cooling_initial_speed"
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
@@ -273,6 +277,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "other_layers_print_sequence"
             || opt_key == "other_layers_print_sequence_nums" 
             || opt_key == "wipe_tower_bridging"
+            || opt_key == "wipe_tower_extra_flow"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "prime_volume"
@@ -284,10 +289,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "initial_layer_speed"
             || opt_key == "initial_layer_travel_speed"
             || opt_key == "slow_down_layers"
+            || opt_key == "idle_temperature"
             || opt_key == "wipe_tower_cone_angle"
             || opt_key == "wipe_tower_extra_spacing"
             || opt_key == "wipe_tower_max_purge_speed"
-            || opt_key == "wipe_tower_extruder"
+            || opt_key == "wipe_tower_filament"
             || opt_key == "wiping_volumes_extruders"
             || opt_key == "enable_filament_ramming"
             || opt_key == "purge_in_prime_tower"
@@ -493,7 +499,10 @@ std::vector<ObjectID> Print::print_object_ids() const
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.draft_shield == dsEnabled && m_config.skirt_loops > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
+    // Orca: unclear why (m_config.ooze_prevention && this->extruders().size() > 1) logic is here, removed.
+    // return (m_config.draft_shield == dsEnabled && m_config.skirt_loops > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
+
+    return (m_config.draft_shield == dsEnabled && m_config.skirt_loops > 0);
 }
 
 bool Print::has_skirt() const
@@ -1147,17 +1156,20 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
-                || std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1)
-                // BBS: remove L()
-                return { L("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
+                || std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1) {
+                // return { L("Different nozzle diameters and different filament diameters may not work well when prime tower is enabled. It's very experimental, please proceed with caucious.") };
+                    warning->string = L("Different nozzle diameters and different filament diameters may not work well when the prime tower is enabled. It's very experimental, so please proceed with caution.");
+                    warning->opt_key = "nozzle_diameter";
+                    break;
+                }
         }
 
         if (! m_config.use_relative_e_distances)
             return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
-        if (m_config.ooze_prevention)
-            return { L("Ooze prevention is currently not supported with the prime tower enabled.") };
 
-        // BBS: remove following logic and _L()
+        if (m_config.ooze_prevention && m_config.single_extruder_multi_material)
+            return {L("Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off.")};
+            
 #if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
@@ -2032,7 +2044,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         //BBS: get the objects' indices when GCodes are generated
         ToolOrdering tool_ordering;
         unsigned int initial_extruder_id = (unsigned int)-1;
-        // bool         has_wipe_tower = false;
+        bool         has_wipe_tower = false;
         std::vector<const PrintInstance*> 					print_object_instances_ordering;
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
@@ -2052,15 +2064,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         else {
             tool_ordering = this->tool_ordering();
             tool_ordering.assign_custom_gcodes(*this);
-            //BBS: have no single_extruder_multi_material_priming
-#if 0
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
-            initial_extruder_id = (has_wipe_tower && !this->config().single_extruder_multi_material_priming) ?
-                // The priming towers will be skipped.
-                tool_ordering.all_extruders().back() :
-                // Don't skip the priming towers.
-                tool_ordering.first_extruder();
-#endif
             initial_extruder_id = tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
             append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
@@ -2573,9 +2577,20 @@ void Print::_make_wipe_tower()
     for (unsigned int i = 0; i<number_of_extruders; ++i)
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
 
+    const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
+    // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
+    if (!m_config.purge_in_prime_tower && !is_BBL_printer()) {
+        for (unsigned int i = 0; i < number_of_extruders; ++i) {
+            for (unsigned int j = 0; j < number_of_extruders; ++j) {
+                if (wipe_volumes[i][j] > 0) {
+                    wipe_volumes[i][j] = m_config.prime_volume;
+                }
+            }
+        }
+    }
+
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
-    // BBS: priming logic is removed, so don't consider it in tool ordering
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int) -1, bUseWipeTower2 ? true : false);
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
@@ -2618,7 +2633,7 @@ void Print::_make_wipe_tower()
     }
     this->throw_if_canceled();
 
-    if (is_BBL_printer()) {
+    if (!bUseWipeTower2) {
         // in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
         WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
                              m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
@@ -2726,21 +2741,21 @@ void Print::_make_wipe_tower()
         for (size_t i = 0; i < number_of_extruders; ++i)
             wipe_tower.set_extruder(i, m_config);
 
-        // m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
-        //     wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
+        m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
+            wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
         // Lets go through the wipe tower layers and determine pairs of extruder changes for each
         // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
         {
-            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
+            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.all_extruders().back();
             for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
                 if (!layer_tools.has_wipe_tower)
                     continue;
-                // bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
                 wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
                                            current_extruder_id, false);
                 for (const auto extruder_id : layer_tools.extruders) {
-                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */ extruder_id !=
+                    if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id !=
                         current_extruder_id) {
                         float volume_to_wipe = m_config.prime_volume;
                         if (m_config.purge_in_prime_tower) {
@@ -2816,6 +2831,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     config.set_key_value("num_filaments", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
+    config.set_key_value("num_extruders", new ConfigOptionInt((int) m_config.nozzle_diameter.size()));
     config.set_key_value("plate_name", new ConfigOptionString(get_plate_name()));
     config.set_key_value("plate_number", new ConfigOptionString(get_plate_number_formatted()));
     config.set_key_value("model_name", new ConfigOptionString(get_model_name()));
@@ -2920,6 +2936,30 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
     }
     return final_path;
 }
+
+const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";
+const std::string PrintStatistics::FilamentUsedGMask = "; filament used [g] =";
+
+const std::string PrintStatistics::TotalFilamentUsedG          = "total filament used [g]";
+const std::string PrintStatistics::TotalFilamentUsedGMask      = "; total filament used [g] =";
+const std::string PrintStatistics::TotalFilamentUsedGValueMask = "; total filament used [g] = %.2lf\n";
+
+const std::string PrintStatistics::FilamentUsedCm3     = "filament used [cm3]";
+const std::string PrintStatistics::FilamentUsedCm3Mask = "; filament used [cm3] =";
+
+const std::string PrintStatistics::FilamentUsedMm     = "filament used [mm]";
+const std::string PrintStatistics::FilamentUsedMmMask = "; filament used [mm] =";
+
+const std::string PrintStatistics::FilamentCost     = "filament cost";
+const std::string PrintStatistics::FilamentCostMask = "; filament cost =";
+
+const std::string PrintStatistics::TotalFilamentCost          = "total filament cost";
+const std::string PrintStatistics::TotalFilamentCostMask      = "; total filament cost =";
+const std::string PrintStatistics::TotalFilamentCostValueMask = "; total filament cost = %.2lf\n";
+
+const std::string PrintStatistics::TotalFilamentUsedWipeTower     = "total filament used for wipe tower [g]";
+const std::string PrintStatistics::TotalFilamentUsedWipeTowerValueMask = "; total filament used for wipe tower [g] = %.2lf\n";
+
 
 /*add json export/import related functions */
 #define JSON_POLYGON_CONTOUR                "contour"

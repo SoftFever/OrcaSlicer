@@ -2887,7 +2887,7 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
     // 1) Copy the "extruder key to sparse_infill_filament and wall_filament.
     auto *opt_extruder = in.opt<ConfigOptionInt>(key_extruder);
     if (opt_extruder)
-        if (int extruder = opt_extruder->value; extruder != 0) {
+        if (int extruder = opt_extruder->value; extruder != 1) {
             // Not a default extruder.
             out.sparse_infill_filament      .value = extruder;
             out.solid_infill_filament.value = extruder;
