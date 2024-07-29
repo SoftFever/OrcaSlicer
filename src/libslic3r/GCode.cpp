@@ -778,79 +778,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         DynamicConfig config;
         config.set_key_value("change_filament_gcode", new ConfigOptionString(toolchange_gcode_str));
         config.set_key_value("deretraction_from_wipe_tower_generator", new ConfigOptionString(deretraction_str));
-
-        int previous_extruder_id = gcodegen.writer().extruder() ? (int) gcodegen.writer().extruder()->id() : -1;
-        config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
-        config.set_key_value("next_extruder", new ConfigOptionInt((int) new_extruder_id));
         config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
         config.set_key_value("layer_z", new ConfigOptionFloat(tcr.print_z));
         config.set_key_value("toolchange_z", new ConfigOptionFloat(z));
-        GCodeWriter     &gcode_writer = gcodegen.m_writer;
-        FullPrintConfig &full_config  = gcodegen.m_config;
-        float old_retract_length      = gcode_writer.extruder() != nullptr ? full_config.retraction_length.get_at(previous_extruder_id) : 0;
-        float new_retract_length      = full_config.retraction_length.get_at(new_extruder_id);
-        float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ?
-                                                  full_config.retract_length_toolchange.get_at(previous_extruder_id) :
-                                                  0;
-        float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_extruder_id);
-        int   old_filament_temp             = gcode_writer.extruder() != nullptr ?
-                                                  (gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) :
-                                                                               full_config.nozzle_temperature.get_at(previous_extruder_id)) :
-                                                  210;
-        int   new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_extruder_id) :
-                                                              full_config.nozzle_temperature.get_at(new_extruder_id);
-        Vec3d nozzle_pos        = gcode_writer.get_position();
-
-        float purge_volume  = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
-        float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_extruder_id), 2));
-        float purge_length  = purge_volume / filament_area;
-
-        int old_filament_e_feedrate = gcode_writer.extruder() != nullptr ?
-                                          (int) (60.0 * full_config.filament_max_volumetric_speed.get_at(previous_extruder_id) /
-                                                 filament_area) :
-                                          200;
-        old_filament_e_feedrate     = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-        int new_filament_e_feedrate = (int) (60.0 * full_config.filament_max_volumetric_speed.get_at(new_extruder_id) / filament_area);
-        new_filament_e_feedrate     = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
-
-        config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
-        config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.use_relative_e_distances));
-        config.set_key_value("toolchange_count", new ConfigOptionInt((int) gcodegen.m_toolchange_count));
-        config.set_key_value("fan_speed", new ConfigOptionInt((int) 0));
-        config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
-        config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
-        config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
-        config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
-        config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
-        config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
-        config.set_key_value("x_after_toolchange", new ConfigOptionFloat(start_pos(0)));
-        config.set_key_value("y_after_toolchange", new ConfigOptionFloat(start_pos(1)));
-        config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
-        config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
-        config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
-        config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
-        config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
-        config.set_key_value("travel_point_1_x", new ConfigOptionFloat(float(travel_point_1.x())));
-        config.set_key_value("travel_point_1_y", new ConfigOptionFloat(float(travel_point_1.y())));
-        config.set_key_value("travel_point_2_x", new ConfigOptionFloat(float(travel_point_2.x())));
-        config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
-        config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
-        config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
-
-        int   flush_count = std::min(g_max_flush_count, (int) std::round(purge_volume / g_purge_volume_one_time));
-        float flush_unit  = purge_length / flush_count;
-        int   flush_idx   = 0;
-        for (; flush_idx < flush_count; flush_idx++) {
-            char key_value[64] = {0};
-            snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
-            config.set_key_value(key_value, new ConfigOptionFloat(flush_unit));
-        }
-
-        for (; flush_idx < g_max_flush_count; flush_idx++) {
-            char key_value[64] = {0};
-            snprintf(key_value, sizeof(key_value), "flush_length_%d", flush_idx + 1);
-            config.set_key_value(key_value, new ConfigOptionFloat(0.f));
-        }
 
         std::string tcr_gcode,
             tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_extruder_id, &config);
@@ -2249,11 +2179,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->placeholder_parser().set("num_extruders", int(print.config().nozzle_diameter.values.size()));
     this->placeholder_parser().set("retract_length", new ConfigOptionFloats(print.config().retraction_length));
 
-    // PlaceholderParser currently substitues non-existent vector values with the zero'th value, which is harmful in the
-    // case of "is_extruder_used[]" as Slicer may lie about availability of such non-existent extruder. We rather
-    // sacrifice 256B of memory before we change the behavior of the PlaceholderParser, which should really only fill in
-    // the non-existent vector elements for filament parameters.
-    std::vector<unsigned char> is_extruder_used(std::max(size_t(255), print.config().filament_diameter.size()), 0);
+    //Orca: support max MAXIMUM_EXTRUDER_NUMBER extruders/filaments
+    std::vector<unsigned char> is_extruder_used(std::max(size_t(MAXIMUM_EXTRUDER_NUMBER), print.config().filament_diameter.size()), 0);
     for (unsigned int extruder : tool_ordering.all_extruders())
         is_extruder_used[extruder] = true;
     this->placeholder_parser().set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
@@ -6315,12 +6242,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
-        if (m_config.purge_in_prime_tower || is_BBL_Printer()) {
-            wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
-            wipe_volume *= m_config.flush_multiplier;
-        } else {
-            wipe_volume = m_config.prime_volume;
-        }
+        //Orca: always calculate wipe volume and hence provide correct flush_length, so that MMU devices with cutter and purge bin (e.g. ERCF_v2 with a filament cutter or Filametrix can take advantage of it)
+        wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
+        wipe_volume *= m_config.flush_multiplier;
+
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
         //BBS: must clean m_start_gcode_filament
