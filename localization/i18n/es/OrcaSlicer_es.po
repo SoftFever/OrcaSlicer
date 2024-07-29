@@ -529,8 +529,8 @@ msgstr "Corte en Plano"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
-"Los bordes con pliegues pueden ser causa de la herramienta de corte, "
-"¿quieres arreglarlo ahora?"
+"Los bordes no plegados son causados por la herramienta de corte, ¿quieres "
+"arreglarlo ahora?"
 
 msgid "Repairing model object"
 msgstr "Reparación de un objeto modelo"
@@ -15116,7 +15116,7 @@ msgid "material with significant thermal shrinkage/expansion, such as..."
 msgstr "Material con importante contracción/expansión térmica, como..."
 
 msgid "materials with inaccurate filament diameter"
-msgstr "Materiales con diámetro de filamento inpreciso"
+msgstr "Materiales con diámetro de filamento impreciso"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr "Hemos encontrado el mejor Factor de Calibración de Dinámicas de Flujo"
@@ -16440,6 +16440,7 @@ msgstr ""
 "En comparación con el perfil predeterminado de una boquilla de 0,2 mm, tiene "
 "una altura de capa menor. Esto da como resultado líneas de capa casi "
 "invisibles y una mayor calidad de impresión, pero un tiempo de impresión más "
+"corto."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
