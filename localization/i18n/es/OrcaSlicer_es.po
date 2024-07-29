@@ -9865,7 +9865,7 @@ msgstr ""
 "incrementarán"
 
 msgid "Bottom shell thickness"
-msgstr "Espesor de la cubierta inferior"
+msgstr "Espesor mínimo de la cubierta inferior"
 
 msgid ""
 "The number of bottom solid layers is increased when slicing if the thickness "
@@ -16738,7 +16738,7 @@ msgid ""
 "Did you know that OrcaSlicer supports chamber temperature?"
 msgstr ""
 "Temperatura de la cámara \n"
-"¿Sabía que OrcaSlicer admite la temperatura de la cámara?"
+"¿Sabía que OrcaSlicer admite la temperatura de cámara?"
 
 #: resources/data/hints.ini: [hint:Calibration]
 msgid ""
