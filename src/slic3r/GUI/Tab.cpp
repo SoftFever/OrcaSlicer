@@ -272,7 +272,7 @@ void Tab::create_preset_tab()
     //search input
     m_search_item = new StaticBox(m_top_panel);
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#DBDBDB"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);
@@ -301,7 +301,7 @@ void Tab::create_preset_tab()
         if (m_presets_choice) m_presets_choice->Show();
 
         m_btn_save_preset->Show();
-	m_btn_delete_preset->Show(); // ORCA: fixes delete preset button visible while search box focused
+        m_btn_delete_preset->Show(); // ORCA: fixes delete preset button visible while search box focused
         m_undo_btn->Show();          // ORCA: fixes revert preset button visible while search box focused
         m_btn_search->Show();
         m_search_item->Hide();
@@ -331,7 +331,7 @@ void Tab::create_preset_tab()
              m_presets_choice->Hide();
 
          m_btn_save_preset->Hide();
-	 m_btn_delete_preset->Hide(); // ORCA: fixes delete preset button visible while search box focused
+         m_btn_delete_preset->Hide(); // ORCA: fixes delete preset button visible while search box focused
          m_undo_btn->Hide();          // ORCA: fixes revert preset button visible while search box focused
          m_btn_search->Hide();
          m_search_item->Show();
@@ -3223,11 +3223,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("filament_flow_ratio");
-
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
@@ -3249,6 +3244,25 @@ void TabFilament::build()
             on_value_change(opt_key, value);
         };
 
+        // Orca: New section to focus on flow rate and PA to declutter general section
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("filament_flow_ratio");
+
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
+
+        // Orca: adaptive pressure advance and calibration model
+        optgroup->append_single_option_line("adaptive_pressure_advance");
+        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
+        optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
+    
+        option = optgroup->get_option("adaptive_pressure_advance_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
+        //
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
@@ -3538,9 +3552,18 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+        
+        // Orca: adaptive pressure advance and calibration model
+        // If PA is not enabled, disable adaptive pressure advance and hide the model section
+        // If adaptive PA is not enabled, hide the adaptive PA model section
+        toggle_option("adaptive_pressure_advance", pa);
+        toggle_option("adaptive_pressure_advance_overhangs", pa);
+        bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", 0);
+        toggle_line("adaptive_pressure_advance_overhangs", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
-
         toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
     }

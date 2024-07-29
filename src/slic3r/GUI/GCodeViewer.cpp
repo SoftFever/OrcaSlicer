@@ -4547,7 +4547,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
                 if (preferred_offset > offsets.back()) {
                     offsets.back() = preferred_offset;
-                    imgui.set_requires_extra_frame();
                 }
             }
 
