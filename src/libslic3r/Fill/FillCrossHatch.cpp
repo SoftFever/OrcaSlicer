@@ -1,3 +1,4 @@
+#include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
 #include <cmath>
 
