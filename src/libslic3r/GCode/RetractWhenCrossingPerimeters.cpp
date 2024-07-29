@@ -1,6 +1,4 @@
-#include "../ClipperUtils.hpp"
 #include "../Layer.hpp"
-#include "../Polyline.hpp"
 
 #include "RetractWhenCrossingPerimeters.hpp"
 

@@ -405,7 +405,6 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     // Set tooltips with information for each icon
     // BBS: markdown tip
     if (!markdowntip.empty()) {
-        wxWindow* window = GetGrandParent();
         assert(focusedLine);
         wxPoint pos2 = { 250, focusedLine->rect_label.y };
         pos2 = ClientToScreen(pos2);

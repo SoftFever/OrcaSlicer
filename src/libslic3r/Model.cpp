@@ -442,7 +442,7 @@ ModelObject* Model::add_object(const ModelObject &other)
     this->objects.push_back(new_object);
     // BBS: backup
     if (need_backup) {
-        if (auto model = other.get_model()) {
+        if (other.get_model()) {
             auto iter = object_backup_id_map.find(other.id().id);
             if (iter != object_backup_id_map.end()) {
                 object_backup_id_map.emplace(new_object->id().id, iter->second);
@@ -2615,7 +2615,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;
 
-    unsigned int extruder_counter = 0;
+    // unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
 
     for (TriangleMesh &mesh : meshes) {
@@ -2930,9 +2930,6 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                     std::cout << "error";
                 }
             };
-            auto calc_tri_area = [](const Vec3f &v0, const Vec3f &v1, const Vec3f &v2) {
-                return std::abs((v0 - v1).cross(v0 - v2).norm()) / 2;
-            };
             auto volume = obj->volumes[0];
             volume->config.set("extruder", first_extruder_id);
             auto face_count = volume->mesh().its.indices.size();
@@ -3032,7 +3029,6 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             volume->mmu_segmentation_facets.reserve(face_count);
             if (volume->mesh().its.indices.size() != face_filament_ids.size()) { return false; }
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {
-                auto face         = volume->mesh().its.indices[i];
                 auto filament_id = face_filament_ids[i];
                 if (filament_id <= 1) { continue; }
                 std::string result;
