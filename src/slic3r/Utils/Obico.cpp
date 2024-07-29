@@ -10,10 +10,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/convert.hpp>
 
-#include <curl/curl.h>
 #include <wx/progdlg.h>
 
 #include "slic3r/GUI/GUI.hpp"
@@ -22,8 +20,6 @@
 #include "slic3r/GUI/format.hpp"
 #include "Http.hpp"
 #include "libslic3r/AppConfig.hpp"
-#include "Bonjour.hpp"
-#include "slic3r/GUI/BonjourDialog.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
