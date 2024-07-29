@@ -2,7 +2,6 @@
 #include "ShortestPath.hpp"
 #include <algorithm>
 #include <cmath>
-#include <map>
 
 namespace Slic3r {
 

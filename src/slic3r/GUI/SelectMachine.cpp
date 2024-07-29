@@ -421,7 +421,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
-    Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
@@ -459,7 +459,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
         }
     }
 
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
     PopupWindow::Popup();
 }
 
@@ -529,7 +529,7 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
     return m_panel_title_own;
 }
 
-void SelectMachinePopup::on_timer(wxTimerEvent &event)
+void SelectMachinePopup::on_timer()
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup on_timer";
     wxGetApp().reset_to_active();
@@ -933,7 +933,6 @@ wxString SelectMachineDialog::format_text(wxString &m_msg)
 
     wxString out_txt      = m_msg;
     wxString count_txt    = "";
-    int      new_line_pos = 0;
 
     for (int i = 0; i < m_msg.length(); i++) {
         auto text_size = m_statictext_ams_msg->GetTextExtent(count_txt);
@@ -2461,9 +2460,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //check blacklist
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
-
-        auto tid = m_ams_mapping_result[i].tray_id;
-
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
         std::string filament_brand;
 
@@ -3319,7 +3315,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             if (m_list[i]->is_lan_mode_printer() && !m_list[i]->has_access_right()) {
                 ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
                 dlg.set_machine_object(m_list[i]);
-                auto res = dlg.ShowModal();
+                dlg.ShowModal();
                 m_printer_last_select = "";
                 m_comboBox_printer->SetSelection(-1);
                 m_comboBox_printer->Refresh();
@@ -3369,7 +3365,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 {
-    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
     auto show_cali_tips = true;
 
     if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { show_cali_tips = false; }
@@ -3706,7 +3701,6 @@ void SelectMachineDialog::reset_ams_material()
 {
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
-        int           id = iter->first;
         Material* item = iter->second;
         MaterialItem* m = item->item;
         wxString ams_id = "-";
@@ -3988,7 +3982,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     BitmapCache    bmcache;
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
-        int       id   = iter->first;
         Material *item = iter->second;
         item->item->Destroy();
         delete item;
@@ -4015,7 +4008,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
-                int           id   = iter->first;
                 Material *    item = iter->second;
                 MaterialItem *m    = item->item;
                 m->on_normal();
@@ -4024,9 +4016,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
             m_current_filament_id = extruder;
             item->on_selected();
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
 
             // update ams data
             DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4247,7 +4236,6 @@ void SelectMachineDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, T
     MaterialHash::iterator iter               = m_materialList.begin();
     bool                   is_connect_printer = true;
     while (iter != m_materialList.end()) {
-        int           id   = iter->first;
         Material *    item = iter->second;
         MaterialItem *m    = item->item;
         if (m->m_ams_name == "-") {
@@ -4359,10 +4347,10 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
     MachineObject* obj_ = dev_manager->get_selected_machine();
     update_flow_cali_check(obj_);
 
+#ifdef __WINDOWS__
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
 
-#ifdef __WINDOWS__
     if (screenSize.GetHeight() < dialogSize.GetHeight()) {
         m_need_adaptation_screen = true;
         m_scrollable_view->SetScrollRate(0, 5);
@@ -4423,7 +4411,6 @@ void SelectMachineDialog::set_default_from_sdcard()
     //init MaterialItem
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
-        int       id = iter->first;
         Material* item = iter->second;
         item->item->Destroy();
         delete item;
@@ -4446,7 +4433,6 @@ void SelectMachineDialog::set_default_from_sdcard()
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, fo](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
-                int           id = iter->first;
                 Material* item = iter->second;
                 MaterialItem* m = item->item;
                 m->on_normal();
@@ -4459,9 +4445,6 @@ void SelectMachineDialog::set_default_from_sdcard()
             catch (...) {}
             item->on_selected();
 
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
             // update ams data
             DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev_manager) return;
@@ -4485,7 +4468,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                     m_mapping_popup.Popup();
                 }
             }
-            });
+        });
 
         Material* material_item = new Material();
         material_item->id = fo.id;
@@ -4512,10 +4495,9 @@ void SelectMachineDialog::set_default_from_sdcard()
 
     set_flow_calibration_state(true);
 
+#ifdef __WINDOWS__
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
-
-#ifdef __WINDOWS__
     if (screenSize.GetHeight() < dialogSize.GetHeight()) {
         m_need_adaptation_screen = true;
         m_scrollable_view->SetScrollRate(0, 5);

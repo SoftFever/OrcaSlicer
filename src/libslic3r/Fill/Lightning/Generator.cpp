@@ -4,7 +4,6 @@
 #include "Generator.hpp"
 #include "TreeNode.hpp"
 
-#include "../../ClipperUtils.hpp"
 #include "../../Layer.hpp"
 #include "../../Print.hpp"
 
@@ -35,7 +34,7 @@ static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag 
         rand_init = true;
     }
 
-    int rand_num = rand() % 1000000;
+    // int rand_num = rand() % 1000000;
     //makedir("./SVG");
     std::string prefix = "./SVG/";
     std::string suffix = ".svg";

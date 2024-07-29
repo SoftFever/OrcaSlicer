@@ -3,7 +3,6 @@
 #include "libslic3r/FlushVolCalc.hpp"
 #include "WipeTowerDialog.hpp"
 #include "BitmapCache.hpp"
-#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -734,9 +733,6 @@ void WipingPanel::update_warning_texts()
 {
     static const wxColour g_warning_color = *wxRED;
     static const wxColour g_normal_color = *wxBLACK;
-
-    wxString multi_str = m_flush_multiplier_ebox->GetValue();
-    float multiplier = wxAtof(multi_str);
 
     bool has_exception_flush = false;
     for (int i = 0; i < edit_boxes.size(); i++) {
