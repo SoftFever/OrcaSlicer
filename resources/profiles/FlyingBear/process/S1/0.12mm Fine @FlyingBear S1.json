@@ -20,7 +20,7 @@
     "layer_height": "0.12",
     "print_settings_id": "0.12mm Fine @FlyingBear S1",
     "sparse_infill_speed": "400",
-    "exclude_object": "0",
+    "exclude_object": "1",
     "internal_bridge_speed": "50",
 	"compatible_printers": [
         "FlyingBear S1 0.4 nozzle"
