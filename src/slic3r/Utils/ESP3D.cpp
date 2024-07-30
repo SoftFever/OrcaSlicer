@@ -1,8 +1,6 @@
 #include "ESP3D.hpp"
 
 #include <algorithm>
-#include <ctime>
-#include <chrono>
 #include <thread>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
@@ -12,13 +10,7 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <wx/frame.h>
 #include <wx/event.h>
-#include <wx/progdlg.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/GUI.hpp"
@@ -26,7 +18,6 @@
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "Http.hpp"
 #include "SerialMessage.hpp"
-#include "SerialMessageType.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;

@@ -17,7 +17,6 @@
 namespace Slic3r {
 
 bool GCodeWriter::full_gcode_comment = true;
-const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 bool GCodeWriter::supports_separate_travel_acceleration(GCodeFlavor flavor)
 {
@@ -91,46 +90,54 @@ std::string GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
-{
-    if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
+std::string GCodeWriter::set_temperature(unsigned int temperature, GCodeFlavor flavor, bool wait, int tool, std::string comment){
+    if (wait && (flavor == gcfMakerWare || flavor == gcfSailfish))
         return "";
-    
-    std::string code, comment;
-    if (wait && FLAVOR_IS_NOT(gcfTeacup) && FLAVOR_IS_NOT(gcfRepRapFirmware)) {
-        code = "M109";
-        comment = "set nozzle temperature and wait for it to be reached";
+
+    std::string code;
+    if (wait && flavor != gcfTeacup && flavor != gcfRepRapFirmware) {
+        code    = "M109";
+        if(comment.empty())
+            comment = "set nozzle temperature and wait for it to be reached";
     } else {
-        if (FLAVOR_IS(gcfRepRapFirmware)) { // M104 is deprecated on RepRapFirmware
+        if (flavor == gcfRepRapFirmware) { // M104 is deprecated on RepRapFirmware
             code = "G10";
         } else {
             code = "M104";
         }
-        comment = "set nozzle temperature";
+        if(comment.empty())
+            comment = "set nozzle temperature";
     }
-    
+
     std::ostringstream gcode;
     gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
+    if (flavor == gcfMach3 || flavor == gcfMachinekit) {
         gcode << "P";
     } else {
         gcode << "S";
     }
     gcode << temperature;
-    bool multiple_tools = this->multiple_extruders && ! m_single_extruder_multi_material;
-    if (tool != -1 && (multiple_tools || FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
-        if (FLAVOR_IS(gcfRepRapFirmware)) {
+    if (tool != -1) {
+        if (flavor == gcfRepRapFirmware) {
             gcode << " P" << tool;
         } else {
             gcode << " T" << tool;
         }
     }
     gcode << " ; " << comment << "\n";
-    
-    if ((FLAVOR_IS(gcfTeacup) || FLAVOR_IS(gcfRepRapFirmware)) && wait)
+
+    if ((flavor == gcfTeacup || flavor == gcfRepRapFirmware) && wait)
         gcode << "M116 ; wait for temperature to be reached\n";
-    
+
     return gcode.str();
+}
+
+std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+{
+    // set tool to -1 to make sure we won't emit T parameter for single extruder or SEMM
+    if (!this->multiple_extruders || m_single_extruder_multi_material)
+        tool = -1;
+    return set_temperature(temperature, this->config.gcode_flavor, wait, tool);
 }
 
 // BBS
@@ -458,7 +465,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             //BBS: SpiralLift
             if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
                 //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
-                double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
+                double radius = delta(2) / (2 * PI * atan(this->extruder()->travel_slope()));
                 Vec2d ij_offset = radius * delta_no_z.normalized();
                 ij_offset = { -ij_offset(1), ij_offset(0) };
                 slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
@@ -466,11 +473,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             //BBS: LazyLift
             else if (m_to_lift_type == LiftType::LazyLift &&
                 this->is_current_position_clear() && 
-                atan2(delta(2), delta_no_z.norm()) < GCodeWriter::slope_threshold) {
+                atan2(delta(2), delta_no_z.norm()) < this->extruder()->travel_slope()) {
                 //BBS: check whether we can make a travel like
                 //   _____
                 //  /       to make the z list early to avoid to hit some warping place when travel is long.
-                Vec2d temp = delta_no_z.normalized() * delta(2) / tan(GCodeWriter::slope_threshold);
+                Vec2d temp = delta_no_z.normalized() * delta(2) / tan(this->extruder()->travel_slope());
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);

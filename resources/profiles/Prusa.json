@@ -1,6 +1,6 @@
 {
     "name": "Prusa",
-    "version": "02.01.00.01",
+    "version": "02.01.02.40",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
@@ -23,6 +23,10 @@
         {
             "name": "Prusa XL",
             "sub_path": "machine/Prusa XL.json"
+        },
+        {
+            "name": "Prusa XL 5T",
+            "sub_path": "machine/Prusa XL 5T.json"
         }
     ],
     "process_list": [
@@ -53,6 +57,10 @@
         {
             "name": "process_common_xl",
             "sub_path": "process/process_common_xl.json"
+        },
+        {
+            "name": "process_common_xl_5t",
+            "sub_path": "process/process_common_xl_5t.json"
         },
         {
             "name": "0.20mm Standard @MINI 0.25",
@@ -389,6 +397,134 @@
         {
             "name": "0.30mm Detail @Prusa XL 0.8",
             "sub_path": "process/0.30mm Detail @Prusa XL 0.8.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa XL 5T 0.25",
+            "sub_path": "process/0.15mm Structural @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.15mm Speed @Prusa XL 5T 0.25",
+            "sub_path": "process/0.15mm Speed @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.12mm Structural @Prusa XL 5T 0.25",
+            "sub_path": "process/0.12mm Structural @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.12mm Speed @Prusa XL 5T 0.25",
+            "sub_path": "process/0.12mm Speed @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.07mm Detail @Prusa XL 5T 0.25",
+            "sub_path": "process/0.07mm Detail @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.05mm Detail @Prusa XL 5T 0.25",
+            "sub_path": "process/0.05mm Detail @Prusa XL 5T 0.25.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa XL 5T 0.3",
+            "sub_path": "process/0.20mm Speed @Prusa XL 5T 0.3.json"
+        },
+        {
+            "name": "0.16mm Structural @Prusa XL 5T 0.3",
+            "sub_path": "process/0.16mm Structural @Prusa XL 5T 0.3.json"
+        },
+        {
+            "name": "0.16mm Speed @Prusa XL 5T 0.3",
+            "sub_path": "process/0.16mm Speed @Prusa XL 5T 0.3.json"
+        },
+        {
+            "name": "0.12mm Structural @Prusa XL 5T 0.3",
+            "sub_path": "process/0.12mm Structural @Prusa XL 5T 0.3.json"
+        },
+        {
+            "name": "0.25mm Structural @Prusa XL 5T 0.4",
+            "sub_path": "process/0.25mm Structural @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa XL 5T 0.4",
+            "sub_path": "process/0.20mm Structural @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa XL 5T 0.4",
+            "sub_path": "process/0.20mm Speed @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa XL 5T 0.4",
+            "sub_path": "process/0.15mm Structural @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.15mm Speed @Prusa XL 5T 0.4",
+            "sub_path": "process/0.15mm Speed @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.10mm FastDetail @Prusa XL 5T 0.4",
+            "sub_path": "process/0.10mm FastDetail @Prusa XL 5T 0.4.json"
+        },
+        {
+            "name": "0.25mm Structural @Prusa XL 5T 0.5",
+            "sub_path": "process/0.25mm Structural @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.25mm Speed @Prusa XL 5T 0.5",
+            "sub_path": "process/0.25mm Speed @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa XL 5T 0.5",
+            "sub_path": "process/0.20mm Structural @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa XL 5T 0.5",
+            "sub_path": "process/0.20mm Speed @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa XL 5T 0.5",
+            "sub_path": "process/0.15mm Structural @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.10mm Structural @Prusa XL 5T 0.5",
+            "sub_path": "process/0.10mm Structural @Prusa XL 5T 0.5.json"
+        },
+        {
+            "name": "0.32mm Structural @Prusa XL 5T 0.6",
+            "sub_path": "process/0.32mm Structural @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.32mm Speed @Prusa XL 5T 0.6",
+            "sub_path": "process/0.32mm Speed @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.25mm Structural @Prusa XL 5T 0.6",
+            "sub_path": "process/0.25mm Structural @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @Prusa XL 5T 0.6",
+            "sub_path": "process/0.25mm Speed @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa XL 5T 0.6",
+            "sub_path": "process/0.20mm Structural @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa XL 5T 0.6",
+            "sub_path": "process/0.20mm Speed @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa XL 5T 0.6",
+            "sub_path": "process/0.15mm Structural @Prusa XL 5T 0.6.json"
+        },
+        {
+            "name": "0.55mm Draft @Prusa XL 5T 0.8",
+            "sub_path": "process/0.55mm Draft @Prusa XL 5T 0.8.json"
+        },
+        {
+            "name": "0.40mm Quality @Prusa XL 5T 0.8",
+            "sub_path": "process/0.40mm Quality @Prusa XL 5T 0.8.json"
+        },
+        {
+            "name": "0.30mm Detail @Prusa XL 5T 0.8",
+            "sub_path": "process/0.30mm Detail @Prusa XL 5T 0.8.json"
         }
     ],
     "filament_list": [
@@ -465,18 +601,6 @@
             "sub_path": "filament/Prusa Generic PLA @MINIIS.json"
         },
         {
-            "name": "Prusa Generic PLA @XL",
-            "sub_path": "filament/Prusa Generic PLA @XL.json"
-        },
-        {
-            "name": "Prusament PLA @XL",
-            "sub_path": "filament/Prusament PLA @XL.json"
-        },
-        {
-            "name": "Prusament rPLA @XL",
-            "sub_path": "filament/Prusament rPLA @XL.json"
-        },
-        {
             "name": "Prusa Generic PLA-CF",
             "sub_path": "filament/Prusa Generic PLA-CF.json"
         },
@@ -521,14 +645,6 @@
             "sub_path": "filament/Prusa Generic PETG @MINIIS 0.8.json"
         },
         {
-            "name": "Prusa Generic PETG @XL",
-            "sub_path": "filament/Prusa Generic PETG @XL.json"
-        },
-        {
-            "name": "Prusament PETG @XL",
-            "sub_path": "filament/Prusament PETG @XL.json"
-        },
-        {
             "name": "Prusa Generic ABS",
             "sub_path": "filament/Prusa Generic ABS.json"
         },
@@ -551,10 +667,6 @@
         {
             "name": "Prusa Generic ABS @MINIIS 0.8",
             "sub_path": "filament/Prusa Generic ABS @MINIIS 0.8.json"
-        },
-        {
-            "name": "Prusa Generic ABS @XL",
-            "sub_path": "filament/Prusa Generic ABS @XL.json"
         },
         {
             "name": "Prusa Generic TPU",
@@ -593,10 +705,6 @@
             "sub_path": "filament/Prusa Generic ASA @MINIIS 0.8.json"
         },
         {
-            "name": "Prusament ASA @XL",
-            "sub_path": "filament/Prusament ASA @XL.json"
-        },
-        {
             "name": "Prusa Generic PC",
             "sub_path": "filament/Prusa Generic PC.json"
         },
@@ -617,14 +725,6 @@
             "sub_path": "filament/Prusa Generic PC @MINIIS 0.8.json"
         },
         {
-            "name": "Prusament PC Blend @XL",
-            "sub_path": "filament/Prusament PC Blend @XL.json"
-        },
-        {
-            "name": "Prusament PC-CF @XL",
-            "sub_path": "filament/Prusament PC-CF @XL.json"
-        },
-        {
             "name": "Prusa Generic PVA",
             "sub_path": "filament/Prusa Generic PVA.json"
         },
@@ -643,10 +743,6 @@
         {
             "name": "Prusa Generic PVA @MINIIS 0.8",
             "sub_path": "filament/Prusa Generic PVA @MINIIS 0.8.json"
-        },
-        {
-            "name": "Prusament PVB @XL",
-            "sub_path": "filament/Prusament PVB @XL.json"
         },
         {
             "name": "Prusa Generic PA",
@@ -689,14 +785,106 @@
             "sub_path": "filament/Prusa Generic PA-CF @MINIIS 0.8.json"
         },
         {
+            "name": "Prusa Generic PLA @XL",
+            "sub_path": "filament/Prusa Generic PLA @XL.json"
+        },
+        {
+            "name": "Prusament PLA @XL",
+            "sub_path": "filament/Prusament PLA @XL.json"
+        },
+        {
+            "name": "Prusament rPLA @XL",
+            "sub_path": "filament/Prusament rPLA @XL.json"
+        },
+        {
+            "name": "Prusament PVB @XL",
+            "sub_path": "filament/Prusament PVB @XL.json"
+        },
+        {
+            "name": "Prusament ASA @XL",
+            "sub_path": "filament/Prusament ASA @XL.json"
+        },
+        {
+            "name": "Prusa Generic PETG @XL",
+            "sub_path": "filament/Prusa Generic PETG @XL.json"
+        },
+        {
+            "name": "Prusament PETG @XL",
+            "sub_path": "filament/Prusament PETG @XL.json"
+        },
+        {
+            "name": "Prusa Generic ABS @XL",
+            "sub_path": "filament/Prusa Generic ABS @XL.json"
+        },
+        {
+            "name": "Prusament PC Blend @XL",
+            "sub_path": "filament/Prusament PC Blend @XL.json"
+        },
+        {
+            "name": "Prusament PC-CF @XL",
+            "sub_path": "filament/Prusament PC-CF @XL.json"
+        },
+        {
             "name": "Prusament PA-CF @XL",
             "sub_path": "filament/Prusament PA-CF @XL.json"
+        },
+        {
+            "name": "Prusa Generic PLA @XL 5T",
+            "sub_path": "filament/Prusa Generic PLA @XL 5T.json"
+        },
+        {
+            "name": "Prusament PLA @XL 5T",
+            "sub_path": "filament/Prusament PLA @XL 5T.json"
+        },
+        {
+            "name": "Prusament rPLA @XL 5T",
+            "sub_path": "filament/Prusament rPLA @XL 5T.json"
+        },
+        {
+            "name": "Prusament PVB @XL 5T",
+            "sub_path": "filament/Prusament PVB @XL 5T.json"
+        },
+        {
+            "name": "Prusament ASA @XL 5T",
+            "sub_path": "filament/Prusament ASA @XL 5T.json"
+        },
+        {
+            "name": "Prusa Generic PETG @XL 5T",
+            "sub_path": "filament/Prusa Generic PETG @XL 5T.json"
+        },
+        {
+            "name": "Prusament PETG @XL 5T",
+            "sub_path": "filament/Prusament PETG @XL 5T.json"
+        },
+        {
+            "name": "Prusa Generic ABS @XL 5T",
+            "sub_path": "filament/Prusa Generic ABS @XL 5T.json"
+        },
+        {
+            "name": "Prusament PC Blend @XL 5T",
+            "sub_path": "filament/Prusament PC Blend @XL 5T.json"
+        },
+        {
+            "name": "Prusament PC-CF @XL 5T",
+            "sub_path": "filament/Prusament PC-CF @XL 5T.json"
+        },
+        {
+            "name": "Prusament PA-CF @XL 5T",
+            "sub_path": "filament/Prusament PA-CF @XL 5T.json"
         }
     ],
     "machine_list": [
         {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_machine_common_xl",
+            "sub_path": "machine/fdm_machine_common_xl.json"
+        },
+        {
+            "name": "fdm_machine_common_xl_5t",
+            "sub_path": "machine/fdm_machine_common_xl_5t.json"
         },
 		{
             "name": "Prusa MK3S 0.25 nozzle",
@@ -785,6 +973,30 @@
         {
             "name": "Prusa XL 0.8 nozzle",
             "sub_path": "machine/Prusa XL 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.25 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.3 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.3 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.4 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.5 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.6 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 5T 0.8 nozzle",
+            "sub_path": "machine/Prusa XL 5T 0.8 nozzle.json"
         }
     ]
 }

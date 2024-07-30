@@ -163,7 +163,7 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = COL_BUTTON_HOVERED;
 //BBS
 
 const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.0f);
-const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = ImVec4(0.86f, 0.99f, 0.91f, 1.0f);
+const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255.f, 0.25f }; // ORCA used on various places like text selection bg. Replaced with orca color
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f, 1.0f };
@@ -182,8 +182,6 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
-    bool compression_enabled = false;
-
     NSVGimage *image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
     if (image == nullptr) { return false; }
 
@@ -236,7 +234,6 @@ bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, Th
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;
-    ImGuiIO& io = ImGui::GetIO();
 
     const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
 
@@ -1793,7 +1790,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     ImGui::ListBoxFooter();
 
-    auto check_box = [&edited, this](const wxString& label, bool& check) {
+    /*auto check_box = [&edited, this](const wxString& label, bool& check) {
         ImGui::SameLine();
         bool ch = check;
         checkbox(label, ch);
@@ -1801,7 +1798,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
             check = !check;
             edited = true;
         }
-    };
+    };*/
 
     ImGui::AlignTextToFramePadding();
 
@@ -2585,20 +2582,20 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     } else {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     }
@@ -3149,7 +3146,6 @@ bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
 
-    bool compress = false;
     GLint last_texture;
     unsigned m_image_texture{ 0 };
     unsigned char* pixels = (unsigned char*)(&data[0]);

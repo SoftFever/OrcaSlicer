@@ -156,6 +156,12 @@ set(lisbslic3r_sources
     GCode/RetractWhenCrossingPerimeters.hpp
     GCode/SmallAreaInfillFlowCompensator.cpp
     GCode/SmallAreaInfillFlowCompensator.hpp
+    GCode/PchipInterpolatorHelper.cpp
+    GCode/PchipInterpolatorHelper.hpp
+    GCode/AdaptivePAInterpolator.cpp
+    GCode/AdaptivePAInterpolator.hpp
+    GCode/AdaptivePAProcessor.cpp
+    GCode/AdaptivePAProcessor.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp
@@ -447,8 +453,12 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
-        GCode/Thumbnails.cpp
-        GCode/Thumbnails.hpp
+    GCode/Thumbnails.cpp
+    GCode/Thumbnails.hpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -575,6 +585,10 @@ target_link_libraries(libslic3r
     qoi
     opencv_world
     )
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(libslic3r PUBLIC BOOST_ALL_DYN_LINK)
+endif()
 
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)

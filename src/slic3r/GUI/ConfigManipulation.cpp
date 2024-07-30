@@ -151,6 +151,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PVA",45},
         {"TPU",50},
         {"PETG",55},
+        {"PCTG",55},
         {"PETG-CF",55}
     };
    bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
@@ -267,7 +268,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloat>("elefant_foot_compensation")->value > 1)
     {
-        const wxString msg_text = _(L("Too large elefant foot compensation is unreasonable.\n"
+        const wxString msg_text = _(L("Too large elephant foot compensation is unreasonable.\n"
                                       "If really have serious elephant foot effect, please check other settings.\n"
                                       "For example, whether bed temperature is too high.\n\n"
                                       "The value will be reset to 0."));
@@ -281,7 +282,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
-    auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (!is_plate_config &&
         config->opt_bool("spiral_mode") &&
@@ -297,7 +297,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
-        bool support = true;
         if (answer == wxID_YES) {
             new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -309,8 +308,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
-            timelapse_type = TimelapseType::tlTraditional;
-            support = false;
         }
         else {
             new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
@@ -664,20 +661,35 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
     toggle_field("print_order", !have_sequential_printing);
+
+    toggle_field("single_extruder_multi_material", !is_BBL_Printer);
     
+    auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
+
+    toggle_field("ooze_prevention", !bSEMM);
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
-    toggle_field("standby_temperature_delta", have_ooze_prevention);
-    
+    toggle_line("standby_temperature_delta", have_ooze_prevention);
+    toggle_line("preheat_time", have_ooze_prevention);
+    int preheat_steps = config->opt_int("preheat_steps");
+    toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
+
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);
-    
+
+    for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
+        toggle_line(el, !bSEMM);
+
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
-    
-    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
-        toggle_line(el, have_prime_tower && purge_in_primetower);
-    
-    toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
+
+    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
+                    "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
+                    "wipe_tower_bridging", "wipe_tower_extra_flow",
+                    "wipe_tower_no_sparse_layers",
+                    "single_extruder_multi_material_priming"})
+      toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);
@@ -762,6 +774,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
     toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
     toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+
+    bool use_beam_interlocking = config->opt_bool("interlocking_beam");
+    toggle_line("mmu_segmented_region_interlocking_depth", !use_beam_interlocking);
+    toggle_line("interlocking_beam_width", use_beam_interlocking);
+    toggle_line("interlocking_orientation", use_beam_interlocking);
+    toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
+    toggle_line("interlocking_depth", use_beam_interlocking);
+    toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

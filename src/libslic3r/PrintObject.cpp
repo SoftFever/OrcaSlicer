@@ -677,7 +677,6 @@ void PrintObject::estimate_curled_extrusions()
                         [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
 
             // Estimate curling of support material and add it to the malformaition lines of each layer
-            float support_flow_width = support_material_flow(this, this->config().layer_height).width();
             SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
                                                  float(this->print()->default_object_config().inner_wall_acceleration.getFloat()),
                                                  this->config().raft_layers.getInt(), this->config().brim_type.value,
@@ -924,8 +923,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
         } else if (
-               opt_key == "small_area_infill_flow_compensation"
-            || opt_key == "small_area_infill_flow_compensation_model") {
+            opt_key == "small_area_infill_flow_compensation_model") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
@@ -958,7 +956,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slowdown_for_curled_perimeters"
             || opt_key == "make_overhang_printable"
             || opt_key == "make_overhang_printable_angle"
-            || opt_key == "make_overhang_printable_hole_size") {
+            || opt_key == "make_overhang_printable_hole_size"
+            || opt_key == "interlocking_beam"
+            || opt_key == "interlocking_orientation"
+            || opt_key == "interlocking_beam_layer_count"
+            || opt_key == "interlocking_depth"
+            || opt_key == "interlocking_boundary_avoidance"
+            || opt_key == "interlocking_beam_width") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
@@ -1080,7 +1084,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
-            || opt_key == "initial_layer_line_width") {
+            || opt_key == "initial_layer_line_width"
+            || opt_key == "small_area_infill_flow_compensation") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posPrepareInfill);
@@ -2882,7 +2887,7 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
     // 1) Copy the "extruder key to sparse_infill_filament and wall_filament.
     auto *opt_extruder = in.opt<ConfigOptionInt>(key_extruder);
     if (opt_extruder)
-        if (int extruder = opt_extruder->value; extruder != 0) {
+        if (int extruder = opt_extruder->value; extruder != 1) {
             // Not a default extruder.
             out.sparse_infill_filament      .value = extruder;
             out.solid_infill_filament.value = extruder;
@@ -2943,16 +2948,16 @@ struct POProfiler
 
 void PrintObject::generate_support_preview()
 {
-    POProfiler profiler;
+    // POProfiler profiler;
 
-    boost::posix_time::ptime ts1 = boost::posix_time::microsec_clock::local_time();
+    // boost::posix_time::ptime ts1 = boost::posix_time::microsec_clock::local_time();
     this->slice();
-    boost::posix_time::ptime ts2 = boost::posix_time::microsec_clock::local_time();
-    profiler.duration1 = (ts2 - ts1).total_milliseconds();
+    // boost::posix_time::ptime ts2 = boost::posix_time::microsec_clock::local_time();
+    // profiler.duration1 = (ts2 - ts1).total_milliseconds();
 
     this->generate_support_material();
-    boost::posix_time::ptime ts3 = boost::posix_time::microsec_clock::local_time();
-    profiler.duration2 = (ts3 - ts2).total_milliseconds();
+    // boost::posix_time::ptime ts3 = boost::posix_time::microsec_clock::local_time();
+    // profiler.duration2 = (ts3 - ts2).total_milliseconds();
 }
 
 void PrintObject::update_slicing_parameters()
@@ -3662,7 +3667,6 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
-    static const double super_overhang_area_threshold = SQ(scale_(5.0));
     const double cantilevel_dist_thresh = scale_(6);
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;

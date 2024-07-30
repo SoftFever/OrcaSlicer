@@ -5,13 +5,9 @@
 #include "format.hpp"
 
 #include <wx/app.h>
-#include <wx/panel.h>
-#include <wx/stdpaths.h>
 
 // For zipped archive creation
-#include <wx/stdstream.h>
 #include <wx/wfstream.h>
-#include <wx/zipstrm.h>
 
 #include <miniz.h>
 
@@ -20,22 +16,17 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
-#include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
 #include <stdexcept>
-#include <cctype>
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 //#include "RemovableDriveManager.hpp"
-
-#include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
 
@@ -901,23 +892,27 @@ void BackgroundSlicingProcess::prepare_upload()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
-		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		std::string error_message;
-		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
-			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
-        m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-		// Orca: skip post-processing scripts for BBL printers as we have run them already in finalize_gcode()
-		// todo: do we need to copy the file?
+        if (m_upload_job.upload_data.use_3mf) {
+            source_path = m_upload_job.upload_data.source_path;
+        } else {
+		    m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+		    std::string error_message;
+		    if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
+		    	throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+            m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+		    // Orca: skip post-processing scripts for BBL printers as we have run them already in finalize_gcode()
+		    // todo: do we need to copy the file?
 		
-        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
-        // (not here, but when the final target is a file).
-        if (!m_fff_print->is_BBL_printer()) {
-            std::string source_path_str = source_path.string();
-            std::string output_name_str = m_upload_job.upload_data.upload_path.string();
-            if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str,
-                                         m_fff_print->full_print_config()))
-                m_upload_job.upload_data.upload_path = output_name_str;
-        }
+            // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+            // (not here, but when the final target is a file). 
+            if (!m_fff_print->is_BBL_printer()) {
+                std::string source_path_str = source_path.string();
+                std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+                if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str,
+                                             m_fff_print->full_print_config()))
+			    m_upload_job.upload_data.upload_path = output_name_str;
+			}
+		}
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         

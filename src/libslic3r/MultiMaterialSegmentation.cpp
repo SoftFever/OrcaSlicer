@@ -338,7 +338,6 @@ static std::vector<std::vector<const MMU_Graph::Arc *>> get_all_next_arcs(
 
         if (arc.type == MMU_Graph::ARC_TYPE::BORDER && arc.color != color) continue;
 
-        Vec2d arc_line = graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point;
         next_continue_arc.emplace_back(&arc);
         all_next_arcs.emplace_back(next_continue_arc);
     }
@@ -1286,7 +1285,6 @@ static void cut_segmented_layers(const std::vector<ExPolygons>        &input_exp
                                  const std::function<void()>          &throw_on_cancel_callback)
 {
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - cutting segmented layers in parallel - begin";
-    const float interlocking_cut_width = interlocking_depth > 0.f ? std::max(cut_width - interlocking_depth, 0.f) : 0.f;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()),
     [&segmented_regions, &input_expolygons, &cut_width, &interlocking_depth, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
@@ -2292,7 +2290,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - layers segmentation in parallel - end";
     throw_on_cancel_callback();
 
-    if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth; max_width > 0.f  || interlocking_depth > 0.f) {
+    auto interlocking_beam = print_object.config().interlocking_beam;
+    if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth;
+        !interlocking_beam && (max_width > 0.f || interlocking_depth > 0.f)) {
         cut_segmented_layers(input_expolygons, segmented_regions, float(scale_(max_width)), float(scale_(interlocking_depth)), throw_on_cancel_callback);
         throw_on_cancel_callback();
     }

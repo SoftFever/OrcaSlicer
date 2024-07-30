@@ -148,6 +148,8 @@ public:
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
+    // Orca
+    void show_SEMM_buttons(bool bshow);
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -431,7 +433,7 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_3mf = false);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
@@ -654,6 +656,7 @@ public:
 
     bool need_update() const;
     void set_need_update(bool need_update);
+    void update_title_dirty_status();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

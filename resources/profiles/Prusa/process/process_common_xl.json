@@ -92,5 +92,7 @@
   "min_bead_width": "85%",
   "min_feature_size": "25%",
   "filename_format": "{input_filename_base}_{layer_height}mm_{filament_type[initial_tool]}_{print_time}.gcode",
-  "gcode_label_objects": "1"
+  "gcode_label_objects": "1",
+  "exclude_object": "1"
+
 }

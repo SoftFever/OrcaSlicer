@@ -110,27 +110,37 @@ Thank you! :)
 <tr>
 <td>
 <a href="https://peopoly.net/">
-    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="64" height="">
+    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="96" height="">
 </a>
 </td> 
 <td>
 <a href="https://qidi3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="64" height="">
+    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
 </a>
 </td>
 <td>
 <a href="https://phrozen3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="64" height="">
+    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="96" height="">
+</a>
+</td>
+<td>
+<a href="https://bigtree-tech.com/">
+    <img src="SoftFever_doc\sponsor_logos\BigTreeTech.png" alt="BIGTREE TECH" width="96" height="">
 </a>
 </td>
 </tr>
 </table>
 
 ### Backers:  
-Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/files/14855600/sponsors.csv)
+**Ko-fi supporters**: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
 
-Support me  
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
+## Support me  
+<a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86" width="130"></a>
+
+<a href="https://ko-fi.com/G2G5IP3CP"><img src="https://ko-fi.com/img/githubbutton_sm.svg" width="200"></a>
+
+[![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/softfever3d)
+
 
 ## Some background
 OrcaSlicer is originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.

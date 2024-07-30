@@ -843,6 +843,7 @@ void AuxiliaryPanel::init_tabpanel()
     auto back_btn = new Button(this, _L("return"), "assemble_return", wxBORDER_NONE | wxBU_LEFT | wxBU_EXACTFIT);
     back_btn->SetSize(wxSize(FromDIP(220), FromDIP(18)));
     back_btn->SetBackgroundColor(btn_bg_green);
+    back_btn->SetTextColor(StateColor (std::pair<wxColour, int>(wxColour("#FDFFFD"), StateColor::Normal))); // ORCA fixes color change on text. icon stays white color but text changes to black without this
     back_btn->SetCornerRadius(0);
     back_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxEvent& e) {
         auto event = wxCommandEvent(EVT_AUXILIARY_DONE);
@@ -988,7 +989,7 @@ void AuxiliaryPanel::create_folder(wxString name)
     fs::path bfs_path((m_root_dir + "/" + folder_name).ToStdWstring());
     if (fs::exists(bfs_path)) {
         try {
-            bool is_done = fs::remove_all(bfs_path);
+            fs::remove_all(bfs_path);
         } catch (...) {
             BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
         }

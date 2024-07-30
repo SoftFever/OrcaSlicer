@@ -9,12 +9,8 @@
 #include "Widgets/StaticLine.hpp"
 
 #include <utility>
-#include <wx/bookctrl.h>
 #include <wx/numformatter.h>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include "libslic3r/Exception.hpp"
-#include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
 #include <locale>
@@ -483,7 +479,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 			// BBS: new layout
 			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title), icon);
             stl->SetFont(Label::Head_14);
-            stl->SetForegroundColour("#262E30");
+            stl->SetForegroundColour("#363636"); // ORCA Match Parameters title color with tab title color 
             sizer = new wxBoxSizer(wxVERTICAL);
             if (title.IsEmpty()) {
                 stl->Hide();

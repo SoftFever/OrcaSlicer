@@ -743,7 +743,6 @@ void MainFrame::update_layout()
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
 
-    ESettingsLayout old_layout = m_layout;
     m_layout = layout;
 
     // From the very beginning the Print settings should be selected
@@ -1488,7 +1487,6 @@ bool MainFrame::can_reslice() const
 wxBoxSizer* MainFrame::create_side_tools()
 {
     enable_multi_machine = wxGetApp().is_enable_multi_machine();
-    int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_slice_select = eSlicePlate;
@@ -1615,7 +1613,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->use_bbl_network()) {
+                && !wxGetApp().preset_bundle->is_bbl_vendor()) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1715,10 +1713,32 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                bool support_send = true;
+                bool support_print_all = true;
+
+                const auto preset_bundle = wxGetApp().preset_bundle;
+                if (preset_bundle) {
+                    if (preset_bundle->use_bbl_network()) {
+                        // BBL network support everything
+                    } else {
+                        support_send = false; // All 3rd print hosts do not have the send options
+
+                        auto cfg = preset_bundle->printers.get_edited_preset().config;
+                        const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+
+                        // Only simply print support uploading all plates
+                        support_print_all = host_type == PrintHostType::htSimplyPrint;
+                    }
+                }
+
                 p->append_button(print_plate_btn);
-                p->append_button(print_all_btn);
-                p->append_button(send_to_printer_btn);
-                p->append_button(send_to_printer_all_btn);
+                if (support_print_all) {
+                    p->append_button(print_all_btn);
+                }
+                if (support_send) {
+                    p->append_button(send_to_printer_btn);
+                    p->append_button(send_to_printer_all_btn);
+                }
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
@@ -1757,7 +1777,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     aux_btn->Bind(wxEVT_BUTTON, [](auto e) {
         wxGetApp().sidebar().show_auxiliary_dialog();
     });
-    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em_unit() / 10);
     */
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
@@ -1902,9 +1922,6 @@ bool MainFrame::get_enable_print_status()
 
 void MainFrame::update_side_button_style()
 {
-    // BBS
-    int em = em_unit();
-
     /*m_slice_btn->SetLayoutStyle(1);
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -1977,6 +1994,9 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_btn->Enable(enable_slice);
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
+
+    if (wxGetApp().mainframe)
+        wxGetApp().plater()->update_title_dirty_status();
 }
 
 
@@ -2162,9 +2182,6 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
                 BOOST_LOG_TRIVIAL(info) << "publish: no agent";
                 return;
             }
-
-            json j;
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
 
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
             wxGetApp().open_publish_page_dialog();
@@ -2563,13 +2580,13 @@ void MainFrame::init_menubar_as_editor()
 
         //BBS perspective view
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
-        auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
+        append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", true);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         //BBS orthogonal view
-        auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
+        append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
                 wxGetApp().update_ui_from_settings();
@@ -2644,7 +2661,8 @@ void MainFrame::init_menubar_as_editor()
     //auto preference_item = new wxMenuItem(parent_menu, OrcaSlicerMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
-    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
+    // auto preference_item =
+    new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
 
 #endif
     //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
@@ -3075,10 +3093,6 @@ void MainFrame::init_menubar_as_gcodeviewer()
 
 void MainFrame::update_menubar()
 {
-    if (wxGetApp().is_gcode_viewer())
-        return;
-
-    const bool is_fff = plater()->printer_technology() == ptFFF;
 }
 
 void MainFrame::reslice_now()
@@ -3154,7 +3168,6 @@ void MainFrame::load_config_file()
         cfiles.push_back(into_u8(file));
         m_last_config = file;
     }
-    bool update = false;
     wxGetApp().preset_bundle->import_presets(cfiles, [this](std::string const & name) {
             ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), false);
             int           res = dlg.ShowModal();
@@ -3636,14 +3649,14 @@ void MainFrame::load_printer_url(wxString url, wxString apikey)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.use_bbl_network())
+    if (preset_bundle.use_bbl_device_tab())
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
     wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
     wxString apikey;
-    if (cfg.has("printhost_apikey") && (cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink ||
-                                        cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaConnect))
+    const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+    if (cfg.has("printhost_apikey") && (host_type == htPrusaLink || host_type == htPrusaConnect))
         apikey = cfg.opt_string("printhost_apikey");
     if (!url.empty()) {
         if (!url.Lower().starts_with("http"))
@@ -3724,7 +3737,6 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                     wxICON_INFORMATION);
 
     /* get setting list */
-    NetworkAgent* agent = wxGetApp().getAgent();
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {

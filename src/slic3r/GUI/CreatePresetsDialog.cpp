@@ -62,7 +62,7 @@ static const std::vector<std::string> filament_vendors =
 static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+",      "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",   "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PVB",       "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",    "PP",     "PEI",    "PET",    "PETG",
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",       "TPU92A", "TPU98A", "Misc",
-                                                        "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
+                                                        "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber", "SBS"};
 
 static const std::vector<std::string> printer_vendors = 
     {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
@@ -315,7 +315,7 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
     int          row          = 1;
     for (std::shared_ptr<Preset> preset : printer_and_preset.second) {
         wxString     preset_name = wxString::FromUTF8(preset->name);
-        wxTreeItemId childId1    = treeCtrl->AppendItem(rootId, preset_name);
+        treeCtrl->AppendItem(rootId, preset_name);
         row++;
     }
 
@@ -671,8 +671,6 @@ bool CreateFilamentPresetDialog::is_check_box_selected()
 
 wxBoxSizer *CreateFilamentPresetDialog::create_item(FilamentOptionType option_type)
 {
-
-    wxSizer *item = nullptr;
     switch (option_type) {
         case VENDOR:             return create_vendor_item();
         case TYPE:               return create_type_item();
@@ -1641,7 +1639,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
                 m_select_model->SetLabelColor(*wxBLACK);
             }
         } else {
-            MessageDialog dlg(this, _L("The model is not fond, place reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("The model is not found, place reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
         }
         e.Skip();
@@ -2121,7 +2119,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         varient = model_varient.substr(index_at + 3, index_nozzle - index_at - 4);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get nozzle failed";
-        MessageDialog dlg(this, _L("The nozzle diameter is not fond, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The nozzle diameter is not found, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2132,7 +2130,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
     if (temp_printer_preset) {
         m_printer_preset = new Preset(*temp_printer_preset);
     } else {
-        MessageDialog dlg(this, _L("The printer preset is not fond, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The printer preset is not found, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -3092,10 +3090,6 @@ bool CreatePrinterPresetDialog::check_printable_area() {
     if (x == 0 || y == 0) {
         return false;
     }
-    double x0 = 0.0;
-    double y0 = 0.0;
-    double x1 = x;
-    double y1 = y;
     if (dx >= x || dy >= y) {
         return false;
     }
@@ -4633,7 +4627,6 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
         WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
-            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             std::set<std::shared_ptr<Preset>> inherit_preset_names;
             std::set<std::shared_ptr<Preset>> root_preset_names;
             for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_preset : m_printer_compatible_presets) {
@@ -4732,7 +4725,7 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
                 m_preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
                 const std::deque<Preset> &filament_presets = m_preset_bundle->filaments.get_presets();
                 for (const Preset &filament_preset : filament_presets) {
-                    if (filament_preset.is_default || !filament_preset.is_compatible) continue;
+                    if (filament_preset.is_default || !filament_preset.is_compatible || filament_preset.is_project_embedded) continue;
                     ConfigOptionStrings *filament_types;
                     const Preset *       filament_preset_base = m_preset_bundle->filaments.get_preset_base(filament_preset);
                     if (filament_preset_base == &filament_preset) {

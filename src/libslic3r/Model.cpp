@@ -96,6 +96,8 @@ Model& Model::assign_copy(const Model &rhs)
 
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
 
     return *this;
 }
@@ -129,6 +131,8 @@ Model& Model::assign_copy(Model &&rhs)
     this->stl_design_country = rhs.stl_design_country;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -438,7 +442,7 @@ ModelObject* Model::add_object(const ModelObject &other)
     this->objects.push_back(new_object);
     // BBS: backup
     if (need_backup) {
-        if (auto model = other.get_model()) {
+        if (other.get_model()) {
             auto iter = object_backup_id_map.find(other.id().id);
             if (iter != object_backup_id_map.end()) {
                 object_backup_id_map.emplace(new_object->id().id, iter->second);
@@ -983,6 +987,8 @@ void Model::load_from(Model& model)
     profile_info  = model.profile_info;
     mk_name = model.mk_name;
     mk_version = model.mk_version;
+    md_name = model.md_name;
+    md_value = model.md_value;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -2474,11 +2480,7 @@ void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &tran
         return;
 
     Points pts;
-    Vec3d rotation = transformation.get_rotation();
-    Vec3d mirror = transformation.get_mirror();
-    Vec3d scale = transformation.get_scaling_factor();
-    //rotation(2) = 0.f;
-    Transform3d new_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, scale, mirror);
+    Transform3d new_matrix = transformation.get_matrix_no_offset();
 
     pts.reserve(its.vertices.size());
     // Using the shared vertices should be a bit quicker than using the STL faces.
@@ -2613,7 +2615,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;
 
-    unsigned int extruder_counter = 0;
+    // unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
 
     for (TriangleMesh &mesh : meshes) {
@@ -2928,9 +2930,6 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                     std::cout << "error";
                 }
             };
-            auto calc_tri_area = [](const Vec3f &v0, const Vec3f &v1, const Vec3f &v2) {
-                return std::abs((v0 - v1).cross(v0 - v2).norm()) / 2;
-            };
             auto volume = obj->volumes[0];
             volume->config.set("extruder", first_extruder_id);
             auto face_count = volume->mesh().its.indices.size();
@@ -2956,7 +2955,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                 case _3_SAME_COLOR: {
                     std::string result;
                     get_real_filament_id(filament_id0, result);
-                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result); 
+                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result);
                     break;
                 }
                 case _3_DIFF_COLOR: {
@@ -3030,7 +3029,6 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             volume->mmu_segmentation_facets.reserve(face_count);
             if (volume->mesh().its.indices.size() != face_filament_ids.size()) { return false; }
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {
-                auto face         = volume->mesh().its.indices[i];
                 auto filament_id = face_filament_ids[i];
                 if (filament_id <= 1) { continue; }
                 std::string result;
@@ -3113,8 +3111,8 @@ double Model::getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
     }
     return thermalLength;
 }
-// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered
-double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
+// max printing speed, difference in bed temperature and envirument temperature and bed adhesion coefficients are considered
+double ModelInstance::get_auto_brim_width(double deltaT, double adhesion) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
     double maxSpeed = Model::findMaxSpeed(object);
@@ -3125,7 +3123,7 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     double thermalLength = sqrt(bbox_size(0)* bbox_size(0) + bbox_size(1)* bbox_size(1));
     double thermalLengthRef = Model::getThermalLength(object->volumes);
 
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
+    double brim_width = adhesion * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;
@@ -3161,7 +3159,8 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
+            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
+                Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                 adhesionCoeff = 2;
             }
             else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
@@ -3210,10 +3209,10 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
-    Transform3d trafo_instance =
-        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation, get_scaling_factor(), get_mirror());
-
-    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    Geometry::Transformation t(m_transformation);
+    t.set_offset(get_offset().z() * Vec3d::UnitZ());
+    t.set_rotation(rotation);
+    Polygon p = get_object()->convex_hull_2d(t.get_matrix());
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};

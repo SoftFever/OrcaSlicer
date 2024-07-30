@@ -4,6 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFL99",
     "fan_cooling_layer_time": [
         "100"
     ],
@@ -37,6 +38,7 @@
     "hot_plate_temp_initial_layer" : [
         "60"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "220"
     ],

@@ -6,9 +6,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
-"PO-Revision-Date: 2023-04-01 13:21+0800\n"
-"Last-Translator: SoftFever <softfeverever@gmail.com>\n"
+"POT-Creation-Date: 2024-06-30 15:44+0200\n"
+"PO-Revision-Date: 2024-07-28 07:12+0000\n"
+"Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -355,6 +355,8 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
+"单击以翻转剖切面\n"
+"拖动以移动剖切面"
 
 msgid ""
 "Click to flip the cut plane\n"
@@ -372,7 +374,7 @@ msgid "Mode"
 msgstr "模式"
 
 msgid "Change cut mode"
-msgstr ""
+msgstr "更改切割模式"
 
 msgid "Tolerance"
 msgstr "容差"
@@ -381,7 +383,7 @@ msgid "Drag"
 msgstr "拖拽"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "绘制切线"
 
 msgid "Left click"
 msgstr "左击"
@@ -423,7 +425,7 @@ msgid "Bulge proportion related to radius"
 msgstr ""
 
 msgid "Space"
-msgstr "空格键"
+msgstr "间隔"
 
 msgid "Space proportion related to radius"
 msgstr ""
@@ -441,14 +443,14 @@ msgid "Flip cut plane"
 msgstr "翻转剖切面"
 
 msgid "Groove change"
-msgstr ""
+msgstr "槽变化"
 
 msgid "Reset"
 msgstr "重置"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr ""
+msgstr "已编辑"
 
 msgid "Cut position"
 msgstr "切割位置"
@@ -498,12 +500,12 @@ msgstr "检测到无效连接件"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
+msgstr[0] "%1$d 个连接件超出了切割轮廓"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
+msgstr[0] "%1$d 个连接件超出了对象"
 
 msgid "Some connectors are overlapped"
 msgstr "存在连接件相互重叠"
@@ -515,7 +517,7 @@ msgid "Cut plane is placed out of object"
 msgstr "剖切面放置在对象之外"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "槽所在的切割平面无效"
 
 msgid "Connector"
 msgstr "连接件"
@@ -588,7 +590,7 @@ msgstr "显示线框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -655,7 +657,7 @@ msgstr "附着曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + 鼠标上移或下移"
 
 msgid "Rotate text"
@@ -666,11 +668,11 @@ msgstr "文本形状"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr ""
+msgstr "旋转文字"
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr ""
+msgstr "移动文字"
 
 msgid "Set Mirror"
 msgstr "设置镜像"
@@ -900,44 +902,44 @@ msgid "Revert using of model surface."
 msgstr "恢复使用模型曲面。"
 
 msgid "Revert Transformation per glyph."
-msgstr ""
+msgstr "恢复按字符变形选项。"
 
 msgid "Set global orientation for whole text."
-msgstr ""
+msgstr "为整段文本使用同一基准。"
 
 msgid "Set position and orientation per glyph."
-msgstr ""
+msgstr "为每个字符独立计算位置和方向。"
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr "左面"
+msgstr "左对齐"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr "居中"
+msgstr "水平居中"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr "右面"
+msgstr "右对齐"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr "顶部"
+msgstr "顶对齐"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr ""
+msgstr "垂直居中"
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr "底部"
+msgstr "底对齐"
 
 msgid "Revert alignment."
-msgstr ""
+msgstr "还原对齐。"
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr ""
+msgstr "点"
 
 msgid "Revert gap between characters"
 msgstr "恢复字间距"
@@ -952,13 +954,13 @@ msgid "Distance between lines"
 msgstr "行间距"
 
 msgid "Undo boldness"
-msgstr ""
+msgstr "撤销粗细调整"
 
 msgid "Tiny / Wide glyphs"
-msgstr "细小/宽大的字形"
+msgstr "细小/粗大的字形"
 
 msgid "Undo letter's skew"
-msgstr "撤消字母的歪斜"
+msgstr "撤消字母的斜体效果"
 
 msgid "Italic strength ratio"
 msgstr "倾斜强度比"
@@ -992,7 +994,7 @@ msgstr "选择文字使其面向摄像头"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "不能加载完全相同的字体(\"%1%\")。应用程序选择了一种类似的字体（\"%2%\"）。你"
@@ -1039,12 +1041,12 @@ msgstr "行间距"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "粗细"
+msgstr "仿字重"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr "斜率"
+msgstr "仿斜体"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1067,11 +1069,11 @@ msgstr "收集"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr ""
+msgstr "旋转SVG图形"
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
-msgstr ""
+msgstr "移动SVG图形"
 
 msgid "Enter SVG gizmo"
 msgstr ""
@@ -1087,26 +1089,26 @@ msgstr "SVG矢量图"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr ""
+msgstr "不透明度 (%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr ""
+msgstr "渐变 (%1%)"
 
 msgid "Undefined fill type"
-msgstr ""
+msgstr "未定义的填充类型"
 
 msgid "Linear gradient"
-msgstr ""
+msgstr "线性渐变"
 
 msgid "Radial gradient"
-msgstr ""
+msgstr "径向渐变"
 
 msgid "Open filled path"
 msgstr ""
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "未定义的描边类型"
 
 msgid "Path can't be healed from selfintersection and multiple points."
 msgstr ""
@@ -1118,7 +1120,7 @@ msgstr ""
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr ""
+msgstr "形状已被标记为不可见 (%1%)."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
@@ -1127,25 +1129,25 @@ msgstr ""
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr ""
+msgstr "形状 (%1%) 的描边太细了（不小于 %2% mm）。"
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr ""
 
 msgid "Face the camera"
-msgstr ""
+msgstr "面向摄像机"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
-msgstr ""
+msgstr "未知文件名"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr ""
+msgstr "SVG文件路径：\"%1%\""
 
 msgid "Reload SVG file from disk."
-msgstr ""
+msgstr "从磁盘重新加载SVG文件。"
 
 msgid "Change file"
 msgstr ""
@@ -1173,10 +1175,10 @@ msgid "Save as"
 msgstr "另存为"
 
 msgid "Save SVG file"
-msgstr ""
+msgstr "保存SVG文件"
 
 msgid "Save as '.svg' file"
-msgstr ""
+msgstr "另存为“.svg”文件"
 
 msgid "Size in emboss direction."
 msgstr ""
@@ -1406,6 +1408,8 @@ msgid ""
 "features.\n"
 "Click Yes to install it now."
 msgstr ""
+"Orca Slicer 依赖 Microsoft WebView2 运行时以运行部分功能。\n"
+"请点击 Yes 进行安装。"
 
 msgid "WebView2 Runtime"
 msgstr "WebView2 运行库"
@@ -1441,6 +1445,9 @@ msgid ""
 "Please note, application settings will be lost, but printer profiles will "
 "not be affected."
 msgstr ""
+"OrcaSlicer 配置文件无法解析，可能已经损坏。\n"
+"OrcaSlicer 已尝试重新创建配置文件。\n"
+"请注意，您的程序设置会丢失，但打印机配置文件不会受到影响。"
 
 msgid "Rebuild"
 msgstr "重新构建"
@@ -1601,7 +1608,7 @@ msgstr "挤出宽度"
 msgid "Wipe options"
 msgstr "擦除选项"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "热床粘接"
 
 msgid "Add part"
@@ -1695,6 +1702,13 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"该模型顶面具有文字浮雕。\n"
+"为了获得最佳效果，我们推荐您将“单层墙阈值”设置为 0 "
+"以使“仅首层单层墙”效果最佳。\n"
+"\n"
+"自动调整这些设置？\n"
+"是 - 自动调整这些设置\n"
+"否 - 不用为我调整这些设置"
 
 msgid "Text"
 msgstr "文字浮雕"
@@ -1880,12 +1894,6 @@ msgstr "自动朝向"
 msgid "Auto orient the object to improve print quality."
 msgstr "自动调整对象朝向以提高打印质量。"
 
-msgid "Split the selected object into mutiple objects"
-msgstr "拆分所选对象为多个对象"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "拆分所选对象为多个零件"
-
 msgid "Select All"
 msgstr "全选"
 
@@ -1905,7 +1913,7 @@ msgid "arrange current plate"
 msgstr "在当前盘执行自动摆放"
 
 msgid "Reload All"
-msgstr ""
+msgstr "重新加载全部"
 
 msgid "reload all from disk"
 msgstr ""
@@ -2133,8 +2141,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下模型对象已被修复"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
@@ -2312,7 +2320,7 @@ msgid "Check the status of current system services"
 msgstr "请检查当前系统服务状态"
 
 msgid "code"
-msgstr ""
+msgstr "代码"
 
 msgid "Failed to connect to cloud service"
 msgstr "无法连接到云服务"
@@ -2483,7 +2491,7 @@ msgid "Orienting"
 msgstr "自动朝向中..."
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "自动朝向已取消。"
 
 msgid "Filling"
 msgstr "正在填充"
@@ -2567,7 +2575,7 @@ msgstr "发送打印任务超时。"
 msgid "Service Unavailable"
 msgstr "服务不可用"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "未知错误"
 
 msgid "Sending print configuration"
@@ -2660,7 +2668,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Orca Slicer 基于 PrusaSlicer 以及 BambuStudio 开发"
 
 msgid "Libraries"
 msgstr "库"
@@ -2678,10 +2686,10 @@ msgid "Orca Slicer "
 msgstr "逆戟鲸切片"
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
-msgstr ""
+msgstr "OrcaSlicer基于BambuStudio、PrusaSlicer 以及SuperSlicer开发。"
 
 msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
-msgstr ""
+msgstr "BambuStudio基于PrusaResearch的PrusaSlicer开发而来。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "PrusaSlicer最初是基于Alessandro Ranellucci的Slic3r。"
@@ -2719,7 +2727,7 @@ msgstr "最小"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
-msgstr "输入的范围在 %1% 和 %2% 之间"
+msgstr "输入的范围应当在 %1% 和 %2% 之间"
 
 msgid "SN"
 msgstr "序列号"
@@ -2857,7 +2865,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "当前舱内湿度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2918,10 +2926,10 @@ msgstr ""
 "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
 msgid "DRY"
-msgstr ""
+msgstr "干燥"
 
 msgid "WET"
-msgstr ""
+msgstr "潮湿"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -3306,13 +3314,13 @@ msgid "Timelapse"
 msgstr "延时摄影"
 
 msgid "Flow Dynamic Calibration"
-msgstr ""
+msgstr "动态流量校准"
 
 msgid "Send Options"
 msgstr "发送选项"
 
 msgid "Send to"
-msgstr ""
+msgstr "发送至"
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3492,7 +3500,7 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -3776,7 +3784,7 @@ msgstr "缺省"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "编辑自定义G-code (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
@@ -3815,7 +3823,7 @@ msgid "Temperatures"
 msgstr "温度"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "时间戳"
 
 #, boost-format
 msgid "Specific for %1%"
@@ -4308,10 +4316,10 @@ msgid "Enable"
 msgstr "开启"
 
 msgid "Hostname or IP"
-msgstr ""
+msgstr "主机名或IP地址"
 
 msgid "Custom camera source"
-msgstr ""
+msgstr "自定义摄像机源"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "显示\"直播视频流\"指南"
@@ -4431,38 +4439,38 @@ msgstr "默认视图"
 
 #. TRN To be shown in the main menu View->Top
 msgid "Top"
-msgstr "顶部"
+msgstr "上"
 
 msgid "Top View"
 msgstr "顶部视图"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr "底部"
+msgstr "下"
 
 msgid "Bottom View"
 msgstr "底部视图"
 
 msgid "Front"
-msgstr "前面"
+msgstr "前"
 
 msgid "Front View"
 msgstr "前视图"
 
 msgid "Rear"
-msgstr "后面"
+msgstr "后"
 
 msgid "Rear View"
 msgstr "后视图"
 
 msgid "Left"
-msgstr "左面"
+msgstr "左"
 
 msgid "Left View"
 msgstr "左视图"
 
 msgid "Right"
-msgstr "右面"
+msgstr "右"
 
 msgid "Right View"
 msgstr "右视图"
@@ -4504,10 +4512,10 @@ msgid "Load a model"
 msgstr "加载模型"
 
 msgid "Import Zip Archive"
-msgstr ""
+msgstr "导入 ZIP 压缩文件"
 
 msgid "Load models contained within a zip archive"
-msgstr ""
+msgstr "从 ZIP 压缩文件中导入一个或多个模型"
 
 msgid "Import Configs"
 msgstr "导入预设"
@@ -4775,6 +4783,8 @@ msgid ""
 "Hint: Make sure you have added the corresponding printer before importing "
 "the configs."
 msgstr ""
+"\n"
+"注意：请确保您在导入配置前，已经添加了相应的打印机。"
 
 msgid "Import result"
 msgstr "导入结果"
@@ -5128,7 +5138,7 @@ msgid "Camera Setting"
 msgstr "相机设置"
 
 msgid "Switch Camera View"
-msgstr ""
+msgstr "切换相机视图"
 
 msgid "Control"
 msgstr "控制"
@@ -5386,7 +5396,7 @@ msgid "Latest Version: "
 msgstr "最新版本："
 
 msgid "Not for now"
-msgstr ""
+msgstr "暂不"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -5599,6 +5609,9 @@ msgstr "比较预设"
 msgid "View all object's settings"
 msgstr "查看所有对象的配置"
 
+msgid "Material settings"
+msgstr "材料设置"
+
 msgid "Remove current plate (if not last one)"
 msgstr "移除当前板（如果不是最后一个）"
 
@@ -5615,7 +5628,7 @@ msgid "Lock current plate"
 msgstr "锁定当前板"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "编辑当前盘名"
 
 msgid "Customize current plate"
 msgstr "自定义当前板"
@@ -5674,6 +5687,9 @@ msgstr "配置可选择的材料"
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5887,7 +5903,7 @@ msgstr ""
 "文件 %s 已经存在\n"
 "您是否要替换它？"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "确认另存为"
 
 msgid "Delete object which is a part of cut object"
@@ -6097,7 +6113,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 
@@ -6243,6 +6259,21 @@ msgstr "浏览"
 msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
 
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
+
 msgid "General Settings"
 msgstr "通用设置"
 
@@ -6270,7 +6301,8 @@ msgstr "局域网模式"
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
-msgstr ""
+msgstr "停止向拓竹科技服务器发送数据。如果您不使用Bambu "
+"Lab的打印机或仅使用局域网模式，则可以安全地启用此功能。"
 
 msgid "Enable network plugin"
 msgstr "启用网络插件"
@@ -6288,7 +6320,7 @@ msgid "Units"
 msgstr "单位"
 
 msgid "Allow only one OrcaSlicer instance"
-msgstr ""
+msgstr "同时仅运行一个 OrcaSlicer 实例"
 
 msgid ""
 "On OSX there is always only one instance of app running by default. However "
@@ -6302,28 +6334,32 @@ msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
 "same OrcaSlicer is already running, that instance will be reactivated "
 "instead."
-msgstr ""
+msgstr "如果启用，当您在已经启动一个 OrcaSlicer 实例时再次启动 OrcaSlicer ，"
+"将会激活您已经启动的 OrcaSlicer 实例。"
 
 msgid "Home"
 msgstr "首页"
 
 msgid "Default Page"
-msgstr ""
+msgstr "起始页"
 
 msgid "Set the page opened on startup."
-msgstr ""
+msgstr "设置启动OrcaSlicer时首先显示的页面。"
 
 msgid "Touchpad"
-msgstr ""
+msgstr "触控板"
 
 msgid "Camera style"
-msgstr ""
+msgstr "视角控制模式"
 
 msgid ""
 "Select camera navigation style.\n"
 "Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
+"选择摄像机的导航模式。\n"
+"缺省：鼠标左键+拖动 旋转，鼠标右键+拖动 平移；\n"
+"触控板：Alt+拖动 旋转，Shift+拖动 平移。"
 
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
@@ -6340,10 +6376,10 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "如果启用，使用自由视角。如果未启用，使用约束视角。"
 
 msgid "Reverse mouse zoom"
-msgstr ""
+msgstr "反转鼠标缩放"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "如果启用，使用鼠标滚轮缩放的方向会反转。"
 
 msgid "Show splash screen"
 msgstr "显示启动画面"
@@ -6371,15 +6407,15 @@ msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr "如果启用，会在每一次更换材料时自动计算。"
 
 msgid "Remember printer configuration"
-msgstr ""
+msgstr "记住打印机选项"
 
 msgid ""
 "If enabled, Orca will remember and switch filament/process configuration for "
 "each printer automatically."
-msgstr ""
+msgstr "如果启用，Orca会自动记录并切换您不同打印机之间的耗材配置与打印参数。"
 
 msgid "Multi-device Management(Take effect after restarting Orca)."
-msgstr ""
+msgstr "多设备管理 （重启Orca后生效）"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6429,36 +6465,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -6802,22 +6808,22 @@ msgid "Busy"
 msgstr "忙碌"
 
 msgid "Bambu Cool Plate"
-msgstr "低温打印热床"
+msgstr "低温打印板"
 
 msgid "PLA Plate"
 msgstr "PLA打印板"
 
 msgid "Bambu Engineering Plate"
-msgstr "工程打印热床"
+msgstr "工程材料打印板"
 
 msgid "Bambu Smooth PEI Plate"
-msgstr ""
+msgstr "光面PEI打印板"
 
 msgid "High temperature Plate"
-msgstr "高温打印热床"
+msgstr "高温打印板"
 
 msgid "Bambu Textured PEI Plate"
-msgstr ""
+msgstr "纹理PEI打印板"
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
@@ -7765,6 +7771,8 @@ msgid ""
 "You can discard the preset values you have modified, or choose to transfer "
 "the modified values to the new project"
 msgstr ""
+"\n"
+"您可以放弃已修改的预设值，或者将修改后的值转移到新项目"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -8192,7 +8200,7 @@ msgid "Camera view - Bottom"
 msgstr "摄像机视角 - 底部"
 
 msgid "Camera view - Front"
-msgstr "摄像机视角 - 前面"
+msgstr "摄像机视角 - 正面"
 
 msgid "Camera view - Behind"
 msgstr "摄像机视角 - 后面"
@@ -9450,7 +9458,7 @@ msgid "Slow down for overhang"
 msgstr "悬垂降速"
 
 msgid "Enable this option to slow printing down for different overhang degree"
-msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
+msgstr "启用此选项将降低不同悬垂程度的走线的打印速度"
 
 msgid "Slow down for curled perimeters"
 msgstr "翘边降速"
@@ -10094,8 +10102,8 @@ msgid ""
 "external walls\n"
 "\n"
 msgstr ""
-"如果启用，此设置将确保外墙不会为了满足最小层时间而减速。这在以下情况下特别有帮"
-"助：\n"
+"如果启用，此设置将确保外墙不会为了满足最小层时间而减速。这在以下情况下特别有"
+"帮助：\n"
 "\n"
 "1. 避免在打印光滑耗材时改变光泽\n"
 "2. 避免改变外墙速度，可能会产生轻微的墙壁伪影，看起来像z条纹\n"
@@ -10160,6 +10168,19 @@ msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
+
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
 
 msgid "Shrinkage"
 msgstr "耗材收缩率"
@@ -10560,7 +10581,7 @@ msgstr "首层层高"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "首层层高"
 
 msgid "Speed of initial layer except the solid infill part"
@@ -10693,12 +10714,18 @@ msgid ""
 "quality as line segments are converted to arcs by the slicer and then back "
 "to line segments by the firmware."
 msgstr ""
+"启用此设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。\n"
+"\n"
+"请注意：对于使用Klipper的打印机，建议禁用此选项。\n"
+"Klipper打印机并不会从圆弧拟合中受益，因为这些命令会被固件\n"
+"重新分割为线段。由于切片软件将线段转换为圆弧后再次被转换为\n"
+"线段进行打印，这样操作会导致打印件表面质量下降。"
 
 msgid "Add line number"
 msgstr "标注行号"
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
-msgstr "打开这个设置，G-code的每一行的开头会增加Nx标注行号。"
+msgstr "启用该设置，G-code的每一行的开头会增加Nx标注行号。"
 
 msgid "Scan first layer"
 msgstr "首层扫描"
@@ -10746,16 +10773,16 @@ msgid "The physical arrangement and components of a printing device"
 msgstr "打印设备的物理结构和组件"
 
 msgid "CoreXY"
-msgstr ""
+msgstr "CoreXY"
 
 msgid "I3"
-msgstr ""
+msgstr "I3"
 
 msgid "Hbot"
-msgstr ""
+msgstr "Hbot"
 
 msgid "Delta"
-msgstr ""
+msgstr "Delta（三角洲）"
 
 msgid "Best object position"
 msgstr "最佳对象位置"
@@ -10808,7 +10835,7 @@ msgid "The printer cost per hour"
 msgstr "打印机每小时的成本"
 
 msgid "money/h"
-msgstr ""
+msgstr "元/时"
 
 msgid "Support control chamber temperature"
 msgstr "支持仓温控制"
@@ -10835,6 +10862,12 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "打印机兼容的G-code风格'"
 
 msgid "Klipper"
+msgstr ""
+
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
 msgstr ""
 
 msgid "Support multi bed types"
@@ -10941,6 +10974,51 @@ msgstr "分割区域的交错深度"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "分割区域的交错深度。0 则禁用此功能。"
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -11260,7 +11338,8 @@ msgid ""
 "The minimum printing speed that the printer will slow down to to attempt to "
 "maintain the minimum layer time above, when slow down for better layer "
 "cooling is enabled."
-msgstr ""
+msgstr "在您启用“降低打印速度 "
+"以得到更好的冷却”选项时最小的打印速度，以尝试保持上方设置的最小层时间。"
 
 msgid "Nozzle diameter"
 msgstr "喷嘴直径"
@@ -11436,6 +11515,10 @@ msgid ""
 "argument, and they can access the Orca Slicer config settings by reading "
 "environment variables."
 msgstr ""
+"如果您希望使用自定义脚本来处理输出的 "
+"G-code，只需要在此列出这些脚本的绝对路径，使用分号来分割多个脚本。"
+"脚本执行的第一个参数将会被设置为 G-code 文件的绝对路径，"
+"并支持脚本通过全局变量来读取 Orca Slicer 的设置。"
 
 msgid "Printer notes"
 msgstr "打印机注释"
@@ -11571,6 +11654,14 @@ msgstr "梯形"
 msgid "Spiral"
 msgstr "螺旋"
 
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
+
 msgid "Only lift Z above"
 msgstr "仅在高度以上抬Z"
 
@@ -11653,7 +11744,7 @@ msgstr "禁用M73剩余打印时间"
 
 msgid ""
 "Disable generating of the M73: Set remaining print time in the final gcode"
-msgstr ""
+msgstr "在最终生成的G-code中禁用M73命令：设置剩余打印时间"
 
 msgid "Seam position"
 msgstr "接缝位置"
@@ -11875,12 +11966,21 @@ msgid ""
 "distance from the object. Therefore, if brims are active it may intersect "
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
+"打印风挡有助于保护ABS或ASA材料的打印件，避免因气流流动产生变形或从打印床上脱"
+"落。通常只有在开放式框架打印机上需要使用它，即没有封箱的打印机。\n"
+"\n"
+"选项：\n"
+"启用 = Skirt和您的打印物体一样高。\n"
+"限制 = Skirt高度将由Skirt高度选项指定。\n"
+"\n"
+"注意：当风挡功能启用时，Skirt将在远离物体自身的Skirt一定距离处打印。因此，如"
+"果同时启用了Brims，则可能与Skirt相交。为避免这种情况，请增加Skirt距离值。\n"
 
 msgid "Limited"
 msgstr "限制"
 
 msgid "Enabled"
-msgstr "打开"
+msgstr "启用"
 
 msgid "Skirt loops"
 msgstr "Skirt圈数"
@@ -12004,6 +12104,10 @@ msgid ""
 "printing, where we use M600/PAUSE to trigger the manual filament change "
 "action."
 msgstr ""
+"启用该选项可以在打印开始时省略自定义更换耗材丝的 "
+"G-code。整个打印过程中的工具头指令（如 "
+"T0）将会被跳过。这对于手动多材料打印十分有用，其将会使用 M600/PAUSE "
+"指令来使您可以进行手动对耗材丝进行更换。"
 
 msgid "Purge in prime tower"
 msgstr "冲刷进擦拭塔"
@@ -12015,7 +12119,7 @@ msgid "Enable filament ramming"
 msgstr "启用耗材尖端成型"
 
 msgid "No sparse layers (beta)"
-msgstr ""
+msgstr "无稀疏层 （实验）"
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -12262,6 +12366,11 @@ msgid ""
 "style will create similar structure to normal support under large flat "
 "overhangs."
 msgstr ""
+"支撑物的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳定"
+"的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。\n"
+"对于树形支撑，苗条树将更激进地合并树枝，并节省大量的材料；粗壮树会产生更大更"
+"强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面"
+"悬垂下创建与正常支撑类似的结构（默认）。"
 
 msgid "Snug"
 msgstr "紧贴"
@@ -12424,6 +12533,9 @@ msgid ""
 "added before \"machine_start_gcode\"\n"
 "G-code commands: M141/M191 S(0-255)"
 msgstr ""
+"启用该选项以控制打印仓温度，这将会在\"machine_start_gcode"
+"\"之前添加一个M191命令。\n"
+"G-code命令：M141/M191 S(0-255)"
 
 msgid "Chamber temperature"
 msgstr "机箱温度"
@@ -12526,6 +12638,13 @@ msgid ""
 "Setting a value in the retract amount before wipe setting below will perform "
 "any excess retraction before the wipe, else it will be performed after."
 msgstr ""
+"喷嘴在回抽时将沿着最后路径移动的距离\n"
+"\n"
+"根据擦拭操作的距离以及挤出机/耗材丝回抽的速度和长度，可能需要执行额外的回抽动"
+"作以收回剩余的丝材。\n"
+"\n"
+"在下方的擦拭前回抽量设置中输入一个数值，将在擦拭动作之前执行任何超出部分的回"
+"抽，否则超出部分的回抽将在擦拭之后执行。"
 
 msgid ""
 "The wiping tower can be used to clean up the residue on the nozzle and "
@@ -13749,7 +13868,7 @@ msgid "To k Value"
 msgstr "结束k值"
 
 msgid "Step value"
-msgstr ""
+msgstr "步进长度"
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "喷嘴直径已从打印机设置同步"
@@ -13874,22 +13993,25 @@ msgid "Temperature calibration"
 msgstr "温度校准"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
+
+msgid "PCTG"
+msgstr "PCTG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
 msgstr "耗材类型"
@@ -13977,6 +14099,9 @@ msgstr "如有需要，请使用正斜杠（ / ）作为目录分隔符。"
 
 msgid "Upload to storage"
 msgstr "上传到存储单位"
+
+msgid "Switch to Device tab after upload."
+msgstr "上传后跳转到设备页。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14200,6 +14325,8 @@ msgid ""
 "\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
+"我们将会把预设重命名为“供应商类型名 @ 您选择的打印机”\n"
+"如果您希望为更多打印机添加预设，请前往打印机选择页面"
 
 msgid "Create Printer/Nozzle"
 msgstr "创建打印机/喷嘴"
@@ -14222,7 +14349,7 @@ msgstr "导入预设"
 msgid "Create Type"
 msgstr "创建类型"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
 msgid "Select Model"
@@ -14271,10 +14398,10 @@ msgstr "预设路径未找到，请重新选择供应商。"
 msgid "The printer model was not found, please reselect."
 msgstr "未找到打印机型号，请重新选择。"
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "未找到喷嘴直径，请重新选择。"
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer Preset"
@@ -14390,6 +14517,11 @@ msgid ""
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
+"\n"
+"\n"
+"Orca 检测到您没有启用同步用户预设功能，这可能会导致您在设备页面上无法成功设置"
+"耗材丝。\n"
+"点击“同步用户预设”以启用同步功能。"
 
 msgid "Printer Setting"
 msgstr "打印机设置"
@@ -14489,7 +14621,7 @@ msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "创建临时文件夹失败，请尝试重新导出配置文件。"
 
 msgid "Edit Filament"
 msgstr "编辑材料"
@@ -14600,10 +14732,16 @@ msgid "Success!"
 msgstr "成功！"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "您确定要登出吗？"
 
 msgid "Refresh Printers"
 msgstr "刷新打印机"
+
+msgid "View print host webui in Device tab"
+msgstr "在设备标签页中，查看打印机主机的WebUI"
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr "使用打印机主机的WebUI替换BambuLab设备页面"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -14979,45 +15117,43 @@ msgstr ""
 "耗时较长。"
 
 msgid "Connected to Obico successfully!"
-msgstr ""
+msgstr "已成功连接到Obico"
 
 msgid "Could not connect to Obico"
-msgstr ""
+msgstr "无法连接到Obico"
 
 msgid "Connected to SimplyPrint successfully!"
-msgstr ""
+msgstr "已成功连接到SimplyPrint"
 
 msgid "Could not connect to SimplyPrint"
-msgstr ""
+msgstr "无法连接到SimplyPrint"
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
+msgid "Internal error"
+msgstr "内部错误"
 
 msgid "Unknown error"
-msgstr ""
+msgstr "未知错误"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr "尚未连接到SimplyPrint账户，前往连接选项来进行配置。"
 
 msgid "Connection to Flashforge works correctly."
-msgstr ""
+msgstr "与Flashforge的连接工作正常。"
 
 msgid "Could not connect to Flashforge"
-msgstr ""
+msgstr "无法连接至Flashforge"
 
 msgid "The provided state is not correct."
-msgstr ""
+msgstr "提供的状态不正确。"
 
 msgid "Please give the required permissions when authorizing this application."
-msgstr ""
+msgstr "在您为此应用程序进行授权时，请允许所需的权限。"
 
 msgid "Something unexpected happened when trying to log in, please try again."
-msgstr ""
+msgstr "在尝试登录时发生了异常，请重试。"
 
 msgid "User cancelled."
-msgstr ""
+msgstr "用户已取消。"
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15025,6 +15161,8 @@ msgid ""
 "Did you know that turning on precise wall can improve precision and layer "
 "consistency?"
 msgstr ""
+"精准外墙尺寸\n"
+"您知道吗？您可以启用精准外墙尺寸选项，提高精度和层一致性。"
 
 #: resources/data/hints.ini: [hint:Sandwich mode]
 msgid ""
@@ -15385,7 +15523,7 @@ msgstr ""
 #~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
 #~ "fitting tolerance is same with resolution"
 #~ msgstr ""
-#~ "打开这个设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
+#~ "启用此设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
 
 #~ msgid ""
 #~ "Infill area is enlarged slightly to overlap with wall for better bonding. "

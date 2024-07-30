@@ -5,7 +5,6 @@
 #include "Print.hpp"
 #include "Layer.hpp"
 #include "Fill/FillBase.hpp"
-#include "Fill/FillConcentric.hpp"
 #include "CurveAnalyzer.hpp"
 #include "SVG.hpp"
 #include "ShortestPath.hpp"
@@ -13,7 +12,6 @@
 #include <libnest2d/backends/libslic3r/geometries.hpp>
 
 #include <boost/log/trivial.hpp>
-#include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
 #define _L(s) Slic3r::I18N::translate(s)
@@ -469,7 +467,6 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
     Point ret = from;
     std::vector<Point> valid_pts;
     double bestDist2 = std::numeric_limits<double>::max();
-    unsigned int bestPoly = NO_INDEX;
     bool is_already_on_correct_side_of_boundary = false; // whether [from] is already on the right side of the boundary
     Point inward_dir;
     for (unsigned int poly_idx = 0; poly_idx < polygons.size(); poly_idx++)
@@ -510,7 +507,6 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
                     if (dist2 < bestDist2)
                     {
                         bestDist2 = dist2;
-                        bestPoly = poly_idx;
                         if (distance == 0) { ret = x; }
                         else
                         {
@@ -547,7 +543,6 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
                 if (dist2 < bestDist2)
                 {
                     bestDist2 = dist2;
-                    bestPoly = poly_idx;
                     if (distance == 0) { ret = x; }
                     else
                     {
@@ -632,7 +627,6 @@ static bool is_inside_ex(const ExPolygons &polygons, const Point &pt)
 
 static bool move_out_expolys(const ExPolygons& polygons, Point& from, double distance, double max_move_distance)
 {
-    Point from0 = from;
     ExPolygons polys_dilated = union_ex(offset_ex(polygons, scale_(distance)));
     Point pt = projection_onto(polys_dilated, from);// find_closest_ex(from, polys_dilated);
     Point outward_dir = pt - from;
@@ -734,16 +728,12 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     const coordf_t extrusion_width = config.get_abs_value("line_width", nozzle_diameter);
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;
     const bool support_critical_regions_only = config.support_critical_regions_only.value;
     const bool config_remove_small_overhangs = config.support_remove_small_overhang.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));
     const double length_thresh_well_supported = scale_(6);
     static const double sharp_tail_max_support_height = 16.f;
-    // a region is considered well supported if the number of layers below it exceeds this threshold
-    const int thresh_layers_below = 10 / config.layer_height;
-    double obj_height = m_object->size().z();
     // +1 makes the threshold inclusive
     double thresh_angle = config.support_threshold_angle.value > EPSILON ? config.support_threshold_angle.value + 1 : 30;
     thresh_angle = std::min(thresh_angle, 89.); // should be smaller than 90
@@ -1406,7 +1396,6 @@ void TreeSupport::generate_toolpaths()
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
-    coordf_t layer_height = object_config.layer_height.value;
     const size_t wall_count = object_config.tree_support_wall_count.value;
 
     // Check if set to zero, use default if so.
@@ -1420,8 +1409,6 @@ void TreeSupport::generate_toolpaths()
     coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t bottom_interface_density = std::min(1., m_support_material_interface_flow.spacing() / bottom_interface_spacing);
 
-    const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
-    const coordf_t branch_radius_scaled = scale_(branch_radius);
 
     if (m_object->support_layers().empty())
         return;
@@ -2126,7 +2113,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
-    const size_t wall_count = config.tree_support_wall_count.value;
 
     const PrintObjectConfig& object_config = m_object->config();
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
@@ -2377,7 +2363,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& base_areas = ts_layer->base_areas;
 
                 int layer_nr_lower = layer_nr - 1;
-                for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
+                for (;layer_nr_lower >= 0; layer_nr_lower--) {
                     if (!m_object->get_support_layer(layer_nr_lower + m_raft_layers)->area_groups.empty()) break;
                 }
                 if (layer_nr_lower <= 0) continue;
@@ -2467,7 +2453,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 if (ts_layer->area_groups.empty()) continue;
 
                 int layer_nr_lower = layer_nr - 1;
-                for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
+                for (;layer_nr_lower >= 0; layer_nr_lower--) {
                     if (!m_object->get_support_layer(layer_nr_lower + m_raft_layers)->area_groups.empty()) break;
                 }
                 if (layer_nr_lower < 0) continue;
@@ -2582,15 +2568,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
     const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
-    const size_t top_interface_layers = config.support_interface_top_layers.value;
     float        DO_NOT_MOVER_UNDER_MM       = is_slim ? 0 : 5;                     // do not move contact points under 5mm
     const auto nozzle_diameter = m_object->print()->config().nozzle_diameter.get_at(m_object->config().support_interface_filament-1);
     const auto support_line_width = config.support_line_width.get_abs_value(nozzle_diameter);
 
-    auto get_branch_angle = [this,&config](coordf_t radius) {
-        if (config.tree_support_branch_angle.value < 30.0) return config.tree_support_branch_angle.value;
-        return (radius - MIN_BRANCH_RADIUS) / (MAX_BRANCH_RADIUS - MIN_BRANCH_RADIUS) * (config.tree_support_branch_angle.value - 30.0) + 30.0;
-    };
     auto get_max_move_dist = [this, &config, branch_radius, tip_layers, diameter_angle_scale_factor, wall_count, support_extrusion_width, support_line_width](const Node *node, int power = 1) {
         double move_dist = node->max_move_dist;
         if (node->max_move_dist == 0) {
@@ -3202,7 +3183,6 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     const coordf_t layer_height = config.layer_height.value;
     const coordf_t max_layer_height = m_slicing_params.max_layer_height;
     const size_t bot_intf_layers = config.support_interface_bottom_layers.value;
-    const size_t top_intf_layers = config.support_interface_top_layers.value;
 
     // if already using max layer height, no need to adjust
     if (layer_height == max_layer_height) return;
@@ -3324,7 +3304,6 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
 
         // Insert intermediate layers.
         size_t n_layers_extra = size_t(ceil(dist / (m_slicing_params.max_suport_layer_height + EPSILON)));
-        int actual_internel_layers = extr2_layer_nr - extr1_layer_nr - 1;
         int extr_layers_left = extr2_layer_nr - extr1_layer_nr - n_layers_extra - 1;
         if (n_layers_extra < 1)
             continue;
