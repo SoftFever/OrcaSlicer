@@ -5254,6 +5254,8 @@ void GUI_App::update_mode()
         mainframe->m_param_panel->update_mode();
     if (mainframe->m_param_dialog)
         mainframe->m_param_dialog->panel()->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
     mainframe->m_webview->update_mode();
 
 #ifdef _MSW_DARK_MODE
@@ -5273,6 +5275,8 @@ void GUI_App::update_mode()
 
 void GUI_App::update_internal_development() {
     mainframe->m_webview->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
 }
 
 void GUI_App::show_ip_address_enter_dialog(wxString title)
