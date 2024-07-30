@@ -27,6 +27,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include "libslic3r/libslic3r.h"
+#include "slic3r/GUI/OptionsGroup.hpp"
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 #include <wx/wupdlock.h>
@@ -1221,7 +1222,7 @@ void Tab::msw_rescale()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    for (ScalableBitmap& bmp : m_scaled_icons_list)
+    // for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1255,7 +1256,7 @@ void Tab::sys_color_changed()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    for (ScalableBitmap& bmp : m_scaled_icons_list)
+    // for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1431,8 +1432,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
     
 
-    if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
-        update_wiping_button_visibility();
+    if (opt_key == "single_extruder_multi_material"  ){
+        const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
+        wxGetApp().sidebar().show_SEMM_buttons(bSEMM);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    }
+
+    if(opt_key == "purge_in_prime_tower")
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+
 
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
@@ -1609,19 +1617,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-
-    // -1 means caculate all
-    auto update_flush_volume = [](int idx = -1) {
-        if (idx < 0) {
-            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
-            for (size_t i = 0; i < filament_size; ++i)
-                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
-        }
-        else
-            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
-        };
-
-
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
     if (opt_key_without_idx == "long_retractions_when_cut") {
@@ -1645,11 +1640,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
 
-    // BBS
-#if 0
-    if (opt_key == "extruders_count")
-        wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
-#endif
+    //Orca: sync filament num if it's a multi tool printer
+    if (opt_key == "extruders_count" && !m_config->opt_bool("single_extruder_multi_material")){
+        auto num_extruder = boost::any_cast<size_t>(value);
+        wxGetApp().preset_bundle->set_num_filaments(num_extruder);
+        wxGetApp().plater()->on_filaments_change(num_extruder);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+    }
 
     if (m_postpone_update_ui) {
         // It means that not all values are rolled to the system/last saved values jet.
@@ -1658,7 +1656,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     update();
-    m_active_page->update_visibility(m_mode, true);
+    if(m_active_page)
+        m_active_page->update_visibility(m_mode, true);
     m_page_view->GetParent()->Layout();
 }
 
@@ -1677,14 +1676,16 @@ void Tab::show_timelapse_warning_dialog() {
 void Tab::update_wiping_button_visibility() {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
-    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_prime_tower"))->value;
-    bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+    // Orca: it's not used
+    //
+    // bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_prime_tower"))->value;
+    // bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+    // auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
+    // if (wiping_dialog_button) {
+    //     wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders);
+    //     wiping_dialog_button->GetParent()->Layout();
+    // }
 
-    auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
-    if (wiping_dialog_button) {
-        wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders);
-        wiping_dialog_button->GetParent()->Layout();
-    }
 }
 
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
@@ -2261,7 +2262,48 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_auto_brim");
         optgroup->append_single_option_line("tree_support_brim_width");
         
-    page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
+    page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
+        optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
+        optgroup->append_single_option_line("enable_prime_tower");
+        optgroup->append_single_option_line("prime_tower_width");
+        optgroup->append_single_option_line("prime_volume");
+        optgroup->append_single_option_line("prime_tower_brim_width");
+        optgroup->append_single_option_line("wipe_tower_rotation_angle");
+        optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("wipe_tower_cone_angle");
+        optgroup->append_single_option_line("wipe_tower_extra_spacing");
+        optgroup->append_single_option_line("wipe_tower_extra_flow");
+        optgroup->append_single_option_line("wipe_tower_max_purge_speed");
+        optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
+        optgroup->append_single_option_line("single_extruder_multi_material_priming");
+
+        optgroup = page->new_optgroup(L("Filament for Features"));
+        optgroup->append_single_option_line("wall_filament");
+        optgroup->append_single_option_line("sparse_infill_filament");
+        optgroup->append_single_option_line("solid_infill_filament");
+        optgroup->append_single_option_line("wipe_tower_filament");
+
+        optgroup = page->new_optgroup(L("Ooze prevention"));
+        optgroup->append_single_option_line("ooze_prevention");
+        optgroup->append_single_option_line("standby_temperature_delta");
+        optgroup->append_single_option_line("preheat_time");
+        optgroup->append_single_option_line("preheat_steps");
+
+        optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
+        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
+        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
+        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
+        optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        optgroup->append_single_option_line("interlocking_beam");
+        optgroup->append_single_option_line("mmu_segmented_region_max_width");
+        optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
+        optgroup->append_single_option_line("interlocking_beam_width");
+        optgroup->append_single_option_line("interlocking_orientation");
+        optgroup->append_single_option_line("interlocking_beam_layer_count");
+        optgroup->append_single_option_line("interlocking_depth");
+        optgroup->append_single_option_line("interlocking_boundary_avoidance");
+
+page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("min_skirt_length");
@@ -2277,25 +2319,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_ears_max_angle");
         optgroup->append_single_option_line("brim_ears_detection_length");
 
-        optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
-        optgroup->append_single_option_line("enable_prime_tower");
-        optgroup->append_single_option_line("prime_tower_width");
-        optgroup->append_single_option_line("prime_volume");
-        optgroup->append_single_option_line("prime_tower_brim_width");
-        optgroup->append_single_option_line("wipe_tower_rotation_angle");
-        optgroup->append_single_option_line("wipe_tower_bridging");
-        optgroup->append_single_option_line("wipe_tower_cone_angle");
-        optgroup->append_single_option_line("wipe_tower_extra_spacing");
-        optgroup->append_single_option_line("wipe_tower_max_purge_speed");
-        optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
-        // optgroup->append_single_option_line("single_extruder_multi_material_priming");
-
-
-        optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
-        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
-        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
-        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
-
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("print_sequence", "sequent-print");
@@ -2309,16 +2332,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
-
-        optgroup = page->new_optgroup(L("Advanced"), L"advanced");
-        optgroup->append_single_option_line("interlocking_beam");
-        // optgroup->append_single_option_line("mmu_segmented_region_max_width");
-        optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
-        optgroup->append_single_option_line("interlocking_beam_width");
-        optgroup->append_single_option_line("interlocking_orientation");
-        optgroup->append_single_option_line("interlocking_beam_layer_count");
-        optgroup->append_single_option_line("interlocking_depth");
-        optgroup->append_single_option_line("interlocking_boundary_avoidance");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
@@ -2339,13 +2352,13 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
-    page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
+
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
         option = optgroup->get_option("notes");
         option.opt.full_width = true;
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
-
+        
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -2588,8 +2601,6 @@ void TabPrintModel::update_model_config()
             // Reset m_config manually because there's no corresponding config in m_parent_tab->m_config
             for (auto plate_item : m_object_configs) {
                 const DynamicPrintConfig& plate_config = plate_item.second->get();
-                BedType plate_bed_type = (BedType)0;
-                PrintSequence plate_print_seq = (PrintSequence)0;
                 if (!plate_config.has("curr_bed_type")) {
                     // same as global
                     DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
@@ -2900,7 +2911,6 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
 
 void TabPrintPlate::notify_changed(ObjectBase* object)
 {
-    auto plate = dynamic_cast<PartPlate*>(object);
     auto objects_list = wxGetApp().obj_list();
     wxDataViewItemArray items;
     objects_list->GetSelections(items);
@@ -3223,17 +3233,13 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("filament_flow_ratio");
-
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
         optgroup->append_single_option_line("filament_cost");
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
+        optgroup->append_single_option_line("idle_temperature");
         Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
@@ -3249,6 +3255,25 @@ void TabFilament::build()
             on_value_change(opt_key, value);
         };
 
+        // Orca: New section to focus on flow rate and PA to declutter general section
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("filament_flow_ratio");
+
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
+
+        // Orca: adaptive pressure advance and calibration model
+        optgroup->append_single_option_line("adaptive_pressure_advance");
+        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
+        optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
+    
+        option = optgroup->get_option("adaptive_pressure_advance_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
+        //
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
@@ -3418,7 +3443,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_moves", "semm");
         optgroup->append_single_option_line("filament_cooling_initial_speed", "semm");
         optgroup->append_single_option_line("filament_cooling_final_speed", "semm");
-
+        optgroup->append_single_option_line("filament_stamping_loading_speed");
+        optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             wxGetApp().UpdateDarkUI(ramming_dialog_btn);
@@ -3437,13 +3463,10 @@ void TabFilament::build()
             return sizer;
         });
 
-        // Orca: multi tool is not supported yet.
-#ifdef ORCA_MULTI_TOOL
         optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"));
         optgroup->append_single_option_line("filament_multitool_ramming");
         optgroup->append_single_option_line("filament_multitool_ramming_volume");
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
-#endif
 
         page     = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
@@ -3538,9 +3561,18 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+        
+        // Orca: adaptive pressure advance and calibration model
+        // If PA is not enabled, disable adaptive pressure advance and hide the model section
+        // If adaptive PA is not enabled, hide the adaptive PA model section
+        toggle_option("adaptive_pressure_advance", pa);
+        toggle_option("adaptive_pressure_advance_overhangs", pa);
+        bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", 0);
+        toggle_line("adaptive_pressure_advance_overhangs", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa);
+        toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
-
         toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
     }
@@ -3659,18 +3691,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
         optgroup->append_single_option_line("preferred_orientation");
-
-        // ConfigOptionDef def;
-        //    def.type =  coInt,
-        //    def.set_default_value(new ConfigOptionInt(1));
-        //    def.label = L("Extruders");
-        //    def.tooltip = L("Number of extruders of the printer.");
-        //    def.min = 1;
-        //    def.max = 256;
-        //    //BBS
-        //    def.mode = comDevelop;
-        // Option option(def, "extruders_count");
-        // optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
@@ -3947,12 +3967,10 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         m_preset_bundle->update_multi_material_filament_presets();
         is_count_changed = true;
     }
-    // BBS
-#if 0
+    // Orca: support multi tool
     else if (m_extruders_count == 1 &&
              m_preset_bundle->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values.size()>1)
         m_preset_bundle->update_multi_material_filament_presets();
-#endif
 
     /* This function should be call in any case because of correct updating/rebuilding
      * of unregular pages of a Printer Settings
@@ -4086,14 +4104,86 @@ if (is_marlin_flavor)
         auto page     = add_options_page(L("Multimaterial"), "custom-gcode_multi_material", true); // ORCA: icon only visible on placeholders
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"), "param_multi_material");
         optgroup->append_single_option_line("single_extruder_multi_material", "semm");
-        // Orca: we only support Single Extruder Multi Material, so it's always enabled
-        // optgroup->m_on_change = [this](const t_config_option_key &opt_key, const boost::any &value) {
-        //     wxTheApp->CallAfter([this, opt_key, value]() {
-        //         if (opt_key == "single_extruder_multi_material") {
-        //             build_unregular_pages();
-        //         }
-        //     });
-        // };
+        ConfigOptionDef def;
+        def.type    = coInt, def.set_default_value(new ConfigOptionInt((int) m_extruders_count));
+        def.label   = L("Extruders");
+        def.tooltip = L("Number of extruders of the printer.");
+        def.min     = 1;
+        def.max     = MAXIMUM_EXTRUDER_NUMBER;
+        def.mode    = comAdvanced;
+        Option option(def, "extruders_count");
+        optgroup->append_single_option_line(option);
+
+        // Orca: rebuild missed extruder pages
+        optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
+            auto optgroup_sh = optgroup_wk.lock();
+            if (!optgroup_sh)
+                return;
+
+            // optgroup->get_value() return int for def.type == coInt,
+            // Thus, there should be boost::any_cast<int> !
+            // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
+            size_t extruders_count = size_t(boost::any_cast<int>(optgroup_sh->get_value("extruders_count")));
+            wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
+                if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
+                    extruders_count_changed(extruders_count);
+                    init_options_list(); // m_options_list should be updated before UI updating
+                    update_dirty();
+                    if (opt_key == "single_extruder_multi_material") { // the single_extruder_multimaterial was added to force pages
+                        on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
+
+                        if (boost::any_cast<bool>(value) && m_extruders_count > 1) {
+                            SuppressBackgroundProcessingUpdate sbpu;
+
+// Orca: we use a different logic here. If SEMM is enabled, we set extruder count to 1.
+#if 1
+                            extruders_count_changed(1);
+#else
+
+                            std::vector<double> nozzle_diameters =
+                                static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
+                            const double frst_diam = nozzle_diameters[0];
+
+                            for (auto cur_diam : nozzle_diameters) {
+                                // if value is differs from first nozzle diameter value
+                                if (fabs(cur_diam - frst_diam) > EPSILON) {
+                                    const wxString msg_text = _(
+                                        L("Single Extruder Multi Material is selected, \n"
+                                          "and all extruders must have the same diameter.\n"
+                                          "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
+                                    MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+
+                                    DynamicPrintConfig new_conf = *m_config;
+                                    if (dialog.ShowModal() == wxID_YES) {
+                                        for (size_t i = 1; i < nozzle_diameters.size(); i++)
+                                            nozzle_diameters[i] = frst_diam;
+
+                                        new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
+                                    } else
+                                        new_conf.set_key_value("single_extruder_multi_material", new ConfigOptionBool(false));
+
+                                    load_config(new_conf);
+                                    break;
+                                }
+                            }
+#endif
+                        }
+
+                        m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+                        // Upadte related comboboxes on Sidebar and Tabs
+                        Sidebar& sidebar = wxGetApp().plater()->sidebar();
+                        for (const Preset::Type& type : {Preset::TYPE_PRINT, Preset::TYPE_FILAMENT}) {
+                            sidebar.update_presets(type);
+                            wxGetApp().get_tab(type)->update_tab_ui();
+                        }
+                    }
+                }
+                else {
+                    update_dirty();
+                    on_value_change(opt_key, value);
+                }
+            });
+        };
         optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
 
         optgroup = page->new_optgroup(L("Wipe tower"), "param_tower");
@@ -4110,140 +4200,138 @@ if (is_marlin_flavor)
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 
-    // BBS. Just create one extruder page because BBL machine has only on physical extruder.
-    // Build missed extruder pages
-    //for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx)
-    auto extruder_idx = 0;
-    const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx + 1)) : wxString::Format("Extruder");
-    bool page_exist = false;
-    for (auto page_temp : m_pages) {
-        if (page_temp->title() == page_name) {
-            page_exist = true;
-            break;
+    // Orca: build missed extruder pages
+    for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
+        // auto extruder_idx = 0;
+        const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+        bool page_exist = false;
+        for (auto page_temp : m_pages) {
+            if (page_temp->title() == page_name) {
+                page_exist = true;
+                break;
+            }
         }
-    }
 
-    if (!page_exist)
-    {
-        //# build page
-        //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
-        auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
-        m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
+        if (!page_exist)
+        {
+            //# build page
+            //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+            auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
+            m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size", -1, true);
-            optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
+                auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");
+                optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
-            optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
-            {
-                //if (m_config->opt_bool("single_extruder_multi_material") && m_extruders_count > 1 && opt_key.find_first_of("nozzle_diameter") != std::string::npos)
-                //{
-                //    SuppressBackgroundProcessingUpdate sbpu;
-                //    const double new_nd = boost::any_cast<double>(value);
-                //    std::vector<double> nozzle_diameters = static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
+                optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
+                {
+                    bool is_SEMM = m_config->opt_bool("single_extruder_multi_material");
+                    if (is_SEMM && m_extruders_count > 1 && opt_key.find_first_of("nozzle_diameter") != std::string::npos)
+                    {
+                        SuppressBackgroundProcessingUpdate sbpu;
+                        const double new_nd = boost::any_cast<double>(value);
+                        std::vector<double> nozzle_diameters = static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
 
-                //    // if value was changed
-                //    if (fabs(nozzle_diameters[extruder_idx == 0 ? 1 : 0] - new_nd) > EPSILON)
+                        // if value was changed
+                        if (fabs(nozzle_diameters[extruder_idx == 0 ? 1 : 0] - new_nd) > EPSILON)
+                        {
+                            const wxString msg_text = _(L("This is a single extruder multimaterial printer, diameters of all extruders "
+                                "will be set to the new value. Do you want to proceed?"));
+                            //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                            MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+
+                            DynamicPrintConfig new_conf = *m_config;
+                            if (dialog.ShowModal() == wxID_YES) {
+                                for (size_t i = 0; i < nozzle_diameters.size(); i++) {
+                                    if (i == extruder_idx)
+                                        continue;
+                                    nozzle_diameters[i] = new_nd;
+                                }
+                            }
+                            else
+                                nozzle_diameters[extruder_idx] = nozzle_diameters[extruder_idx == 0 ? 1 : 0];
+
+                            new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
+                            load_config(new_conf);
+                        }
+                    }
+
+                    update_dirty();
+                    update();
+                };
+
+                optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height");
+                optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
+                optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
+
+                optgroup = page->new_optgroup(L("Position"), L"param_position");
+                optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
+
+                //BBS: don't show retract related config menu in machine page
+                optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
+                optgroup->append_single_option_line("retraction_length", "", extruder_idx);
+                optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+                optgroup->append_single_option_line("travel_slope", "", extruder_idx);
+                optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
+                optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
+                optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
+                optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
+                optgroup->append_single_option_line("wipe", "", extruder_idx);
+                optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
+                optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
+
+                optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement");
+                optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
+                optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
+                optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
+
+                optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change");
+                optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
+                optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
+                // do not display this params now
+                optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
+                optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
+
+    #if 0
+                //optgroup = page->new_optgroup(L("Preview"), -1, true);
+
+                //auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
+                //    m_reset_to_filament_color = new ScalableButton(parent, wxID_ANY, "undo", _L("Reset to Filament Color"),
+                //                                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
+                //    ScalableButton* btn = m_reset_to_filament_color;
+                //    btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+                //    btn->SetSize(btn->GetBestSize());
+                //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                //    sizer->Add(btn);
+
+                //    btn->Bind(wxEVT_BUTTON, [this, extruder_idx](wxCommandEvent& e)
                 //    {
-                //        const wxString msg_text = _(L("This is a single extruder multimaterial printer, diameters of all extruders "
-                //                                      "will be set to the new value. Do you want to proceed?"));
-                //        //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
-                //        MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+                //        std::vector<std::string> colors = static_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"))->values;
+                //        colors[extruder_idx] = "";
 
                 //        DynamicPrintConfig new_conf = *m_config;
-                //        if (dialog.ShowModal() == wxID_YES) {
-                //            for (size_t i = 0; i < nozzle_diameters.size(); i++) {
-                //                if (i==extruder_idx)
-                //                    continue;
-                //                nozzle_diameters[i] = new_nd;
-                //            }
-                //        }
-                //        else
-                //            nozzle_diameters[extruder_idx] = nozzle_diameters[extruder_idx == 0 ? 1 : 0];
-
-                //        new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
+                //        new_conf.set_key_value("extruder_colour", new ConfigOptionStrings(colors));
                 //        load_config(new_conf);
-                //    }
-                //}
 
-                update_dirty();
-                update();
-            };
+                //        update_dirty();
+                //        update();
+                //    });
 
-            optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", -1, true);
-            optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
-            optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
-
-            optgroup = page->new_optgroup(L("Position"), L"param_position", -1, true);
-            optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
-
-            //BBS: don't show retract related config menu in machine page
-            optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
-            optgroup->append_single_option_line("retraction_length", "", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
-            optgroup->append_single_option_line("travel_slope", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
-            optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
-            optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
-            optgroup->append_single_option_line("wipe", "", extruder_idx);
-            optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
-            optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
-
-            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement", -1, true);
-            optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
-
-            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change", -1, true);
-            optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
-            // do not display this params now
-            optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
-
-#if 0
-            //optgroup = page->new_optgroup(L("Preview"), -1, true);
-
-            //auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
-            //    m_reset_to_filament_color = new ScalableButton(parent, wxID_ANY, "undo", _L("Reset to Filament Color"),
-            //                                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-            //    ScalableButton* btn = m_reset_to_filament_color;
-            //    btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            //    btn->SetSize(btn->GetBestSize());
-            //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            //    sizer->Add(btn);
-
-            //    btn->Bind(wxEVT_BUTTON, [this, extruder_idx](wxCommandEvent& e)
-            //    {
-            //        std::vector<std::string> colors = static_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"))->values;
-            //        colors[extruder_idx] = "";
-
-            //        DynamicPrintConfig new_conf = *m_config;
-            //        new_conf.set_key_value("extruder_colour", new ConfigOptionStrings(colors));
-            //        load_config(new_conf);
-
-            //        update_dirty();
-            //        update();
-            //    });
-
-            //    return sizer;
-            //};
-            ////BBS
-            //Line line = optgroup->create_single_option_line("extruder_colour", "", extruder_idx);
-            //line.append_widget(reset_to_filament_color);
-            //optgroup->append_line(line);
-#endif
-    }
-
+                //    return sizer;
+                //};
+                ////BBS
+                //Line line = optgroup->create_single_option_line("extruder_colour", "", extruder_idx);
+                //line.append_widget(reset_to_filament_color);
+                //optgroup->append_line(line);
+    #endif
+        }
+}
     // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
-#if 0
     if (m_extruders_count < m_extruders_count_old)
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
-#endif
 
     Thaw();
 
@@ -4264,15 +4352,12 @@ if (is_marlin_flavor)
 // this gets executed after preset is loaded and before GUI fields are updated
 void TabPrinter::on_preset_loaded()
 {
-    // BBS
-#if 0
+    // Orca
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
     // update the GUI field according to the number of nozzle diameters supplied
     extruders_count_changed(extruders_count);
-#endif
-    build_unregular_pages();
 }
 
 void TabPrinter::update_pages()
@@ -4319,7 +4404,7 @@ void TabPrinter::reload_config()
 
     // "extruders_count" doesn't update from the update_config(),
     // so update it implicitly
-    if (m_active_page && m_active_page->title() == "General")
+    if (m_active_page && m_active_page->title() == "Multimaterial")
         m_active_page->set_value("extruders_count", int(m_extruders_count));
 }
 
@@ -4329,7 +4414,7 @@ void TabPrinter::activate_selected_page(std::function<void()> throw_if_canceled)
 
     // "extruders_count" doesn't update from the update_config(),
     // so update it implicitly
-    if (m_active_page && m_active_page->title() == "General")
+    if (m_active_page && m_active_page->title() == "Multimaterial")
         m_active_page->set_value("extruders_count", int(m_extruders_count));
 }
 
@@ -4368,13 +4453,26 @@ void TabPrinter::toggle_options()
     }
 
     if (m_active_page->title() == L("Multimaterial")) {
-        // toggle_option("single_extruder_multi_material", have_multiple_extruders);
-
         // SoftFever: hide specific settings for BBL printer
-        for (auto el :
-             {"purge_in_prime_tower", "enable_filament_ramming", "cooling_tube_retraction", "cooling_tube_length", "parking_pos_retraction", "extra_loading_move", "high_current_on_filament_swap",  })
-          toggle_option(el, !is_BBL_printer);
+        for (auto el : {
+                 "enable_filament_ramming",
+                 "cooling_tube_retraction",
+                 "cooling_tube_length",
+                 "parking_pos_retraction",
+                 "extra_loading_move",
+                 "high_current_on_filament_swap",
+             })
+            toggle_option(el, !is_BBL_printer);
 
+        auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
+        if (!bSEMM && m_config->opt_bool("manual_filament_change")) {
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("manual_filament_change", new ConfigOptionBool(false));
+            load_config(new_conf);
+        }
+        toggle_option("extruders_count", !bSEMM);
+        toggle_option("manual_filament_change", bSEMM);
+        toggle_option("purge_in_prime_tower", bSEMM && !is_BBL_printer);
     }
     wxString extruder_number;
     long val = 1;
@@ -4657,14 +4755,14 @@ void Tab::rebuild_page_tree()
     if (sel_item == m_last_select_item)
         m_last_select_item = item;
     else
-        m_last_select_item = NULL;
+        m_last_select_item = 0;
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
     //BBS: GUI refactor
     if (item >= 0)
     {
-        bool ret = update_current_page_in_background(item);
+        update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
          if (m_parent->is_active_and_shown_tab(this)) // FIX: modify state not update
@@ -5484,7 +5582,6 @@ void Tab::delete_preset()
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         is_base_preset = true;
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
-            Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
             int process_preset_num     = 0;
             for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
@@ -5748,7 +5845,6 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
-            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
             BedShapeDialog dlg(this);
             dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
                 *m_config->option<ConfigOptionString>("bed_custom_texture"),

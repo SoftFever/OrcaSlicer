@@ -3,8 +3,6 @@
 #include <wx/timer.h>
 #include <wx/gauge.h>
 #include <wx/button.h>
-#include <wx/statusbr.h>
-#include <wx/frame.h>
 
 #include "GUI_App.hpp"
 

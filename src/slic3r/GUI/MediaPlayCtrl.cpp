@@ -67,7 +67,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
                 auto ip = str.find(' ', ik);
                 if (ip == wxString::npos) ip = str.Length();
                 auto v = str.Mid(ik, ip - ik);
-                if (k == "T:" && v.Length() == 8) {
+                if (strcmp(k, "T:") == 0 && v.Length() == 8) {
                     long h = 0,m = 0,s = 0;
                     v.Left(2).ToLong(&h);
                     v.Mid(3, 2).ToLong(&m);
@@ -389,7 +389,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
-    if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+    if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
@@ -734,7 +734,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
             auto file_dll  = tools_dir + dll;
             auto file_dll2 = plugins_dir + dll;
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
-                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_options::overwrite_existing);
         }
         boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir), 
                                              boost::process::windows::create_no_window, 
