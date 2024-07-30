@@ -4455,6 +4455,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
+    def           = this->add("extruder_change_length", coFloats);
+    def->label    = L("Extruder change length");
+    def->tooltip  = L("Extruder change length");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{10});
+
     def = this->add("extruder_ams_count", coStrings);
     def->label = "Extruder ams count";
     def->tooltip = "Ams counts of per extruder";

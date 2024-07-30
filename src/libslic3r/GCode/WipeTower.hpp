@@ -17,7 +17,6 @@ class PrintConfig;
 enum GCodeFlavor : unsigned char;
 
 
-
 class WipeTower
 {
 public:
@@ -37,6 +36,16 @@ public:
 		// Current extruder index.
 		unsigned int    tool;
 	};
+
+	struct NozzleChangeResult
+    {
+        std::string gcode;
+
+        Vec2f start_pos;
+        Vec2f end_pos;
+
+        std::vector<Vec2f> wipe_path;
+    };
 
 	struct ToolChangeResult
 	{
@@ -80,6 +89,8 @@ public:
         // But if finish_layer_tcr is before tool_change_tcr, we have to travel to the wipe tower before
         // executing the gcode finish_layer_tcr.
         bool is_finish_first = false;
+
+        NozzleChangeResult nozzle_change_result;
 
 		// Sum the total length of the extrusion.
 		float total_extrusion_length_in_plane() {
@@ -194,7 +205,7 @@ public:
             m_num_tool_changes 	= 0;
         } else
             ++ m_num_layer_changes;
-		
+
 		// Calculate extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height:
 		m_extrusion_flow = extrusion_flow(layer_height);
 
@@ -213,7 +224,7 @@ public:
 	// Returns gcode to prime the nozzles at the front edge of the print bed.
 	std::vector<ToolChangeResult> prime(
 		// print_z of the first layer.
-		float 						initial_layer_print_height, 
+		float 						initial_layer_print_height,
 		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.
 		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
@@ -224,6 +235,8 @@ public:
 	// On the first layer, extrude a brim around the future wipe tower first.
 	// BBS
     ToolChangeResult tool_change(size_t new_tool, bool extrude_perimeter = false, bool first_toolchange_to_nonsoluble = false);
+
+	NozzleChangeResult nozzle_change(int old_filament_id, int new_filament_id);
 
 	// Fill the unfilled space with a sparse infill.
 	// Call this method only if layer_finished() is false.
@@ -247,6 +260,8 @@ public:
 
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
     int get_number_of_toolchanges() const { return m_num_tool_changes; }
+
+	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
 
     struct FilamentParameters {
         std::string 	    material = "PLA";
@@ -304,7 +319,12 @@ private:
     float  m_travel_speed       = 0.f;
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
-    size_t m_cur_layer_id;
+
+    double       m_nozzle_change_length = 10;
+    size_t       m_cur_layer_id;
+    NozzleChangeResult m_nozzle_change_result;
+    std::vector<int>   m_filament_map;
+
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
     float           m_cooling_tube_length       = 0.f;
@@ -362,6 +382,8 @@ private:
 	// Goes through m_plan and recalculates depths and width of the WT to make it exactly square - experimental
 	void make_wipe_tower_square();
 
+	Vec2f get_next_pos(const WipeTower::box_coordinates &cleaning_box, float wipe_length);
+
     // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
     void save_on_last_wipe();
 
@@ -379,6 +401,7 @@ private:
             float first_wipe_line;
             float wipe_volume;
 			float wipe_length;
+            float nozzle_change_depth{0};
 			// BBS
 			float purge_volume;
             ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f, float wl = 0, float pv = 0)
@@ -411,7 +434,7 @@ private:
 
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
-		const box_coordinates  &cleaning_box, 
+		const box_coordinates  &cleaning_box,
 		const std::string&	 	current_material,
 		const int 				new_temperature);
 
@@ -419,11 +442,11 @@ private:
 		WipeTowerWriter &writer,
         const size_t		new_tool,
 		const std::string& 		new_material);
-	
+
 	void toolchange_Load(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box);
-	
+
 	void toolchange_Wipe(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
@@ -435,4 +458,4 @@ private:
 
 } // namespace Slic3r
 
-#endif // WipeTowerPrusaMM_hpp_ 
+#endif // WipeTowerPrusaMM_hpp_

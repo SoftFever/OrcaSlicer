@@ -3996,6 +3996,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("support_multi_bed_types","bed-types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
+        // todo: for multi_extruder test
+        optgroup->append_single_option_line("extruder_change_length");
         optgroup->append_single_option_line("z_offset");
         optgroup->append_single_option_line("preferred_orientation");
 

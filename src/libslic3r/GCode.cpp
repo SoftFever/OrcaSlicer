@@ -349,6 +349,56 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return {retractionBeforeWipe, retractionDuringWipe};
     }
 
+    std::string transform_gcode(const std::string &gcode, Vec2f pos, const Vec2f &translation, float angle)
+    {
+        Vec2f              extruder_offset(0, 0);
+        std::istringstream gcode_str(gcode);
+        std::string        gcode_out;
+        std::string        line;
+        Vec2f              transformed_pos = pos;
+        Vec2f              old_pos(-1000.1f, -1000.1f);
+
+        while (gcode_str) {
+            std::getline(gcode_str, line); // we read the gcode line by line
+
+            if (line.find("G1 ") == 0) {
+                bool never_skip = false;
+                auto it         = line.find(WipeTower::never_skip_tag());
+                if (it != std::string::npos) {
+                    // remove the tag and remember we saw it
+                    never_skip = true;
+                    line.erase(it, it + WipeTower::never_skip_tag().size());
+                }
+                std::ostringstream line_out;
+                std::istringstream line_str(line);
+                line_str >> std::noskipws; // don't skip whitespace
+                char ch = 0;
+                while (line_str >> ch) {
+                    if (ch == 'X' || ch == 'Y')
+                        line_str >> (ch == 'X' ? pos.x() : pos.y());
+                    else
+                        line_out << ch;
+                }
+
+                transformed_pos = Eigen::Rotation2Df(angle) * pos + translation;
+
+                if (transformed_pos != old_pos || never_skip) {
+                    line = line_out.str();
+                    std::ostringstream oss;
+                    oss << std::fixed << std::setprecision(3) << "G1 ";
+                    if (transformed_pos.x() != old_pos.x() || never_skip) oss << " X" << transformed_pos.x() - extruder_offset.x();
+                    if (transformed_pos.y() != old_pos.y() || never_skip) oss << " Y" << transformed_pos.y() - extruder_offset.y();
+                    oss << " ";
+                    line.replace(line.find("G1 "), 3, oss.str());
+                    old_pos = transformed_pos;
+                }
+            }
+
+            gcode_out += line + "\n";
+        }
+        return gcode_out;
+    }
+
     std::string Wipe::wipe(GCode& gcodegen,double length, bool toolchange, bool is_last)
     {
         std::string gcode;
@@ -498,6 +548,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 check_add_eol(end_filament_gcode_str);
             }
         }
+
+        std::string nozzle_change_gcode_trans;
+        if (!tcr.nozzle_change_result.gcode.empty()) {
+            nozzle_change_gcode_trans = transform_gcode(tcr.nozzle_change_result.gcode, tcr.start_pos, wipe_tower_offset, wipe_tower_rotation);
+        }
+
         // BBS: increase toolchange count
         gcodegen.m_toolchange_count++;
 
@@ -586,6 +642,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 }
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
+
+            std::string target_str = ";nozzle_change_gcode";
+            size_t pos = toolchange_gcode_str.find(target_str);
+            if (pos != std::string::npos) {
+                toolchange_gcode_str.replace(pos, target_str.length(), nozzle_change_gcode_trans);
+            }
+
             check_add_eol(toolchange_gcode_str);
 
             // retract before toolchange
