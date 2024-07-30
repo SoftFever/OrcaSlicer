@@ -131,7 +131,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
             if (line.has_z() && !line.retracting(reader)) {
                 // If this is the initial Z move of the layer, replace it with a
                 // (redundant) move to the last Z of previous layer.
-                line.set(reader, Z, z);
+                line.set(Z, z);
                 new_gcode += line.raw() + '\n';
                 return;
             } else {
@@ -142,17 +142,17 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                         float factor = len / total_layer_length;
                         if (transition_in)
                             // Transition layer, interpolate the amount of extrusion from zero to the final value.
-                            line.set(reader, E, line.e() * factor, 5 /*decimal_digits*/);
+                            line.set(E, line.e() * factor, 5 /*decimal_digits*/);
                         else if (transition_out) {
                             // We want the last layer to ramp down extrusion, but without changing z height!
                             // So clone the line before we mess with its Z and duplicate it into a new layer that ramps down E
                             // We add this new layer at the very end
                             GCodeReader::GCodeLine transitionLine(line);
-                            transitionLine.set(reader, E, line.e() * (1 - factor), 5 /*decimal_digits*/);
+                            transitionLine.set(E, line.e() * (1 - factor), 5 /*decimal_digits*/);
                             transition_gcode += transitionLine.raw() + '\n';
                         }
                         // This line is the core of Spiral Vase mode, ramp up the Z smoothly
-                        line.set(reader, Z, z + factor * layer_height);
+                        line.set(Z, z + factor * layer_height);
                         if (smooth_spiral) {
                             // Now we also need to try to interpolate X and Y
                             SpiralVase::SpiralPoint p(line.x(), line.y()); // Get current x/y coordinates
@@ -171,10 +171,10 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                                     if (modified_dist_XY < 0.001)
                                         line.clear();
                                     else {
-                                        line.set(reader, X, target.x);
-                                        line.set(reader, Y, target.y);
+                                        line.set(X, target.x);
+                                        line.set(Y, target.y);
                                         // Scale the extrusion amount according to change in length
-                                        line.set(reader, E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
+                                        line.set(E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
                                         last_point = target;
                                     }
                                 } else {

@@ -33,7 +33,7 @@ body
 /*----Left Menu Button----*/
 #LogoutBtn:hover
 {
-	background: #004942;
+	background: #223C3C;
 	color: #efeff0;
 }
 
@@ -45,7 +45,7 @@ body
 .BtnItem:hover
 {
 	color: #efeff0;
-	background-color: #004942;
+	background-color: #223C3C;
 }
 
 .BtnItem:hover .LeftIcon
@@ -56,7 +56,7 @@ body
 .BtnItemSelected
 {
 	color: #efeff0;
-	background-color: #004942;
+	background-color: #223C3C;
 }
 
 .BtnItemSelected .LeftIcon
@@ -67,13 +67,18 @@ body
 /*-----Right Top MenuBtn-----*/
 .MenuItem:hover
 {
-	border-color: #4db6ac;
-	background-color: #004942;
+	border-color: #00675b;
+	background-color: #223C3C;
 }
 
 #RecentClearAllBtn:hover
 {
 	color: #000;
+}
+
+.FileImg
+{
+	background-color: #36363C; /*ORCA use darker color for dark theme for thumbnails*/
 }
 
 #recnet_context_menu
@@ -82,6 +87,11 @@ body
 	background-color:#242428;
 	border: 0px;
 	box-shadow: 0px 0px 3px #DCDCDC;
+}
+
+.CT_Item:hover
+{
+	background-color:#00675b; /*ORCA color*/
 }
 
 /*----User Manual------*/

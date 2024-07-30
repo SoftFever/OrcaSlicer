@@ -241,7 +241,7 @@ float GLVolume::last_explosion_ratio = 1.0;
 
 void GLVolume::set_render_color()
 {
-    bool outside = is_outside || is_below_printbed();
+    // bool outside = is_outside || is_below_printbed();
 
     if (force_native_color || force_neutral_color) {
 #ifdef ENABBLE_OUTSIDE_COLOR
@@ -859,7 +859,6 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         return;
 
     GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat");
-    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
 
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));
@@ -1023,7 +1022,6 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height());
-    const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)
     {
