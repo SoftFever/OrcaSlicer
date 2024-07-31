@@ -7,9 +7,6 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "utils/linearAlg2D.hpp"
-#include "../Line.hpp"
-
 namespace Slic3r::Arachne
 {
 

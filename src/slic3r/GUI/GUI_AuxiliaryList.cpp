@@ -3,8 +3,6 @@
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
 
-#include <boost/filesystem.hpp>
-
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "libslic3r/Model.hpp"
