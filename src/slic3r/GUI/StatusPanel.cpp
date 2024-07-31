@@ -3862,7 +3862,11 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
             return;
         }
 
-        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        //std::string curr_ams_id = m_ams_control->GetCurentAms();
+        if (event.GetInt() < 0 || event.GetInt() > VIRTUAL_TRAY_MAIN_ID){
+            return;
+        }
+        std::string curr_ams_id = std::to_string(event.GetInt());
         // do not support refresh rfid for VIRTUAL_TRAY_MAIN_ID
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             return;
