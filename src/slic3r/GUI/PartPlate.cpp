@@ -1536,9 +1536,6 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 		return plate_extruders;
 	}
 
-	// if 3mf file
-	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
 			continue;
@@ -1597,14 +1594,14 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 {
 	Vec3d wipe_tower_size;
 
-	double layer_height = 0.08f; // hard code layer height
+	// double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();
 	wipe_tower_size(0) = w;
 
-	const ConfigOption* layer_height_opt = config.option("layer_height");
-	if (layer_height_opt)
-		layer_height = layer_height_opt->getFloat();
+	// const ConfigOption* layer_height_opt = config.option("layer_height");
+	// if (layer_height_opt)
+	// 	layer_height = layer_height_opt->getFloat();
 
 	// empty plate
 	if (plate_extruder_size == 0)
@@ -1652,7 +1649,6 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 			// If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
 			auto next_height_to_depth = *iter;
 			if (next_height_to_depth.first > max_height) {
-				float height_base = curr_height_to_depth.first;
 				float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
 				float min_depth_base = curr_height_to_depth.second;
 				float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;
@@ -2041,7 +2037,6 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 	if (m_printable)
 	{
 		ModelObject* object = m_model->objects[obj_id];
-		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 		result = get_plate_box().intersects(instance_box);
 	}
@@ -2065,7 +2060,6 @@ bool PartPlate::is_left_top_of(int obj_id, int instance_id)
 	}
 
 	ModelObject* object = m_model->objects[obj_id];
-	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 	BoundingBoxf3 instance_box = object->instance_convex_hull_bounding_box(instance_id);
 
@@ -2461,7 +2455,7 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 {
 	auto compute_points = [&print_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
+		double angle_steps;
 		angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
@@ -2480,7 +2474,7 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 			{
 				const Vec2d& p = m_shape[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius_x, radius_y, radius;
 				switch (i) {
 					case 0:
 						radius = 5.f;
@@ -2531,7 +2525,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
+		double angle_steps;
 		angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
@@ -2550,7 +2544,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 			{
 				const Vec2d& p = m_exclude_area[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
 						radius = 5.f;
@@ -3065,7 +3059,7 @@ void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
 
 void PartPlate::print() const
 {
-	unsigned int count=0;
+	// unsigned int count=0;
 
 	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
 	BOOST_LOG_TRIVIAL(trace) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
@@ -4092,8 +4086,7 @@ int PartPlateList::find_instance_belongs(int obj_id, int instance_id)
 //newly added or modified
 int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_new)
 {
-	int ret = 0, index;
-	PartPlate* plate = NULL;
+	int index;
 	ModelObject* object = NULL;
 
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
@@ -4122,7 +4115,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 	{
 		//found it added before
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in previous plate %1%") % index;
-		plate = m_plate_list[index];
+		PartPlate* plate = m_plate_list[index];
 		if (!plate->intersect_instance(obj_id, instance_id, &boundingbox))
 		{
 			//not include anymore, remove it from original plate
@@ -4227,7 +4220,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 //notify instance is removed
 int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 {
-	int ret = 0, index, instance_to_delete = instance_id;
+	int index, instance_to_delete = instance_id;
 	PartPlate* plate = NULL;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_id % instance_id;
@@ -4325,7 +4318,6 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
-			ModelInstance* instance = object->instances[j];
 			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
 			for (k = 0; k < (unsigned int)m_plate_list.size(); ++k)
 			{
@@ -4376,9 +4368,7 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
-			ModelInstance* instance = object->instances[j];
 			already_included = false;
-
 			for (k = 0; k < (unsigned int)plate_index; ++k)
 			{
 				PartPlate* plate = m_plate_list[k];
@@ -4552,7 +4542,6 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 	nonprefered_regions.emplace_back(Vec2d{ 18,0 }, Vec2d{ 240,15 }); // new extrusion & hand-eye calibration region
 
 	//has exclude areas
-	PartPlate* plate = m_plate_list[0];
 	for (int index = 0; index < nonprefered_regions.size(); index++)
 	{
 		Polygon ap = scaled(nonprefered_regions[index]).polygon();
@@ -4779,11 +4768,8 @@ void PartPlateList::set_render_option(bool bedtype_texture, bool plate_settings)
 
 int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)
 {
-	int ret = 0, index;
-	PartPlate* plate = NULL;
-
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_index % instance_index;
-	index = find_instance(obj_index, instance_index);
+	int index = find_instance(obj_index, instance_index);
 	if (index != -1)
 	{
 		//found it in plate
@@ -4821,8 +4807,6 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 	m_height_to_lid = height_to_lid;
 	m_height_to_rod = height_to_rod;
 
-	double stride_x = plate_stride_x();
-	double stride_y = plate_stride_y();
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
@@ -5384,13 +5368,11 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	rectangle.push_back(Vec2d(x, y+h));
 	ExPolygon poly;
 
-	for (int i = 0; i < 4; i++) {
-		const Vec2d & p = rectangle[i];
-		for (auto& p : rectangle) {
-			Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
-			poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
-		}
+	for (const auto& p : rectangle) {
+		Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
+		poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
 	}
+
 
 	if (!buffer)
         buffer = new GLModel();
