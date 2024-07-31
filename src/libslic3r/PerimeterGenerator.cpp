@@ -242,12 +242,10 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
     Polyline right;
     Polyline temp_copy = polyline_with_insert_points;
 
-    size_t   poly_size = polyline_with_insert_points.size();
     // BBS: merge degree in limited range
     //find first degee base
     double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap) * min_degree_gap + min_degree_gap;
     degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
-    double short_poly_len = 0;
     for (int point_idx = points_overhang.size() - 2; point_idx > 0; --point_idx) {
 
         double degree = points_overhang[point_idx];
@@ -940,7 +938,6 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
             if (perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
 
-                Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
                 std::map<double, std::vector<Polygons>> clipper_serise;
 
                 std::map<double,ExtrusionPaths> recognization_paths;
@@ -2253,7 +2250,6 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                     if (!unsupported.empty()) {
                         //only consider the part that can be bridged (really, by the bridge algorithm)
                         //first, separate into islands (ie, each ExPlolygon)
-                        int numploy = 0;
                         //only consider the bottom layer that intersect unsupported, to be sure it's only on our island.
                         ExPolygonCollection lower_island(support);
                         //a detector per island
@@ -2371,7 +2367,6 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                     //ExPolygons no_bridge = diff_ex(offset_ex(unbridgeable, ext_perimeter_width * 3 / 2), last);
                                     //bridges_temp = diff_ex(bridges_temp, no_bridge);
                                     coordf_t offset_to_do = bridged_infill_margin;
-                                    bool first = true;
                                     unbridgeable = diff_ex(unbridgeable, offset_ex(bridges_temp, ext_perimeter_width));
                                     while (offset_to_do > ext_perimeter_width * 1.5) {
                                         unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width / 4, ext_perimeter_width * 2.25, ClipperLib::jtSquare);
@@ -2379,7 +2374,6 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                         bridges_temp = offset_ex(bridges_temp, ext_perimeter_width, ClipperLib::jtMiter, 6.);
                                         unbridgeable = diff_ex(unbridgeable, offset_ex(bridges_temp, ext_perimeter_width));
                                         offset_to_do -= ext_perimeter_width;
-                                        first = false;
                                     }
                                     unbridgeable = offset_ex(unbridgeable, ext_perimeter_width + offset_to_do, ClipperLib::jtSquare);
                                     bridges_temp = diff_ex(bridges_temp, unbridgeable);

@@ -3,7 +3,6 @@
 
 #include "RedistributeBeadingStrategy.hpp"
 
-#include <algorithm>
 #include <numeric>
 
 namespace Slic3r::Arachne

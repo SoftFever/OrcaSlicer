@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include "ExtrusionLine.hpp"
-#include "linearAlg2D.hpp"
 #include "../../VariableWidth.hpp"
 
 namespace Slic3r::Arachne
