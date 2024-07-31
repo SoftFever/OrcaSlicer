@@ -4412,7 +4412,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     float line_height          = ImGui::GetFrameHeight();
     int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
     float three_words_width    = imgui.calc_text_size("ABC"sv).x;
-    float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.5f + line_height) + (line_height * 4));
+    float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.6f + line_height) + (line_height * 5));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
