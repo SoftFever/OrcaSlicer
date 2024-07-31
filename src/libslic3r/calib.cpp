@@ -465,8 +465,9 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
 
     const double e_per_mm        = CalibPressureAdvance::e_per_mm(m_line_width, m_height_layer, m_nozzle_diameter, filament_diameter,
                                                                   print_flow_ratio);
-    const double thin_e_per_mm   = CalibPressureAdvance::e_per_mm(m_thin_line_width, m_height_layer, m_nozzle_diameter, filament_diameter,
-                                                                  print_flow_ratio);
+    // Orca: Unused due to skip drawing indicator lines
+    // const double thin_e_per_mm   = CalibPressureAdvance::e_per_mm(m_thin_line_width, m_height_layer, m_nozzle_diameter, filament_diameter,
+    //                                                               print_flow_ratio);
     const double number_e_per_mm = CalibPressureAdvance::e_per_mm(m_number_line_width, m_height_layer, m_nozzle_diameter, filament_diameter,
                                                                   print_flow_ratio);
 

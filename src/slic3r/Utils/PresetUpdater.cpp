@@ -52,7 +52,6 @@ using Slic3r::GUI::Config::SnapshotDB;
 namespace Slic3r {
 
 
-static const char *INDEX_FILENAME = "index.idx";
 static const char *TMP_EXTENSION = ".data";
 
 

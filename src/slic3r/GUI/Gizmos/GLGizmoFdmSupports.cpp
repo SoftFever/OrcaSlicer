@@ -245,16 +245,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
     const float reset_button_slider_left = m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2;
-    const float on_overhangs_only_width  = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(1.5f);
-    const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
-    const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.5f);
     const float gap_area_txt_width = m_imgui->calc_text_size(m_desc.at("gap_area")).x + m_imgui->scaled(1.5f);
     const float smart_fill_angle_txt_width = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
-    const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
-
-    const float tips_width           = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.5f);
-    const float minimal_slider_width = m_imgui->scaled(4.f);
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -271,8 +264,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
-
-    float drag_pos_times     = 0.7;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
@@ -291,12 +282,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));						// ORCA: Fixes icon rendered without colors while using Light theme
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));                     // ORCA Removes button background on dark mode
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));                       // ORCA: Fixes icon rendered without colors while using Light theme
         if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button,			ImVec4(0.f, 0.59f, 0.53f, 0.25f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	ImVec4(0.f, 0.59f, 0.53f, 0.25f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,	ImVec4(0.f, 0.59f, 0.53f, 0.30f));	// ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_Border,			ImGuiWrapper::COL_ORCA);			// ORCA use orca color for border on selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Button,          ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,   ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,    ImVec4(0.f, 0.59f, 0.53f, 0.30f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Border,          ImGuiWrapper::COL_ORCA);            // ORCA use orca color for border on selected tool / brush
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
@@ -306,7 +298,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
-        ImGui::PopStyleColor(1);
+        ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(1);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
@@ -696,7 +688,6 @@ wxString GLGizmoFdmSupports::handle_snapshot_action_name(bool shift_down, GLGizm
 void GLGizmoFdmSupports::init_print_instance()
 {
     const PrintObject* print_object = NULL;
-    PrintInstance print_instance = { 0 };
     const Print *print = m_parent.fff_print();
 
     if (!m_c->selection_info() || (m_print_instance.print_object))
