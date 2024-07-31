@@ -277,6 +277,7 @@ protected:
     m_highlighter;
 
 	DynamicPrintConfig 	m_cache_config;
+    std::vector<std::string> m_cache_options;
 
 
 	bool				m_page_switch_running = false;

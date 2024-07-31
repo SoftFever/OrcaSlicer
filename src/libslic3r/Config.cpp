@@ -451,6 +451,17 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
         if (my_opt == nullptr) {
             // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
             // This is only possible if other is of DynamicConfig type.
+            if (auto n = opt_key.find('#'); n != std::string::npos) {
+                auto opt_key2 = opt_key.substr(0, n);
+                auto my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(this->option(opt_key2, true));
+                if (my_opt2) {
+                    int index = std::atoi(opt_key.c_str() + n + 1);
+                    auto other_opt = other.option(opt_key2);
+                    if (other_opt)
+                        my_opt2->set_at(other_opt, index, index);
+                    continue;
+                }
+            }
             if (ignore_nonexistent)
                 continue;
             throw UnknownOptionException(opt_key);
