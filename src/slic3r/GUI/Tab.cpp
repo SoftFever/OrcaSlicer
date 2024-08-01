@@ -940,9 +940,7 @@ void Tab::update_changed_ui()
 template<class T>
 void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, Tab *tab, const int& value)
 {
-    T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
-    for (size_t i = 0; i < opt_cur->values.size(); i++)
-        map.emplace(opt_key + "#" + std::to_string(i), value);
+    map.emplace(opt_key + "#0", value);
 }
 
 void Tab::init_options_list()
@@ -956,19 +954,10 @@ void Tab::init_options_list()
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
-        switch (m_config->option(opt_key)->type())
-        {
-        case coInts:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coBools:	add_correct_opts_to_options_list<ConfigOptionBools		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coFloats:	add_correct_opts_to_options_list<ConfigOptionFloats		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        case coFloatsOrPercents: add_correct_opts_to_options_list<ConfigOptionFloatsOrPercents>(opt_key, m_options_list, this, m_opt_status_value); break;
-        case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
-        // BBS
-        case coEnums:   add_correct_opts_to_options_list<ConfigOptionInts       >(opt_key, m_options_list, this, m_opt_status_value);   break;
-        default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
-        }
+        if (m_config->option(opt_key)->is_vector())
+            m_options_list.emplace(opt_key + "#0", m_opt_status_value);
+        else
+            m_options_list.emplace(opt_key, m_opt_status_value);
     }
 }
 
@@ -977,6 +966,13 @@ void TabPrinter::init_options_list()
     Tab::init_options_list();
     if (m_printer_technology == ptFFF)
         m_options_list.emplace("extruders_count", m_opt_status_value);
+    for (size_t i = 1; i < m_extruders_count; ++i) {
+        auto extruder_page = m_pages[3 + i];
+        for (auto group : extruder_page->m_optgroups) {
+            for (auto & opt : group->opt_map())
+                m_options_list.emplace(opt.first, m_opt_status_value);
+        }
+    }
 }
 
 void TabPrinter::msw_rescale()
@@ -1147,7 +1143,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
         }
         for (const auto &kvp : group->opt_map()) {
             const std::string &opt_key = kvp.first;
-            if ((m_options_list[opt_key] & os) == 0)
+            auto iter = m_options_list.find(opt_key);
+            if (iter != m_options_list.end() && (iter->second & os) == 0)
                 to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
         }
     }
@@ -5274,12 +5271,12 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             Preset *to_be_selected = m_presets->find_preset(preset_name, false, true);
             ConfigOptionStrings* cur_opt2 = dynamic_cast <ConfigOptionStrings *>(m_presets->get_edited_preset().config.option("printer_extruder_variant"));
             ConfigOptionStrings* to_select_opt2 = dynamic_cast <ConfigOptionStrings *>(to_be_selected->config.option("printer_extruder_variant"));
-            no_transfer = cur_opt2->values != to_select_opt2->values;
+            bool no_transfer_variant = cur_opt2->values != to_select_opt2->values;
             for (PresetUpdate &pu : updates) {
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
                 pu.new_preset_compatible = (new_printer_technology == pu.technology) && is_compatible_with_printer(pu.presets->get_edited_preset_with_vendor_profile(), new_printer_preset_with_vendor_profile);
                 if (!canceled)
-                    canceled = pu.old_preset_dirty && !may_discard_current_dirty_preset(pu.presets, preset_name, no_transfer) && !pu.new_preset_compatible && !force_select;
+                    canceled = pu.old_preset_dirty && !may_discard_current_dirty_preset(pu.presets, preset_name, false, no_transfer_variant) && !pu.new_preset_compatible && !force_select;
             }
             if (!canceled) {
                 for (PresetUpdate &pu : updates) {
@@ -5458,7 +5455,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer)
+bool Tab::may_discard_current_dirty_preset(PresetCollection *presets /*= nullptr*/, const std::string &new_printer_name /*= ""*/, bool no_transfer, bool no_transfer_variant)
 {
     if (presets == nullptr) presets = m_presets;
 
@@ -5497,6 +5494,25 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     else if (dlg.transfer_changes()) // move selected changes
     {
         std::vector<std::string> selected_options = dlg.get_selected_options();
+        if (!no_transfer && no_transfer_variant) {
+            auto & options_list = wxGetApp().get_tab(presets->type())->m_options_list;
+            bool has_variants = false;
+            for (auto &opt : selected_options) {
+                if (auto n = opt.find('#'); n != std::string::npos) {
+                    auto iter = options_list.lower_bound(opt.substr(0, n));
+                    if (iter == options_list.end() || opt.compare(0, n, iter->first)) {
+                        has_variants = true;
+                        opt.clear();
+                    }
+                }
+            }
+            if (has_variants) {
+                auto msg = _L("Parameters related to the extruder model will be discarded because the extruder model list for the front and rear printers is inconsistent.");
+                MessageDialog(this, msg, _L("Use Modified Value"), wxOK | wxICON_WARNING).ShowModal();
+                selected_options.erase(std::remove(selected_options.begin(), selected_options.end(), ""), selected_options.end());
+            }
+        }
+
         if (m_type == presets->type()) // move changes for the current preset from this tab
         {
             if (m_type == Preset::TYPE_PRINTER) {

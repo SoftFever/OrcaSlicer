@@ -763,7 +763,7 @@ void Sidebar::priv::sync_extruder_list()
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
         if (ams.second->nozzle == 0) ++right;
-        else ++left;
+        else if(ams.second->nozzle == 1) ++left;
     }
     AMSCountPopupWindow::SetAMSCount(0, left, obj->vt_slot.size() > 1);
     AMSCountPopupWindow::SetAMSCount(1, right, 1);
