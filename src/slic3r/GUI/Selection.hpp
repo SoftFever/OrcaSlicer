@@ -354,6 +354,7 @@ public:
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS
+    EMode get_volume_selection_mode(){ return m_volume_selection_mode;}
     void set_volume_selection_mode(EMode mode) { if (!m_volume_selection_locked) m_volume_selection_mode = mode; }
     void lock_volume_selection_mode() { m_volume_selection_locked = true; }
     void unlock_volume_selection_mode() { m_volume_selection_locked = false; }
