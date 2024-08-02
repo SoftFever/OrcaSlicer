@@ -1,3 +1,4 @@
+#include "../ClipperUtils.hpp"
 #include "../Layer.hpp"
 
 #include "RetractWhenCrossingPerimeters.hpp"
