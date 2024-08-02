@@ -17,6 +17,8 @@
 
 namespace Slic3r {
 
+class Print;
+
 // slice warnings enum strings
 #define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
@@ -207,6 +209,7 @@ namespace Slic3r {
         float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
+        bool backtrace_enabled;
         std::vector<std::string> extruder_colors;
         std::vector<float> filament_diameters;
         std::vector<int>   required_nozzle_HRC;
@@ -291,6 +294,7 @@ namespace Slic3r {
             During_Print_Exhaust_Fan,
             Wipe_Tower_Start,
             Wipe_Tower_End,
+            PA_Change,
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -377,6 +381,7 @@ namespace Slic3r {
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
             unsigned int g1_line_id{ 0 };
+            unsigned int remaining_internal_g1_lines;
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -425,6 +430,7 @@ namespace Slic3r {
             struct G1LinesCacheItem
             {
                 unsigned int id;
+                unsigned int remaining_internal_g1_lines;
                 float elapsed_time;
             };
 
@@ -709,6 +715,9 @@ namespace Slic3r {
         unsigned char m_last_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
+        ExtruderTemps m_extruder_temps_config;
+        ExtruderTemps m_extruder_temps_first_layer_config;
+        bool  m_is_XL_printer = false;
         int m_highest_bed_temp;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
@@ -722,6 +731,9 @@ namespace Slic3r {
         size_t m_last_default_color_id;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
+        bool m_single_extruder_multi_material;
+        float m_preheat_time;
+        int m_preheat_steps;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -746,6 +758,8 @@ namespace Slic3r {
         TimeProcessor m_time_processor;
         UsedFilaments m_used_filaments;
 
+        Print* m_print{ nullptr };
+
         GCodeProcessorResult m_result;
         static unsigned int s_result_id;
 
@@ -759,6 +773,7 @@ namespace Slic3r {
         GCodeProcessor();
 
         void apply_config(const PrintConfig& config);
+        void set_print(Print* print) { m_print = print; }
         void enable_stealth_time_estimator(bool enabled);
         bool is_stealth_time_estimator_enabled() const {
             return m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].enabled;
@@ -815,7 +830,7 @@ namespace Slic3r {
 
         // Move
         void process_G0(const GCodeReader::GCodeLine& line);
-        void process_G1(const GCodeReader::GCodeLine& line);
+        void process_G1(const GCodeReader::GCodeLine& line, const std::optional<unsigned int>& remaining_internal_g1_lines = std::nullopt);
         void process_G2_G3(const GCodeReader::GCodeLine& line);
 
         // BBS: handle delay command
@@ -930,6 +945,11 @@ namespace Slic3r {
         void process_T(const GCodeReader::GCodeLine& line);
         void process_T(const std::string_view command);
 
+        // post process the file with the given filename to:
+        // 1) add remaining time lines M73 and update moves' gcode ids accordingly
+        // 2) update used filament data
+        void run_post_process();
+
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 
@@ -943,7 +963,7 @@ namespace Slic3r {
         Vec3f get_xyz_max_jerk(PrintEstimatedStatistics::ETimeMode mode) const;
         float get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
         void  set_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
-        float get_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
+    float get_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
         void  set_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
         float get_travel_acceleration(PrintEstimatedStatistics::ETimeMode mode) const;
         void  set_travel_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);

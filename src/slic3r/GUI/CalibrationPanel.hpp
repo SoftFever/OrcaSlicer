@@ -94,7 +94,7 @@ private:
 
 private:
     void OnLeftUp(wxMouseEvent& event);
-    void on_timer(wxTimerEvent& event);
+    void on_timer();
     void update_user_devices();
     void on_dissmiss_win(wxCommandEvent& event);
 };
@@ -117,7 +117,7 @@ public:
 protected:
     void init_tabpanel();
     void init_timer();
-    void on_timer(wxTimerEvent& event);
+    void on_timer();
 
 
     int                     last_status;
