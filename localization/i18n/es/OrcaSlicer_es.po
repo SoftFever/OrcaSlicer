@@ -6001,7 +6001,7 @@ msgid "Search plate, object and part."
 msgstr "Buscar bandeja, objeto y parte."
 
 msgid "Pellets"
-msgstr ""
+msgstr "Pellets"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -15420,7 +15420,7 @@ msgid "PETG"
 msgstr "PETG"
 
 msgid "PCTG"
-msgstr ""
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
