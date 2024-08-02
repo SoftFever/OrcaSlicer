@@ -467,7 +467,7 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
         int ams_type = ams_iter->second->type;
         int nozzle_id = ams_iter->second->nozzle;
 
-        if (ams_type == 1) {
+        if (ams_type >=1 || ams_type <= 3) { //1:ams 2:ams-lite 3:n3f
 
             auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
             auto ams_mapping_item_container = new MappingContainer(this);
@@ -530,6 +530,8 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
            
 
             //m_warning_text->Show(m_has_unmatch_filament);
+        }
+        else if(ams_type == 4){ //4:n3s
         }
     }
 
