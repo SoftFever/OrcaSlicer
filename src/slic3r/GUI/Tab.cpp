@@ -1844,7 +1844,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
     };
 
     auto detach_preset_btn = [this](wxWindow* parent) {
-        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", "",
+        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal", "",
                                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -1852,25 +1852,25 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(btn);
 
-        //btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent&)
-        //{
-        //	bool system = m_presets->get_edited_preset().is_system;
-        //	bool dirty  = m_presets->get_edited_preset().is_dirty;
-        //    wxString msg_text = system ?
-        //    	_(L("A copy of the current system preset will be created, which will be detached from the system preset.")) :
-        //        _(L("The current custom preset will be detached from the parent system preset."));
-        //    if (dirty) {
-	       //     msg_text += "\n\n";
-        //    	msg_text += _(L("Modifications to the current profile will be saved."));
-        //    }
-        //    msg_text += "\n\n";
-        //    msg_text += _(L("This action is not revertible.\nDo you want to proceed?"));
+        btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent&)
+        {
+        	bool system = m_presets->get_edited_preset().is_system;
+        	bool dirty  = m_presets->get_edited_preset().is_dirty;
+            wxString msg_text = system ?
+            	_(L("A copy of the current system preset will be created, which will be detached from the system preset.")) :
+                _(L("The current custom preset will be detached from the parent system preset."));
+            if (dirty) {
+	            msg_text += "\n\n";
+            	msg_text += _(L("Modifications to the current profile will be saved."));
+            }
+            msg_text += "\n\n";
+            msg_text += _(L("This action is not revertible.\nDo you want to proceed?"));
 
-        //    //wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
-        //    MessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
-        //    if (dialog.ShowModal() == wxID_YES)
-        //        save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
-        //});
+            //wxMessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
+            MessageDialog dialog(parent, msg_text, _(L("Detach preset")), wxICON_WARNING | wxYES_NO | wxCANCEL);
+            if (dialog.ShowModal() == wxID_YES)
+                save_preset(m_presets->get_edited_preset().is_system ? std::string() : m_presets->get_edited_preset().name, true);
+        });
 
         btn->Hide();
 
@@ -1892,72 +1892,72 @@ void Tab::update_preset_description_line()
 
     wxString description_line;
 
-    //if (preset.is_default) {
-    //    description_line = _(L("This is a default preset."));
-    //} else if (preset.is_system) {
-    //    description_line = _(L("This is a system preset."));
-    //} else if (parent == nullptr) {
-    //    description_line = _(L("Current preset is inherited from the default preset."));
-    //} else {
-    //    std::string name = parent->name;
-    //    boost::replace_all(name, "&", "&&");
-    //    description_line = _(L("Current preset is inherited from")) + ":\n\t" + from_u8(name);
-    //}
+    if (preset.is_default) {
+        description_line = _(L("This is a default preset."));
+    } else if (preset.is_system) {
+        description_line = _(L("This is a system preset."));
+    } else if (parent == nullptr) {
+        description_line = _(L("Current preset is inherited from the default preset."));
+    } else {
+        std::string name = parent->name;
+        boost::replace_all(name, "&", "&&");
+        description_line = _(L("Current preset is inherited from")) + ":\n\t" + from_u8(name);
+    }
 
-    //if (preset.is_default || preset.is_system)
-    //    description_line += "\n\t" + _(L("It can't be deleted or modified.")) +
-    //                        "\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one.")) +
-    //                        "\n\t" + _(L("To do that please specify a new name for the preset."));
+    if (preset.is_default || preset.is_system)
+        description_line += "\n\t" + _(L("It can't be deleted or modified.")) +
+                            "\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one.")) +
+                            "\n\t" + _(L("To do that please specify a new name for the preset."));
 
-    //if (parent && parent->vendor)
-    //{
-    //    description_line += "\n\n" + _(L("Additional information:")) + "\n";
-    //    description_line += "\t" + _(L("vendor")) + ": " + (m_type == Slic3r::Preset::TYPE_PRINTER ? "\n\t\t" : "") + parent->vendor->name +
-    //                        ", ver: " + parent->vendor->config_version.to_string();
-    //    if (m_type == Slic3r::Preset::TYPE_PRINTER) {
-    //        const std::string &printer_model = preset.config.opt_string("printer_model");
-    //        if (! printer_model.empty())
-    //            description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
-    //        switch (preset.printer_technology()) {
-    //        case ptFFF:
-    //        {
-    //            //FIXME add prefered_sla_material_profile for SLA
-    //            const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
-    //            const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
-    //            if (!default_print_profile.empty())
-    //                description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
-    //            if (!default_filament_profiles.empty())
-    //            {
-    //                description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
-    //                for (auto& profile : default_filament_profiles) {
-    //                    if (&profile != &*default_filament_profiles.begin())
-    //                        description_line += ", ";
-    //                    description_line += profile;
-    //                }
-    //            }
-    //            break;
-    //        }
-    //        case ptSLA:
-    //        {
-    //            //FIXME add prefered_sla_material_profile for SLA
-    //            const std::string &default_sla_material_profile = preset.config.opt_string("default_sla_material_profile");
-    //            if (!default_sla_material_profile.empty())
-    //                description_line += "\n\n\t" + _(L("default SLA material profile")) + ": \n\t\t" + default_sla_material_profile;
+    if (parent && parent->vendor)
+    {
+        description_line += "\n\n" + _(L("Additional information:")) + "\n";
+        description_line += "\t" + _(L("vendor")) + ": " + (m_type == Slic3r::Preset::TYPE_PRINTER ? "\n\t\t" : "") + parent->vendor->name +
+                            ", ver: " + parent->vendor->config_version.to_string();
+        if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+            const std::string &printer_model = preset.config.opt_string("printer_model");
+            if (! printer_model.empty())
+                description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
+            switch (preset.printer_technology()) {
+            case ptFFF:
+            {
+                //FIXME add prefered_sla_material_profile for SLA
+                const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
+                const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+                if (!default_print_profile.empty())
+                    description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
+                if (!default_filament_profiles.empty())
+                {
+                    description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
+                    for (auto& profile : default_filament_profiles) {
+                        if (&profile != &*default_filament_profiles.begin())
+                            description_line += ", ";
+                        description_line += profile;
+                    }
+                }
+                break;
+            }
+            case ptSLA:
+            {
+                //FIXME add prefered_sla_material_profile for SLA
+                const std::string &default_sla_material_profile = preset.config.opt_string("default_sla_material_profile");
+                if (!default_sla_material_profile.empty())
+                    description_line += "\n\n\t" + _(L("default SLA material profile")) + ": \n\t\t" + default_sla_material_profile;
 
-    //            const std::string &default_sla_print_profile = preset.config.opt_string("default_sla_print_profile");
-    //            if (!default_sla_print_profile.empty())
-    //                description_line += "\n\n\t" + _(L("default SLA print profile")) + ": \n\t\t" + default_sla_print_profile;
-    //            break;
-    //        }
-    //        default: break;
-    //        }
-    //    }
-    //    else if (!preset.alias.empty())
-    //    {
-    //        description_line += "\n\n\t" + _(L("full profile name"))     + ": \n\t\t" + preset.name;
-    //        description_line += "\n\t"   + _(L("symbolic profile name")) + ": \n\t\t" + preset.alias;
-    //    }
-    //}
+                const std::string &default_sla_print_profile = preset.config.opt_string("default_sla_print_profile");
+                if (!default_sla_print_profile.empty())
+                    description_line += "\n\n\t" + _(L("default SLA print profile")) + ": \n\t\t" + default_sla_print_profile;
+                break;
+            }
+            default: break;
+            }
+        }
+        else if (!preset.alias.empty())
+        {
+            description_line += "\n\n\t" + _(L("full profile name"))     + ": \n\t\t" + preset.name;
+            description_line += "\n\t"   + _(L("symbolic profile name")) + ": \n\t\t" + preset.alias;
+        }
+    }
 
     m_parent_preset_description_line->SetText(description_line, false);
 
@@ -2350,7 +2350,7 @@ void TabPrint::build()
         optgroup->append_single_option_line(option);
 
 #if 1
-    page = add_options_page(L("Dependencies"), "advanced.png");
+    page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
@@ -2361,7 +2361,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
-        //build_preset_description_line(optgroup.get());
+        build_preset_description_line(optgroup.get());
 #endif
 }
 
