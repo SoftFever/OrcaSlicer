@@ -331,29 +331,29 @@ bool PresetUpdater::priv::extract_file(const fs::path &source_path, const fs::pa
 				continue;
             }
             else if (stat.m_uncomp_size == 0) {
-                BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]Unzip: invalid size for file "<<stat.m_filename;
+                BOOST_LOG_TRIVIAL(warning) << "[Curvetta Updater]Unzip: invalid size for file "<<stat.m_filename;
                 continue;
             }
             try
             {
                 res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_file.c_str(), 0);
                 if (!res) {
-                    BOOST_LOG_TRIVIAL(error) << "[Orca Updater]extract file "<<stat.m_filename<<" to dest "<<dest_file<<" failed";
+                    BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]extract file "<<stat.m_filename<<" to dest "<<dest_file<<" failed";
                     close_zip_reader(&archive);
                     return res;
                 }
-                BOOST_LOG_TRIVIAL(info) << "[Orca Updater]successfully extract file " << stat.m_file_index << " to "<<dest_file;
+                BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]successfully extract file " << stat.m_file_index << " to "<<dest_file;
             }
             catch (const std::exception& e)
             {
                 // ensure the zip archive is closed and rethrow the exception
                 close_zip_reader(&archive);
-                BOOST_LOG_TRIVIAL(error) << "[Orca Updater]Archive read exception:"<<e.what();
+                BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]Archive read exception:"<<e.what();
                 return false;
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]Unzip: read file stat failed";
+            BOOST_LOG_TRIVIAL(warning) << "[Curvetta Updater]Unzip: read file stat failed";
         }
     }
     close_zip_reader(&archive);
@@ -366,7 +366,7 @@ void PresetUpdater::priv::prune_tmps() const
 {
     for (auto &dir_entry : boost::filesystem::directory_iterator(cache_path))
 		if (is_plain_file(dir_entry) && dir_entry.path().extension() == TMP_EXTENSION) {
-			BOOST_LOG_TRIVIAL(debug) << "[Orca Updater]remove old cached files: " << dir_entry.path().string();
+			BOOST_LOG_TRIVIAL(debug) << "[Curvetta Updater]remove old cached files: " << dir_entry.path().string();
 			fs::remove(dir_entry.path());
 		}
 }
@@ -477,7 +477,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
 {
     std::map<std::string, Resource>    resource_list;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("[Orca Updater]: sync_resources get preferred setting version for app version %1%, url: %2%, current_version_str %3%, check_patch %4%")%SLIC3R_APP_NAME%http_url%current_version_str%check_patch;
+    BOOST_LOG_TRIVIAL(info) << boost::format("[Curvetta Updater]: sync_resources get preferred setting version for app version %1%, url: %2%, current_version_str %3%, check_patch %4%")%SLIC3R_APP_NAME%http_url%current_version_str%check_patch;
 
     std::string query_params = "?";
     bool        first        = true;
@@ -495,7 +495,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
     std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
-    BOOST_LOG_TRIVIAL(info) << boost::format("[Orca Updater]: sync_resources request_url: %1%")%url;
+    BOOST_LOG_TRIVIAL(info) << boost::format("[Curvetta Updater]: sync_resources request_url: %1%")%url;
     http.on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
             if (cancel) {
                 cancel_http = true;
@@ -503,7 +503,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
         })
         .on_complete([this, &resource_list, resources](std::string body, unsigned) {
             try {
-                BOOST_LOG_TRIVIAL(info) << "[Orca Updater]: request_resources, body=" << body;
+                BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]: request_resources, body=" << body;
 
                 json        j       = json::parse(body);
                 std::string message = j["message"].get<std::string>();
@@ -520,7 +520,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                             for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
                                 if (boost::iequals(sub_iter.key(), "type")) {
                                     resource = sub_iter.value();
-                                    BOOST_LOG_TRIVIAL(trace) << "[Orca Updater]: get version of settings's type, " << sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(trace) << "[Curvetta Updater]: get version of settings's type, " << sub_iter.value();
                                 } else if (boost::iequals(sub_iter.key(), "version")) {
                                     version = sub_iter.value();
                                 } else if (boost::iequals(sub_iter.key(), "description")) {
@@ -532,22 +532,22 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                                     force_upgrade = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]: get type " << resource << ", version " << version << ", url " << url<<", force_update "<<force_upgrade;
+                            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]: get type " << resource << ", version " << version << ", url " << url<<", force_update "<<force_upgrade;
 
                             resource_list.emplace(resource, Resource{version, description, url, force_upgrade});
                         }
                     }
                 } else {
-                    BOOST_LOG_TRIVIAL(error) << "[Orca Updater]: get version of settings failed, body=" << body;
+                    BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]: get version of settings failed, body=" << body;
                 }
             } catch (std::exception &e) {
-                BOOST_LOG_TRIVIAL(error) << (boost::format("[Orca Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
+                BOOST_LOG_TRIVIAL(error) << (boost::format("[Curvetta Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
             } catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "[Orca Updater]: get version of settings failed, body=" << body;
+                BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]: get version of settings failed, body=" << body;
             }
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("[Orca Updater]: status=%1%, error=%2%, body=%3%") % status % error % body;
+            BOOST_LOG_TRIVIAL(error) << boost::format("[Curvetta Updater]: status=%1%, error=%2%, body=%3%") % status % error % body;
         })
         .perform_sync();
 
@@ -559,7 +559,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
         boost::to_lower(resource_name);
         auto        resource_update = resource_list.find(resource_name);
         if (resource_update == resource_list.end()) {
-            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]Vendor " << resource_name << " can not get setting versions online";
+            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]Vendor " << resource_name << " can not get setting versions online";
             continue;
         }
         Semver online_version = resource_update->second.version;
@@ -571,7 +571,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             int current_cc_patch = current_version.patch()/100;
             if (online_cc_patch != current_cc_patch) {
                 version_match = false;
-                BOOST_LOG_TRIVIAL(warning) << boost::format("[Orca Updater]: online patch CC not match: online_cc_patch=%1%, current_cc_patch=%2%") % online_cc_patch % current_cc_patch;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("[Curvetta Updater]: online patch CC not match: online_cc_patch=%1%, current_cc_patch=%2%") % online_cc_patch % current_cc_patch;
             }
         }
         if (version_match && (current_version < online_version)) {
@@ -581,9 +581,9 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             fs::path cache_path(resource.cache_root);
             std::string online_url      = resource_update->second.url;
             std::string cache_file_path = (fs::temp_directory_path() / (fs::unique_path().string() + TMP_EXTENSION)).string();
-            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]Downloading resource: " << resource_name << ", version " << online_version.to_string();
+            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]Downloading resource: " << resource_name << ", version " << online_version.to_string();
             if (!get_file(online_url, cache_file_path)) {
-                BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]download resource " << resource_name << " failed, url: " << online_url;
+                BOOST_LOG_TRIVIAL(warning) << "[Curvetta Updater]download resource " << resource_name << " failed, url: " << online_url;
                 continue;
             }
             if (cancel) { return; }
@@ -592,24 +592,24 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             if (resource.sub_caches.empty()) {
                 if (fs::exists(cache_path)) {
                     fs::remove_all(cache_path);
-                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]remove cache path " << cache_path.string();
+                    BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]remove cache path " << cache_path.string();
                 }
             } else {
                 for (auto sub : resource.sub_caches) {
                     if (fs::exists(cache_path / sub)) {
                         fs::remove_all(cache_path / sub);
-                        BOOST_LOG_TRIVIAL(info) << "[Orca Updater]remove cache path " << (cache_path / sub).string();
+                        BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]remove cache path " << (cache_path / sub).string();
                     }
                 }
             }
             // extract the file downloaded
-            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]start to unzip the downloaded file " << cache_file_path << " to "<<cache_path;
+            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]start to unzip the downloaded file " << cache_file_path << " to "<<cache_path;
             fs::create_directories(cache_path);
             if (!extract_file(cache_file_path, cache_path)) {
-                BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]extract resource " << resource_it.first << " failed, path: " << cache_file_path;
+                BOOST_LOG_TRIVIAL(warning) << "[Curvetta Updater]extract resource " << resource_it.first << " failed, path: " << cache_file_path;
                 continue;
             }
-            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]finished unzip the downloaded file " << cache_file_path;
+            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]finished unzip the downloaded file " << cache_file_path;
 
             // save the description to disk
             if (changelog_file.empty())
@@ -636,7 +636,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             resource_it.second = resource_update->second;
         }
         else {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("[Orca Updater]: online version=%1%, current_version=%2%, no need to download") % online_version.to_string() % current_version.to_string();
+            BOOST_LOG_TRIVIAL(warning) << boost::format("[Curvetta Updater]: online version=%1%, current_version=%2%, no need to download") % online_version.to_string() % current_version.to_string();
         }
     }
 }
@@ -655,10 +655,10 @@ void PresetUpdater::priv::sync_config()
                 asset_name = data["name"].get<std::string>();
             f.close();
         } catch (const std::exception& ex) {
-            BOOST_LOG_TRIVIAL(error) << "[Orca Updater]: failed to read profiles_update.json when sync_config: " << ex.what() << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]: failed to read profiles_update.json when sync_config: " << ex.what() << std::endl;
         } catch (...) {
             // catch any other errors (that we have no information about)
-            BOOST_LOG_TRIVIAL(error) << "[Orca Updater]: unknown failure when reading profiles_update.json in sync_config" << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "[Curvetta Updater]: unknown failure when reading profiles_update.json in sync_config" << std::endl;
         }
     }
     AppConfig *app_config = GUI::wxGetApp().app_config;
@@ -682,7 +682,7 @@ void PresetUpdater::priv::sync_config()
                     }
                 } catch (...) {}
             }
-            BOOST_LOG_TRIVIAL(info) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_orca", http_status, error);
+            BOOST_LOG_TRIVIAL(info) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_curvetta", http_status, error);
         })
         .timeout_connect(5)
         .on_complete([this, asset_name, cache_profile_path, cache_profile_update_file](std::string body, unsigned http_status) {
@@ -705,7 +705,7 @@ void PresetUpdater::priv::sync_config()
                         for (auto asset : assets) {
                             std::string name          = asset["name"].get<std::string>();
                             int         versionNumber = -1;
-                            std::regex  regexPattern("orcaslicer-profiles_ota_.*\\.([0-9]+)\\.zip$");
+                            std::regex  regexPattern("curvettaslicer-profiles_ota_.*\\.([0-9]+)\\.zip$");
                             std::smatch matches;
                             if (std::regex_search(name, matches, regexPattern) && matches.size() > 1) {
                                 versionNumber = std::stoi(matches[1].str());
@@ -736,13 +736,13 @@ void PresetUpdater::priv::sync_config()
                     }
 
                     // extract the file downloaded
-                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]start to unzip the downloaded file " << download_file;
+                    BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]start to unzip the downloaded file " << download_file;
                     if (!extract_file(download_file, cache_profile_path)) {
-                        BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]extract downloaded file"
+                        BOOST_LOG_TRIVIAL(warning) << "[Curvetta Updater]extract downloaded file"
                                                    << " failed, path: " << download_file;
                         return;
                     }
-                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]finished unzip the downloaded file " << download_file;
+                    BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]finished unzip the downloaded file " << download_file;
                     boost::nowide::ofstream f(cache_profile_update_file.string());
                     json                    data;
                     data["name"] = latest_update.name;
@@ -787,7 +787,7 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         }
     }
     catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_tooltip: %1%", e.what());
+        BOOST_LOG_TRIVIAL(warning) << format("[Curvetta Updater] sync_tooltip: %1%", e.what());
     }
 }
 
@@ -950,12 +950,12 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         sync_resources(http_url, resources, true, plugin_version, "network_plugins.json");
     }
     catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_plugins: %1%", e.what());
+        BOOST_LOG_TRIVIAL(warning) << format("[Curvetta Updater] sync_plugins: %1%", e.what());
     }
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
-        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater] found new plugins: %1%, prompt to update, force_upgrade %2%", cached_version, force_upgrade);
+        BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater] found new plugins: %1%, prompt to update, force_upgrade %2%", cached_version, force_upgrade);
         if (force_upgrade) {
             auto app_config = GUI::wxGetApp().app_config;
             if (!app_config)
@@ -1019,7 +1019,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
         std::map<std::string, Resource> resources{{"slicer/printer/bbl", {using_version, "", "", false, cache_folder.string()}}};
         sync_resources(http_url, resources, false, cached_version, "printer.json");
     } catch (std::exception &e) {
-        BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_printer_config: %1%", e.what());
+        BOOST_LOG_TRIVIAL(warning) << format("[Curvetta Updater] sync_printer_config: %1%", e.what());
     }
 
     bool result = false;
@@ -1032,7 +1032,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
         }
     } catch (...) {}
     if (result) {
-        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater] found new printer config: %1%, prompt to update", cached_version);
+        BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater] found new printer config: %1%, prompt to update", cached_version);
         waiting_printer_updates = get_printer_config_updates(true);
         if (waiting_printer_updates.updates.size() > 0) {
             has_waiting_printer_updates = true;
@@ -1074,7 +1074,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
 // Install indicies from resources. Only installs those that are either missing or older than in resources.
 void PresetUpdater::priv::check_installed_vendor_profiles() const
 {
-    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:Checking whether the profile from resource is newer";
+    BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:Checking whether the profile from resource is newer";
 
     AppConfig *app_config = GUI::wxGetApp().app_config;
     const auto enabled_vendors = app_config->vendors();
@@ -1098,7 +1098,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                         bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
 
                         if (!version_match || (vendor_ver < resource_ver)) {
-                            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
+                            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
                             bundles.push_back(vendor_name);
                         }
                     }
@@ -1149,7 +1149,7 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
         bool version_match = ((resc_ver.maj() == curr_ver.maj()) && (resc_ver.min() == curr_ver.min()));
 
         if (!version_match || (curr_ver < resc_ver)) {
-            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:found newer version " << resc_version << " from resource, old version " << curr_version;
+            BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:found newer version " << resc_version << " from resource, old version " << curr_version;
         } else {
             return {};
         }
@@ -1179,7 +1179,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 {
 	Updates updates;
 
-	BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:Checking for cached configuration updates...";
+	BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:Checking for cached configuration updates...";
     auto cache_profile_path =  cache_path / "profiles";
     if (!fs::exists(cache_profile_path))
         return updates;
@@ -1229,7 +1229,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 
                 bool version_match = ((vendor_ver.maj() == cache_ver.maj()) && (vendor_ver.min() == cache_ver.min()));
                 if (version_match && (vendor_ver < cache_ver)) {
-                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:need to update settings from " << vendor_ver.to_string()
+                    BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:need to update settings from " << vendor_ver.to_string()
                                             << " to newer version " << cache_ver.to_string() << ", app version " << SLIC3R_VERSION;
                     Version version;
                     version.config_version = cache_ver;
@@ -1259,7 +1259,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
         //		_u8L("Continue and install configuration updates?")))
         //		return false;
         //}
-        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater]:Deleting %1% incompatible bundles", updates.incompats.size());
+        BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater]:Deleting %1% incompatible bundles", updates.incompats.size());
 
         for (auto &incompat : updates.incompats) {
             BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
@@ -1273,7 +1273,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
         //		return false;
         //}
 
-        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater]:Performing %1% updates", updates.updates.size());
+        BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater]:Performing %1% updates", updates.updates.size());
 
         for (const auto &update : updates.updates) {
             BOOST_LOG_TRIVIAL(info) << '\t' << update;
@@ -1408,7 +1408,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
         //forced update
         if (force_update)
         {
-            BOOST_LOG_TRIVIAL(info) << format("[Orca Updater]:Force updating will start, size %1% ", updates.updates.size());
+            BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater]:Force updating will start, size %1% ", updates.updates.size());
             std::vector<std::string> bundles;
             for (const auto& update : updates.updates) {
                 if (update.is_directory)
@@ -1417,13 +1417,13 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
             }
             bool ret = p->perform_updates(std::move(updates));
             if (!ret) {
-                BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater]:perform_updates failed");
+                BOOST_LOG_TRIVIAL(warning) << format("[Curvetta Updater]:perform_updates failed");
                 return R_INCOMPAT_EXIT;
             }
 
             ret = reload_configs_update_gui();
             if (!ret) {
-                BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater]:reload_configs_update_gui failed");
+                BOOST_LOG_TRIVIAL(warning) << format("[Curvetta Updater]:reload_configs_update_gui failed");
                 return R_INCOMPAT_EXIT;
             }
             for(auto b : bundles){
@@ -1444,7 +1444,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
             GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
         }
         else {
-            BOOST_LOG_TRIVIAL(info) << format("[Orca Updater]:Configuration package available. size %1%, need to confirm...", p->waiting_updates.updates.size());
+            BOOST_LOG_TRIVIAL(info) << format("[Curvetta Updater]:Configuration package available. size %1%, need to confirm...", p->waiting_updates.updates.size());
 
             std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
             for (const auto& update : updates.updates) {
@@ -1458,14 +1458,14 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 
             const auto res = dlg.ShowModal();
             if (res == wxID_OK) {
-                BOOST_LOG_TRIVIAL(debug) << "[Orca Updater]:selected yes to update";
+                BOOST_LOG_TRIVIAL(debug) << "[Curvetta Updater]:selected yes to update";
                 if (! p->perform_updates(std::move(updates)) ||
                     ! reload_configs_update_gui())
                     return R_ALL_CANCELED;
                 return R_UPDATE_INSTALLED;
             }
             else {
-                BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:selected no for updating";
+                BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:selected no for updating";
                 if (params == UpdateParams::FORCED_BEFORE_WIZARD && res == wxID_CANCEL)
                     return R_ALL_CANCELED;
                 return R_UPDATE_REJECT;
@@ -1474,7 +1474,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 
         // MsgUpdateConfig will show after the notificaation is clicked
     } else {
-        BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:No configuration updates available.";
+        BOOST_LOG_TRIVIAL(info) << "[Curvetta Updater]:No configuration updates available.";
     }
 
 	return R_NOOP;

@@ -29,7 +29,7 @@ namespace Slic3r {
 static constexpr boost::asio::ip::port_type CALLBACK_PORT = 21328;
 static const std::string CALLBACK_URL = "http://localhost:21328/callback";
 static const std::string RESPONSE_TYPE  = "code";
-static const std::string CLIENT_ID = "simplyprintorcaslicer";
+static const std::string CLIENT_ID = "simplyprintcurvettaslicer";
 static const std::string CLIENT_SCOPES = "user.read files.temp_upload";
 static const std::string OAUTH_CREDENTIAL_PATH = "simplyprint_oauth.json";
 static const std::string TOKEN_URL = URL_BASE_API"/oauth2/Token";
@@ -195,7 +195,7 @@ bool SimplyPrint::do_api_call(std::function<Http(bool)>                         
     const auto create_request = [this, &build_request, &res, &on_complete](const std::string& access_token, bool is_retry) {
         auto http = build_request(is_retry);
         set_auth(http, access_token);
-        http.header("User-Agent", "SimplyPrint Orca Plugin")
+        http.header("User-Agent", "SimplyPrint Curvetta Plugin")
             .on_complete([&](std::string body, unsigned http_status) {
                 res = on_complete(body, http_status);
             });

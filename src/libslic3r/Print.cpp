@@ -1563,7 +1563,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // }
 
         } catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Curvetta: validate motion ability failed: " << e.what() << std::endl;
         }
     }
     return {};

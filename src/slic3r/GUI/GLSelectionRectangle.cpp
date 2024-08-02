@@ -112,7 +112,7 @@ namespace GUI {
             shader->set_uniform("view_model_matrix", Transform3d::Identity());
             shader->set_uniform("projection_matrix", Transform3d::Identity());
 
-            m_rectangle.set_color(ColorRGBA::ORCA()); // ORCA: use orca color for selection rectangle
+            m_rectangle.set_color(ColorRGBA::ORCA()); // ORCA: use curvetta color for selection rectangle
             m_rectangle.render();
             shader->stop_using();
         }

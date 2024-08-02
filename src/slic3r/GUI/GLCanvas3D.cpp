@@ -7844,7 +7844,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f * f_scale : 20.0f * f_scale);
 
     ImVec4 window_bg = ImVec4(0.82f, 0.82f, 0.82f, 0.5f);
-    ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border 
+    ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use curvetta color for selected sliced plate border 
     ImVec4 button_hover = ImVec4(0.67f, 0.67f, 0.67, 1.0f);
     ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
     //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));

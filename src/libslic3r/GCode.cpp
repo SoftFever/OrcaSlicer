@@ -6417,7 +6417,7 @@ std::string GCode::set_object_info(Print *print) {
         polygon_bed.append(Point(bbox_bed.max.x(), bbox_bed.max.y()));
         polygon_bed.append(Point(bbox_bed.min.x(), bbox_bed.max.y()));
         gcode << "EXCLUDE_OBJECT_DEFINE NAME="
-              << "Orca-PA-Calibration-Test"
+              << "Curvetta-PA-Calibration-Test"
               << " CENTER=" << 0 << "," << 0 << " POLYGON=" << polygon_to_string(polygon_bed, print, true) << "\n";
     } else {
         size_t unique_id = 0;

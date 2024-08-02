@@ -163,7 +163,7 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = COL_BUTTON_HOVERED;
 //BBS
 
 const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.0f);
-const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255.f, 0.25f }; // ORCA used on various places like text selection bg. Replaced with orca color
+const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255.f, 0.25f }; // ORCA used on various places like text selection bg. Replaced with curvetta color
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f, 1.0f };
@@ -2610,9 +2610,9 @@ void ImGuiWrapper::pop_combo_style()
 void ImGuiWrapper::push_radio_style()
 {
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA use curvetta color for radio buttons
     } else {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use curvetta color for radio buttons
     }
 }
 
@@ -2893,12 +2893,12 @@ void ImGuiWrapper::init_style()
 
     // ComboBox items
     set_color(ImGuiCol_Header, COL_ORANGE_DARK);
-    set_color(ImGuiCol_HeaderHovered,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use orca color for headers
-    set_color(ImGuiCol_HeaderActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f)));  // ORCA Use orca color for headers
+    set_color(ImGuiCol_HeaderHovered,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use curvetta color for headers
+    set_color(ImGuiCol_HeaderActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f)));  // ORCA Use curvetta color for headers
 
     // Slider
-    set_color(ImGuiCol_SliderGrab,			to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use orca color for slider thumbs 
-    set_color(ImGuiCol_SliderGrabActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f))); // ORCA Use orca color for slider thumbs 
+    set_color(ImGuiCol_SliderGrab,			to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use curvetta color for slider thumbs 
+    set_color(ImGuiCol_SliderGrabActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f))); // ORCA Use curvetta color for slider thumbs 
 
     // Separator
     set_color(ImGuiCol_Separator, COL_BLUE_LIGHT);

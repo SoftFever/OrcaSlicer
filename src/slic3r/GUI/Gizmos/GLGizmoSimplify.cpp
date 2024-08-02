@@ -274,8 +274,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORCA); // ORCA Use orca color for step slider text
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImGuiWrapper::COL_ORCA); // ORCA Use orca color for step slider thumb
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORCA); // ORCA Use curvetta color for step slider text
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImGuiWrapper::COL_ORCA); // ORCA Use curvetta color for step slider thumb
 
     if (m_imgui->bbl_sliderin("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
         if (reduction < 0) reduction = 0;

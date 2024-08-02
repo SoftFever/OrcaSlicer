@@ -35,7 +35,7 @@ void generate_custom_presets(PresetBundle* preset_bundle, AppConfig& app_config)
         for (auto& parent : collection->get_presets()) {
             if (!parent.is_system)
                 continue;
-            auto new_name = parent.name + "_orca_test";
+            auto new_name = parent.name + "_curvetta_test";
             if (parent.vendor)
                 new_name = parent.vendor->name + "_" + new_name;
             custom_preset.push_back({new_name, parent.name});
@@ -45,12 +45,12 @@ void generate_custom_presets(PresetBundle* preset_bundle, AppConfig& app_config)
             auto parent = collection->find_preset(p.parent_name);
             if (type == Preset::TYPE_FILAMENT)
                 parent->config.set_key_value("filament_start_gcode",
-                                                 new ConfigOptionStrings({"this_is_orca_test_filament_start_gcode_mock"}));
+                                                 new ConfigOptionStrings({"this_is_curvetta_test_filament_start_gcode_mock"}));
             else if (type == Preset::TYPE_PRINT)
-                parent->config.set_key_value("filename_format", new ConfigOptionString("this_is_orca_test_filename_format_mock"));
+                parent->config.set_key_value("filename_format", new ConfigOptionString("this_is_curvetta_test_filename_format_mock"));
             else if (type == Preset::TYPE_PRINTER)
                 parent->config.set_key_value("machine_start_gcode",
-                                                 new ConfigOptionString("this_is_orca_test_machine_start_gcode_mock"));
+                                                 new ConfigOptionString("this_is_curvetta_test_machine_start_gcode_mock"));
 
             collection->save_current_preset(p.name, false, false, parent);
 
@@ -80,7 +80,7 @@ void generate_custom_presets(PresetBundle* preset_bundle, AppConfig& app_config)
 }
 int main(int argc, char* argv[])
 {
-    po::options_description desc("Orca Profile Validator\nUsage");
+    po::options_description desc("Curvetta Profile Validator\nUsage");
     // clang-format off
     desc.add_options()("help,h", "help")
     ("path,p", po::value<std::string>()->default_value("../../../resources/profiles"), "profile folder")

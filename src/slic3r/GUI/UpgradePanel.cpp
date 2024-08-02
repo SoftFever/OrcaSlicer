@@ -1155,7 +1155,7 @@ void UpgradePanel::update(MachineObject *obj)
                 });
             }
             consistency_dlg->update_text(_L(
-                 "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting Orca."
+                 "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting Curvetta."
             ));
             consistency_dlg->on_show();
 	    }

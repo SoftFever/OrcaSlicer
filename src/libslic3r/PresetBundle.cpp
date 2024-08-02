@@ -699,7 +699,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             import_json_presets(substitutions, file, override_confirm, rule, overwrite, result);
         }
         // Determine if it is a preset bundle
-        if (boost::iends_with(file, ".orca_printer") || boost::iends_with(file, ".orca_filament") || boost::iends_with(file, ".zip")) {
+        if (boost::iends_with(file, ".curvetta_printer") || boost::iends_with(file, ".curvetta_filament") || boost::iends_with(file, ".zip")) {
             boost::system::error_code ec;
             // create user folder
             fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
@@ -1609,7 +1609,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
 void PresetBundle::update_selections(AppConfig &config)
 {
     std::string initial_printer_profile_name    = printers.get_selected_preset_name();
-    // Orca: load from orca_presets
+    // Orca: load from curvetta_presets
     std::string initial_print_profile_name        = config.get_printer_setting(initial_printer_profile_name, PRESET_PRINT_NAME);
     std::string initial_filament_profile_name     = config.get_printer_setting(initial_printer_profile_name, PRESET_FILAMENT_NAME);
 
@@ -1701,7 +1701,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
     CNumericLocalesSetter locales_setter;
 
-    // Orca: load from orca_presets
+    // Orca: load from curvetta_presets
     // const auto os_presets = config.get_machine_settings(initial_printer_profile_name);
     std::string initial_print_profile_name        = config.get_printer_setting(initial_printer_profile_name, PRESET_PRINT_NAME);
     std::string initial_filament_profile_name     = config.get_printer_setting(initial_printer_profile_name, PRESET_FILAMENT_NAME);
