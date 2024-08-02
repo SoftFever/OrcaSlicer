@@ -81,6 +81,15 @@ std::string AppConfig::get_hms_host()
 // #endif
 }
 
+bool AppConfig::get_stealth_mode()
+{
+    // always return true when user did not finish setup wizard yet
+    if (!get_bool("firstguide","finish")) {
+        return true;
+    }
+    return get_bool("stealth_mode");
+}
+
 void AppConfig::reset()
 {
     m_storage.clear();

@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "name": "Bambu PETG HF @BBL X1C 0.8 nozzle",
+    "inherits": "Bambu PETG HF @base",
+    "from": "system",
+    "setting_id": "GFSG02_02",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle",
+        "Bambu Lab P1S 0.6 nozzle",
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab X1 Carbon 0.6 nozzle",
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
+    ]
+}

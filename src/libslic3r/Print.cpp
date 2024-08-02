@@ -2404,14 +2404,24 @@ std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_e
         double width = m_config.prime_tower_width + 2*m_wipe_tower_data.brim_width;
         double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
         Vec2d pt0(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
-        for (Vec2d pt : {
-                pt0,
-                Vec2d(pt0.x()+width, pt0.y()      ),
-                Vec2d(pt0.x()+width, pt0.y()+depth),
-                Vec2d(pt0.x(),       pt0.y()+depth)
-            }) {
+        
+        // First the corners.
+        std::vector<Vec2d> pts = { pt0,
+                                   Vec2d(pt0.x()+width, pt0.y()),
+                                   Vec2d(pt0.x()+width, pt0.y()+depth),
+                                   Vec2d(pt0.x(),pt0.y()+depth)
+                                 };
+
+        // Now the stabilization cone.
+        Vec2d center = (pts[0] + pts[2])/2.;
+        const auto [cone_R, cone_x_scale] = WipeTower2::get_wipe_tower_cone_base(m_config.prime_tower_width, m_wipe_tower_data.height, m_wipe_tower_data.depth, m_config.wipe_tower_cone_angle);
+        double r = cone_R + m_wipe_tower_data.brim_width;
+        for (double alpha = 0.; alpha<2*M_PI; alpha += M_PI/20.)
+            pts.emplace_back(center + r*Vec2d(std::cos(alpha)/cone_x_scale, std::sin(alpha)));
+
+        for (Vec2d& pt : pts) {
             pt = Eigen::Rotation2Dd(Geometry::deg2rad(m_config.wipe_tower_rotation_angle.value)) * pt;
-            // BBS: add partplate logic
+            //Orca: offset the wipe tower to the plate origin
             pt += Vec2d(m_config.wipe_tower_x.get_at(m_plate_index) + m_origin(0), m_config.wipe_tower_y.get_at(m_plate_index) + m_origin(1));
             corners.emplace_back(Point(scale_(pt.x()), scale_(pt.y())));
         }
