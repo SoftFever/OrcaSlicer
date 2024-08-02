@@ -5269,8 +5269,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
             }
             variable_speed = std::any_of(new_points.begin(), new_points.end(),
-                                         [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > EPSILON; });
-
+                                         [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
@@ -5727,10 +5726,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 }
             }// ORCA: End of adaptive PA code segment
             
-            
-            if (last_set_speed != new_speed) {
+            // Ignore small speed variations - emit speed change if the delta between current and new is greater than 60mm/min / 1mm/sec
+            // Reset speed to F if delta to F is less than 1mm/sec
+            if ((std::abs(last_set_speed - new_speed) > 60)) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
+            } else if ((std::abs(F - new_speed) <= 60)) {
+                gcode += m_writer.set_speed(F, "", comment);
+                last_set_speed = F;
             }
             auto dE = e_per_mm * line_length;
             if (!this->on_first_layer() && m_small_area_infill_flow_compensator
