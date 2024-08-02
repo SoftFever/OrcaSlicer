@@ -1104,7 +1104,6 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
     if (!m_valid)
         return;
 
-    EMode translation_type = m_mode;
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
 
     set_caches();
@@ -1125,7 +1124,6 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
             else {
                 const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
-                translation_type = Volume;
             }
         }
     }
@@ -2179,7 +2177,8 @@ void Selection::update_type()
         obj_it->second.insert(inst_idx);
     }
 
-    bool requires_disable = false;
+    // BBL removed functionality below
+    // bool requires_disable = false;
 
     if (!m_valid)
         m_type = Invalid;
@@ -2195,7 +2194,7 @@ void Selection::update_type()
             else if (first->is_modifier)
             {
                 m_type = SingleModifier;
-                requires_disable = true;
+                // requires_disable = true;
             }
             else
             {
@@ -2217,7 +2216,7 @@ void Selection::update_type()
                 else
                 {
                     m_type = SingleVolume;
-                    requires_disable = true;
+                    // requires_disable = true;
                 }
             }
         }
@@ -2265,7 +2264,7 @@ void Selection::update_type()
                         else if (modifiers_count == (unsigned int)m_list.size())
                             m_type = MultipleModifier;
 
-                        requires_disable = true;
+                        // requires_disable = true;
                     }
                 }
                 else if ((selected_instances_count > 1) && (selected_instances_count * model_volumes_count + sla_volumes_count == (unsigned int)m_list.size()))

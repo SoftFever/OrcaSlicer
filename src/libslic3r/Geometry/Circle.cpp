@@ -1,7 +1,5 @@
 #include "Circle.hpp"
 
-#include "../Polygon.hpp"
-
 #include <numeric>
 #include <random>
 #include <boost/log/trivial.hpp>

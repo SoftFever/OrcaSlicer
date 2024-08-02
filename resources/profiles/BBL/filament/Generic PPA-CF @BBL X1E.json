@@ -8,8 +8,14 @@
     "chamber_temperatures": [
         "60"
     ],
-    "filament_type": [
-        "PPA-CF"
+    "fan_max_speed": [
+        "35"
+    ],
+    "filament_max_volumetric_speed": [
+        "6.5"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
     ],
     "compatible_printers": [
         "Bambu Lab X1E 0.4 nozzle",
