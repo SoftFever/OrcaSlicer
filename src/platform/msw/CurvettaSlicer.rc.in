@@ -22,4 +22,4 @@ PRODUCTVERSION @SLIC3R_VERSION@
  }
 }
 2 ICON "@SLIC3R_RESOURCES_DIR@/images/OrcaSlicer.ico"
-1 24 "OrcaSlicer.manifest" 
+1 24 "CurvettaSlicer.manifest"
