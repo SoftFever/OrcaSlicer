@@ -7400,17 +7400,21 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
         return;
     }
 
-    /* Soolbar scale is a constant value which depends on display resolution and OS. */
-    m_main_toolbar.set_scale(get_scale());
-    m_assemble_view_toolbar.set_scale(get_scale());
-    m_separator_toolbar.set_scale(get_scale());
-    collapse_toolbar.set_scale(get_scale());
+    Size cnv_size = get_canvas_size();
+
+    // Orca: Toolbar scale is a constant value which depends on display resolution and OS.
+    //       Icon size is the only variable we change to scale the toolbars.
+    const float sc = get_scale();
+    m_main_toolbar.set_scale(sc);
+    m_assemble_view_toolbar.set_scale(sc);
+    m_separator_toolbar.set_scale(sc);
+    collapse_toolbar.set_scale(sc);
+
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
-    m_notification->set_scale(get_scale());
-    m_gizmos.set_overlay_scale(get_scale());
+    m_notification->set_scale(sc);
+    m_gizmos.set_overlay_scale(sc);
 
     float size = m_main_toolbar.get_icons_size();
-    Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
@@ -7422,7 +7426,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     // calculate scale needed for items in all top toolbars
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
-    new_h_scale = std::min(new_h_scale, 1.f);
 
     //for protect
     if (new_h_scale <= 0) {
@@ -7448,15 +7451,16 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
+    new_scale = std::min(new_scale, 1.f);
 
     //BBS: GUI refactor: GLToolbar
     int size_i = int(GLToolbar::Default_Icons_Size * new_scale);
-    // force even size
+    // Orca: force even size
     if (size_i % 2 != 0)
         size_i -= 1;
     size = size_i;
 
-    //BBS: GUI refactor: GLToolbar
+    // Orca: set toolbar icon size regardless of platform
     m_main_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
