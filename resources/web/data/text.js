@@ -107,6 +107,9 @@ var LangText = {
     t113: "You may change your choice in preference anytime.",
     orca1: "Edit Project Info",
     orca2: "no model information",
+    orca3: "Stealth Mode",
+    orca4: "This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function.",
+    orca5: "Enable Stealth Mode.",
   },
     ca_ES: {
     t1: "Benvingut a Orca Slicer",
@@ -323,8 +326,11 @@ var LangText = {
     t111: "Crear nuevo",
     t112: "Unirse al programa",
     t113: "Puede cambiar su elección en preferencias en cualquier momento.",
-    orca1: "Edit Project Info",
-    orca2: "no model information",
+    orca1: "Editar información del proyecto",
+    orca2: "No hay información sobre el modelo",
+    orca3: "Modo Invisible",
+    orca4: "Esta función detiene la transmisión de datos a los servicios en la nube de Bambu. Los usuarios que no utilicen máquinas BBL o que solo utilicen el modo LAN pueden activar esta función de forma segura.",
+    orca5: "Activar Modo Invisible.",
   },
   de_DE: {
     t1: "Willkommen im Orca Slicer",

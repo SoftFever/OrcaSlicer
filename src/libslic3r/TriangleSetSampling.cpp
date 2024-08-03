@@ -2,7 +2,6 @@
 #include <map>
 #include <random>
 #include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
 
 namespace Slic3r {
 

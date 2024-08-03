@@ -228,13 +228,13 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 }
             }
 
-            auto check = [this](bool yes_or_no) {
+            /*auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
                 int act_btns = ActionButtons::SAVE;
                 return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"),
                                                                         _L("Switching application language while some presets are modified."), act_btns);
-            };
+            };*/
 
             m_current_language_selected = combobox->GetSelection();
             if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
@@ -1004,7 +1004,7 @@ void PreferencesDialog::create()
     SetSizer(main_sizer);
     Layout();
     Fit();
-    int screen_height = wxGetDisplaySize().GetY();
+    int screen_height = wxDisplay(m_parent).GetClientArea().GetHeight();
     if (this->GetSize().GetY() > screen_height)
         this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
 

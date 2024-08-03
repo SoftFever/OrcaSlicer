@@ -470,7 +470,6 @@ void GLTexture::reset()
 
 bool GLTexture::generate_from_text_string(const std::string& text_str, wxFont &font, wxColor background, wxColor foreground)
 {
-    int w,h,hl;
     return generate_from_text(text_str, font, background, foreground);
 }
 
