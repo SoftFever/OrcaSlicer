@@ -7736,7 +7736,7 @@ msgid "Bridge"
 msgstr "Mosty"
 
 msgid "Set speed for external and internal bridges"
-msgstr "Ustaw szybkość dla zewnętrznych i wewnętrznych mostków"
+msgstr "Ustaw szybkość dla zewnętrznych i wewnętrznych mostów"
 
 msgid "Travel speed"
 msgstr "Szybkość przemieszczania"
@@ -7748,7 +7748,7 @@ msgid "Jerk(XY)"
 msgstr "Jerk (XY)"
 
 msgid "Raft"
-msgstr "Raft"
+msgstr "Tratwa (Raft)"
 
 msgid "Support filament"
 msgstr "Filament podpory"
@@ -9605,7 +9605,7 @@ msgstr ""
 "password@your-octopi-address/"
 
 msgid "Device UI"
-msgstr "Interfejs użytkownika urządzenia"
+msgstr "UI urządzenia"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
@@ -9614,7 +9614,7 @@ msgstr ""
 "jak print_host"
 
 msgid "API Key / Password"
-msgstr "Klucz API / Hasło"
+msgstr "Klucz API / hasło"
 
 msgid ""
 "Orca Slicer can upload G-code files to a printer host. This field should "
@@ -9660,7 +9660,7 @@ msgid "Names of presets related to the physical printer"
 msgstr "Nazwy profili odnoszących się do drukarki fizycznej"
 
 msgid "Authorization Type"
-msgstr "Typ autoryzacji"
+msgstr "Rodzaj autoryzacji"
 
 msgid "API key"
 msgstr "Klucz API"
@@ -10398,14 +10398,13 @@ msgstr ""
 "\n"
 "Włączenie tej opcji spowoduje drukowanie wewnętrznej warstwy mostka nad "
 "nieco niewspieraną wewnętrzną strukturą wypełnienia. Poniższe opcje "
-"kontrolują stopień filtrowania, czyli ilość tworzonych wewnętrznych "
-"mostków.\n"
+"kontrolują stopień filtrowania, czyli ilość tworzonych wewnętrznych mostów.\n"
 "\n"
 "Wyłączone - Wyłącza tę opcję. Jest to zachowanie domyślne i działa dobrze w "
 "większości przypadków.\n"
 "\n"
 "Ograniczone filtrowanie - Tworzy wewnętrzne mosty na mocno pochylonych "
-"powierzchniach, unikając tworzenia niepotrzebnych wewnętrznych mostków. To "
+"powierzchniach, unikając tworzenia niepotrzebnych wewnętrznych mostów. To "
 "działa dobrze dla większości trudnych modeli.\n"
 "\n"
 "Brak filtrowania - Tworzy wewnętrzne mosty na każdym potencjalnym "
@@ -11238,7 +11237,7 @@ msgstr ""
 "kodu T). Ten czas jest dodawany do szacowanego czasu druku."
 
 msgid "Enable ramming for multitool setups"
-msgstr "Włącz wbijanie dla konfiguracji wielonarzędziowych"
+msgstr "Włącz wyciskanie przy multi-tool"
 
 msgid ""
 "Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
@@ -11253,13 +11252,13 @@ msgstr ""
 "używana tylko wtedy, gdy wieża czyszcząca jest włączona."
 
 msgid "Multitool ramming volume"
-msgstr "Objętość ramingu wieloinstrumentowego"
+msgstr "Objętość wyciskania multi-tool"
 
 msgid "The volume to be rammed before the toolchange."
 msgstr "Objętość do wyciśnięcia przed zmianą narzędzia."
 
 msgid "Multitool ramming flow"
-msgstr "Przepływ ramingu wieloinstrumentowego"
+msgstr "Przepływ wyciskania multi-tool"
 
 msgid "Flow used for ramming the filament before the toolchange."
 msgstr "Przepływ używany do ramingu filamentu przed zmianą narzędzia."
@@ -12472,7 +12471,7 @@ msgstr ""
 "Tutaj możesz umieścić notatki, które zostaną dodane do nagłówka pliku G-code."
 
 msgid "Host Type"
-msgstr "Typ hosta"
+msgstr "Rodzaj serwera"
 
 msgid ""
 "Orca Slicer can upload G-code files to a printer host. This field must "
@@ -12502,7 +12501,7 @@ msgstr ""
 "wewnątrz."
 
 msgid "High extruder current on filament swap"
-msgstr "Wysoki prąd extrudera przy wymianie filamentu"
+msgstr "Wyższy prąd extrudera przy zmianie filamentu"
 
 msgid ""
 "It may be beneficial to increase the extruder motor current during the "
@@ -12887,7 +12886,7 @@ msgid "Top and Bottom"
 msgstr "Na górnych i dolnych"
 
 msgid "Extra length on restart"
-msgstr "Dodatkowa długość przed wznowieniem"
+msgstr "Dodatkowa ilość dla powrotu"
 
 msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
@@ -13337,7 +13336,7 @@ msgid "Traditional"
 msgstr "Tradycyjny"
 
 msgid "Temperature variation"
-msgstr "Wariacje temperatury"
+msgstr "Zmiana temperatury"
 
 #. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
 msgid ""
@@ -13431,7 +13430,7 @@ msgstr ""
 "wydrukiem."
 
 msgid "Prime all printing extruders"
-msgstr "Przygotuj wszystkie extrudery do drukowania"
+msgstr "Wyczyść wszystkie używane ekstrudery"
 
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
@@ -14143,7 +14142,7 @@ msgstr ""
 "kolory filamentów mogą się wymieszać."
 
 msgid "Maximal bridging distance"
-msgstr "Maksymalna odległość mostkowania"
+msgstr "Maksymalna odległość mostów"
 
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr ""
