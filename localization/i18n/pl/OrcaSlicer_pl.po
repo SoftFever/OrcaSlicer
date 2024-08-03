@@ -5386,7 +5386,7 @@ msgid "Lamp"
 msgstr "LED"
 
 msgid "Aux"
-msgstr "Aux"
+msgstr "Pomocn."
 
 msgid "Cham"
 msgstr "Komora"
@@ -7763,7 +7763,7 @@ msgid "Prime tower"
 msgstr "Wieża czyszcząca"
 
 msgid "Filament for Features"
-msgstr "Filament dla elementu wydruku"
+msgstr "Filament dla elementu druku"
 
 msgid "Ooze prevention"
 msgstr "Zapobieganie wyciekom (Ooze)"
@@ -12014,11 +12014,10 @@ msgstr ""
 "strukturze lub rozpuszczalnym materiale do drukowania podpór"
 
 msgid "Maximum width of a segmented region"
-msgstr "Maksymalna szerokość segmentowanej strefy"
+msgstr "Maksymalna szerokość segmentu"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
-msgstr ""
-"Maksymalna szerokość segmentowanej strefy. Wartość zero wyłącza tę funkcję."
+msgstr "Maksymalna szerokość segmentu. Wartość zero wyłącza tę funkcję."
 
 msgid "Interlocking depth of a segmented region"
 msgstr "Głębokość zazębiania się podzielonego na segmenty obszaru"
