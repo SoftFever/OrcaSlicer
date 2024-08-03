@@ -69,7 +69,7 @@ using namespace nlohmann;
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 
-#include "OrcaSlicer.hpp"
+#include "CurvettaSlicer.hpp"
 //BBS: add exception handler for win32
 #include <wx/stdpaths.h>
 #ifdef WIN32
