@@ -1304,6 +1304,9 @@ var LangText = {
     t113: "Możesz zmienić swój wybór w preferencjach w dowolnym momencie.",
     orca1: "Edytuj informacje o projekcie",
     orca2: "brak informacji o modelu",
+	orca3: "Tryb «Niewidzialny»",
+    orca4: "To wyłączy przesyłanie danych do usług chmurowych Bambu. Użytkownicy, którzy nie korzystają z maszyn BBL lub używają tylko trybu LAN, mogą bez obaw włączyć tę opcję.",
+    orca5: "Włącz tryb «Niewidzialny»",
   },
   pt_BR: {
     t1: "Bem-vindo ao Orca Slicer",
