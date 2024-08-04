@@ -12,13 +12,13 @@ function check_available_memory_and_disk() {
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
     if [ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
+        echo -e "\nERROR: Curvetta Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
         echo && free -h && echo
         exit 2
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]]; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Curvetta Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df -h . && echo
         exit 1
     fi
@@ -33,7 +33,7 @@ function usage() {
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
-    echo "   -s: build orca-slicer (optional)"
+    echo "   -s: build curvetta-slicer (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
@@ -141,7 +141,7 @@ fi
 
 if [[ -n "${BUILD_ORCA}" ]]
 then
-    echo "Configuring OrcaSlicer..."
+    echo "Configuring CurvettaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr build
@@ -164,10 +164,10 @@ then
         -DORCA_TOOLS=ON \
         ${BUILD_ARGS}
     echo "done"
-    echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
-    echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    echo "Building CurvettaSlicer ..."
+    cmake --build build --target CurvettaSlicer
+    echo "Building CurvettaSlicer_profile_validator .."
+    cmake --build build --target CurvettaSlicer_profile_validator
     ./run_gettext.sh
     echo "done"
 fi
