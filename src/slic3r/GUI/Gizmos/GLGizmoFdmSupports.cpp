@@ -101,7 +101,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
     m_desc["on_overhangs_only"] = _L("On overhangs only");
 
-    memset(&m_print_instance, sizeof(m_print_instance), 0);
+    memset(&m_print_instance, 0, sizeof(m_print_instance));
     return true;
 }
 

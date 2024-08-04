@@ -7400,37 +7400,21 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
         return;
     }
 
-    float scale = wxGetApp().toolbar_icon_scale();
     Size cnv_size = get_canvas_size();
 
-    //BBS: GUI refactor: GLToolbar
-    int size_i = int(GLToolbar::Default_Icons_Size * scale);
-    // force even size
-    if (size_i % 2 != 0)
-        size_i -= 1;
-    float size   = size_i;
-
-    // Set current size for all top toolbars. It will be used for next calculations
-#if ENABLE_RETINA_GL
-    const float sc = m_retina_helper->get_scale_factor() * scale;
-    //BBS: GUI refactor: GLToolbar
+    // Orca: Toolbar scale is a constant value which depends on display resolution and OS.
+    //       Icon size is the only variable we change to scale the toolbars.
+    const float sc = get_scale();
     m_main_toolbar.set_scale(sc);
     m_assemble_view_toolbar.set_scale(sc);
     m_separator_toolbar.set_scale(sc);
-    collapse_toolbar.set_scale(sc / 2.0);
-    size *= m_retina_helper->get_scale_factor();
+    collapse_toolbar.set_scale(sc);
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
     m_gizmos.set_overlay_scale(sc);
-#else
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(size);
-    m_assemble_view_toolbar.set_icons_size(size);
-    m_separator_toolbar.set_icons_size(size);
-    collapse_toolbar.set_icons_size(size / 2.0);
-    m_gizmos.set_overlay_icon_size(size);
-#endif // ENABLE_RETINA_GL
+
+    float size = m_main_toolbar.get_icons_size();
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
@@ -7467,11 +7451,21 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
-#if ENABLE_RETINA_GL
-    new_scale /= m_retina_helper->get_scale_factor();
-#endif
-    if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
-        wxGetApp().set_auto_toolbar_icon_scale(new_scale);
+    new_scale = std::min(new_scale, 1.f);
+
+    //BBS: GUI refactor: GLToolbar
+    int size_i = int(GLToolbar::Default_Icons_Size * new_scale);
+    // Orca: force even size
+    if (size_i % 2 != 0)
+        size_i -= 1;
+    size = size_i;
+
+    // Orca: set toolbar icon size regardless of platform
+    m_main_toolbar.set_icons_size(size);
+    m_assemble_view_toolbar.set_icons_size(size);
+    m_separator_toolbar.set_icons_size(size);
+    collapse_toolbar.set_icons_size(size / 2.0);
+    m_gizmos.set_overlay_icon_size(size);
 }
 
 void GLCanvas3D::_render_overlays()
@@ -8041,7 +8035,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 4.0f, start_pos.y + 2.0f); // ORCA move close to corner to prevent overlapping with preview
         ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
 
         ImGui::PopID();
