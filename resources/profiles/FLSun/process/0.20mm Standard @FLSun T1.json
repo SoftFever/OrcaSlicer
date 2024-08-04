@@ -1,0 +1,30 @@
+{
+  "type": "process",
+  "setting_id": "GP004",
+  "name": "0.20mm PLA_HS_T1_FLSUN @FLSUN",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_process_common",
+  "outer_wall_speed": "120",
+  "inner_wall_speed": "260",
+  "sparse_infill_speed": "400",
+  "internal_solid_infill_speed": "260",
+  "default_acceleration": "8000",
+  "default_jerk": "20",
+  "gap_infill_speed": "250",
+  "initial_layer_acceleration": "1000",
+  "initial_layer_infill_speed": "60",
+  "initial_layer_speed": "30",
+  "inner_wall_acceleration": "8000",
+  "is_custom_defined": "0",
+  "outer_wall_acceleration": "8000",
+  "overhang_1_4_speed": "80",
+  "top_surface_acceleration": "12000",
+  "top_surface_speed": "300",
+  "travel_acceleration": "20000",
+  "travel_speed": "800",
+  "compatible_printers": [
+    "FLSun T1 0.4 nozzle"
+  ],
+  "exclude_object": "1"
+}

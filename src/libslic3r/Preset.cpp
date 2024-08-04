@@ -784,7 +784,7 @@ static std::vector<std::string> s_Preset_print_options {
     "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
-    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
+    "ooze_prevention", "standby_temperature_delta", "preheat_time","preheat_steps", "interface_shells", "line_width", "initial_layer_line_width",
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap","top_bottom_infill_wall_overlap", "bridge_flow", "internal_bridge_flow",
     "elefant_foot_compensation", "elefant_foot_compensation_layers", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower",
@@ -809,7 +809,7 @@ static std::vector<std::string> s_Preset_print_options {
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max","initial_layer_min_bead_width",
      "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes",
-     "wipe_tower_cone_angle", "wipe_tower_extra_spacing","wipe_tower_max_purge_speed", "wipe_tower_extruder", "wiping_volumes_extruders","wipe_tower_bridging", "single_extruder_multi_material_priming",
+     "wipe_tower_cone_angle", "wipe_tower_extra_spacing","wipe_tower_max_purge_speed", "wipe_tower_filament", "wiping_volumes_extruders","wipe_tower_bridging", "wipe_tower_extra_flow","single_extruder_multi_material_priming",
      "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic",
      "hole_to_polyhole", "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
      "small_area_infill_flow_compensation", "small_area_infill_flow_compensation_model",
@@ -840,12 +840,12 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
+    "enable_pressure_advance", "pressure_advance","adaptive_pressure_advance","adaptive_pressure_advance_model","adaptive_pressure_advance_overhangs", "adaptive_pressure_advance_bridges","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
     "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
-    "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
+    "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves", "filament_stamping_loading_speed", "filament_stamping_distance",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
     "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut"
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut", "idle_temperature"
     };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -1572,7 +1572,6 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     //std::deque<Preset> presets_loaded;
-    int count = 0;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, name %1% , total value counts %2%")%name %preset_values.size();
 

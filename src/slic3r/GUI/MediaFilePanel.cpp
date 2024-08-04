@@ -328,7 +328,6 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                     MessageDialog(this, m, _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
                 });
                 
-            NetworkAgent* agent = wxGetApp().getAgent();
             if (result > 1 || result == 0) {
                 json j;
                 j["code"] = result;
@@ -576,7 +575,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                     }
                     else {
                         MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
-                        auto res = dlg.ShowModal();
+                        dlg.ShowModal();
                     }
                     
                 });
