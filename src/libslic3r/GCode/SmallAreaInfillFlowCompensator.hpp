@@ -6,11 +6,11 @@
 #include "../ExtrusionEntity.hpp"
 #include <memory>
 
-namespace Slic3r {
-
 namespace tk {
 class spline;
 } // namespace tk
+
+namespace Slic3r {
 
 class SmallAreaInfillFlowCompensator
 {

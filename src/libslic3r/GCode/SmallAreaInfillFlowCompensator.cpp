@@ -15,10 +15,8 @@
 #include "../PrintConfig.hpp"
 
 #include "SmallAreaInfillFlowCompensator.hpp"
-#include <boost/log/trivial.hpp>
-
-#define TK_SPLINE_OUTER_NAMESPACE Slic3r
 #include "spline/spline.h"
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 

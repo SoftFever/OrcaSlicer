@@ -46,15 +46,6 @@
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#ifndef TK_SPLINE_OUTER_NAMESPACE
-#define TK_SPLINE_OUTER_NAMESPACE
-#endif // TK_SPLINE_OUTER_NAMESPACE
-
-// unnamed namespace only because the implementation is in this
-// header file and we don't want to export symbols to the obj files
-namespace TK_SPLINE_OUTER_NAMESPACE
-{
-
 namespace tk
 {
 
@@ -945,8 +936,6 @@ std::vector<double> solve_cubic(double a, double b, double c, double d,
 
 } // namespace tk
 
-
-} // namespace
 
 #if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
