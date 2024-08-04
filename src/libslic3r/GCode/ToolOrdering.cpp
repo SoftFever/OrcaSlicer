@@ -1,3 +1,4 @@
+#include "ExtrusionEntity.hpp"
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 #include "Layer.hpp"
@@ -171,12 +172,25 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
 	assert(region.config().sparse_infill_filament.value > 0);
 	assert(region.config().solid_infill_filament.value > 0);
 	// 1 based extruder ID.
-	unsigned int extruder = ((this->extruder_override == 0) ?
-	    (is_infill(extrusions.role()) ?
-	    	(is_solid_infill(extrusions.entities.front()->role()) ? region.config().solid_infill_filament : region.config().sparse_infill_filament) :
-			region.config().wall_filament.value) :
-		this->extruder_override);
-	return (extruder == 0) ? 0 : extruder - 1;
+    unsigned int extruder = 1;
+
+    if (this->extruder_override == 0) {
+        if (extrusions.has_infill()) {
+            if (extrusions.has_solid_infill()) {
+                extruder = region.config().solid_infill_filament;
+            } else {
+                extruder = region.config().sparse_infill_filament;
+            }
+        } else if (extrusions.has_perimeters()) {
+            extruder = region.config().wall_filament.value;
+        } else {
+            extruder = this->extruder_override;
+        }
+    } else {
+        extruder = this->extruder_override;
+    }
+
+    return (extruder == 0) ? 0 : extruder - 1;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
