@@ -224,26 +224,31 @@ std::string GCodeWriter::set_acceleration_internal(Acceleration type, unsigned i
 
 std::string GCodeWriter::set_jerk_xy(double jerk)
 {
-    double jerk_x = jerk;
-    double jerk_y = jerk;
-    
-    // Clamp the jerk to the allowed maximum.
-    if (m_max_jerk_x > 0 && jerk > m_max_jerk_x)
-        jerk_x = m_max_jerk_x;
-
-    if (m_max_jerk_y > 0 && jerk > m_max_jerk_y)
-        jerk_y = m_max_jerk_y;
-
     if (jerk < 0.01 || is_approx(jerk, m_last_jerk))
         return std::string();
     
     m_last_jerk = jerk;
-    
+
     std::ostringstream gcode;
-    if(FLAVOR_IS(gcfKlipper))
+    if (FLAVOR_IS(gcfKlipper)) {
+        // Clamp the jerk to the allowed maximum.
+        if (m_max_jerk_x > 0 && jerk > m_max_jerk_x)
+            jerk = m_max_jerk_x;
+        if (m_max_jerk_y > 0 && jerk > m_max_jerk_y)
+            jerk = m_max_jerk_y;
+        
         gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
-    else
+    } else {
+        double jerk_x = jerk;
+        double jerk_y = jerk;
+        // Clamp the axis jerk to the allowed maximum.
+        if (m_max_jerk_x > 0 && jerk > m_max_jerk_x)
+            jerk_x = m_max_jerk_x;
+        if (m_max_jerk_y > 0 && jerk > m_max_jerk_y)
+            jerk_y = m_max_jerk_y;
+        
         gcode << "M205 X" << jerk_x << " Y" << jerk_y;
+    }
       
     if (m_is_bbl_printers)
         gcode << std::setprecision(2) << " Z" << m_max_jerk_z << " E" << m_max_jerk_e;
@@ -281,10 +286,9 @@ std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double je
     }
     // Clamp the jerk to the allowed maximum.
     if (m_max_jerk_x > 0 && jerk > m_max_jerk_x)
-        jerk_x = m_max_jerk_x;
-
+        jerk = m_max_jerk_x;
     if (m_max_jerk_y > 0 && jerk > m_max_jerk_y)
-        jerk_y = m_max_jerk_y;
+        jerk = m_max_jerk_y;
 
     if (jerk > 0.01 && !is_approx(jerk, m_last_jerk)) {
         gcode << " SQUARE_CORNER_VELOCITY=" << jerk;
