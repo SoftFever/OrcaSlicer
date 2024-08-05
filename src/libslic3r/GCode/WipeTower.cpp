@@ -924,6 +924,9 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
     }
 
     float nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow;
+    if (m_filpar[m_current_tool].material == "TPU") {
+        nozzle_change_speed *= 0.25;
+    }
 
     WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(m_extrusion_flow)
@@ -951,9 +954,6 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
 
     float dy        = m_layer_info->extra_spacing * m_perimeter_width;
 
-    const float target_speed = 4800.f;
-    float       wipe_speed   = std::max(target_speed, nozzle_change_speed);
-
     float start_y = writer.y();
 
     m_left_to_right = true;
@@ -962,9 +962,9 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
     // now the wiping itself:
     for (int i = 0; true; ++i) {
         if (m_left_to_right)
-            writer.extrude(xr + 0.25f * m_perimeter_width, writer.y(), wipe_speed);
+            writer.extrude(xr + 0.25f * m_perimeter_width, writer.y(), nozzle_change_speed);
         else
-            writer.extrude(xl - 0.25f * m_perimeter_width, writer.y(), wipe_speed);
+            writer.extrude(xl - 0.25f * m_perimeter_width, writer.y(), nozzle_change_speed);
 
         if (writer.y() - float(EPSILON) > cleaning_box.lu.y())
             break; // in case next line would not fit
