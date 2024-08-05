@@ -569,6 +569,7 @@ public:
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
+    bool is_multi_extruders() const;
 
     /*online*/
     bool   online_rfid;
@@ -749,17 +750,17 @@ public:
     } liveview_local{ LVL_None };
     enum LiveviewRemote {
         LVR_None,
-        LVR_Tutk, 
+        LVR_Tutk,
         LVR_Agora,
         LVR_TutkAgora
     } liveview_remote{ LVR_None };
     enum FileLocal {
-        FL_None, 
+        FL_None,
         FL_Local
     } file_local{ FL_None };
     enum FileRemote {
-        FR_None, 
-        FR_Tutk, 
+        FR_None,
+        FR_Tutk,
         FR_Agora,
         FR_TutkAgora
     } file_remote{ FR_None };

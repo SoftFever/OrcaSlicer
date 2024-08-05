@@ -1556,7 +1556,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 {
     if (!obj) return;
 
-    std::map<int, DynamicPrintConfig> full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> full_filament_ams_list;
+    for (auto ams_item : old_full_filament_ams_list) {
+        int key = ams_item.first & 0x0FFFF;
+        full_filament_ams_list[key] = std::move(ams_item.second);
+    }
 
     // sync filament_ams_list from obj ams list
     filament_ams_list.clear();

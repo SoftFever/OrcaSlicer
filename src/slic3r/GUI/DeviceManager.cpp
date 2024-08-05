@@ -1173,6 +1173,11 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
     }
 }
 
+bool MachineObject::is_multi_extruders() const
+{
+    return m_nozzle_data.total_nozzle_count > 1;
+}
+
 bool MachineObject::is_bbl_filament(std::string tag_uid)
 {
     if (tag_uid.empty())
