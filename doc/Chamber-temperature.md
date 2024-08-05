@@ -1,8 +1,8 @@
-OrcaSlicer use `M141/M191` command to control active chamber heater.  
+CurvettaSlicer use `M141/M191` command to control active chamber heater.  
 
-If `Activate temperature control` is checked, OrcaSlicer will insert `M191` command at the beginning of the gcode(before `Machine G-code`).  
+If `Activate temperature control` is checked, CurvettaSlicer will insert `M191` command at the beginning of the gcode(before `Machine G-code`).  
 ![image](./images/activate_chamber_heater.jpg)  
-*Note: If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.*  
+*Note: If the machine is equipped with an auxiliary fan, CurvettaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.*  
 
 
 There are two chamber temperature variables available that we can use in `Machine G-code` to control the chamber temperature, if you prefer:  
@@ -21,7 +21,7 @@ Bellow is a reference configuration for Klipper.
 [heater_generic chamber_heater]
 heater_pin:PB10
 max_power:1.0
-# Orca note: here the temperature sensor should be the sensor you are using for chamber temperature, not the PTC sensor
+# Curvetta note: here the temperature sensor should be the sensor you are using for chamber temperature, not the PTC sensor
 sensor_type:NTC 100K MGB18-104F39050L32
 sensor_pin:PA1
 control = pid
@@ -43,7 +43,7 @@ gcode:
         M117 Chamber heating cancelled
     {% else %}
         SET_HEATER_TEMPERATURE HEATER=chamber_heater TARGET={s}
-        # Orca: uncomment the following line if you want to use heat bed to assist chamber heating
+        # Curvetta: uncomment the following line if you want to use heat bed to assist chamber heating
         # M140 S100
         TEMPERATURE_WAIT SENSOR="heater_generic chamber_heater" MINIMUM={s-1} MAXIMUM={s+1}
         M117 Chamber at target temperature

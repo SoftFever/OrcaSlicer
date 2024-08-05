@@ -36,7 +36,7 @@ This parameter interacts with the below printer kinematic settings and physical 
 
 
 <h3>Acceleration vs. Extrusion rate smoothing</h3>
-A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. 
+A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Curvetta slicer. 
 
 
 When a speed change is requested, the firmware look ahead planner calculates the slow down needed to achieve the target speed. The rate of slowdown is limited by the move's acceleration value. 
@@ -148,7 +148,7 @@ If your printer is not equipped with pressure advance and, especially, if you ar
 In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recommended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
 
 <h2>A note on ERS Segment length </h2>
-Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However, this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. It will also slow down the Orca slicer front end as the sliced model is more complex to render.
+Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However, this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. It will also slow down the Curvetta slicer front end as the sliced model is more complex to render.
 
 
 For Klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume. 

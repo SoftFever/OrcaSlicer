@@ -5,7 +5,7 @@
   3. [Tower method](#Tower-method)
 - [Temp tower](#Temp-tower)
 - [Retraction test](#Retraction-test)
-- [Orca Tolerance Test](#Orca-Tolerance-Test)
+- [Curvetta Tolerance Test](#Curvetta-Tolerance-Test)
 - [Advanced calibration](#Advanced-Calibration)
   1. [Max Volumetric speed](#Max-Volumetric-speed)
   2. [VFA]  
@@ -42,7 +42,7 @@ Steps
 
 # Pressure Advance
 
-Orca Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
+Curvetta Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
 
 > [!WARNING]
 > For Marlin: Linear advance must be enabled in firmware (M900). **Not all printers have it enabled by default.**
@@ -70,7 +70,7 @@ Steps:
 
 The pattern method is adapted from [Andrew Ellis' pattern method generator](https://ellis3dp.com/Pressure_Linear_Advance_Tool/), which was itself derived from the [Marlin pattern method](https://marlinfw.org/tools/lin_advance/k-factor.html) developed by [Sineos](https://github.com/Sineos/k-factorjs).
 
-[Instructions for using and reading the pattern method](https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html) are provided in [Ellis' Print Tuning Guide](https://ellis3dp.com/Print-Tuning-Guide/), with only a few Orca Slicer differences to note.
+[Instructions for using and reading the pattern method](https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html) are provided in [Ellis' Print Tuning Guide](https://ellis3dp.com/Print-Tuning-Guide/), with only a few Curvetta Slicer differences to note.
 
 First and foremost, when you initiate the test, you'll only see a small rectangular prism on the plate. This object serves a few purposes:
 
@@ -78,12 +78,12 @@ First and foremost, when you initiate the test, you'll only see a small rectangu
 2. The prism acts as a handle, enabling you to move the test pattern wherever you'd like on the plate by moving the prism
 3. The filament selected for the prism is also used for the test pattern
 
-Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Orca Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. A few things to note about these settings:
+Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Curvetta Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. A few things to note about these settings:
 
-1. Ellis specified line widths as a percent of filament diameter. The Orca pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter
+1. Ellis specified line widths as a percent of filament diameter. The Curvetta pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter
 2. In terms of line width, the pattern only makes use of the `Default` and `First layer` widths
 3. In terms of speed, the pattern only uses the `First layer speed -> First layer` and `Other layers speed -> Outer wall` speeds
-4. The infill pattern beneath the numbers cannot be changed becuase it's not actually an infill pattern pulled from the settings. All of the pattern G-Code is custom written, so that "infill" is, effectively, hand-drawn and so not processed through the usual channels that would enable Orca to recognize it as infill
+4. The infill pattern beneath the numbers cannot be changed becuase it's not actually an infill pattern pulled from the settings. All of the pattern G-Code is custom written, so that "infill" is, effectively, hand-drawn and so not processed through the usual channels that would enable Curvetta to recognize it as infill
 
 ### Tower method
 
@@ -108,11 +108,11 @@ This test generates a retraction tower automatically. The retraction tower is a 
 ![image](./images/retraction_test_dlg.png)  
 In the dialog, you can select the start and end retraction length, as well as the retraction length increment step. The default values are 0mm for the start retraction length, 2mm for the end retraction length, and 0.1mm for the step. These values are suitable for most direct drive extruders. However, for Bowden extruders, you may want to increase the start and end retraction lengths to 1mm and 6mm, respectively, and set the step to 0.2mm.
 
-**Note**: When testing filaments such as PLA or ABS that have minimal oozing, the retraction settings can be highly effective. You may find that the retraction tower appears clean right from the start. In such situations, setting the retraction length to 0.2mm - 0.4mm using Orca Slicer should suffice.
+**Note**: When testing filaments such as PLA or ABS that have minimal oozing, the retraction settings can be highly effective. You may find that the retraction tower appears clean right from the start. In such situations, setting the retraction length to 0.2mm - 0.4mm using Curvetta Slicer should suffice.
 On the other hand, if there is still a lot of stringing at the top of the tower, it is recommended to dry your filament and ensure that your nozzle is properly installed without any leaks.  
 ![image](./images/retraction_test_print.jpg)  
 
-# Orca Tolerance Test
+# Curvetta Tolerance Test
 This tolerance test is specifically designed to assess the dimensional accuracy of your printer and filament. The model comprises a base and a hexagon tester. The base contains six hexagon hole, each with a different tolerance: 0.0mm, 0.05mm, 0.1mm, 0.2mm, 0.3mm, and 0.4mm. The dimensions of the hexagon tester are illustrated in the image.  
 ![image](./images/tolerance_hole.jpg) 
 
@@ -135,7 +135,7 @@ Using calipers or a ruler, measure the height of the print at that point. Use th
 
 ![image](./images/caliper_sample_mvf.jpg)
 
-You can also return to OrcaSlicer in the "Preview" tab, make sure the color scheme "flow" is selected. Scroll down to the layer height that you measured, and click on the toolhead slider. This will indicate the max flow level for your filmanet. 
+You can also return to CurvettaSlicer in the "Preview" tab, make sure the color scheme "flow" is selected. Scroll down to the layer height that you measured, and click on the toolhead slider. This will indicate the max flow level for your filmanet. 
 
 ![image](./images/max_volumetric_flow.jpg)
 

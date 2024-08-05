@@ -8,7 +8,7 @@ You can set the bed temperature for each bed type in the filament settings as de
 ![multi_bed](./images/bed-types.gif)  
 
 
-Orca also support `curr_bed_type` variable in custom G-code. 
+Curvetta also support `curr_bed_type` variable in custom G-code. 
 For example, the following sample G-codes can detect the selected bed type and adjust the G-code offset accordingly for Klipper:  
 ```
 {if curr_bed_type=="Textured PEI Plate"}
