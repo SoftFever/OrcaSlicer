@@ -24,6 +24,8 @@
 
 #include "GCode/PressureEqualizer.hpp"
 #include "GCode/SmallAreaInfillFlowCompensator.hpp"
+// ORCA: post processor below used for Dynamic Pressure advance
+#include "GCode/AdaptivePAProcessor.hpp"
 
 #include <memory>
 #include <map>
@@ -43,14 +45,13 @@ class ConstPrintObjectPtrsAdaptor;
 class OozePrevention {
 public:
     bool enable;
-    Points standby_points;
 
     OozePrevention() : enable(false) {}
     std::string pre_toolchange(GCode &gcodegen);
     std::string post_toolchange(GCode &gcodegen);
 
 private:
-    int _get_temp(GCode &gcodegen);
+    int _get_temp(const GCode &gcodegen) const;
 };
 
 class Wipe {
@@ -358,6 +359,19 @@ private:
     std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1., const ExtrusionEntitiesPtr& region_perimeters = ExtrusionEntitiesPtr());
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
     std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
+    
+    // Orca: Adaptive PA variables
+    // Used for adaptive PA when extruding paths with multiple, varying flow segments.
+    // This contains the sum of the mm3_per_mm values weighted by the length of each path segment.
+    // The m_multi_flow_segment_path_pa_set constrains the PA change request to the first extrusion segment.
+    // It sets the mm3_mm value for the adaptive PA post processor to be the average of that path
+    // as calculated and stored in the m_multi_segment_path_average_mm3_per_mm value
+    double          m_multi_flow_segment_path_average_mm3_per_mm = 0;
+    bool            m_multi_flow_segment_path_pa_set = false;
+    // Adaptive PA last set flow to enable issuing of PA change commands when adaptive PA for overhangs
+    // is enabled
+    double          m_last_mm3_mm = 0;
+    // Orca: Adaptive PA code segment end
 
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
@@ -540,11 +554,13 @@ private:
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
+    
+    std::unique_ptr<AdaptivePAProcessor>      m_pa_processor;
 
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
-
+    
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.

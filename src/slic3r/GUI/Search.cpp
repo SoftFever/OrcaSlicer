@@ -435,8 +435,6 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
     auto bold_pair = std::vector<std::pair<int, int>>();
     
-    auto index     = 0;
-
     auto b_first_list  = std::vector<int>();
     auto b_second_list = std::vector<int>();
 
@@ -494,7 +492,7 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
 void SearchItem::on_mouse_enter(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -506,7 +504,7 @@ void SearchItem::on_mouse_leave(wxMouseEvent &evt)
 
 void SearchItem::on_mouse_left_down(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(228, 228, 228)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -815,9 +813,9 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
-    wxDataViewItem    item;
-    wxDataViewColumn *col;
-    wxWindow *        win = this;
+    // wxDataViewItem    item;
+    // wxDataViewColumn *col;
+    // wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
     // search_list->Select(item);
