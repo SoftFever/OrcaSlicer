@@ -252,8 +252,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
-    # Ignore unused functions warnings
-    add_compile_options(-Wno-unused-function)
+    # Since some portions of code are just commented out or put under conditional compilation, there are
+    # a bunch of warning related to unused functions and variables. Suppress those warnings to not pollute
+    # compilers diagnostics output with warnings we not going to look at
+    add_compile_options(-Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-local-typedefs)
 
     # Ignore signed/unsigned comparison warnings
     add_compile_options(-Wno-sign-compare)

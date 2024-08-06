@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-30 15:44+0200\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
 "PO-Revision-Date: 2024-06-01 21:51-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -80,9 +80,6 @@ msgstr ""
 msgid "On overhangs only"
 msgstr "Apenas em 'overhangs'"
 
-msgid "Auto support threshold angle: "
-msgstr "Ângulo max. do suporte automático: "
-
 msgid "Circle"
 msgstr "Círculo"
 
@@ -101,6 +98,9 @@ msgstr "Permite pintura apenas em facetas selecionadas por: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Realçar faces conforme a inclinação."
+
+msgid "Auto support threshold angle: "
+msgstr "Ângulo max. do suporte automático: "
 
 msgid "No auto support"
 msgstr "Sem suporte automático"
@@ -4163,15 +4163,6 @@ msgstr "Tempo total"
 msgid "Total cost"
 msgstr "Custo total"
 
-msgid "up to"
-msgstr "até"
-
-msgid "above"
-msgstr "acima"
-
-msgid "from"
-msgstr "de"
-
 msgid "Color Scheme"
 msgstr "Esquema de Cores"
 
@@ -4235,11 +4226,11 @@ msgstr "Quantidade de trocas de filamento"
 msgid "Cost"
 msgstr "Custo"
 
-msgid "Color change"
-msgstr "Mudança de Cor"
-
 msgid "Print"
 msgstr "Imprimir"
+
+msgid "Color change"
+msgstr "Mudança de Cor"
 
 msgid "Printer"
 msgstr "Impressora"
@@ -6167,14 +6158,19 @@ msgid "The file does not contain any geometry data."
 msgstr "O arquivo não contém dados de geometria."
 
 msgid ""
+"Your object appears to be too large. It will be scaled down to fit the heat "
+"bed automatically."
+msgstr ""
+
+msgid "Object too large"
+msgstr "Objeto muito grande"
+
+msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
 "Seu objeto parece ser muito grande. Deseja dimensioná-lo para caber na mesa "
 "de aquecimento automaticamente?"
-
-msgid "Object too large"
-msgstr "Objeto muito grande"
 
 msgid "Export STL file:"
 msgstr "Exportar arquivo STL:"
@@ -6554,10 +6550,6 @@ msgstr "Você deseja continuar?"
 msgid "Language selection"
 msgstr "Seleção de Idioma"
 
-msgid "Switching application language while some presets are modified."
-msgstr ""
-"A mudança do idioma do aplicativo enquanto alguns presets estão modificados."
-
 msgid "Changing application language"
 msgstr "Alterando o idioma do aplicativo"
 
@@ -6750,6 +6742,12 @@ msgid ""
 msgstr ""
 "Com esta opção habilitada, você pode enviar uma tarefa para vários "
 "dispositivos ao mesmo tempo e gerenciar vários dispositivos."
+
+msgid "Auto arrange plate after cloning"
+msgstr ""
+
+msgid "Auto arrange plate after object cloning"
+msgstr ""
 
 msgid "Network"
 msgstr "Rede"
@@ -7760,11 +7758,20 @@ msgstr "Filamento de suporte"
 msgid "Tree supports"
 msgstr "Suportes de árvore"
 
-msgid "Skirt"
-msgstr "Saia"
+msgid "Multimaterial"
+msgstr "Multimaterial"
 
 msgid "Prime tower"
 msgstr "Torre Prime"
+
+msgid "Filament for Features"
+msgstr ""
+
+msgid "Ooze prevention"
+msgstr ""
+
+msgid "Skirt"
+msgstr "Saia"
 
 msgid "Special mode"
 msgstr "Modo especial"
@@ -7817,6 +7824,9 @@ msgstr "Temperatura recomendada do bico"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Faixa de temperatura recomendada para esta boquilha. 0 significa não definido"
+
+msgid "Flow ratio and Pressure Advance"
+msgstr ""
 
 msgid "Print chamber temperature"
 msgstr "Temperatura da câmara de impressão"
@@ -7927,9 +7937,6 @@ msgstr "G-code de início do filamento"
 msgid "Filament end G-code"
 msgstr "G-code final do filamento"
 
-msgid "Multimaterial"
-msgstr "Multimaterial"
-
 msgid "Wipe tower parameters"
 msgstr "Parâmetros da Torre Prime"
 
@@ -8021,11 +8028,29 @@ msgstr "Limitação de Jerk"
 msgid "Single extruder multimaterial setup"
 msgstr "Configuração de múltiplos materiais com um único extrusor"
 
+msgid "Number of extruders of the printer."
+msgstr ""
+
+msgid ""
+"Single Extruder Multi Material is selected, \n"
+"and all extruders must have the same diameter.\n"
+"Do you want to change the diameter for all extruders to first extruder "
+"nozzle diameter value?"
+msgstr ""
+
+msgid "Nozzle diameter"
+msgstr "Diâmetro do bico"
+
 msgid "Wipe tower"
 msgstr "Torre Prime"
 
 msgid "Single extruder multimaterial parameters"
 msgstr "Parâmetros de múltiplos materiais com um único extrusor"
+
+msgid ""
+"This is a single extruder multimaterial printer, diameters of all extruders "
+"will be set to the new value. Do you want to proceed?"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Limites de altura da camada"
@@ -8521,11 +8546,8 @@ msgstr "Lista de objetos"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importar dados de geometria de arquivos STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
+msgid "Shift+G"
+msgstr ""
 
 msgid "Paste from clipboard"
 msgstr "Colar da área de transferência"
@@ -8575,32 +8597,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Recolher/Expandir a barra lateral"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Qualquer seta"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movimento no espaço da câmera"
 
-msgid "⌥+Left mouse button"
-msgstr "Botão esquerdo do mouse ⌥+"
-
 msgid "Select a part"
 msgstr "Selecionar uma peça"
 
-msgid "⌘+Left mouse button"
-msgstr "Botão esquerdo do mouse ⌘+"
-
 msgid "Select multiple objects"
 msgstr "Selecionar vários objetos"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Qualquer seta"
-
-msgid "Alt+Left mouse button"
-msgstr "Botão esquerdo do mouse Alt+"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Botão esquerdo do mouse Ctrl+"
 
 msgid "Shift+Left mouse button"
 msgstr "Botão esquerdo do mouse Shift+"
@@ -8704,23 +8711,11 @@ msgstr "Mesa"
 msgid "Move: press to snap by 1mm"
 msgstr "Mover: pressione para ajustar em 1mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Roda do mouse"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Suporte/Pintura em cores: ajustar o raio da caneta"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Roda do mouse"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Suporte/Pintura em cores: ajustar a posição da seção"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Roda do mouse"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Roda do mouse"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -9034,6 +9029,11 @@ msgid "No object can be printed. Maybe too small"
 msgstr "Nenhum objeto pode ser impresso. Talvez seja muito pequeno"
 
 msgid ""
+"Your print is very close to the priming regions. Make sure there is no "
+"collision."
+msgstr ""
+
+msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
@@ -9277,11 +9277,10 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "A altura de camada variável não é suportada com suportes orgânicos."
 
 msgid ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
+"Different nozzle diameters and different filament diameters may not work "
+"well when the prime tower is enabled. It's very experimental, so please "
+"proceed with caution."
 msgstr ""
-"Diâmetros de bico diferentes e diâmetros de filamento diferentes não são "
-"permitidos quando a Torre Prime está ativa."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
@@ -9291,9 +9290,9 @@ msgstr ""
 "extrusora (use_relative_e_distances=1)."
 
 msgid ""
-"Ooze prevention is currently not supported with the prime tower enabled."
+"Ooze prevention is only supported with the wipe tower when "
+"'single_extruder_multi_material' is off."
 msgstr ""
-"A prevenção de vazamento atualmente não é suportada com a Torre Prime ativa."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
@@ -10779,6 +10778,86 @@ msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 "Pressure advance(Klipper) também conhecido como Linear advance factor(Marlin)"
 
+msgid "Enable adaptive pressure advance (beta)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"With increasing print speeds (and hence increasing volumetric flow through "
+"the nozzle) and increasing accelerations, it has been observed that the "
+"effective PA value typically decreases. This means that a single PA value is "
+"not always 100% optimal for all features and a compromise value is usually "
+"used that does not cause too much bulging on features with lower flow speed "
+"and accelerations while also not causing gaps on faster features.\n"
+"\n"
+"This feature aims to address this limitation by modeling the response of "
+"your printer's extrusion system depending on the volumetric flow speed and "
+"acceleration it is printing at. Internally, it generates a fitted model that "
+"can extrapolate the needed pressure advance for any given volumetric flow "
+"speed and acceleration, which is then emmited to the printer depending on "
+"the current print conditions.\n"
+"\n"
+"When enabled, the pressure advance value above is overriden. However, a "
+"reasonable default value above is strongly recomended to act as a fallback "
+"and for when tool changing.\n"
+"\n"
+msgstr ""
+
+msgid "Adaptive pressure advance measurements (beta)"
+msgstr ""
+
+msgid ""
+"Add sets of pressure advance (PA) values, the volumetric flow speeds and "
+"accelerations they were measured at, separated by a comma. One set of values "
+"per line. For example\n"
+"0.04,3.96,3000\n"
+"0.033,3.96,10000\n"
+"0.029,7.91,3000\n"
+"0.026,7.91,10000\n"
+"\n"
+"How to calibrate:\n"
+"1. Run the pressure advance test for at least 3 speeds per acceleration "
+"value. It is recommended that the test is run for at least the speed of the "
+"external perimeters, the speed of the internal perimeters and the fastest "
+"feature print speed in your profile (usually its the sparse or solid "
+"infill). Then run them for the same speeds for the slowest and fastest print "
+"accelerations,and no faster than the recommended maximum acceleration as "
+"given by the klipper input shaper.\n"
+"2. Take note of the optimal PA value for each volumetric flow speed and "
+"acceleration. You can find the flow number by selecting flow from the color "
+"scheme drop down and move the horizontal slider over the PA pattern lines. "
+"The number should be visible at the bottom of the page. The ideal PA value "
+"should be decreasing the higher the volumetric flow is. If it is not, "
+"confirm that your extruder is functioning correctly.The slower and with less "
+"acceleration you print, the larger the range of acceptable PA values. If no "
+"difference is visible, use the PA value from the faster test.3. Enter the "
+"triplets of PA values, Flow and Accelerations in the text box here and save "
+"your filament profile\n"
+"\n"
+msgstr ""
+
+msgid "Enable adaptive pressure advance for overhangs (beta)"
+msgstr ""
+
+msgid ""
+"Enable adaptive PA for overhangs as well as when flow changes within the "
+"same feature. This is an experimental option, as if the PA profile is not "
+"set accurately, it will cause uniformity issues on the external surfaces "
+"before and after overhangs.\n"
+msgstr ""
+
+msgid "Pressure advance for bridges"
+msgstr ""
+
+msgid ""
+"Pressure advance value for bridges. Set to 0 to disable. \n"
+"\n"
+" A lower PA value when printing bridges helps reduce the appearance of "
+"slight under extrusion immediately after bridges. This is caused by the "
+"pressure drop in the nozzle when printing in the air and a lower PA helps "
+"counteract this."
+msgstr ""
+
 msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
@@ -10967,6 +11046,21 @@ msgid ""
 msgstr ""
 "O filamento é resfriado movendo-se para frente e para trás nos tubos de "
 "resfriamento. Especifique o número desejado desses movimentos."
+
+msgid "Stamping loading speed"
+msgstr ""
+
+msgid "Speed used for stamping."
+msgstr ""
+
+msgid "Stamping distance measured from the center of the cooling tube"
+msgstr ""
+
+msgid ""
+"If set to nonzero value, filament is moved toward the nozzle between the "
+"individual cooling moves (\"stamping\"). This option configures how long "
+"this movement should be before the filament is retracted again."
+msgstr ""
 
 msgid "Speed of the first cooling move"
 msgstr "Velocidade do primeiro movimento de resfriamento"
@@ -11819,10 +11913,12 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr "Profundidade de entrelaçamento de uma região segmentada"
 
-msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
-"Profundidade de entrelaçamento de uma região segmentada. Zero desativa essa "
-"funcionalidade."
 
 msgid "Use beam interlocking"
 msgstr ""
@@ -12234,9 +12330,6 @@ msgstr ""
 "velocidade para tentar manter o tempo mínimo de camada acima, quando a "
 "desaceleração para um melhor resfriamento da camada estiver habilitada."
 
-msgid "Nozzle diameter"
-msgstr "Diâmetro do bico"
-
 msgid "Diameter of nozzle"
 msgstr "Diâmetro do bico"
 
@@ -12339,6 +12432,11 @@ msgstr ""
 "número de retratações para modelos complexos e economizar tempo de "
 "impressão, mas torna a geração de fatiamento e G-code mais lenta"
 
+msgid ""
+"This option will drop the temperature of the inactive extruders to prevent "
+"oozing."
+msgstr ""
+
 msgid "Filename format"
 msgstr "Formato do nome do arquivo"
 
@@ -12387,6 +12485,9 @@ msgstr ""
 "Detecta a porcentagem relativa de overhang em relação a largura do perímetro "
 "e usa uma velocidade diferente de impressão. Para overhangs 100%%, a "
 "velocidade de ponte é usada."
+
+msgid "Filament to print walls"
+msgstr ""
 
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
@@ -12437,11 +12538,20 @@ msgstr ""
 "o arquivo G-code como primeiro argumento, e eles podem acessar as "
 "configurações do Orca Slicer lendo variáveis de ambiente."
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr "Notas da impressora"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "Você pode inserir suas observações sobre a impressora aqui."
+
+msgid "Printer variant"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Distância (Z) de contato da Jangada"
@@ -13013,6 +13123,12 @@ msgstr ""
 "A área de preenchimento não sólido que é menor que o valor de limiar é "
 "substituída por preenchimento sólido interno"
 
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
+
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
@@ -13078,6 +13194,31 @@ msgstr "Tradicional"
 
 msgid "Temperature variation"
 msgstr "Variação de temperatura"
+
+#. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+msgid ""
+"Temperature difference to be applied when an extruder is not active. The "
+"value is not used when 'idle_temperature' in filament settings is set to non "
+"zero value."
+msgstr ""
+
+msgid "Preheat time"
+msgstr ""
+
+msgid ""
+"To reduce the waiting time after tool change, Orca can preheat the next tool "
+"while the current tool is still in use. This setting specifies the time in "
+"seconds to preheat the next tool. Orca will insert a M104 command to preheat "
+"the tool in advance."
+msgstr ""
+
+msgid "Preheat steps"
+msgstr ""
+
+msgid ""
+"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"other printers, please set it to 1."
+msgstr ""
 
 msgid "Start G-code"
 msgstr "Código de Início"
@@ -13757,12 +13898,6 @@ msgstr ""
 "Ângulo no ápice do cone usado para estabilizar a Torre Prime. Um ângulo "
 "maior significa uma base mais larga."
 
-msgid "Wipe tower purge lines spacing"
-msgstr "Espaçamento das linhas de purga da Torre Prime"
-
-msgid "Spacing of purge lines on the wipe tower."
-msgstr "Espaçamento das linhas de purga na Torre Prime."
-
 msgid "Maximum wipe tower print speed"
 msgstr "Velocidade máxima de impressão da Torre Prime"
 
@@ -13806,9 +13941,6 @@ msgstr ""
 "\n"
 "Para os perímetros externos da Torre Prime, a velocidade do perímetro "
 "interno é utilizada independentemente dessa configuração."
-
-msgid "Wipe tower extruder"
-msgstr "Extrusora da Torre Prime"
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -13865,6 +13997,30 @@ msgstr "Distância máxima de ponte"
 
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr "Distância máxima entre suportes em seções de preenchimento não sólido."
+
+msgid "Wipe tower purge lines spacing"
+msgstr "Espaçamento das linhas de purga da Torre Prime"
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr "Espaçamento das linhas de purga na Torre Prime."
+
+msgid "Extra flow for purging"
+msgstr ""
+
+msgid ""
+"Extra flow used for the purging lines on the wipe tower. This makes the "
+"purging lines thicker or narrower than they normally would be. The spacing "
+"is adjusted automatically."
+msgstr ""
+
+msgid "Idle temperature"
+msgstr ""
+
+msgid ""
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "Compensação XY de furos"
@@ -14215,6 +14371,14 @@ msgstr "Desretração extra"
 msgid "Currently planned extra extruder priming after deretraction."
 msgstr "Priming de extrusora extra planejado atualmente após a desretração."
 
+msgid "Absolute E position"
+msgstr ""
+
+msgid ""
+"Current position of the extruder axis. Only used with absolute extruder "
+"addressing."
+msgstr ""
+
 msgid "Current extruder"
 msgstr "Extrusora atual"
 
@@ -14263,6 +14427,12 @@ msgstr "Extrusora utilizada?"
 msgid "Vector of bools stating whether a given extruder is used in the print."
 msgstr ""
 "Vetor de booleanos indicando se uma dada extrusora é utilizada na impressão."
+
+msgid "Has single extruder MM priming"
+msgstr ""
+
+msgid "Are the extra multi-material priming regions used in this print?"
+msgstr ""
 
 msgid "Volume per extruder"
 msgstr "Volume por extrusora"
@@ -14425,6 +14595,14 @@ msgstr "Nome da impressora física"
 
 msgid "Name of the physical printer used for slicing."
 msgstr "Nome da impressora física utilizada para fatiar."
+
+msgid "Number of extruders"
+msgstr ""
+
+msgid ""
+"Total number of extruders, regardless of whether they are used in the "
+"current print."
+msgstr ""
 
 msgid "Layer number"
 msgstr "Número da camada"
@@ -16850,6 +17028,78 @@ msgstr ""
 "Você sabia que ao imprimir materiais propensos ao empenamento, como ABS, "
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
+
+#~ msgid "up to"
+#~ msgstr "até"
+
+#~ msgid "above"
+#~ msgstr "acima"
+
+#~ msgid "from"
+#~ msgstr "de"
+
+#~ msgid "Switching application language while some presets are modified."
+#~ msgstr ""
+#~ "A mudança do idioma do aplicativo enquanto alguns presets estão "
+#~ "modificados."
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Qualquer seta"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "Botão esquerdo do mouse ⌥+"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "Botão esquerdo do mouse ⌘+"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Qualquer seta"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Botão esquerdo do mouse Alt+"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Botão esquerdo do mouse Ctrl+"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Roda do mouse"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Roda do mouse"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Roda do mouse"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Roda do mouse"
+
+#~ msgid ""
+#~ "Different nozzle diameters and different filament diameters is not "
+#~ "allowed when prime tower is enabled."
+#~ msgstr ""
+#~ "Diâmetros de bico diferentes e diâmetros de filamento diferentes não são "
+#~ "permitidos quando a Torre Prime está ativa."
+
+#~ msgid ""
+#~ "Ooze prevention is currently not supported with the prime tower enabled."
+#~ msgstr ""
+#~ "A prevenção de vazamento atualmente não é suportada com a Torre Prime "
+#~ "ativa."
+
+#~ msgid ""
+#~ "Interlocking depth of a segmented region. Zero disables this feature."
+#~ msgstr ""
+#~ "Profundidade de entrelaçamento de uma região segmentada. Zero desativa "
+#~ "essa funcionalidade."
+
+#~ msgid "Wipe tower extruder"
+#~ msgstr "Extrusora da Torre Prime"
 
 #~ msgid "Current association: "
 #~ msgstr "Associação atual: "

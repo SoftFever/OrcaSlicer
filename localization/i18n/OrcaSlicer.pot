@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-30 10:20+0900\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -11054,6 +11054,9 @@ msgid ""
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
 
+msgid "Filament to print walls"
+msgstr ""
+
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -11087,10 +11090,19 @@ msgid ""
 "environment variables."
 msgstr ""
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr ""
 
 msgid "You can put your notes regarding the printer here."
+msgstr ""
+
+msgid "Printer variant"
 msgstr ""
 
 msgid "Raft contact Z distance"
@@ -11540,6 +11552,12 @@ msgstr ""
 msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
 "internal solid infill"
+msgstr ""
+
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
 msgstr ""
 
 msgid ""
