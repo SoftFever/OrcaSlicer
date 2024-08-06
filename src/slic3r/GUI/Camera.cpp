@@ -586,6 +586,9 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
 
 void Camera::set_distance(double distance)
 {
+    if(distance < EPSILON || distance > 1.0e6)
+        return;
+        
     if (m_distance != distance) {
         m_view_matrix.translate((distance - m_distance) * get_dir_forward());
         m_distance = distance;

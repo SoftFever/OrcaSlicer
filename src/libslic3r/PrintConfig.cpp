@@ -3458,9 +3458,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wall_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Walls";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print walls";
+    def->label = L("Walls");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print walls");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -3518,8 +3518,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("printer_model", coString);
     //def->label = L("Printer type");
     //def->tooltip = L("Type of the printer");
-    def->label = "Printer type";
-    def->tooltip = "Type of the printer";
+    def->label = L("Printer type");
+    def->tooltip = L("Type of the printer");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
@@ -3534,7 +3534,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("printer_variant", coString);
     //def->label = L("Printer variant");
-    def->label = "Printer variant";
+    def->label = L("Printer variant");
     //def->tooltip = L("Name of the printer variant. For example, the printer variants may be differentiated by a nozzle diameter.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
@@ -4049,9 +4049,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("solid_infill_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Solid infill";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print solid infill";
+    def->label = L("Solid infill");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print solid infill");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -4776,7 +4776,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 240 });
 
     def = this->add("head_wrap_detect_zone", coPoints);
-    def->label ="Head wrap detect zone"; //do not need translation
+    def->label = "Head wrap detect zone"; //do not need translation
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPoints{});
 

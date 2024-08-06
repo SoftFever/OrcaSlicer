@@ -7470,7 +7470,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 #if ENABLE_RETINA_GL
     new_scale /= m_retina_helper->get_scale_factor();
 #endif
-    if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
+    if (fabs(new_scale - scale) > 0.05) // scale is changed by 5% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
@@ -8041,7 +8041,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 4.0f, start_pos.y + 2.0f); // ORCA move close to corner to prevent overlapping with preview
         ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
 
         ImGui::PopID();
