@@ -41,6 +41,7 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_rotation_angle",
     "curr_bed_type",
     "flush_multiplier",
+    "nozzle_volume_type"
 };
 
 //Orca: add custom as default
@@ -1783,6 +1784,23 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
                 first_visible_filament_name = filaments.first_compatible().name;
             fp = first_visible_filament_name;
         }
+    }
+
+    const Preset& current_printer = printers.get_selected_preset();
+    const Preset* base_printer = printers.get_preset_base(current_printer);
+    bool use_default_nozzle_volume_type = true;
+    if (base_printer) {
+        std::string prev_nozzle_volume_type = config.get_nozzle_volume_types_from_config(base_printer->name);
+        if (!prev_nozzle_volume_type.empty()) {
+            ConfigOptionEnumsGeneric* nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+            if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
+                use_default_nozzle_volume_type = false;
+            }
+        }
+    }
+
+    if (use_default_nozzle_volume_type) {
+        project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
     }
 
     // Parse the initial physical printer name.

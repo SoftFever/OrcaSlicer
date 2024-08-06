@@ -610,6 +610,7 @@ public:
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
+	std::string m_base_preset_name;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 

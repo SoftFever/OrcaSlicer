@@ -4454,7 +4454,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("Big Traffic");
     def->enum_labels.push_back(L("Normal"));
     def->enum_labels.push_back(L("Big Traffic"));
-    def->mode = comAdvanced;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtNormal });
+
+    def = this->add("default_nozzle_volume_type", coEnums);
+    def->label = L("Default Nozzle Volume Type");
+    def->tooltip = ("Default Nozzle volume type for extruders in this printer");
+    def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
+    def->enum_values.push_back("Normal");
+    def->enum_values.push_back("Big Traffic");
+    def->enum_labels.push_back(L("Normal"));
+    def->enum_labels.push_back(L("Big Traffic"));
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtNormal });
 
     def = this->add("extruder_variant_list", coStrings);
@@ -6264,7 +6275,7 @@ void PrintConfigDef::init_extruder_option_keys()
 {
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
-        "extruder_type", "nozzle_diameter", "nozzle_volume_type", "min_layer_height", "max_layer_height", "extruder_offset",
+        "extruder_type", "nozzle_diameter", "default_nozzle_volume_type", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
@@ -7241,7 +7252,7 @@ std::set<std::string> filament_options_with_variant = {
 std::set<std::string> printer_extruder_options = {
     "extruder_type",
     "nozzle_diameter",
-    "nozzle_volume_type",
+    "default_nozzle_volume_type",
     "extruder_printable_area",
     "min_layer_height",
     "max_layer_height"
