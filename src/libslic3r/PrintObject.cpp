@@ -139,6 +139,9 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions() const
 {
     std::vector<std::reference_wrapper<const PrintRegion>> out;
+    if(!m_shared_regions)
+        return out;
+        
     out.reserve(m_shared_regions->all_regions.size());
     for (const std::unique_ptr<Slic3r::PrintRegion> &region : m_shared_regions->all_regions)
         out.emplace_back(*region.get());
@@ -3010,10 +3013,11 @@ std::vector<unsigned int> PrintObject::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(this->all_regions().size() * 3);
-#if 0
+
+    //Orca: Collect extruders from all regions.
     for (const PrintRegion &region : this->all_regions())
         region.collect_object_printing_extruders(*this->print(), extruders);
-#else
+
     const ModelObject* mo = this->model_object();
     for (const ModelVolume* mv : mo->volumes) {
         std::vector<int> volume_extruders = mv->get_extruders();
@@ -3022,7 +3026,6 @@ std::vector<unsigned int> PrintObject::object_extruders() const
             extruders.push_back(extruder - 1);
         }
     }
-#endif
     sort_remove_duplicates(extruders);
     return extruders;
 }

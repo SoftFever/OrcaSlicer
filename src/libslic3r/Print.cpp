@@ -382,12 +382,12 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_print_regions.size() * m_objects.size() * 3);
-    // BBS
-#if 0
+
+    //Orca: Collect extruders from all regions.
     for (const PrintObject *object : m_objects)
 		for (const PrintRegion &region : object->all_regions())
         	region.collect_object_printing_extruders(*this, extruders);
-#else
+
     for (const PrintObject* object : m_objects) {
         const ModelObject* mo = object->model_object();
         for (const ModelVolume* mv : mo->volumes) {
@@ -410,7 +410,6 @@ std::vector<unsigned int> Print::object_extruders() const
             }
         }
     }
-#endif
     sort_remove_duplicates(extruders);
     return extruders;
 }

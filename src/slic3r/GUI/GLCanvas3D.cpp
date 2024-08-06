@@ -4875,6 +4875,14 @@ void GLCanvas3D::do_center()
     m_selection.center();
 }
 
+void GLCanvas3D::do_drop()
+{
+    if (m_model == nullptr)
+        return;
+
+    m_selection.drop();
+}
+
 void GLCanvas3D::do_center_plate(const int plate_idx) {
     if (m_model == nullptr)
         return;
@@ -7470,7 +7478,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 #if ENABLE_RETINA_GL
     new_scale /= m_retina_helper->get_scale_factor();
 #endif
-    if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
+    if (fabs(new_scale - scale) > 0.05) // scale is changed by 5% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
