@@ -978,6 +978,7 @@ public:
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_center();
+    void do_drop();
     void do_center_plate(const int plate_idx);
     void do_mirror(const std::string& snapshot_type);
 
