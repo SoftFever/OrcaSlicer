@@ -141,6 +141,7 @@ private:
     PickingModel m_lock_icon;
     PickingModel m_plate_settings_icon;
     PickingModel m_plate_name_edit_icon;
+    PickingModel m_move_front_icon;
     GLModel m_plate_idx_icon;
     GLTexture m_texture;
 
@@ -199,7 +200,7 @@ private:
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 7;
+    static const unsigned int GRABBER_COUNT = 8;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;
@@ -546,6 +547,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_logo_texture;
     GLTexture m_del_texture;
     GLTexture m_del_hovered_texture;
+    GLTexture m_move_front_hovered_texture;
+    GLTexture m_move_front_texture;
     GLTexture m_arrange_texture;
     GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
@@ -655,6 +658,9 @@ public:
         depth = m_plate_depth;
         height = m_plate_height;
     }
+
+    // Pantheon: update plates after moving plate to the front
+    void update_plates();
 
     /*basic plate operations*/
     //create an empty plate and return its index
