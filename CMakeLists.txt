@@ -410,7 +410,7 @@ endif()
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log locale regex chrono atomic date_time iostreams program_options)
+find_package(Boost 1.84 REQUIRED COMPONENTS system filesystem thread log locale regex chrono atomic date_time iostreams program_options)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -644,8 +644,16 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
+        set(_gmpdll winarm64/gmp-10.dll)
+        set(_mpfrdll winarm64/mpfr-6.dll)
+    else()
+        set(_gmpdll win${_bits}/libgmp-10.dll)
+        set(_mpfrdll win${_bits}/libmpfr-4.dll)
+    endif()
+
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/${_gmpdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/${_mpfrdll}
             ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
         DESTINATION ${_out_dir})
 

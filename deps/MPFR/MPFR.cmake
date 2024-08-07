@@ -2,16 +2,26 @@ set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/mpfr)
 
 if (MSVC)
     set(_output  ${DESTDIR}/include/mpfr.h
-                 ${DESTDIR}/include/mpf2mpfr.h
-                 ${DESTDIR}/lib/libmpfr-4.lib 
-                 ${DESTDIR}/bin/libmpfr-4.dll)
+                 ${DESTDIR}/include/mpf2mpfr.h)
+
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
+        list(APPEND _output ${DESTDIR}/lib/mpfr.lib
+                            ${DESTDIR}/bin/mpfr-6.dll)
+        set(_mpfrlib winarm64/mpfr.lib)
+        set(_mpfrdll winarm64/mpfr-6.dll)
+    else()
+        list(APPEND _output ${DESTDIR}/lib/libmpfr-4.lib
+                            ${DESTDIR}/bin/libmpfr-4.dll)
+        set(_mpfrlib win${DEPS_BITS}/libmpfr-4.lib)
+        set(_mpfrdll win${DEPS_BITS}/libmpfr-4.dll)
+    endif()
 
     add_custom_command(
         OUTPUT  ${_output}
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/mpfr.h ${DESTDIR}/include/
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/mpf2mpfr.h ${DESTDIR}/include/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libmpfr-4.lib ${DESTDIR}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libmpfr-4.dll ${DESTDIR}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_mpfrlib} ${DESTDIR}/lib/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_mpfrdll} ${DESTDIR}/bin/
     )
 
     add_custom_target(dep_MPFR SOURCES ${_output})

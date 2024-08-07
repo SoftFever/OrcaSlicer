@@ -31,7 +31,7 @@ jobs:
         id: set_outputs
         env:
           underscore-arch: ${{ inputs.os == 'macos-14' && '_' || ''}}${{ inputs.os == 'macos-14' && inputs.arch || '' }} # if is macos, make a string that does "_{arch}", else output nothing
-          dash-arch: ${{ inputs.os == 'macos-14' && '-' || ''}}${{ inputs.os == 'macos-14' && inputs.arch || '' }} # if is macos, make a string that does "-{arch}", else output nothing
+          dash-arch: ${{ (inputs.os == 'macos-14' || inputs.os == 'windows-latest') && '-' || ''}}${{ (inputs.os == 'macos-14' || inputs.os == 'windows-latest') && inputs.arch || '' }} # if is Windows/macos, make a string that does "-{arch}", else output nothing
           dep-folder-name: ${{ (inputs.os == 'windows-latest' || inputs.os == 'macos-14') && 'OrcaSlicer_dep' || 'destdir' }}
           output-cmd: ${{ inputs.os == 'windows-latest' && '$env:GITHUB_OUTPUT' || '"$GITHUB_OUTPUT"'}}
         run: |

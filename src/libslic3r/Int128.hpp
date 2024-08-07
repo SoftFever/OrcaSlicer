@@ -57,7 +57,7 @@
 	#define HAS_INTRINSIC_128_TYPE
 #endif
 
-#if defined(_MSC_VER) && defined(_WIN64)
+#if defined(_MSC_VER) && defined(_WIN64) && !defined(_M_ARM64)
 	#include <intrin.h>
 	#pragma intrinsic(_mul128)
 #endif
@@ -188,7 +188,7 @@ public:
 
 	static inline Int128 multiply(int64_t lhs, int64_t rhs)
 	{
-#if defined(_MSC_VER) && defined(_WIN64)
+#if defined(_MSC_VER) && defined(_WIN64) && !defined(_M_ARM64)
 		// On Visual Studio 64bit, use the _mul128() intrinsic function.
 		Int128 result;
 	    result.m_lo = (uint64_t)_mul128(lhs, rhs, &result.m_hi);

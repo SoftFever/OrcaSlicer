@@ -68,8 +68,8 @@ jobs:
             choco install strawberryperl
             mkdir ${{ github.workspace }}/deps/build
             mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-            .\build_release_vs2022.bat deps
-            .\build_release_vs2022.bat pack
+            .\build_release_vs2022.bat -arch ${{ inputs.arch }} -option deps
+            .\build_release_vs2022.bat -arch ${{ inputs.arch }} -option pack
             cd ${{ github.workspace }}/deps/build
 
       - name: Build on Mac ${{ inputs.arch }}
@@ -123,8 +123,10 @@ jobs:
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
+        env:
+          targetname: ${{ (inputs.arch == 'x64' && 'win64') || (inputs.arch == 'arm64' && 'winarm64') || '' }}
         with:
-          name: OrcaSlicer_dep_win64_${{ env.date }}
+          name: OrcaSlicer_dep_${{ env.targetname }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
