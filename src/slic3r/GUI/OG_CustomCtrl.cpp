@@ -328,7 +328,7 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 
     wxPaintDC dc(this);
 
-    wxCoord h_pos = get_title_width() * m_em_unit;
+    wxCoord h_pos = get_title_width() * m_em_unit + 4; // Align label with group title. +5 used in staticline element
     wxCoord v_pos = 0;
     // BBS: new layout
     if (!GetLabel().IsEmpty()) {
