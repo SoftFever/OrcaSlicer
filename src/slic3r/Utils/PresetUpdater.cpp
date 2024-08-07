@@ -1358,8 +1358,12 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
         }
 		if (p->cancel)
 			return;
-        this->p->sync_plugins(http_url, plugin_version);
-        this->p->sync_printer_config(http_url);
+
+        // orca: http_url is empty string in stealth_mode
+        if (http_url.size() > 0) {
+            this->p->sync_plugins(http_url, plugin_version);
+            this->p->sync_printer_config(http_url);
+        }
 		//if (p->cancel)
 		//	return;
 		//remove the tooltip currently
