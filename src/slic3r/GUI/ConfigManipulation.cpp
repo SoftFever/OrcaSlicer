@@ -747,15 +747,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
-    toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
-    bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");
-    if (has_overhang_reverse_internal_only){
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("overhang_reverse_threshold", new ConfigOptionFloatOrPercent(0,true));
-        apply(config, &new_conf);
-    }
     toggle_line("timelapse_type", is_BBL_Printer);
 
+    bool have_internal_perimeters = config->opt_int("wall_loops") > 1;
+    for (auto el : {"reverse_internal"})
+        toggle_field(el, have_internal_perimeters && !force_wall_direction);
 
     bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
     toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);

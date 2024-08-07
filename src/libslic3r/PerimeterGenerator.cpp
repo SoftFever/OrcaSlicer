@@ -1612,26 +1612,26 @@ void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
 }
 
 // Reorient loop direction
-static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_overhang_contour, bool steep_overhang_hole, bool reverse_internal_only)
+static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_overhang_contour, bool steep_overhang_hole, bool reverse_internal)
 {
-    if (steep_overhang_hole || steep_overhang_contour) {
+    if (steep_overhang_hole || steep_overhang_contour || reverse_internal) {
         for (auto entity : entities) {
             if (entity->is_loop()) {
                 ExtrusionLoop *eloop = static_cast<ExtrusionLoop *>(entity);
                 // Only reverse when needed
-                bool need_reverse = ((eloop->loop_role() & elrHole) == elrHole) ? steep_overhang_hole : steep_overhang_contour;
+                bool need_reverse;
                 
-                bool isExternal = false;
-                if(reverse_internal_only){
-                    for(auto path : eloop->paths){
-                        if(path.role() == erExternalPerimeter){
-                            isExternal = true;
-                            break;
-                        }
+                for(auto path : eloop->paths){
+                    if(path.role() == erExternalPerimeter){
+                        need_reverse = ((eloop->loop_role() & elrHole) == elrHole) ? steep_overhang_hole : steep_overhang_contour;
+                        break;
+                    }else {
+                        need_reverse = reverse_internal;
+                        break;
                     }
                 }
                 
-                if (need_reverse && !isExternal) {
+                if (need_reverse) {
                     eloop->make_clockwise();
                 }
             }
@@ -1954,8 +1954,8 @@ void PerimeterGenerator::process_classic()
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
-                                    // Reverse internal only if the wall direction is auto
-                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+                                    // Reverse internal if the wall direction is auto or clockwise
+                                    wall_direction == WallDirection::Clockwise || this->config->reverse_internal && wall_direction == WallDirection::Auto && this->layer_id % 2 == 1);
             }
 
             // if brim will be printed, reverse the order of perimeters so that
@@ -2848,8 +2848,8 @@ void PerimeterGenerator::process_arachne()
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
-                                    // Reverse internal only if the wall direction is auto
-                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+                                    // Reverse internal if the wall direction is auto or clockwise
+                                    wall_direction == WallDirection::Clockwise || this->config->reverse_internal && wall_direction == WallDirection::Auto && this->layer_id % 2 == 1);
             }
             this->loops->append(extrusion_coll);
         }

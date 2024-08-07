@@ -982,14 +982,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     
-    def = this->add("overhang_reverse_internal_only", coBool);
-    def->label = L("Reverse only internal perimeters");
-    def->full_label = L("Reverse only internal perimeters");
-    def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("counterbore_hole_bridging", coEnum);
     def->label = L("Bridge counterbore holes");
     def->category = L("Quality");
@@ -1540,6 +1532,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Clockwise"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
+
+    def = this->add("reverse_internal", coBool);
+    def->label = L("Reverse internal perimeters on even layers");
+    def->full_label = L("Reverse internal perimeters on even layers");
+    def->category = L("Quality");
+    def->tooltip = L("Reverse internal perimeters on even layers.\n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("extruder", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
@@ -6125,6 +6125,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if(opt_key == "counterbole_hole_bridging"){
         opt_key = "counterbore_hole_bridging";
+    }
+    else if(opt_key == "overhang_reverse_internal_only"){
+        opt_key = "reverse_internal";
     }
 
     // Ignore the following obsolete configuration keys:
