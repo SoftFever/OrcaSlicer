@@ -118,7 +118,7 @@ enum class SlicingMode
 
 enum SupportMaterialPattern {
     smpDefault,
-    smpRectilinear, smpRectilinearGrid, smpHoneycomb,
+    smpAlignedRectilinear, smpRectilinear, smpHoneycomb,
     smpLightning,
     smpNone,
 };
@@ -135,7 +135,7 @@ enum LongRectrationLevel
 };
 
 enum SupportMaterialInterfacePattern {
-    smipAuto, smipRectilinear, smipConcentric, smipRectilinearInterlaced, smipGrid
+    smipAuto, smipRectilinear, smipConcentric, smipAlignedRectilinear, smipGrid
 };
 
 // BBS
