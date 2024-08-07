@@ -262,9 +262,6 @@ std::string GCodeWriter::set_jerk_xy(double jerk)
 
 std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double jerk)
 {
-    double jerk_x = jerk;
-    double jerk_y = jerk;
-    
     // Only Klipper supports setting acceleration and jerk at the same time. Throw an error if we try to do this on other flavours.
     if(FLAVOR_IS_NOT(gcfKlipper))
         throw std::runtime_error("set_accel_and_jerk() is only supported by Klipper");
