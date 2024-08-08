@@ -29,11 +29,11 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname) 
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", FromDIP(12));
-    m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
-    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
+    m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", 12);
+    m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", 12);
+    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", 52);
     //m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel", FromDIP(25));
-    m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", FromDIP(25));
+    m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", 25);
 
     m_material_coloul = mcolour;
     m_material_name = mname;
@@ -206,15 +206,15 @@ void MaterialItem::doRender(wxDC& dc)
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(11));
+    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
 
     //bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
-    int left = FromDIP((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2) + 3;
-    int up = FromDIP((20 + (30 - MATERIAL_REC_WHEEL_SIZE.y) / 2));
-    int right = FromDIP(left + MATERIAL_REC_WHEEL_SIZE.x);
+    auto left = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
+    auto up = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
+    auto right = left + MATERIAL_REC_WHEEL_SIZE.x;
     dc.SetPen(*wxTRANSPARENT_PEN);
     //bottom
     if (m_ams_cols.size() > 1) {
@@ -239,14 +239,12 @@ void MaterialItem::doRender(wxDC& dc)
                     dc.DrawRoundedRectangle(x, up, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size, MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
-
         }
     }
     else {
-
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(wxColour(acolor)));
-        dc.DrawRectangle(FromDIP((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2) + 3, up, FromDIP(MATERIAL_REC_WHEEL_SIZE.x), FromDIP(MATERIAL_REC_WHEEL_SIZE.y));
+        dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x, MATERIAL_REC_WHEEL_SIZE.y);
 
     }
 
@@ -284,7 +282,7 @@ void MaterialItem::doRender(wxDC& dc)
 
 
     //wheel
-    dc.DrawBitmap(m_ams_wheel_mitem.bmp(), (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + 3, ((float)GetSize().y * 3 / 5 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 2 / 5);
+    dc.DrawBitmap(m_ams_wheel_mitem.bmp(), (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(3), ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4);
 }
 
 AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
@@ -353,32 +351,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
-     m_sizer_split_ams_left = new wxBoxSizer(wxHORIZONTAL);
-     auto ams_title_text = new Label(parent, _L("Left Ams"));
-     ams_title_text->SetFont(::Label::Body_13);
-     ams_title_text->SetForegroundColour(0x909090);
-     auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-     m_split_left_line->SetBackgroundColour(0xeeeeee);
-     m_split_left_line->SetMinSize(wxSize(-1, 1));
-     m_split_left_line->SetMaxSize(wxSize(-1, 1));
-     m_sizer_split_ams_left->Add(0, 0, 0, wxEXPAND, 0);
-     m_sizer_split_ams_left->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
-     m_sizer_split_ams_left->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
-     m_sizer_ams_left->Add(m_sizer_split_ams_left, 0, wxEXPAND, 0);
-
-     m_sizer_split_ams_right = new wxBoxSizer(wxHORIZONTAL);
-     ams_title_text = new Label(parent, _L("Right Ams"));
-     ams_title_text->SetFont(::Label::Body_13);
-     ams_title_text->SetForegroundColour(0x909090);
-     auto m_split_right_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-     m_split_right_line->SetBackgroundColour(0xeeeeee);
-     m_split_right_line->SetMinSize(wxSize(-1, 1));
-     m_split_right_line->SetMaxSize(wxSize(-1, 1));
-     m_sizer_split_ams_right->Add(0, 0, 0, wxEXPAND, 0);
-     m_sizer_split_ams_right->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
-     m_sizer_split_ams_right->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
-     m_sizer_ams_right->Add(m_sizer_split_ams_right, 0, wxEXPAND, 0);
-
+     m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("Left Ams")), 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -396,7 +369,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      //m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
      m_sizer_ams->Add(m_left_marea_panel, 0, wxRIGHT, FromDIP(10));
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
-     m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND, FromDIP(0));
+     m_sizer_ams->Add(m_right_marea_panel, 1, wxEXPAND, FromDIP(0));
 
 
      m_warning_text = new wxStaticText(this, wxID_ANY, wxEmptyString);
@@ -438,7 +411,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
     m_split_left_line->SetMaxSize(wxSize(-1, 1));
     sizer_split_ams->Add(0, 0, 0, wxEXPAND, 0);
     sizer_split_ams->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
-    sizer_split_ams->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_split_ams->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
     return sizer_split_ams;
  }
 
@@ -577,13 +550,11 @@ void AmsMapingPopup::update(MachineObject* obj)
         }
         if (m_show_type == ShowType::LEFT)
         {
-            m_sizer_split_ams_left->Show(false);
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
         }
         else if (m_show_type == ShowType::RIGHT)
         {
-            m_sizer_split_ams_right->Show(false);
             m_right_marea_panel->Show();
             m_right_extra_slot->Show();
         }

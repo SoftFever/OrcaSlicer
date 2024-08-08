@@ -3210,8 +3210,10 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     weightimg->SetBitmap(print_weight->bmp());
     rename_editable->msw_rescale();
     rename_editable_light->msw_rescale();
-    ams_mapping_help_icon->msw_rescale();
-    img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
+    if (ams_mapping_help_icon != nullptr) {
+        ams_mapping_help_icon->msw_rescale();
+        if (img_amsmapping_tip)img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
+    }
     enable_ams->msw_rescale();
     img_use_ams_tip->SetBitmap(enable_ams->bmp());
 
