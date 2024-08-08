@@ -1699,10 +1699,11 @@ TriangleSelector::TriangleSplittingData TriangleSelector::serialize() const {
     return out.data;
 }
 
-void TriangleSelector::deserialize(const TriangleSplittingData &data, bool needs_reset) {
+void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs_reset, EnforcerBlockerType max_ebt)
+{
     if (needs_reset)
         reset(); // dump any current state
-    for (auto [triangle_id, ibit] : data.first) {
+    for (auto [triangle_id, ibit] : data.triangles_to_split) {
         if (triangle_id >= int(m_triangles.size())) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "array bound:error:triangle_id >= int(m_triangles.size())";
             return;

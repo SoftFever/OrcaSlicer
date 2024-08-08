@@ -3362,7 +3362,7 @@ void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::stri
 
 bool FacetsAnnotation::equals(const FacetsAnnotation &other) const
 {
-    const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data = other.get_data();
+    const auto& data = other.get_data();
     return (m_data == data);
 }
 

@@ -705,31 +705,6 @@ private:
     void update_min_max_z();
 };
 
-enum class EnforcerBlockerType : int8_t {
-    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
-    NONE      = 0,
-    ENFORCER  = 1,
-    BLOCKER   = 2,
-    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
-    Extruder1 = ENFORCER,
-    Extruder2 = BLOCKER,
-    Extruder3,
-    Extruder4,
-    Extruder5,
-    Extruder6,
-    Extruder7,
-    Extruder8,
-    Extruder9,
-    Extruder10,
-    Extruder11,
-    Extruder12,
-    Extruder13,
-    Extruder14,
-    Extruder15,
-    Extruder16,
-    ExtruderMax = Extruder16
-};
-
 enum class ConversionType : int {
     CONV_TO_INCH,
     CONV_FROM_INCH,
@@ -771,6 +746,7 @@ public:
     void set_triangle_from_string(int triangle_id, const std::string& str);
     // After deserializing the last triangle, shrink data to fit.
     void shrink_to_fit() { m_data.triangles_to_split.shrink_to_fit(); m_data.bitstream.shrink_to_fit(); }
+    bool equals(const FacetsAnnotation &other) const;
 
 private:
     // Constructors to be only called by derived classes.

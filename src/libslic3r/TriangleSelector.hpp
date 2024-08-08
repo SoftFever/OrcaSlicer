@@ -7,9 +7,33 @@
 #include <cfloat>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
-#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
+
+enum class EnforcerBlockerType : int8_t {
+    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
+    NONE      = 0,
+    ENFORCER  = 1,
+    BLOCKER   = 2,
+    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    Extruder1 = ENFORCER,
+    Extruder2 = BLOCKER,
+    Extruder3,
+    Extruder4,
+    Extruder5,
+    Extruder6,
+    Extruder7,
+    Extruder8,
+    Extruder9,
+    Extruder10,
+    Extruder11,
+    Extruder12,
+    Extruder13,
+    Extruder14,
+    Extruder15,
+    Extruder16,
+    ExtruderMax = Extruder16
+};
 
 // Following class holds information about selected triangles. It also has power
 // to recursively subdivide the triangles and make the selection finer.
@@ -307,7 +331,9 @@ public:
     TriangleSplittingData serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const TriangleSplittingData &data, bool needs_reset = true);
+    void deserialize(const TriangleSplittingData& data,
+                     bool                         needs_reset = true,
+                     EnforcerBlockerType          max_ebt     = EnforcerBlockerType::ExtruderMax);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
