@@ -52,6 +52,7 @@ namespace Slic3r
         std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq;
     };
 
+
     class KMediods
     {
         enum INIT_TYPE
@@ -83,5 +84,6 @@ namespace Slic3r
     private:
         std::vector<int>m_filament_labels;
     };
+
 }
 #endif // !FILAMENT_GROUP_HPP

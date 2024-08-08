@@ -8,6 +8,124 @@
 namespace Slic3r
 {
 
+    MCMF::MCMF(const FlushMatrix& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes)
+    {
+        matrix = matrix_;
+        l_nodes = u_nodes;
+        r_nodes = v_nodes;
+
+        total_nodes = u_nodes.size() + v_nodes.size() + 2;
+
+        source_id = total_nodes - 2;
+        sink_id = total_nodes - 1;
+
+        adj.resize(total_nodes);
+
+        //add edge from source to left nodes,set capacity to 1, cost to 0
+        for (int i = 0; i < l_nodes.size(); ++i)
+            add_edge(source_id, i, 1, 0);
+
+        //add edge from right nodes to sink,set capacity to 1, cost to 0
+        for (int i = 0; i < r_nodes.size(); ++i)
+            add_edge(l_nodes.size() + i, sink_id, 1, 0);
+
+        for (int i = 0; i < l_nodes.size(); ++i) {
+            int from_idx = i;
+            for (int j = 0; j < r_nodes.size(); ++j) {
+                int to_idx = l_nodes.size() + j;
+                add_edge(from_idx, to_idx, 1, get_distance(i, j));
+            }
+        }
+    }
+
+    std::vector<int> MCMF::solve()
+    {
+        while (spfa(source_id, sink_id));
+
+        std::vector<int>matching(l_nodes.size(), -1);
+        // to get the match info, just traverse the left nodes and
+        // check the edges with flow > 0 and linked to right nodes
+        for (int u = 0; u < l_nodes.size(); ++u) {
+            for (int eid : adj[u]) {
+                Edge& e = edges[eid];
+                if (e.flow > 0 && e.to >= l_nodes.size() && e.to < l_nodes.size() + r_nodes.size())
+                    matching[e.from] = r_nodes[e.to - l_nodes.size()];
+            }
+        }
+
+        return matching;
+    }
+
+    void MCMF::add_edge(int from, int to, int capacity, int cost)
+    {
+        adj[from].emplace_back(edges.size());
+        edges.emplace_back(from, to, capacity, cost);
+        //also add reverse edge ,set capacity to zero,cost to negative
+        adj[to].emplace_back(edges.size());
+        edges.emplace_back(to, from, 0, -cost);
+    }
+
+    bool MCMF::spfa(int source, int sink)
+    {
+        std::vector<int>dist(total_nodes, INF);
+        std::vector<bool>in_queue(total_nodes, false);
+        std::vector<int>flow(total_nodes, INF);
+        std::vector<int>prev(total_nodes, 0);
+
+        std::queue<int>q;
+        q.push(source);
+        in_queue[source] = true;
+        dist[source] = 0;
+
+        while (!q.empty()) {
+            int now_at = q.front();
+            q.pop();
+            in_queue[now_at] = false;
+
+            for (auto eid : adj[now_at]) //traverse all linked edges
+            {
+                Edge& e = edges[eid];
+                if (e.flow<e.capacity && dist[e.to]>dist[now_at] + e.cost) {
+                    dist[e.to] = dist[now_at] + e.cost;
+                    prev[e.to] = eid;
+                    flow[e.to] = std::min(flow[now_at], e.capacity - e.flow);
+                    if (!in_queue[e.to]) {
+                        q.push(e.to);
+                        in_queue[e.to] = true;
+                    }
+                }
+            }
+        }
+
+        if (dist[sink] == INF)
+            return false;
+
+        int now_at = sink;
+        while (now_at != source) {
+            int prev_edge = prev[now_at];
+            edges[prev_edge].flow += flow[sink];
+            edges[prev_edge ^ 1].flow -= flow[sink];
+            now_at = edges[prev_edge].from;
+        }
+
+        return true;
+    }
+
+    int MCMF::get_distance(int idx_in_left, int idx_in_right)
+    {
+        if (l_nodes[idx_in_left] == -1) {
+            return 0;
+            //TODO: test more here
+            int sum = 0;
+            for (int i = 0; i < matrix.size(); ++i)
+                sum += matrix[i][idx_in_right];
+            sum /= matrix.size();
+            return -sum;
+        }
+
+        return matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+    }
+
     //solve the problem by searching the least flush of current filament
     static std::vector<unsigned int> solve_extruder_order_with_greedy(const std::vector<std::vector<float>>& wipe_volumes,
         const std::vector<unsigned int> curr_layer_extruders,
@@ -171,6 +289,7 @@ namespace Slic3r
     }
 
 
+
     // get best filament order of single nozzle
     std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>>& wipe_volumes,
         const std::vector<unsigned int>& curr_layer_extruders,
@@ -200,7 +319,6 @@ namespace Slic3r
         else
             return solve_extruder_order_with_greedy(wipe_volumes, curr_layer_extruders, start_extruder_id, cost);
     }
-
 
 
     int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>& filament_lists,
@@ -378,5 +496,4 @@ namespace Slic3r
 
         return cost;
     }
-
 }
