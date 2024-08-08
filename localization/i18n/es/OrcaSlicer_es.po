@@ -103,10 +103,10 @@ msgid "Support Generated"
 msgstr "Soportes Generados"
 
 msgid "Gizmo-Place on Face"
-msgstr "Situación-Gizmo enfrente"
+msgstr "Herramienta de selección de faceta como base"
 
 msgid "Lay on face"
-msgstr "Tumbar boca abajo"
+msgstr "Seleccionar faceta como base"
 
 #, boost-format
 msgid ""
@@ -118,10 +118,10 @@ msgstr ""
 "herramienta de pintura."
 
 msgid "Color Painting"
-msgstr "Pintura en Color"
+msgstr "Pintar colores"
 
 msgid "Pen shape"
-msgstr "Forma de lápiz"
+msgstr "Forma del pincel"
 
 msgid "Paint"
 msgstr "Pintar"
@@ -185,16 +185,16 @@ msgid "Move"
 msgstr "Mover"
 
 msgid "Gizmo-Move"
-msgstr "Movimiento-Gizmo"
+msgstr "Herramienta de traslación"
 
 msgid "Rotate"
 msgstr "Rotar"
 
 msgid "Gizmo-Rotate"
-msgstr "Rotación-Gizmo"
+msgstr "Herramienta de rotación"
 
 msgid "Optimize orientation"
-msgstr "Optimizar  orientación"
+msgstr "Optimizar orientación"
 
 msgid "Apply"
 msgstr "Aplicar"
@@ -203,7 +203,7 @@ msgid "Scale"
 msgstr "Escalar"
 
 msgid "Gizmo-Scale"
-msgstr "Reescalar-Gizmo"
+msgstr "Ejes de escalado"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr ""
@@ -225,7 +225,7 @@ msgid "Rotation"
 msgstr "Rotación"
 
 msgid "Scale ratios"
-msgstr "Ratios de escala"
+msgstr "Ratios de escalado"
 
 msgid "Object Operations"
 msgstr "Operaciones con objetos"
@@ -249,16 +249,20 @@ msgid "Set Scale"
 msgstr "Establecer Escala"
 
 msgid "Reset Position"
-msgstr "Posición de reinicio"
+msgstr "Reiniciar posición"
 
 msgid "Reset Rotation"
 msgstr "Reiniciar rotación"
 
 msgid "World coordinates"
-msgstr "Coordenadas cartesianas"
+msgstr "Coordenadas globales"
 
 msgid "Object coordinates"
-msgstr "Coordenadas del objeto"
+msgstr "Coordenadas de objeto"
+#. Check with softfever
+#. Coordenadas del objeto estaría mal. 
+#. Este mensaje informa de unas coordenadas en base de las coordenadas locales del objeto
+#. Coordenadas del objeto significaria las coordenadas del objeto en base a otros ejes de coordenadas
 
 msgid "°"
 msgstr "°"
@@ -277,7 +281,7 @@ msgid "Planar"
 msgstr "Plano"
 
 msgid "Dovetail"
-msgstr "Cola de milano"
+msgstr "Cola de milano o pato"
 
 msgid "Auto"
 msgstr "Automático"
@@ -299,6 +303,7 @@ msgstr "Prisma"
 
 msgid "Frustum"
 msgstr "Cono"
+#. ? check with softfever
 
 msgid "Square"
 msgstr "Cuadrado"
@@ -310,7 +315,7 @@ msgid "Keep orientation"
 msgstr "Mantener la orientación"
 
 msgid "Place on cut"
-msgstr "Colocar en la posición de corte"
+msgstr "Apoyar el plano de corte"
 
 msgid "Flip upside down"
 msgstr "Dar la vuelta"
@@ -377,10 +382,10 @@ msgid "Change cut mode"
 msgstr "Cambiar modo de corte"
 
 msgid "Tolerance"
-msgstr "Toleráncia"
+msgstr "Tolerancia"
 
 msgid "Drag"
-msgstr "Soltar"
+msgstr "Arrastrar"
 
 msgid "Draw cut line"
 msgstr "Dibujar línea de corte"
@@ -471,16 +476,16 @@ msgid "Reset cutting plane and remove connectors"
 msgstr "Reajustar el plano de corte y retirar los conectores"
 
 msgid "Upper part"
-msgstr "Parte alta"
+msgstr "Parte superior"
 
 msgid "Lower part"
-msgstr "Parte baja"
+msgstr "Parte inferior"
 
 msgid "Keep"
 msgstr "Mantener"
 
 msgid "Flip"
-msgstr "Girar"
+msgstr "Voltear"
 
 msgid "After cut"
 msgstr "Después del corte"
@@ -492,7 +497,7 @@ msgid "Perform cut"
 msgstr "Realizar corte"
 
 msgid "Warning"
-msgstr "Peligro"
+msgstr "Advertencia"
 
 msgid "Invalid connectors detected"
 msgstr "Conectores inválidos detectados"
@@ -513,7 +518,7 @@ msgid "Some connectors are overlapped"
 msgstr "Algunos conectores están solapados"
 
 msgid "Select at least one object to keep after cutting."
-msgstr "Selecciona al menos un objeto para conservarlo después de cortarlo."
+msgstr "Selecciona al menos un objeto que conservar después del corte."
 
 msgid "Cut plane is placed out of object"
 msgstr "El plano de corte se sitúa fuera del objeto"
@@ -525,18 +530,18 @@ msgid "Connector"
 msgstr "Conector"
 
 msgid "Cut by Plane"
-msgstr "Corte en Plano"
+msgstr "Corte por Plano"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
-"Los bordes no plegados son causados por la herramienta de corte, ¿quieres "
-"arreglarlo ahora?"
+"La operación de corte ha resultado en bordes no plegados, ¿Desea "
+"repararlos ahora?"
 
 msgid "Repairing model object"
-msgstr "Reparación de un objeto modelo"
+msgstr "Raparando modelo"
 
 msgid "Cut by line"
-msgstr "Corte en Línea"
+msgstr "Corte por Línea"
 
 msgid "Delete connector"
 msgstr "Borrar Conector"
@@ -599,7 +604,7 @@ msgid "%1%"
 msgstr "%1%"
 
 msgid "Can't apply when process preview."
-msgstr "No se puede aplicar cuando la vista previa del proceso."
+msgstr "No se puede aplicar en la vista previa del proceso."
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operación ya cancelada. Por favor, espere unos segundos."
@@ -659,7 +664,7 @@ msgstr ""
 "Integrada"
 
 msgid "Input text"
-msgstr "Texto de entrada"
+msgstr "Insertar texto"
 
 msgid "Surface"
 msgstr "Superficie"
@@ -668,7 +673,7 @@ msgid "Horizontal text"
 msgstr "Texto horizontal"
 
 msgid "Shift + Mouse move up or down"
-msgstr "Shift + Mover ratón arriba u abajo"
+msgstr "Shift + Mover ratón arriba o abajo"
 
 msgid "Rotate text"
 msgstr "Rotar texto"
@@ -678,23 +683,27 @@ msgstr "Forma de texto"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr "Rotar texto"
+msgstr "Texto rotado"
+#. Aqui, texto rotado está bien dicho porque se refiere a una operación ya ha realizada
+#. Alternativamente, Rotción de texto p.e.
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr "Mover texto"
+msgstr "Text desplzado"
+#. Leer arriba
 
 msgid "Set Mirror"
 msgstr "Configurar Espejo"
+#. ?
 
 msgid "Embossed text"
 msgstr "Texto en relieve"
 
 msgid "Enter emboss gizmo"
-msgstr "Entrar herramienta de relieve"
+msgstr "Abrir la herramienta de relieve"
 
 msgid "Leave emboss gizmo"
-msgstr "Abandonar herramienta de relieve"
+msgstr "Cerrar la herramienta de relieve"
 
 msgid "Embossing actions"
 msgstr "Acciones de relieve"
@@ -730,8 +739,8 @@ msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
 msgstr ""
-"El texto no puede escribirse con la fuente seleccionada. Por favor, intente "
-"elegir una fuente diferente."
+"El texto no puede escribirse con la fuente seleccionada. Por favor, intentelo "
+"de nuevo eligiendo una fuente diferente."
 
 msgid "Embossed text cannot contain only white spaces."
 msgstr "El texto en relieve no puede contener sólo espacios en blanco."
@@ -773,7 +782,7 @@ msgid "Operation"
 msgstr "Operación"
 
 msgid "Join"
-msgstr "Ingresar"
+msgstr "Juntar"
 
 msgid "Click to change text into object part."
 msgstr "Haga clic para cambiar el texto en la parte del objeto."
@@ -821,6 +830,7 @@ msgstr "No se puede renombrar el estilo temporal."
 
 msgid "First Add style to list."
 msgstr "Primero Añadir estilo a la lista."
+#. ?
 
 #, boost-format
 msgid "Save %1% style"
@@ -869,7 +879,7 @@ msgstr "No se puede eliminar el estilo temporal \"%1%\"."
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr "Estilo modificado \"%1%\""
+msgstr "Estilo \"%1%\" modificado"
 
 #, boost-format
 msgid "Current style is \"%1%\""
@@ -1082,7 +1092,7 @@ msgstr "Desde la superficie"
 #. TRN - Input label. Be short as possible
 #. Keep vector from bottom to top of text aligned with printer Y axis
 msgid "Keep up"
-msgstr "Mantener"
+msgstr "Mantener verticalidad"
 
 #. TRN - Input label. Be short as possible.
 #. Some Font file contain multiple fonts inside and
@@ -1099,10 +1109,10 @@ msgid "SVG move"
 msgstr "Mover SVG"
 
 msgid "Enter SVG gizmo"
-msgstr "Introducir el objeto SVG"
+msgstr "Abrir herramienta de SVG"
 
 msgid "Leave SVG gizmo"
-msgstr "Abandonar el objeto SVG"
+msgstr "Cerrar la herramienta SVG"
 
 msgid "SVG actions"
 msgstr "Acciones SVG"
@@ -1129,13 +1139,16 @@ msgstr "Gradiente radial"
 
 msgid "Open filled path"
 msgstr "Abrir camino de relleno"
+#. ?
 
 msgid "Undefined stroke type"
-msgstr "Tipo de golpe indefinido"
+msgstr "Tipo de pincelda indefinido"
+#. ?
 
 msgid "Path can't be healed from selfintersection and multiple points."
 msgstr ""
-"El camino no puede curarse de la auto-intersección y los puntos múltiples."
+"El trazo no puede ser reparado debido a auto-intersección y múltiples "
+"puntos."
 
 msgid ""
 "Final shape constains selfintersection or multiple points with same "
@@ -1163,7 +1176,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Trazo de forma (%1%) contiene no soportado: %2%."
 
 msgid "Face the camera"
-msgstr "De cara a la cámara"
+msgstr "Alinear con la cámara"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1174,7 +1187,7 @@ msgid "SVG file path is \"%1%\""
 msgstr "La ruta del archivo SVG es \"%1%\"."
 
 msgid "Reload SVG file from disk."
-msgstr "Vuelva a cargar el archivo SVG desde el disco."
+msgstr "Recargar el archivo SVG desde el disco."
 
 msgid "Change file"
 msgstr "Cambiar archivo"
@@ -1189,7 +1202,7 @@ msgid ""
 "Do NOT save local path to 3MF file.\n"
 "Also disables 'reload from disk' option."
 msgstr ""
-"NO guarda la ruta local al archivo 3MF. \n"
+"NO guarda la ruta local al archivo en el archivo 3MF. \n"
 "También desactiva la opción 'recargar desde disco'."
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
@@ -1198,7 +1211,7 @@ msgstr "Hornear"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr "Horneado en el modelo como parte no editable"
+msgstr "Hornear en el modelo como parte no editable"
 
 msgid "Save as"
 msgstr "Guardar como"
@@ -1245,10 +1258,10 @@ msgstr ""
 "encima de la superficie."
 
 msgid "Mirror vertically"
-msgstr "Espejo vertical"
+msgstr "Simetria vertical"
 
 msgid "Mirror horizontally"
-msgstr "Espejo horizontal"
+msgstr "Simetria horizontal"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -1276,7 +1289,7 @@ msgstr "El analizador Nano SVG no puede cargar desde el archivo (%1%)."
 
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "El archivo SVG NO contiene una ruta única para el relieve (%1%)."
+msgstr "El archivo SVG NO contiene ninguna ruta para el relieve (%1%)."
 
 msgid "Vertex"
 msgstr "Vértice"
@@ -1324,7 +1337,8 @@ msgid "Unselect"
 msgstr "Deseleccionar"
 
 msgid "Measure"
-msgstr "Medida"
+msgstr "Medir"
+#. ?
 
 msgid "Edit to scale"
 msgstr "Editar a escala"
@@ -1340,7 +1354,7 @@ msgid "Diameter"
 msgstr "Diámetro"
 
 msgid "Length"
-msgstr "Largo"
+msgstr "Longitud"
 
 msgid "Selection"
 msgstr "Selección"
@@ -1375,7 +1389,7 @@ msgstr "%1% fue reemplazado por %2%"
 
 msgid "The configuration may be generated by a newer version of OrcaSlicer."
 msgstr ""
-"La configuración puede ser generada por una versión más reciente de "
+"La configuración podría haber sido generada por una versión más reciente de "
 "OrcaSlicer."
 
 msgid "Some values have been replaced. Please check them:"
@@ -1406,8 +1420,8 @@ msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"OrcaSlicer terminará porque se está quedando sin memoria. Le agradeceremos "
-"que comunique el problema a nuestro equipo."
+"OrcaSlicer se cerrará por falta de memoria. Le agradeceremos que comunique "
+"el suceso a nuestro equipo."
 
 # msgid "OrcaSlicer will terminate because of running out of memory.It may be
 # a bug. It will be appreciated if you report the issue to our team."
@@ -1420,7 +1434,7 @@ msgid ""
 "OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"OrcaSlicer se cerrará debido a un error de posición. Le agradeceremos que "
+"OrcaSlicer se cerrará debido a un error de traducción. Le agradeceremos que "
 "nos informe del escenario específico en el que se ha producido este problema."
 
 # msgid "OrcaSlicer will terminate because of a localization error. It will be
@@ -1441,10 +1455,10 @@ msgstr "Sin título"
 # msgid "OrcaSlicer got an unhandled exception: %1%"
 # msgstr "OrcaSlicer obtuvo una excepción no manejada: %1%"
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Descargando el complemento de Red Bambú"
+msgstr "Descargando el plug-in de Red de Bambu Lab"
 
 msgid "Login information expired. Please login again."
-msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
+msgstr "La sesión ha caducado. Por favor, inicie sesión de nuevo."
 
 msgid "Incorrect password"
 msgstr "Contraseña incorrecta"
@@ -1458,12 +1472,12 @@ msgid ""
 "features.\n"
 "Click Yes to install it now."
 msgstr ""
-"Orca Slicer requiere el tiempo de ejecución de Microsoft WebView2 para "
-"operar ciertas características.\n"
+"Orca Slicer requiere de la librería Microsoft WebView2 Runtime para la "
+"funcianolidad de ciertas características.\n"
 "Haga clic en Sí para instalarlo ahora."
 
 msgid "WebView2 Runtime"
-msgstr "Tiempo de ejecución de WebView2"
+msgstr "WebView2 Runtime"
 
 #, c-format, boost-format
 msgid ""
@@ -1471,7 +1485,7 @@ msgid ""
 "Do you want to continue?"
 msgstr ""
 "%s\n"
-"¿Quieres continuar?"
+"¿Desea continuar?"
 
 msgid "Remember my choice"
 msgstr "Recordar mi selección"
@@ -1509,28 +1523,28 @@ msgid "Rebuild"
 msgstr "Reconstruir"
 
 msgid "Loading current presets"
-msgstr "Carga de los perfiles actuales"
+msgstr "Cargando los perfiles actuales"
 
 msgid "Loading a mode view"
 msgstr "Cargar un modo de vista"
 
 msgid "Choose one file (3mf):"
-msgstr "Elija un archivo (3mf):"
+msgstr "Escoja un archivo (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 msgstr "Escoja uno o más archivos (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "Elige uno o más archivos (3mf/step/stl/svg/obj/amf):"
+msgstr "Escoja uno o más archivos (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr "Escoger archivo ZIP"
+msgstr "Escoja archivo ZIP"
 
 msgid "Choose one file (gcode/3mf):"
-msgstr "Elegir un archivo (gcode/3mf):"
+msgstr "Escoja un archivo (gcode/3mf):"
 
 msgid "Some presets are modified."
-msgstr "Algunos perfiles se modificaron."
+msgstr "Algunos perfiles fueron modificados."
 
 msgid ""
 "You can keep the modifield presets to the new project, discard or save "
@@ -1564,18 +1578,18 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
-"El número de perfiles de usuario almacenados en caché en la nube ha superado "
-"el límite superior, los perfiles de usuario recién creados sólo pueden "
-"utilizarse localmente."
+"El número de perfiles de usuario almacenados en la nube ha superado el número "
+"permitido, los perfiles de usuario adicionales sólo podrán utilizarse "
+"localmente."
 
 msgid "Sync user presets"
 msgstr "Sincronizar perfiles de usuario"
 
 msgid "Loading user preset"
-msgstr "Cargando la preselección del usuario"
+msgstr "Cargando perfil de usuario"
 
 msgid "Switching application language"
-msgstr "Cambio de idioma de la aplicación"
+msgstr "Cambiando el idioma de la aplicación"
 
 msgid "Select the language"
 msgstr "Seleccionar el idioma"
@@ -1590,7 +1604,7 @@ msgid "The uploads are still ongoing"
 msgstr "Las subidas aún están en curso"
 
 msgid "Stop them and continue anyway?"
-msgstr "¿Pararlos y continuar de todas maneras?"
+msgstr "¿Detenerlas y continuar de todos modos?"
 
 msgid "Ongoing uploads"
 msgstr "Cargas en curso"
@@ -1641,7 +1655,7 @@ msgid "Support"
 msgstr "Soportes"
 
 msgid "Flush options"
-msgstr "Opciones de flujo"
+msgstr "Opciones de purgado de filamento"
 
 msgid "Speed"
 msgstr "Velocidad"
@@ -1692,7 +1706,7 @@ msgid "Add support blocker"
 msgstr "Añadir bloqueo de soportes"
 
 msgid "Add support enforcer"
-msgstr "Añadir refuerzo de soportes"
+msgstr "Añadir forzado de soportes"
 
 msgid "Add text"
 msgstr "Añadir texto"
@@ -1714,6 +1728,8 @@ msgstr "Añadir modificador SVG"
 
 msgid "Select settings"
 msgstr "Seleccionar los ajustes"
+#. ? Ajustes de selección?
+
 
 msgid "Hide"
 msgstr "Ocultar"
@@ -1743,7 +1759,7 @@ msgid "Disc"
 msgstr "Disco"
 
 msgid "Torus"
-msgstr "Torus"
+msgstr "Toroide"
 
 msgid "Orca Cube"
 msgstr "Cubo Orca"
@@ -1752,16 +1768,16 @@ msgid "3DBenchy"
 msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
-msgstr "Prueba Autodesk FDM"
+msgstr "Prueba FDM de Autodesk"
 
 msgid "Voron Cube"
-msgstr "Cubo de Vorón"
+msgstr "Cubo Voron"
 
 msgid "Stanford Bunny"
 msgstr "Conejito Stanford"
 
 msgid "Orca String Hell"
-msgstr "Infierno de cadena Orca"
+msgstr "Test de hilos de Orca \" String Hell\""
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
@@ -1770,12 +1786,12 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
-"Este modelo presenta texto en relieve en la superficie superior. Para "
+"Este modelo contiene texto en relieve en la superficie superior. Para "
 "obtener resultados óptimos, es aconsejable establecer el \"Umbral de "
 "perímetro (min_width_top_surface)\" a 0 para que \"Sólo un perímetro en las "
 "superficies superiores\" funcione mejor. \n"
 "Sí - Cambiar estos ajustes automáticamente \n"
-"No - No cambiar estos ajustes para mí"
+"No - No cambiar estos ajustes"
 
 msgid "Text"
 msgstr "Texto"
@@ -1785,15 +1801,16 @@ msgstr "Modificador de rango de Altura"
 
 msgid "Add settings"
 msgstr "Añadir ajustes"
+#. ? Ajustes de añadido?
 
 msgid "Change type"
 msgstr "Cambiar tipo"
 
 msgid "Set as an individual object"
-msgstr "Ajustar como objeto individual"
+msgstr "Cambiar a objeto individual"
 
 msgid "Set as individual objects"
-msgstr "Ajustar como objetos individuales"
+msgstr "Cambiar a objetos individuales"
 
 msgid "Fill bed with copies"
 msgstr "Llenar la cama de copias"
@@ -1829,7 +1846,7 @@ msgid "Change filament"
 msgstr "Cambiar el filamento"
 
 msgid "Set filament for selected items"
-msgstr "Ajustar el filamento para los elementos seleccionados"
+msgstr "Cambiar el filamento para los elementos seleccionados"
 
 msgid "Default"
 msgstr "Por defecto"
@@ -1842,13 +1859,13 @@ msgid "current"
 msgstr "actual"
 
 msgid "Scale to build volume"
-msgstr "Escala para la impresión del volumen"
+msgstr "Escalar al volumen de impresión"
 
 msgid "Scale an object to fit the build volume"
 msgstr "Escalar un objeto para que se ajuste al volumen de impresión"
 
 msgid "Flush Options"
-msgstr "Opciones de Flujo"
+msgstr "Opciones de purgado"
 
 msgid "Flush into objects' infill"
 msgstr "Purgar en el relleno de objetos"
@@ -1863,13 +1880,13 @@ msgid "Edit in Parameter Table"
 msgstr "Editar en la Tabla de Parámetros"
 
 msgid "Convert from inch"
-msgstr "Convertir desde pulgadas"
+msgstr "Convertir de pulgadas"
 
 msgid "Restore to inch"
 msgstr "Restaurar a pulgadas"
 
 msgid "Convert from meter"
-msgstr "Convertir desde metros"
+msgstr "Convertir de metros"
 
 msgid "Restore to meter"
 msgstr "Restaurar a metros"
@@ -1881,34 +1898,37 @@ msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Ensamblar los objetos seleccionados en un objeto con múltiples piezas"
 
 msgid "Assemble the selected objects to an object with single part"
-msgstr "Ensamblar los objetos seleccionados en un objeto con una sola pieza"
+msgstr "Ensamblar los objetos seleccionados en un objeto de una sola pieza"
 
 msgid "Mesh boolean"
-msgstr "Malla booleana"
+msgstr "Operaciones booleanas de malla"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr "Las operaciones de malla booleana incluidas en la unión y resta"
+msgstr "Operaciones booleanas de malla incluyendo la unión y substracción"
 
 msgid "Along X axis"
 msgstr "A lo largo del eje X"
 
 msgid "Mirror along the X axis"
-msgstr "Espejo a lo largo del eje X"
+msgstr "Reflejar a lo largo del eje X"
+#. Alternativamente, Simetria a lo largo del eje X
 
 msgid "Along Y axis"
 msgstr "A lo largo del eje Y"
 
 msgid "Mirror along the Y axis"
-msgstr "Espejo a lo largo del eje Y"
+msgstr "Reflejar a lo largo del eje Y"
+#. Alternativamente, Simetria a lo largo del eje Y
 
 msgid "Along Z axis"
 msgstr "A lo largo del eje Z"
 
 msgid "Mirror along the Z axis"
-msgstr "Espejo a lo largo del eje Z"
+msgstr "Reflejar a lo largo del eje Z"
+#. Alternativamente, Simetria a lo largo del eje Z
 
 msgid "Mirror object"
-msgstr "Objeto reflejado"
+msgstr "Reflejar objeto"
 
 msgid "Edit text"
 msgstr "Editar texto"
@@ -1978,7 +1998,7 @@ msgid "Arrange"
 msgstr "Organizar"
 
 msgid "arrange current plate"
-msgstr "Ordenar la bandeja actual"
+msgstr "Organizar la bandeja actual"
 
 msgid "Reload All"
 msgstr "Recargar todo"
@@ -1996,7 +2016,7 @@ msgid "Delete Plate"
 msgstr "Borrar Bandeja"
 
 msgid "Remove the selected plate"
-msgstr "Retirar la bandeja seleccionada"
+msgstr "Eliminar la bandeja seleccionada"
 
 msgid "Clone"
 msgstr "Clonar"
@@ -2008,7 +2028,7 @@ msgid "Center"
 msgstr "Centrar"
 
 msgid "Edit Process Settings"
-msgstr "Editar Ajustes de Procesado"
+msgstr "Editar Ajustes de Proceso"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -2017,7 +2037,7 @@ msgid "Change Filament"
 msgstr "Cambiar el Filamento"
 
 msgid "Set Filament for selected items"
-msgstr "Ajustar el filamento para los elementos seleccionados"
+msgstr "Cambiar el filamento para los elementos seleccionados"
 
 msgid "Unlock"
 msgstr "Desbloquear"
@@ -2043,8 +2063,8 @@ msgstr[1] "%1$d errores reparados"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "Error: %1$d contorno no moldeado."
-msgstr[1] "Error: %1$d contornos no moldeados."
+msgstr[0] "Error: %1$d contorno con geometría incorrecta."
+msgstr[1] "Error: %1$d contornos con geometría incorrecta."
 
 msgid "Remaining errors"
 msgstr "Errores restantes"
@@ -2052,13 +2072,12 @@ msgstr "Errores restantes"
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d contorno no moldeado"
-msgstr[1] "%1$d contornos no moldeados"
+msgstr[0] "%1$d contorno con geometría incorrecta"
+msgstr[1] "%1$d contornos con geometría incorrecta"
 
 msgid "Right click the icon to fix model object"
 msgstr ""
-"Haga clic con el botón derecho del ratón en el icono para reparar el objeto "
-"del modelo"
+"Haga clic con el botón derecho del ratón en el icono para reparar el objeto"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
@@ -2070,18 +2089,18 @@ msgstr "Haga clic en el icono para restablecer todos los ajustes del objeto"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr ""
-"Haga clic con el botón derecho en el icono para descartar la característica "
-"imprimible del objeto"
+"Haga clic con el botón derecho en el icono para descartar la propiedad "
+"de imprimible del objeto"
 
 msgid "Click the icon to toggle printable property of the object"
 msgstr ""
-"Haga clic en el icono para alternar la característica imprimible del objeto"
+"Haga clic en el icono para alternar la propiedad de imprimible del objeto"
 
 msgid "Click the icon to edit support painting of the object"
-msgstr "Haga clic en el icono para editar la pintura de apoyo del objeto"
+msgstr "Haga clic en el icono para editar el pintado de apoyos del objeto"
 
 msgid "Click the icon to edit color painting of the object"
-msgstr "Haga clic en el icono para editar la pintura de color del objeto"
+msgstr "Haga clic en el icono para editar el pintado de colores del objeto"
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Presionar el icono para desplazar este objeto a la cama"
@@ -2103,18 +2122,19 @@ msgstr "Añadir modificador"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
-"Cambia al modo de ajuste por objeto para editar los ajustes de los "
-"modificadores."
+"Cambia al modo de ajuste a modo por objeto para editar los ajustes de "
+"los modificadores."
 
 msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
 "objects."
 msgstr ""
-"Cambiar al modo de ajuste por objeto para editar los ajustes de proceso de "
-"los objetos."
+"Cambiar al modo de ajuste a modo por objeto para editar los ajustes de "
+"proceso de los objetos."
 
 msgid "Delete connector from object which is a part of cut"
 msgstr "Borrar conector del objeto el cual es parte del corte"
+#. ? de un corte generico o del corte espcifico?
 
 msgid "Delete solid part from object which is a part of cut"
 msgstr "Borrar la parte sólida del objeto la cual es parte del corte"
@@ -2136,7 +2156,7 @@ msgid ""
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut infornation first."
 msgstr ""
-"La acción interrumpirá la correspondencia de corte.\n"
+"La acción interrumpirá la correspondencia de un corte.\n"
 "Después de esto la consistencia no podrá ser garantizada.\n"
 "\n"
 "Para manipular partes sólidas o volúmenes negativos tienes que invalidar la "
@@ -2152,7 +2172,7 @@ msgid "The target object contains only one part and can not be splited."
 msgstr "El objeto de destino sólo contiene una pieza y no se puede dividir."
 
 msgid "Assembly"
-msgstr "Montaje"
+msgstr "Ensamblaje"
 
 msgid "Cut Connectors information"
 msgstr "Información de Conectores de Corte"
@@ -2164,13 +2184,13 @@ msgid "Group manipulation"
 msgstr "Manipulación de grupo"
 
 msgid "Object Settings to modify"
-msgstr "Ajustes de objeto modificables"
+msgstr "Ajustes de objeto a modificar"
 
 msgid "Part Settings to modify"
-msgstr "Ajustes de pieza modificables"
+msgstr "Ajustes de pieza a modificar"
 
 msgid "Layer range Settings to modify"
-msgstr "Ajustes de capa modificables"
+msgstr "Ajustes de capa a modificar"
 
 msgid "Part manipulation"
 msgstr "Manipulación de piezas"
@@ -2213,7 +2233,7 @@ msgid "Support Blocker"
 msgstr "Bloqueador de soporte"
 
 msgid "Support Enforcer"
-msgstr "Refuerzo de Soportes"
+msgstr "Forzado de Soportes"
 
 msgid "Type:"
 msgstr "Tipo:"
@@ -2401,7 +2421,7 @@ msgid "Delete Filament Change"
 msgstr "Borrar Cambio de Filamento"
 
 msgid "No printer"
-msgstr "Sin impresión"
+msgstr "Sin impresora"
 
 msgid "..."
 msgstr "..."
@@ -2420,20 +2440,20 @@ msgstr "Error al conectar con el servicio en la nube"
 
 msgid "Please click on the hyperlink above to view the cloud service status"
 msgstr ""
-"Haga clic en el hipervínculo anterior para ver el estado del servicio en la "
+"Haga clic en el hipervínculo anterior para ver el estado del servicio de la "
 "nube"
 
 msgid "Failed to connect to the printer"
 msgstr "No se ha podido conectar a la impresora"
 
 msgid "Connection to printer failed"
-msgstr "Connection to printer failed"
+msgstr "Conexión fallida con la impresora"
 
 msgid "Please check the network connection of the printer and Orca."
 msgstr "Compruebe la conexión de red de la impresora y Orca."
 
 msgid "Connecting..."
-msgstr "Conectando…"
+msgstr "Conectando..."
 
 msgid "?"
 msgstr "?"
@@ -2555,7 +2575,7 @@ msgid ""
 "Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr ""
 "El posicionamiento está hecho, pero hay artículos sin empaquetar. Reduzca el "
-"espacio y vuelva a intentarlo."
+"espaciado y vuelva a intentarlo."
 
 msgid "Arranging done."
 msgstr "Organización terminada."
@@ -2624,7 +2644,7 @@ msgid "Login failed"
 msgstr "Fallo en el inicio de sesión"
 
 msgid "Please check the printer network connection."
-msgstr "Por favor, compruebe la conexión de área local."
+msgstr "Por favor, compruebe la conexión de red de la impresora."
 
 msgid "Abnormal print file data. Please slice again."
 msgstr "Datos de archivo de impresión anormales. Vuelva a laminar."
@@ -2663,7 +2683,7 @@ msgstr ""
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
 msgstr ""
-"Compruebe el estado actual del servidor Bambú haciendo clic en el enlace "
+"Compruebe el estado actual del servidor Bambu haciendo clic en el enlace "
 "anterior."
 
 msgid ""
@@ -2724,7 +2744,7 @@ msgstr "Enviando el archivo de G-Code a la tarjeta SD"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
-msgstr "Envío exitoso. Cierre la página actual en %s s"
+msgstr "Envío exitoso. Cerrando la página actual en %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Se necesita insertar una tarjeta SD antes de enviar a la impresora."
@@ -2737,7 +2757,7 @@ msgid ""
 "printer preset first before importing that SLA archive."
 msgstr ""
 "El SLA importado no contiene ningún perfil. Por favor active algunos "
-"perfiles de la impresora primero antes de importar ese archivo SLA."
+"perfiles de impresora SLA antes de importar ese archivo SLA."
 
 msgid "Importing canceled."
 msgstr "Importación cancelada."
@@ -2781,6 +2801,8 @@ msgstr "Instalación fallida"
 
 msgid "Portions copyright"
 msgstr "Porciones del copyright"
+#. ?
+
 
 msgid "Copyright"
 msgstr "Copyright"
@@ -2922,7 +2944,7 @@ msgstr ""
 "filamento."
 
 msgid "Nozzle Diameter"
-msgstr "Diámetro"
+msgstr "Diámetro de boquilla"
 
 msgid "Bed Type"
 msgstr "Tipo de Cama"
@@ -3017,9 +3039,9 @@ msgid ""
 "temperatures also slow down the process."
 msgstr ""
 "Cambie el desecante cuando esté demasiado húmedo. El indicador puede no ser "
-"preciso en los siguientes casos: cuando la tapa está abierta o al paquete de "
-"desecante. Este tarda horas en absorber la humedad, y las bajas temperaturas "
-"también ralentizan el proceso."
+"preciso en los siguientes casos: cuando la tapa está abierta o se cambia el "
+"paquete de desecante. Este tarda horas en absorber la humedad, y las bajas "
+"temperaturas también ralentizan el proceso."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3065,8 +3087,8 @@ msgstr "La impresora no soporta auto recarga actualmente."
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
-"La copia de seguridad de filamento AMS no está activada, por favor actívela "
-"en la configuración AMS."
+"La auto-reemplazo de filamento de AMS no está activada, por favor actívela "
+"en la configuración de AMS."
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
@@ -3074,7 +3096,7 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"Si hay dos filamentos idénticos en AMS, se habilitará la copia de seguridad "
+"Si hay dos filamentos idénticos en AMS, se habilitará el auto-reemplazo "
 "de filamentos AMS. \n"
 "(Actualmente admite el suministro automático de consumibles con la misma "
 "marca, tipo de material y color)."
