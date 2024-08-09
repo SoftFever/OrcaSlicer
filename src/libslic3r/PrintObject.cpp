@@ -1065,6 +1065,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
+            || opt_key == "infill_combination_max_layer_height"
             || opt_key == "bottom_shell_thickness"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
@@ -3414,6 +3415,11 @@ void PrintObject::combine_infill()
         double nozzle_diameter = std::min(
             this->print()->config().nozzle_diameter.get_at(region.config().sparse_infill_filament.value - 1),
             this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_filament.value - 1));
+        
+        //Orca: Limit combination of infill to up to infill_combination_max_layer_height
+        const double infill_combination_max_layer_height = region.config().infill_combination_max_layer_height.value;
+        nozzle_diameter = infill_combination_max_layer_height > 0 ? std::min(infill_combination_max_layer_height, nozzle_diameter) : nozzle_diameter;
+        
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {

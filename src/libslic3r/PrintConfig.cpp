@@ -2781,7 +2781,18 @@ void PrintConfigDef::init_fff_params()
                      "with original layer height.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-
+    
+    // Orca: max layer height for combined infill
+    def = this->add("infill_combination_max_layer_height", coFloat);
+    def->label = L("Infill combination - Max layer height");
+    def->category = L("Strength");
+    def->tooltip = L("Maximum layer height for the combined sparse infill. \n\nSet it to 0 to use the nozzle diameter (for maximum reduction in print time) or a value of ~80% of the nozzle diameter to maximize sparse infill strength.\n\n"
+                     "The number of layers over which infill is combined is derived by dividing this value with the layer height and rounded down to the nearest decimal.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    
     def = this->add("sparse_infill_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Infill");

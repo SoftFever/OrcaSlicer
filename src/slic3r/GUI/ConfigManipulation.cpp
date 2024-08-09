@@ -528,6 +528,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "minimum_sparse_infill_area", "sparse_infill_filament", "infill_anchor_max"})
         toggle_line(el, have_infill);
     
+    bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
+    toggle_line("infill_combination_max_layer_height", have_combined_infill);
+    
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
     toggle_field("infill_anchor", has_infill_anchors);
