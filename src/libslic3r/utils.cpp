@@ -54,6 +54,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 // We are using quite an old TBB 2017 U7, which does not support global control API officially.
 // Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
