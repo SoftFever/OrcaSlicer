@@ -3417,7 +3417,7 @@ void PrintObject::combine_infill()
             this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_filament.value - 1));
         
         //Orca: Limit combination of infill to up to infill_combination_max_layer_height
-        const double infill_combination_max_layer_height = region.config().infill_combination_max_layer_height.value;
+        const double infill_combination_max_layer_height = region.config().infill_combination_max_layer_height.get_abs_value(nozzle_diameter);
         nozzle_diameter = infill_combination_max_layer_height > 0 ? std::min(infill_combination_max_layer_height, nozzle_diameter) : nozzle_diameter;
         
         // define the combinations
