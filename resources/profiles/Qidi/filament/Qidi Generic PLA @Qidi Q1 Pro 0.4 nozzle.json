@@ -10,7 +10,7 @@
     ],
     "from": "system",
     "full_fan_speed_layer": [
-        "0"
+        "3"
     ],
     "hot_plate_temp": [
         "60"
