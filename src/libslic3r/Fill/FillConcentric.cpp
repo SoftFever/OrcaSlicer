@@ -9,6 +9,20 @@
 
 namespace Slic3r {
 
+template<typename LINE_T>
+int stagger_seam_index(int ind, LINE_T line)
+{
+    Point const *point = &line.points[ind];
+    double dist = 0;
+    while (dist < 0.5 / SCALING_FACTOR) {
+        ind = (ind + 1) % line.points.size();
+        Point const &next = line.points[ind];
+        dist += point->distance_to(next);
+        point = &next;
+    };
+    return ind;
+}
+
 void FillConcentric::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
@@ -42,7 +56,7 @@ void FillConcentric::_fill_surface_single(
     size_t iPathFirst = polylines_out.size();
     Point last_pos(0, 0);
     for (const Polygon &loop : loops) {
-        polylines_out.emplace_back(loop.split_at_index(last_pos.nearest_point_index(loop.points)));
+        polylines_out.emplace_back(loop.split_at_index(stagger_seam_index(last_pos.nearest_point_index(loop.points), loop)));
         last_pos = polylines_out.back().last_point();
     }
 
@@ -110,7 +124,7 @@ void FillConcentric::_fill_surface_single(const FillParams& params,
 
             ThickPolyline thick_polyline = Arachne::to_thick_polyline(*extrusion);
             if (extrusion->is_closed)
-                thick_polyline.start_at_index(last_pos.nearest_point_index(thick_polyline.points));
+                thick_polyline.start_at_index(stagger_seam_index(last_pos.nearest_point_index(thick_polyline.points), thick_polyline));
             thick_polylines_out.emplace_back(std::move(thick_polyline));
             last_pos = thick_polylines_out.back().last_point();
         }
