@@ -794,7 +794,7 @@ static std::vector<std::string> s_Preset_print_options {
      "tree_support_branch_angle", "tree_support_angle_slow", "tree_support_wall_count", "tree_support_top_rate", "tree_support_branch_distance", "tree_support_tip_diameter",
      "tree_support_branch_diameter", "tree_support_branch_diameter_angle", "tree_support_branch_diameter_double_wall",
      "detect_narrow_internal_solid_infill",
-     "gcode_add_line_number", "enable_arc_fitting", "precise_z_height", "infill_combination", /*"adaptive_layer_height",*/
+     "gcode_add_line_number", "enable_arc_fitting", "precise_z_height", "infill_combination","infill_combination_max_layer_height", /*"adaptive_layer_height",*/
      "support_bottom_interface_spacing", "enable_overhang_speed", "slowdown_for_curled_perimeters", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "only_one_wall_top", 
      "timelapse_type",
