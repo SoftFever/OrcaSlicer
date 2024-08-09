@@ -2440,31 +2440,6 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
 // Inner Outer Inner wall ordering mode perimeter order optimisation functions
 
 /**
- * @brief Converts the junctions of an ExtrusionLine to a vector of Points.
- *
- * @param line The input ExtrusionLine containing junctions to be converted.
- * @return std::vector<Point> A vector containing points extracted from the junctions of the input ExtrusionLine.
- */
-std::vector<Point> extrusionLineToPointsIOI(const Arachne::ExtrusionLine& line) {
-    std::vector<Point> points;
-    for (const auto& junction : line.junctions) {
-        points.push_back(junction.p);
-    }
-    return points;
-}
-
-/**
- * @brief Calculates the squared distance between two points.
- *
- * @param a The first point.
- * @param b The second point.
- * @return double The squared distance between the two points.
- */
-double squaredDistance(const Point& a, const Point& b) {
-    return (a.x() - b.x()) * (a.x() - b.x()) + (a.y() - b.y()) * (a.y() - b.y());
-}
-
-/**
  * @brief Calculates the squared distance between a point and a line segment.
  *
  * @param p The point.
@@ -2473,11 +2448,16 @@ double squaredDistance(const Point& a, const Point& b) {
  * @return double The squared distance between the point and the line segment.
  */
 double squaredDistanceToSegment(const Point& p, const Point& v, const Point& w) {
-    double l2 = squaredDistance(v, w);
-    if (l2 == 0.0) return squaredDistance(p, v);
-    double t = std::max(0.0, std::min(1.0, ((p.x() - v.x()) * (w.x() - v.x()) + (p.y() - v.y()) * (w.y() - v.y())) / l2));
+    // Calculate the squared length of the line segment
+    double l2 = (v - w).squaredNorm();
+    // If the segment is a single point, return the squared distance to that point
+    if (l2 == 0.0) return (p - v).squaredNorm();
+    // Project point p onto the line defined by v and w, and clamp the projection to the segment
+    double t = std::max(0.0, std::min(1.0, ((p - v).dot(w - v)) / l2));
+    // Compute the projection point
     Point projection{v.x() + t * (w.x() - v.x()), v.y() + t * (w.y() - v.y())};
-    return squaredDistance(p, projection);
+    // Return the squared distance between the point and the projection
+    return (p - projection).squaredNorm();
 }
 
 /**
@@ -2525,7 +2505,7 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
 
     for (const int refIdx : referenceIndices) {
         const auto& referenceEntity = entities[refIdx];
-        std::vector<Point> referencePoints = extrusionLineToPointsIOI(*referenceEntity.extrusion);
+        Points referencePoints = Arachne::to_points(*referenceEntity.extrusion);
         for (size_t i = 0; i < entities.size(); ++i) {
             // Skip already considered references and the reference entity
             if (referenceIndices.count(i) > 0) continue;
@@ -2537,7 +2517,7 @@ std::vector<int> findAllTouchingPerimetersIOI(const std::vector<PerimeterGenerat
                 continue; // skip if they dont match
             }
             
-            std::vector<Point> points = extrusionLineToPointsIOI(*entity.extrusion);
+            Points points = Arachne::to_points(*entity.extrusion);
             double distance = minimumDistanceIOI(referencePoints, points);
             // Add to touchingIndices if within threshold distance
             size_t threshold=0;
