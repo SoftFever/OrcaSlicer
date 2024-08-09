@@ -20,13 +20,6 @@ class LayerTools;
 namespace CustomGCode { struct Item; }
 class PrintRegion;
 
-
-int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int>& filament_lists,
-    const std::vector<int>& filament_maps,
-    const std::vector<std::vector<unsigned int>>& layer_filaments,
-    const std::vector<FlushMatrix>& flush_matrix,
-    std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq,
-    std::vector<std::vector<unsigned int>>* filament_sequences);
 // Object of this class holds information about whether an extrusion is printed immediately
 // after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
 // of several copies - this has to be taken into account.
