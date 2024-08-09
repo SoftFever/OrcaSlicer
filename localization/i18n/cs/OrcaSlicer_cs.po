@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -78,9 +78,6 @@ msgstr "Úhel chytrého vybarvení"
 msgid "On overhangs only"
 msgstr "Pouze na převisech"
 
-msgid "Auto support threshold angle: "
-msgstr "Auto podpěry hraniční úhlel: "
-
 msgid "Circle"
 msgstr "Kruh"
 
@@ -99,6 +96,9 @@ msgstr "Umožňuje malovat pouze na fasety vybrané pomocí: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Zvýrazněte plochy podle úhlu převisů."
+
+msgid "Auto support threshold angle: "
+msgstr "Auto podpěry hraniční úhlel: "
 
 msgid "No auto support"
 msgstr "Žádné automatické podpěry"
@@ -600,7 +600,7 @@ msgstr "Zobrazit drátěný model"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Nelze použít při náhledu procesu."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -669,7 +669,7 @@ msgstr "Povrch"
 msgid "Horizontal text"
 msgstr "Vodorovný text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + pohyb myši nahoru nebo dolů"
 
 msgid "Rotate text"
@@ -1008,7 +1008,7 @@ msgstr "Orientovat text směrem ke kameře."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Nelze načíst přesně stejné písmo(\"%1%\"). Aplikace vybrala podobné "
@@ -1641,7 +1641,7 @@ msgstr "Šířka Extruze"
 msgid "Wipe options"
 msgstr "Možnosti čištění"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Přilnavost k Podložce"
 
 msgid "Add part"
@@ -1920,12 +1920,6 @@ msgstr "Automatická orientace"
 msgid "Auto orient the object to improve print quality."
 msgstr "Automaticky orientovat objekt pro zlepšení kvality tisku."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Rozdělit vybraný objekt na více objektů"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Rozdělit vybraný objekt na více částí"
-
 msgid "Select All"
 msgstr "Vybrat vše"
 
@@ -2192,8 +2186,8 @@ msgstr[0] "Následující objekt modelu byl opraven"
 msgstr[1] "Následující objekty modelu byly opraveny"
 msgstr[2] "Následující objekty modelu byly opraveny"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "Nepodařilo se opravit následující objekt modelu"
 msgstr[1] "Nepodařilo se opravit následující objekty modelu"
 msgstr[2] "Nepodařilo se opravit následující objekty modelu"
@@ -2644,7 +2638,7 @@ msgstr ""
 msgid "Service Unavailable"
 msgstr "Služba není k dispozici"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Neznámá chyba."
 
 msgid "Sending print configuration"
@@ -3613,7 +3607,7 @@ msgstr ""
 "Hodnota bude resetována na 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -4091,15 +4085,6 @@ msgstr "Celkový čas"
 msgid "Total cost"
 msgstr "Celková cena"
 
-msgid "up to"
-msgstr "až do"
-
-msgid "above"
-msgstr "nad"
-
-msgid "from"
-msgstr "z"
-
 msgid "Color Scheme"
 msgstr "Barevné schéma"
 
@@ -4163,11 +4148,11 @@ msgstr "Doby výměny Filamentu"
 msgid "Cost"
 msgstr "Náklady"
 
-msgid "Color change"
-msgstr "Změna barvy"
-
 msgid "Print"
 msgstr "Tisk"
+
+msgid "Color change"
+msgstr "Změna barvy"
 
 msgid "Printer"
 msgstr "Tiskárna"
@@ -5766,6 +5751,9 @@ msgstr "Porovnání přednastavení"
 msgid "View all object's settings"
 msgstr "Zobrazit všechna nastavení objektu"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr "Odebrat aktuální podložku (pokud není poslední)"
 
@@ -5840,6 +5828,9 @@ msgid "Set filaments to use"
 msgstr "Nastavit filamenty k použití"
 
 msgid "Search plate, object and part."
+msgstr ""
+
+msgid "Pellets"
 msgstr ""
 
 msgid ""
@@ -6049,14 +6040,19 @@ msgid "The file does not contain any geometry data."
 msgstr "Soubor neobsahuje žádná geometrická data."
 
 msgid ""
+"Your object appears to be too large. It will be scaled down to fit the heat "
+"bed automatically."
+msgstr ""
+
+msgid "Object too large"
+msgstr "Objekt je příliš velký"
+
+msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
 "Váš objekt se zdá být příliš velký, chcete jej zmenšit, aby se vešel na "
 "vyhřívanou podložku automaticky?"
-
-msgid "Object too large"
-msgstr "Objekt je příliš velký"
 
 msgid "Export STL file:"
 msgstr "Exportovat STL soubor:"
@@ -6076,7 +6072,7 @@ msgid ""
 "Do you want to replace it?"
 msgstr ""
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr ""
 
 msgid "Delete object which is a part of cut object"
@@ -6297,7 +6293,7 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 
 #, boost-format
@@ -6425,9 +6421,6 @@ msgstr "Chcete pokračovat?"
 msgid "Language selection"
 msgstr "Výběr jazyka"
 
-msgid "Switching application language while some presets are modified."
-msgstr "Přepínání jazyka aplikace při změně některých předvoleb."
-
 msgid "Changing application language"
 msgstr "Změna jazyka aplikace"
 
@@ -6445,6 +6438,21 @@ msgstr "Procházet"
 
 msgid "Choose Download Directory"
 msgstr "Vyberte adresář pro stahování"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Obecná nastavení"
@@ -6592,6 +6600,12 @@ msgid ""
 "same time and manage multiple devices."
 msgstr ""
 
+msgid "Auto arrange plate after cloning"
+msgstr ""
+
+msgid "Auto arrange plate after object cloning"
+msgstr ""
+
 msgid "Network"
 msgstr "Síť"
 
@@ -6642,36 +6656,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7580,11 +7564,20 @@ msgstr "Filament na podpěry"
 msgid "Tree supports"
 msgstr "Stromové podpěry"
 
-msgid "Skirt"
-msgstr "Obrys"
+msgid "Multimaterial"
+msgstr "Multimateriál"
 
 msgid "Prime tower"
 msgstr "Čistící věž"
+
+msgid "Filament for Features"
+msgstr ""
+
+msgid "Ooze prevention"
+msgstr ""
+
+msgid "Skirt"
+msgstr "Obrys"
 
 msgid "Special mode"
 msgstr "Speciální režim"
@@ -7641,6 +7634,9 @@ msgstr "Doporučená teplota trysky"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Doporučený rozsah teploty trysky tohoto filamentu. 0 znamená nenastaveno"
+
+msgid "Flow ratio and Pressure Advance"
+msgstr ""
 
 msgid "Print chamber temperature"
 msgstr "Teplota v tiskové komoře"
@@ -7750,9 +7746,6 @@ msgstr "Filament Začátek G-kók"
 msgid "Filament end G-code"
 msgstr "Filament Konec G-kód"
 
-msgid "Multimaterial"
-msgstr "Multimateriál"
-
 msgid "Wipe tower parameters"
 msgstr "Parametry čistící věže"
 
@@ -7842,11 +7835,29 @@ msgstr "Omezení Jerk-Ryv"
 msgid "Single extruder multimaterial setup"
 msgstr "Nastavení multimateriálu s jedním extruderem"
 
+msgid "Number of extruders of the printer."
+msgstr ""
+
+msgid ""
+"Single Extruder Multi Material is selected, \n"
+"and all extruders must have the same diameter.\n"
+"Do you want to change the diameter for all extruders to first extruder "
+"nozzle diameter value?"
+msgstr ""
+
+msgid "Nozzle diameter"
+msgstr "Průměr trysky"
+
 msgid "Wipe tower"
 msgstr "Čistící věž"
 
 msgid "Single extruder multimaterial parameters"
 msgstr "Parametry jednoho multimateriálového extruderu"
+
+msgid ""
+"This is a single extruder multimaterial printer, diameters of all extruders "
+"will be set to the new value. Do you want to proceed?"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Výškové limity vrstvy"
@@ -8323,11 +8334,8 @@ msgstr "Seznam objektů"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometrických dat ze souborů STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
+msgid "Shift+G"
+msgstr ""
 
 msgid "Paste from clipboard"
 msgstr "Vložit ze schránky"
@@ -8377,32 +8385,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Sbalit/Rozbalit postranní panel"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+libovolná šipka"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Posun výběru v ortogonálním prostoru kamery"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+levé tlačítko myši"
-
 msgid "Select a part"
 msgstr "Vyberte část"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+levé tlačítko myši"
-
 msgid "Select multiple objects"
 msgstr "Vyberte více objektů"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+libovolná šipka"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+levé tlačítko myši"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+levé tlačítko myši"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+levé tlačítko myši"
@@ -8506,23 +8499,11 @@ msgstr "Podložka"
 msgid "Move: press to snap by 1mm"
 msgstr "Posunout: stisknutím přitáhnete o 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+kolečko myši"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Podpěry/Barva: upravit poloměr pera"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+kolečko myši"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Podpěry/Barva: upravit polohu sekce"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+kolečko myši"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+kolečko myši"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8829,6 +8810,11 @@ msgid "No object can be printed. Maybe too small"
 msgstr "Nelze vytisknout žádný objekt. Možná je příliš malý"
 
 msgid ""
+"Your print is very close to the priming regions. Make sure there is no "
+"collision."
+msgstr ""
+
+msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
@@ -9067,8 +9053,9 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabilní výška vrstvy není podporována s organickými podpěrami."
 
 msgid ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
+"Different nozzle diameters and different filament diameters may not work "
+"well when the prime tower is enabled. It's very experimental, so please "
+"proceed with caution."
 msgstr ""
 
 msgid ""
@@ -9079,7 +9066,8 @@ msgstr ""
 "exruderu (use_relative_e_distances=1)."
 
 msgid ""
-"Ooze prevention is currently not supported with the prime tower enabled."
+"Ooze prevention is only supported with the wipe tower when "
+"'single_extruder_multi_material' is off."
 msgstr ""
 
 msgid ""
@@ -10366,6 +10354,86 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "Předstih tlaku (Klipper) AKA Lineární faktor předstihu (Marlin)"
 
+msgid "Enable adaptive pressure advance (beta)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"With increasing print speeds (and hence increasing volumetric flow through "
+"the nozzle) and increasing accelerations, it has been observed that the "
+"effective PA value typically decreases. This means that a single PA value is "
+"not always 100% optimal for all features and a compromise value is usually "
+"used that does not cause too much bulging on features with lower flow speed "
+"and accelerations while also not causing gaps on faster features.\n"
+"\n"
+"This feature aims to address this limitation by modeling the response of "
+"your printer's extrusion system depending on the volumetric flow speed and "
+"acceleration it is printing at. Internally, it generates a fitted model that "
+"can extrapolate the needed pressure advance for any given volumetric flow "
+"speed and acceleration, which is then emmited to the printer depending on "
+"the current print conditions.\n"
+"\n"
+"When enabled, the pressure advance value above is overriden. However, a "
+"reasonable default value above is strongly recomended to act as a fallback "
+"and for when tool changing.\n"
+"\n"
+msgstr ""
+
+msgid "Adaptive pressure advance measurements (beta)"
+msgstr ""
+
+msgid ""
+"Add sets of pressure advance (PA) values, the volumetric flow speeds and "
+"accelerations they were measured at, separated by a comma. One set of values "
+"per line. For example\n"
+"0.04,3.96,3000\n"
+"0.033,3.96,10000\n"
+"0.029,7.91,3000\n"
+"0.026,7.91,10000\n"
+"\n"
+"How to calibrate:\n"
+"1. Run the pressure advance test for at least 3 speeds per acceleration "
+"value. It is recommended that the test is run for at least the speed of the "
+"external perimeters, the speed of the internal perimeters and the fastest "
+"feature print speed in your profile (usually its the sparse or solid "
+"infill). Then run them for the same speeds for the slowest and fastest print "
+"accelerations,and no faster than the recommended maximum acceleration as "
+"given by the klipper input shaper.\n"
+"2. Take note of the optimal PA value for each volumetric flow speed and "
+"acceleration. You can find the flow number by selecting flow from the color "
+"scheme drop down and move the horizontal slider over the PA pattern lines. "
+"The number should be visible at the bottom of the page. The ideal PA value "
+"should be decreasing the higher the volumetric flow is. If it is not, "
+"confirm that your extruder is functioning correctly.The slower and with less "
+"acceleration you print, the larger the range of acceptable PA values. If no "
+"difference is visible, use the PA value from the faster test.3. Enter the "
+"triplets of PA values, Flow and Accelerations in the text box here and save "
+"your filament profile\n"
+"\n"
+msgstr ""
+
+msgid "Enable adaptive pressure advance for overhangs (beta)"
+msgstr ""
+
+msgid ""
+"Enable adaptive PA for overhangs as well as when flow changes within the "
+"same feature. This is an experimental option, as if the PA profile is not "
+"set accurately, it will cause uniformity issues on the external surfaces "
+"before and after overhangs.\n"
+msgstr ""
+
+msgid "Pressure advance for bridges"
+msgstr ""
+
+msgid ""
+"Pressure advance value for bridges. Set to 0 to disable. \n"
+"\n"
+" A lower PA value when printing bridges helps reduce the appearance of "
+"slight under extrusion immediately after bridges. This is caused by the "
+"pressure drop in the nozzle when printing in the air and a lower PA helps "
+"counteract this."
+msgstr ""
+
 msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
@@ -10467,6 +10535,19 @@ msgstr ""
 "Průměr filamentu se používá k výpočtu extruze v gkódu, takže je důležitý a "
 "měl by být přesný"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr "Smrštění"
 
@@ -10536,6 +10617,21 @@ msgid ""
 msgstr ""
 "Filament je chlazen pohyby tam a zpět v chladicí trubičce. Zadejte "
 "požadovaný počet těchto pohybů."
+
+msgid "Stamping loading speed"
+msgstr ""
+
+msgid "Speed used for stamping."
+msgstr ""
+
+msgid "Stamping distance measured from the center of the cooling tube"
+msgstr ""
+
+msgid ""
+"If set to nonzero value, filament is moved toward the nozzle between the "
+"individual cooling moves (\"stamping\"). This option configures how long "
+"this movement should be before the filament is retracted again."
+msgstr ""
 
 msgid "Speed of the first cooling move"
 msgstr "Rychlost prvního pohybu chlazení"
@@ -10903,7 +10999,7 @@ msgstr "Výška první vrstvy"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Výška první vrstvy. Mírně tlustá první vrstva může zlepšit přilnavost k "
 "podložce"
@@ -11219,6 +11315,12 @@ msgstr "S jakým typem gkódu je tiskárna kompatibilní"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11324,7 +11426,56 @@ msgstr "Maximální šířka segmentované oblasti. Nula tuto funkci vypne."
 msgid "Interlocking depth of a segmented region"
 msgstr "Hloubka propojení segmentované oblasti"
 
-msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
+msgstr ""
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
 msgstr ""
 
 msgid "Ironing Type"
@@ -11674,9 +11825,6 @@ msgid ""
 "cooling is enabled."
 msgstr ""
 
-msgid "Nozzle diameter"
-msgstr "Průměr trysky"
-
 msgid "Diameter of nozzle"
 msgstr "Průměr trysky"
 
@@ -11774,6 +11922,11 @@ msgstr ""
 "vytékání není vidět. To může zkrátit dobu retrakcí u složitého modelu a "
 "ušetřit čas tisku, ale zpomalit krájení a generování G-kódu"
 
+msgid ""
+"This option will drop the temperature of the inactive extruders to prevent "
+"oozing."
+msgstr ""
+
 msgid "Filename format"
 msgstr "Formát názvu souboru"
 
@@ -11822,6 +11975,9 @@ msgstr ""
 "Zjistěte procento převisů vzhledem k šířce extruze a použijte jinou rychlost "
 "tisku. Pro 100%% převisy se použije rychlost mostu."
 
+msgid "Filament to print walls"
+msgstr ""
+
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -11861,11 +12017,20 @@ msgstr ""
 "předána absolutní cesta k souboru G-kódu jako první argument a mohou přístup "
 "k nastavení konfigurace Orca Slicer čtením proměnných prostředí."
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr "Poznámky o tiskárně"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "Zde můžete uvést poznámky týkající se tiskárny."
+
+msgid "Printer variant"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Mezera mezi objektem a raftem v ose Z"
@@ -12002,6 +12167,14 @@ msgstr "Sklon"
 
 msgid "Spiral"
 msgstr "Spirála"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "Zvednout Z pouze nad"
@@ -12361,6 +12534,12 @@ msgstr ""
 "Řídká oblast výplně, která je menší než hraniční hodnota, je nahrazena "
 "vnitřní plnou výplní"
 
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
+
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
@@ -12419,6 +12598,31 @@ msgstr "Tradiční"
 
 msgid "Temperature variation"
 msgstr "Kolísání teploty"
+
+#. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+msgid ""
+"Temperature difference to be applied when an extruder is not active. The "
+"value is not used when 'idle_temperature' in filament settings is set to non "
+"zero value."
+msgstr ""
+
+msgid "Preheat time"
+msgstr ""
+
+msgid ""
+"To reduce the waiting time after tool change, Orca can preheat the next tool "
+"while the current tool is still in use. This setting specifies the time in "
+"seconds to preheat the next tool. Orca will insert a M104 command to preheat "
+"the tool in advance."
+msgstr ""
+
+msgid "Preheat steps"
+msgstr ""
+
+msgid ""
+"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"other printers, please set it to 1."
+msgstr ""
 
 msgid "Start G-code"
 msgstr "Začátek G-kódu"
@@ -13071,12 +13275,6 @@ msgstr ""
 "Úhel na vrcholu kužele, který se používá ke stabilizaci čistící věže. Větší "
 "úhel znamená širší základnu."
 
-msgid "Wipe tower purge lines spacing"
-msgstr "Rozteč čistících linek v čistící věži"
-
-msgid "Spacing of purge lines on the wipe tower."
-msgstr "Rozteč čistících linek v čistící věži."
-
 msgid "Maximum wipe tower print speed"
 msgstr ""
 
@@ -13101,9 +13299,6 @@ msgid ""
 "For the wipe tower external perimeters the internal perimeter speed is used "
 "regardless of this setting."
 msgstr ""
-
-msgid "Wipe tower extruder"
-msgstr "Extruder čistící věže"
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -13159,6 +13354,30 @@ msgstr "Maximální vzdálenost přemostění"
 
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr "Maximální vzdálenost mezi podpěrami u částí s řídkou výplní."
+
+msgid "Wipe tower purge lines spacing"
+msgstr "Rozteč čistících linek v čistící věži"
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr "Rozteč čistících linek v čistící věži."
+
+msgid "Extra flow for purging"
+msgstr ""
+
+msgid ""
+"Extra flow used for the purging lines on the wipe tower. This makes the "
+"purging lines thicker or narrower than they normally would be. The spacing "
+"is adjusted automatically."
+msgstr ""
+
+msgid "Idle temperature"
+msgstr ""
+
+msgid ""
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "X-Y Kompenzace otvoru"
@@ -13487,6 +13706,14 @@ msgstr "Extra deretrakce"
 msgid "Currently planned extra extruder priming after deretraction."
 msgstr "Současně naplánované extra čištění extruderu po deretrakci."
 
+msgid "Absolute E position"
+msgstr ""
+
+msgid ""
+"Current position of the extruder axis. Only used with absolute extruder "
+"addressing."
+msgstr ""
+
 msgid "Current extruder"
 msgstr "Aktuální extruder"
 
@@ -13533,6 +13760,12 @@ msgid "Is extruder used?"
 msgstr "Je extruder použitý?"
 
 msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Has single extruder MM priming"
+msgstr ""
+
+msgid "Are the extra multi-material priming regions used in this print?"
 msgstr ""
 
 msgid "Volume per extruder"
@@ -13682,6 +13915,14 @@ msgstr "Fyzický název tiskárny"
 
 msgid "Name of the physical printer used for slicing."
 msgstr "Název fyzické tiskárny použité pro slicování."
+
+msgid "Number of extruders"
+msgstr ""
+
+msgid ""
+"Total number of extruders, regardless of whether they are used in the "
+"current print."
+msgstr ""
 
 msgid "Layer number"
 msgstr "Číslo vrstvy"
@@ -14768,7 +15009,7 @@ msgstr ""
 msgid "Create Type"
 msgstr ""
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr ""
 
 msgid "Select Model"
@@ -14817,10 +15058,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr ""
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr ""
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr ""
 
 msgid "Printer Preset"
@@ -15853,6 +16094,57 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "up to"
+#~ msgstr "až do"
+
+#~ msgid "above"
+#~ msgstr "nad"
+
+#~ msgid "from"
+#~ msgstr "z"
+
+#~ msgid "Switching application language while some presets are modified."
+#~ msgstr "Přepínání jazyka aplikace při změně některých předvoleb."
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+libovolná šipka"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+levé tlačítko myši"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+levé tlačítko myši"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+libovolná šipka"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+levé tlačítko myši"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+levé tlačítko myši"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+kolečko myši"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+kolečko myši"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+kolečko myši"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+kolečko myši"
+
+#~ msgid "Wipe tower extruder"
+#~ msgstr "Extruder čistící věže"
 
 #~ msgid "Printer local connection failed, please try again."
 #~ msgstr "Lokální připojení k tiskárně selhalo, zkuste to znovu."

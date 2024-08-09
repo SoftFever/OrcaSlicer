@@ -1,0 +1,12 @@
+{
+  "type": "machine_model",
+  "name": "FLSun S1",
+  "model_id": "FLSun_S1",
+  "nozzle_diameter": "0.4",
+  "machine_tech": "FFF",
+  "family": "FLSun",
+  "bed_model": "flsun_s1_buildplate_model.stl",
+  "bed_texture": "flsun_s1_buildplate_texture.svg",
+  "hotend_model": "",
+  "default_materials": "FLSun Generic PLA-HS-S1"
+}

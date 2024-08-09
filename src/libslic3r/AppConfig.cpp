@@ -18,9 +18,7 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/format/format_fwd.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -81,6 +79,15 @@ std::string AppConfig::get_hms_host()
 // #else
     return "e.bambulab.com";
 // #endif
+}
+
+bool AppConfig::get_stealth_mode()
+{
+    // always return true when user did not finish setup wizard yet
+    if (!get_bool("firstguide","finish")) {
+        return true;
+    }
+    return get_bool("stealth_mode");
 }
 
 void AppConfig::reset()
@@ -251,6 +258,10 @@ void AppConfig::set_defaults()
     // Orca
     if(get("show_splash_screen").empty()) {
         set_bool("show_splash_screen", true);
+    }
+
+    if(get("auto_arrange").empty()) {
+        set_bool("auto_arrange", true);
     }
 
     if (get("show_model_mesh").empty()) {

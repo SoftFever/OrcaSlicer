@@ -442,7 +442,7 @@ ModelObject* Model::add_object(const ModelObject &other)
     this->objects.push_back(new_object);
     // BBS: backup
     if (need_backup) {
-        if (auto model = other.get_model()) {
+        if (other.get_model()) {
             auto iter = object_backup_id_map.find(other.id().id);
             if (iter != object_backup_id_map.end()) {
                 object_backup_id_map.emplace(new_object->id().id, iter->second);
@@ -2615,7 +2615,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;
 
-    unsigned int extruder_counter = 0;
+    // unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
 
     for (TriangleMesh &mesh : meshes) {
@@ -2930,9 +2930,6 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                     std::cout << "error";
                 }
             };
-            auto calc_tri_area = [](const Vec3f &v0, const Vec3f &v1, const Vec3f &v2) {
-                return std::abs((v0 - v1).cross(v0 - v2).norm()) / 2;
-            };
             auto volume = obj->volumes[0];
             volume->config.set("extruder", first_extruder_id);
             auto face_count = volume->mesh().its.indices.size();
@@ -3032,7 +3029,6 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             volume->mmu_segmentation_facets.reserve(face_count);
             if (volume->mesh().its.indices.size() != face_filament_ids.size()) { return false; }
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {
-                auto face         = volume->mesh().its.indices[i];
                 auto filament_id = face_filament_ids[i];
                 if (filament_id <= 1) { continue; }
                 std::string result;
@@ -3115,8 +3111,8 @@ double Model::getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
     }
     return thermalLength;
 }
-// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered
-double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
+// max printing speed, difference in bed temperature and envirument temperature and bed adhesion coefficients are considered
+double ModelInstance::get_auto_brim_width(double deltaT, double adhesion) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
     double maxSpeed = Model::findMaxSpeed(object);
@@ -3127,7 +3123,7 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     double thermalLength = sqrt(bbox_size(0)* bbox_size(0) + bbox_size(1)* bbox_size(1));
     double thermalLengthRef = Model::getThermalLength(object->volumes);
 
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
+    double brim_width = adhesion * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;
@@ -3297,7 +3293,7 @@ bool FacetsAnnotation::has_facets(const ModelVolume& mv, EnforcerBlockerType typ
 
 bool FacetsAnnotation::set(const TriangleSelector& selector)
 {
-    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> sel_map = selector.serialize();
+    TriangleSelector::TriangleSplittingData sel_map = selector.serialize();
     if (sel_map != m_data) {
         m_data = std::move(sel_map);
         this->touch();
@@ -3308,8 +3304,8 @@ bool FacetsAnnotation::set(const TriangleSelector& selector)
 
 void FacetsAnnotation::reset()
 {
-    m_data.first.clear();
-    m_data.second.clear();
+    m_data.triangles_to_split.clear();
+    m_data.bitstream.clear();
     this->touch();
 }
 
@@ -3320,15 +3316,15 @@ std::string FacetsAnnotation::get_triangle_as_string(int triangle_idx) const
 {
     std::string out;
 
-    auto triangle_it = std::lower_bound(m_data.first.begin(), m_data.first.end(), triangle_idx, [](const std::pair<int, int> &l, const int r) { return l.first < r; });
-    if (triangle_it != m_data.first.end() && triangle_it->first == triangle_idx) {
-        int offset = triangle_it->second;
-        int end    = ++ triangle_it == m_data.first.end() ? int(m_data.second.size()) : triangle_it->second;
+    auto triangle_it = std::lower_bound(m_data.triangles_to_split.begin(), m_data.triangles_to_split.end(), triangle_idx, [](const TriangleSelector::TriangleBitStreamMapping &l, const int r) { return l.triangle_idx < r; });
+    if (triangle_it != m_data.triangles_to_split.end() && triangle_it->triangle_idx == triangle_idx) {
+        int offset = triangle_it->bitstream_start_idx;
+        int end    = ++ triangle_it == m_data.triangles_to_split.end() ? int(m_data.bitstream.size()) : triangle_it->bitstream_start_idx;
         while (offset < end) {
             int next_code = 0;
             for (int i=3; i>=0; --i) {
                 next_code = next_code << 1;
-                next_code |= int(m_data.second[offset + i]);
+                next_code |= int(m_data.bitstream[offset + i]);
             }
             offset += 4;
 
@@ -3345,9 +3341,10 @@ std::string FacetsAnnotation::get_triangle_as_string(int triangle_idx) const
 void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::string& str)
 {
     assert(! str.empty());
-    assert(m_data.first.empty() || m_data.first.back().first < triangle_id);
-    m_data.first.emplace_back(triangle_id, int(m_data.second.size()));
+    assert(m_data.triangles_to_split.empty() || m_data.triangles_to_split.back().triangle_idx < triangle_id);
+    m_data.triangles_to_split.emplace_back(triangle_id, int(m_data.bitstream.size()));
 
+    const size_t bitstream_start_idx = m_data.bitstream.size();
     for (auto it = str.crbegin(); it != str.crend(); ++it) {
         const char ch = *it;
         int dec = 0;
@@ -3359,14 +3356,16 @@ void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::stri
             assert(false);
 
         // Convert to binary and append into code.
-        for (int i=0; i<4; ++i)
-            m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));
+        for (int i = 0; i < 4; ++i)
+            m_data.bitstream.insert(m_data.bitstream.end(), bool(dec & (1 << i)));
     }
+
+    m_data.update_used_states(bitstream_start_idx);
 }
 
 bool FacetsAnnotation::equals(const FacetsAnnotation &other) const
 {
-    const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data = other.get_data();
+    const auto& data = other.get_data();
     return (m_data == data);
 }
 

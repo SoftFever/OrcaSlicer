@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "name": "Bambu PETG HF @BBL A1M",
+    "inherits": "Bambu PETG HF @base",
+    "from": "system",
+    "setting_id": "GFSG02_06",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "15"
+    ],
+    "fan_max_speed": [
+        "50"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "filament_max_volumetric_speed": [
+        "18"
+    ],
+    "nozzle_temperature": [
+        "240"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.4 nozzle"
+    ]
+}

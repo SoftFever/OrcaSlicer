@@ -189,11 +189,11 @@ void stl_fix_normal_directions(stl_file *stl)
     	if (head->next != tail) {
       		facet_num = head->next->facet_num;
             assert(facet_num < stl->stats.number_of_facets);
-      		if (norm_sw[facet_num] != 1) { // If facet is in list mutiple times
+      		if (norm_sw[facet_num] != 1) { // If facet is in list multiple times
         		norm_sw[facet_num] = 1; // Record this one as being fixed.
         		++ checked;
       		}
-      		stl_normal *temp = head->next;	// Delete this facet from the list.
+      		// stl_normal *temp = head->next;	// Delete this facet from the list.
       		head->next = head->next->next;
       		// pool.destroy(temp);
     	} else { // If we ran out of facets to fix: All of the facets in this part have been fixed.

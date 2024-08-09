@@ -109,6 +109,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = false;
+    StealthMode   = false;
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -486,6 +487,15 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             else
                 InstallNetplugin = false;
         }
+        else if (strCmd == "save_stealth_mode") {
+            wxString strAction = j["data"]["action"];
+
+            if (strAction == "yes") {
+                StealthMode = true;
+            } else {
+                StealthMode = false;
+            }
+        }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
@@ -616,6 +626,7 @@ int GuideFrame::SaveProfile()
     //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
 
     m_MainPtr->app_config->set("region", m_Region);
+    m_MainPtr->app_config->set_bool("stealth_mode", StealthMode);
 
     //finish
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
@@ -882,13 +893,13 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     }
 
     std::string first_added_filament;
-    auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
+    /*auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
         if (m_appconfig_new.has_section(section_name)) {
             // get first of new added preset names
             const std::map<std::string, std::string>& old_presets = app_config->has_section(section_name) ? app_config->get_section(section_name) : std::map<std::string, std::string>();
             first_added_preset = get_first_added_preset(old_presets, m_appconfig_new.get_section(section_name));
         }
-    };
+    };*/
     // Not switch filament
     //get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
 
@@ -949,7 +960,6 @@ bool GuideFrame::run()
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
         if (app.preset_bundle->printers.only_default_printers()) {
             //we install the default here
-            bool apply_keeped_changes = false;
             //clear filament section and use default materials
             app.app_config->set_variant(PresetBundle::BBL_BUNDLE,
                 PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
@@ -1129,7 +1139,7 @@ int GuideFrame::LoadProfile()
 
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1148,7 +1158,7 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1223,6 +1233,9 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
         network_plugin_ready = wxGetApp().is_compatibility_version();
+
+        StealthMode = wxGetApp().app_config->get_bool("app","stealth_mode");
+        m_ProfileJson["stealth_mode"] = StealthMode;
     }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
@@ -1530,9 +1543,6 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Vendor: " << strVendor <<", tFilaList Add: " << s1;
         }
 
-        int nFalse  = 0;
-        int nModel  = 0;
-        int nFinish = 0;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% filaments") % nsize;
         for (int n = 0; n < nsize; n++) {
             json OneFF = pFilament.at(n);
@@ -1642,7 +1652,7 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

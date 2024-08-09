@@ -203,12 +203,12 @@ body
 
 .BtnItem:hover
 {
-	background-color: #E0FCEB;
+	background-color: #BFE1DE; /*ORCA color with %25 opacity*/
 }
 
 .BtnItemSelected
 {
-	background-color: #e0fcf3;
+	background-color: #BFE1DE; /*ORCA color with %25 opacity*/
 }
 
 .BtnIcon
@@ -277,8 +277,8 @@ body
 
 .MenuItem:hover
 {
-	border-color: #4db6ac;
-	background-color: #E0FCEB;
+	border-color: #009688;		/*ORCA color*/
+	background-color: #E5F0EE; /*ORCA color with %25 opacity*/
 }
 
 .MenuIcon
@@ -465,7 +465,7 @@ body
 .CT_Item:hover
 {
 	cursor: pointer;
-	background-color: #0078D4;
+	background-color:#009688; /*ORCA color*/
 	border-radius: 4px;
 	color: #fff;
 }

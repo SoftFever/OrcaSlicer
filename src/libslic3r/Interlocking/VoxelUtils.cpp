@@ -4,6 +4,7 @@
 #include "VoxelUtils.hpp"
 #include "../Geometry.hpp"
 #include "../Fill/FillRectilinear.hpp"
+#include "../Surface.hpp"
 
 namespace Slic3r
 {

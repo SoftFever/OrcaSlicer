@@ -8,6 +8,13 @@ on:
     branches:
       - main # This can be changed to any branch of your preference
 
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+
 env:
   USER_TOKEN: ${{ secrets.GH_WIKI_PAT }} # This is the repository secret personal access token
   USER_NAME: ${{ vars.BOT_USER_NAME }} # Enter the username of your (bot) account
@@ -16,7 +23,6 @@ env:
 
 jobs:
   publish_docs_to_wiki:
-    if: ${{ !env.ACT }} # Skip if using `act`
     name: Publish docs to Wiki
     runs-on: ubuntu-latest
     steps:  
@@ -28,7 +34,7 @@ jobs:
         run: |
           git config --global user.name "$USER_NAME"
           git config --global user.email "$USER_NAME"@users.noreply.github.com
-          git clone https://"$USER_TOKEN"@github.com/"$OWNER"/"$REPOSITORY_NAME".wiki.git tmp_wiki
+          git clone https://"$USER_TOKEN"@github.com/SoftFever/"$REPOSITORY_NAME".wiki.git tmp_wiki
       # 4. Synchronize differences between `doc` & `tmp_wiki`
       # 5. Push new Wiki content
       - name: Push main repo content to wiki

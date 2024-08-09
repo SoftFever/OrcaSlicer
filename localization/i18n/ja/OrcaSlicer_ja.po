@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -74,9 +74,6 @@ msgstr "自動充填角度"
 msgid "On overhangs only"
 msgstr "オーバーハングのみ"
 
-msgid "Auto support threshold angle: "
-msgstr "自動サポート角度閾値"
-
 msgid "Circle"
 msgstr "円形"
 
@@ -95,6 +92,9 @@ msgstr "%1%で選択した面だけをペイントする"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "オーバーハングの角度によりハイライト"
+
+msgid "Auto support threshold angle: "
+msgstr "自動サポート角度閾値"
 
 msgid "No auto support"
 msgstr "自動サポート無し"
@@ -589,7 +589,7 @@ msgstr "ワイヤフレームを表示"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "プレビュー処理中は適用できません"
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -656,8 +656,8 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Horizontal text"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
+msgstr "Shift + Mouse move up or down"
 
 msgid "Rotate text"
 msgstr "Rotate text"
@@ -1000,7 +1000,7 @@ msgstr "テキストの向きをカメラ側にする。"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "全く同じフォント(\"%1%\")を読み込むことができません。アプリケーションは似たよ"
@@ -1618,7 +1618,7 @@ msgstr "押出線幅"
 msgid "Wipe options"
 msgstr "拭き上げ設定"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "ベッド接着"
 
 msgid "Add part"
@@ -1897,12 +1897,6 @@ msgstr "自動向き調整"
 msgid "Auto orient the object to improve print quality."
 msgstr "オブジェクトの向きを自動的に調整する"
 
-msgid "Split the selected object into mutiple objects"
-msgstr "選択したオブジェクトを複数のオブジェクトに分割"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "選択したオブジェクトを複数のパーツに分割"
-
 msgid "Select All"
 msgstr "全てを選択"
 
@@ -2158,8 +2152,8 @@ msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "以下のモデルオブジェクトが修復されました。"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "以下のオブジェクトを修復てきませんでした"
 
 msgid "Repairing was canceled"
@@ -2606,7 +2600,7 @@ msgstr "Print task sending times out."
 msgid "Service Unavailable"
 msgstr "サービスは利用できません"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "不明なエラー"
 
 msgid "Sending print configuration"
@@ -3554,7 +3548,7 @@ msgstr ""
 "値を0にリセットします。"
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -4029,15 +4023,6 @@ msgstr "総時間"
 msgid "Total cost"
 msgstr "Total cost"
 
-msgid "up to"
-msgstr "最大"
-
-msgid "above"
-msgstr "以上"
-
-msgid "from"
-msgstr "from"
-
 msgid "Color Scheme"
 msgstr "配色スキーム"
 
@@ -4101,11 +4086,11 @@ msgstr "フィラメント交換回数"
 msgid "Cost"
 msgstr "コスト"
 
-msgid "Color change"
-msgstr "色変更"
-
 msgid "Print"
 msgstr "造形する"
+
+msgid "Color change"
+msgstr "色変更"
 
 msgid "Printer"
 msgstr "プリンター"
@@ -5685,6 +5670,9 @@ msgstr "プリセットを比較"
 msgid "View all object's settings"
 msgstr "全てのオブジェクトの設定"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5760,6 +5748,9 @@ msgstr "フィラメントを選択"
 
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5961,12 +5952,17 @@ msgid "The file does not contain any geometry data."
 msgstr "このファイルにはジオメトリデータが含まれていません。"
 
 msgid ""
-"Your object appears to be too large, Do you want to scale it down to fit the "
-"heat bed automatically?"
-msgstr "オブジェクトが大きすぎのようです、ベッドに合わせてスケールしますか？"
+"Your object appears to be too large. It will be scaled down to fit the heat "
+"bed automatically."
+msgstr ""
 
 msgid "Object too large"
 msgstr "オブジェクトが大きすぎます"
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr "オブジェクトが大きすぎのようです、ベッドに合わせてスケールしますか？"
 
 msgid "Export STL file:"
 msgstr "STLファイルをエクスポート:"
@@ -5988,7 +5984,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirm Save As"
 
 msgid "Delete object which is a part of cut object"
@@ -6205,10 +6201,10 @@ msgstr "%sを送信しました、プリンターにて確認できます"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6337,9 +6333,6 @@ msgstr "続行しますか？"
 msgid "Language selection"
 msgstr "言語選択"
 
-msgid "Switching application language while some presets are modified."
-msgstr "アプリケーション言語を切り替える時に、プリセットの変更があります"
-
 msgid "Changing application language"
 msgstr "言語を変更"
 
@@ -6357,6 +6350,21 @@ msgstr "閲覧"
 
 msgid "Choose Download Directory"
 msgstr "ダウンロードフォルドを選択"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "一般設定"
@@ -6508,6 +6516,12 @@ msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 
+msgid "Auto arrange plate after cloning"
+msgstr ""
+
+msgid "Auto arrange plate after object cloning"
+msgstr ""
+
 msgid "Network"
 msgstr "ネットワーク (&N)"
 
@@ -6551,36 +6565,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7489,11 +7473,20 @@ msgstr "サポート用フィラメント"
 msgid "Tree supports"
 msgstr ""
 
-msgid "Skirt"
-msgstr "スカート"
+msgid "Multimaterial"
+msgstr ""
 
 msgid "Prime tower"
 msgstr "プライムタワー"
+
+msgid "Filament for Features"
+msgstr ""
+
+msgid "Ooze prevention"
+msgstr ""
+
+msgid "Skirt"
+msgstr "スカート"
 
 msgid "Special mode"
 msgstr "特別モード"
@@ -7540,6 +7533,9 @@ msgstr "推奨ノズル温度"
 
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "フィラメントの推奨ノズル温度、0は未設定との意味です"
+
+msgid "Flow ratio and Pressure Advance"
+msgstr ""
 
 msgid "Print chamber temperature"
 msgstr ""
@@ -7647,9 +7643,6 @@ msgstr "フィラメント開始G-code"
 msgid "Filament end G-code"
 msgstr "フィラメント終了G-code"
 
-msgid "Multimaterial"
-msgstr ""
-
 msgid "Wipe tower parameters"
 msgstr "ワイプタワーのパラメータ"
 
@@ -7739,11 +7732,29 @@ msgstr "振動特性"
 msgid "Single extruder multimaterial setup"
 msgstr ""
 
+msgid "Number of extruders of the printer."
+msgstr ""
+
+msgid ""
+"Single Extruder Multi Material is selected, \n"
+"and all extruders must have the same diameter.\n"
+"Do you want to change the diameter for all extruders to first extruder "
+"nozzle diameter value?"
+msgstr ""
+
+msgid "Nozzle diameter"
+msgstr "ノズル直径"
+
 msgid "Wipe tower"
 msgstr "ワイプタワー"
 
 msgid "Single extruder multimaterial parameters"
 msgstr "単一エクストルーダーのマルチマテリアルパラメーター"
+
+msgid ""
+"This is a single extruder multimaterial printer, diameters of all extruders "
+"will be set to the new value. Do you want to proceed?"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "積層ピッチの制限"
@@ -8219,11 +8230,8 @@ msgstr "オブジェクト一覧"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
+msgid "Shift+G"
+msgstr ""
 
 msgid "Paste from clipboard"
 msgstr "貼り付け"
@@ -8270,32 +8278,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "サイドバーを展開/隠す"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+↑↓←→"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "オブジェクト移動"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+マウス左ボタン"
-
 msgid "Select a part"
 msgstr "パーツを選択"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+マウス左ボタン"
-
 msgid "Select multiple objects"
 msgstr "複数のオブジェクトを選択"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+↑↓←→"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+マウス左ボタン"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+マウス左ボタン"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift + マウス左ボタン"
@@ -8399,23 +8392,11 @@ msgstr "準備"
 msgid "Move: press to snap by 1mm"
 msgstr "1mm単位で移動"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+マウスホイール"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "サポート/色塗り: 半径のサイズ"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+マウスホイール"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "サポート/色塗り: 断面の位置"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+マウスホイール"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+マウスホイール"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8718,6 +8699,11 @@ msgid "No object can be printed. Maybe too small"
 msgstr "造形できるオブジェクトがありません。"
 
 msgid ""
+"Your print is very close to the priming regions. Make sure there is no "
+"collision."
+msgstr ""
+
+msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr "G-codeを生成できませんでした\n"
@@ -8945,11 +8931,10 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variable layer height is not supported with Organic supports."
 
 msgid ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
+"Different nozzle diameters and different filament diameters may not work "
+"well when the prime tower is enabled. It's very experimental, so please "
+"proceed with caution."
 msgstr ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
@@ -8959,9 +8944,9 @@ msgstr ""
 "addressing (use_relative_e_distances=1)."
 
 msgid ""
-"Ooze prevention is currently not supported with the prime tower enabled."
+"Ooze prevention is only supported with the wipe tower when "
+"'single_extruder_multi_material' is off."
 msgstr ""
-"Ooze prevention is currently not supported with the prime tower enabled."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
@@ -10179,6 +10164,86 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
+msgid "Enable adaptive pressure advance (beta)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"With increasing print speeds (and hence increasing volumetric flow through "
+"the nozzle) and increasing accelerations, it has been observed that the "
+"effective PA value typically decreases. This means that a single PA value is "
+"not always 100% optimal for all features and a compromise value is usually "
+"used that does not cause too much bulging on features with lower flow speed "
+"and accelerations while also not causing gaps on faster features.\n"
+"\n"
+"This feature aims to address this limitation by modeling the response of "
+"your printer's extrusion system depending on the volumetric flow speed and "
+"acceleration it is printing at. Internally, it generates a fitted model that "
+"can extrapolate the needed pressure advance for any given volumetric flow "
+"speed and acceleration, which is then emmited to the printer depending on "
+"the current print conditions.\n"
+"\n"
+"When enabled, the pressure advance value above is overriden. However, a "
+"reasonable default value above is strongly recomended to act as a fallback "
+"and for when tool changing.\n"
+"\n"
+msgstr ""
+
+msgid "Adaptive pressure advance measurements (beta)"
+msgstr ""
+
+msgid ""
+"Add sets of pressure advance (PA) values, the volumetric flow speeds and "
+"accelerations they were measured at, separated by a comma. One set of values "
+"per line. For example\n"
+"0.04,3.96,3000\n"
+"0.033,3.96,10000\n"
+"0.029,7.91,3000\n"
+"0.026,7.91,10000\n"
+"\n"
+"How to calibrate:\n"
+"1. Run the pressure advance test for at least 3 speeds per acceleration "
+"value. It is recommended that the test is run for at least the speed of the "
+"external perimeters, the speed of the internal perimeters and the fastest "
+"feature print speed in your profile (usually its the sparse or solid "
+"infill). Then run them for the same speeds for the slowest and fastest print "
+"accelerations,and no faster than the recommended maximum acceleration as "
+"given by the klipper input shaper.\n"
+"2. Take note of the optimal PA value for each volumetric flow speed and "
+"acceleration. You can find the flow number by selecting flow from the color "
+"scheme drop down and move the horizontal slider over the PA pattern lines. "
+"The number should be visible at the bottom of the page. The ideal PA value "
+"should be decreasing the higher the volumetric flow is. If it is not, "
+"confirm that your extruder is functioning correctly.The slower and with less "
+"acceleration you print, the larger the range of acceptable PA values. If no "
+"difference is visible, use the PA value from the faster test.3. Enter the "
+"triplets of PA values, Flow and Accelerations in the text box here and save "
+"your filament profile\n"
+"\n"
+msgstr ""
+
+msgid "Enable adaptive pressure advance for overhangs (beta)"
+msgstr ""
+
+msgid ""
+"Enable adaptive PA for overhangs as well as when flow changes within the "
+"same feature. This is an experimental option, as if the PA profile is not "
+"set accurately, it will cause uniformity issues on the external surfaces "
+"before and after overhangs.\n"
+msgstr ""
+
+msgid "Pressure advance for bridges"
+msgstr ""
+
+msgid ""
+"Pressure advance value for bridges. Set to 0 to disable. \n"
+"\n"
+" A lower PA value when printing bridges helps reduce the appearance of "
+"slight under extrusion immediately after bridges. This is caused by the "
+"pressure drop in the nozzle when printing in the air and a lower PA helps "
+"counteract this."
+msgstr ""
+
 msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
@@ -10275,6 +10340,19 @@ msgstr ""
 "押出制御に使用されるパラメータなので、精確なフィラメント直径を入力してくださ"
 "い"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10337,6 +10415,21 @@ msgid ""
 msgstr ""
 "フィラメントは、冷却チューブ内で上下に移動することにより冷却されます。 これら"
 "の上下移動の必要な回数を指定します。"
+
+msgid "Stamping loading speed"
+msgstr ""
+
+msgid "Speed used for stamping."
+msgstr ""
+
+msgid "Stamping distance measured from the center of the cooling tube"
+msgstr ""
+
+msgid ""
+"If set to nonzero value, filament is moved toward the nozzle between the "
+"individual cooling moves (\"stamping\"). This option configures how long "
+"this movement should be before the filament is retracted again."
+msgstr ""
 
 msgid "Speed of the first cooling move"
 msgstr "冷却移動の最初の速度"
@@ -10671,7 +10764,7 @@ msgstr "1層目の高さ"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr "1層目の高さです。高さを大きくすればプレートとの接着性が良くなります。"
 
 msgid "Speed of initial layer except the solid infill part"
@@ -10946,6 +11039,12 @@ msgstr "プリンターが対応するG-code"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11046,8 +11145,57 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr "Interlocking depth of a segmented region"
 
-msgid "Interlocking depth of a segmented region. Zero disables this feature."
-msgstr "Interlocking depth of a segmented region. Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
+msgstr ""
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "アイロン面"
@@ -11349,9 +11497,6 @@ msgid ""
 "cooling is enabled."
 msgstr ""
 
-msgid "Nozzle diameter"
-msgstr "ノズル直径"
-
 msgid "Diameter of nozzle"
 msgstr "ノズル直径"
 
@@ -11444,6 +11589,11 @@ msgid ""
 msgstr ""
 "インフィル領域内の移動はリトラクションしません。造形時間を節約できます。"
 
+msgid ""
+"This option will drop the temperature of the inactive extruders to prevent "
+"oozing."
+msgstr ""
+
 msgid "Filename format"
 msgstr "ファイル名形式"
 
@@ -11487,6 +11637,9 @@ msgstr ""
 "この設定により、線幅に対するオーバーハングの割合を検出し、異なる速度で造形し"
 "ます。100%%のオーバーハングの場合、ブリッジの速度が使用されます。"
 
+msgid "Filament to print walls"
+msgstr ""
+
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -11520,11 +11673,20 @@ msgid ""
 "environment variables."
 msgstr ""
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr "Printer notes"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "You can put your notes regarding the printer here."
+
+msgid "Printer variant"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "ラフト接触面Z間隔"
@@ -11667,6 +11829,14 @@ msgstr "スロープ"
 
 msgid "Spiral"
 msgstr "スパイラル"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr "これ以上でリフトZ"
@@ -12013,6 +12183,12 @@ msgstr ""
 "スパース インフィルの面積がこの値以下の場合、ソリッド インフィルに変換されま"
 "す"
 
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
+
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
@@ -12069,6 +12245,31 @@ msgstr "通常"
 
 msgid "Temperature variation"
 msgstr "軟化温度"
+
+#. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+msgid ""
+"Temperature difference to be applied when an extruder is not active. The "
+"value is not used when 'idle_temperature' in filament settings is set to non "
+"zero value."
+msgstr ""
+
+msgid "Preheat time"
+msgstr ""
+
+msgid ""
+"To reduce the waiting time after tool change, Orca can preheat the next tool "
+"while the current tool is still in use. This setting specifies the time in "
+"seconds to preheat the next tool. Orca will insert a M104 command to preheat "
+"the tool in advance."
+msgstr ""
+
+msgid "Preheat steps"
+msgstr ""
+
+msgid ""
+"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"other printers, please set it to 1."
+msgstr ""
 
 msgid "Start G-code"
 msgstr "スタートG-code"
@@ -12683,12 +12884,6 @@ msgstr ""
 "ワイプタワーを安定させるために使用される円錐の頂点の角度。角度が大きいと底面"
 "が広くなります。"
 
-msgid "Wipe tower purge lines spacing"
-msgstr "ワイプタワーのパージラインの間隔"
-
-msgid "Spacing of purge lines on the wipe tower."
-msgstr "ワイプタワーのパージラインの間隔。"
-
 msgid "Maximum wipe tower print speed"
 msgstr ""
 
@@ -12713,9 +12908,6 @@ msgid ""
 "For the wipe tower external perimeters the internal perimeter speed is used "
 "regardless of this setting."
 msgstr ""
-
-msgid "Wipe tower extruder"
-msgstr "ワイプタワーエクストルーダー"
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -12768,6 +12960,30 @@ msgstr "ブリッジ最大距離"
 
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr "中抜きインフィルレイヤーの間隔の最大値。"
+
+msgid "Wipe tower purge lines spacing"
+msgstr "ワイプタワーのパージラインの間隔"
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr "ワイプタワーのパージラインの間隔。"
+
+msgid "Extra flow for purging"
+msgstr ""
+
+msgid ""
+"Extra flow used for the purging lines on the wipe tower. This makes the "
+"purging lines thicker or narrower than they normally would be. The spacing "
+"is adjusted automatically."
+msgstr ""
+
+msgid "Idle temperature"
+msgstr ""
+
+msgid ""
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "ホール補正 X-Y"
@@ -13072,6 +13288,14 @@ msgstr ""
 "現在、リトラクションからの復帰時のエクストルーダーの追加プライミングが計画さ"
 "れています。"
 
+msgid "Absolute E position"
+msgstr ""
+
+msgid ""
+"Current position of the extruder axis. Only used with absolute extruder "
+"addressing."
+msgstr ""
+
 msgid "Current extruder"
 msgstr "現在のエクストルーダー"
 
@@ -13118,6 +13342,12 @@ msgid "Is extruder used?"
 msgstr "エクストルーダーは使用されましたか？"
 
 msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Has single extruder MM priming"
+msgstr ""
+
+msgid "Are the extra multi-material priming regions used in this print?"
 msgstr ""
 
 msgid "Volume per extruder"
@@ -13270,6 +13500,14 @@ msgstr "物理プリンター名"
 
 msgid "Name of the physical printer used for slicing."
 msgstr "スライスに使用される物理プリンターの名前。"
+
+msgid "Number of extruders"
+msgstr ""
+
+msgid ""
+"Total number of extruders, regardless of whether they are used in the "
+"current print."
+msgstr ""
 
 msgid "Layer number"
 msgstr "レイヤーナンバー"
@@ -14363,7 +14601,7 @@ msgstr "Import Preset"
 msgid "Create Type"
 msgstr "Create Type"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14412,10 +14650,10 @@ msgstr "Preset path was not found; please reselect vendor."
 msgid "The printer model was not found, please reselect."
 msgstr "The printer model was not found, please reselect."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
@@ -15555,6 +15793,74 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "up to"
+#~ msgstr "最大"
+
+#~ msgid "above"
+#~ msgstr "以上"
+
+#~ msgid "from"
+#~ msgstr "from"
+
+#~ msgid "Switching application language while some presets are modified."
+#~ msgstr "アプリケーション言語を切り替える時に、プリセットの変更があります"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+↑↓←→"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+マウス左ボタン"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+マウス左ボタン"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+↑↓←→"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+マウス左ボタン"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+マウス左ボタン"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+マウスホイール"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+マウスホイール"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+マウスホイール"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+マウスホイール"
+
+#~ msgid ""
+#~ "Different nozzle diameters and different filament diameters is not "
+#~ "allowed when prime tower is enabled."
+#~ msgstr ""
+#~ "Different nozzle diameters and different filament diameters is not "
+#~ "allowed when prime tower is enabled."
+
+#~ msgid ""
+#~ "Ooze prevention is currently not supported with the prime tower enabled."
+#~ msgstr ""
+#~ "Ooze prevention is currently not supported with the prime tower enabled."
+
+#~ msgid ""
+#~ "Interlocking depth of a segmented region. Zero disables this feature."
+#~ msgstr ""
+#~ "Interlocking depth of a segmented region. Zero disables this feature."
+
+#~ msgid "Wipe tower extruder"
+#~ msgstr "ワイプタワーエクストルーダー"
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Please input a valid value (K in 0~0.3)"

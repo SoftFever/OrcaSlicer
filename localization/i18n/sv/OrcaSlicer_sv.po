@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -71,9 +71,6 @@ msgstr "Smart fyllningsvinkel"
 msgid "On overhangs only"
 msgstr "Endast på överhäng"
 
-msgid "Auto support threshold angle: "
-msgstr "Automatisk support tröskelsvinkel: "
-
 msgid "Circle"
 msgstr "Cirkel"
 
@@ -92,6 +89,9 @@ msgstr "Tillåter målning endast på fasetter som valts av: ”%1%”"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Markera ytor enligt överhängs vinkeln."
+
+msgid "Auto support threshold angle: "
+msgstr "Automatisk support tröskelsvinkel: "
 
 msgid "No auto support"
 msgstr "Ingen auto support"
@@ -586,7 +586,7 @@ msgstr "Visa trådram"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "Kan inte tillämpas när processen förhandsgranskas."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -653,7 +653,7 @@ msgstr "Yta"
 msgid "Horizontal text"
 msgstr "Vågrät text"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Shift + Mus flytta uppåt eller nedåt"
 
 msgid "Rotate text"
@@ -986,7 +986,7 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 
@@ -1599,7 +1599,7 @@ msgstr "Extruderings Bredd"
 msgid "Wipe options"
 msgstr "Avstryknings val"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Byggplattans vidhäftningsförmåga"
 
 msgid "Add part"
@@ -1879,12 +1879,6 @@ msgstr "Auto placera"
 msgid "Auto orient the object to improve print quality."
 msgstr "Auto placera objektet för att förbättra utskriftskvaliteten."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Dela det valda objektet till multipla objekt"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Dela det valda objektet till multipla delar"
-
 msgid "Select All"
 msgstr "Välj Alla"
 
@@ -2148,8 +2142,8 @@ msgstr[0] ""
 msgstr[1] ""
 "Följande modellobjekt har reparerats@Följande modellobjekt har reparerats"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] ""
 "Reparationen av följande modellobjekt misslyckades@Reparation av de följande "
 "modellobjekten misslyckades"
@@ -2606,7 +2600,7 @@ msgstr "Timeout för sändning av utskriftsuppgift."
 msgid "Service Unavailable"
 msgstr "Tjänsten är inte tillgänglig"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Okänt fel"
 
 msgid "Sending print configuration"
@@ -3583,7 +3577,7 @@ msgstr ""
 "Värdet kommer att återställas till 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -4059,15 +4053,6 @@ msgstr "Total tid"
 msgid "Total cost"
 msgstr "Total cost"
 
-msgid "up to"
-msgstr "upp till"
-
-msgid "above"
-msgstr "över"
-
-msgid "from"
-msgstr "från"
-
 msgid "Color Scheme"
 msgstr "Färgschema"
 
@@ -4131,11 +4116,11 @@ msgstr "Filament bytes tider"
 msgid "Cost"
 msgstr "Kostnad"
 
-msgid "Color change"
-msgstr "Färg byte"
-
 msgid "Print"
 msgstr "Skriv ut"
+
+msgid "Color change"
+msgstr "Färg byte"
 
 msgid "Printer"
 msgstr "Skrivare"
@@ -5731,6 +5716,9 @@ msgstr "Jämför inställningar"
 msgid "View all object's settings"
 msgstr "Se alla objektens inställningar"
 
+msgid "Material settings"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5806,6 +5794,9 @@ msgstr "Ställ in filament som ska användas"
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
+
+msgid "Pellets"
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -6012,14 +6003,19 @@ msgid "The file does not contain any geometry data."
 msgstr "Filen innehåller ingen geometrisk data."
 
 msgid ""
+"Your object appears to be too large. It will be scaled down to fit the heat "
+"bed automatically."
+msgstr ""
+
+msgid "Object too large"
+msgstr "Objektet är för stort"
+
+msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
 "Objektet verkar vara för stort, vill du skala ner det så att det passar "
 "byggplattan automatiskt?"
-
-msgid "Object too large"
-msgstr "Objektet är för stort"
 
 msgid "Export STL file:"
 msgstr "Exportera STL-fil:"
@@ -6041,7 +6037,7 @@ msgstr ""
 "The file %s already exists.\n"
 "Do you want to replace it?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Bekräfta Spara som"
 
 msgid "Delete object which is a part of cut object"
@@ -6261,10 +6257,10 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"will be kept. You may fix the meshes and try again."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6385,9 +6381,6 @@ msgstr "Fortsätta?"
 msgid "Language selection"
 msgstr "Språkval"
 
-msgid "Switching application language while some presets are modified."
-msgstr "Byter språk medans inställningarna ändras."
-
 msgid "Changing application language"
 msgstr "Byter språk"
 
@@ -6405,6 +6398,21 @@ msgstr "Sök"
 
 msgid "Choose Download Directory"
 msgstr "Välj Nedladdnings Register"
+
+msgid "Associate"
+msgstr ""
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr ""
+
+msgid "Current Association: "
+msgstr ""
+
+msgid "Current Instance"
+msgstr ""
+
+msgid "Current Instance Path: "
+msgstr ""
 
 msgid "General Settings"
 msgstr "Allmänna inställningar"
@@ -6554,6 +6562,12 @@ msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 
+msgid "Auto arrange plate after cloning"
+msgstr ""
+
+msgid "Auto arrange plate after object cloning"
+msgstr ""
+
 msgid "Network"
 msgstr ""
 
@@ -6599,36 +6613,6 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
-
-msgid "Current association: "
-msgstr ""
-
-msgid "Associate prusaslicer://"
-msgstr ""
-
-msgid "Not associated to any application"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
-"from Printable.com"
-msgstr ""
-
-msgid "Associate bambustudio://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
-"from makerworld.com"
-msgstr ""
-
-msgid "Associate cura://"
-msgstr ""
-
-msgid ""
-"Associate OrcaSlicer with cura:// links so that Orca can open models from "
-"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7572,11 +7556,20 @@ msgstr "Support filament"
 msgid "Tree supports"
 msgstr ""
 
-msgid "Skirt"
+msgid "Multimaterial"
 msgstr ""
 
 msgid "Prime tower"
 msgstr "Prime torn"
+
+msgid "Filament for Features"
+msgstr ""
+
+msgid "Ooze prevention"
+msgstr ""
+
+msgid "Skirt"
+msgstr ""
 
 msgid "Special mode"
 msgstr "Special läge"
@@ -7630,6 +7623,9 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Rekommenderat nozzel temperaturs område för detta filament. 0 betyder inte "
 "fastställt"
+
+msgid "Flow ratio and Pressure Advance"
+msgstr ""
 
 msgid "Print chamber temperature"
 msgstr ""
@@ -7739,9 +7735,6 @@ msgstr "Filament start G-kod"
 msgid "Filament end G-code"
 msgstr "Filament stop G-kod"
 
-msgid "Multimaterial"
-msgstr ""
-
 msgid "Wipe tower parameters"
 msgstr ""
 
@@ -7831,10 +7824,28 @@ msgstr "Jerk begränsning"
 msgid "Single extruder multimaterial setup"
 msgstr ""
 
+msgid "Number of extruders of the printer."
+msgstr ""
+
+msgid ""
+"Single Extruder Multi Material is selected, \n"
+"and all extruders must have the same diameter.\n"
+"Do you want to change the diameter for all extruders to first extruder "
+"nozzle diameter value?"
+msgstr ""
+
+msgid "Nozzle diameter"
+msgstr "Nozzel diameter"
+
 msgid "Wipe tower"
 msgstr ""
 
 msgid "Single extruder multimaterial parameters"
+msgstr ""
+
+msgid ""
+"This is a single extruder multimaterial printer, diameters of all extruders "
+"will be set to the new value. Do you want to proceed?"
 msgstr ""
 
 msgid "Layer height limits"
@@ -8315,11 +8326,8 @@ msgstr "Objektlista"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importera geometri data från STL/STEP/3MF/OBJ/AMF filer"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Skift+G"
+msgid "Shift+G"
+msgstr ""
 
 msgid "Paste from clipboard"
 msgstr "Klistra in ifrån urklipp"
@@ -8368,32 +8376,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Dölj/Visa meny"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Valfri pil"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Rörelse i kamera område"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Vänster musknapp"
-
 msgid "Select a part"
 msgstr "Välj del"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Vänster musknapp"
-
 msgid "Select multiple objects"
 msgstr "Välj flera objekt"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Valfri pil"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Vänster musknapp"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+vänster musknapp"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+Vänster musknapp"
@@ -8497,23 +8490,11 @@ msgstr "Plätering/Förgyllning"
 msgid "Move: press to snap by 1mm"
 msgstr "Flytta: tryck för att låsa med 1mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Mushjul"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Färgläggning: justera penn radie"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Mushjul"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Färgläggning:justera sektions positionen"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+mushjul"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Mushjul"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8821,6 +8802,11 @@ msgid "No object can be printed. Maybe too small"
 msgstr "Inget objekt kan skrivas ut. Det kan vara för litet"
 
 msgid ""
+"Your print is very close to the priming regions. Make sure there is no "
+"collision."
+msgstr ""
+
+msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
@@ -9053,11 +9039,10 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabel lagerhöjd stöds inte med organiska support."
 
 msgid ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
+"Different nozzle diameters and different filament diameters may not work "
+"well when the prime tower is enabled. It's very experimental, so please "
+"proceed with caution."
 msgstr ""
-"Olika nozzel diametrar och olika filament diametrar är inte tillåtna när "
-"prime tower är aktiverat."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
@@ -9067,9 +9052,9 @@ msgstr ""
 "(use_relative_e_distances=1)."
 
 msgid ""
-"Ooze prevention is currently not supported with the prime tower enabled."
+"Ooze prevention is only supported with the wipe tower when "
+"'single_extruder_multi_material' is off."
 msgstr ""
-"Förebyggande av läckage stöds för närvarande inte med prime tower aktiverat."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
@@ -10305,6 +10290,86 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
+msgid "Enable adaptive pressure advance (beta)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"With increasing print speeds (and hence increasing volumetric flow through "
+"the nozzle) and increasing accelerations, it has been observed that the "
+"effective PA value typically decreases. This means that a single PA value is "
+"not always 100% optimal for all features and a compromise value is usually "
+"used that does not cause too much bulging on features with lower flow speed "
+"and accelerations while also not causing gaps on faster features.\n"
+"\n"
+"This feature aims to address this limitation by modeling the response of "
+"your printer's extrusion system depending on the volumetric flow speed and "
+"acceleration it is printing at. Internally, it generates a fitted model that "
+"can extrapolate the needed pressure advance for any given volumetric flow "
+"speed and acceleration, which is then emmited to the printer depending on "
+"the current print conditions.\n"
+"\n"
+"When enabled, the pressure advance value above is overriden. However, a "
+"reasonable default value above is strongly recomended to act as a fallback "
+"and for when tool changing.\n"
+"\n"
+msgstr ""
+
+msgid "Adaptive pressure advance measurements (beta)"
+msgstr ""
+
+msgid ""
+"Add sets of pressure advance (PA) values, the volumetric flow speeds and "
+"accelerations they were measured at, separated by a comma. One set of values "
+"per line. For example\n"
+"0.04,3.96,3000\n"
+"0.033,3.96,10000\n"
+"0.029,7.91,3000\n"
+"0.026,7.91,10000\n"
+"\n"
+"How to calibrate:\n"
+"1. Run the pressure advance test for at least 3 speeds per acceleration "
+"value. It is recommended that the test is run for at least the speed of the "
+"external perimeters, the speed of the internal perimeters and the fastest "
+"feature print speed in your profile (usually its the sparse or solid "
+"infill). Then run them for the same speeds for the slowest and fastest print "
+"accelerations,and no faster than the recommended maximum acceleration as "
+"given by the klipper input shaper.\n"
+"2. Take note of the optimal PA value for each volumetric flow speed and "
+"acceleration. You can find the flow number by selecting flow from the color "
+"scheme drop down and move the horizontal slider over the PA pattern lines. "
+"The number should be visible at the bottom of the page. The ideal PA value "
+"should be decreasing the higher the volumetric flow is. If it is not, "
+"confirm that your extruder is functioning correctly.The slower and with less "
+"acceleration you print, the larger the range of acceptable PA values. If no "
+"difference is visible, use the PA value from the faster test.3. Enter the "
+"triplets of PA values, Flow and Accelerations in the text box here and save "
+"your filament profile\n"
+"\n"
+msgstr ""
+
+msgid "Enable adaptive pressure advance for overhangs (beta)"
+msgstr ""
+
+msgid ""
+"Enable adaptive PA for overhangs as well as when flow changes within the "
+"same feature. This is an experimental option, as if the PA profile is not "
+"set accurately, it will cause uniformity issues on the external surfaces "
+"before and after overhangs.\n"
+msgstr ""
+
+msgid "Pressure advance for bridges"
+msgstr ""
+
+msgid ""
+"Pressure advance value for bridges. Set to 0 to disable. \n"
+"\n"
+" A lower PA value when printing bridges helps reduce the appearance of "
+"slight under extrusion immediately after bridges. This is caused by the "
+"pressure drop in the nozzle when printing in the air and a lower PA helps "
+"counteract this."
+msgstr ""
+
 msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
@@ -10405,6 +10470,19 @@ msgstr ""
 "Filament diametern används för att beräkna extruderingen i G-kod, viktigt "
 "att detta är rätt"
 
+msgid "Pellet flow coefficient"
+msgstr ""
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+
 msgid "Shrinkage"
 msgstr ""
 
@@ -10459,6 +10537,21 @@ msgstr ""
 msgid ""
 "Filament is cooled by being moved back and forth in the cooling tubes. "
 "Specify desired number of these moves."
+msgstr ""
+
+msgid "Stamping loading speed"
+msgstr ""
+
+msgid "Speed used for stamping."
+msgstr ""
+
+msgid "Stamping distance measured from the center of the cooling tube"
+msgstr ""
+
+msgid ""
+"If set to nonzero value, filament is moved toward the nozzle between the "
+"individual cooling moves (\"stamping\"). This option configures how long "
+"this movement should be before the filament is retracted again."
 msgstr ""
 
 msgid "Speed of the first cooling move"
@@ -10788,7 +10881,7 @@ msgstr "Första lagerhöjd"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
 "byggplattan"
@@ -11078,6 +11171,12 @@ msgstr "Vilken typ av G-kod är skrivaren kompatibel med"
 msgid "Klipper"
 msgstr ""
 
+msgid "Pellet Modded Printer"
+msgstr ""
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+
 msgid "Support multi bed types"
 msgstr ""
 
@@ -11176,10 +11275,57 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr "Sammanhängande djup i en segmenterad region"
 
-msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
-"Sammankopplingsdjup för en segmenterad region. Noll inaktiverar denna "
-"funktion."
+
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Stryknings typ"
@@ -11489,9 +11635,6 @@ msgid ""
 "cooling is enabled."
 msgstr ""
 
-msgid "Nozzle diameter"
-msgstr "Nozzel diameter"
-
 msgid "Diameter of nozzle"
 msgstr "Diametern på nozzeln"
 
@@ -11577,6 +11720,11 @@ msgstr ""
 "indragning för komplexa modeller och spara utskriftstid, men gör beredning "
 "och generering av G-kod långsammare."
 
+msgid ""
+"This option will drop the temperature of the inactive extruders to prevent "
+"oozing."
+msgstr ""
+
 msgid "Filename format"
 msgstr "Filnamns format"
 
@@ -11621,6 +11769,9 @@ msgstr ""
 "hastigheter för att skriva ut. Vid 100%% överhäng, bridge/brygg hastighet "
 "användas."
 
+msgid "Filament to print walls"
+msgstr ""
+
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -11654,11 +11805,20 @@ msgid ""
 "environment variables."
 msgstr ""
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr "Printer notes"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "You can put your notes regarding the printer here."
+
+msgid "Printer variant"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Raft kontakt Z avstånd"
@@ -11806,6 +11966,14 @@ msgstr "Lutning"
 
 msgid "Spiral"
 msgstr "Spiral"
+
+msgid "Traveling angle"
+msgstr ""
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
 
 msgid "Only lift Z above"
 msgstr ""
@@ -12149,6 +12317,12 @@ msgstr ""
 "Sparsam ifyllnads ytor som är mindre än detta gränsvärde ersätts med inre "
 "solid ifyllnad"
 
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
+
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
@@ -12210,6 +12384,31 @@ msgstr "Traditionell"
 
 msgid "Temperature variation"
 msgstr "Temperatur variation"
+
+#. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+msgid ""
+"Temperature difference to be applied when an extruder is not active. The "
+"value is not used when 'idle_temperature' in filament settings is set to non "
+"zero value."
+msgstr ""
+
+msgid "Preheat time"
+msgstr ""
+
+msgid ""
+"To reduce the waiting time after tool change, Orca can preheat the next tool "
+"while the current tool is still in use. This setting specifies the time in "
+"seconds to preheat the next tool. Orca will insert a M104 command to preheat "
+"the tool in advance."
+msgstr ""
+
+msgid "Preheat steps"
+msgstr ""
+
+msgid ""
+"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"other printers, please set it to 1."
+msgstr ""
 
 msgid "Start G-code"
 msgstr "Starta G-kod"
@@ -12823,12 +13022,6 @@ msgid ""
 "Larger angle means wider base."
 msgstr ""
 
-msgid "Wipe tower purge lines spacing"
-msgstr ""
-
-msgid "Spacing of purge lines on the wipe tower."
-msgstr ""
-
 msgid "Maximum wipe tower print speed"
 msgstr ""
 
@@ -12852,9 +13045,6 @@ msgid ""
 "\n"
 "For the wipe tower external perimeters the internal perimeter speed is used "
 "regardless of this setting."
-msgstr ""
-
-msgid "Wipe tower extruder"
 msgstr ""
 
 msgid ""
@@ -12905,6 +13095,30 @@ msgid "Maximal bridging distance"
 msgstr ""
 
 msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Extra flow for purging"
+msgstr ""
+
+msgid ""
+"Extra flow used for the purging lines on the wipe tower. This makes the "
+"purging lines thicker or narrower than they normally would be. The spacing "
+"is adjusted automatically."
+msgstr ""
+
+msgid "Idle temperature"
+msgstr ""
+
+msgid ""
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13213,6 +13427,14 @@ msgstr ""
 msgid "Currently planned extra extruder priming after deretraction."
 msgstr ""
 
+msgid "Absolute E position"
+msgstr ""
+
+msgid ""
+"Current position of the extruder axis. Only used with absolute extruder "
+"addressing."
+msgstr ""
+
 msgid "Current extruder"
 msgstr ""
 
@@ -13253,6 +13475,12 @@ msgid "Is extruder used?"
 msgstr ""
 
 msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Has single extruder MM priming"
+msgstr ""
+
+msgid "Are the extra multi-material priming regions used in this print?"
 msgstr ""
 
 msgid "Volume per extruder"
@@ -13397,6 +13625,14 @@ msgid "Physical printer name"
 msgstr ""
 
 msgid "Name of the physical printer used for slicing."
+msgstr ""
+
+msgid "Number of extruders"
+msgstr ""
+
+msgid ""
+"Total number of extruders, regardless of whether they are used in the "
+"current print."
 msgstr ""
 
 msgid "Layer number"
@@ -14497,7 +14733,7 @@ msgstr "Importera inställning"
 msgid "Create Type"
 msgstr "Skapa typ"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -14546,10 +14782,10 @@ msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 msgid "The printer model was not found, please reselect."
 msgstr "Printer modellen hittades inte, välj igen."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
@@ -15714,6 +15950,73 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid "up to"
+#~ msgstr "upp till"
+
+#~ msgid "above"
+#~ msgstr "över"
+
+#~ msgid "from"
+#~ msgstr "från"
+
+#~ msgid "Switching application language while some presets are modified."
+#~ msgstr "Byter språk medans inställningarna ändras."
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Skift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Valfri pil"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Vänster musknapp"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Vänster musknapp"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Valfri pil"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Vänster musknapp"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+vänster musknapp"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Mushjul"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Mushjul"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+mushjul"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Mushjul"
+
+#~ msgid ""
+#~ "Different nozzle diameters and different filament diameters is not "
+#~ "allowed when prime tower is enabled."
+#~ msgstr ""
+#~ "Olika nozzel diametrar och olika filament diametrar är inte tillåtna när "
+#~ "prime tower är aktiverat."
+
+#~ msgid ""
+#~ "Ooze prevention is currently not supported with the prime tower enabled."
+#~ msgstr ""
+#~ "Förebyggande av läckage stöds för närvarande inte med prime tower "
+#~ "aktiverat."
+
+#~ msgid ""
+#~ "Interlocking depth of a segmented region. Zero disables this feature."
+#~ msgstr ""
+#~ "Sammankopplingsdjup för en segmenterad region. Noll inaktiverar denna "
+#~ "funktion."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Ange ett giltigt värde (K i 0~0.3)"

@@ -4,21 +4,14 @@
 #include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
 #include "Line.hpp"
-#include "clipper.hpp"
-#include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <list>
-#include <map>
-#include <numeric>
-#include <set>
 #include <utility>
 #include <stack>
 #include <vector>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/log/trivial.hpp>
 
 #if defined(_MSC_VER) && defined(__clang__)
 #define BOOST_NO_CXX17_HDR_STRING_VIEW

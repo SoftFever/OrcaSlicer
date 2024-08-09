@@ -121,6 +121,9 @@ if (MSVC)
     # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
     # C4267: The compiler detected a conversion from size_t to a smaller type.
     add_compile_options(/wd4244 /wd4267)
+    # Disable warnings on comparison of unsigned and signed
+    # C4018: signed/unsigned mismatch
+    add_compile_options(/wd4018)
 endif ()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
@@ -248,6 +251,22 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
+
+    # Since some portions of code are just commented out or put under conditional compilation, there are
+    # a bunch of warning related to unused functions and variables. Suppress those warnings to not pollute
+    # compilers diagnostics output with warnings we not going to look at
+    add_compile_options(-Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-local-typedefs)
+
+    # Ignore signed/unsigned comparison warnings
+    add_compile_options(-Wno-sign-compare)
+
+    # The mismatch of tabs and spaces throughout the project can sometimes
+    # cause this warning to appear even though the indentation is fine.
+    # Some includes also cause the warning
+    add_compile_options(-Wno-misleading-indentation)
+
+    # Disable warning if enum value does not have a corresponding case in switch statement
+    add_compile_options(-Wno-switch)
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221

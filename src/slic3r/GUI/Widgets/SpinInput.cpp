@@ -21,8 +21,8 @@ END_EVENT_TABLE()
  */
 
 SpinInput::SpinInput()
-    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
+    : label_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
 {
     radius = 0;
     border_width     = 1;
@@ -205,8 +205,6 @@ void SpinInput::messureSize()
     if (size.y < h) {
         size.y = h;
     }
-    wxSize minSize = size;
-    minSize.x      = GetMinWidth();
     StaticBox::SetSize(size);
     SetMinSize(size);
     wxSize btnSize = {14, (size.y - 4) / 2};

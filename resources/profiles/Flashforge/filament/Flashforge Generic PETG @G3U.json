@@ -20,7 +20,8 @@
         "1"
     ],
   "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
+    "Flashforge Guider 3 Ultra 0.4 Nozzle",
+    "Flashforge Guider 2s 0.4 nozzle"
   ],
     "compatible_printers_condition": "",
     "compatible_prints": [],
@@ -56,10 +57,10 @@
         "30"
     ],
     "fan_max_speed": [
-        "90"
+        "100"
     ],
     "fan_min_speed": [
-        "40"
+        "80"
     ],
     "filament_cooling_final_speed": [
         "3.4"
