@@ -105,6 +105,7 @@ private:
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
     float m_slice_percent;
+    bool m_has_auto_filament_map_result{false};
 
     Print *m_print; //Print reference, not own it, no need to serialize
     GCodeProcessorResult *m_gcode_result;
@@ -485,6 +486,9 @@ public:
 
     FilamentMapMode get_filament_map_mode();
     void set_filament_map_mode(const FilamentMapMode& mode);
+
+    bool has_auto_filament_map_reslut();
+    void set_auto_filament_map_result(bool has_result);
 
     std::vector<int> get_filament_maps();
     void set_filament_maps(const std::vector<int>& f_maps);

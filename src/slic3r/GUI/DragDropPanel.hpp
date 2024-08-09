@@ -16,7 +16,7 @@ class ColorPanel;
 class DragDropPanel : public wxPanel
 {
 public:
-    DragDropPanel(wxWindow *parent, const wxString &label);
+    DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto);
 
     void AddColorBlock(const wxColour &color, int filament_id);
     void RemoveColorBlock(ColorPanel *panel);
@@ -30,6 +30,7 @@ public:
 private:
     wxBoxSizer *m_sizer;
     wxGridSizer *m_grid_item_sizer;
+    bool         m_is_auto;
 
 private:
     bool m_is_draging = false;

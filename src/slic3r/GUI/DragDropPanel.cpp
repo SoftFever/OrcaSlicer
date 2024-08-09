@@ -171,8 +171,9 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 ///////////////   ColorDropTarget  end ////////////////////////
 
 
-DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label)
+DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE)
+    , m_is_auto(is_auto)
 {
     SetBackgroundColour(*wxLIGHT_GREY);
 
@@ -209,6 +210,9 @@ void DragDropPanel::RemoveColorBlock(ColorPanel *panel)
 
 void DragDropPanel::DoDragDrop(ColorPanel *panel, const wxColour &color, int filament_id)
 {
+    if (m_is_auto)
+        return;
+
     ColorDropSource source(this, panel, color, filament_id);
     source.DoDragDrop(wxDrag_CopyOnly);
 }

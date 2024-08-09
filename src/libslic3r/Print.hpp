@@ -1003,6 +1003,10 @@ public:
     void set_calib_params(const Calib_Params& params);
     const Calib_Params& calib_params() const { return m_calib_params; }
     Vec2d translate_to_print_space(const Vec2d &point) const;
+
+    bool has_auto_filament_map_result() const { return m_has_auto_filament_map_result; }
+    void set_auto_filament_map_result(bool has_result)  { m_has_auto_filament_map_result = has_result; }
+
     // scaled point
     Vec2d translate_to_print_space(const Point &point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
@@ -1085,6 +1089,7 @@ private:
     //BBS
     ConflictResultOpt m_conflict_result;
     FakeWipeTower     m_fake_wipe_tower;
+    bool              m_has_auto_filament_map_result{false};
     
     //SoftFever: calibration
     Calib_Params m_calib_params;

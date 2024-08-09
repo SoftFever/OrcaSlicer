@@ -3194,6 +3194,16 @@ void PartPlate::set_filament_map_mode(const FilamentMapMode& mode)
 	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
 }
 
+bool PartPlate::has_auto_filament_map_reslut()
+{
+    return m_has_auto_filament_map_result;
+}
+
+void PartPlate::set_auto_filament_map_result(bool has_result)
+{
+	m_has_auto_filament_map_result = has_result;
+}
+
 std::vector<int> PartPlate::get_filament_maps()
 {
     std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;

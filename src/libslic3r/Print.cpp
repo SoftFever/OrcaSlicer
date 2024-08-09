@@ -2623,6 +2623,7 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps)
         t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
         m_config.apply_only(m_full_print_config, keys, true);
     }
+    m_has_auto_filament_map_result = true;
 }
 
 std::vector<int> Print::get_filament_maps() const
