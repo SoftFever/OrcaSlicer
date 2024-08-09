@@ -1666,7 +1666,7 @@ void PrintConfigDef::init_fff_params()
                      "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow. "
-                     "The final object flow ratio is this value multiplied by the flament flow ratio.");
+                     "The final object flow ratio is this value multiplied by the filament flow ratio.");
     def->mode = comAdvanced;
     def->max = 2;
     def->min = 0.01;
