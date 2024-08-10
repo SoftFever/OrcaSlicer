@@ -9660,7 +9660,7 @@ void Plater::calib_flowrate(int pass) {
     double layer_height = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
     first_layer_height = std::max(first_layer_height, layer_height);
 
-    float zscale = (first_layer_height + 7 * layer_height) / 1.4;
+    float zscale = (first_layer_height + 7 * layer_height) / 1.6;
     // only enlarge
     if (xyScale > 1.2) {
         for (auto _obj : model().objects)
@@ -9687,6 +9687,8 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100,true));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(4));
+        _obj->config.set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
