@@ -394,6 +394,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machine_limits = MachineEnvelopeConfig();
     filament_load_times = 0.0f;
     filament_unload_times = 0.0f;
+    machine_tool_change_time = 0.0f;
 
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -1118,6 +1119,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // are considered to be active for the single extruder multi-material printers only.
     m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
     m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
+    m_time_processor.machine_tool_change_time = static_cast<float>(config.machine_tool_change_time.value);
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
@@ -1345,6 +1347,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
     if (machine_unload_filament_time != nullptr)
         m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
+
+    const ConfigOptionFloat* machine_tool_change_time = config.option<ConfigOptionFloat>("machine_tool_change_time");
+    if (machine_tool_change_time != nullptr)
+        m_time_processor.machine_tool_change_time = static_cast<float>(machine_tool_change_time->value);
+
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
@@ -4336,6 +4343,7 @@ void GCodeProcessor::process_T(const std::string_view command)
                     float extra_time = get_filament_unload_time(static_cast<size_t>(m_last_extruder_id));
                     m_time_processor.extruder_unloaded = false;
                     extra_time += get_filament_load_time(static_cast<size_t>(m_extruder_id));
+                    extra_time += m_time_processor.machine_tool_change_time;
                     simulate_st_synchronize(extra_time);
                 }
 

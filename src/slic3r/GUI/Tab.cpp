@@ -3437,8 +3437,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
         optgroup->append_single_option_line("filament_unloading_speed", "semm");
-        optgroup->append_single_option_line("filament_load_time", "semm");
-        optgroup->append_single_option_line("filament_unload_time", "semm");
         optgroup->append_single_option_line("filament_toolchange_delay", "semm");
         optgroup->append_single_option_line("filament_cooling_moves", "semm");
         optgroup->append_single_option_line("filament_cooling_initial_speed", "semm");
@@ -3581,10 +3579,9 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == L("Multimaterial")) {
         // Orca: hide specific settings for BBL printers
-        for (auto el :
-             {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
-              "filament_unloading_speed_start", "filament_unloading_speed", "filament_load_time", "filament_unload_time",
-              "filament_toolchange_delay", "filament_cooling_moves", "filament_cooling_initial_speed", "filament_cooling_final_speed"})
+        for (auto el : {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
+                        "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
+                        "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
     }
 }
@@ -3741,8 +3738,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");
-        optgroup->append_single_option_line("machine_load_filament_time");
-        optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("time_cost");
         
         optgroup  = page->new_optgroup(L("Cooling Fan"), "param_cooling_fan");
@@ -4197,6 +4192,11 @@ if (is_marlin_flavor)
         optgroup->append_single_option_line("parking_pos_retraction", "semm");
         optgroup->append_single_option_line("extra_loading_move", "semm");
         optgroup->append_single_option_line("high_current_on_filament_swap", "semm");
+
+        optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("machine_load_filament_time");
+        optgroup->append_single_option_line("machine_unload_filament_time");
+        optgroup->append_single_option_line("machine_tool_change_time");
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 
@@ -4443,9 +4443,8 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == L("Basic information")) {
 
         // SoftFever: hide BBL specific settings
-        for (auto el :
-             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo", "bbl_use_printhost"})
-          toggle_line(el, is_BBL_printer);
+        for (auto el : {"scan_first_layer", "bbl_calib_mark_logo", "bbl_use_printhost"})
+            toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer"})
