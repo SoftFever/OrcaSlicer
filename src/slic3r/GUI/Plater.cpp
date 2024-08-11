@@ -9466,21 +9466,21 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
     }
     
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
