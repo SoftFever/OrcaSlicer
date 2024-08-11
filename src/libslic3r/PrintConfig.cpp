@@ -5329,11 +5329,11 @@ void PrintConfigDef::init_extruder_option_keys()
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
+        "travel_slope",
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types",
-        "travel_slope"
+        "z_hop_types"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
