@@ -16,6 +16,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
+#include <wx/display.h>
 #include <map>
 
 #ifdef __WINDOWS__
