@@ -199,19 +199,23 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
             }
 
             if (std::abs(a00) > EPSILON) {
-                double db1_2, db1_6, db1_12, db1_24;
-                double m00, m10, m01, m20, m11, m02;
+                double db1_2, db1_6, db1_12, db1_24, db1_20, db1_60;
+                double m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
                 if (a00 > 0) {
                     db1_2 = 0.5;
                     db1_6 = 0.16666666666666666666666666666667;
                     db1_12 = 0.083333333333333333333333333333333;
                     db1_24 = 0.041666666666666666666666666666667;
+                    db1_20 = 0.05;
+                    db1_60 = 0.016666666666666666666666666666667;
                 }
                 else {
                     db1_2 = -0.5;
                     db1_6 = -0.16666666666666666666666666666667;
                     db1_12 = -0.083333333333333333333333333333333;
                     db1_24 = -0.041666666666666666666666666666667;
+                    db1_20 = -0.05;
+                    db1_60 = -0.016666666666666666666666666666667;
                 }
                 m00 = a00 * db1_2;
                 m10 = a10 * db1_6;
@@ -219,6 +223,10 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
                 m20 = a20 * db1_12;
                 m11 = a11 * db1_24;
                 m02 = a02 * db1_12;
+                m30 = a30 * db1_20;
+                m21 = a21 * db1_60;
+                m12 = a12 * db1_60;
+                m03 = a03 * db1_20;
 
                 double cx = m10 / m00;
                 double cy = m01 / m00;

@@ -194,7 +194,7 @@ protected:
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_rename_click(wxCommandEvent& event);
 
-    void on_timer();
+    void on_timer(wxTimerEvent& event);
     void init_timer();
 
 private:

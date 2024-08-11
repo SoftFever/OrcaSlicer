@@ -1953,7 +1953,8 @@ std::string fold_utf8_to_ascii(const std::string &src, bool is_convert_for_filen
 	for (wchar_t c : wstr)
 		fold_to_ascii(c, out);
 	if (is_convert_for_filename) {
-		auto   dstStr = boost::locale::conv::utf_to_utf<char>(dst);
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		auto   dstStr = converter.to_bytes(dst);
 
 		std::size_t found = dstStr.find_last_of("/\\");
 		if (found != std::string::npos) {
@@ -1963,7 +1964,7 @@ std::string fold_utf8_to_ascii(const std::string &src, bool is_convert_for_filen
 			std::string newFileName = regex_replace(filename, reg, "");
 			dstStr  = dir + "\\" + newFileName;
         }
-        return dstStr;
+		dst = converter.from_bytes(dstStr);
 	}
 
 	return boost::locale::conv::utf_to_utf<char>(dst.c_str(), dst.c_str() + dst.size());

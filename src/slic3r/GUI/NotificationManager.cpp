@@ -857,7 +857,7 @@ void NotificationManager::PopNotification::bbl_render_block_notif_buttons(ImGuiW
 
 void NotificationManager::PopNotification::bbl_render_block_notif_left_sign(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	// auto window = ImGui::GetCurrentWindow();
+	auto window = ImGui::GetCurrentWindow();
 	//window->DrawList->AddImage(user_texture_id, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, ImGui::GetColorU32(tint_col));
 
 	std::wstring text;

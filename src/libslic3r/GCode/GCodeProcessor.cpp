@@ -3451,6 +3451,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         arc_length = ((int)line.p()) * 2 * PI * (start_point - m_arc_center).norm();
     //BBS: Attention! arc_onterpolation does not support P mode while P is not 1.
     arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float radian = ArcSegment::calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f start_dir = Circle::calc_tangential_vector(start_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f end_dir = Circle::calc_tangential_vector(end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
 

@@ -173,7 +173,7 @@ static FacetSliceType slice_facet(
     // (external on the right of the line)
     for (int j = 0; j < 3; ++ j) {  // loop through facet edges
         int               edge_id;
-        const stl_vertex *a, *b/* , *c */;
+        const stl_vertex *a, *b, *c;
         int               a_id, b_id;
         {
             int   k = (idx_vertex_lowest + j) % 3;
@@ -183,7 +183,7 @@ static FacetSliceType slice_facet(
             a       = vertices + k;
             b_id    = indices[l];
             b       = vertices + l;
-            // c       = vertices + (k + 2) % 3;
+            c       = vertices + (k + 2) % 3;
         }
 
         // Is edge or face aligned with the cutting plane?

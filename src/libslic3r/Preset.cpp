@@ -1570,6 +1570,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     //std::deque<Preset> presets_loaded;
+    int count = 0;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, name %1% , total value counts %2%")%name %preset_values.size();
 

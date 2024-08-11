@@ -2438,7 +2438,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             header = _L_PLURAL("A new vendor was installed and one of its printers will be activated", "New vendors were installed and one of theirs printers will be activated", install_bundles.size());
 
     // Decide whether to create snapshot based on run_reason and the reset profile checkbox
-    /*bool snapshot = true;
+    bool snapshot = true;
     Snapshot::Reason snapshot_reason = Snapshot::SNAPSHOT_UPGRADE;
     switch (run_reason) {
         case ConfigWizard::RR_DATA_EMPTY:
@@ -2456,7 +2456,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             snapshot = false;
             snapshot_reason = Snapshot::SNAPSHOT_USER;
             break;
-    }*/
+    }
 
     //BBS: remove snapshot logic
     /*if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Do you want to continue changing the configuration?")))
@@ -2701,7 +2701,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     //BBS: add BBL as default
     const auto bbl_it = p->bundles.find("BBL");
     wxCHECK_RET(bbl_it != p->bundles.cend(), "Vendor BambooLab not found");
-
+    const VendorProfile * vendor_bbl = bbl_it->second.vendor_profile;
+    
     p->only_sla_mode = false;
     p->any_sla_selected = p->check_sla_selected();
     if (p->only_sla_mode)

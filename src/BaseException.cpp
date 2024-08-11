@@ -358,7 +358,7 @@ void CBaseException::ShowExceptionInformation()
 
 	OutputString(_T("Exception Flag :0x%x "), m_pEp->ExceptionRecord->ExceptionFlags);
 	OutputString(_T("NumberParameters :%ld \n"), m_pEp->ExceptionRecord->NumberParameters);
-	for (unsigned int i = 0; i < m_pEp->ExceptionRecord->NumberParameters; i++)
+	for (int i = 0; i < m_pEp->ExceptionRecord->NumberParameters; i++)
 	{
 		OutputString(_T("Param %d :0x%x \n"), i, m_pEp->ExceptionRecord->ExceptionInformation[i]);
 	}
