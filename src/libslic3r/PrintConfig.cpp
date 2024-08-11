@@ -1822,7 +1822,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_load_filament_time", coFloat);
     def->label = L("Filament load time");
-    def->tooltip = L("Time to load new filament when switching filaments. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. This is for statistical purposes only.");
+    def->tooltip = L("Time to load new filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1830,7 +1830,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_unload_filament_time", coFloat);
     def->label = L("Filament unload time");
-    def->tooltip = L("Time to unload old filament when switching filaments. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. This is for statistical purposes only.");
+    def->tooltip = L("Time to unload old filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1838,7 +1838,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_tool_change_time", coFloat);
     def->label = L("Tool change time");
-    def->tooltip = L("Time taken to switch tools. It's usually applicable for tool changers or multi-tool machines.  For single-extruder multi-material machines, it's typically 0. This is for statistical purposes only.");
+    def->tooltip = L("Time taken to switch tools. It's usually applicable for tool changers or multi-tool machines. For single-extruder multi-material machines, it's typically 0. For statistics only");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
