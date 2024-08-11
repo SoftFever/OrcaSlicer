@@ -127,8 +127,8 @@ void FillBedJob::prepare()
 
     m_bedpts = get_bed_shape(*m_plater->config());
 
-    /*auto &objects = m_plater->model().objects;
-    BoundingBox bedbb = get_extents(m_bedpts);
+    auto &objects = m_plater->model().objects;
+    /*BoundingBox bedbb = get_extents(m_bedpts);
 
     for (size_t idx = 0; idx < objects.size(); ++idx)
         if (int(idx) != m_object_idx)
@@ -209,7 +209,9 @@ void FillBedJob::process(Ctl &ctl)
     m_bedpts = get_shrink_bedpts(m_plater->config(), params);
 
     auto &partplate_list               = m_plater->get_partplate_list();
+    auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor();
     if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
@@ -272,6 +274,8 @@ void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
     PartPlateList& plate_list = m_plater->get_partplate_list();
     int plate_cols = plate_list.get_plate_cols();
     int cur_plate = plate_list.get_curr_plate_index();
+
+    size_t inst_cnt = model_object->instances.size();
 
     int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0, [](int s, auto &ap) {
         return s + int(ap.priority == 0 && ap.bed_idx == 0);

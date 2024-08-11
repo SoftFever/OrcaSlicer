@@ -46,6 +46,7 @@ void OrientJob::prepare_selection(std::vector<bool> obj_sel, bool only_one_plate
             ModelInstance* mi = mo->instances[inst_idx];
             OrientMesh&& om = get_orient_mesh(mi);
 
+            bool locked = false;
             if (!only_one_plate) {
                 int plate_index = plate_list.find_instance(oidx, inst_idx);
                 if ((plate_index >= 0)&&(plate_index < plate_list.get_plate_count())) {

@@ -59,6 +59,7 @@ wxString SendToPrinterDialog::format_text(wxString &m_msg)
 
 	wxString out_txt = m_msg;
 	wxString count_txt = "";
+	int      new_line_pos = 0;
 
 	for (int i = 0; i < m_msg.length(); i++) {
 		auto text_size = m_statictext_printer_msg->GetTextExtent(count_txt);
@@ -1336,6 +1337,11 @@ void SendToPrinterDialog::set_default()
     m_scrollable_region->Fit();
     Layout();
     Fit();
+
+  
+    wxSize screenSize = wxGetDisplaySize();
+    auto dialogSize = this->GetSize();
+
 
     // basic info
     auto       aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();

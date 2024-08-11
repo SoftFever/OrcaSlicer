@@ -186,7 +186,7 @@ bool GLGizmosManager::init()
     // Order of gizmos in the vector must match order in EType!
     //BBS: GUI refactor: add obj manipulation
     m_gizmos.clear();
-    // unsigned int sprite_id = 0;
+    unsigned int sprite_id = 0;
     m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, m_is_dark ? "toolbar_move_dark.svg" : "toolbar_move.svg", EType::Move, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, m_is_dark ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, m_is_dark ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
@@ -1042,7 +1042,11 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
     for (size_t idx : selectable_idxs)
     {
         if (idx == highlighted_type) {
+            int tex_width = m_icons_texture.get_width();
+            int tex_height = m_icons_texture.get_height();
             unsigned int tex_id = m_arrow_texture.get_id();
+            float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+            float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
 
             const float left_uv   = 0.0f;
             const float right_uv  = 1.0f;

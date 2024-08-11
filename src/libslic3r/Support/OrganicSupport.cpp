@@ -1,6 +1,12 @@
 #include "OrganicSupport.hpp"
 #include "SupportCommon.hpp"
+
+#include "../AABBTreeLines.hpp"
+#include "../ClipperUtils.hpp"
+#include "../Polygon.hpp"
+#include "../Polyline.hpp"
 #include "../MutablePolygon.hpp"
+#include "../TriangleMeshSlicer.hpp"
 
 #include <cassert>
 

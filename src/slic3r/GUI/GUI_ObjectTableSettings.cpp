@@ -108,6 +108,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
     //SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&config->get(), is_object);
     std::map<std::string, std::vector<SimpleSettingData>> cat_options;
     std::vector<SimpleSettingData> category_settings = SettingsFactory::get_visible_options(category, !is_object);
+    bool display_multiple = false;
     auto is_option_modified = [this](std::string key) {
         ConfigOption* config_option1 = m_origin_config.option(key);
         ConfigOption* config_option2 = m_current_config.option(key);
@@ -146,6 +147,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             else
                 it1 = cat_options.erase(it1);
         }
+        display_multiple = true;
     }
     else {
         cat_options.emplace(category, category_settings);
