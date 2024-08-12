@@ -4069,9 +4069,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             GLGizmosManager::EType c = m_gizmos.get_current_type();
             if (current_printer_technology() == ptFFF &&
                 (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
-                if (c == GLGizmosManager::EType::Move ||
-                    c == GLGizmosManager::EType::Scale ||
-                    c == GLGizmosManager::EType::Rotate )
+                if (can_sequential_clearance_show_in_gizmo())
                     update_sequential_clearance();
             } else {
                 if (c == GLGizmosManager::EType::Move ||
@@ -5233,6 +5231,17 @@ void GLCanvas3D::mouse_up_cleanup()
 
     if (m_canvas->HasCapture())
         m_canvas->ReleaseMouse();
+}
+
+bool GLCanvas3D::can_sequential_clearance_show_in_gizmo() {
+    switch (m_gizmos.get_current_type()) {
+    case GLGizmosManager::EType::Move:
+    case GLGizmosManager::EType::Scale:
+    case GLGizmosManager::EType::Rotate: {
+        return true;
+    }
+    }
+    return false;
 }
 
 void GLCanvas3D::update_sequential_clearance()
@@ -7439,19 +7448,11 @@ void GLCanvas3D::_render_sequential_clearance()
 {
     if (m_gizmos.is_dragging())
         return;
-
-    switch (m_gizmos.get_current_type())
-    {
-    case GLGizmosManager::EType::Flatten:
-    case GLGizmosManager::EType::Cut:
-    // case GLGizmosManager::EType::Hollow:
-    // case GLGizmosManager::EType::SlaSupports:
-    case GLGizmosManager::EType::FdmSupports:
-    case GLGizmosManager::EType::Seam: { return; }
-    default: { break; }
+    auto type = m_gizmos.get_current_type();
+    if (type == GLGizmosManager::EType::Undefined
+        || can_sequential_clearance_show_in_gizmo()) {
+        m_sequential_print_clearance.render();
     }
-
-    m_sequential_print_clearance.render();
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER

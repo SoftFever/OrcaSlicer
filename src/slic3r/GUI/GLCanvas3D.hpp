@@ -1112,6 +1112,7 @@ public:
         m_sequential_print_clearance.set_polygons(polygons, height_polygons);
     }
 
+    bool can_sequential_clearance_show_in_gizmo();
     void update_sequential_clearance();
 
     const Print* fff_print() const;
