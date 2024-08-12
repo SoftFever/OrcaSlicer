@@ -91,6 +91,11 @@ static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
 // static const size_t g_max_label_object = 64;
 
+static const std::string lift_gcode_after_printing_object = "{if toolchange_count > 1 && (z_hop_types[current_extruder] == 0 || z_hop_types[current_extruder] == 3)}\n"
+                                                            "G17\n"
+                                                            "G2 Z{z_after_toolchange + 0.4} I0.86 J0.86 P1 F10000 ; spiral lift a little from second lift\n"
+                                                            "{endif}\n";
+
 Vec2d travel_point_1;
 Vec2d travel_point_2;
 Vec2d travel_point_3;
@@ -564,8 +569,14 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
         std::string toolchange_gcode_str;
-        const std::string& change_filament_gcode = gcodegen.config().change_filament_gcode.value;
-//        m_max_layer_z = std::max(m_max_layer_z, tcr.print_z);
+        std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
+
+        std::string prefix_gcode = lift_gcode_after_printing_object;
+        if (gcodegen.config().nozzle_diameter.size() > 1) {
+            prefix_gcode += nozzle_change_gcode_trans;
+        }
+        change_filament_gcode = prefix_gcode + change_filament_gcode;
+
         if (! change_filament_gcode.empty()) {
             DynamicConfig config;
             int old_filament_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
@@ -642,12 +653,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 }
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
-
-            std::string target_str = ";nozzle_change_gcode";
-            size_t pos = toolchange_gcode_str.find(target_str);
-            if (pos != std::string::npos) {
-                toolchange_gcode_str.replace(pos, target_str.length(), nozzle_change_gcode_trans);
-            }
 
             check_add_eol(toolchange_gcode_str);
 
@@ -6638,7 +6643,11 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     }
 
     // Process the custom change_filament_gcode.
-    const std::string& change_filament_gcode = m_config.change_filament_gcode.value;
+    std::string change_filament_gcode = m_config.change_filament_gcode.value;
+
+    // Move the lift gcode here which is in the change_filament_gcode originally
+    change_filament_gcode = lift_gcode_after_printing_object + change_filament_gcode;
+
     std::string toolchange_gcode_parsed;
     //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
     if (!change_filament_gcode.empty() && !(m_config.manual_filament_change.value && m_toolchange_count == 1)) {
