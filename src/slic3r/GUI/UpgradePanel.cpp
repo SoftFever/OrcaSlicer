@@ -670,6 +670,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             show_ams(true);
             std::map<int, MachineObject::ModuleVersionInfo> ver_list = obj->get_ams_version();
 
+            AmsPanelHash::iterator iter = m_amspanel_list.begin();
+
             for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
                 AmsPanel* amspanel = m_amspanel_list[i];
                 amspanel->Hide();

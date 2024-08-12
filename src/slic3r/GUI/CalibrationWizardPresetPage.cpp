@@ -790,6 +790,7 @@ wxString CalibrationPresetPage::format_text(wxString& m_msg)
 
     wxString out_txt = m_msg;
     wxString count_txt = "";
+    int      new_line_pos = 0;
 
     for (int i = 0; i < m_msg.length(); i++) {
         auto text_size = m_statictext_printer_msg->GetTextExtent(count_txt);

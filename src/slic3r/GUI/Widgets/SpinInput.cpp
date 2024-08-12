@@ -205,6 +205,8 @@ void SpinInput::messureSize()
     if (size.y < h) {
         size.y = h;
     }
+    wxSize minSize = size;
+    minSize.x      = GetMinWidth();
     StaticBox::SetSize(size);
     SetMinSize(size);
     wxSize btnSize = {14, (size.y - 4) / 2};

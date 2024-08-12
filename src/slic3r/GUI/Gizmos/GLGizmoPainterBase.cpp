@@ -527,9 +527,20 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
     if (m_rr.mesh_id == -1)
         return hit_triangles_by_mesh;
 
+    ProjectedMousePosition mesh_hit_point = { m_rr.hit, m_rr.mesh_id, m_rr.facet };
     float z_bot_world= (trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2))).z();
     float z_top_world = z_bot_world+ m_cursor_height;
     hit_triangles_by_mesh.push_back({ z_bot_world, m_rr.mesh_id, size_t(m_rr.facet) });
+
+    const Selection& selection = m_parent.get_selection();
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
+    const Transform3d   instance_trafo = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+        mi->get_assemble_transformation().get_matrix() :
+        mi->get_transformation().get_matrix();
+    const Transform3d   instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+        mi->get_assemble_transformation().get_matrix_no_offset() :
+        mi->get_transformation().get_matrix_no_offset();
 
     for (int mesh_idx = 0; mesh_idx < part_volumes.size(); mesh_idx++) {
         if (mesh_idx == m_rr.mesh_id)
@@ -701,6 +712,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 // The mouse button click detection is enabled when there is a valid hit.
                 // Missing the object entirely
                 // shall not capture the mouse.
+                const bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
                 if (mesh_idx != -1 && m_button_down == Button::None)
                     m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
 
@@ -1051,7 +1063,7 @@ void GLGizmoPainterBase::on_set_state()
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
         on_opening();
 
-        // const Selection& selection = m_parent.get_selection();
+        const Selection& selection = m_parent.get_selection();
         //Camera& camera = wxGetApp().plater()->get_camera();
         //Vec3d rotate_target = selection.get_bounding_box().center();
         //rotate_target(2) = 0.f;

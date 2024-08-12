@@ -831,6 +831,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
             for (int i = k+1; i < print_instance_count; i++)
             {
+                auto& p = print_instance_with_bounding_box[i].print_instance;
                 auto bbox2 = print_instance_with_bounding_box[i].bounding_box;
                 auto py1 = bbox2.min.y();
                 auto py2 = bbox2.max.y();
@@ -1401,30 +1402,32 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
 
-    if (is_BBL_printer()) {
+	    if (is_BBL_printer()) {
 	    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
-        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
 	    for (unsigned int extruder_id : extruders) {
-	        int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-	        if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
-	            std::string bed_type_name;
-	            for (auto item : *bed_type_keys_map) {
-	                if (item.second == m_config.curr_bed_type) {
-	                    bed_type_name = item.first;
-	                    break;
+	        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+	        for (unsigned int extruder_id : extruders) {
+	            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
+	            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+	                std::string bed_type_name;
+	                for (auto item : *bed_type_keys_map) {
+	                    if (item.second == m_config.curr_bed_type) {
+	                        bed_type_name = item.first;
+	                        break;
+	                    }
 	                }
-	            }
 
-	            StringObjectException except;
-	            except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
-	            except.string += "\n";
-	            except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
-	            except.params.push_back(std::to_string(this->get_plate_index() + 1));
-	            except.params.push_back(L(bed_type_name));
-	            except.params.push_back(std::to_string(extruder_id+1));
-	            except.object = nullptr;
-	            return except;
-	       }
+	                StringObjectException except;
+	                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+	                except.string += "\n";
+	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+	                except.params.push_back(std::to_string(this->get_plate_index() + 1));
+	                except.params.push_back(L(bed_type_name));
+	                except.params.push_back(std::to_string(extruder_id+1));
+	                except.object = nullptr;
+	                return except;
+	           }
+            }
         }
     }
 
@@ -1441,7 +1444,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
                 return warning_key;
             };
-            /* auto check_motion_ability_region_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
+            auto check_motion_ability_region_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
                 std::string warning_key;
                 for (const auto& key : keys_to_check) {
                     if (m_default_region_config.get_abs_value(key) > limit) {
@@ -1450,7 +1453,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     }
                 }
                 return warning_key;
-            }; */
+            };
             std::string warning_key;
 
             // check jerk
@@ -2463,7 +2466,7 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
             in.close();
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
             filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
-            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH","SBS"};
             filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }
     }
@@ -2666,7 +2669,7 @@ void Print::_make_wipe_tower()
             for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
                 if (!layer_tools.has_wipe_tower)
                     continue;
-                // bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
                 wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
                                            current_extruder_id);
 

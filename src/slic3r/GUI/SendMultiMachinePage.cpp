@@ -300,7 +300,7 @@ SendMultiMachinePage::SendMultiMachinePage(Plater* plater)
     m_main_scroll->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this); e.Skip(); });
 
     init_timer();
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &SendMultiMachinePage::on_timer, this);
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
@@ -451,6 +451,8 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     auto use_ams = false;
 
     AmsRadioSelectorList::Node* node = m_radio_group.GetFirst();
+    auto                     groupid = 0;
+
 
     while (node) {
         AmsRadioSelector* rs = node->GetData();
@@ -470,11 +472,13 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
    
     PrintPrepareData job_data;
     m_plater->get_print_job_data(&job_data);
-    
-    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-    auto check_access_code_path = temp_file.c_str();
-    BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
-    job_data._temp_path = fs::path(check_access_code_path);
+
+    if (&job_data) {
+        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+        auto check_access_code_path = temp_file.c_str();
+        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+        job_data._temp_path = fs::path(check_access_code_path);
+    }
 
     int curr_plate_idx;
     if (job_data.plate_idx >= 0)
@@ -635,7 +639,7 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
 
     int result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
         if (m_is_canceled) return;
-        // bool     cancelled = false;
+        bool     cancelled = false;
         wxString msg = _L("Preparing print job");
         //m_status_bar->update_status(msg, cancelled, 10, true);
         //m_export_3mf_cancel = cancel = cancelled;
@@ -734,7 +738,7 @@ bool SendMultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(4000);
-        on_timer();
+        wxPostEvent(this, wxTimerEvent());
     }
     else {
         m_refresh_timer->Stop();
@@ -931,6 +935,7 @@ void SendMultiMachinePage::on_set_finish_mapping(wxCommandEvent& evt)
 
     if (selection_data_arr.size() == 6) {
         auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
+        int  old_filament_id = (int)wxAtoi(selection_data_arr[5]);
 
         int ctype = 0;
         std::vector<wxColour> material_cols;
@@ -1142,7 +1147,7 @@ wxPanel* SendMultiMachinePage::create_page()
         e.Skip();
     });
 
-    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
+    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
     m_printer_name->SetBackgroundColor(head_bg);
     m_printer_name->SetCornerRadius(0);
     m_printer_name->SetFont(TABLE_HEAD_FONT);
@@ -1164,7 +1169,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(10) );
     m_table_head_sizer->Add(m_printer_name, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
+    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
     m_device_status->SetBackgroundColor(head_bg);
     m_device_status->SetFont(TABLE_HEAD_FONT);
     m_device_status->SetCornerRadius(0);
@@ -1207,7 +1212,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     //m_table_head_sizer->Add(m_task_status, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE, false);
+    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE, false);
     m_ams->SetBackgroundColor(head_bg);
     m_ams->SetCornerRadius(0);
     m_ams->SetFont(TABLE_HEAD_FONT);
@@ -1228,7 +1233,7 @@ wxPanel* SendMultiMachinePage::create_page()
     });
     m_table_head_sizer->Add(m_ams, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, MM_ICON_SIZE, false);
+    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, ICON_SIZE, false);
     m_refresh_button->SetBackgroundColor(head_bg);
     m_refresh_button->SetCornerRadius(0);
     m_refresh_button->SetFont(TABLE_HEAD_FONT);
@@ -1380,6 +1385,7 @@ void SendMultiMachinePage::sync_ams_list()
     BitmapCache    bmcache;
     MaterialHash::iterator iter = m_material_list.begin();
     while (iter != m_material_list.end()) {
+        int       id = iter->first;
         Material* item = iter->second;
         item->item->Destroy();
         delete item;
@@ -1408,6 +1414,7 @@ void SendMultiMachinePage::sync_ams_list()
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_material_list.begin();
             while (iter != m_material_list.end()) {
+                int           id = iter->first;
                 Material* item = iter->second;
                 MaterialItem* m = item->item;
                 m->on_normal();
@@ -1416,6 +1423,9 @@ void SendMultiMachinePage::sync_ams_list()
 
             m_current_filament_id = extruder;
             item->on_selected();
+
+            auto    mouse_pos = ClientToScreen(e.GetPosition());
+            wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
             // update ams data
             if (get_value_radio("use_ams")) {
@@ -1646,7 +1656,7 @@ void SendMultiMachinePage::init_timer()
     m_refresh_timer = new wxTimer();
 }
 
-void SendMultiMachinePage::on_timer()
+void SendMultiMachinePage::on_timer(wxTimerEvent& event)
 {
     for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
         it->second->sync_state();

@@ -841,8 +841,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
     "enable_pressure_advance", "pressure_advance","adaptive_pressure_advance","adaptive_pressure_advance_model","adaptive_pressure_advance_overhangs", "adaptive_pressure_advance_bridges","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
-    "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
-    "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves", "filament_stamping_loading_speed", "filament_stamping_distance",
+    "filament_loading_speed", "filament_loading_speed_start",
+    "filament_unloading_speed", "filament_unloading_speed_start", "filament_toolchange_delay", "filament_cooling_moves", "filament_stamping_loading_speed", "filament_stamping_distance",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
     "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut", "idle_temperature"
@@ -865,11 +865,9 @@ static std::vector<std::string> s_Preset_printer_options {
     "nozzle_height",
     "default_print_profile", "inherits",
     "silent_mode",
-    // BBS
-    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time","time_cost", "machine_pause_gcode", "template_custom_gcode",
+    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_tool_change_time", "time_cost", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types", "travel_slope", "retract_lift_enforce","support_chamber_temp_control","support_air_filtration","printer_structure",
     "best_object_pos","head_wrap_detect_zone",
-    //SoftFever
     "host_type", "print_host", "printhost_apikey", "bbl_use_printhost",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
@@ -1572,6 +1570,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     //std::deque<Preset> presets_loaded;
+    int count = 0;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, name %1% , total value counts %2%")%name %preset_values.size();
 

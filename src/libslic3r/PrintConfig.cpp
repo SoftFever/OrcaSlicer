@@ -1822,7 +1822,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_load_filament_time", coFloat);
     def->label = L("Filament load time");
-    def->tooltip = L("Time to load new filament when switch filament. For statistics only");
+    def->tooltip = L("Time to load new filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1830,11 +1830,20 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_unload_filament_time", coFloat);
     def->label = L("Filament unload time");
-    def->tooltip = L("Time to unload old filament when switch filament. For statistics only");
+    def->tooltip = L("Time to unload old filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("machine_tool_change_time", coFloat);
+    def->label = L("Tool change time");
+    def->tooltip = L("Time taken to switch tools. It's usually applicable for tool changers or multi-tool machines. For single-extruder multi-material machines, it's typically 0. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat { 0. });
+
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -1982,28 +1991,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 3.4 });
 
-    def = this->add("filament_load_time", coFloats);
-    def->label = L("Filament load time");
-    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
-    def->sidetext = L("s");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
-
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
     def->tooltip = L("This string is edited by RammingDialog and contains ramming specific parameters.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
        " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" });
-
-    def = this->add("filament_unload_time", coFloats);
-    def->label = L("Filament unload time");
-    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
-    def->sidetext = L("s");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("filament_multitool_ramming", coBools);
     def->label = L("Enable ramming for multitool setups");
@@ -2077,6 +2070,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PPS-CF");
     def->enum_values.push_back("PVA");
     def->enum_values.push_back("PVB");
+    def->enum_values.push_back("SBS");
     def->enum_values.push_back("TPU");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
@@ -6146,7 +6140,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "z_hop_type", "z_lift_type", "bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "extruder_type",
-        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill"
+        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

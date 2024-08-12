@@ -1,5 +1,8 @@
+#include <numeric>
+
 #include "SlicesToTriangleMesh.hpp"
 
+//#include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Execution/ExecutionTBB.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Tesselate.hpp"
