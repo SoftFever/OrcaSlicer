@@ -138,6 +138,8 @@ void GLGizmoMeshBoolean::on_render()
 
     BoundingBoxf3 src_bb;
     BoundingBoxf3 tool_bb;
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    const ModelInstance* mi = mo->instances[m_parent.get_selection().get_instance_idx()];
     const Selection& selection = m_parent.get_selection();
     const Selection::IndicesList& idxs = selection.get_volume_idxs();
     for (unsigned int i : idxs) {
@@ -161,12 +163,16 @@ void GLGizmoMeshBoolean::on_set_state()
     if (m_state == EState::On) {
         m_src.reset();
         m_tool.reset();
+        bool m_diff_delete_input = false;
+        bool m_inter_delete_input = false;
         m_operation_mode = MeshBooleanOperation::Union;
         m_selecting_state = MeshBooleanSelectingState::SelectSource;
     }
     else if (m_state == EState::Off) {
         m_src.reset();
         m_tool.reset();
+        bool m_diff_delete_input = false;
+        bool m_inter_delete_input = false;
         m_operation_mode = MeshBooleanOperation::Undef;
         m_selecting_state = MeshBooleanSelectingState::Undef;
         wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);

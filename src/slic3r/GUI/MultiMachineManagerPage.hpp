@@ -55,7 +55,7 @@ public:
 
     void start_timer();
     void update_page_number();
-    void on_timer();
+    void on_timer(wxTimerEvent& event);
     void clear_page();
 
     void page_num_enter_evt();

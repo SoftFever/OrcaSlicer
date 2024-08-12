@@ -133,7 +133,7 @@ namespace GUI {
             }
           
         }
-        catch (std::exception&) {
+        catch (std::exception& e) {
             // wxMessageBox(e.what(), "json Exception", MB_OK);
         }
     }

@@ -1466,6 +1466,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent)
             int tex_width, tex_height;
             if (item->is_action_with_text_image()) {
                 float scaled_text_size = m_layout.text_size * m_layout.scale * inv_cnv_w;
+                float scaled_text_width = item->get_extra_size_ratio() * icons_size_x;
                 float scaled_text_border = 2.5 * m_layout.scale * inv_cnv_h;
                 float scaled_text_height = icons_size_y / 2.0f;
                 item->render_text(left, left + scaled_text_size, top - scaled_text_border - scaled_text_height, top - scaled_text_border);

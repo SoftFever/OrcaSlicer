@@ -711,9 +711,9 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     // Create new items for settings popupmenu
 
-//    if (printer_technology() == ptFFF ||
-//        (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        // menu->SetFirstSeparator();
+    if (printer_technology() == ptFFF ||
+        (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
+        ;// menu->SetFirstSeparator();
 
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
@@ -1341,7 +1341,7 @@ void MenuFactory::create_extra_object_menu()
     m_object_menu.AppendSeparator();
     // Set filament insert menu item here
     // Set Printable
-    append_menu_item_printable(&m_object_menu);
+    wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
     append_menu_item_per_object_process(&m_object_menu);
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
@@ -1496,6 +1496,8 @@ void MenuFactory::create_plate_menu()
     // arrange objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->arrange();
         }, "", nullptr,
@@ -1508,6 +1510,8 @@ void MenuFactory::create_plate_menu()
     append_menu_item(
         menu, wxID_ANY, _L("Reload All"), _L("reload all from disk"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->reload_all_from_disk();
         },
@@ -1516,6 +1520,8 @@ void MenuFactory::create_plate_menu()
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rotate current plate"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             //BBS TODO call auto rotate for current plate
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
@@ -1800,7 +1806,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
 }
@@ -1913,16 +1919,16 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 
-    // int initial_extruder = -1; // negative value for multiple object/part selection
-    // if (sels.Count() == 1) {
-    //     const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-    //     // BBS
-    //     const auto sel_vol = obj_list()->get_selected_model_volume();
-    //     if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
-    //         initial_extruder = config.has("extruder") ? config.extruder() : 0;
-    //     else
-    //         initial_extruder = config.has("extruder") ? config.extruder() : 1;
-    // }
+    int initial_extruder = -1; // negative value for multiple object/part selection
+    if (sels.Count() == 1) {
+        const ModelConfig& config = obj_list()->get_item_config(sels[0]);
+        // BBS
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
+            initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        else
+            initial_extruder = config.has("extruder") ? config.extruder() : 1;
+    }
 
     // BBS
     bool has_modifier = false;
@@ -1963,6 +1969,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
 
 void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 {
+    const Selection& selection = plater()->canvas3D()->get_selection();
     bool all_printable = true;
     ObjectList* list = obj_list();
     wxDataViewItemArray sels;
@@ -1970,6 +1977,7 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 
     for (wxDataViewItem item : sels) {
         ItemType type = list->GetModel()->GetItemType(item);
+        bool check;
         if (type != itInstance && type != itObject)
             continue;
         else {
@@ -2012,8 +2020,8 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
         }, "", nullptr, []() { return true; }, m_parent);
 
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        // PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-        // assert(plate);
+        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+        assert(plate);
         //bool check = plate->is_locked();
         //evt.Check(check);
         plater()->set_current_canvas_as_dirty();
@@ -2049,6 +2057,8 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
     m_parent->Bind(
         wxEVT_UPDATE_UI,
         [](wxUpdateUIEvent &evt) {
+            PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_current_canvas_as_dirty();
         },
         item->GetId());

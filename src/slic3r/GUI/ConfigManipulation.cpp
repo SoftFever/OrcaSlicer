@@ -282,6 +282,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (!is_plate_config &&
         config->opt_bool("spiral_mode") &&
@@ -297,6 +298,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
+        bool support = true;
         if (answer == wxID_YES) {
             new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -308,6 +310,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
+            timelapse_type = TimelapseType::tlTraditional;
+            support = false;
         }
         else {
             new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));

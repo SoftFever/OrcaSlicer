@@ -182,6 +182,8 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
+    bool compression_enabled = false;
+
     NSVGimage *image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
     if (image == nullptr) { return false; }
 
@@ -234,6 +236,7 @@ bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, Th
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;
+    ImGuiIO& io = ImGui::GetIO();
 
     const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
 
@@ -1790,7 +1793,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     ImGui::ListBoxFooter();
 
-    /*auto check_box = [&edited, this](const wxString& label, bool& check) {
+    auto check_box = [&edited, this](const wxString& label, bool& check) {
         ImGui::SameLine();
         bool ch = check;
         checkbox(label, ch);
@@ -1798,7 +1801,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
             check = !check;
             edited = true;
         }
-    };*/
+    };
 
     ImGui::AlignTextToFramePadding();
 
@@ -3146,6 +3149,7 @@ bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
 
+    bool compress = false;
     GLint last_texture;
     unsigned m_image_texture{ 0 };
     unsigned char* pixels = (unsigned char*)(&data[0]);

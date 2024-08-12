@@ -1,4 +1,6 @@
 #include "../Print.hpp"
+#include "../PrintConfig.hpp"
+#include "../Slicing.hpp"
 #include "SupportParameters.hpp"
 
 namespace Slic3r::FFFSupport {

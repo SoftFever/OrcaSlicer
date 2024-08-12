@@ -1595,6 +1595,7 @@ SkeletalTrapezoidation::edge_t* SkeletalTrapezoidation::getQuadMaxRedgeTo(edge_t
 
 void SkeletalTrapezoidation::propagateBeadingsUpward(std::vector<edge_t*>& upward_quad_mids, ptr_vector_t<BeadingPropagation>& node_beadings)
 {
+    const auto _central_filter_dist = central_filter_dist();
     for (auto upward_quad_mids_it = upward_quad_mids.rbegin(); upward_quad_mids_it != upward_quad_mids.rend(); ++upward_quad_mids_it)
     {
         edge_t* upward_edge = *upward_quad_mids_it;
@@ -1611,7 +1612,7 @@ void SkeletalTrapezoidation::propagateBeadingsUpward(std::vector<edge_t*>& upwar
         { // Only propagate to places where there is place
             continue;
         }
-        assert((upward_edge->from->data.distance_to_boundary != upward_edge->to->data.distance_to_boundary || shorter_then(upward_edge->to->p - upward_edge->from->p, central_filter_dist())) && "zero difference R edges should always be central");
+        assert((upward_edge->from->data.distance_to_boundary != upward_edge->to->data.distance_to_boundary || shorter_then(upward_edge->to->p - upward_edge->from->p, _central_filter_dist)) && "zero difference R edges should always be central");
         coord_t length = (upward_edge->to->p - upward_edge->from->p).cast<int64_t>().norm();
         BeadingPropagation upper_beading = lower_beading;
         upper_beading.dist_to_bottom_source += length;
