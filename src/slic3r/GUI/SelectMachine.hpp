@@ -360,6 +360,7 @@ private:
     wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
+    Label* m_text_bed_type;
     
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::map<std::string, CheckBox *>   m_checkbox_list;

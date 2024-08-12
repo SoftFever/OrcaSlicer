@@ -1111,7 +1111,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
 
     /*bed type*/
-    auto m_text_bed_type = new Label(m_basic_panel, "Plate: Textured PEI");
+    m_text_bed_type = new Label(m_basic_panel);
     m_text_bed_type->SetFont(Label::Body_13);
 
     /*last & next page*/
@@ -4685,6 +4685,31 @@ void SelectMachineDialog::sys_color_changed()
 
 bool SelectMachineDialog::Show(bool show)
 {
+    show_status(PrintDialogStatus::PrintStatusInit);
+
+    const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    auto          cur_preset_name = preset_bundle.printers.get_edited_preset().name;
+    auto name = wxGetApp().app_config->get_section("user_bed_type_list");
+    std::string plate_name = "";
+    for (auto it : name) {
+        if (it.first == cur_preset_name) {
+            plate_name = it.second;
+            break;
+        }
+    }
+    if (bed_type_def != nullptr){
+        for (auto it : bed_type_def->enum_labels) {
+            if (it.find(plate_name) != std::string::npos) {
+                plate_name = it;
+                break;
+            }
+        }
+    }
+    
+    plate_name = "Plate: " + plate_name;
+    m_text_bed_type->SetLabelText(plate_name);
+
     // set default value when show this dialog
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
