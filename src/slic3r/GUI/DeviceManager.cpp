@@ -3166,6 +3166,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                     if (!key_field_only) {
+                        if (jj.contains("flag3")) {
+                            int flag3 = jj["flag3"].get<int>();
+                            is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
+                        }
+                    }
+                    if (!key_field_only) {
                         if (jj.contains("net")) {
                             if (jj["net"].contains("conf")) {
                                 network_wired = (jj["net"]["conf"].get<int>() & (0x1)) != 0;
@@ -4308,6 +4314,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            auto err_code = jj["err_code"].get<int>();
+                            print_error = err_code;
+                        }
+                    }
+
+
                     // BBS trigger ams UI update
                     ams_version = -1;
 

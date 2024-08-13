@@ -413,7 +413,13 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    m_button_confirm->Show(en);
+    if (!en) {
+        m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
+    }
+    else {
+        m_button_confirm->Show(en);
+    }
+
     if (!m_is_third) {
         m_tip_readonly->Hide(); 
     }
@@ -705,7 +711,7 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
 {
-    if(!m_is_third || obj->is_in_printing() || obj->can_resume())
+    if(!m_is_third || !obj->is_support_filament_setting_inprinting)
         return;
 
 
@@ -922,8 +928,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
 
         m_button_reset->Show();
-        m_button_confirm->Show(); 
-    } 
+        //m_button_confirm->Show(); 
+    }
 
     m_comboBox_filament->Set(filament_items);
     m_comboBox_filament->SetSelection(selection_idx);

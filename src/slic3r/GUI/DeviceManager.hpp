@@ -762,6 +762,7 @@ public:
     bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
+    bool is_support_filament_setting_inprinting{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
