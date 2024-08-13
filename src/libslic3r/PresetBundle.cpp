@@ -2001,7 +2001,7 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
         if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
     }
 
-    //assert(printer_names.size() == 1);
+    assert(printer_names.size() == 1);
 
     for (auto& printer_name : printer_names) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " printer name: " << printer_name;

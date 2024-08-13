@@ -313,6 +313,7 @@ struct DisValue {
     bool  is_type_match = true;
 };
 
+class Preset;
 class MachineObject
 {
 private:
@@ -973,6 +974,13 @@ public:
     void get_firmware_info();
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(FanType type);
+
+    /* Device Filament Check */
+    std::set<std::string> m_checked_filament;
+    std::string m_printer_preset_name;
+    std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
+    void update_filament_list();
+    void update_printer_preset_name(const std::string &nozzle_diameter_str);
 };
 
 class DeviceManager
