@@ -375,7 +375,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 #endif
             SetStatus(msg2);
         } else
-            SetStatus(_L("Stopped."), false);
+            SetStatus(_L("Video Stopped."), false);
         m_last_state = MEDIASTATE_IDLE;
         bool auto_retry = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
         if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
