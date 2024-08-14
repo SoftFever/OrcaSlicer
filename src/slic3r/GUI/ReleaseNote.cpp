@@ -1437,7 +1437,7 @@ void ConfirmBeforeSendDialog::rescale()
 }
 
 InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
-    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("LAN Connection Failed (Sending print file)"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Connect the printer using IP and access code"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -1527,7 +1527,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_ok = new Button(this, _L("Test"));
+    m_button_ok = new Button(this, _L("Connect"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(wxColour(0xFFFFFE));
@@ -1552,7 +1552,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     });
 
     m_sizer_button->AddStretchSpacer();
-    //m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
 
@@ -1560,7 +1560,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
 
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
@@ -1632,12 +1631,12 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_input_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
+    //m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_test_right_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(m_test_wrong_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
 
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Layout();
    
@@ -1646,8 +1645,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main->Layout();
 
     m_sizer_body->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_body->Add(m_sizer_main, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_body->Add(m_sizer_main, 0, wxRIGHT, FromDIP(10));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxEXPAND, FromDIP(18));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -1655,6 +1654,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(8));
     m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
     
     SetSizer(m_sizer_body);
@@ -1665,24 +1665,33 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     Move(wxPoint(GetScreenPosition().x, GetScreenPosition().y - FromDIP(50)));
     wxGetApp().UpdateDlgDarkUI(this);
 
+    closeTimer = new wxTimer();
+    closeTimer->SetOwner(this);
+    Bind(wxEVT_TIMER, &InputIpAddressDialog::OnTimer, this);
+
     Bind(EVT_CHECK_IP_ADDRESS_FAILED, &InputIpAddressDialog::on_check_ip_address_failed, this);
 
     Bind(EVT_CLOSE_IPADDRESS_DLG, [this](auto& e) {
         m_status_bar->reset();
         EndModal(wxID_YES);
     });
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {on_cancel();});
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+        on_cancel();
+        closeTimer->Stop();
+    });
 
 }
 
 void InputIpAddressDialog::on_cancel()
 {
-    m_worker->cancel_all();
-    if (m_result == 0){
-        this->EndModal(wxID_YES);
-    }else {
-        this->EndModal(wxID_CANCEL);
+    if (m_thread) {
+        m_thread->interrupt();
+        m_thread->join();
+        delete m_thread;
+        m_thread = nullptr;
     }
+    
+    EndModal(wxID_CANCEL);
 }
 
 
@@ -1739,9 +1748,7 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
-         }
-
-         
+         } 
     }
 
     Layout();
@@ -1771,13 +1778,11 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_img_step3->Hide();
     m_tip4->Hide();
     m_trouble_shoot->Hide();
-    Layout();
-    Fit();
-    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
-    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
 
     //check support function
-    if (!m_obj) return;
+    /*if (!m_obj) return;
     if (!m_obj->is_support_send_to_sdcard) {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
         auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
@@ -1789,58 +1794,84 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         event_close.SetEventObject(this);
         wxPostEvent(this, event_close);
         return;
-    }
+    }*/
 
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
-    m_worker->wait_for_idle();
+    Refresh();
+    Layout();
+    Fit();
 
-    m_status_bar->reset();
-    m_status_bar->set_prog_block();
-    m_status_bar->set_cancel_callback_fina([this]() {
-        BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        m_worker->cancel_all();
-   });
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code));  
+}
+
+void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code)
+{
+    update_test_msg(_L("connecting..."), true);
+    detectResult detectData;
+    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+
+    if (result < 0) {
+        update_test_msg(wxEmptyString, true);
+        if (result == -1) {
+            update_test_msg(_L("Failed to connect to printer."), false);
+        }
+        else if (result == -2) {
+            update_test_msg(_L("Failed to publish login request."), false);
+        }
+        else if (result == -3) {
+            update_test_msg(_L("The device does not support using IP and Access Code for connection."), false);
+        }
+        Layout();
+        Fit();
+        return;
+    }
+
+    if (detectData.bind_state == "occupied") {
+        update_test_msg(_L("The printer has already been bound."), false);
+        Layout();
+        Fit();
+        return;
+    }
+
+    if (detectData.connect_type == "cloud") {
+        update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
+        Layout();
+        Fit();
+        return;
+    }
+
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
 
 
-    auto m_send_job = std::make_unique<SendJob>(m_obj->dev_id);
-    m_send_job->m_dev_ip = ip.ToStdString();
-    m_send_job->m_access_code = str_access_code.ToStdString();
+    if (m_obj) {
+        m_obj->set_user_access_code(str_access_code);
+        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
+    }
 
 
-#if !BBL_RELEASE_TO_PUBLIC
-    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
-    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
-#else
-    m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
-    m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
-#endif
+    closeCount = 3;
+    update_test_msg(wxEmptyString, true);
+    update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
+    closeTimer->Start(1000);
 
-    m_send_job->connection_type = m_obj->connection_type();
-    m_send_job->cloud_print_only = true;
-    m_send_job->has_sdcard = m_obj->has_sdcard();
-    m_send_job->set_check_mode();
-    m_send_job->set_project_name("verify_job");
+    Layout();
+    Fit();
+}
 
-    m_send_job->on_check_ip_address_fail([this](int result) {
-        this->check_ip_address_failed(result);
-    });
-
-    m_send_job->on_check_ip_address_success([this, ip, str_access_code]() {
-        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
-        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
-        event.SetString(input_str);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
-        m_result = 0;
-        
-        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
-       
-    });
-
-    replace_job(*m_worker, std::move(m_send_job));
+void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
+    if (closeCount > 0) {
+        closeCount--;
+        update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
+        Refresh();
+    }
+    else {
+        closeTimer->Stop();
+        EndModal(wxID_CLOSE);
+    }
 }
 
 void InputIpAddressDialog::check_ip_address_failed(int result)
@@ -1876,8 +1907,16 @@ void InputIpAddressDialog::on_text(wxCommandEvent& evt)
 {
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    bool invalid_access_code = true;
 
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+    for (char c : str_access_code) {
+        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+            invalid_access_code = false;
+            return;
+        }
+    }
+
+    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
         m_button_ok->Enable(true);
         StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));

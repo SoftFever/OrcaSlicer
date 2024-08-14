@@ -5300,6 +5300,21 @@ void DeviceManager::on_machine_alive(std::string json_str)
     }
 }
 
+MachineObject* DeviceManager::insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
+{
+    MachineObject* obj;
+    obj = new MachineObject(m_agent, dev_name, dev_id, dev_ip);
+    obj->printer_type = MachineObject::parse_printer_type("C11");
+    obj->dev_connection_type = connection_type;
+    obj->bind_state = bind_state;
+    obj->bind_sec_link = "secure";
+    obj->bind_ssdp_version = version;
+    obj->m_is_online = true;
+    obj->set_access_code(access_code, false);
+    obj->set_user_access_code(access_code, false);
+    return obj;
+}
+
 void DeviceManager::disconnect_all()
 {
 

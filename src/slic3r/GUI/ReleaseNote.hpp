@@ -38,8 +38,6 @@
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
-#include "Jobs/Worker.hpp"
-
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
@@ -277,6 +275,8 @@ public:
     wxString comfirm_before_enter_text;
     wxString comfirm_after_enter_text;
 
+    boost::thread* m_thread{nullptr};
+
     std::string m_ip;
     Label* m_tip1{ nullptr };
     Label* m_tip2{ nullptr };
@@ -298,10 +298,11 @@ public:
     wxStaticBitmap* m_img_step2{ nullptr };
     wxStaticBitmap* m_img_step3{ nullptr };
     wxHyperlinkCtrl* m_trouble_shoot{ nullptr };
+    wxTimer* closeTimer{ nullptr };
+    int     closeCount{3};
     bool   m_show_access_code{ false };
     int    m_result;
     std::shared_ptr<BBLStatusBarSend>  m_status_bar;
-    std::unique_ptr<Worker> m_worker;
 
     void on_cancel();
     void update_title(wxString title);
@@ -311,6 +312,8 @@ public:
     void check_ip_address_failed(int result);
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
+    void workerThreadFunc(std::string str_ip, std::string str_access_code);
+    void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
 };

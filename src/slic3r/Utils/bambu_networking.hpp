@@ -172,6 +172,17 @@ enum ConnectStatus {
     ConnectStatusLost = 2,
 };
 
+struct detectResult {
+    std::string    result_msg;
+    std::string    command;
+    std::string    dev_id;
+    std::string    model_id;
+    std::string    dev_name;
+    std::string    version;
+    std::string    bind_state;
+    std::string    connect_type;
+};
+
 /* print job*/
 struct PrintParams {
     /* basic info */

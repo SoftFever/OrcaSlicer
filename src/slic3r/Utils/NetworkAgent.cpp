@@ -75,6 +75,7 @@ func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
 func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_ping_bind                      NetworkAgent::ping_bind_ptr = nullptr;
+func_bind_detect                    NetworkAgent::bind_detect_ptr = nullptr;
 func_bind                           NetworkAgent::bind_ptr = nullptr;
 func_unbind                         NetworkAgent::unbind_ptr = nullptr;
 func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullptr;
@@ -246,6 +247,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     build_logout_cmd_ptr              =  reinterpret_cast<func_build_logout_cmd>(get_network_function("bambu_network_build_logout_cmd"));
     build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
     ping_bind_ptr                     =  reinterpret_cast<func_ping_bind>(get_network_function("bambu_network_ping_bind"));
+    bind_detect_ptr                   =  reinterpret_cast<func_bind_detect>(get_network_function("bambu_network_bind_detect"));
     get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
@@ -975,6 +977,18 @@ int NetworkAgent::ping_bind(std::string ping_code)
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, pin code=%3%")
             % network_agent % ret % ping_code;
+    }
+    return ret;
+}
+
+int NetworkAgent::bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect)
+{
+    int ret = 0;
+    if (network_agent && bind_detect_ptr) {
+        ret = bind_detect_ptr(network_agent, dev_ip, sec_link, detect);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%")
+            % network_agent % ret % dev_ip;
     }
     return ret;
 }

@@ -1007,7 +1007,7 @@ public:
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);
-
+    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
     /* disconnect all machine connections */
     void disconnect_all();
     int query_bind_status(std::string &msg);
