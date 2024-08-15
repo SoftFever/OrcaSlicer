@@ -4,6 +4,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
+#include "Interlocking/InterlockingGenerator.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -215,7 +216,9 @@ static inline bool overlap_in_xy(const PrintObjectRegions::BoundingBox &l, const
 static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_range_first(const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges, double z)
 {
     auto  it = lower_bound_by_predicate(layer_ranges.begin(), layer_ranges.end(),
-        [z](const PrintObjectRegions::LayerRangeRegions &lr) { return lr.layer_height_range.second < z; });
+        [z](const PrintObjectRegions::LayerRangeRegions &lr) {
+            return lr.layer_height_range.second < z && abs(lr.layer_height_range.second - z) > EPSILON;
+        });
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z <= it->layer_height_range.second);
     if (z == it->layer_height_range.second)
         if (auto it_next = it; ++ it_next != layer_ranges.end() && it_next->layer_height_range.first == z)
@@ -229,7 +232,7 @@ static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_
     std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator   it,
     double                                                               z)
 {
-    for (; it->layer_height_range.second <= z; ++ it)
+    for (; it->layer_height_range.second <= z + EPSILON; ++ it)
         assert(it != layer_ranges.end());
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z < it->layer_height_range.second);
     return it;
@@ -810,7 +813,7 @@ void PrintObject::slice()
     m_print->throw_if_canceled();
     m_typed_slices = false;
     this->clear_layers();
-    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
+    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile, m_config.precise_z_height.value));
     this->slice_volumes();
     m_print->throw_if_canceled();
     int firstLayerReplacedBy = 0;
@@ -1068,6 +1071,9 @@ void PrintObject::slice_volumes()
     }
 
     this->apply_conical_overhang();
+    m_print->throw_if_canceled();
+
+    InterlockingGenerator::generate_interlocking_structure(this);
     m_print->throw_if_canceled();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";

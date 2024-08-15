@@ -18,13 +18,19 @@ float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &conf
     return std::floor(pa_speed);
 }
 
-std::string CalibPressureAdvance::move_to(Vec2d pt, GCodeWriter &writer, std::string comment)
+std::string CalibPressureAdvance::move_to(Vec2d pt, GCodeWriter &writer, std::string comment, double z, double layer_height)
 {
     std::stringstream gcode;
 
-    gcode << writer.retract();
-    gcode << writer.travel_to_xy(pt, comment);
-    gcode << writer.unretract();
+    gcode << writer.retract(); // retract before z move or move
+    if(z > EPSILON && layer_height >= 0){
+        gcode << writer.travel_to_z(z, "z-hop"); // Perform z hop
+        gcode << writer.travel_to_xy(pt, comment); // Travel with z move
+        gcode << writer.travel_to_z(layer_height, "undo z-hop"); // Undo z hop
+    }else {
+        gcode << writer.travel_to_xy(pt, comment);
+    }
+    gcode << writer.unretract(); // unretract after z move is complete
 
     m_last_pos = Vec3d(pt.x(), pt.y(), 0);
 
@@ -37,7 +43,7 @@ double CalibPressureAdvance::e_per_mm(
     const Flow   line_flow     = Flow(line_width, layer_height, nozzle_diameter);
     const double filament_area = M_PI * std::pow(filament_diameter / 2, 2);
 
-    return line_flow.mm3_per_mm() / filament_area * print_flow_ratio;
+    return line_flow.mm3_per_mm() * print_flow_ratio / filament_area ;
 }
 
 std::string CalibPressureAdvance::convert_number_to_string(double num) const
@@ -461,6 +467,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
 
     const auto filament_diameter = config.filament_diameter.get_at(0);
     const auto print_flow_ratio  = config.print_flow_ratio;
+    const auto z_offset          = config.z_offset;
 
     const double e_per_mm        = CalibPressureAdvance::e_per_mm(m_line_width, m_height_layer, m_nozzle_diameter, filament_diameter,
                                                                   print_flow_ratio);
@@ -472,7 +479,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
     const double      fast = CalibPressureAdvance::speed_adjust(m_fast_speed);
     const double      slow = CalibPressureAdvance::speed_adjust(m_slow_speed);
     std::stringstream gcode;
-    gcode << mp_gcodegen->writer().travel_to_z(m_height_layer);
+    gcode << mp_gcodegen->writer().travel_to_z(m_height_layer + z_offset);
     double y_pos = start_y;
 
     // prime line
@@ -508,7 +515,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         default_box_opt_args.is_filled = true;
         gcode << draw_box(writer, box_start_x, start_y - m_space_y,
                           number_spacing() * 8, (num + 1) * m_space_y, default_box_opt_args);
-        gcode << writer.travel_to_z(m_height_layer*2);
+        gcode << writer.travel_to_z(m_height_layer*2 + z_offset);
         for (int i = 0; i < num; i += 2) {
             gcode << draw_number(box_start_x + 3 + m_line_width, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa, m_draw_digit_mode,
                                  m_number_line_width, number_e_per_mm, 3600, writer);
@@ -543,7 +550,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
         refresh_setup(config, is_bbl_machine, model, origin);
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
-    gcode << m_writer.travel_to_z(height_first_layer(), "Move to start Z position");
+    gcode << m_writer.travel_to_z(height_first_layer() + height_z_offset(), "Move to start Z position");
     gcode << m_writer.set_pressure_advance(m_params.start);
 
     const DrawBoxOptArgs default_box_opt_args(wall_count(), height_first_layer(), line_width_first_layer(),
@@ -563,10 +570,11 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
     std::vector<CustomGCode::Item> gcode_items;
     const int                      num_patterns = get_num_patterns(); // "cache" for use in loops
 
+    const double zhop_config_value = m_config.option<ConfigOptionFloats>("z_hop")->get_at(0);
     // draw pressure advance pattern
     for (int i = 0; i < m_num_layers; ++i) {
-        const double layer_height = height_first_layer() + (i * height_layer());
-        const double zhop_height = layer_height + height_layer();
+        const double layer_height = height_first_layer() + height_z_offset() + (i * height_layer());
+        const double zhop_height = layer_height + zhop_config_value;
 
         if (i > 0) {
             gcode << "; end pressure advance pattern for layer\n";
@@ -617,9 +625,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
         double initial_x = to_x;
         double initial_y = to_y;
 
-        gcode << m_writer.travel_to_z(zhop_height, "z-hop before move");
-        gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to pattern start");
-        gcode << m_writer.travel_to_z(layer_height, "undo z-hop");
+        gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to pattern start",zhop_height,layer_height);
 
         for (int j = 0; j < num_patterns; ++j) {
             // increment pressure advance
@@ -644,22 +650,16 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
                 if (k != wall_count() - 1) {
                     // perimeters not done yet. move to next perimeter
                     to_x += line_spacing_angle();
-                    gcode << m_writer.travel_to_z(zhop_height, "z-hop before move");
-                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to start next pattern wall");
-                    gcode << m_writer.travel_to_z(layer_height, "undo z-hop");
+                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to start next pattern wall", zhop_height, layer_height); // Call move to command with XY as well as z hop and layer height to invoke and undo z lift
                 } else if (j != num_patterns - 1) {
                     // patterns not done yet. move to next pattern
                     to_x += m_pattern_spacing + line_width();
-                    gcode << m_writer.travel_to_z(zhop_height, "z-hop before move");
-                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to next pattern");
-                    gcode << m_writer.travel_to_z(layer_height, "undo z-hop");
+                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move to next pattern", zhop_height, layer_height); // Call move to command with XY as well as z hop and layer height to invoke and undo z lift
                 } else if (i != m_num_layers - 1) {
                     // layers not done yet. move back to start
                     to_x = initial_x;
-                    gcode << m_writer.travel_to_z(zhop_height, "z-hop before move");
-                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move back to start position");
-                    gcode << m_writer.travel_to_z(layer_height, "undo z-hop");
-                    gcode << m_writer.reset_e(); // reset extruder before printing placeholder cube to avoid
+                    gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move back to start position", zhop_height, layer_height); // Call move to command with XY as well as z hop and layer height to invoke and undo z lift
+                    gcode << m_writer.reset_e(); // reset extruder before printing placeholder cube to avoid over extrusion
                 } else {
                     // everything done
                 }

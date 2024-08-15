@@ -24,6 +24,7 @@ typedef int (*func_set_on_http_error_fn)(void *agent, OnHttpErrorFn fn);
 typedef int (*func_set_get_country_code_fn)(void *agent, GetCountryCodeFn fn);
 typedef int (*func_set_on_subscribe_failure_fn)(void *agent, GetSubscribeFailureFn fn);
 typedef int (*func_set_on_message_fn)(void *agent, OnMessageFn fn);
+typedef int (*func_set_on_user_message_fn)(void *agent, OnMessageFn fn);
 typedef int (*func_set_on_local_connect_fn)(void *agent, OnLocalConnectedFn fn);
 typedef int (*func_set_on_local_message_fn)(void *agent, OnMessageFn fn);
 typedef int (*func_set_queue_on_main_fn)(void *agent, QueueOnMainFn fn);
@@ -32,6 +33,11 @@ typedef bool (*func_is_server_connected)(void *agent);
 typedef int (*func_refresh_connection)(void *agent);
 typedef int (*func_start_subscribe)(void *agent, std::string module);
 typedef int (*func_stop_subscribe)(void *agent, std::string module);
+typedef int (*func_add_subscribe)(void *agent, std::vector<std::string> dev_list);
+typedef int (*func_del_subscribe)(void *agent, std::vector<std::string> dev_list);
+typedef void (*func_enable_multi_machine)(void *agent, bool enable);
+typedef int (*func_start_device_subscribe)(void* agent);
+typedef int (*func_stop_device_subscribe)(void* agent);
 typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos);
 typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
 typedef int (*func_disconnect_printer)(void *agent);
@@ -47,6 +53,8 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
+typedef int (*func_get_model_id_from_desgin_id)(void *agent, std::string& desgin_id, std::string& model_id);
+typedef int (*func_ping_bind)(void *agent, std::string ping_code);
 typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
@@ -56,6 +64,7 @@ typedef int (*func_start_print)(void *agent, PrintParams params, OnUpdateStatusF
 typedef int (*func_start_local_print_with_record)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
 typedef int (*func_start_send_gcode_to_sdcard)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
 typedef int (*func_start_local_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+typedef int (*func_start_sdcard_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 typedef int (*func_get_user_presets)(void *agent, std::map<std::string, std::map<std::string, std::string>>* user_presets);
 typedef std::string (*func_request_setting_id)(void *agent, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
 typedef int (*func_put_setting)(void *agent, std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
@@ -67,6 +76,7 @@ typedef int (*func_set_extra_http_header)(void *agent, std::map<std::string, std
 typedef int (*func_get_my_message)(void *agent, int type, int after, int limit, unsigned int* http_code, std::string* http_body);
 typedef int (*func_check_user_task_report)(void *agent, int* task_id, bool* printable);
 typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, std::string* http_body);
+typedef int (*func_get_user_tasks)(void *agent, TaskQueryParams params, std::string* http_body);
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
 typedef int (*func_get_task_plate_index)(void *agent, std::string task_id, int* plate_index);
 typedef int (*func_get_user_info)(void *agent, int* identifier);
@@ -85,6 +95,7 @@ typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
 typedef int (*func_track_enable)(void *agent, bool enable);
+typedef int (*func_track_remove_files)(void *agent);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
@@ -96,6 +107,8 @@ typedef int (*func_put_rating_picture_oss)(
     void *agent, std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
 typedef int (*func_get_model_mall_rating_result)(void *agent, int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
 
+typedef int (*func_get_mw_user_preference)(void *agent, std::function<void(std::string)> callback);
+typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::function<void(std::string)> callback);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -127,6 +140,7 @@ public:
     int set_get_country_code_fn(GetCountryCodeFn fn);
     int set_on_subscribe_failure_fn(GetSubscribeFailureFn fn);
     int set_on_message_fn(OnMessageFn fn);
+    int set_on_user_message_fn(OnMessageFn fn);
     int set_on_local_connect_fn(OnLocalConnectedFn fn);
     int set_on_local_message_fn(OnMessageFn fn);
     int set_queue_on_main_fn(QueueOnMainFn fn);
@@ -135,6 +149,11 @@ public:
     int refresh_connection();
     int start_subscribe(std::string module);
     int stop_subscribe(std::string module);
+    int add_subscribe(std::vector<std::string> dev_list);
+    int del_subscribe(std::vector<std::string> dev_list);
+    void enable_multi_machine(bool enable);
+    int start_device_subscribe();
+    int stop_device_subscribe();
     int send_message(std::string dev_id, std::string json_str, int qos);
     int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
     int disconnect_printer();
@@ -150,7 +169,9 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn);
+    int get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id);
+    int ping_bind(std::string ping_code);
+    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -159,6 +180,7 @@ public:
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
     int start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
     int start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    int start_sdcard_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     int get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets);
     std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
@@ -170,6 +192,7 @@ public:
     int get_my_message(int type, int after, int limit, unsigned int* http_code, std::string* http_body);
     int check_user_task_report(int* task_id, bool* printable);
     int get_user_print_info(unsigned int* http_code, std::string* http_body);
+    int get_user_tasks(TaskQueryParams params, std::string* http_body);
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
     int get_task_plate_index(std::string task_id, int* plate_index);
     int get_user_info(int* identifier);
@@ -188,6 +211,7 @@ public:
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);
+    int track_remove_files();
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
@@ -197,6 +221,10 @@ public:
     int put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
     int get_model_mall_rating_result(int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
     bool get_track_enable() { return enable_track; }
+
+    int get_mw_user_preference(std::function<void(std::string)> callback);
+    int get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback);
+
 private:
     bool enable_track = false;
     void*                   network_agent { nullptr };
@@ -218,6 +246,7 @@ private:
     static func_set_get_country_code_fn        set_get_country_code_fn_ptr;
     static func_set_on_subscribe_failure_fn    set_on_subscribe_failure_fn_ptr;
     static func_set_on_message_fn              set_on_message_fn_ptr;
+    static func_set_on_user_message_fn         set_on_user_message_fn_ptr;
     static func_set_on_local_connect_fn        set_on_local_connect_fn_ptr;
     static func_set_on_local_message_fn        set_on_local_message_fn_ptr;
     static func_set_queue_on_main_fn           set_queue_on_main_fn_ptr;
@@ -226,6 +255,11 @@ private:
     static func_refresh_connection             refresh_connection_ptr;
     static func_start_subscribe                start_subscribe_ptr;
     static func_stop_subscribe                 stop_subscribe_ptr;
+    static func_add_subscribe                  add_subscribe_ptr;
+    static func_del_subscribe                  del_subscribe_ptr;
+    static func_enable_multi_machine           enable_multi_machine_ptr;
+    static func_start_device_subscribe         start_device_subscribe_ptr;
+    static func_stop_device_subscribe          stop_device_subscribe_ptr;
     static func_send_message                   send_message_ptr;
     static func_connect_printer                connect_printer_ptr;
     static func_disconnect_printer             disconnect_printer_ptr;
@@ -241,6 +275,8 @@ private:
     static func_build_login_cmd                build_login_cmd_ptr;
     static func_build_logout_cmd               build_logout_cmd_ptr;
     static func_build_login_info               build_login_info_ptr;
+    static func_get_model_id_from_desgin_id    get_model_id_from_desgin_id_ptr;
+    static func_ping_bind                      ping_bind_ptr;
     static func_bind                           bind_ptr;
     static func_unbind                         unbind_ptr;
     static func_get_bambulab_host              get_bambulab_host_ptr;
@@ -250,6 +286,7 @@ private:
     static func_start_local_print_with_record  start_local_print_with_record_ptr;
     static func_start_send_gcode_to_sdcard     start_send_gcode_to_sdcard_ptr;
     static func_start_local_print              start_local_print_ptr;
+    static func_start_sdcard_print             start_sdcard_print_ptr;
     static func_get_user_presets               get_user_presets_ptr;
     static func_request_setting_id             request_setting_id_ptr;
     static func_put_setting                    put_setting_ptr;
@@ -261,6 +298,7 @@ private:
     static func_get_my_message                 get_my_message_ptr;
     static func_check_user_task_report         check_user_task_report_ptr;
     static func_get_user_print_info            get_user_print_info_ptr;
+    static func_get_user_tasks                 get_user_tasks_ptr;
     static func_get_printer_firmware           get_printer_firmware_ptr;
     static func_get_task_plate_index           get_task_plate_index_ptr;
     static func_get_user_info                  get_user_info_ptr;
@@ -279,6 +317,7 @@ private:
     static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
     static func_track_enable                   track_enable_ptr;
+    static func_track_remove_files             track_remove_files_ptr;
     static func_track_event                    track_event_ptr;
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;
@@ -287,6 +326,9 @@ private:
     static func_get_oss_config                 get_oss_config_ptr;
     static func_put_rating_picture_oss         put_rating_picture_oss_ptr;
     static func_get_model_mall_rating_result   get_model_mall_rating_result_ptr;
+
+    static func_get_mw_user_preference get_mw_user_preference_ptr;
+    static func_get_mw_user_4ulist     get_mw_user_4ulist_ptr;
 };
 
 }

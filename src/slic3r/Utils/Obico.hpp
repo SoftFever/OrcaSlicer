@@ -24,7 +24,6 @@ public:
     bool has_auto_discovery() const override { return false; }
     bool is_cloud() const override { return true; }
     bool get_login_url(wxString& auth_url) const override;
-    void set_api_key(const std::string auth_api_key) override;
     std::string  get_host() const override;
 
     wxString                           get_test_ok_msg() const override;

@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFSB01_08",
     "instantiation": "true",
-    "fan_max_speed": [
-        "90"
-    ],
     "fan_min_speed": [
         "25"
     ],

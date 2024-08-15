@@ -166,7 +166,7 @@ public:
     SearchObjectDialog* m_search_object_dialog{ nullptr };
     GUI::ObjectDataViewModelNode* m_item{ nullptr };
 
-    SearchItem(wxWindow *parent, wxString text, int index, SearchDialog *sdialog = nullptr, SearchObjectDialog* search_dialog = nullptr);
+    SearchItem(wxWindow *parent, wxString text, int index, SearchDialog *sdialog = nullptr, SearchObjectDialog* search_dialog = nullptr, wxString tooltip = "");
     ~SearchItem(){};
 
     wxSize DrawTextString(wxDC &dc, const wxString &text, const wxPoint &pt, bool bold);

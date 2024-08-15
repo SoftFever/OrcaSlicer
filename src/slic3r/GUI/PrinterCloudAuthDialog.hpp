@@ -29,7 +29,6 @@ protected:
 
     wxString    m_javascript;
     wxString    m_response_js;
-    PrintHost*  m_host;
     std::string m_apikey;
 
 public:

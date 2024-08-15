@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_GLGizmoPainterBase_hpp_
 #define slic3r_GLGizmoPainterBase_hpp_
 
@@ -355,10 +351,15 @@ private:
         ObjectID object_id;
         int instance_idx{ -1 };
     };
-    mutable CutContours m_cut_contours;
-
+    mutable std::vector<CutContours> m_cut_contours;
+    mutable int                      m_volumes_index = 0;
+    mutable float       m_cursor_z{0};
+    mutable double      m_height_start_z_in_imgui{0};
+    mutable bool        m_is_set_height_start_z_by_imgui{false};
+    mutable Vec2i32       m_height_start_pos{0, 0};
+    mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
-    void update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
+    void update_contours(int i, const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
 
 protected:
     void on_set_state() override;

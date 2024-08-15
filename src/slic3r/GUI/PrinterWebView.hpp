@@ -6,7 +6,7 @@
 #include "wx/cmdline.h"
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
-#include "wx/webview.h"
+#include <wx/webview.h>
 #include <wx/string.h>
 
 #if wxUSE_WEBVIEW_EDGE
@@ -41,6 +41,8 @@ public:
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
+    void reload();
+    void update_mode();
 private:
     void SendAPIKey();
 

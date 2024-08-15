@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include "libslic3r/Exception.hpp"
 #include "libslic3r_version.h"
@@ -42,14 +43,15 @@ public:
 		size_t dlnow;     // Bytes downloaded so far
 		size_t ultotal;   // Total bytes to upload
 		size_t ulnow;     // Bytes uploaded so far
+        const std::string& buffer; // reference to buffer containing all data
         double upload_spd{0.0f};
 
-		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow) :
-			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow)
+		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow, const std::string& buffer) :
+			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow), buffer(buffer)
 		{}
 
-		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow, double ulspd) :
-			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow), upload_spd(ulspd)
+		Progress(size_t dltotal, size_t dlnow, size_t ultotal, size_t ulnow, const std::string& buffer, double ulspd) :
+			dltotal(dltotal), dlnow(dlnow), ultotal(ultotal), ulnow(ulnow), buffer(buffer), upload_spd(ulspd)
 		{}
 	};
 
@@ -102,6 +104,8 @@ public:
 	// Sets a maximum size of the data that can be received.
 	// A value of zero sets the default limit, which is is 5MB.
 	Http& size_limit(size_t sizeLimit);
+	// range  of donloaded bytes. example: curl_easy_setopt(curl, CURLOPT_RANGE, "0-199");
+	Http& set_range(const std::string& range);
 	// Sets a HTTP header field.
 	Http& header(std::string name, const std::string &value);
 	// Removes a header field.
@@ -118,15 +122,15 @@ public:
 	// Add a HTTP multipart form field
 	Http& form_add(const std::string &name, const std::string &contents);
 	// Add a HTTP multipart form file data contents, `name` is the name of the part
-	Http& form_add_file(const std::string &name, const boost::filesystem::path &path);
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 	// Add a HTTP mime form field
 	Http& mime_form_add_text(std::string& name, std::string& value);
 	// Add a HTTP mime form file
 	Http& mime_form_add_file(std::string& name, const char* path);
 	// Same as above except also override the file's filename with a wstring type
-	Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path);
+    Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 	// Same as above except also override the file's filename with a custom one
-	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 
 #ifdef WIN32
 	// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present.

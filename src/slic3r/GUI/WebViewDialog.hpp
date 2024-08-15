@@ -6,7 +6,7 @@
 #include "wx/cmdline.h"
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
-#include "wx/webview.h"
+#include <wx/webview.h>
 
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
@@ -94,6 +94,7 @@ public:
 
 public:
     void SendRecentList(int images);
+    void SetLoginPanelVisibility(bool bshow);
     void SendDesignStaffpick(bool on);
     void OpenModelDetail(std::string id, NetworkAgent *agent);
     void SendLoginInfo();

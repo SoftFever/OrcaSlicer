@@ -38,6 +38,8 @@ class SupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
+#define MARGIN_HEIGHT   1.5
+#define MAX_OUTER_NOZZLE_DIAMETER   4
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
 {
@@ -331,6 +333,7 @@ public:
     // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
     // The height is snug.
     coord_t 				     height() const         { return m_size.z(); }
+    double                      max_z() const         { return m_max_z; }
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }
 
@@ -505,6 +508,7 @@ private:
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
+    double                                  m_max_z;
     PrintObjectConfig                       m_config;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
@@ -767,6 +771,23 @@ struct PrintStatistics
         initial_tool           = 0;
         filament_stats.clear();
     }
+    static const std::string FilamentUsedG;
+    static const std::string FilamentUsedGMask;
+    static const std::string TotalFilamentUsedG;
+    static const std::string TotalFilamentUsedGMask;
+    static const std::string TotalFilamentUsedGValueMask;
+    static const std::string FilamentUsedCm3;
+    static const std::string FilamentUsedCm3Mask;
+    static const std::string FilamentUsedMm;
+    static const std::string FilamentUsedMmMask;
+    static const std::string FilamentCost;
+    static const std::string FilamentCostMask;
+    static const std::string TotalFilamentCost;
+    static const std::string TotalFilamentCostMask;
+    static const std::string TotalFilamentCostValueMask;
+    static const std::string TotalFilamentUsedWipeTower;
+    static const std::string TotalFilamentUsedWipeTowerValueMask;
+    
 };
 
 typedef std::vector<PrintObject*>       PrintObjectPtrs;
@@ -899,6 +920,9 @@ public:
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
+	std::string                 get_model_name() const;
+	std::string                 get_plate_number_formatted() const;
+
     size_t                      num_print_regions() const throw() { return m_print_regions.size(); }
     const PrintRegion&          get_print_region(size_t idx) const  { return *m_print_regions[idx]; }
     const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }
@@ -954,7 +978,11 @@ public:
     // Unset types are just ignored.
     static int get_compatible_filament_type(const std::set<int>& types);
 
-  protected:
+    bool is_all_objects_are_short() const {
+        return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
+    }
+
+protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 
@@ -1019,7 +1047,8 @@ private:
 
 public:
     //BBS: this was a print config and now seems to be useless so we move it to here
-    static float min_skirt_length;
+    // ORCA: parameter below is now back to being a user option (min_skirt_length)
+    //static float min_skirt_length;
 };
 
 

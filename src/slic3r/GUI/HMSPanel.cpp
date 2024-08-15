@@ -5,6 +5,8 @@
 #include <slic3r/GUI/I18N.hpp>
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
+#include "Monitor.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -12,9 +14,12 @@ namespace GUI {
 #define HMS_NOTIFY_ITEM_TEXT_SIZE wxSize(FromDIP(730), -1)
 #define HMS_NOTIFY_ITEM_SIZE wxSize(-1, FromDIP(80))
 
+wxDEFINE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
+
 HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL) 
     , m_hms_item(item)
+    , long_error_code(item.get_long_error_code())
     , m_url(get_hms_wiki_url(item.get_long_error_code()))
 {
     init_bitmaps();
@@ -114,6 +119,9 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
         });
     m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+            wxCommandEvent evt(EVT_ALREADY_READ_HMS);
+            evt.SetString(long_error_code);
+            wxPostEvent(wxGetApp().mainframe->m_monitor, evt);
         });
 #endif
 }
@@ -193,6 +201,11 @@ void HMSPanel::delete_hms_panels() {
     m_scrolledWindow->DestroyChildren();
 }
 
+void HMSPanel::clear_hms_tag()
+{
+    temp_hms_list.clear();
+}
+
 void HMSPanel::update(MachineObject *obj)
 {
     if (obj) {
@@ -201,9 +214,35 @@ void HMSPanel::update(MachineObject *obj)
         wxString hms_text;
         for (auto item : obj->hms_list) {
             if (wxGetApp().get_hms_query()) {
+
+                auto key = item.get_long_error_code();
+                auto iter = temp_hms_list.find(key);
+                if (iter == temp_hms_list.end()) {
+                    temp_hms_list[key] = item;
+                }
+
                 append_hms_panel(item);
             }
         }
+        
+        for (auto it = temp_hms_list.begin(); it != temp_hms_list.end(); ) {
+            auto key = it->second.get_long_error_code();
+            bool inr = false;
+            for (auto hms : obj->hms_list) {
+                if (hms.get_long_error_code() == key) {
+                    inr = true;
+                    break;
+                }
+            }
+
+            if (!inr) {
+                it = temp_hms_list.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+
         Layout();
         this->Thaw();
     } else {

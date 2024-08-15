@@ -4,6 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFU99",
     "cool_plate_temp" : [
         "30"
     ],
@@ -40,6 +41,7 @@
     "filament_retraction_length": [
         "0.4"
     ],
+    "idle_temperature": "0",
     "nozzle_temperature_initial_layer": [
         "240"
     ],

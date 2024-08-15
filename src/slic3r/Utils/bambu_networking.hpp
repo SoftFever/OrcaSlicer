@@ -95,7 +95,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.08.04.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.09.02.05"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -147,6 +147,7 @@ enum SendingPrintJobStage {
     PrintingStageWaitPrinter = 5,
     PrintingStageFinished = 6,
     PrintingStageERROR = 7,
+    PrintingStageLimit = 8,
 };
 
 enum PublishingStage {
@@ -193,6 +194,7 @@ struct PrintParams {
     std::string     origin_model_id;
     std::string     print_type;
     std::string     dst_file;
+    std::string     dev_name;
 
     /* access options */
     std::string     dev_ip;
@@ -210,6 +212,14 @@ struct PrintParams {
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;
+};
+
+struct TaskQueryParams
+{
+    std::string dev_id;
+    int status = 0;
+    int offset = 0;
+    int limit = 20;
 };
 
 struct PublishParams {

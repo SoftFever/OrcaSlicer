@@ -34,6 +34,11 @@ struct Calib_Params
     CalibMode mode;
 };
 
+enum FlowRatioCalibrationType {
+    COMPLETE_CALIBRATION = 0,
+    FINE_CALIBRATION,
+};
+
 class X1CCalibInfos
 {
 public:
@@ -78,6 +83,7 @@ struct PrinterCaliInfo
     bool                        cali_finished = true;
     float                       cache_flow_ratio;
     std::vector<CaliPresetInfo> selected_presets;
+    FlowRatioCalibrationType    cache_flow_rate_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 };
 
 class PACalibResult
@@ -145,7 +151,7 @@ protected:
 
     void delta_scale_bed_ext(BoundingBoxf &bed_ext) const { bed_ext.scale(1.0f / 1.41421f); }
 
-    std::string move_to(Vec2d pt, GCodeWriter &writer, std::string comment = std::string());
+    std::string move_to(Vec2d pt, GCodeWriter &writer, std::string comment = std::string(), double z = 0, double layer_height = -1);
     double e_per_mm(double line_width, double layer_height, float nozzle_diameter, float filament_diameter, float print_flow_ratio) const;
     double speed_adjust(int speed) const { return speed * 60; };
 
@@ -268,6 +274,7 @@ private:
     void _refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin);
 
     double    height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
+    double    height_z_offset() const { return m_config.option<ConfigOptionFloat>("z_offset")->value; };
     double    height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
     const int get_num_patterns() const { return std::ceil((m_params.end - m_params.start) / m_params.step + 1); }
 

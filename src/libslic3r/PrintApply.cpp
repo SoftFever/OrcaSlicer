@@ -235,11 +235,16 @@ static t_config_option_keys print_config_diffs(
             bool overriden = opt_new->overriden_by(opt_new_filament);
             if (overriden || *opt_old != *opt_new) {
                 auto opt_copy = opt_new->clone();
-                opt_copy->apply_override(opt_new_filament);
+                if (!((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                    && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)) // ugly code, remove it later if firmware supports
+                    opt_copy->apply_override(opt_new_filament);
                 bool changed = *opt_old != *opt_copy;
                 if (changed)
                     print_diff.emplace_back(opt_key);
                 if (changed || overriden) {
+                    if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                        && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)
+                        continue;
                     // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
                     filament_overrides.set_key_value(opt_key, opt_copy);
                 } else
@@ -1493,11 +1498,22 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         std::vector<unsigned int> painting_extruders;
         if (const auto &volumes = print_object.model_object()->volumes;
-            num_extruders  > 1 &&
+            num_extruders > 1 &&
             std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return ! v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
-            //FIXME be more specific! Don't enumerate extruders that are not used for painting!
-            painting_extruders.assign(num_extruders , 0);
-            std::iota(painting_extruders.begin(), painting_extruders.end(), 1);
+
+            std::array<bool, static_cast<size_t>(EnforcerBlockerType::ExtruderMax)> used_facet_states{};
+            for (const ModelVolume *volume : volumes) {
+                const std::vector<bool> &volume_used_facet_states = volume->mmu_segmentation_facets.get_data().used_states;
+
+                assert(volume_used_facet_states.size() == used_facet_states.size());
+                for (size_t state_idx = 0; state_idx < std::min(volume_used_facet_states.size(), used_facet_states.size()); ++state_idx)
+                    used_facet_states[state_idx] |= volume_used_facet_states[state_idx];
+            }
+
+            for (size_t state_idx = static_cast<size_t>(EnforcerBlockerType::Extruder1); state_idx < used_facet_states.size(); ++state_idx) {
+                if (used_facet_states[state_idx])
+                    painting_extruders.emplace_back(state_idx);
+            }
         }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.

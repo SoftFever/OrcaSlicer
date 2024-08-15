@@ -13,6 +13,8 @@
 
 namespace Slic3r {
     
+static const double slope_inner_outer_wall_gap = 0.4;
+
 void ExtrusionPath::intersect_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const
 {
     this->_inflate_collection(intersection_pl(Polylines{ polyline }, collection), retval);
@@ -409,11 +411,8 @@ ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
     : ExtrusionLoop(role)
 {
     // create slopes
-    const auto add_slop = [this, slope_max_segment_length, seam_gap](const ExtrusionPath& path, const Polyline& poly,
-                                                                          double ratio_begin, double ratio_end) {
-        if (poly.empty()) {
-            return;
-        }
+    const auto add_slop = [this, slope_max_segment_length, seam_gap](const ExtrusionPath &path, const Polyline &poly, double ratio_begin, double ratio_end) {
+        if (poly.empty()) { return; }
 
         // Ensure `slope_max_segment_length`
         Polyline detailed_poly;
@@ -421,7 +420,7 @@ ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
             detailed_poly.append(poly.first_point());
 
             // Recursively split the line into half until no longer than `slope_max_segment_length`
-            const std::function<void(const Line&)> handle_line = [slope_max_segment_length, &detailed_poly, &handle_line](const Line& line) {
+            const std::function<void(const Line &)> handle_line = [slope_max_segment_length, &detailed_poly, &handle_line](const Line &line) {
                 if (line.length() <= slope_max_segment_length) {
                     detailed_poly.append(line.b);
                 } else {
@@ -432,13 +431,10 @@ ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
                 }
             };
 
-            for (const auto& l : poly.lines()) {
-                handle_line(l);
-            }
+            for (const auto &l : poly.lines()) { handle_line(l); }
         }
 
-        starts.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
-                                    ExtrusionPathSloped::Slope{ratio_end, ratio_end});
+        starts.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{ratio_begin, ratio_begin}, ExtrusionPathSloped::Slope{ratio_end, ratio_end});
 
         if (is_approx(ratio_end, 1.) && seam_gap > 0) {
             // Remove the segments that has no extrusion
@@ -456,10 +452,8 @@ ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
                 detailed_poly.clear();
             }
         }
-        if (!detailed_poly.empty()) {
-            ends.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
-                                      ExtrusionPathSloped::Slope{1., 1. - ratio_end});
-        }
+        if (!detailed_poly.empty()) { ends.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{1., 1. - ratio_begin}, ExtrusionPathSloped::Slope{1., 1. - ratio_end}); }
+
     };
 
     double remaining_length = slope_min_length;
@@ -509,6 +503,61 @@ std::vector<const ExtrusionPath*> ExtrusionLoopSloped::get_all_paths() const {
     return r;
 }
 
+void ExtrusionLoopSloped::clip_slope(double distance, bool inter_perimeter)
+{
+
+    this->clip_end(distance);
+    this->clip_front(distance*2);
+}
+
+void ExtrusionLoopSloped::clip_end(const double distance)
+{
+    double clip_dist = distance;
+    std::vector<ExtrusionPathSloped> &ends_slope = this->ends;
+    while (clip_dist > 0 && !ends_slope.empty()) {
+        ExtrusionPathSloped &last_path = ends_slope.back();
+        double len = last_path.length();
+        if (len <= clip_dist) {
+            ends_slope.pop_back();
+            clip_dist -= len;
+        } else {
+            last_path.polyline.clip_end(clip_dist);
+            break;
+        }
+    }
+}
+
+void ExtrusionLoopSloped::clip_front(const double distance)
+{
+    double clip_dist = distance;
+    if (this->role() == erPerimeter)
+        clip_dist = scale_(this->slope_path_length()) * slope_inner_outer_wall_gap;
+
+    std::vector<ExtrusionPathSloped> &start_slope = this->starts;
+
+    Polyline front_inward;
+    while (distance > 0 && !start_slope.empty()) {
+        ExtrusionPathSloped &first_path = start_slope.front();
+        double len = first_path.length();
+        if (len <= clip_dist) {
+            start_slope.erase(start_slope.begin());
+            clip_dist -= len;
+        } else {
+            first_path.polyline.reverse();
+            first_path.polyline.clip_end(clip_dist);
+            first_path.polyline.reverse();
+            break;
+        }
+    }
+}
+
+double ExtrusionLoopSloped::slope_path_length() {
+    double total_length = 0.0;
+    for (ExtrusionPathSloped start_ep : this->starts) {
+        total_length += unscale_(start_ep.length());
+    }
+    return total_length;
+}
 
 std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 {

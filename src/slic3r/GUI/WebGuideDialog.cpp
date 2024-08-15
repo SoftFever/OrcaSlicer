@@ -13,6 +13,7 @@
 #include <wx/textdlg.h>
 
 #include <wx/wx.h>
+#include <wx/display.h>
 #include <wx/fileconf.h>
 #include <wx/file.h>
 #include <wx/wfstream.h>
@@ -56,7 +57,7 @@ static wxString update_custom_filaments()
         bool not_need_show = false;
         std::string filament_name;
         for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->is_system) {
+            if (preset->is_system || preset->is_project_embedded) {
                 not_need_show = true;
                 break;
             }
@@ -108,6 +109,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = false;
+    StealthMode   = false;
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -354,9 +356,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 {
     try {
         wxString strInput = evt.GetString();
+        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;OnRecv:" << strInput.c_str();
         json     j        = json::parse(strInput);
 
         wxString strCmd = j["command"];
+        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Command:" << strCmd;
+
         if (strCmd == "close_page") {
             this->EndModal(wxID_CANCEL);
         }
@@ -384,8 +389,10 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             m_Res["sequence_id"] = "10001";
             m_Res["response"]        = m_ProfileJson;
 
-            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+            //wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+            wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
 
+            BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;request_userguide_profile:" << strJS.c_str();
             wxGetApp().CallAfter([this,strJS] { RunScript(strJS); });
         }
         else if (strCmd == "request_custom_filaments") {
@@ -480,8 +487,18 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             else
                 InstallNetplugin = false;
         }
+        else if (strCmd == "save_stealth_mode") {
+            wxString strAction = j["data"]["action"];
+
+            if (strAction == "yes") {
+                StealthMode = true;
+            } else {
+                StealthMode = false;
+            }
+        }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
+        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
     }
 
     wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
@@ -609,6 +626,7 @@ int GuideFrame::SaveProfile()
     //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
 
     m_MainPtr->app_config->set("region", m_Region);
+    m_MainPtr->app_config->set_bool("stealth_mode", StealthMode);
 
     //finish
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
@@ -890,7 +908,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     app_config->set_vendors(m_appconfig_new);
 
     if (check_unsaved_preset_changes)
-        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
+        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable,
                                     {preferred_model, preferred_variant, first_added_filament, std::string()});
 
     // Update the selections from the compatibilty.
@@ -910,6 +928,17 @@ bool GuideFrame::run()
     app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
+    // display position
+    int main_frame_display_index = wxDisplay::GetFromWindow(wxGetApp().mainframe);
+    int guide_display_index = wxDisplay::GetFromWindow(this);
+    if (main_frame_display_index != guide_display_index) {
+        wxDisplay display    = wxDisplay(main_frame_display_index);
+        wxRect    screenRect = display.GetGeometry();
+        int       guide_x    = screenRect.x + (screenRect.width - this->GetSize().GetWidth()) / 2;
+        int       guide_y    = screenRect.y + (screenRect.height - this->GetSize().GetHeight()) / 2;
+        this->SetPosition(wxPoint(guide_x, guide_y));
+    }
+
     int result = this->ShowModal();
     if (result == wxID_OK) {
         bool apply_keeped_changes = false;
@@ -958,20 +987,28 @@ bool GuideFrame::run()
 int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
 {
     //GetStardardFilePath(filepath);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDirectory << ", Filepath - "<<filepath;
 
     try {
         std::string contents;
         LoadFile(filepath, contents);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Json Contents: " << contents;
         json jLocal = json::parse(contents);
 
         if (sVendor == "") {
             if (jLocal.contains("filament_vendor"))
                 sVendor = jLocal["filament_vendor"][0];
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << filepath << " - Not Contains filament_vendor";
+            }
         }
 
         if (sType == "") {
             if (jLocal.contains("filament_type"))
                 sType = jLocal["filament_type"][0];
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << filepath << " - Not Contains filament_type";
+            }
         }
 
         if (sVendor == "" || sType == "")
@@ -979,21 +1016,29 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
             if (jLocal.contains("inherits")) {
                 std::string FName = jLocal["inherits"];
 
-                if (!pFilaList.contains(FName))
-                    return -1;
+                if (!pFilaList.contains(FName)) { 
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "pFilaList - Not Contains inherits filaments: " << FName;
+                    return -1; 
+                }
 
                 std::string FPath = pFilaList[FName]["sub_path"];
-                wxString                strNewFile    = wxString::Format("%s%c%s", VendorDirectory, boost::filesystem::path::preferred_separator, FPath);
-                boost::filesystem::path inherits_path = boost::filesystem::absolute(w2s(strNewFile)).make_preferred();
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Before Format Inherits Path: VendorDirectory - " << VendorDirectory << ", sub_path - " << FPath;
+                wxString strNewFile = wxString::Format("%s%c%s", wxString(VendorDirectory.c_str(), wxConvUTF8), boost::filesystem::path::preferred_separator, FPath);
+                boost::filesystem::path inherits_path(w2s(strNewFile));
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))
                     return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType);
-                else
+                else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inherits File Not Exist: " << inherits_path;
                     return -1;
+                }
             } else {
-                if (sType == "")
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << filepath << " - Not Contains inherits";
+                if (sType == "") {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "sType is Empty";
                     return -1;
+                }
                 else
                     sVendor = "Generic";
                     return 0;
@@ -1028,11 +1073,11 @@ int GuideFrame::LoadProfile()
         //intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // 查找目录中的第一个文件
+        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // ???????????
         //if (handle == -1) { return -1; }
 
         //do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1040,11 +1085,12 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(strVendor, TargetFolder + findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
+        //} while (_findnext(handle, &findData) == 0); // ???????????
 
         // BBS: change directories by design
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
         m_ProfileJson             = json::parse("{}");
+        //m_ProfileJson["configpath"] = Slic3r::data_dir();
         m_ProfileJson["model"]    = json::array();
         m_ProfileJson["machine"]  = json::object();
         m_ProfileJson["filament"] = json::object();
@@ -1065,11 +1111,11 @@ int GuideFrame::LoadProfile()
         // intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // 查找目录中的第一个文件
+        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // ???????????
         // if (handle == -1) { return -1; }
 
         // do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1077,7 +1123,7 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(w2s(strVendor), vendor_dir.make_preferred().string() + "\\"+ findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
+        //} while (_findnext(handle, &findData) == 0); // ???????????
 
 
         //load BBL bundle from user data path
@@ -1091,9 +1137,10 @@ int GuideFrame::LoadProfile()
             } else {
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
+
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1112,7 +1159,7 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1187,6 +1234,9 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
         network_plugin_ready = wxGetApp().is_compatibility_version();
+
+        StealthMode = wxGetApp().app_config->get_bool("app","stealth_mode");
+        m_ProfileJson["stealth_mode"] = StealthMode;
     }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
@@ -1491,6 +1541,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             std::string s2    = OneFF["sub_path"];
 
             tFilaList[s1] = OneFF;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Vendor: " << strVendor <<", tFilaList Add: " << s1;
         }
 
         int nFalse  = 0;
@@ -1509,14 +1560,19 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 std::string             sub_file = sub_path.string();
                 LoadFile(sub_file, contents);
                 json pm = json::parse(contents);
-
+                
                 std::string strInstant = pm["instantiation"];
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation?" << strInstant;
+
                 if (strInstant == "true") {
                     std::string sV;
                     std::string sT;
 
                     int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
-                    if (nRet != 0) continue;
+                    if (nRet != 0) { 
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",GetFilamentInfo Failed, Vendor:" << sV << ",Type:"<< sT;
+                        continue; 
+                    }
 
                     OneFF["vendor"] = sV;
                     OneFF["type"]   = sT;
@@ -1600,7 +1656,7 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

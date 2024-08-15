@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
@@ -85,6 +81,15 @@ std::string AppConfig::get_hms_host()
 // #else
     return "e.bambulab.com";
 // #endif
+}
+
+bool AppConfig::get_stealth_mode()
+{
+    // always return true when user did not finish setup wizard yet
+    if (!get_bool("firstguide","finish")) {
+        return true;
+    }
+    return get_bool("stealth_mode");
 }
 
 void AppConfig::reset()
@@ -173,10 +178,11 @@ void AppConfig::set_defaults()
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
 
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
+    if (get("camera_navigation_style").empty())
+        set("camera_navigation_style", "0");
+
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
-#endif
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
@@ -185,6 +191,8 @@ void AppConfig::set_defaults()
     if (get("show_hints").empty())
         set_bool("show_hints", true);
 //#endif
+    if (get("enable_multi_machine").empty())
+        set_bool("enable_multi_machine", false);
 
     if (get("show_gcode_window").empty())
         set_bool("show_gcode_window", true);
@@ -224,8 +232,8 @@ void AppConfig::set_defaults()
     if (get("enable_ssl_for_ftp").empty())
         set_bool("enable_ssl_for_ftp", true);
 
-    if (get("severity_level").empty())
-        set("severity_level", "2");
+    if (get("log_severity_level").empty())
+        set("log_severity_level", "warning");
 
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
@@ -254,6 +262,10 @@ void AppConfig::set_defaults()
         set_bool("show_splash_screen", true);
     }
 
+    if(get("auto_arrange").empty()) {
+        set_bool("auto_arrange", true);
+    }
+
     if (get("show_model_mesh").empty()) {
         set_bool("show_model_mesh", false);
     }
@@ -272,6 +284,14 @@ void AppConfig::set_defaults()
     //true is auto calculate
     if (get("auto_calculate").empty()) {
         set_bool("auto_calculate", true);
+    }
+
+    if (get("remember_printer_config").empty()) {
+        set_bool("remember_printer_config", true);
+    }
+
+    if (get("auto_calculate_when_filament_change").empty()){
+        set_bool("auto_calculate_when_filament_change", true);
     }
 
     if (get("show_home_page").empty()) {
@@ -350,6 +370,14 @@ void AppConfig::set_defaults()
         set("curr_bed_type", "1");
     }
 
+    if (get("sending_interval").empty()) {
+        set("sending_interval", "5");
+    }
+
+    if (get("max_send").empty()) {
+        set("max_send", "3");
+    }
+
 // #if BBL_RELEASE_TO_PUBLIC
     if (get("iot_environment").empty()) {
         set("iot_environment", "3");
@@ -384,6 +412,7 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_maximized");
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
+    erase("app", "severity_level");
 }
 
 #ifdef WIN32
@@ -556,6 +585,8 @@ std::string AppConfig::load()
                         cali_info.cali_finished = bool(calis_j["cali_finished"].get<int>());
                     if (calis_j.contains("flow_ratio"))
                         cali_info.cache_flow_ratio = calis_j["flow_ratio"].get<float>();
+                    if (calis_j.contains("cache_flow_rate_calibration_type"))
+                        cali_info.cache_flow_rate_calibration_type = static_cast<FlowRatioCalibrationType>(calis_j["cache_flow_rate_calibration_type"].get<int>());
                     if (calis_j.contains("presets")) {
                         cali_info.selected_presets.clear();
                         for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
@@ -678,6 +709,7 @@ void AppConfig::save()
         cali_json["dev_id"]             = cali_info.dev_id;
         cali_json["flow_ratio"]         = cali_info.cache_flow_ratio;
         cali_json["cali_finished"]      = cali_info.cali_finished ? 1 : 0;
+        cali_json["cache_flow_rate_calibration_type"] = static_cast<int>(cali_info.cache_flow_rate_calibration_type);
         for (auto filament_preset : cali_info.selected_presets) {
             json preset_json;
             preset_json["tray_id"] = filament_preset.tray_id;
@@ -1030,6 +1062,7 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info, bool n
         }
         (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
         (*iter).selected_presets = cali_info.selected_presets;
+        (*iter).cache_flow_rate_calibration_type = cali_info.cache_flow_rate_calibration_type;
     }
     m_dirty = true;
 }
@@ -1232,6 +1265,38 @@ bool AppConfig::is_engineering_region(){
     return false;
 }
 
+void AppConfig::save_custom_color_to_config(const std::vector<std::string> &colors)
+{
+    auto set_colors = [](std::map<std::string, std::string> &data, const std::vector<std::string> &colors) {
+        for (size_t i = 0; i < colors.size(); i++) {
+            data[std::to_string(10 + i)] = colors[i]; // for map sort:10 begin
+        }
+    };
+    if (colors.size() > 0) {
+        if (!has_section("custom_color_list")) {
+            std::map<std::string, std::string> data;
+            set_colors(data, colors);
+            set_section("custom_color_list", data);
+        } else {
+            auto data        = get_section("custom_color_list");
+            auto data_modify = const_cast<std::map<std::string, std::string> *>(&data);
+            set_colors(*data_modify, colors);
+            set_section("custom_color_list", *data_modify);
+        }
+    }
+}
+
+std::vector<std::string> AppConfig::get_custom_color_from_config()
+{
+    std::vector<std::string> colors;
+    if (has_section("custom_color_list")) {
+        auto data = get_section("custom_color_list");
+        for (auto iter : data) {
+            colors.push_back(iter.second);
+        }
+    }
+    return colors;
+}
 
 void AppConfig::reset_selections()
 {

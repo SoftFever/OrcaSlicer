@@ -35,15 +35,9 @@ namespace GUI {
 
 enum TestJob {
 	TEST_BING_JOB = 0,
-	TEST_BAMBULAB_JOB = 1,
-	TEST_IOT_JOB = 2,
-	TEST_OSS_JOB = 3,
-	TEST_OSS_UPGRADE_JOB = 4,
-	TEST_OSS_DOWNLOAD_JOB = 5,
-	TEST_OSS_UPLOAD_JOB = 6,
-	TEST_PING_JOB = 7,
-	TEST_PLUGIN_JOB = 8,
-	TEST_JOB_MAX = 9
+	TEST_ORCA_JOB = 1,
+	TEST_PING_JOB,
+	TEST_JOB_MAX
 };
 
 class NetworkTestDialog : public DPIDialog
@@ -65,24 +59,6 @@ protected:
 	Button*     btn_bing;
 	wxStaticText* text_bing_title;
 	wxStaticText* text_bing_val;
-	Button*     btn_iot;
-	wxStaticText* text_iot_title;
-	wxStaticText* text_iot_value;
-	Button*     btn_oss;
-	wxStaticText* text_oss_title;
-	wxStaticText* text_oss_value;
-	Button*     btn_oss_upgrade;
-	wxStaticText* text_oss_upgrade_title;
-	wxStaticText* text_oss_upgrade_value;
-	Button*     btn_oss_download;
-	wxStaticText* text_oss_download_title;
-	wxStaticText* text_oss_download_value;
-	Button*     btn_oss_upload;
-	wxStaticText* text_oss_upload_title;
-	wxStaticText* text_oss_upload_value;
-	Button*     btn_network_plugin;
-	wxStaticText* text_network_plugin_title;
-	wxStaticText* text_network_plugin_value;
 	wxStaticText* text_ping_title;
 	wxStaticText* text_ping_value;
 	wxStaticText* text_result;
@@ -116,23 +92,10 @@ public:
 	void start_all_job();
 	void start_all_job_sequence();
 	void start_test_bing_thread();
-	void start_test_bambulab_thread();
-	void start_test_iot_thread();
-	void start_test_oss_thread();
-	void start_test_oss_upgrade_thread();
-	void start_test_oss_download_thread();
-	void start_test_oss_upload_thread();
+	void start_test_github_thread();
 	void start_test_ping_thread();
-	void start_test_plugin_download_thread();
 
-	void start_test_bing();
-	void start_test_bambulab();
-	void start_test_iot();
-	void start_test_oss();
-	void start_test_oss_upgrade();
-	void start_test_oss_download();
-	void start_test_oss_upload();
-	void start_test_plugin_download();
+	void start_test_url(TestJob job, wxString name, wxString url);
 
 	void on_close(wxCloseEvent& event);
 

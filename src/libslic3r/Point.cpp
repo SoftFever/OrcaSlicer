@@ -1,15 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
-///|/ Copyright (c) 2014 Kamil Kwolek
-///|/ Copyright (c) 2013 Jose Luis Perez Diez
-///|/
-///|/ ported from lib/Slic3r/Point.pm:
-///|/ Copyright (c) Prusa Research 2018 Vojtěch Bubník @bubnikv
-///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Point.hpp"
 #include "Line.hpp"
 #include "MultiPoint.hpp"
@@ -76,9 +64,9 @@ void Point::rotate(double angle, const Point &center)
  */
 double Point::ccw(const Point &p1, const Point &p2) const
 {
-    static_assert(sizeof(coord_t) == 4, "Point::ccw() requires a 32 bit coord_t");
-    return cross2((p2 - p1).cast<int64_t>(), (*this - p1).cast<int64_t>());
-//    return cross2((p2 - p1).cast<double>(), (*this - p1).cast<double>());
+    // static_assert(sizeof(coord_t) == 4, "Point::ccw() requires a 32 bit coord_t");
+    // return cross2((p2 - p1).cast<int64_t>(), (*this - p1).cast<int64_t>());
+   return cross2((p2 - p1).cast<double>(), (*this - p1).cast<double>());
 }
 
 double Point::ccw(const Line &line) const

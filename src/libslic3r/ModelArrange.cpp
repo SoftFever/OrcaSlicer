@@ -176,7 +176,8 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         ap.has_tree_support = true;
     }
 
-    ap.height = obj->bounding_box_exact().size().z();
+    auto size = obj->instance_convex_hull_bounding_box(instance).size();
+    ap.height = size.z();
     ap.name = obj->name;
     return ap;
 }

@@ -67,6 +67,12 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+    m_cb_nozzle_blob->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_nozzle_blob_detect(m_cb_nozzle_blob->GetValue());
+        }
+        evt.Skip();
+        });
 
     wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -163,6 +169,18 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_filament_tangle->Hide();
         line6->Hide();
     }
+    if (false/*obj_->is_support_nozzle_blob_detection*/) {
+        text_nozzle_blob->Show();
+        m_cb_nozzle_blob->Show();
+        text_nozzle_blob_caption->Show();
+        line7->Show();
+    }
+    else {
+        text_nozzle_blob->Hide();
+        m_cb_nozzle_blob->Hide();
+        text_nozzle_blob_caption->Hide();
+        line7->Hide();
+    }
 
     this->Freeze();
     
@@ -171,6 +189,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
     m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
     m_cb_filament_tangle->SetValue(obj_->xcam_filament_tangle_detect);
+    m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
 
     m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -198,7 +217,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     // ai monitoring with levels
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_ai_monitoring = new CheckBox(parent);
-    text_ai_monitoring = new wxStaticText(parent, wxID_ANY, _L("Enable AI monitoring of printing"));
+    text_ai_monitoring = new Label(parent, _L("Enable AI monitoring of printing"));
     text_ai_monitoring->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_ai_monitoring, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -208,7 +227,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    text_ai_monitoring_caption = new wxStaticText(parent, wxID_ANY, _L("Sensitivity of pausing is"));
+    text_ai_monitoring_caption = new Label(parent, _L("Sensitivity of pausing is"));
     text_ai_monitoring_caption->SetFont(Label::Body_14);
     text_ai_monitoring_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_ai_monitoring_caption->Wrap(-1);
@@ -236,7 +255,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     // detection of build plate position
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_plate_mark = new CheckBox(parent);
-    text_plate_mark = new wxStaticText(parent, wxID_ANY, _L("Enable detection of build plate position"));
+    text_plate_mark = new Label(parent, _L("Enable detection of build plate position"));
     text_plate_mark->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_plate_mark, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -263,7 +282,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     // detection of first layer
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_first_layer = new CheckBox(parent);
-    text_first_layer = new wxStaticText(parent, wxID_ANY, _L("First Layer Inspection"));
+    text_first_layer = new Label(parent, _L("First Layer Inspection"));
     text_first_layer->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_first_layer, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -279,7 +298,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     // auto-recovery from step loss
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_auto_recovery = new CheckBox(parent);
-    text_auto_recovery = new wxStaticText(parent, wxID_ANY, _L("Auto-recovery from step loss"));
+    text_auto_recovery = new Label(parent, _L("Auto-recovery from step loss"));
     text_auto_recovery->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_auto_recovery, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -296,7 +315,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //Allow prompt sound
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_sup_sound = new CheckBox(parent);
-    text_sup_sound = new wxStaticText(parent, wxID_ANY, _L("Allow Prompt Sound"));
+    text_sup_sound = new Label(parent, _L("Allow Prompt Sound"));
     text_sup_sound->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_sup_sound, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -313,7 +332,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //filament tangle detect
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_filament_tangle = new CheckBox(parent);
-    text_filament_tangle = new wxStaticText(parent, wxID_ANY, _L("Filament Tangle Detect"));
+    text_filament_tangle = new Label(parent, _L("Filament Tangle Detect"));
     text_filament_tangle->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_filament_tangle, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -325,6 +344,38 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line6 = new StaticLine(parent, false);
     line6->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line6, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+    //nozzle blob detect
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_nozzle_blob = new CheckBox(parent);
+    text_nozzle_blob = new Label(parent, _L("Nozzle Clumping Detection"));
+    text_nozzle_blob->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_nozzle_blob, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_nozzle_blob, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString nozzle_blob_caption_text = _L("Check if the nozzle is clumping by filament or other foreign objects.");
+    text_nozzle_blob_caption = new Label(parent, nozzle_blob_caption_text);
+    text_nozzle_blob_caption->SetFont(Label::Body_14);
+    text_nozzle_blob_caption->Wrap(-1);
+    text_nozzle_blob_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_nozzle_blob_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line7 = new StaticLine(parent, false);
+    line7->SetLineColour(STATIC_BOX_LINE_COL);
+    sizer->Add(line7, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+
+    text_nozzle_blob->Hide();
+    m_cb_nozzle_blob->Hide();
+    text_nozzle_blob_caption->Hide();
+    line7->Hide();
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 
@@ -381,6 +432,200 @@ bool PrintOptionsDialog::Show(bool show)
     if (show) { 
         wxGetApp().UpdateDlgDarkUI(this);
         CentreOnParent(); 
+    }
+    return DPIDialog::Show(show);
+}
+
+PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
+: DPIDialog(parent, wxID_ANY, _L("Printer Parts"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    nozzle_type_map[0] = "hardened_steel";
+    nozzle_type_map[1] = "stainless_steel";
+
+    nozzle_stainless_diameter_map[0] = 0.2;
+    nozzle_stainless_diameter_map[1] = 0.4;
+
+    nozzle_hard_diameter_map[0] = 0.4;
+    nozzle_hard_diameter_map[1] = 0.6;
+    nozzle_hard_diameter_map[2] = 0.8;
+
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    
+
+    auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line->SetBackgroundColour(wxColour(166, 169, 170));
+    
+    //nozzle type
+    wxBoxSizer* line_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
+
+    auto nozzle_type  = new Label(this, _L("Nozzle Type"));
+    nozzle_type->SetFont(Label::Body_14);
+    nozzle_type->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_type->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_type->Wrap(-1);
+
+    nozzle_type_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    nozzle_type_checkbox->Append(_L("Stainless Steel"));
+    nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    nozzle_type_checkbox->SetSelection(0);
+
+    
+    line_sizer_nozzle_type->Add(nozzle_type, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_type->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_type->Add(nozzle_type_checkbox, 0, wxALIGN_CENTER, 5);
+
+
+    //nozzle diameter
+    wxBoxSizer* line_sizer_nozzle_diameter = new wxBoxSizer(wxHORIZONTAL);
+    auto nozzle_diameter = new Label(this, _L("Nozzle Diameter"));
+    nozzle_diameter->SetFont(Label::Body_14);
+    nozzle_diameter->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_diameter->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_diameter->Wrap(-1);
+
+    nozzle_diameter_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+ 
+
+    line_sizer_nozzle_diameter->Add(nozzle_diameter, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
+
+    sizer->Add(m_line, 0, wxEXPAND, 0);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+
+
+    nozzle_type_checkbox->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_type), NULL, this );
+    nozzle_diameter_checkbox->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_diameter), NULL, this );
+
+    SetSizer(sizer);
+    Layout();
+    Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+PrinterPartsDialog::~PrinterPartsDialog()
+{
+    nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_type), NULL, this);
+    nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_diameter), NULL, this);
+}
+
+void PrinterPartsDialog::set_nozzle_type(wxCommandEvent& evt)
+{
+    auto type = nozzle_type_map[nozzle_type_checkbox->GetSelection()];
+
+    if (type == last_nozzle_type) {
+        return;
+    }
+
+    std::map<int, float> diameter_list;
+    if (type == "hardened_steel") {
+        diameter_list = nozzle_hard_diameter_map;
+    }
+    else if (type == "stainless_steel") {
+        diameter_list = nozzle_stainless_diameter_map;
+    }
+
+    nozzle_diameter_checkbox->Clear();
+    for (int i = 0; i < diameter_list.size(); i++)
+    {
+        nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
+    }
+    nozzle_diameter_checkbox->SetSelection(0);
+
+
+    last_nozzle_type = type;
+    set_nozzle_diameter(evt);
+}
+
+void PrinterPartsDialog::set_nozzle_diameter(wxCommandEvent& evt)
+{
+    if (obj) {
+        try
+        {
+            auto nozzle_type = nozzle_type_map[nozzle_type_checkbox->GetSelection()];
+            auto nozzle_diameter = std::stof(nozzle_diameter_checkbox->GetStringSelection().ToStdString());
+            nozzle_diameter = round(nozzle_diameter * 10) / 10;
+            
+            obj->nozzle_diameter = nozzle_diameter;
+            obj->nozzle_type = nozzle_type;
+
+            obj->command_set_printer_nozzle(nozzle_type, nozzle_diameter);
+        }
+        catch (...) {}
+    }
+}
+
+void PrinterPartsDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+     Fit();
+}
+
+void PrinterPartsDialog::update_machine_obj(MachineObject* obj_)
+{
+    obj = obj_;
+}
+
+bool PrinterPartsDialog::Show(bool show)
+{
+    if (show) {
+        wxGetApp().UpdateDlgDarkUI(this);
+        CentreOnParent();
+
+        auto type = obj->nozzle_type;
+        auto diameter = 0.4f;
+
+        if (obj->nozzle_diameter > 0) {
+            diameter = round(obj->nozzle_diameter * 10) / 10;
+        }
+
+        nozzle_type_checkbox->Clear();
+        nozzle_diameter_checkbox->Clear();
+
+        if (type.empty()) {
+            nozzle_type_checkbox->SetValue(wxEmptyString);
+            nozzle_diameter_checkbox->SetValue(wxEmptyString);
+
+            nozzle_type_checkbox->Disable();
+            nozzle_diameter_checkbox->Disable();
+            return DPIDialog::Show(show);
+        }
+        else {
+            nozzle_type_checkbox->Enable();
+            nozzle_diameter_checkbox->Enable();
+        }
+
+        last_nozzle_type = type;
+
+        for (int i=0; i < nozzle_type_map.size(); i++)
+        {
+            nozzle_type_checkbox->Append( nozzle_type_map[i] );
+            if (nozzle_type_map[i] == type) {
+                nozzle_type_checkbox->SetSelection(i);
+            }
+        }
+
+        std::map<int, float> diameter_list;
+        if (type == "hardened_steel") {
+            diameter_list = nozzle_hard_diameter_map;
+        }
+        else if (type == "stainless_steel") {
+            diameter_list = nozzle_stainless_diameter_map;
+        }
+
+        for (int i = 0; i < diameter_list.size(); i++)
+        {
+            nozzle_diameter_checkbox->Append( wxString::Format(_L("%.1f"), diameter_list[i]));
+            if (diameter_list[i] == diameter) {
+                nozzle_diameter_checkbox->SetSelection(i);
+            }
+        }
     }
     return DPIDialog::Show(show);
 }

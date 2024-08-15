@@ -70,6 +70,7 @@ struct CSGPart {
     Transform3f trafo;
     CSGType operation;
     CSGStackOp stack_operation;
+    std::string name;
 
     CSGPart(AnyPtr<const indexed_triangle_set> ptr = {},
             CSGType                            op  = CSGType::Union,

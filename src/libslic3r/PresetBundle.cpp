@@ -344,6 +344,27 @@ VendorType PresetBundle::get_current_vendor_type()
     return t;
 }
 
+bool PresetBundle::use_bbl_network()
+{
+    const auto cfg             = printers.get_edited_preset().config;
+    const bool use_bbl_network = is_bbl_vendor() && !cfg.opt_bool("bbl_use_printhost");
+    return use_bbl_network;
+}
+
+bool PresetBundle::use_bbl_device_tab() {
+    if (!is_bbl_vendor()) {
+        return false;
+    }
+
+    if (use_bbl_network()) {
+        return true;
+    }
+
+    const auto cfg = printers.get_edited_preset().config;
+    // Use bbl device tab if printhost webui url is not set 
+    return cfg.opt_string("print_host_webui").empty();
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
@@ -1526,6 +1547,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                         Preset* filament = filaments.find_preset(filament_iter.first, false, true);
                         if (filament && is_compatible_with_printer(PresetWithVendorProfile(*filament, filament->vendor), PresetWithVendorProfile(printer, printer.vendor)))
                         {
+
                             //already has compatible filament
                             add_default_materials = false;
                             break;
@@ -1677,6 +1699,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     // If executed due to a Config Wizard update, preferred_printer contains the first newly installed printer, otherwise nullptr.
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
+    CNumericLocalesSetter locales_setter;
 
     // Orca: load from orca_presets
     // const auto os_presets = config.get_machine_settings(initial_printer_profile_name);
@@ -1888,7 +1911,6 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
                 if (filament_presets.size() < this->filament_presets.size()) {
                     filament_presets.push_back(this->filament_presets[filament_presets.size()]);
                     filament_colors.push_back(filament_color);
-                    ams_multi_color_filment.push_back(filament_multi_color);
                     ++unknowns;
                     continue;
                 }
@@ -1936,6 +1958,97 @@ void PresetBundle::set_calibrate_printer(std::string name)
         bool                          is_compatible                   = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
         if (is_compatible) calibrate_filaments.insert(&preset);
     }
+}
+
+std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str)
+{
+    std::set<std::string> printer_names;
+    if ("0.0" == nozzle_diameter_str || nozzle_diameter_str.empty()) {
+        nozzle_diameter_str = "0.4";
+    }
+    std::ostringstream    stream;
+
+    for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); printer_it++) {
+        if (!printer_it->is_system) continue;
+
+        ConfigOption *      printer_model_opt = printer_it->config.option("printer_model");
+        ConfigOptionString *printer_model_str = dynamic_cast<ConfigOptionString *>(printer_model_opt);
+        if (!printer_model_str) continue;
+
+        // use printer_model as printer type
+        if (printer_model_str->value != printer_type) continue;
+
+        if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
+    }
+
+    //assert(printer_names.size() == 1);
+
+    for (auto& printer_name : printer_names) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " printer name: " << printer_name;
+    }
+
+    return printer_names;
+}
+
+bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
+    const std::string &printer_type, std::string& nozzle_diameter_str, std::string &setting_id, std::string &tag_uid, std::string &nozzle_temp_min, std::string &nozzle_temp_max, std::string& preset_setting_id)
+{
+    bool is_equation = true;
+
+    std::map<std::string, std::vector<Preset const *>> filament_list = filaments.get_filament_presets();
+    std::set<std::string> printer_names       = get_printer_names_by_printer_type_and_nozzle(printer_type, nozzle_diameter_str);
+
+    for (const Preset *preset : filament_list.find(setting_id)->second) {
+        if (tag_uid == "0" || (tag_uid.size() == 16 && tag_uid.substr(12, 2) == "01")) continue;
+        if (preset && !preset->is_user()) continue;
+        ConfigOption *       printer_opt  = const_cast<Preset *>(preset)->config.option("compatible_printers");
+        ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+        bool                 compared = false;
+        for (const std::string &printer_str : printer_strs->values) {
+            if (printer_names.find(printer_str) != printer_names.end()) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "nozzle temp matching: preset name: " << preset->name << " printer name: " << printer_str;
+                // Compare only once
+                if (!compared) {
+                    compared                        = true;
+                    bool          min_temp_equation = false, max_temp_equation = false;
+                    int           min_nozzle_temp = std::stoi(nozzle_temp_min);
+                    int           max_nozzle_temp = std::stoi(nozzle_temp_max);
+                    ConfigOption *opt_min         = const_cast<Preset *>(preset)->config.option("nozzle_temperature_range_low");
+                    if (opt_min) {
+                        ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
+                        min_nozzle_temp                = opt_min_ints->get_at(0);
+                        if (std::to_string(min_nozzle_temp) == nozzle_temp_min)
+                            min_temp_equation = true;
+                        else {
+                            BOOST_LOG_TRIVIAL(info) << "tray min temp: " << nozzle_temp_min << " preset min temp: " << min_nozzle_temp;
+                            nozzle_temp_min = std::to_string(min_nozzle_temp);
+                        }
+                    }
+                    ConfigOption *opt_max = const_cast<Preset *>(preset)->config.option("nozzle_temperature_range_high");
+                    if (opt_max) {
+                        ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
+                        max_nozzle_temp                = opt_max_ints->get_at(0);
+                        if (std::to_string(max_nozzle_temp) == nozzle_temp_max)
+                            max_temp_equation = true;
+                        else {
+                            BOOST_LOG_TRIVIAL(info) << "tray max temp: " << nozzle_temp_max << " preset min temp: " << max_nozzle_temp;
+                            nozzle_temp_max = std::to_string(max_nozzle_temp);
+                        }
+                    }
+                    if (min_temp_equation && max_temp_equation) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "Determine if the temperature has changed: no changed";
+                    } else {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "Determine if the temperature has changed: has changed";
+                        preset_setting_id = preset->setting_id;
+                        is_equation = false;
+                    }
+                } else {
+                    assert(false);
+                }
+            }
+        }
+    }
+    return is_equation;
 }
 
 //BBS: check whether this is the only edited filament
@@ -2163,7 +2276,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     //BBS: add logic for settings check between different system presets
     out.erase("different_settings_to_system");
 
-    static const char *keys[] = { "support_filament", "support_interface_filament" };
+    static const char* keys[] = {"support_filament", "support_interface_filament", "wipe_tower_filament"};
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
         std::string key = std::string(keys[i]);
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
@@ -2171,6 +2284,14 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_filaments));
     }
 
+    static const char* keys_1based[] = {"wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    for (size_t i = 0; i < sizeof(keys_1based) / sizeof(keys_1based[0]); ++ i) {
+        std::string key = std::string(keys_1based[i]);
+        auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
+        assert(opt != nullptr);
+        if(opt->value < 1 || opt->value > int(num_filaments))
+            opt->value = 1;
+    }
     out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
@@ -3367,7 +3488,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         // Load the print, filament or printer preset.
         std::string               preset_name;
         DynamicPrintConfig        config;
-        std::string 			  alias_name, inherits, instantiation, setting_id, filament_id;
+        std::string 			  alias_name, inherits, description, instantiation, setting_id, filament_id;
         std::vector<std::string>  renamed_from;
         const DynamicPrintConfig* default_config = nullptr;
         std::string               reason;
@@ -3384,7 +3505,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 return reason;
             }
             preset_name = key_values[BBL_JSON_KEY_NAME];
-            instantiation = key_values[BBL_JSON_KEY_INSTANTIATION];
+            description     = key_values[BBL_JSON_KEY_DESCRIPTION];
+            instantiation   = key_values[BBL_JSON_KEY_INSTANTIATION];
             auto setting_it = key_values.find(BBL_JSON_KEY_SETTING_ID);
             if (setting_it != key_values.end())
                 setting_id = setting_it->second;
@@ -3507,6 +3629,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.is_system = true;
             loaded.vendor = current_vendor_profile;
             loaded.version = current_vendor_profile->config_version;
+            loaded.description = description;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << loaded.name << " load filament_id: " << filament_id;
@@ -3537,8 +3660,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         }
         if (alias_name.empty())
             loaded.alias = preset_name;
-        else
+        else {
             loaded.alias = std::move(alias_name);
+            filaments.set_printer_hold_alias(loaded.alias, loaded);
+        }
         loaded.renamed_from = std::move(renamed_from);
         if (! substitution_context.empty())
             substitutions.push_back({

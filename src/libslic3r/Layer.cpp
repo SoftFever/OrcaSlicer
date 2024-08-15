@@ -181,6 +181,7 @@ void Layer::make_perimeters()
 		                && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
+                        && config.top_bottom_infill_wall_overlap              == other_config.top_bottom_infill_wall_overlap
                         && config.fuzzy_skin                  == other_config.fuzzy_skin
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
                         && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
@@ -188,6 +189,7 @@ void Layer::make_perimeters()
                         && config.seam_slope_type         == other_config.seam_slope_type
                         && config.seam_slope_conditional == other_config.seam_slope_conditional
                         && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+                        && config.scarf_overhang_threshold  == other_config.scarf_overhang_threshold
                         && config.scarf_joint_speed       == other_config.scarf_joint_speed
                         && config.scarf_joint_flow_ratio       == other_config.scarf_joint_flow_ratio
                         && config.seam_slope_start_height == other_config.seam_slope_start_height

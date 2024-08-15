@@ -64,7 +64,7 @@ bool model_to_csgmesh(const ModelObject &mo,
                 CSGPart part{&(vol->mesh().its),
                              vol->is_model_part() ? CSGType::Union : CSGType::Difference,
                              (trafo * vol->get_matrix()).cast<float>()};
-
+                part.name = vol->name;
                 *out = std::move(part);
                 ++out;
             }

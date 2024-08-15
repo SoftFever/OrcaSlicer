@@ -73,10 +73,10 @@
     "30"
   ],
   "fan_max_speed": [
-    "90"
+    "100"
   ],
   "fan_min_speed": [
-    "40"
+    "80"
   ],
   "overhang_fan_threshold": [
     "25%"
@@ -84,7 +84,10 @@
   "compatible_printers": [
     "Flashforge Adventurer 5M 0.4 Nozzle",
     "Flashforge Adventurer 5M 0.6 Nozzle",
+	  "Flashforge Adventurer 5M 0.8 Nozzle",
     "Flashforge Adventurer 5M Pro 0.4 Nozzle",
-    "Flashforge Adventurer 5M Pro 0.6 Nozzle"
+    "Flashforge Adventurer 5M Pro 0.6 Nozzle",
+	  "Flashforge Adventurer 5M Pro 0.8 Nozzle",
+    "Flashforge Guider 2s 0.4 nozzle"
   ]
 }

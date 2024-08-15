@@ -16,9 +16,9 @@ namespace Slic3r::Arachne
 {
 
 constexpr bool    fill_outline_gaps                        = true;
-constexpr coord_t meshfix_maximum_resolution               = scaled<coord_t>(0.5);
-constexpr coord_t meshfix_maximum_deviation                = scaled<coord_t>(0.025);
-constexpr coord_t meshfix_maximum_extrusion_area_deviation = scaled<coord_t>(2.);
+inline coord_t    meshfix_maximum_resolution() { return scaled<coord_t>(0.5); }
+inline coord_t    meshfix_maximum_deviation() { return scaled<coord_t>(0.025); }
+inline coord_t    meshfix_maximum_extrusion_area_deviation() { return scaled<coord_t>(2.); }
 
 class WallToolPathsParams
 {

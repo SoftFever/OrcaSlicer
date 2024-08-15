@@ -19,9 +19,9 @@ END_EVENT_TABLE()
  */
 
 TextInput::TextInput()
-    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+    : label_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled),
                  std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+    , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled),
                  std::make_pair(0x262E30, (int) StateColor::Normal))
 {
     radius = 0;
@@ -99,6 +99,14 @@ void TextInput::SetIcon(const wxBitmap &icon)
 {
     this->icon = ScalableBitmap();
     this->icon.bmp() = icon;
+    Rescale();
+}
+
+void TextInput::SetIcon(const wxString &icon)
+{
+    if (this->icon.name() == icon.ToStdString())
+        return;
+    this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     Rescale();
 }
 

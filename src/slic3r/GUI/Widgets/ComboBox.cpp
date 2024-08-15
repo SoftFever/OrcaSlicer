@@ -39,7 +39,7 @@ ComboBox::ComboBox(wxWindow *parent,
                    int             n,
                    const wxString  choices[],
                    long            style)
-    : drop(texts, icons)
+    : drop(texts, tips, icons)
 {
     if (style & wxCB_READONLY)
         style |= wxRIGHT;
@@ -55,9 +55,10 @@ ComboBox::ComboBox(wxWindow *parent,
             std::make_pair(0x009688, (int) StateColor::Hovered),
             std::make_pair(0xDBDBDB, (int) StateColor::Normal)));
         TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
-            std::make_pair(0xEDFAF2, (int) StateColor::Focused),
+            std::make_pair(0xE5F0EE, (int) StateColor::Focused), // ORCA updated background color for focused item
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
-        TextInput::SetLabelColor(StateColor(std::make_pair(0x909090, (int) StateColor::Disabled),
+        TextInput::SetLabelColor(StateColor(
+            std::make_pair(0x6B6B6B, (int) StateColor::Disabled), // ORCA: Use same color for disabled text on combo boxes
             std::make_pair(0x262E30, (int) StateColor::Normal)));
     }
     if (auto scroll = GetScrollParent(this))
@@ -85,7 +86,7 @@ void ComboBox::SetSelection(int n)
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection]);
+        SetIcon(icons[drop.selection].IsNull() ? create_scaled_bitmap("drop_down", nullptr, 16): icons[drop.selection]); // ORCA fix combo boxes without arrows
 }
 void ComboBox::SelectAndNotify(int n) { 
     SetSelection(n);
@@ -108,7 +109,7 @@ void ComboBox::SetValue(const wxString &value)
     drop.SetValue(value);
     SetLabel(value);
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection]);
+        SetIcon(icons[drop.selection].IsNull() ? create_scaled_bitmap("drop_down", nullptr, 16): icons[drop.selection]); // ORCA fix combo boxes without arrows
 }
 
 void ComboBox::SetLabel(const wxString &value)
@@ -155,6 +156,7 @@ int ComboBox::Append(const wxString &item,
                      void *          clientData)
 {
     texts.push_back(item);
+    tips.push_back(wxString{});
     icons.push_back(bitmap);
     datas.push_back(clientData);
     types.push_back(wxClientData_None);
@@ -164,7 +166,9 @@ int ComboBox::Append(const wxString &item,
 
 void ComboBox::DoClear()
 {
+    SetIcon("drop_down");
     texts.clear();
+    tips.clear();
     icons.clear();
     datas.clear();
     types.clear();
@@ -175,6 +179,7 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
 {
     if (pos >= texts.size()) return;
     texts.erase(texts.begin() + pos);
+    tips.erase(tips.begin() + pos);
     icons.erase(icons.begin() + pos);
     datas.erase(datas.begin() + pos);
     types.erase(types.begin() + pos);
@@ -196,6 +201,18 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
     if (n == drop.GetSelection()) SetLabel(value);
 }
 
+wxString ComboBox::GetItemTooltip(unsigned int n) const
+{
+    if (n >= texts.size()) return wxString();
+    return tips[n];
+}
+
+void ComboBox::SetItemTooltip(unsigned int n, wxString const &value) {
+    if (n >= texts.size()) return;
+    tips[n] = value;
+    if (n == drop.GetSelection()) drop.SetToolTip(value);
+}
+
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
 
 void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
@@ -213,6 +230,7 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
     if (pos > texts.size()) return -1;
     for (int i = 0; i < items.GetCount(); ++i) {
         texts.insert(texts.begin() + pos, items[i]);
+        tips.insert(tips.begin() + pos, wxString{});
         icons.insert(icons.begin() + pos, wxNullBitmap);
         datas.insert(datas.begin() + pos, clientData ? clientData[i] : NULL);
         types.insert(types.begin() + pos, type);

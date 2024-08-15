@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
-"PO-Revision-Date: 2024-02-17 22:49+0100\n"
+"POT-Creation-Date: 2024-08-03 18:54+0200\n"
+"PO-Revision-Date: 2024-07-07 18:43+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ca\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
 msgstr "Pintar suports"
@@ -79,9 +79,6 @@ msgstr "Angle de farciment intel·ligent"
 msgid "On overhangs only"
 msgstr "Només als voladissos"
 
-msgid "Auto support threshold angle: "
-msgstr "Angle llindar de suport automàtic: "
-
 msgid "Circle"
 msgstr "Cercle"
 
@@ -100,6 +97,9 @@ msgstr "Permet pintar només les facetes seleccionades per: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Ressalteu les cares segons l'angle del voladís."
+
+msgid "Auto support threshold angle: "
+msgstr "Angle llindar de suport automàtic: "
 
 msgid "No auto support"
 msgstr "No suports automàtics"
@@ -252,13 +252,16 @@ msgid "Set Scale"
 msgstr "Establir Escala"
 
 msgid "Reset Position"
-msgstr "Restableix la posició"
+msgstr "Restableix la Posició"
 
 msgid "Reset Rotation"
-msgstr "Reinicialitza la Rotació"
+msgstr "Restableix la Rotació"
 
 msgid "World coordinates"
 msgstr "Coordenades cartesianes"
+
+msgid "Object coordinates"
+msgstr "Coordenades de l'objecte"
 
 msgid "°"
 msgstr "°"
@@ -277,7 +280,7 @@ msgid "Planar"
 msgstr "Planar"
 
 msgid "Dovetail"
-msgstr "Encadellat"
+msgstr "Matxembrat"
 
 msgid "Auto"
 msgstr "Automàtic"
@@ -597,7 +600,7 @@ msgstr "Mostra estructura de xarxa"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr "No es pot aplicar quan es previsualitza el processament."
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -666,7 +669,7 @@ msgstr "Superfície"
 msgid "Horizontal text"
 msgstr "Text horitzontal"
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr "Majúscules + Ratolí pujar o baixar"
 
 msgid "Rotate text"
@@ -677,11 +680,11 @@ msgstr "Forma del text"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr ""
+msgstr "Rotació de Text"
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr ""
+msgstr "Desplaçament de Text"
 
 msgid "Set Mirror"
 msgstr "Establir reflex"
@@ -1012,7 +1015,7 @@ msgstr "Orientar/alinear el text vers la càmera."
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "No es pot carregar exactament el mateix tipus de lletra( \"%1%\" ), "
@@ -1088,11 +1091,11 @@ msgstr "Col·lecció"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr ""
+msgstr "Rotació de SVG"
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
-msgstr ""
+msgstr "Desplaçament de SVG"
 
 msgid "Enter SVG gizmo"
 msgstr "Entrar al gizmo SVG"
@@ -1395,9 +1398,6 @@ msgstr ""
 "Ha estat carregat el fitxer de configuració \"%1%\", però alguns valors no "
 "s'han pogut reconèixer."
 
-msgid "V"
-msgstr "V"
-
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
@@ -1493,10 +1493,10 @@ msgstr ""
 "perfils d'impressora no es veuran afectats."
 
 msgid "Rebuild"
-msgstr "Recompondre"
+msgstr "Reconstruint"
 
 msgid "Loading current presets"
-msgstr "Carregant els valors predefinits actuals"
+msgstr "Carregant els valors perfils actuals"
 
 msgid "Loading a mode view"
 msgstr "Carregant un mode de visualització"
@@ -1509,6 +1509,9 @@ msgstr "Trieu un o més fitxers ( 3mf/step/stl/svg/obj/amf/usd*/abc/ply ):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Trieu un o més fitxers ( 3mf/step/stl/svg/obj/amf ):"
+
+msgid "Choose ZIP file"
+msgstr "Trieu el fitxer ZIP"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Trieu un fitxer ( gcode/3mf ):"
@@ -1582,6 +1585,13 @@ msgstr "Càrregues en curs"
 msgid "Select a G-code file:"
 msgstr "Seleccioneu un fitxer de Codi-G:"
 
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
+"No s'ha pogut iniciar la descàrrega d'URL. La carpeta de destinació no està "
+"definida. Trieu la carpeta de destinació a l'Auxiliar de configuració."
+
 msgid "Import File"
 msgstr "Importar arxiu"
 
@@ -1653,7 +1663,7 @@ msgstr "Amplada de l'extrusió"
 msgid "Wipe options"
 msgstr "Opcions de purga"
 
-msgid "Bed adhension"
+msgid "Bed adhesion"
 msgstr "Adhesió al llit"
 
 msgid "Add part"
@@ -1738,7 +1748,7 @@ msgid "Stanford Bunny"
 msgstr "Conill de Stanford"
 
 msgid "Orca String Hell"
-msgstr ""
+msgstr "Infern de Fils d'Orca"
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
@@ -1747,6 +1757,12 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"Aquest model compta amb relleu de text a la superfície superior. Per obtenir "
+"resultats òptims, és recomanable establir el \"Llindar d'una paret "
+"(min_width_top_surface)\" a 0 perquè \"Només una paret a les superfícies "
+"superiors\" funcioni millor.\n"
+"Sí: Canviar aquesta configuració automàticament\n"
+"No - No canviar aquesta configuració"
 
 msgid "Text"
 msgstr "Text"
@@ -1809,8 +1825,8 @@ msgstr "Per defecte"
 msgid "Filament %d"
 msgstr "Filament %d"
 
-msgid "active"
-msgstr "actiu"
+msgid "current"
+msgstr "actual"
 
 msgid "Scale to build volume"
 msgstr "Escalar per a la impressió del volum"
@@ -1902,6 +1918,9 @@ msgstr "Afegir primitiva"
 msgid "Add Handy models"
 msgstr "Afegir models Handy"
 
+msgid "Add Models"
+msgstr "Afegir models"
+
 msgid "Show Labels"
 msgstr "Mostrar etiquetes"
 
@@ -1931,12 +1950,6 @@ msgstr ""
 "Orientar/alinear automàticament l'objecte per millorar la qualitat "
 "d'impressió."
 
-msgid "Split the selected object into mutiple objects"
-msgstr "Partir l'objecte seleccionat en múltiples objectes"
-
-msgid "Split the selected object into mutiple parts"
-msgstr "Partir l'objecte seleccionat en múltiples peces"
-
 msgid "Select All"
 msgstr "Seleccionar-ho tot"
 
@@ -1954,6 +1967,12 @@ msgstr "Ordenar"
 
 msgid "arrange current plate"
 msgstr "organitza la placa actual"
+
+msgid "Reload All"
+msgstr "Torna-ho a carregar Tot"
+
+msgid "reload all from disk"
+msgstr "torna a carregar-ho tot des del disc"
 
 msgid "Auto Rotate"
 msgstr "Rota automàticament"
@@ -1987,9 +2006,6 @@ msgstr "Canviar el filament"
 
 msgid "Set Filament for selected items"
 msgstr "Definir el filament per als elements seleccionats"
-
-msgid "current"
-msgstr "actual"
 
 msgid "Unlock"
 msgstr "Desbloquejar"
@@ -2199,8 +2215,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] "S'ha reparat el següent objecte del model"
 msgstr[1] "S'han reparat els següents objectes del model"
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair following model object"
+msgid_plural "Failed to repair following model objects"
 msgstr[0] "No s'ha pogut reparar el següent objecte del model"
 msgstr[1] "No s'han pogut reparar els següents objectes del model"
 
@@ -2325,9 +2341,6 @@ msgstr "Introdueix el Codi-G personalitzat utilitzat a la capa actual:"
 msgid "Jump to Layer"
 msgstr "Saltar a la Capa"
 
-msgid "Jump to layer"
-msgstr "Saltar a la capa"
-
 msgid "Please enter the layer number"
 msgstr "Si us plau, introdueix el número de capa"
 
@@ -2399,8 +2412,8 @@ msgstr "No s'ha pogut connectar a la impressora"
 msgid "Connection to printer failed"
 msgstr "S'ha produït un error de connexió amb la impressora"
 
-msgid "Please check the network connection of the printer and Studio."
-msgstr "Comproveu la connexió de xarxa de la impressora i l'Studio."
+msgid "Please check the network connection of the printer and Orca."
+msgstr "Comproveu la connexió de xarxa de la impressora i l'Orca."
 
 msgid "Connecting..."
 msgstr "Connectant..."
@@ -2423,11 +2436,11 @@ msgstr "Recàrrega automàtica"
 msgid "AMS not connected"
 msgstr "AMS no connectat"
 
-msgid "Load Filament"
-msgstr "Carregar Filament"
+msgid "Load"
+msgstr "Carregar"
 
-msgid "Unload Filament"
-msgstr "Descarregar Filament"
+msgid "Unload"
+msgstr "Descarregar"
 
 msgid "Ext Spool"
 msgstr "Bobina Ext"
@@ -2444,7 +2457,7 @@ msgstr "Reintentar"
 msgid "Calibrating AMS..."
 msgstr "Calibrant AMS..."
 
-msgid "A problem occured during calibration. Click to view the solution."
+msgid "A problem occurred during calibration. Click to view the solution."
 msgstr ""
 "S'ha produït un problema durant el calibratge. Feu clic per veure la solució."
 
@@ -2486,10 +2499,10 @@ msgstr "Agafar filament nou"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
-"load or unload filiament."
+"load or unload filaments."
 msgstr ""
 "Trieu una ranura AMS i premeu el botó \"Carregar\" o \"Descarregar\" per "
-"carregar o descarregar el filament automàticament."
+"carregar o descarregar els filaments automàticament."
 
 msgid "Edit"
 msgstr "Editar"
@@ -2660,7 +2673,7 @@ msgstr "Ha expirat el temps d'enviament de la tasca d'impressió."
 msgid "Service Unavailable"
 msgstr "Servei no disponible"
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr "Error desconegut."
 
 msgid "Sending print configuration"
@@ -2757,14 +2770,8 @@ msgstr "Orca Slicer té llicència sota "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, versió 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
-msgstr ""
-"Orca Slicer es basa en BambuStudio de Bambulab, que és de PrusaSlicer de "
-"Prusa Research.  PrusaSlicer és de Slic3r d'Alessandro Ranellucci i la "
-"comunitat RepRap"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
+msgstr "Orca Slicer està basat en PrusaSlicer i BambuStudio"
 
 msgid "Libraries"
 msgstr "Llibreries"
@@ -2860,11 +2867,13 @@ msgstr "Estàs segur que vols esborrar la informació del filament?"
 msgid "You need to select the material type and color first."
 msgstr "Primer heu de seleccionar el tipus de material i el color."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "Introduïu un valor vàlid ( K en 0 ~ 0.3 )"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Introduïu un valor vàlid (K a %.1f~%.1f)"
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "Introduïu un valor vàlid ( K a 0 ~ 0.3, N a 0.6 ~ 2.0 )"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Introduïu un valor vàlid (K a %.1f~%.1f, N a %.1f~%.1f)"
 
 msgid "Other Color"
 msgstr "Un altre color"
@@ -2971,38 +2980,19 @@ msgstr "Desactiva AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Imprimeix amb el filament muntat a la part posterior del xassís"
 
-msgid "Cabin humidity"
+msgid "Current Cabin humidity"
 msgstr "Humitat de la cabina"
 
 msgid ""
-"Green means that AMS humidity is normal, orange represent humidity is high, "
-"red represent humidity is too high.(Hygrometer: lower the better.)"
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases : when the lid is open or the "
+"desiccant pack is changed. it take hours to absorb the moisture, low "
+"temperatures also slow down the process."
 msgstr ""
-"El verd significa que la humitat AMS és normal, el taronja representa que la "
-"humitat és alta, el vermell representa que la humitat és excessiva. "
-"( Higròmetre: com més baix millor. )"
-
-msgid "Desiccant status"
-msgstr "Estat del dessecant"
-
-msgid ""
-"A desiccant status lower than two bars indicates that desiccant may be "
-"inactive. Please change the desiccant.(The bars: higher the better.)"
-msgstr ""
-"Un estat del dessecant inferior a dues barres indica que el dessecant pot "
-"estar inactiu. Si us plau, canvieu el dessecant. ( Les barres: com més altes "
-"millor. )"
-
-msgid ""
-"Note: When the lid is open or the desiccant pack is changed, it can take "
-"hours or a night to absorb the moisture. Low temperatures also slow down the "
-"process. During this time, the indicator may not represent the chamber "
-"accurately."
-msgstr ""
-"Nota: Quan la tapa està oberta o es canvia el paquet dessecant, pot trigar "
-"hores o una nit a absorbir la humitat. Les baixes temperatures també "
-"alenteixen el procés. Durant aquest temps, és possible que l'indicador no "
-"representi la cambra amb precisió."
+"Si us plau, canvieu el dessecant quan estigui massa humit. És possible que "
+"l'indicador no representi amb precisió en els casos següents: quan la tapa "
+"està oberta o es canvia el paquet dessecant. Es necessiten hores per "
+"absorbir la humitat, les baixes temperatures també alenteixen el procés."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3061,6 +3051,12 @@ msgstr ""
 "( Actualment només admet el subministrament automàtic de consumibles amb la "
 "mateixa marca, tipus de material i color )"
 
+msgid "DRY"
+msgstr "SEC"
+
+msgid "WET"
+msgstr "HUMIT"
+
 msgid "AMS Settings"
 msgstr "Configuració AMS"
 
@@ -3075,7 +3071,7 @@ msgstr ""
 "filament de Bambu Lab. Això triga uns 20 segons."
 
 msgid ""
-"Note: if new filament is inserted during  printing, the AMS will not "
+"Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
 "Nota: si s'insereix un filament nou durant la impressió, l'AMS no llegirà "
@@ -3130,6 +3126,16 @@ msgid ""
 msgstr ""
 "AMS continuarà a una altra bobina amb les mateixes propietats del filament "
 "automàticament quan s'esgoti el filament actual"
+
+msgid "Air Printing Detection"
+msgstr "Detecció d'Impressió Aèria"
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
+"Detecta obstrucció i abrasió de filaments, aturant la impressió "
+"immediatament per estalviar temps i filament."
 
 msgid "File"
 msgstr "Fitxer"
@@ -3204,6 +3210,65 @@ msgstr "Operand reservat flotant"
 msgid "Stack overflow"
 msgstr "Desbordament de pila( Stack overflow )"
 
+msgid "Running post-processing scripts"
+msgstr "Executant scripts de postprocessament"
+
+msgid "Successfully executed post-processing script"
+msgstr "Executats scripts de post-processament satisfactòriament"
+
+msgid "Unknown error occured during exporting G-code."
+msgstr "S'ha produït un error desconegut durant l'exportació del codi-G."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+"Error en copiar el codi-G temporal al codi-G de sortida. Potser la targeta "
+"SD està bloquejada contra escriptura?\n"
+"Missatge d'error: %1%"
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+"Error en copiar el codi-G temporal al codi-G de sortida. Hi pot haver un "
+"problema amb el dispositiu de destinació, intenteu exportar novament o "
+"utilitzeu un dispositiu diferent. El codi-G de sortida malmès és a %1%.tmp."
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+"El canvi de nom del codi-G després de copiar a la carpeta de destinació "
+"seleccionada ha fallat. La ruta actual és %1%.tmp. Intenta exportar de nou."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+"La còpia del codi-G temporal ha finalitzat, però el codi original en %1% no "
+"s'ha pogut obrir durant la verificació de còpia. El codi-G de sortida és a "
+"%2%.tmp."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+"La còpia del codi-G temporal ha finalitzat, però el codi exportat no s'ha "
+"pogut obrir durant la verificació de la còpia. El codi-G de sortida és a %1%."
+"tmp."
+
+#, boost-format
+msgid "G-code file exported to %1%"
+msgstr "Fitxer de codi-G exportat a %1%"
+
 msgid "Unknown error when export G-code."
 msgstr "Error desconegut en exportar el Codi-G."
 
@@ -3217,13 +3282,6 @@ msgstr ""
 "Missatge d'error: %1%.\n"
 "Fitxer origen %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Aconseguida l'exportació del Codi-G a %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Executant scripts de postprocessament"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Error en copiar el Codi-G temporal al Codi-G de sortida"
 
@@ -3232,6 +3290,226 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Pujada planificada a `%1%`. Mira Finestra -> Puja a la cua del gestor "
 "d'impressió"
+
+msgid "Device"
+msgstr "Dispositiu"
+
+msgid "Task Sending"
+msgstr "Enviant Tasca"
+
+msgid "Task Sent"
+msgstr "Tasca enviada"
+
+msgid "Edit multiple printers"
+msgstr "Editar diverses impressores"
+
+msgid "Select connected printers (0/6)"
+msgstr "Seleccionar impressores connectades (0/6)"
+
+#, c-format, boost-format
+msgid "Select Connected Printers (%d/6)"
+msgstr "Seleccionar Impressores Connectades (%d/6)"
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr "El nombre màxim d'impressores que es poden seleccionar és de %d"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr "Sense tasca"
+
+msgid "View"
+msgstr "Vista"
+
+msgid "N/A"
+msgstr "N/D"
+
+msgid "Edit Printers"
+msgstr "Editar Impressores"
+
+msgid "Device Name"
+msgstr "Nom del dispositiu"
+
+msgid "Task Name"
+msgstr "Nom de la tasca"
+
+msgid "Device Status"
+msgstr "Estat del dispositiu"
+
+msgid "Actions"
+msgstr "Accions"
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+"Seleccioneu aquí els dispositius que voleu gestionar (fins a 6 dispositius)"
+
+msgid "Add"
+msgstr "Afegir"
+
+msgid "Idle"
+msgstr "Inactiu"
+
+msgid "Printing"
+msgstr "Imprimint"
+
+msgid "Upgrading"
+msgstr "Actualitzant"
+
+msgid "Incompatible"
+msgstr "Incompatible"
+
+msgid "syncing"
+msgstr "sincronitzant"
+
+msgid "Printing Finish"
+msgstr "Finalitzar Impressió"
+
+msgid "Printing Failed"
+msgstr "Impressió Fallida"
+
+msgid "Printing Pause"
+msgstr "Pausar Impressió"
+
+msgid "Prepare"
+msgstr "Preparació"
+
+msgid "Slicing"
+msgstr "Laminant"
+
+msgid "Pending"
+msgstr "Pendent"
+
+msgid "Sending"
+msgstr "Enviant"
+
+msgid "Sending Finish"
+msgstr "Finalitzar Enviament"
+
+msgid "Sending Cancel"
+msgstr "Cancel·lar Enviament"
+
+msgid "Sending Failed"
+msgstr "Enviament Fallit"
+
+msgid "Print Success"
+msgstr "Impressió Exitosa"
+
+msgid "Print Failed"
+msgstr "Impressió Fallida"
+
+msgid "Removed"
+msgstr "Eliminat"
+
+msgid "Resume"
+msgstr "Reprendre"
+
+msgid "Stop"
+msgstr "Aturar"
+
+msgid "Task Status"
+msgstr "Estat de la tasca"
+
+msgid "Sent Time"
+msgstr "Temps d'Enviament"
+
+msgid "There are no tasks to be sent!"
+msgstr "No hi ha tasques per enviar!"
+
+msgid "No historical tasks!"
+msgstr "Sense tasques històriques!"
+
+msgid "Loading..."
+msgstr "Carregant…"
+
+msgid "No AMS"
+msgstr "Sense AMS"
+
+msgid "Send to Multi-device"
+msgstr "Enviar a multidispositiu"
+
+msgid "Preparing print job"
+msgstr "Preparant el treball d'impressió"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Dades anormals del fitxer d'impressió. Si us plau, torneu a laminar"
+
+msgid "There is no device available to send printing."
+msgstr "No hi ha cap dispositiu disponible per enviar la impressió."
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr "El nombre d'impressores en ús simultàniament no pot ser igual a 0."
+
+msgid "Use External Spool"
+msgstr "Utilitzar la Bobina Externa"
+
+msgid "Use AMS"
+msgstr "Utilitzar AMS"
+
+msgid "Select Printers"
+msgstr "Seleccionar Impressores"
+
+msgid "Ams Status"
+msgstr "Estat AMS"
+
+msgid "Printing Options"
+msgstr "Opcions d'Impressió"
+
+msgid "Bed Leveling"
+msgstr "Anivellament del llit"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr "Calibratge de Dinàmiques de Flux"
+
+msgid "Send Options"
+msgstr "Opcions d'Enviament"
+
+msgid "Send to"
+msgstr "Enviar a"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"impressores al mateix temps. (Depèn de quants dispositius es puguin escalfar "
+"alhora.)"
+
+msgid "Wait"
+msgstr "Espereu"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"minut cada lot. (Depèn del temps que es trigui a completar la calefacció.)"
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid "Name is invalid;"
+msgstr "El nom no és vàlid;"
+
+msgid "illegal characters:"
+msgstr "caràcters no permesos:"
+
+msgid "illegal suffix:"
+msgstr "sufix no permès:"
+
+msgid "The name is not allowed to be empty."
+msgstr "No es permet que el nom estigui buit."
+
+msgid "The name is not allowed to start with space character."
+msgstr "No es permet que el nom comenci amb caràcter d'espai."
+
+msgid "The name is not allowed to end with space character."
+msgstr "No es permet que el nom acabi amb caràcter d'espai."
+
+msgid "The name length exceeds the limit."
+msgstr "La longitud del nom supera el límit."
 
 msgid "Origin"
 msgstr "Origen"
@@ -3304,6 +3582,23 @@ msgstr "Escolliu un fitxer STL per importar el model de la placa d'impressió:"
 
 msgid "Bed Shape"
 msgstr "Forma de la placa d'impressió"
+
+msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+"La temperatura mínima recomanada és inferior a 190 graus o la màxima "
+"recomanada és superior a 300 graus.\n"
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
+msgstr ""
+"La temperatura mínima recomanada no pot ser superior a la temperatura màxima "
+"recomanada.\n"
+
+msgid "Please check.\n"
+msgstr "Comproveu-ho.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3380,7 +3675,7 @@ msgstr ""
 "El valor es restablirà a 0."
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -3394,29 +3689,11 @@ msgstr ""
 "El valor es restablirà a 0."
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"El mode espiral només funciona quan els bucles de perímetre és 1, el suport "
-"està desactivat, les capes superiors de l'intèrpret d'ordres són 0, la "
-"densitat de farciment escassa és 0 i el tipus timelapse és tradicional."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " Però les màquines amb estructura I3 no generaran vídeos timelapse."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Canviar aquesta configuració automàticament? \n"
-"Sí: canviar aquesta configuració i activar el mode d'espiral automàticament\n"
-"No - Renunciar a utilitzar el mode espiral aquesta vegada"
-
-msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
+"El perímetre addicional alternat no funciona correctament amb 'Assegurar el "
+"gruix de la carcassa vertical' establert a Tots. "
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3424,6 +3701,10 @@ msgid ""
 "alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"Canviar aquesta configuració automàticament? \n"
+"Sí - Cambiar 'Assegurar el gruix de la carcassa vertical' a 'Moderat' "
+"activar 'perímetre addicional alternat'\n"
+"No - No utilitzar perímetre addicional alternat"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3474,6 +3755,28 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
+"seam_slope_start_height ha de ser més petit que layer_height.\n"
+"Restablert a 0."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"El mode espiral només funciona quan els bucles de perímetre és 1, el suport "
+"està desactivat, les capes superiors de l'intèrpret d'ordres són 0, la "
+"densitat de farciment escassa és 0 i el tipus timelapse és tradicional."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " Però les màquines amb estructura I3 no generaran vídeos timelapse."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Canviar aquesta configuració automàticament? \n"
+"Sí: canviar aquesta configuració i activar el mode d'espiral automàticament\n"
+"No - Renunciar a utilitzar el mode espiral aquesta vegada"
 
 msgid "Auto bed leveling"
 msgstr "Anivellament de llit automàtic"
@@ -3583,18 +3886,6 @@ msgstr "Pausa d'error de la primera capa"
 msgid "Nozzle clog pause"
 msgstr "Pausa d'obstrucció del broquet"
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "Placa Base"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "Desconegut"
 
@@ -3691,50 +3982,51 @@ msgstr "per defecte"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "Editar el codi-G personalitzat (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
+"Placeholders integrats (feu doble clic a l'element per afegir-lo al codi-G)"
 
 msgid "Search gcode placeholders"
-msgstr ""
+msgstr "Cercar placeholders( Variables ) de codi-G"
 
 msgid "Add selected placeholder to G-code"
-msgstr ""
+msgstr "Afegir el placeholder( Variable ) seleccionat al codi-G"
 
 msgid "Select placeholder"
-msgstr ""
+msgstr "Seleccionar placeholder( Variable )"
 
 msgid "[Global] Slicing State"
-msgstr ""
+msgstr "[Global] Estat de laminació"
 
 msgid "Read Only"
-msgstr ""
+msgstr "Només lectura"
 
 msgid "Read Write"
-msgstr ""
+msgstr "Lectura i Escriptura"
 
 msgid "Slicing State"
-msgstr ""
+msgstr "Estat del laminació"
 
 msgid "Print Statistics"
-msgstr ""
+msgstr "Estadístiques d'impressió"
 
 msgid "Objects Info"
-msgstr ""
+msgstr "Informació dels objectes"
 
 msgid "Dimensions"
-msgstr ""
+msgstr "Dimensions"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Temperatures"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "Marques de temps"
 
 #, boost-format
 msgid "Specific for %1%"
-msgstr ""
+msgstr "Específic per a %1%"
 
 msgid "Presets"
 msgstr "Perfils"
@@ -3746,16 +4038,13 @@ msgid "Filament settings"
 msgstr "Configuració del Filament"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "Configuració dels materials SLA"
 
 msgid "Printer settings"
 msgstr "Configuració de la Impressora"
 
 msgid "parameter name"
 msgstr "nom del paràmetre"
-
-msgid "N/A"
-msgstr "N/D"
 
 #, c-format, boost-format
 msgid "%s can't be percentage"
@@ -3767,6 +4056,10 @@ msgstr "Valor %s està fora de rang, continuar?"
 
 msgid "Parameter validation"
 msgstr "Validació de paràmetres"
+
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr "El valor %s està fora de rang. El rang vàlid és de %d a %d."
 
 msgid "Value is out of range."
 msgstr "El valor introduït és fora de rang."
@@ -3780,6 +4073,20 @@ msgstr ""
 "És %s%% or %s %s?\n"
 "SÍ per %s%%. \n"
 "NO per %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+"Format d'entrada invàlid. Esperat vector de dimensions en el format següent: "
+"\"%1%\""
+
+msgid "Input value is out of range"
+msgstr "El valor introduït és fora de rang"
+
+msgid "Some extension in the input is invalid"
+msgstr "Alguna extensió de l'entrada no és vàlida"
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -3848,11 +4155,11 @@ msgstr "Pantalla"
 msgid "Flushed"
 msgstr "Descarregat"
 
-msgid "Total"
-msgstr "Total"
-
 msgid "Tower"
 msgstr "Torre"
+
+msgid "Total"
+msgstr "Total"
 
 msgid "Total Estimation"
 msgstr "Estimació total"
@@ -3862,15 +4169,6 @@ msgstr "Temps total"
 
 msgid "Total cost"
 msgstr "Cost total"
-
-msgid "up to"
-msgstr "fins a"
-
-msgid "above"
-msgstr "sobre"
-
-msgid "from"
-msgstr "des de"
 
 msgid "Color Scheme"
 msgstr "Esquema de color"
@@ -3935,11 +4233,11 @@ msgstr "Canvis de filament"
 msgid "Cost"
 msgstr "Cost"
 
-msgid "Color change"
-msgstr "Canvi de color"
-
 msgid "Print"
 msgstr "Imprimir"
+
+msgid "Color change"
+msgstr "Canvi de color"
 
 msgid "Printer"
 msgstr "Impressora"
@@ -3955,6 +4253,12 @@ msgstr "Estimació temporal"
 
 msgid "Normal mode"
 msgstr "Mode Normal"
+
+msgid "Total Filament"
+msgstr "Filament Total"
+
+msgid "Model Filament"
+msgstr "Filament del Model"
 
 msgid "Prepare time"
 msgstr "Planificar el temps"
@@ -4049,6 +4353,9 @@ msgstr "Opcions d'ordenació"
 msgid "Spacing"
 msgstr "Espaiat"
 
+msgid "0 means auto spacing."
+msgstr "0 significa espaiat automàtic."
+
 msgid "Auto rotate for arrangement"
 msgstr "Gir automàtic per a l'arranjament"
 
@@ -4060,9 +4367,6 @@ msgstr "Evitar la regió de calibratge d'extrusió"
 
 msgid "Align to Y axis"
 msgstr "Alinear a l'eix Y"
-
-msgid "Add"
-msgstr "Afegir"
 
 msgid "Add plate"
 msgstr "Afegir placa"
@@ -4196,6 +4500,9 @@ msgstr "Monitorització de gravació automàtica"
 msgid "Go Live"
 msgstr "Entra en directe"
 
+msgid "Liveview Retry"
+msgstr "Reintentar Lifeview"
+
 msgid "Resolution"
 msgstr "Resolució"
 
@@ -4203,10 +4510,10 @@ msgid "Enable"
 msgstr "Activar"
 
 msgid "Hostname or IP"
-msgstr ""
+msgstr "Nom d'equip o IP"
 
 msgid "Custom camera source"
-msgstr ""
+msgstr "Font de la càmera personalitzada"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostra la pàgina de guia \"Vídeo en directe\"."
@@ -4248,14 +4555,11 @@ msgstr "Tancant l'aplicació mentre s'han modificat alguns perfils."
 msgid "Logging"
 msgstr "Registrant"
 
-msgid "Prepare"
-msgstr "Preparar"
-
 msgid "Preview"
 msgstr "Previsualització"
 
-msgid "Device"
-msgstr "Dispositiu"
+msgid "Multi-device"
+msgstr "Multidispositiu"
 
 msgid "Project"
 msgstr "Projecte"
@@ -4280,9 +4584,6 @@ msgstr "Laminar-ho tot"
 
 msgid "Export G-code file"
 msgstr "Exportar el fitxer del Codi-G"
-
-msgid "Send"
-msgstr "Enviar"
 
 msgid "Export plate sliced file"
 msgstr "Exportar fitxer de la placa laminada"
@@ -4404,6 +4705,12 @@ msgstr "Importar 3MF STL/STEP/SVG/OBJ/AMF"
 msgid "Load a model"
 msgstr "Carregar un model"
 
+msgid "Import Zip Archive"
+msgstr "Importar fitxer ZIP"
+
+msgid "Load models contained within a zip archive"
+msgstr "Carregar models continguts dins d'un arxiu zip"
+
 msgid "Import Configs"
 msgstr "Importar Configuracions"
 
@@ -4437,8 +4744,8 @@ msgstr "Exportar el Codi-G"
 msgid "Export current plate as G-code"
 msgstr "Exportar placa actual com a Codi-G"
 
-msgid "Export &Configs"
-msgstr "Exportar &Configuracions"
+msgid "Export Preset Bundle"
+msgstr "Exportar el Paquet de Perfil"
 
 msgid "Export current configuration to files"
 msgstr "Exportar la configuració actual a fitxers"
@@ -4513,10 +4820,10 @@ msgid "Show g-code window in Previce scene"
 msgstr "Mostra la finestra de Codi-g a l'escena prèvia"
 
 msgid "Show 3D Navigator"
-msgstr ""
+msgstr "Mostrar el navegador 3D"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "Mostrar el navegador 3D en Preparació i Previsualització"
 
 msgid "Reset Window Layout"
 msgstr "Restableix el disseny de la finestra"
@@ -4538,9 +4845,6 @@ msgstr "Mostra el ressaltat del voladís de l'objecte a l'escena 3D"
 
 msgid "Preferences"
 msgstr "Preferències"
-
-msgid "View"
-msgstr "Vista"
 
 msgid "Help"
 msgstr "Ajuda"
@@ -4608,11 +4912,11 @@ msgstr "Exportar &Trajectòries d'eina com OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportar trajectòries d'eines com a OBJ"
 
-msgid "Open &Studio"
-msgstr "Obrir &Studio"
+msgid "Open &Slicer"
+msgstr "Obrir &Slicer"
 
-msgid "Open Studio"
-msgstr "Obrir Studio"
+msgid "Open Slicer"
+msgstr "Obrir Slicer"
 
 msgid "&Quit"
 msgstr "&Sortir"
@@ -4714,44 +5018,61 @@ msgstr ""
 msgid "Synchronization"
 msgstr "Sincronització"
 
-msgid "Initialize failed (No Device)!"
-msgstr "Inicialització fallida ( No hi ha dispositiu )!"
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr "El dispositiu no pot gestionar més dades. Torneu-ho a provar més tard."
 
-msgid "Initialize failed (Device connection not ready)!"
+msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
-"Inicialització fallida ( la connexió del Dispositiu no està preparada )!"
+"El reproductor funciona malament. Torneu a instal·lar el reproductor del "
+"sistema."
 
-msgid "Initialize failed (No Camera Device)!"
-msgstr "Inicialització fallida ( Sense Dispositiu de Càmera )!"
+msgid "The player is not loaded, please click \"play\" button to retry."
+msgstr ""
+"El reproductor no està carregat, feu clic al botó \"reproduir\" per tornar-"
+"ho a provar."
 
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgid "Please confirm if the printer is connected."
+msgstr "Confirmeu si la impressora està connectada."
+
+msgid ""
+"The printer is currently busy downloading. Please try again after it "
+"finishes."
 msgstr ""
 "La impressora està ocupada descarregant, espereu que finalitzi la descàrrega."
 
-msgid "Initialize failed (Not supported on the current printer version)!"
+msgid "Printer camera is malfunctioning."
+msgstr "La càmera de la impressora funciona malament."
+
+msgid "Problem occured. Please update the printer firmware and try again."
 msgstr ""
-"Inicialització fallida ( No és compatible amb la versió actual de la "
-"impressora )!"
+"Ha ocorregut un problema. Actualitzeu el firmware de la impressora i torneu-"
+"ho a provar."
 
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "Inicialització fallida ( no accessible en mode només LAN )!"
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
+msgstr ""
+"Liveview Només per LAN està desactivat. Activeu la pantalla de Lifeview a la "
+"impressora."
 
-msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr "Inicialització fallida ( Manca la IP LAN de la impressora )!"
+msgid "Please enter the IP of printer to connect."
+msgstr "Introduïu la IP de la impressora amb la que connectar."
 
 msgid "Initializing..."
 msgstr "Inicialitzant..."
 
-#, c-format, boost-format
-msgid "Initialize failed (%s)!"
-msgstr "Inicialització fallida ( %s )!"
+msgid "Connection Failed. Please check the network and try again"
+msgstr ""
+"S'ha produït un error de connexió. Comproveu la xarxa i torneu-ho a provar"
 
-msgid "Network unreachable"
-msgstr "Xarxa inaccessible"
+msgid ""
+"Please check the network and try again, You can restart or update the "
+"printer if the issue persists."
+msgstr ""
+"Comproveu la xarxa i torneu-ho a provar. Podeu reiniciar o actualitzar la "
+"impressora si el problema persisteix."
 
-#, c-format, boost-format
-msgid "Stopped [%d]!"
-msgstr "Aturat [%d]!"
+msgid "The printer has been logged out and cannot connect."
+msgstr "La impressora ha tancat la sessió i no es pot connectar."
 
 msgid "Stopped."
 msgstr "Aturat."
@@ -4784,18 +5105,14 @@ msgstr ""
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "Inicialització fallida de la Càmera Virtual ( %s )!"
 
+msgid "Network unreachable"
+msgstr "Xarxa inaccessible"
+
 msgid "Information"
 msgstr "Informació"
 
 msgid "Playing..."
 msgstr "Reproduint..."
-
-#, c-format, boost-format
-msgid "Load failed [%d]!"
-msgstr "La càrrega ha fallat [%d]!"
-
-msgid "Loading..."
-msgstr "Carregant…"
 
 msgid "Year"
 msgstr "Any"
@@ -4814,9 +5131,6 @@ msgstr "Agrupar els fitxers per mes, primer els recents."
 
 msgid "Show all files, recent first."
 msgstr "Mostrar tots els fitxers, primers els recents."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Canvieu als fitxers timelapse."
@@ -4845,6 +5159,12 @@ msgstr "Seleccionar"
 msgid "Batch manage files."
 msgstr "Gestió per lots de fitxers."
 
+msgid "Refresh"
+msgstr "Actualitzar"
+
+msgid "Reload file list from printer."
+msgstr "Tornar a carregar la llista de fitxers des de la impressora."
+
 msgid "No printers."
 msgstr "No hi ha cap Impressora."
 
@@ -4855,13 +5175,39 @@ msgstr "Connexió fallida [%d]!"
 msgid "Loading file list..."
 msgstr "Carregant llista de fitxers..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "Sense fitxers [%d]"
+msgid "No files"
+msgstr "No hi ha fitxers"
+
+msgid "Load failed"
+msgstr "Càrrega fallida"
+
+msgid "Initialize failed (Device connection not ready)!"
+msgstr ""
+"Inicialització fallida ( la connexió del Dispositiu no està preparada )!"
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
+"L'exploració de fitxers a la targeta SD no és compatible amb el firmware "
+"actual. Actualitzeu el firmware de la impressora."
+
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+"Inicialització fallida (emmagatzematge no disponible, inseriu la targeta "
+"SD.)!"
+
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr "Ha fallat la connexió LAN (no s'ha pogut visualitzar sdcard)"
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgstr ""
+"L'exploració de fitxers a la targeta SD no és compatible amb el mode només "
+"LAN."
 
 #, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "Càrrega fallida [%d]"
+msgid "Initialize failed (%s)!"
+msgstr "Inicialització fallida ( %s )!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -4887,11 +5233,11 @@ msgstr "Suprimir el fitxer"
 msgid "Fetching model infomations ..."
 msgstr "Obtenint infomacions del model ..."
 
-msgid "Failed to fetching model infomations from printer."
+msgid "Failed to fetch model information from printer."
 msgstr "No s'ha pogut obtenir la informació del model de la impressora."
 
-msgid "Failed to parse model infomations."
-msgstr "No s'han pogut analitzar les informacions del model."
+msgid "Failed to parse model information."
+msgstr "No s'ha pogut analitzar la informació del model."
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -4903,6 +5249,14 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "L'arxiu '%s' s'ha perdut! Si us plau, descarregueu-lo de nou."
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
+"Arxiu: %s\n"
+"Títol: %s\n"
 
 msgid "Download waiting..."
 msgstr "Descàrrega en espera..."
@@ -4920,13 +5274,14 @@ msgstr "Descàrrega finalitzada"
 msgid "Downloading %d%%..."
 msgstr "Descarregant %d%%..."
 
-msgid "Connection lost. Please retry."
-msgstr "S'ha perdut la connexió. Si us plau, torna-ho a intentar."
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr ""
+"Tornant a connectar la impressora. L'operació no es pot completar "
+"immediatament. Torneu-ho a provar més tard."
 
-msgid "The device cannot handle more conversations. Please retry later."
-msgstr "El dispositiu no pot gestionar més dades. Torneu-ho a provar més tard."
-
-msgid "File not exists."
+msgid "File does not exist."
 msgstr "El fitxer no existeix."
 
 msgid "File checksum error. Please retry."
@@ -4984,12 +5339,6 @@ msgstr "Invertir eix de Balanceig"
 msgid "Printing Progress"
 msgstr "Progrés de la impressió"
 
-msgid "Resume"
-msgstr "Reprendre"
-
-msgid "Stop"
-msgstr "Aturar"
-
 msgid "0"
 msgstr "0"
 
@@ -5029,10 +5378,13 @@ msgid "Camera Setting"
 msgstr "Configuració de la càmera"
 
 msgid "Switch Camera View"
-msgstr ""
+msgstr "Canviar Vista de Càmera"
 
 msgid "Control"
 msgstr "Control"
+
+msgid "Printer Parts"
+msgstr "Peces d'Impressora"
 
 msgid "Print Options"
 msgstr "Opcions d'impressió"
@@ -5051,9 +5403,6 @@ msgstr "Cambra"
 
 msgid "Bed"
 msgstr "Llit"
-
-msgid "Unload"
-msgstr "Descarregar"
 
 msgid "Debug Info"
 msgstr "Informació de depuració"
@@ -5241,9 +5590,6 @@ msgstr "Estat"
 msgid "Update"
 msgstr "Actualitzar"
 
-msgid "HMS"
-msgstr "HMS"
-
 msgid "Don't show again"
 msgstr "No tornis a mostrar"
 
@@ -5273,6 +5619,40 @@ msgstr "%s informació"
 
 msgid "Skip"
 msgstr "Omet"
+
+msgid "Newer 3mf version"
+msgstr "Nova versió 3mf"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current OrcaSlicer  "
+"version."
+msgstr ""
+"La versió d'arxiu 3mf està en Beta i és més recent que la versió actual "
+"d'OrcaSlicer."
+
+msgid "If you would like to try Orca Slicer Beta, you may click to"
+msgstr "Si voleu provar Orca Slicer Beta, podeu fer clic a"
+
+msgid "Download Beta Version"
+msgstr "Descarregar Versió Beta"
+
+msgid "The 3mf file version is newer than the current Orca Slicer version."
+msgstr ""
+"La versió del fitxer 3mf és més nova que la versió actual de l'Orca Slicer."
+
+msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
+msgstr ""
+"Actualitzar el vostre Orca Slicer podria habilitar totes les funcionalitats "
+"al fitxer 3mf."
+
+msgid "Current Version: "
+msgstr "Versió actual: "
+
+msgid "Latest Version: "
+msgstr "Última Versió: "
+
+msgid "Not for now"
+msgstr "No per ara"
 
 msgid "3D Mouse disconnected."
 msgstr "S'ha desconnectat el ratolí 3D."
@@ -5343,11 +5723,11 @@ msgstr[1] "%1$d Els objectes s'han carregat com a parts de l'objecte de tall"
 msgid "ERROR"
 msgstr "ERROR"
 
-msgid "CANCELED"
-msgstr "CANCEL·LAT"
-
 msgid "COMPLETED"
 msgstr "COMPLETAT"
+
+msgid "CANCELED"
+msgstr "CANCEL·LAT"
 
 msgid "Cancel upload"
 msgstr "Cancel·lar càrrega"
@@ -5447,7 +5827,7 @@ msgid ""
 "the tag is not in predefined range."
 msgstr ""
 "S'ha detectat l'etiqueta de localització de la placa, la impressió es posarà "
-"en pausa si l'etiqueta no està en un rang predefinit."
+"en pausa si l'etiqueta no està en un rang perfil."
 
 msgid "First Layer Inspection"
 msgstr "Inspecció de Primera Capa"
@@ -5460,6 +5840,27 @@ msgstr "Permet senyals acústics"
 
 msgid "Filament Tangle Detect"
 msgstr "Detecció de filament enredat"
+
+msgid "Nozzle Clumping Detection"
+msgstr "Detecció d'Obstrucció de Broquet"
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
+"Comproveu si el broquet està obstruit per filament o altres objectes "
+"estranys."
+
+msgid "Nozzle Type"
+msgstr "Tipus de broquet"
+
+msgid "Stainless Steel"
+msgstr "Acer Inoxidable"
+
+msgid "Hardened Steel"
+msgstr "Acer Endurit"
+
+#, c-format, boost-format
+msgid "%.1f"
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Global"
@@ -5475,6 +5876,9 @@ msgstr "Comparar els perfils"
 
 msgid "View all object's settings"
 msgstr "Veure tots els paràmetres de l'objecte"
+
+msgid "Material settings"
+msgstr "Configuració del Material"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Treure la placa actual ( si no és l'última )"
@@ -5492,7 +5896,7 @@ msgid "Lock current plate"
 msgstr "Bloquejar la placa actual"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "Editar el nom de la placa actual"
 
 msgid "Customize current plate"
 msgstr "Personalitzar la placa actual"
@@ -5551,6 +5955,9 @@ msgstr "Configurar els filaments a utilitzar"
 
 msgid "Search plate, object and part."
 msgstr "Cercar placa, objecte i peça."
+
+msgid "Pellets"
+msgstr "Pellets"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5668,9 +6075,6 @@ msgstr ""
 msgid "You'd better upgrade your software.\n"
 msgstr "És millor que actualitzeu el vostre programari.\n"
 
-msgid "Newer 3mf version"
-msgstr "Nova versió 3mf"
-
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
@@ -5721,6 +6125,9 @@ msgstr "El nom dels components dins del fitxer de passos no té format UTF8!"
 msgid "The name may show garbage characters!"
 msgstr "El nom pot mostrar caràcters no vàlids!"
 
+msgid "Remember my choice."
+msgstr "Recordar la meva elecció."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -5765,14 +6172,19 @@ msgid "The file does not contain any geometry data."
 msgstr "El fitxer no conté cap dada de geometria."
 
 msgid ""
+"Your object appears to be too large. It will be scaled down to fit the heat "
+"bed automatically."
+msgstr ""
+
+msgid "Object too large"
+msgstr "Objecte massa gran"
+
+msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
 "El teu objecte sembla ser massa gran, Vols reduir-lo per adaptar-lo "
 "automàticament al llit?"
-
-msgid "Object too large"
-msgstr "Objecte massa gran"
 
 msgid "Export STL file:"
 msgstr "Exportar el fitxer STL:"
@@ -5794,7 +6206,7 @@ msgstr ""
 "El fitxer %s ja existeix\n"
 "Vols substituir-lo?"
 
-msgid "Comfirm Save As"
+msgid "Confirm Save As"
 msgstr "Confirmar Desar Com"
 
 msgid "Delete object which is a part of cut object"
@@ -5847,9 +6259,6 @@ msgstr "No es pot tornar a carregar:"
 
 msgid "Error during reload"
 msgstr "S'ha produït un error durant la recàrrega"
-
-msgid "Slicing"
-msgstr "Laminant"
 
 msgid "There are warnings after slicing models:"
 msgstr "Hi ha advertències després de laminar els models:"
@@ -5911,8 +6320,14 @@ msgstr "Important Model"
 msgid "prepare 3mf file..."
 msgstr "preparar el fitxer 3MF..."
 
+msgid "Download failed, unknown file format."
+msgstr "S'ha produït un error en la baixada, format de fitxer desconegut."
+
 msgid "downloading project ..."
 msgstr "descarregant projecte ..."
+
+msgid "Download failed, File size exception."
+msgstr "S'ha produït un error en la baixada, excepció mida del Fitxer."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5936,6 +6351,22 @@ msgstr "no conté Codi-G vàlid."
 
 msgid "Error occurs while loading G-code file"
 msgstr "Es produeix un error en carregar el fitxer de Codi-G"
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr "La càrrega d'un arxiu ZIP a la ruta %1% ha fallat."
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr "No s'ha pogut descomprimir el fitxer al %1%: %2%"
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
+"No s'ha pogut trobar el fitxer descomprimit a %1%. La descompressió de "
+"l'arxiu ha fallat."
 
 msgid "Drop project file"
 msgstr "Deixar anar el fitxer del projecte"
@@ -5961,18 +6392,12 @@ msgstr "Els fitxers de Codi-G no es poden carregar amb els models junts!"
 msgid "Can not add models when in preview mode!"
 msgstr "No es poden afegir models en mode de previsualització!"
 
-msgid "Add Models"
-msgstr "Afegir models"
-
 msgid "All objects will be removed, continue?"
 msgstr "Tots els objectes seran eliminats, vols continuar?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "El projecte actual té canvis no guardats, guardar-los abans de continuar?"
-
-msgid "Remember my choice."
-msgstr "Recordar la meva elecció."
 
 msgid "Number of copies:"
 msgstr "Nombre de còpies:"
@@ -6005,10 +6430,27 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be exported."
+"will be kept. You may fix the meshes and try again."
 msgstr ""
 "No s'ha pogut realitzar l'operació booleana a les malles del model. Només "
-"s'exportaran les parts positives."
+"s'exportaran les parts positives. Proveu d'arreglar les malles i tornar-ho a "
+"provar."
+
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
+msgstr "Motiu: la part \"%1%\" està buida."
+
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
+msgstr "Motiu: la part \"%1%\" no conté cap volum."
+
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
+msgstr "Motiu: la part \"%1%\" té autointersecció."
+
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
+msgstr "Motiu: \"%1%\" i una altra peça no tenen intersecció."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6122,9 +6564,6 @@ msgstr "Voleu continuar?"
 msgid "Language selection"
 msgstr "Selecció d'idiomes"
 
-msgid "Switching application language while some presets are modified."
-msgstr "Canviant l'idioma de l'aplicació mentre es modifiquen alguns perfils."
-
 msgid "Changing application language"
 msgstr "Canviant de l'idioma de l'aplicació"
 
@@ -6142,6 +6581,21 @@ msgstr "Navega"
 
 msgid "Choose Download Directory"
 msgstr "Triar el Directori de Descàrrega"
+
+msgid "Associate"
+msgstr "Associar"
+
+msgid "with OrcaSlicer so that Orca can open models from"
+msgstr "amb OrcaSlicer perquè Orca pugui obrir models des de"
+
+msgid "Current Association: "
+msgstr "Associació actual: "
+
+msgid "Current Instance"
+msgstr "Instància actual"
+
+msgid "Current Instance Path: "
+msgstr "Ruta de la Instància Actual: "
 
 msgid "General Settings"
 msgstr "Configuració general"
@@ -6167,6 +6621,17 @@ msgstr "Regió d'inici de sessió"
 msgid "Stealth Mode"
 msgstr "Mode Silenciós"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+"Això atura la transmissió de dades als serveis en el núvol de Bambu. Els "
+"usuaris que no utilitzen màquines BBL o només utilitzen el mode LAN poden "
+"activar aquesta funció de manera segura."
+
+msgid "Enable network plugin"
+msgstr "Habilita el plugin de xarxa"
+
 msgid "Check for stable updates only"
 msgstr "Comprovar només si hi ha actualitzacions estables"
 
@@ -6179,6 +6644,28 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Unitats"
 
+msgid "Allow only one OrcaSlicer instance"
+msgstr "Permet només una instància OrcaSlicer"
+
+msgid ""
+"On OSX there is always only one instance of app running by default. However "
+"it is allowed to run multiple instances of same app from the command line. "
+"In such case this settings will allow only one instance."
+msgstr ""
+"A OSX, sempre hi ha una sola instància d'aplicació que s'executa per "
+"defecte. Tanmateix, es permet executar diverses instàncies de la mateixa "
+"aplicació des de la línia de comandes. En aquest cas, aquesta configuració "
+"permetrà només una instància."
+
+msgid ""
+"If this is enabled, when starting OrcaSlicer and another instance of the "
+"same OrcaSlicer is already running, that instance will be reactivated "
+"instead."
+msgstr ""
+"Si això està habilitat, i en iniciar OrcaSlicer i una altra instància del "
+"mateix OrcaSlicer que ja s'està executant, aquesta instància es tornarà a "
+"activar."
+
 msgid "Home"
 msgstr "Inici"
 
@@ -6187,6 +6674,22 @@ msgstr "Pàgina predeterminada"
 
 msgid "Set the page opened on startup."
 msgstr "Definiu la pàgina a obrir a l'inici."
+
+msgid "Touchpad"
+msgstr "Ratolí tàctil"
+
+msgid "Camera style"
+msgstr "Estil de càmera"
+
+msgid ""
+"Select camera navigation style.\n"
+"Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
+"Touchpad: Alt+move for rotation, Shift+move for panning."
+msgstr ""
+"Seleccioneu l'estil de navegació de la càmera.\n"
+"Per defecte: Botó Esquerre del Ratolí + moure per rotar, Botó Dret del "
+"Ratolí/Botó Mig del Ratolí + moure per a panoràmica.\n"
+"Ratolí tàctil: Alt+moure per rotar, Majúscules+moure per a panoràmica."
 
 msgid "Zoom to mouse position"
 msgstr "Fer zoom a la posició del ratolí"
@@ -6205,6 +6708,13 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "Si està activat, fa servir la càmera lliure. Si no està activat, fa servir "
 "la càmera restringida."
+
+msgid "Reverse mouse zoom"
+msgstr "Zoom invers del ratolí"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+"Si està habilitat, inverteix la direcció del zoom amb la roda del ratolí."
 
 msgid "Show splash screen"
 msgstr "Mostrar pantalla de presentació"
@@ -6226,6 +6736,45 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Si està activat, fa els clculs automàticament cada vegada que canviï el "
 "color."
+
+msgid ""
+"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgstr ""
+"Volums de purga: calcular automàticament cada vegada que canvia el filament."
+
+msgid "If enabled, auto-calculate every time when filament is changed"
+msgstr ""
+"Si està activat, fa els càlculs automàticament cada vegada que canvia el "
+"filament"
+
+msgid "Remember printer configuration"
+msgstr "Recordar la configuració de la impressora"
+
+msgid ""
+"If enabled, Orca will remember and switch filament/process configuration for "
+"each printer automatically."
+msgstr ""
+"Si està habilitada, l'Orca recordarà i canviarà automàticament la "
+"configuració del filament/procés per a cada impressora."
+
+msgid "Multi-device Management(Take effect after restarting Orca)."
+msgstr "Gestió multidispositiu(Entra en vigor després de reiniciar Studio)."
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+"Amb aquesta opció habilitada, podeu enviar una tasca a diversos dispositius "
+"alhora i gestionar múltiples dispositius."
+
+msgid "Auto arrange plate after cloning"
+msgstr ""
+
+msgid "Auto arrange plate after object cloning"
+msgstr ""
+
+msgid "Network"
+msgstr "Xarxa"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -6270,6 +6819,12 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Si està habilitada, defineix OrcaSlicer com a l'aplicació predeterminada per "
 "obrir fitxers .step"
+
+msgid "Associate web links to OrcaSlicer"
+msgstr "Associar enllaços web a OrcaSlicer"
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr "Associeu URLs a OrcaSlicer"
 
 msgid "Maximum recent projects"
 msgstr "Màxim projectes recents"
@@ -6442,11 +6997,20 @@ msgstr "Seleccionar/eliminar impressores ( perfils del sistema )"
 msgid "Create printer"
 msgstr "Crear impressora"
 
-msgid "Incompatible"
-msgstr "Incompatible"
-
 msgid "The selected preset is null!"
 msgstr "El perfil seleccionat és nul!"
+
+msgid "End"
+msgstr "Final"
+
+msgid "Customize"
+msgstr "Personalitzar"
+
+msgid "Other layer filament sequence"
+msgstr "Seqüència d'impressió de l'altra capa"
+
+msgid "Please input layer value (>= 2)."
+msgstr "Introduïu el valor de capa (>= 2)."
 
 msgid "Plate name"
 msgstr "Nom de la placa"
@@ -6457,8 +7021,14 @@ msgstr "El mateix que la Seqüència General d'Impressió"
 msgid "Print sequence"
 msgstr "Seqüència d'impressió"
 
-msgid "Customize"
-msgstr "Personalitzar"
+msgid "Same as Global"
+msgstr "El mateix que Global"
+
+msgid "Disable"
+msgstr "Deshabilitar"
+
+msgid "Spiral vase"
+msgstr "Gerro en Espiral"
 
 msgid "First layer filament sequence"
 msgstr "Seqüència d'impressió de la primera capa"
@@ -6522,15 +7092,6 @@ msgstr "Perfil d'usuari"
 msgid "Preset Inside Project"
 msgstr "Perfil intern del Projecte"
 
-msgid "Name is invalid;"
-msgstr "El nom no és vàlid;"
-
-msgid "illegal characters:"
-msgstr "caràcters no permesos:"
-
-msgid "illegal suffix:"
-msgstr "sufix no permès:"
-
 msgid "Name is unavailable."
 msgstr "El nom no està disponible."
 
@@ -6548,15 +7109,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Tingueu en compte que l'acció de desar substituirà aquest perfil"
-
-msgid "The name is not allowed to be empty."
-msgstr "No es permet que el nom estigui buit."
-
-msgid "The name is not allowed to start with space character."
-msgstr "No es permet que el nom comenci amb caràcter d'espai."
-
-msgid "The name is not allowed to end with space character."
-msgstr "No es permet que el nom acabi amb caràcter d'espai."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "El nom no pot ser el mateix que un àlies preestablert."
@@ -6615,9 +7167,6 @@ msgstr "No puc trobar els meus dispositius?"
 msgid "Log out successful."
 msgstr "Tancament de sessió correcte."
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Busy"
 msgstr "Ocupat"
 
@@ -6642,12 +7191,6 @@ msgstr "Base PEI amb Textura Bambu"
 msgid "Send print job to"
 msgstr "Enviar treball d'impressió a"
 
-msgid "Refresh"
-msgstr "Actualitzar"
-
-msgid "Bed Leveling"
-msgstr "Anivellament del llit"
-
 msgid "Flow Dynamics Calibration"
 msgstr "Calibratge de Dinàmiques de Flux"
 
@@ -6659,9 +7202,6 @@ msgstr "enviament completat"
 
 msgid "Error code"
 msgstr "Codi d'error"
-
-msgid "Printer local connection failed, please try again."
-msgstr "La connexió local de la impressora ha fallat, torneu-ho a provar."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
@@ -6746,10 +7286,13 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "Cal inserir una targeta SD abans d'imprimir."
 
-msgid "The selected printer is incompatible with the chosen printer presets."
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 msgstr ""
-"La impressora seleccionada és incompatible amb els perfils de la impressora "
-"escollits."
+"La impressora seleccionada (%s) és incompatible amb el perfil d'impressora "
+"escollit al laminador (%s)."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Cal inserir una targeta SD per gravar el timelapse."
@@ -6809,45 +7352,40 @@ msgid "nozzle in preset: %s %s"
 msgstr "broquet del perfil: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "broquet memoritzat: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "broquet memoritzat: %.2f %s"
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 msgstr ""
 "El diàmetre del broquet del perfil no és coherent amb el diàmetre del "
-"broquet memoritzat. Has canviat el broquet recentment?"
+"broquet memoritzat. Si heu canviat el broquet darrerament, aneu a Dispositiu "
+"> Parts de la impressora per canviar la configuració."
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*El material d'impressió %s amb %s podria causar danys al broquet"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+"La impressió de material a alta temperatura (material %s) amb %s pot causar "
+"danys al broquet"
+
+msgid "Please fix the error above, otherwise printing cannot continue."
+msgstr ""
+"Corregiu l'error de dalt, en cas contrari, la impressió no pot continuar."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 "Feu clic al botó de confirmació si encara voleu continuar amb la impressió."
 
-msgid "Hardened Steel"
-msgstr "Acer Endurit"
-
-msgid "Stainless Steel"
-msgstr "Acer Inoxidable"
-
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
 "Connectant amb la impressora. No es pot cancel·lar durant el procés de "
 "connexió."
-
-msgid "Preparing print job"
-msgstr "Preparant el treball d'impressió"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Dades anormals del fitxer d'impressió. Si us plau, torneu a laminar"
-
-msgid "The name length exceeds the limit."
-msgstr "La longitud del nom supera el límit."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -6862,12 +7400,20 @@ msgstr "Calibratge automàtic de flux mitjançant Micro Lidar"
 msgid "Modifying the device name"
 msgstr "Modificant el nom del dispositiu"
 
+msgid "Bind with Pin Code"
+msgstr "Enllaçar amb codi PIN"
+
 msgid "Send to Printer SD card"
 msgstr "Enviar a la targeta SD de la impressora"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 "No es pot enviar la tasca d'impressió quan l'actualització està en curs"
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
+"La impressora seleccionada és incompatible amb els perfils de la impressora "
+"escollits."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "Cal inserir una targeta SD abans d'enviar-lo a la impressora."
@@ -6911,6 +7457,28 @@ msgstr "Excedit el temps d'espera de l'informe d'inici de sessió"
 
 msgid "Unknown Failure"
 msgstr "Falla desconeguda"
+
+msgid ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
+msgstr ""
+"Trobeu el codi PIN a la pàgina del compte a la pantalla de la impressora,\n"
+" i escriviu el codi PIN de sota."
+
+msgid "Can't find Pin Code?"
+msgstr "No trobes el codi PIN?"
+
+msgid "Pin Code"
+msgstr "Codi PIN"
+
+msgid "Binding..."
+msgstr "Enllaçant..."
+
+msgid "Please confirm on the printer screen"
+msgstr "Si us plau, confirmeu-ho a la pantalla de la impressora"
+
+msgid "Log in failed. Please check the Pin Code."
+msgstr "S'ha produït un error en l'inici de sessió. Comproveu el codi PIN."
 
 msgid "Log in printer"
 msgstr "Iniciar sessió a la impressora"
@@ -7079,9 +7647,13 @@ msgid ""
 "precise dimensions or is part of an assembly, it's important to double-check "
 "whether this change in geometry impacts the functionality of your print."
 msgstr ""
+"Si activeu aquesta opció, es modificarà la forma del model. Si la impressió "
+"requereix dimensions precises o forma part d'un muntatge, és important "
+"comprovar si aquest canvi de geometria afecta la funcionalitat de la "
+"impressió."
 
 msgid "Are you sure you want to enable this option?"
-msgstr ""
+msgstr "Estàs segur que vols activar aquesta opció?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -7106,6 +7678,29 @@ msgstr "Ajustar"
 
 msgid "Ignore"
 msgstr "Ignorar"
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+"Característica experimental: Retreure i tallar el filament a major distància "
+"durant els canvis de filaments per minimitzar el flux. Tot i que pot reduir "
+"notablement el flux, també pot elevar el risc d'esclops de broquets o altres "
+"complicacions d'impressió."
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications.Please use with the latest printer firmware."
+msgstr ""
+"Característica experimental: Retreure i tallar el filament a major distància "
+"durant els canvis de filaments per minimitzar el rentat. Tot i que pot "
+"reduir notablement el rentat, també pot elevar el risc d'obstruccions del "
+"broquet o altres complicacions d'impressió. Utilitzeu amb el firmware de la "
+"impressora més recent."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7177,7 +7772,7 @@ msgid "Acceleration"
 msgstr "Acceleració"
 
 msgid "Jerk(XY)"
-msgstr "Sacsejada( Jerk )( XY )-Jerk( XY )"
+msgstr "Sacsejada( XY )-Jerk( XY )"
 
 msgid "Raft"
 msgstr "Vora d'Adherència"
@@ -7188,11 +7783,23 @@ msgstr "Filament de suport"
 msgid "Tree supports"
 msgstr "Suports d'arbre"
 
+msgid "Multimaterial"
+msgstr "Multimaterial"
+
 msgid "Prime tower"
 msgstr "Torre de Purga"
 
+msgid "Filament for Features"
+msgstr ""
+
+msgid "Ooze prevention"
+msgstr ""
+
+msgid "Skirt"
+msgstr "Faldilla"
+
 msgid "Special mode"
-msgstr "Ajustos espcials"
+msgstr "Ajustos especials"
 
 msgid "G-code output"
 msgstr "Codi-G de Sortida"
@@ -7243,6 +7850,9 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Rang de temperatures del broquet recomanat per a aquest filament. 0 "
 "significa que no es configura"
+
+msgid "Flow ratio and Pressure Advance"
+msgstr ""
 
 msgid "Print chamber temperature"
 msgstr "Temperatura de la cambra d'impressió"
@@ -7302,7 +7912,7 @@ msgid "Volumetric speed limitation"
 msgstr "Limitació de la velocitat volumètrica"
 
 msgid "Cooling"
-msgstr "Refregiració"
+msgstr "Refrigeració"
 
 msgid "Cooling for specific layer"
 msgstr "Refrigeració per a capes específiques"
@@ -7353,9 +7963,6 @@ msgstr "Codi-G Inicial del Filament"
 msgid "Filament end G-code"
 msgstr "Codi-G Final del Filament"
 
-msgid "Multimaterial"
-msgstr "Multimaterial"
-
 msgid "Wipe tower parameters"
 msgstr "Paràmetres de la Torre de Purga"
 
@@ -7371,6 +7978,14 @@ msgstr "Paràmetres del canvi d'eina per a impressores multi-extrusor MM"
 msgid "Printable space"
 msgstr "Espai imprimible"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "Valor no vàlid proporcionat per al paràmetre %1%: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "El tipus de codi-G s'ha canviat"
+
 msgid "Cooling Fan"
 msgstr "Ventilador de refrigeració"
 
@@ -7381,7 +7996,7 @@ msgid "Extruder Clearance"
 msgstr "Espai lliure de l'extrusor"
 
 msgid "Adaptive bed mesh"
-msgstr ""
+msgstr "Malla de placa adaptativa"
 
 msgid "Accessory"
 msgstr "Accessori"
@@ -7437,11 +8052,29 @@ msgstr "Limitació de la sacsejada( Jerk )"
 msgid "Single extruder multimaterial setup"
 msgstr "Configuració d'extrusor únic multimaterial"
 
+msgid "Number of extruders of the printer."
+msgstr ""
+
+msgid ""
+"Single Extruder Multi Material is selected, \n"
+"and all extruders must have the same diameter.\n"
+"Do you want to change the diameter for all extruders to first extruder "
+"nozzle diameter value?"
+msgstr ""
+
+msgid "Nozzle diameter"
+msgstr "Diàmetre del broquet( nozzle )"
+
 msgid "Wipe tower"
 msgstr "Torre de Purga"
 
 msgid "Single extruder multimaterial parameters"
 msgstr "Paràmetres d'extrusor únic multimaterial"
+
+msgid ""
+"This is a single extruder multimaterial printer, diameters of all extruders "
+"will be set to the new value. Do you want to proceed?"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Límits d'alçada de capa"
@@ -7599,21 +8232,38 @@ msgstr ""
 "següents canvis no desats:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Heu canviat alguns paràmetres del perfil \"%1%\". \n"
-"Voleu mantenir aquests paràmetres modificats després de canviar el perfil?"
+"Heu canviat alguns paràmetres de la configuració predeterminada \"%1%\". "
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"You can save or discard the preset values you have modified."
 msgstr ""
-"Heu canviat algunes opcions de configuració del perfil. \n"
-"Voleu mantenir aquests paràmetres modificats després de canviar el perfil?"
+"\n"
+"Podeu desar o descartar els valors predefinits que heu modificat."
+
+msgid ""
+"\n"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
+msgstr ""
+"\n"
+"Podeu desar o descartar els valors predefinits que heu modificat o bé "
+"transferir els valors que heu modificat a la nova configuració "
+"predeterminada."
+
+msgid "You have previously modified your settings."
+msgstr "Has modificat prèviament la configuració."
+
+msgid ""
+"\n"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
+msgstr ""
+"\n"
+"Podeu descartar els valors predefinits que heu modificat o transferir els "
+"valors modificats al nou projecte"
 
 msgid "Extruders count"
 msgstr "Nombre d'extrusors"
@@ -7632,21 +8282,27 @@ msgstr "Seleccioneu els perfils a comparar"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
-msgstr ""
+msgstr "Només es pot transferir al perfil actiu actual perquè s'ha modificat."
 
 msgid ""
 "Transfer the selected options from left preset to the right.\n"
 "Note: New modified presets will be selected in settings tabs after close "
 "this dialog."
 msgstr ""
+"Transferiu les opcions seleccionades des del perfil a l'esquerra cap a la "
+"dreta.\n"
+"Nota: Els nous perfils modificats se seleccionaran a les pestanyes de "
+"configuració després de tancar aquest quadre de diàleg."
 
 msgid "Transfer values from left to right"
-msgstr ""
+msgstr "Transfereix valors d'esquerra a dreta"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
+"Si està habilitat, aquest diàleg es pot utilitzar per transferir els valors "
+"seleccionats del perfil esquerra cap a la dreta."
 
 msgid "Add File"
 msgstr "Afegir arxiu"
@@ -7725,6 +8381,60 @@ msgstr "No hi ha actualitzacions disponibles."
 
 msgid "The configuration is up to date."
 msgstr "La configuració està actualitzada."
+
+msgid "Obj file Import color"
+msgstr "Importar color de l'arxiu Obj"
+
+msgid "Specify number of colors:"
+msgstr "Especificar el nombre de colors:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "El recompte de colors ha d'estar en rang [%d, %d]."
+
+msgid "Recommended "
+msgstr "Recomanat "
+
+msgid "Current filament colors:"
+msgstr "Color del filament predeterminat:"
+
+msgid "Quick set:"
+msgstr "Configuració ràpida:"
+
+msgid "Color match"
+msgstr "Concordança de color"
+
+msgid "Approximate color matching."
+msgstr "Concordança aproximada de color."
+
+msgid "Append"
+msgstr "Afegir"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "Afegiu extrusora consumible després dels extrusors existents."
+
+msgid "Reset mapped extruders."
+msgstr "Restableix els extrusors mapejats."
+
+msgid "Cluster colors"
+msgstr "Colors del clúster"
+
+msgid "Map Filament"
+msgstr "Mapejar Filament"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"Nota: El color ha estat seleccionat, podeu triar D'acord \n"
+" per continuar-lo o ajustar-lo manualment."
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"Advertència:El recompte de nous afegits i \n"
+" Els extrusors de corrent superen els 16."
 
 msgid "Ramming customization"
 msgstr "Configuració de Moldejat de punta( Ramming )"
@@ -7813,6 +8523,43 @@ msgstr "Des de"
 msgid "To"
 msgstr "A"
 
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+"El Windows Media Player és necessari per a aquesta tasca. Voleu habilitar el "
+"\"Windows Media Player\" per al vostre sistema operatiu?"
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+"BambuSource no s'ha registrat correctament per a la reproducció multimèdia! "
+"Premeu Sí per tornar-lo a registrar. Seràs promocionat dues vegades"
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+"Falta el component BambuSource registrat per a la reproducció multimèdia! "
+"Torneu a instal·lar BambuStutio o busqueu ajuda postvenda."
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+"Utilitzar un BambuSource des d'una instal·lació diferent, la reproducció de "
+"vídeo pot no funcionar correctament! Premeu Sí per solucionar-ho."
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
+"Al vostre sistema li falten còdecs H.264 per al GStreamer, necessaris per "
+"reproduir vídeo.  (Proveu d'instal·lar els paquets gstreamer1.0-plugins-bad "
+"o gstreamer1.0-libav i, a continuació, reinicieu Orca Slicer?)"
+
 msgid "Bambu Network plug-in not detected."
 msgstr "No s'ha detectat el Plug-In de Xarxa Bambu."
 
@@ -7838,11 +8585,8 @@ msgstr "Llista d'objectes"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importar dades de geometria des de fitxers STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Maj+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Maj+G"
+msgid "Shift+G"
+msgstr ""
 
 msgid "Paste from clipboard"
 msgstr "Enganxa des del porta-retalls"
@@ -7893,32 +8637,17 @@ msgstr "Maj+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Replegar/Expandir barra lateral"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Qualsevol fletxa"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Moviment a l'espai de la càmera"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Botó esquerre del ratolí"
-
 msgid "Select a part"
 msgstr "Seleccionar una peça"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Botó esquerre del ratolí"
-
 msgid "Select multiple objects"
 msgstr "Seleccionar múltiples objectes"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Qualsevol fletxa"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Botó esquerre del ratolí"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Botó esquerre del ratolí"
 
 msgid "Shift+Left mouse button"
 msgstr "Maj+Botó esquerre del ratolí"
@@ -8022,23 +8751,11 @@ msgstr "Plataforma"
 msgid "Move: press to snap by 1mm"
 msgstr "Moure: Clicka per ajustar en passos d'1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Roda del ratolí"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Suport/Pintat de color: configuració del radi de la ploma"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Roda del ratolí"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Suport/Pintat de color: configuració de la posició de la secció"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Roda del ratolí"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Roda del ratolí"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8092,6 +8809,12 @@ msgstr "Moure la barra de desplaçament 5 vegades més ràpid"
 msgid "Shift+Mouse wheel"
 msgstr "Maj+Roda del ratolí"
 
+msgid "Horizontal slider - Move to start position"
+msgstr "Control lliscant horitzontal - Mou fins a la posició inicial"
+
+msgid "Horizontal slider - Move to last position"
+msgstr "Control lliscant horitzontal - Mou a l'última posició"
+
 msgid "Release Note"
 msgstr "Notes de la versió"
 
@@ -8120,6 +8843,42 @@ msgstr "Omet aquesta versió"
 
 msgid "Done"
 msgstr "Fet"
+
+msgid "resume"
+msgstr "reprendre"
+
+msgid "Resume Printing"
+msgstr "Reprendre Impressió"
+
+msgid "Resume Printing(defects acceptable)"
+msgstr "Reprendre la impressió (defectes acceptables)"
+
+msgid "Resume Printing(problem solved)"
+msgstr "Reprendre la impressió (problema resolt)"
+
+msgid "Stop Printing"
+msgstr "Deixar d'imprimir"
+
+msgid "Check Assistant"
+msgstr "Assistent de comprovació"
+
+msgid "Filament Extruded, Continue"
+msgstr "Filament Extruït, Continuar"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Encara no s'ha Extruït, Tornar a Intentar-ho"
+
+msgid "Finished, Continue"
+msgstr "Finalitzat, Continuar"
+
+msgid "Load Filament"
+msgstr "Carregar Filament"
+
+msgid "Filament Loaded, Resume"
+msgstr "Filament carregat, reprendre"
+
+msgid "View Liveview"
+msgstr "Veure Liveview"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Confirmar i Actualitzar el broquet"
@@ -8183,12 +8942,6 @@ msgstr "Versió:"
 msgid "Update firmware"
 msgstr "Actualitzar el firmware"
 
-msgid "Printing"
-msgstr "Imprimint"
-
-msgid "Idle"
-msgstr "Inactiu"
-
 msgid "Beta version"
 msgstr "Versió beta"
 
@@ -8223,11 +8976,11 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
-"La versió del firmware és anormal. Cal reparar i actualitzar abans "
-"d'imprimir. Vols actualitzar ara? També pots actualitzar més endavant a la "
-"impressora o actualitzar la propera vegada que iniciïs."
+"La versió del firmware és anormal. Cal reparar i actualitzar-lo abans "
+"d'imprimir. Vols actualitzar-lo ara? També podeu actualitzar-lo més endavant "
+"a la impressora o actualitzar-lo la propera vegada que s'iniciï l'Orca."
 
 msgid "Extension Board"
 msgstr "Targeta d'Ampliació"
@@ -8290,10 +9043,10 @@ msgstr ""
 "configuració."
 
 msgid "Configuration package: "
-msgstr ""
+msgstr "Paquet de configuració: "
 
 msgid " updated to "
-msgstr ""
+msgstr " actualitzat a "
 
 msgid "Open G-code file:"
 msgstr "Obre el fitxer de Codi-G:"
@@ -8326,6 +9079,11 @@ msgid "No object can be printed. Maybe too small"
 msgstr "No es pot imprimir cap objecte. Potser que sigui massa petit"
 
 msgid ""
+"Your print is very close to the priming regions. Make sure there is no "
+"collision."
+msgstr ""
+
+msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
@@ -8339,7 +9097,7 @@ msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
-msgstr "Generan Codi-G: capa %1%"
+msgstr "Generant Codi-G: capa %1%"
 
 msgid "Inner wall"
 msgstr "Perímetre interior"
@@ -8367,9 +9125,6 @@ msgstr "Pont Interior"
 
 msgid "Gap infill"
 msgstr "Ompliment de buits"
-
-msgid "Skirt"
-msgstr "Faldilla"
 
 msgid "Support interface"
 msgstr "Interfície de suport"
@@ -8574,11 +9329,10 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Alçada de Capa Variable no és compatible amb suports Orgànics."
 
 msgid ""
-"Different nozzle diameters and different filament diameters is not allowed "
-"when prime tower is enabled."
+"Different nozzle diameters and different filament diameters may not work "
+"well when the prime tower is enabled. It's very experimental, so please "
+"proceed with caution."
 msgstr ""
-"No es permeten diferents diàmetres de broquet i diferents diàmetres de "
-"filament quan s'habilita la Torre de Purga."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
@@ -8588,10 +9342,9 @@ msgstr ""
 "relatiu de l'extrusor ( use_relative_e_distances=1 )."
 
 msgid ""
-"Ooze prevention is currently not supported with the prime tower enabled."
+"Ooze prevention is only supported with the wipe tower when "
+"'single_extruder_multi_material' is off."
 msgstr ""
-"Actualment, la Prevenció d'Ooze( goteig ) no és compatible amb la Torre de "
-"Purga habilitada."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
@@ -8713,6 +9466,8 @@ msgstr "La placa %d: %s no admet el filament %s"
 msgid ""
 "Setting the jerk speed too low could lead to artifacts on curved surfaces"
 msgstr ""
+"Establir la velocitat de sacsejada( Jerk ) massa baixa podria conduir a "
+"defectes en superfícies corbes"
 
 msgid ""
 "The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
@@ -8722,6 +9477,12 @@ msgid ""
 "You can adjust the maximum jerk setting in your printer's configuration to "
 "get higher speeds."
 msgstr ""
+"La configuració de la sacsejada( Jerk ) supera la sacsejada màxima de la "
+"impressora (machine_max_jerk_x/machine_max_jerk_y).\n"
+"L'Orca limitarà automàticament la velocitat de sacsejada per assegurar-se "
+"que no superi les capacitats de la impressora.\n"
+"Podeu ajustar la configuració de sacsejada màxima a la configuració de la "
+"impressora per obtenir velocitats més altes."
 
 msgid ""
 "The acceleration setting exceeds the printer's maximum acceleration "
@@ -8731,6 +9492,12 @@ msgid ""
 "You can adjust the machine_max_acceleration_extruding value in your "
 "printer's configuration to get higher speeds."
 msgstr ""
+"La configuració d'acceleració supera l'acceleració màxima "
+"(machine_max_acceleration_extruding).\n"
+"L'Orca limitarà automàticament la velocitat d'acceleració per assegurar-se "
+"que no superi les capacitats de la impressora.\n"
+"Podeu ajustar el valor machine_max_acceleration_extruding a la configuració "
+"de la impressora per obtenir velocitats més altes."
 
 msgid ""
 "The travel acceleration setting exceeds the printer's maximum travel "
@@ -8740,6 +9507,12 @@ msgid ""
 "You can adjust the machine_max_acceleration_travel value in your printer's "
 "configuration to get higher speeds."
 msgstr ""
+"La configuració de l'acceleració de deplaçament supera l'acceleració màxima "
+"de desplaçament (machine_max_acceleration_travel) de la impressora.\n"
+"L'Orca limitarà automàticament la velocitat d'acceleració de viatge per "
+"assegurar-se que no superi les capacitats de la impressora.\n"
+"Podeu ajustar el valor machine_max_acceleration_travel a la configuració de "
+"la impressora per obtenir velocitats més altes."
 
 msgid "Generating skirt & brim"
 msgstr "Generant Faldilla i Vora d'Adherència"
@@ -8824,6 +9597,14 @@ msgstr ""
 
 msgid "Printer preset names"
 msgstr "Noms de perfils de la impressora"
+
+msgid "Use 3rd-party print host"
+msgstr "Utilitzeu l'amfitrió d'impressió de 3a part"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+"Permetre controlar la impressora de BambuLab a través d'amfitrions "
+"d'impressió de 3 ª part"
 
 msgid "Hostname, IP or URL"
 msgstr "Nom d'equip, IP o URL"
@@ -9011,6 +9792,15 @@ msgstr "Base d'Enginyeria"
 msgid "First layer print sequence"
 msgstr "Seqüència d'impressió de primera capa"
 
+msgid "Other layers print sequence"
+msgstr "Seqüència d'impressió d'altres capes"
+
+msgid "The number of other layers print sequence"
+msgstr "El nombre d'altres capes de la seqüència d'impressió"
+
+msgid "Other layers filament sequence"
+msgstr "Seqüència de filaments d'altres capes"
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Aquest Codi-G s'insereix en cada canvi de capa abans d'aixecar z"
 
@@ -9045,7 +9835,7 @@ msgstr ""
 "inferiors de la carcassa"
 
 msgid "Apply gap fill"
-msgstr ""
+msgstr "Aplicar farciment de buits"
 
 msgid ""
 "Enables gap fill for the selected surfaces. The minimum gap length that will "
@@ -9057,15 +9847,25 @@ msgid ""
 "only\n"
 "3. Nowhere: Disables gap fill\n"
 msgstr ""
+"Habilita farciment de buits per a les superfícies seleccionades. El mínim "
+"del forat que s'omplirà es pot controlar des de l'opció filtrar forats "
+"petits a continuació.\n"
+"\n"
+"Opcions:\n"
+"1. A tot arreu: aplica farciment de buits a superfícies sòlides superiors, "
+"inferiors i internes\n"
+"2. Superfícies superiors i inferiors: aplica farciment de buit només a "
+"superfícies superiors i inferiors\n"
+"3. Enlloc: desactiva el farciment de buits\n"
 
 msgid "Everywhere"
-msgstr ""
+msgstr "A tot arreu"
 
 msgid "Top and bottom surfaces"
-msgstr ""
+msgstr "Superfícies superior i inferior"
 
 msgid "Nowhere"
-msgstr ""
+msgstr "Enlloc"
 
 msgid "Force cooling for overhang and bridge"
 msgstr "Força la refrigeració per voladís i pont"
@@ -9176,6 +9976,10 @@ msgid ""
 "Note: This setting will only take effect if the wall sequence is configured "
 "to Inner-Outer"
 msgstr ""
+"Millora la precisió de la carcassa ajustant l'espaiat del perímetre més "
+"exterior. Això també millora la consistència de la capa.\n"
+"Nota: Aquest paràmetre només tindrà efecte si la seqüència de paret està "
+"configurada a Interior-Exterior"
 
 msgid "Only one wall on top surfaces"
 msgstr "Només un perímetre a les superfícies superiors"
@@ -9201,6 +10005,15 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"Si s'ha d'imprimir una superfície superior i està parcialment coberta per "
+"una altra capa, no es considerarà una capa superior si la seva amplada és "
+"inferior a aquest valor. Això pot ser útil per no deixar que el \"perímetre "
+"a la part superior\" s'activi quan les superfícies estan pensades per ser "
+"cobertes només per perímetres. Aquest valor es pot especificar en mm o com a "
+"% de l'amplada d'extrusió perimetral.\n"
+"Advertència: Si està activat, es poden produir artefactes si teniu alguna "
+"característica fina a la capa següent, com ara lletres. Establiu aquest "
+"paràmetre a 0 per eliminar aquests artefactes."
 
 msgid "Only one wall on first layer"
 msgstr "Només un perímetre a la primera capa"
@@ -9275,7 +10088,7 @@ msgstr ""
 "direccions alternes en capes senars, independentment del seu grau de voladís."
 
 msgid "Bridge counterbore holes"
-msgstr ""
+msgstr "Pont pels forats esbocats( contraforats )"
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be "
@@ -9284,12 +10097,17 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created."
 msgstr ""
+"Aquesta opció crea ponts per a forats de contraforat, permetent imprimir-los "
+"sense suport. Els modes disponibles son els següents:\n"
+"1. Cap: No es crea cap pont.\n"
+"2. Pont parcial: Només una part de la zona no suportada serà pontejada.\n"
+"3. Capa de sacrifici: Es crea una capa de pont de sacrifici completa."
 
 msgid "Partially bridged"
-msgstr ""
+msgstr "Pont parcial"
 
 msgid "Sacrificial layer"
-msgstr ""
+msgstr "Capa de sacrifici"
 
 msgid "Reverse threshold"
 msgstr "Llindar invers"
@@ -9437,13 +10255,13 @@ msgid "By object"
 msgstr "Objecte"
 
 msgid "Intra-layer order"
-msgstr ""
+msgstr "Ordre intracapa"
 
 msgid "Print order within a single layer"
-msgstr ""
+msgstr "Ordre d'impressió dins d'una sola capa"
 
 msgid "As object list"
-msgstr ""
+msgstr "Com a llista d'objectes"
 
 msgid "Slow printing down for better layer cooling"
 msgstr ""
@@ -9555,7 +10373,7 @@ msgstr ""
 "utilitzeu broquets grans."
 
 msgid "Don't filter out small internal bridges (beta)"
-msgstr "No filtrar els petits ponts interns ( experimental )"
+msgstr "No filtrar els petits ponts interns ( beta )"
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -9668,12 +10486,20 @@ msgid ""
 "All: Add solid infill for all suitable sloping surfaces\n"
 "Default value is All."
 msgstr ""
+"Afegir un farciment sòlid a prop de superfícies inclinades per garantir el "
+"gruix vertical de la carcassa (capes sòlides superior + inferior)\n"
+"Cap: No s'afegirà cap farciment sòlid enlloc. Precaució: utilitzeu aquesta "
+"opció amb cura si el vostre model té superfícies inclinades\n"
+"Només crític: Evitar afegir farciment sòlid per a parets\n"
+"Moderada: Afegir farciment sòlid només per a superfícies molt inclinades\n"
+"Tot: Afegir farciment sòlid per a totes les superfícies inclinades aptes\n"
+"El valor per defecte és Tot."
 
 msgid "Critical Only"
-msgstr ""
+msgstr "Només Crític"
 
 msgid "Moderate"
-msgstr ""
+msgstr "Moderat"
 
 msgid "Top surface pattern"
 msgstr "Patró de superfície superior"
@@ -9832,24 +10658,24 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
 "external surfaces of the part."
 msgstr ""
-"Ordre de Perímetre/Farciment. Quan es desmarca la casella, primer "
+"Ordre de perímetre/farciment. Quan es desmarca la casella, primer "
 "s'imprimeixen els perímetres, cosa que funciona millor en la majoria dels "
 "casos.\n"
 "\n"
-"Imprimir primer els perímetres pot ajudar amb voladissos extrems, ja que els "
-"perímetres tenen el farciment veí al qual adherir-se. Tanmateix, el "
-"farciment empenyerà lleugerament els perímetres impresos als que s'adhereix, "
-"cosa que provocarà un pitjor acabat superficial extern. També pot fer que el "
-"farciment brilli a les superfícies externes de la peça."
+"Imprimir el farciment primer pot ajudar amb voladissos extrems, ja que els "
+"perímetres tenen el farciment veí per adherir-s'hi. Tanmateix, el farciment "
+"empenyerà lleugerament les parets impreses on s'uneix, cosa que provocarà un "
+"pitjor acabat superficial extern. També pot fer que el farciment ressalti a "
+"través de les superfícies externes de la peça."
 
 msgid "Wall loop direction"
-msgstr ""
+msgstr "Direcció del bucle de perímetre"
 
 msgid ""
 "The direction which the wall loops are extruded when looking down from the "
@@ -9861,12 +10687,21 @@ msgid ""
 "\n"
 "This option will be disabled if sprial vase mode is enabled."
 msgstr ""
+"La direcció en què s'extrudeixen els bucles de perímetre quan es mira cap "
+"avall des de la part superior.\n"
+"\n"
+"Per defecte, totes les parets s'extrudeixen en sentit contrari a les agulles "
+"del rellotge, tret que \"Parets invertides en capes imparells\" estigui "
+"habilitat. Triar una opció que no sigui Auto forçarà la direcció de la paret "
+"malgrat s'habiliti \"Parets invertides en capes imparells\".\n"
+"\n"
+"Aquesta opció es desactivarà si el mode gerro en espiral està habilitat."
 
 msgid "Counter clockwise"
-msgstr ""
+msgstr "En sentit contrari a les agulles del rellotge"
 
 msgid "Clockwise"
-msgstr ""
+msgstr "En el sentit de les agulles del rellotge"
 
 msgid "Height to rod"
 msgstr "Alçada a la tija"
@@ -9895,8 +10730,14 @@ msgstr ""
 "Radi d'espai lliure al voltant de l'extrusora. S'utilitza per evitar "
 "col·lisions en impressió per objecte."
 
+msgid "Nozzle height"
+msgstr "Alçada del broquet"
+
+msgid "The height of nozzle tip."
+msgstr "L'alçada de la punta del broquet."
+
 msgid "Bed mesh min"
-msgstr ""
+msgstr "Malla de llit mínim"
 
 msgid ""
 "This option sets the min point for the allowed bed mesh area. Due to the "
@@ -9908,9 +10749,18 @@ msgid ""
 "your printer manufacturer. The default setting is (-99999, -99999), which "
 "means there are no limits, thus allowing probing across the entire bed."
 msgstr ""
+"Aquesta opció estableix el punt mínim per a la zona de malla de llit "
+"permesa. A causa del desplaçament XY de la sonda, la majoria de les "
+"impressores no poden sondejar tot el llit. Per assegurar-se que el punt de "
+"sonda no surti de la zona del llit, s'han d'establir adequadament els punts "
+"mínims i màxims de la malla del llit. OrcaSlicer garanteix que els valors de "
+"adaptive_bed_mesh_min/adaptive_bed_mesh_max no superin aquests punts mínim/"
+"màxim. Normalment, aquesta informació es pot obtenir del fabricant de la "
+"impressora. La configuració predeterminada és (-99999, -99999), cosa que "
+"significa que no hi ha límits, el qual permet sondejar tot el llit."
 
 msgid "Bed mesh max"
-msgstr ""
+msgstr "Malla de llit màxim"
 
 msgid ""
 "This option sets the max point for the allowed bed mesh area. Due to the "
@@ -9922,22 +10772,36 @@ msgid ""
 "your printer manufacturer. The default setting is (99999, 99999), which "
 "means there are no limits, thus allowing probing across the entire bed."
 msgstr ""
+"Aquesta opció estableix el punt màxim per a la zona de malla de llit "
+"permesa. A causa del desplaçament XY de la sonda, la majoria de les "
+"impressores no poden sondejar tot el llit. Per assegurar-se que el punt de "
+"sonda no surti de la zona del llit, s'han d'establir adequadament els punts "
+"mínims i màxims de la malla del llit. OrcaSlicer garanteix que els valors de "
+"adaptive_bed_mesh_min/adaptive_bed_mesh_max no superin aquests punts mínim/"
+"màxim. Normalment, aquesta informació es pot obtenir del fabricant de la "
+"impressora. La configuració predeterminada és (99999, 99999), cosa que "
+"significa que no hi ha límits, el qual permet sondejar tot el llit."
 
 msgid "Probe point distance"
-msgstr ""
+msgstr "Distància entre els punts de sondeig"
 
 msgid ""
 "This option sets the preferred distance between probe points (grid size) for "
 "the X and Y directions, with the default being 50mm for both X and Y."
 msgstr ""
+"Aquesta opció estableix la distància preferida entre els punts de sondeig "
+"(mida de la quadrícula ) per a les direccions X i Y, amb el valor per "
+"defecte de 50 mm tant per a X com per a Y."
 
 msgid "Mesh margin"
-msgstr ""
+msgstr "Marge de malla"
 
 msgid ""
 "This option determines the additional distance by which the adaptive bed "
 "mesh area should be expanded in the XY directions."
 msgstr ""
+"Aquesta opció determina la distància addicional per la qual s'ha d'ampliar "
+"l'àrea de malla de llit adaptativa en les direccions XY."
 
 msgid "Extruder Color"
 msgstr "Color de l'extrusor"
@@ -9977,6 +10841,86 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "Avanç de Pressió Lineal( Klipper ) AKA Factor d'Avanç Lineal( Marlin )"
 
+msgid "Enable adaptive pressure advance (beta)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"With increasing print speeds (and hence increasing volumetric flow through "
+"the nozzle) and increasing accelerations, it has been observed that the "
+"effective PA value typically decreases. This means that a single PA value is "
+"not always 100% optimal for all features and a compromise value is usually "
+"used that does not cause too much bulging on features with lower flow speed "
+"and accelerations while also not causing gaps on faster features.\n"
+"\n"
+"This feature aims to address this limitation by modeling the response of "
+"your printer's extrusion system depending on the volumetric flow speed and "
+"acceleration it is printing at. Internally, it generates a fitted model that "
+"can extrapolate the needed pressure advance for any given volumetric flow "
+"speed and acceleration, which is then emmited to the printer depending on "
+"the current print conditions.\n"
+"\n"
+"When enabled, the pressure advance value above is overriden. However, a "
+"reasonable default value above is strongly recomended to act as a fallback "
+"and for when tool changing.\n"
+"\n"
+msgstr ""
+
+msgid "Adaptive pressure advance measurements (beta)"
+msgstr ""
+
+msgid ""
+"Add sets of pressure advance (PA) values, the volumetric flow speeds and "
+"accelerations they were measured at, separated by a comma. One set of values "
+"per line. For example\n"
+"0.04,3.96,3000\n"
+"0.033,3.96,10000\n"
+"0.029,7.91,3000\n"
+"0.026,7.91,10000\n"
+"\n"
+"How to calibrate:\n"
+"1. Run the pressure advance test for at least 3 speeds per acceleration "
+"value. It is recommended that the test is run for at least the speed of the "
+"external perimeters, the speed of the internal perimeters and the fastest "
+"feature print speed in your profile (usually its the sparse or solid "
+"infill). Then run them for the same speeds for the slowest and fastest print "
+"accelerations,and no faster than the recommended maximum acceleration as "
+"given by the klipper input shaper.\n"
+"2. Take note of the optimal PA value for each volumetric flow speed and "
+"acceleration. You can find the flow number by selecting flow from the color "
+"scheme drop down and move the horizontal slider over the PA pattern lines. "
+"The number should be visible at the bottom of the page. The ideal PA value "
+"should be decreasing the higher the volumetric flow is. If it is not, "
+"confirm that your extruder is functioning correctly.The slower and with less "
+"acceleration you print, the larger the range of acceptable PA values. If no "
+"difference is visible, use the PA value from the faster test.3. Enter the "
+"triplets of PA values, Flow and Accelerations in the text box here and save "
+"your filament profile\n"
+"\n"
+msgstr ""
+
+msgid "Enable adaptive pressure advance for overhangs (beta)"
+msgstr ""
+
+msgid ""
+"Enable adaptive PA for overhangs as well as when flow changes within the "
+"same feature. This is an experimental option, as if the PA profile is not "
+"set accurately, it will cause uniformity issues on the external surfaces "
+"before and after overhangs.\n"
+msgstr ""
+
+msgid "Pressure advance for bridges"
+msgstr ""
+
+msgid ""
+"Pressure advance value for bridges. Set to 0 to disable. \n"
+"\n"
+" A lower PA value when printing bridges helps reduce the appearance of "
+"slight under extrusion immediately after bridges. This is caused by the "
+"pressure drop in the nozzle when printing in the air and a lower PA helps "
+"counteract this."
+msgstr ""
+
 msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
@@ -9994,6 +10938,32 @@ msgstr ""
 "Si activeu aquest ajustament, el ventilador de refrigeració de peces no "
 "s'aturarà mai i funcionarà almenys a una velocitat mínima per reduir la "
 "freqüència d'arrencada i aturada"
+
+msgid "Don't slow down outer walls"
+msgstr "No freneu a les parets exteriors"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+"Si està habilitada, aquesta configuració garantirà que els perímetres "
+"externs no s'alenteixin per complir el temps mínim de capa. Això és "
+"particularment útil en els escenaris següents:\n"
+"\n"
+"1. Per evitar canvis de brillantor en imprimir filaments brillants \n"
+"2. Evitar canvis en la velocitat de la paret externa que poden crear "
+"artefactes de paret lleugers que semblen bandes z \n"
+"3. Evitar imprimir a velocitats que provoquen VFAs (artefactes fins) a les "
+"parets externes\n"
+"\n"
 
 msgid "Layer time"
 msgstr "Temps de capa"
@@ -10066,6 +11036,26 @@ msgstr ""
 "El diàmetre del filament s'utilitza per calcular l'extrusió en Codi-G, per "
 "la qual cosa és important i ha de ser precís"
 
+msgid "Pellet flow coefficient"
+msgstr "Coeficient de flux de pellets"
+
+msgid ""
+"Pellet flow coefficient is emperically derived and allows for volume "
+"calculation for pellet printers.\n"
+"\n"
+"Internally it is converted to filament_diameter. All other volume "
+"calculations remain the same.\n"
+"\n"
+"filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
+msgstr ""
+"El coeficient de flux de pellets es deriva empíricament i permet calcular el "
+"volum per a impressores de pellets.\n"
+"\n"
+"Internament es converteix en filament_diameter. La resta de càlculs de volum "
+"continuen sent els mateixos.\n"
+"\n"
+"filament_diameter = m²( (4 * pellet_flow_coefficient) / PI )"
+
 msgid "Shrinkage"
 msgstr "Encongiment"
 
@@ -10137,6 +11127,21 @@ msgid ""
 msgstr ""
 "El filament es refreda en ser mogut cap endavant i cap enrere als tubs de "
 "refredament. Especifica el nombre que vulgueu d'aquests moviments."
+
+msgid "Stamping loading speed"
+msgstr ""
+
+msgid "Speed used for stamping."
+msgstr ""
+
+msgid "Stamping distance measured from the center of the cooling tube"
+msgstr ""
+
+msgid ""
+"If set to nonzero value, filament is moved toward the nozzle between the "
+"individual cooling moves (\"stamping\"). This option configures how long "
+"this movement should be before the filament is retracted again."
+msgstr ""
 
 msgid "Speed of the first cooling move"
 msgstr "Velocitat del primer moviment de refredament"
@@ -10291,8 +11296,8 @@ msgstr "Fabricant del filament. Només per a mostrar"
 msgid "(Undefined)"
 msgstr "( Indefinit )"
 
-msgid "Infill direction"
-msgstr "Angle de farciment"
+msgid "Sparse infill direction"
+msgstr "Direcció de farciment poc dens"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10300,6 +11305,22 @@ msgid ""
 msgstr ""
 "Angle per a un patró de farciment poc dens, que controla l'inici o la "
 "direcció principal de la línia"
+
+msgid "Solid infill direction"
+msgstr "Direcció de farciment sòlid"
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+"Angle per al patró de farciment sòlid, que controla l'inici o la direcció "
+"principal de la línia"
+
+msgid "Rotate solid infill direction"
+msgstr "Rotar la direcció de farciment sòlid"
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr "Rotar la direcció de farciment sòlid 90° per a cada capa."
 
 msgid "Sparse infill density"
 msgstr "Densitat de farciment poc dens"
@@ -10347,6 +11368,9 @@ msgstr "Suport Cúbic"
 
 msgid "Lightning"
 msgstr "Llampec"
+
+msgid "Cross Hatch"
+msgstr "Quadrícula"
 
 msgid "Sparse infill anchor length"
 msgstr "Longitud d'ancoratge de farciment poc dens"
@@ -10507,10 +11531,10 @@ msgstr "Alçada de la capa inicial"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"can improve build plate adhesion"
 msgstr ""
 "Alçada de la capa inicial. Fer que l'alçada inicial de la capa sigui "
-"gruixuda lleugerament pot millorar l'adherència de la placa d'impressió"
+"lleugerament més gruixuda pot millorar l'adherència de la placa d'impressió"
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Velocitat de la capa inicial excepte la part de farciment sòlid"
@@ -10560,6 +11584,9 @@ msgstr ""
 "\". S'ignorarà \"full_fan_speed_layer\" si és inferior a "
 "\"close_fan_the_first_x_layers\", en aquest cas el ventilador funcionarà a "
 "la velocitat màxima permesa a la capa \"close_fan_the_first_x_layers\" + 1."
+
+msgid "layer"
+msgstr "capa"
 
 msgid "Support interface fan speed"
 msgstr "Velocitat del ventilador a la interfície de suport"
@@ -10635,15 +11662,41 @@ msgstr ""
 "Velocitat de farciment de buits. El buit sol tenir una amplada de línia "
 "irregular i s'ha d'imprimir més lentament"
 
+msgid "Precise Z height"
+msgstr "Alçada Z precisa"
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+"Habiliteu-lo per obtenir una alçada z precisa de l'objecte després de "
+"laminar-lo. Obtindrà l'alçada precisa de l'objecte ajustant finament les "
+"altures de capa de les últimes capes. Tingueu en compte que es tracta d'un "
+"paràmetre experimental."
+
 msgid "Arc fitting"
 msgstr "Ajustament en Arc( Arc fitting )"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Habiliteu-lo per obtenir un fitxer de Codi-G que tingui moviments G2 i G3. I "
-"la tolerància de curvatura és la mateixa que la resolució"
+"Habiliteu-lo per obtenir un fitxer de codi-G que tingui moviments G2 i G3. "
+"La tolerància d'ajust és la mateixa que la resolució. \n"
+"\n"
+"Nota: Per a les màquines de sabatilles, es recomana desactivar aquesta "
+"opció. Klipper no es beneficia de les ordres arc, ja que aquestes es "
+"divideixen de nou en segments de línia pel firmware. Això resulta en una "
+"reducció de la qualitat de la superfície, ja que els segments de línia es "
+"converteixen en arcs per la talladora i després tornen als segments de línia "
+"pel firmware."
 
 msgid "Add line number"
 msgstr "Afegir número de línia"
@@ -10816,6 +11869,13 @@ msgstr "Amb quin tipus de Codi-G és compatible la impressora"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Pellet Modded Printer"
+msgstr "Impressora modificada de pellets"
+
+msgid "Enable this option if your printer uses pellets instead of filaments"
+msgstr ""
+"Activeu aquesta opció si la impressora utilitza pellets en lloc de filaments"
+
 msgid "Support multi bed types"
 msgstr "Admetre diversos tipus de llits"
 
@@ -10879,13 +11939,35 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Superposició de farciment/perímetre"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"L'àrea de farciment s'amplia lleugerament per superposar-se amb el perímetre "
-"per a una millor unió. El valor percentual és relatiu a l'amplada de línia "
-"del farciment poc dens"
+"L'àrea de farciment s'amplia lleugerament per superposar-se amb la paret per "
+"a una millor unió. El valor percentual és relatiu a l'amplada de línia de "
+"farciment poc dens. Establiu aquest valor a ~ 10-15% per minimitzar la "
+"potencial sobreextrusió i acumulació de material que resulti en superfícies "
+"superiors rugoses."
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr "Farciment superposat a paret superior/inferior\""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
+"L'àrea superior de farciment sòlid s'amplia lleugerament per superposar-se "
+"amb la paret per a una millor unió i minimitzar l'aparició de forats on el "
+"farciment superior es troba amb les parets. Un valor de 25-30% és un bon "
+"punt de partida, minimitzant l'aparició de forats. El valor percentual és "
+"relatiu a l'amplada de línia del farciment poc dens"
 
 msgid "Speed of internal sparse infill"
 msgstr "Velocitat de farciment poc dens intern"
@@ -10912,10 +11994,67 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr "Profunditat d'entrellaçament d'una regió segmentada"
 
-msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
-"Profunditat d'entrellaçament d'una regió segmentada. Zero desactiva aquesta "
-"funció."
+
+msgid "Use beam interlocking"
+msgstr "Utilitzar feixos d'entrellaçament"
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+"Generar una estructura de feixos d'entrellaçament en els llocs on toquen "
+"diferents filaments. Això millora l'adherència entre filaments, especialment "
+"els models impresos en diferents materials."
+
+msgid "Interlocking beam width"
+msgstr "Amplada dels feixos d'entrellaçament"
+
+msgid "The width of the interlocking structure beams."
+msgstr "L'amplada dels feixos de l'estructura entrellaçada."
+
+msgid "Interlocking direction"
+msgstr "Direcció d'entrellaçament"
+
+msgid "Orientation of interlock beams."
+msgstr "Orientació de feixos d'entrellaçament."
+
+msgid "Interlocking beam layers"
+msgstr "Capes de feixos d'entrellaçament"
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+"L'alçada dels feixos de l'estructura entrellaçada. mesurada en nombre de "
+"capes. Menys capes és més forta, però més propensa als defectes."
+
+msgid "Interlocking depth"
+msgstr "Profunditat d'entrellaçament"
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+"La distància del límit entre filaments per generar una estructura "
+"entrellaçada, mesurada en cel·les. Massa poques cel·les donaran lloc a una "
+"mala adhesió."
+
+msgid "Interlocking boundary avoidance"
+msgstr "Evitació de límits entrellaçats"
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+"La distància a l'exterior d'un model on no es generaran estructures "
+"entrellaçades, mesurades en cel·les."
 
 msgid "Ironing Type"
 msgstr "Tipus de planxat"
@@ -11018,13 +12157,13 @@ msgid "This G-code will be used as a custom code"
 msgstr "Aquest Codi-G s'utilitzarà com a codi personalitzat"
 
 msgid "Small area flow compensation (beta)"
-msgstr ""
+msgstr "Compensació de flux d'àrea petita( beta )"
 
 msgid "Enable flow compensation for small infill areas"
-msgstr ""
+msgstr "Activar la compensació de flux per a petites àrees de farciment"
 
 msgid "Flow Compensation Model"
-msgstr ""
+msgstr "Model de Compensació de Flux"
 
 msgid ""
 "Flow Compensation Model, used to adjust the flow for small infill areas. The "
@@ -11032,6 +12171,10 @@ msgid ""
 "and flow correction factors, one per line, in the following format: "
 "\"1.234,5.678\""
 msgstr ""
+"Model de Compensació de Flux, utilitzat per ajustar el flux per a petites "
+"àrees de farciment. El model s'expressa com un parell de valors separats per "
+"comes per a la longitud d'extrusió i els factors de correcció de flux, un "
+"per línia, en el següent format: \"1.234,5.678\""
 
 msgid "Maximum speed X"
 msgstr "Velocitat màxima X"
@@ -11275,9 +12418,9 @@ msgid ""
 "maintain the minimum layer time above, when slow down for better layer "
 "cooling is enabled."
 msgstr ""
-
-msgid "Nozzle diameter"
-msgstr "Diàmetre del broquet( nozzle )"
+"La velocitat mínima d'impressió a la qual la impressora disminuirà per "
+"intentar mantenir el temps mínim de capa anterior, quan \"alentir per a un "
+"millor refredament de la capa\" està habilitat."
 
 msgid "Diameter of nozzle"
 msgstr "Diàmetre del broquet"
@@ -11382,6 +12525,11 @@ msgstr ""
 "retracció per a models complexos i estalviar temps d'impressió, però fer que "
 "el laminat i la generació de Codi-G siguin més lents"
 
+msgid ""
+"This option will drop the temperature of the inactive extruders to prevent "
+"oozing."
+msgstr ""
+
 msgid "Filename format"
 msgstr "Format del nom del fitxer"
 
@@ -11432,6 +12580,9 @@ msgstr ""
 "utilitzar una velocitat diferent per imprimir. Per al voladís del 100%%, "
 "s'utilitza la velocitat de pont."
 
+msgid "Filament to print walls"
+msgstr ""
+
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -11481,11 +12632,20 @@ msgstr ""
 "fitxer Codi-G com a primer argument, i poden accedir als paràmetres de "
 "configuració d'OrcaSlicer llegint variables d'entorn."
 
+msgid "Printer type"
+msgstr ""
+
+msgid "Type of the printer"
+msgstr ""
+
 msgid "Printer notes"
 msgstr "Notes de la impressora"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "Podeu posar les vostres notes sobre la impressora aquí."
+
+msgid "Printer variant"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Distància Z de contacte de la Vora d'Adherència"
@@ -11570,6 +12730,30 @@ msgstr ""
 "l'Ooze( goteig ) durant el llarg desplaçament. Definiu zero per desactivar "
 "la retracció"
 
+msgid "Long retraction when cut(experimental)"
+msgstr "Retracció llarga en tallar(experimental)"
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+"Característica experimental. Retreure i tallar el filament a més distància "
+"durant els canvis per minimitzar la purga. Tot i que això redueix "
+"significativament el flux, també pot augmentar el risc d'obstruccions del "
+"broquet o altres problemes d'impressió."
+
+msgid "Retraction distance when cut"
+msgstr "Distància de retracció quan es talla"
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr ""
+"Característica experimental. Longitud de retracció abans de tallar durant el "
+"canvi de filament"
+
 msgid "Z hop when retract"
 msgstr "Salt en Z quan hi ha retracció"
 
@@ -11612,6 +12796,16 @@ msgstr "Pendent"
 
 msgid "Spiral"
 msgstr "Espiral"
+
+msgid "Traveling angle"
+msgstr "Angle de viatge"
+
+msgid ""
+"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"in Normal Lift"
+msgstr ""
+"Angle de viatge per al tipus Salt en Z de Pendent i Espiral. Si l'establiu a "
+"90°, es produeix un Aixecament Normal"
 
 msgid "Only lift Z above"
 msgstr "Només aixecar Z per sobre"
@@ -11706,11 +12900,17 @@ msgstr "Mostra les marques de calibratge automàtic"
 msgid "Disable set remaining print time"
 msgstr "Desactivar el temps d'impressió restant"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"Desactivar la generació del M73: establir el temps d'impressió restant al "
+"gcode final"
+
 msgid "Seam position"
 msgstr "Posició de la costura"
 
 msgid "The start position to print each part of outer wall"
-msgstr "La posició inicial per imprimir cada part del perímetre exterior"
+msgstr "La posició inicial per imprimir cada capa del perímetre exterior"
 
 msgid "Nearest"
 msgstr "Més proper"
@@ -11750,21 +12950,25 @@ msgstr ""
 "del 10%."
 
 msgid "Scarf joint seam (beta)"
-msgstr ""
+msgstr "Unió en Bisell de costura( beta )"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
+"Utilitzeu Unió en Bisell per minimitzar la visibilitat de la costura i "
+"augmentar la resistència de les costures."
 
 msgid "Conditional scarf joint"
-msgstr ""
+msgstr "Unió en Bisell condicional"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Aplicar Unions en Bisell només per suavitzar perímetres on les costures "
+"tradicionals no ocultin eficaçment les costures a les cantonades afilades."
 
 msgid "Conditional angle threshold"
-msgstr ""
+msgstr "Llindar d'angle condicional"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -11773,9 +12977,31 @@ msgid ""
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
 msgstr ""
+"Aquesta opció estableix l'angle llindar per aplicar una Unió en Bisell "
+"condicional.\n"
+"Si l'angle màxim dins del bucle perimetral supera aquest valor (que indica "
+"l'absència de cantonades afilades), s'utilitzarà una Unió en Bisell. El "
+"valor per defecte és de 155°."
+
+msgid "Conditional overhang threshold"
+msgstr "Llindar d'angle condicional"
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
+"Aquesta opció determina el llindar de voladís per a l'aplicació de costures "
+"d'Unió en Bisell. Si la porció no suportada del perímetre és inferior a "
+"aquest llindar, s'aplicaran costures de juntes d'Unió en Bisell. El llindar "
+"per defecte s'estableix en 40% de l'amplada del perímetre extern. A causa de "
+"consideracions de rendiment, s'estima el grau de voladís."
 
 msgid "Scarf joint speed"
-msgstr ""
+msgstr "Velocitat d'Unió en Bisell"
 
 msgid ""
 "This option sets the printing speed for scarf joints. It is recommended to "
@@ -11787,47 +13013,63 @@ msgid ""
 "percentage (e.g., 80%), the speed is calculated based on the respective "
 "outer or inner wall speed. The default value is set to 100%."
 msgstr ""
+"Aquesta opció estableix la velocitat d'impressió de les Unions en Bisell. Es "
+"recomana imprimir Unions en Bisell a velocitat lenta (menys de 100 mm / s).  "
+"També és recomanable habilitar el \"suavitzat de la velocitat d'extrusió\" "
+"si la velocitat establerta varia significativament de la velocitat dels "
+"perímetres exteriors o interiors. Si la velocitat especificada aquí és "
+"superior a la velocitat dels perímetres exteriors o interiors, la impressora "
+"predeterminarà la més lenta de les dues velocitats. Quan s'especifica com a "
+"percentatge (per exemple, 80%), la velocitat es calcula en funció de la "
+"velocitat del perímetre exterior o interior respectiva. El valor per defecte "
+"s'estableix al 100%."
 
 msgid "Scarf joint flow ratio"
-msgstr ""
+msgstr "Relació de flux de l'Unió en Bisell"
 
 msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
+"Aquest factor afecta la quantitat de material per a les Unions en Bisell."
 
 msgid "Scarf start height"
-msgstr ""
+msgstr "Alçada d'inici de l'Unió en Bisell"
 
 msgid ""
 "Start height of the scarf.\n"
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 msgstr ""
+"Alçada d'inici de l'Unió en Bisell.\n"
+"Aquesta quantitat es pot especificar en mil·límetres o en percentatge de "
+"l'alçada actual de la capa. El valor per defecte d'aquest paràmetre és 0."
 
 msgid "Scarf around entire wall"
-msgstr ""
+msgstr "Unió en Bisell al voltant de tota la paret"
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr ""
+msgstr "L'Unió en Bisell s'estén a tota la longitud de la paret."
 
 msgid "Scarf length"
-msgstr ""
+msgstr "Longitud de l'Unió en Bisell"
 
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr ""
+"Longitud de l'Unió en Bisell. Establir aquest paràmetre a zero desactiva "
+"efectivament l'Unió en Bisell."
 
 msgid "Scarf steps"
-msgstr ""
+msgstr "Passos de l'Unió en Bisell"
 
 msgid "Minimum number of segments of each scarf."
-msgstr ""
+msgstr "Nombre mínim de segments de cada Unió en Bisell."
 
 msgid "Scarf joint for inner walls"
-msgstr ""
+msgstr "Unió en Bisell per a parets interiors"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr ""
+msgstr "Utilitzar també l'Unió en Bisell per a les parets interiors."
 
 msgid "Role base wipe speed"
 msgstr "Velocitat de neteja basada en l'acció"
@@ -11871,7 +13113,7 @@ msgstr ""
 "perímetre extern en imprimir amb ordre d'impressió de perímetre Exterior/"
 "Interior o Interior/Exterior/Interior, la deretracció es realitza "
 "lleugerament a l'interior des de l'inici del perímetre exterior. D'aquesta "
-"manera, qualsevol potencial sobreextrusió queda amagat de la superfície "
+"manera, qualsevol potencial sobreextrusió queda amagada de la superfície "
 "exterior. \n"
 "\n"
 "Això és útil quan s'imprimeix amb ordre d'impressió de perfil Exterior/"
@@ -11906,11 +13148,48 @@ msgstr "Alçada de la faldilla"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Quantes capes de faldilla. Normalment només una capa"
 
+msgid "Draft shield"
+msgstr "Escut contra corrents d'aire"
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+"Un escut contra corrents d'aire és útil per protegir una impressió ABS o ASA "
+"de la deformació i el despreniment del llit d'impressió a causa del corrent "
+"d'aire. Normalment només es necessita amb impressores de marc obert, és a "
+"dir, sense tancament. \n"
+"\n"
+"Opcions:\n"
+"Habilitat = la faldilla és tan alta com l'objecte imprès més alt.\n"
+"Limitat = la faldilla és tan alta com especifica l'alçada de la faldilla.\n"
+"\n"
+"Nota: Amb l'escut contra corrents d'aire actiu, la faldilla s'imprimirà a "
+"distància de faldilla de l'objecte. Per tant, si les vores d'adherència "
+"estan actives pot creuar-se amb elles. Per evitar-ho, augmenteu el valor de "
+"distància de la faldilla.\n"
+
+msgid "Limited"
+msgstr "Limitat"
+
+msgid "Enabled"
+msgstr "Habilitat"
+
 msgid "Skirt loops"
 msgstr "Voltes de la faldilla"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
-msgstr "Nombre devoltes per a la faldilla. Zero significa faldilla desactivada"
+msgstr ""
+"Nombre de voltes per a la faldilla. Zero significa faldilla desactivada"
 
 msgid "Skirt speed"
 msgstr "Velocitat de la faldilla"
@@ -11919,6 +13198,22 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
 "Velocitat de la faldilla, en mm/s. Zero significa utilitzar la velocitat "
 "predeterminada d'extrusió de capa."
+
+msgid "Skirt minimum extrusion length"
+msgstr "Longitud mínima d'extrusió de la faldilla"
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
+"Longitud mínima d'extrusió del filament en mm en imprimir la faldilla. Zero "
+"significa que aquesta funció està desactivada.\n"
+"\n"
+"L'ús d'un valor diferent de zero és útil si la impressora està configurada "
+"per imprimir sense una línia principal."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -11938,6 +13233,12 @@ msgstr ""
 "L'àrea de farciment poc dens que sigui més petita que el valor del llindar "
 "serà substituït per un farciment sòlid intern"
 
+msgid "Solid infill"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
+
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
@@ -11948,9 +13249,6 @@ msgstr ""
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Velocitat de farciment sòlid intern, no de la superfície superior i inferior"
-
-msgid "Spiral vase"
-msgstr "Gerro en Espiral"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -12007,6 +13305,31 @@ msgstr "Tradicional"
 msgid "Temperature variation"
 msgstr "Variació de temperatura"
 
+#. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
+msgid ""
+"Temperature difference to be applied when an extruder is not active. The "
+"value is not used when 'idle_temperature' in filament settings is set to non "
+"zero value."
+msgstr ""
+
+msgid "Preheat time"
+msgstr ""
+
+msgid ""
+"To reduce the waiting time after tool change, Orca can preheat the next tool "
+"while the current tool is still in use. This setting specifies the time in "
+"seconds to preheat the next tool. Orca will insert a M104 command to preheat "
+"the tool in advance."
+msgstr ""
+
+msgid "Preheat steps"
+msgstr ""
+
+msgid ""
+"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"other printers, please set it to 1."
+msgstr ""
+
 msgid "Start G-code"
 msgstr "Codi-G inicial"
 
@@ -12048,7 +13371,7 @@ msgid "Enable filament ramming"
 msgstr "Habilitar Moldejat de punta( Ramming ) de filament"
 
 msgid "No sparse layers (beta)"
-msgstr ""
+msgstr "Sense capes poc denses( beta )"
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -12072,7 +13395,7 @@ msgstr ""
 "frontal del llit d'impressió al començament de la impressió."
 
 msgid "Slice gap closing radius"
-msgstr "Radi de tancament des buits en laminar"
+msgstr "Radi de tancament dels buits en laminar"
 
 msgid ""
 "Cracks smaller than 2x gap closing radius are being filled during the "
@@ -12696,14 +14019,50 @@ msgstr ""
 "Angle del vèrtex del con que s'utilitza per estabilitzar la Torre de Purga. "
 "Un angle més gran significa una base més ampla."
 
-msgid "Wipe tower purge lines spacing"
-msgstr "Espaiat de les línies de la Torre de Purga"
+msgid "Maximum wipe tower print speed"
+msgstr "Velocitat màxima d'impressió de la torre de purga"
 
-msgid "Spacing of purge lines on the wipe tower."
-msgstr "Espaiat de les línies de purga de la Torre de Purga."
-
-msgid "Wipe tower extruder"
-msgstr "Extrusor de la Torre de Purga"
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
+"La velocitat màxima d'impressió en purgar a la torre de purga i imprimir a "
+"la torre de purga capes poc denses. En la purga, si la velocitat de "
+"farciment poc dens o la velocitat calculada de la màxima velocitat "
+"volumètrica del filament és menor, s'utilitzarà la més baixa.\n"
+"\n"
+"En imprimir les capes poc denses, si la velocitat perimetral interna o la "
+"velocitat calculada de la màxima velocitat volumètrica del filament és "
+"menor, s'utilitzarà la més baixa.\n"
+"\n"
+"L'augment d'aquesta velocitat pot afectar l'estabilitat de la torre, així "
+"com augmentar la força amb què el broquet xoca amb els grumolls que s'hagin "
+"pogut formar a la torre de purga.\n"
+"\n"
+"Abans d'augmentar aquest paràmetre més enllà del valor per defecte de 90 mm/"
+"segon, assegureu-vos que la impressora pugui fer un pont de manera fiable a "
+"les velocitats augmentades i que el degoteig quan es produeixi el canvi "
+"d'eina estigui ben controlat.\n"
+"\n"
+"Per als perímetres externs de la torre de purga, s'utilitza la velocitat "
+"perimetral interna independentment d'aquesta configuració."
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -12760,6 +14119,30 @@ msgstr "Distància màxima dels ponts"
 
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr "Distància màxima entre suports a les seccions amb farciment poc dens."
+
+msgid "Wipe tower purge lines spacing"
+msgstr "Espaiat de les línies de la Torre de Purga"
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr "Espaiat de les línies de purga de la Torre de Purga."
+
+msgid "Extra flow for purging"
+msgstr ""
+
+msgid ""
+"Extra flow used for the purging lines on the wipe tower. This makes the "
+"purging lines thicker or narrower than they normally would be. The spacing "
+"is adjusted automatically."
+msgstr ""
+
+msgid "Idle temperature"
+msgstr ""
+
+msgid ""
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "Compensació de forat( contorn intern ) X-Y"
@@ -13084,125 +14467,163 @@ msgid "Load custom gcode from json"
 msgstr "Carregar el Codi-G personalitzat des de json"
 
 msgid "Current z-hop"
-msgstr ""
+msgstr "Salt-z actual"
 
 msgid "Contains z-hop present at the beginning of the custom G-code block."
-msgstr ""
+msgstr "Conté el salt-z present al principi del bloc de codi-G personalitzat."
 
 msgid ""
 "Position of the extruder at the beginning of the custom G-code block. If the "
 "custom G-code travels somewhere else, it should write to this variable so "
 "PrusaSlicer knows where it travels from when it gets control back."
 msgstr ""
+"Posició de l'extrusora al començament del bloc de codi-G personalitzat. Si "
+"el codi-G personalitzat es mou a un altre lloc, s'hauria d'escriure a "
+"aquesta variable perquè PrusaSlicer sàpiga des d'on es mou quan recuperi el "
+"control."
 
 msgid ""
 "Retraction state at the beginning of the custom G-code block. If the custom "
 "G-code moves the extruder axis, it should write to this variable so "
 "PrusaSlicer deretracts correctly when it gets control back."
 msgstr ""
+"Estat de retracció al començament del bloc de codi-G personalitzat. Si el "
+"codi-G personalitzat mou l'eix de l'extrusora, hauria d'escriure a aquesta "
+"variable perquè PrusaSlicer es retiri correctament quan recuperi el control."
 
 msgid "Extra deretraction"
-msgstr ""
+msgstr "Deretracció extra"
 
 msgid "Currently planned extra extruder priming after deretraction."
 msgstr ""
+"En l'actualitat es preveu un cebament addicional de l'extrusora després de "
+"la deretracció."
+
+msgid "Absolute E position"
+msgstr ""
+
+msgid ""
+"Current position of the extruder axis. Only used with absolute extruder "
+"addressing."
+msgstr ""
 
 msgid "Current extruder"
-msgstr ""
+msgstr "Extrusora actual"
 
 msgid "Zero-based index of currently used extruder."
-msgstr ""
+msgstr "Índex de base zero de l'extrusora utilitzada actualment."
 
 msgid "Current object index"
-msgstr ""
+msgstr "Índex de l'objecte actual"
 
 msgid ""
 "Specific for sequential printing. Zero-based index of currently printed "
 "object."
 msgstr ""
+"Específic per a impressió seqüencial. Índex basat en zero de l'objecte "
+"imprès actualment."
 
 msgid "Has wipe tower"
-msgstr ""
+msgstr "Té torre de neteja"
 
 msgid "Whether or not wipe tower is being generated in the print."
-msgstr ""
+msgstr "Si s'està generant o no torre de neteja a la impressió."
 
 msgid "Initial extruder"
-msgstr ""
+msgstr "Extrusora inicial"
 
 msgid ""
 "Zero-based index of the first extruder used in the print. Same as "
 "initial_tool."
 msgstr ""
+"Índex basat en zero de la primera extrusora utilitzada en la impressió. El "
+"mateix que initial_tool."
 
 msgid "Initial tool"
-msgstr ""
+msgstr "Eina inicial"
 
 msgid ""
 "Zero-based index of the first extruder used in the print. Same as "
 "initial_extruder."
 msgstr ""
+"Índex basat en zero de la primera extrusora utilitzada en la impressió. El "
+"mateix que initial_extruder."
 
 msgid "Is extruder used?"
-msgstr ""
+msgstr "S'utilitza extrusora?"
 
 msgid "Vector of bools stating whether a given extruder is used in the print."
 msgstr ""
+"Vector de booleans que indica si s'utilitza un extrusor donat en la "
+"impressió."
+
+msgid "Has single extruder MM priming"
+msgstr ""
+
+msgid "Are the extra multi-material priming regions used in this print?"
+msgstr ""
 
 msgid "Volume per extruder"
-msgstr ""
+msgstr "Volum per extrusora"
 
 msgid "Total filament volume extruded per extruder during the entire print."
 msgstr ""
+"Volum total de filament extruït per extrusora durant tota la impressió."
 
 msgid "Total toolchanges"
-msgstr ""
+msgstr "Nombre Total de canvis d'eina"
 
 msgid "Number of toolchanges during the print."
-msgstr ""
+msgstr "Nombre de canvis d'eina durant la impressió."
 
 msgid "Total volume"
-msgstr ""
+msgstr "Volum total"
 
 msgid "Total volume of filament used during the entire print."
-msgstr ""
+msgstr "Volum total de filament utilitzat durant tota la impressió."
 
 msgid "Weight per extruder"
-msgstr ""
+msgstr "Pes per extrusora"
 
 msgid ""
 "Weight per extruder extruded during the entire print. Calculated from "
 "filament_density value in Filament Settings."
 msgstr ""
+"Pes per extrusora extrusionada durant tota la impressió. Calculat a partir "
+"de filament_density, valor a Configuració del Filament."
 
 msgid "Total weight"
-msgstr ""
+msgstr "Pes total"
 
 msgid ""
 "Total weight of the print. Calculated from filament_density value in "
 "Filament Settings."
 msgstr ""
+"Pes total de la impressió. Calculat a partir de filament_density valor a "
+"Configuració del Filament."
 
 msgid "Total layer count"
-msgstr ""
+msgstr "Recompte total de capes"
 
 msgid "Number of layers in the entire print."
-msgstr ""
+msgstr "Nombre de capes en tota la impressió."
 
 msgid "Number of objects"
-msgstr ""
+msgstr "Nombre d'objectes"
 
 msgid "Total number of objects in the print."
-msgstr ""
+msgstr "Nombre total d'objectes de la impressió."
 
 msgid "Number of instances"
-msgstr ""
+msgstr "Nombre d'instàncies"
 
 msgid "Total number of object instances in the print, summed over all objects."
 msgstr ""
+"Nombre total d'instàncies d'objectes de la impressió, sumades a tots els "
+"objectes."
 
 msgid "Scale per object"
-msgstr ""
+msgstr "Escalat per objecte"
 
 msgid ""
 "Contains a string with the information about what scaling was applied to the "
@@ -13210,114 +14631,138 @@ msgid ""
 "index 0).\n"
 "Example: 'x:100% y:50% z:100'."
 msgstr ""
+"Conté una cadena amb la informació sobre quin escalat s'ha aplicat als "
+"objectes individuals. La indexació dels objectes es basa en zero (el primer "
+"objecte té índex 0).\n"
+"Exemple: 'x:100% y:50% z:100'."
 
 msgid "Input filename without extension"
-msgstr ""
+msgstr "Nom del fitxer d'entrada sense extensió"
 
 msgid "Source filename of the first object, without extension."
-msgstr ""
+msgstr "Nom del fitxer font del primer objecte, sense extensió."
 
 msgid ""
 "The vector has two elements: x and y coordinate of the point. Values in mm."
-msgstr ""
+msgstr "El vector té dos elements: coordenades x i y del punt. Valors en mm."
 
 msgid ""
 "The vector has two elements: x and y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
+"El vector té dos elements: dimensió x i y de la caixa delimitadora. Valors "
+"en mm."
 
 msgid "First layer convex hull"
-msgstr ""
+msgstr "Casc convex de la primera capa"
 
 msgid ""
 "Vector of points of the first layer convex hull. Each element has the "
 "following format:'[x, y]' (x and y are floating-point numbers in mm)."
 msgstr ""
+"Vector de punts de la primera capa del casc convex. Cada element té el "
+"següent format:'[x, y]' (x i y són nombres de coma flotant en mm)."
 
 msgid "Bottom-left corner of first layer bounding box"
 msgstr ""
+"Cantonada inferior esquerra de la caixa delimitadora de la primera capa"
 
 msgid "Top-right corner of first layer bounding box"
-msgstr ""
+msgstr "Cantonada superior dreta de la caixa delimitadora de la primera capa"
 
 msgid "Size of the first layer bounding box"
-msgstr ""
+msgstr "Mida de la caixa delimitadora de la primera capa"
 
 msgid "Bottom-left corner of print bed bounding box"
 msgstr ""
+"Cantonada inferior esquerra de la caixa delimitadora del llit d'impressió"
 
 msgid "Top-right corner of print bed bounding box"
-msgstr ""
+msgstr "Cantonada superior dreta de la caixa delimitadora del llit d'impressió"
 
 msgid "Size of the print bed bounding box"
-msgstr ""
+msgstr "Mida de la caixa delimitadora del llit d'impressió"
 
 msgid "Timestamp"
-msgstr ""
+msgstr "Marca de temps"
 
 msgid "String containing current time in yyyyMMdd-hhmmss format."
-msgstr ""
+msgstr "Cadena que conté l'hora actual en format yyyyMMdd-hhmmss."
 
 msgid "Day"
-msgstr ""
+msgstr "Dia"
 
 msgid "Hour"
-msgstr ""
+msgstr "Hora"
 
 msgid "Minute"
-msgstr ""
+msgstr "Minut"
 
 msgid "Print preset name"
-msgstr ""
+msgstr "Nom del perfil d'impressió"
 
 msgid "Name of the print preset used for slicing."
-msgstr ""
+msgstr "Nom del perfil d'impressió usat per laminar."
 
 msgid "Filament preset name"
-msgstr ""
+msgstr "Nom del perfil de filament"
 
 msgid ""
 "Names of the filament presets used for slicing. The variable is a vector "
 "containing one name for each extruder."
 msgstr ""
+"Noms dels perfils de filament utilitzats per laminar. La variable és un "
+"vector que conté un nom per a cada extrusora."
 
 msgid "Printer preset name"
-msgstr ""
+msgstr "Noms del perfil d'impressora"
 
 msgid "Name of the printer preset used for slicing."
-msgstr ""
+msgstr "Nom del perfil de la impressora utilitzada per laminar."
 
 msgid "Physical printer name"
-msgstr ""
+msgstr "Nom de la impressora física"
 
 msgid "Name of the physical printer used for slicing."
+msgstr "Nom de la impressora física utilitzada per laminar."
+
+msgid "Number of extruders"
+msgstr ""
+
+msgid ""
+"Total number of extruders, regardless of whether they are used in the "
+"current print."
 msgstr ""
 
 msgid "Layer number"
-msgstr ""
+msgstr "Número de capa"
 
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
+"Índex de la capa actual. Basat en 1( és a dir, la primera capa és el número "
+"1 )."
 
 msgid "Layer z"
-msgstr ""
+msgstr "Capa Z"
 
 msgid ""
 "Height of the current layer above the print bed, measured to the top of the "
 "layer."
 msgstr ""
+"Alçada de la capa actual sobre el llit d'impressió, mesurada a la part "
+"superior de la capa."
 
 msgid "Maximal layer z"
-msgstr ""
+msgstr "Capa màxima Z"
 
 msgid "Height of the last layer above the print bed."
-msgstr ""
+msgstr "Alçada de l'última capa sobre el llit d'impressió."
 
 msgid "Filament extruder ID"
-msgstr ""
+msgstr "Identificador de l'extrusora de filament"
 
 msgid "The current extruder ID. The same as current_extruder."
-msgstr ""
+msgstr "L'identificador actual de l'extrusora. El mateix que current_extruder."
 
 msgid "Error in zip archive"
 msgstr "Error amb el fitxer ZIP"
@@ -13433,6 +14878,9 @@ msgstr "Cancel·lat"
 msgid "load_obj: failed to parse"
 msgstr "load_obj: no s'ha pogut analitzar"
 
+msgid "load mtl in obj: failed to parse"
+msgstr "carrega mtl a obj: no s'ha pogut analitzar"
+
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "El fitxer conté polígons amb més de 4 vèrtexs."
 
@@ -13512,12 +14960,6 @@ msgstr "Ratio de Flux"
 msgid "Max Volumetric Speed"
 msgstr "Velocitat Volumètrica Màxima"
 
-msgid "Please enter the name you want to save to printer."
-msgstr "Introduïu el nom que voleu assignar a la impressora."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "El nom no pot superar els 40 caràcters."
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13565,6 +15007,19 @@ msgstr "Seleccioneu el filament per calibrar."
 msgid "The input value size must be 3."
 msgstr "El valor de mida d'entrada ha de ser 3."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+"Aquest tipus de màquina només pot contenir 16 resultats històrics per "
+"broquet. Podeu suprimir els resultats de l'historial existents i, a "
+"continuació, iniciar el calibratge. O podeu continuar el calibratge, però no "
+"podeu crear nous resultats històrics de calibratge. \n"
+"Encara vols continuar amb el calibratge?"
+
 msgid "Connecting to printer..."
 msgstr "Connectant amb la impressora..."
 
@@ -13575,6 +15030,24 @@ msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
 "El resultat del Calibratge de les Dinàmiques de Flux s'ha desat a la "
 "impressora"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Ja hi ha un resultat històric de calibratge amb el mateix nom: %s. Només es "
+"guarda un dels resultats amb el mateix nom. Estàs segur que vols "
+"sobreescriure el resultat històric?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
+"Aquest tipus de màquina només pot contenir %d resultats de l'historial per "
+"broquet. Aquest resultat no es guardarà."
 
 msgid "Internal Error"
 msgstr "Error intern"
@@ -13625,36 +15098,35 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"Consulteu els detalls del Calibratge de les Dinàmiques de Flux al nostre "
-"wiki.\n"
+"Trobeu els detalls del calibratge de la dinàmica de flux al nostre wiki.\n"
 "\n"
 "Normalment el calibratge és innecessari. Quan inicieu una impressió d'un sol "
-"color/material, amb l'opció \"Calibratge de les Dinàmiques de Flux\" marcada "
-"al menú d'inici d'impressió, la impressora seguirà la forma antiga, "
-"calibrarà el filament abans de la impressió; Quan s'inicia una impressió "
-"multicolor/multimaterial, la impressora utilitzarà el paràmetre de "
-"compensació predeterminat per al filament durant cada canvi de filament, el "
-"qual tindrà un bon resultat en la majoria dels casos.\n"
+"color/material, amb l'opció \"calibratge de dinàmica de flux\" marcada al "
+"menú d'inici d'impressió, la impressora seguirà la forma antiga, calibrarà "
+"el filament abans de la impressió; Quan inicieu una impressió multicolor/"
+"material, la impressora utilitzarà el paràmetre de compensació predeterminat "
+"per al filament durant cada canvi de filament, el qual tindrà un bon "
+"resultat en la majoria dels casos.\n"
 "\n"
-"Tingueu en compte que hi ha alguns casos que faran que el resultat del "
-"calibratge no sigui fiable: utilitzar una placa de textura per fer el "
-"calibratge; si la placa d'impressió no té una bona adherència ( renteu la "
-"placa d'impressió o apliqueu adhesiu! ) ... Podeu trobar més informació a la "
-"nostra wiki.\n"
+"Tingueu en compte que hi ha alguns casos que poden fer que els resultats del "
+"calibratge no siguin fiables, com ara una adhesió insuficient a la placa de "
+"construcció. Es pot aconseguir millorar l'adhesió rentant la placa de "
+"construcció o aplicant cola. Per obtenir més informació sobre aquest tema, "
+"consulteu el nostre Wiki.\n"
 "\n"
-"Els resultats del calibratge tenen al voltant d'un 10 per cent de fluctuació "
-"en la nostra prova, la qual cosa pot fer que el resultat no sigui exactament "
-"el mateix en cada calibratge. Encara estem investigant la causa arrel per "
-"fer millores amb noves actualitzacions."
+"Els resultats del calibratge tenen al voltant d'un 10 per cent de tremolor "
+"en la nostra prova, el que pot fer que el resultat no sigui exactament el "
+"mateix en cada calibratge. Encara estem investigant la causa arrel per fer "
+"millores amb noves actualitzacions."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "Quan s'ha d'utilitzar el Calibratge del Ratio de Flux"
@@ -13779,27 +15251,23 @@ msgstr ""
 msgid "Failed"
 msgstr "Ha fallat"
 
+msgid "Please enter the name you want to save to printer."
+msgstr "Introduïu el nom que voleu assignar a la impressora."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "El nom no pot superar els 40 caràcters."
+
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
 "Només es desarà un dels resultats amb el mateix nom. Estàs segur que vols "
-"sobreescriure els altres resultats?"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"Ja hi ha un resultat històric de calibratge amb el mateix nom: %s. Només es "
-"pot guardar un dels resultats amb el mateix nom. Estàs segur que vols "
-"sobreescriure el resultat històric?"
+"anul·lar els altres resultats?"
 
 msgid "Please find the best line on your plate"
 msgstr "Busqueu la millor línia a la placa"
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr "Busqueu la cantonada amb un grau d'extrusió perfecte"
 
 msgid "Input Value"
@@ -13878,12 +15346,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Paràmetres d'impressió"
 
-msgid "- ℃"
-msgstr "- °C"
-
-msgid " ℃"
-msgstr " °C"
-
 msgid "Plate Type"
 msgstr "Tipus de placa"
 
@@ -13932,12 +15394,6 @@ msgstr "Al valor k"
 msgid "Step value"
 msgstr "Valor del pas"
 
-msgid "0.5"
-msgstr "0,5"
-
-msgid "0.005"
-msgstr "0,005"
-
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr ""
 "El diàmetre del broquet s'ha sincronitzat des de la configuració d'impressora"
@@ -13950,6 +15406,9 @@ msgstr "A la Velocitat Volumètrica"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Resultat del Calibratge de Dinàmiques de Flux"
+
+msgid "New"
+msgstr "Nou"
 
 msgid "No History Result"
 msgstr "Sense Resultats Històrics"
@@ -13964,8 +15423,23 @@ msgstr ""
 msgid "Action"
 msgstr "Acció"
 
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
+"Aquest tipus de màquina només pot contenir %d resultats de l'historial per "
+"broquet."
+
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Editeu el Calibratge de Dinàmiques de Flux"
+
+msgid "New Flow Dynamic Calibration"
+msgstr "Calibratge de Dinàmiques de Flux"
+
+msgid "Ok"
+msgstr "D’acord"
+
+msgid "The filament must be selected."
+msgstr "S'ha de seleccionar el filament."
 
 msgid "Network lookup"
 msgstr "Cerca de xarxa"
@@ -14054,6 +15528,9 @@ msgstr "ABS/ASA"
 
 msgid "PETG"
 msgstr "PETG"
+
+msgid "PCTG"
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
@@ -14152,6 +15629,9 @@ msgstr ""
 msgid "Upload to storage"
 msgstr "Pujar a l'emmagatzematge"
 
+msgid "Switch to Device tab after upload."
+msgstr "Canvieu a la pestanya Dispositiu després de penjar-lo."
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "El nom del fitxer que vol pujar no acaba amb \"%s\". Voleu continuar?"
@@ -14247,8 +15727,8 @@ msgstr "Inicia la prova Single-Thread"
 msgid "Export Log"
 msgstr "Exportar Registre( Log )"
 
-msgid "Studio Version:"
-msgstr "Versió d'Studio:"
+msgid "OrcaSlicer Version:"
+msgstr "Versió d'Orca Slicer:"
 
 msgid "System Version:"
 msgstr "Versió del Sistema:"
@@ -14256,50 +15736,17 @@ msgstr "Versió del Sistema:"
 msgid "DNS Server:"
 msgstr "Servidor DNS:"
 
-msgid "Test BambuLab"
-msgstr "Prova BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr "Prova OrcaSlicer (GitHub)"
 
-msgid "Test BambuLab:"
-msgstr "Prova BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr "Prova OrcaSlicer (GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Prova Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Prova bing.com:"
-
-msgid "Test HTTP"
-msgstr "Prova HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Prova el servei HTTP:"
-
-msgid "Test storage"
-msgstr "Prova d'emmagatzematge"
-
-msgid "Test Storage Upload:"
-msgstr "Prova de càrrega d'emmagatzematge:"
-
-msgid "Test storage upgrade"
-msgstr "Prova d'actualització de l'emmagatzematge"
-
-msgid "Test Storage Upgrade:"
-msgstr "Prova d'Actualització de l'Emmagatzematge:"
-
-msgid "Test storage download"
-msgstr "Prova de descàrrega des de l'emmagatzematge"
-
-msgid "Test Storage Download:"
-msgstr "Prova de Descàrrega des de l'Emmagatzematge:"
-
-msgid "Test plugin download"
-msgstr "Prova de descàrrega de plugins"
-
-msgid "Test Plugin Download:"
-msgstr "Prova de Descàrrega de Plugins:"
-
-msgid "Test Storage Upload"
-msgstr "Prova de pujada a l'emmagatzematge"
 
 msgid "Log Info"
 msgstr "Informació del Registre"
@@ -14397,6 +15844,16 @@ msgstr ""
 "Encara no heu seleccionat una impressora o un perfil. Si us plau, "
 "seleccioneu-ne almenys un."
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+"El nom de Filament %s que heu creat ja existeix. \n"
+"Si continueu creant-lo, el perfil creat es mostrarà amb el seu nom complet. "
+"Vols continuar?"
+
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
 "Alguns perfils existents no s'han pogut crear, com s'indica tot seguit:\n"
@@ -14413,6 +15870,9 @@ msgid ""
 "\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
+"Canviaríem el nom dels perfils seleccionats com a \"Proveïdor Tipus "
+"Número_de_Sèrie @impressora\". \n"
+"Per afegir perfils per a més impressores, aneu a la selecció d'impressora"
 
 msgid "Create Printer/Nozzle"
 msgstr "Crear Impressora/Broquet"
@@ -14435,7 +15895,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crea un Tipus"
 
-msgid "The model is not fond, place reselect vendor."
+msgid "The model is not found, place reselect vendor."
 msgstr "El model no s'ha trobat, torneu a triar proveïdor."
 
 msgid "Select Model"
@@ -14455,12 +15915,6 @@ msgstr "Rectangle"
 
 msgid "Printable Space"
 msgstr "Espai Imprimible"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "STL del Llit"
@@ -14492,10 +15946,10 @@ msgstr "No es troba la ruta predeterminada, torneu a seleccionar el proveïdor."
 msgid "The printer model was not found, please reselect."
 msgstr "No s'ha trobat el model d'impressora, torneu a seleccionar."
 
-msgid "The nozzle diameter is not fond, place reselect."
+msgid "The nozzle diameter is not found, place reselect."
 msgstr "El diàmetre del broquet no s'ha trobat, torneu a seleccionar-lo."
 
-msgid "The printer preset is not fond, place reselect."
+msgid "The printer preset is not found, place reselect."
 msgstr "El perfil de la impressora no s'ha trobat, torneu a seleccionar-lo."
 
 msgid "Printer Preset"
@@ -14617,7 +16071,7 @@ msgstr "Filament Creat"
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
 "Please note that nozzle temperature, hot bed temperature, and maximum "
-"volumetric speed have a significant impact on printing quality. Please set "
+"volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
 "Aneu a la configuració del filament per editar els perfils si ho "
@@ -14626,11 +16080,24 @@ msgstr ""
 "la velocitat volumètrica màxima tenen un impacte significatiu en la qualitat "
 "d'impressió. Si us plau, configureu-los amb cura."
 
+msgid ""
+"\n"
+"\n"
+"Orca has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
+msgstr ""
+"\n"
+"\n"
+"L'Orca ha detectat que la funció de sincronització de perfils no està "
+"habilitada, cosa que pot provocar una configuració de filament incorrecta a "
+"la pàgina Dispositiu. \n"
+"Feu clic a \"Sincronitzar els perfils d'usuari\" per habilitar la funció de "
+"sincronització."
+
 msgid "Printer Setting"
 msgstr "Configuració de la Impressora"
-
-msgid "Export Configs"
-msgstr "Exportar Configuracions"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr "Paquet de configuració d'impressores( .orca_printer )"
@@ -14727,14 +16194,19 @@ msgid ""
 msgstr ""
 "Només es mostraran els noms de les impressores amb perfils de processament "
 "modificats, \n"
-"I tots els valors predefinits del procés d'usuari de cada nom d'impressora "
-"que seleccioneu s'exportaran com a ZIP."
+"I tots els valors perfils del procés d'usuari de cada nom d'impressora que "
+"seleccioneu s'exportaran com a ZIP."
 
 msgid "Please select at least one printer or filament."
 msgstr "Seleccioneu com a mínim una impressora o filament."
 
 msgid "Please select a type you want to export"
 msgstr "Seleccioneu el tipus que voleu exportar"
+
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+"No s'ha pogut crear una carpeta temporal, torneu a provar Exportar "
+"Configuracions."
 
 msgid "Edit Filament"
 msgstr "Edita el Filament"
@@ -14798,7 +16270,7 @@ msgid "The filament choice not find filament preset, please reselect it"
 msgstr "Perfil de filament no trobat, si us plau, seleccioneu-ne un altre"
 
 msgid "[Delete Required]"
-msgstr ""
+msgstr "[Esborrar obligatori]"
 
 msgid "Edit Preset"
 msgstr "Edita el Perfil"
@@ -14811,6 +16283,21 @@ msgstr "Replegar"
 
 msgid "Daily Tips"
 msgstr "Consells diaris"
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr "broquet memoritzat: %.1f %s"
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+"El diàmetre del broquet del perfil no és coherent amb el diàmetre del "
+"broquet memoritzat. Has canviat el broquet recentment?"
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr "*El material d'impressió %s amb %s podria causar danys al broquet"
 
 msgid "Need select printer"
 msgstr "És necessari que seleccioneu una impressora"
@@ -14839,8 +16326,18 @@ msgstr ""
 msgid "Success!"
 msgstr "Èxit!"
 
+msgid "Are you sure to log out?"
+msgstr "Estàs segur de tancar sessió?"
+
 msgid "Refresh Printers"
 msgstr "Refrescar Impressores"
+
+msgid "View print host webui in Device tab"
+msgstr "Veure el host d'impressió webui a la pestanya Dispositiu"
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+"Substituïu la pestanya del dispositiu BambuLab pel host d'impressió webui"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -14870,6 +16367,9 @@ msgid ""
 msgstr ""
 "Per utilitzar un fitxer CA personalitzat, importa el teu fitxer CA al "
 "Magatzem de Certificats / Clauer."
+
+msgid "Login/Test"
+msgstr "Iniciar Sessió/Provar"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15009,6 +16509,319 @@ msgstr ""
 "Cos del missatge: \"%1%\"\n"
 "Error: \"%2%\""
 
+msgid ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high printing quality. It is suitable for most general printing cases."
+msgstr ""
+"Té una alçada de capa petita i produeix línies de capa gairebé "
+"insignificants i una alta qualitat d'impressió. És adequat per a la majoria "
+"dels casos d'impressió generals."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
+"much higher printing quality, but a much longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té "
+"velocitats i acceleracions més baixes, i el patró de farciment poc dens és "
+"Giroide. Això es tradueix en una qualitat d'impressió molt més alta, però un "
+"temps d'impressió molt més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height, and results in almost negligible layer lines, and "
+"slightly shorter printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té una "
+"alçada de capa lleugerament més gran i resulta en línies de capa gairebé "
+"insignificants i un temps d'impressió lleugerament més curt."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height, and results in slightly visible layer lines, but shorter printing "
+"time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té una "
+"alçada de capa més gran i resulta en línies de capa lleugerament visibles, "
+"però un temps d'impressió més curt."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height, and results in almost invisible layer lines and higher printing "
+"quality, but shorter printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té una "
+"alçada de capa més petita i resulta en línies de capes gairebé invisibles i "
+"una qualitat d'impressió més alta, però un temps d'impressió més curt."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost invisible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té línies "
+"de capa més petites, velocitats i acceleracions més baixes, i el patró de "
+"farciment poc dens és Giroide. Això es tradueix en línies de capa gairebé "
+"invisibles i una qualitat d'impressió molt més gran, però un temps "
+"d'impressió molt més llarg."
+
+msgid ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height, and results in minimal layer lines and higher printing quality, but "
+"shorter printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té una "
+"alçada de capa més petita i produeix línies de capa mínimes i una qualitat "
+"d'impressió més alta, però un temps d'impressió més curt."
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in minimal layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,2 mm, té línies "
+"de capa més petites, velocitats i acceleracions més baixes, i el patró de "
+"farciment poc dens és Giroide. Això es tradueix en línies de capa mínimes i "
+"una qualitat d'impressió molt més alta, però un temps d'impressió molt més "
+"llarg."
+
+msgid ""
+"It has a general layer height, and results in general layer lines and "
+"printing quality. It is suitable for most general printing cases."
+msgstr ""
+"Té una alçada general de capa, i produeix línies de capa i qualitat "
+"d'impressió generals. És adequat per a la majoria dels casos d'impressió "
+"generals."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té més "
+"bucles de paret i una densitat de farciment més gran. Això es tradueix en "
+"una major resistència de les impressions, però més consum de filaments i un "
+"temps d'impressió més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but slightly shorter printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més gran i produeix línies de capa més aparents i una "
+"qualitat d'impressió més baixa, però un temps d'impressió lleugerament més "
+"curt."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més gran i produeix línies de capa més aparents i una "
+"qualitat d'impressió més baixa, però un temps d'impressió més curt."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més petita i produeix línies de capa menys aparents i una "
+"qualitat d'impressió més alta, però un temps d'impressió més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in less apparent layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més petita, velocitats i acceleració més baixes, i el patró "
+"de farciment poc dens és Giroide. Això es tradueix en línies de capa menys "
+"aparents i una qualitat d'impressió molt més gran, però un temps d'impressió "
+"molt més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més petita i produeix línies de capa gairebé insignificants i "
+"una qualitat d'impressió més alta, però un temps d'impressió més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost negligible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més petita, velocitats i acceleració més baixes, i el patró "
+"de farciment poc dens és Giroide. Això produeix línies de capa gairebé "
+"insignificants i una qualitat d'impressió molt més gran, però un temps "
+"d'impressió molt més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and longer printing "
+"time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,4 mm, té una "
+"alçada de capa més petita i produeix línies de capa gairebé insignificants i "
+"un temps d'impressió més llarg."
+
+msgid ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
+msgstr ""
+"Té una gran alçada de capa i produeix línies de capa aparents i qualitat "
+"d'impressió i temps d'impressió ordinaris."
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,6 mm, té més "
+"bucles de paret i una densitat de farciment més gran. Per tant, es tradueix "
+"en una major resistència de les impressions, però més consum de filaments i "
+"un temps d'impressió més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time in some printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,6 mm, té una "
+"alçada de capa més gran i produeix línies de capa més aparents i una "
+"qualitat d'impressió més baixa, però un temps d'impressió més curt en alguns "
+"casos d'impressió."
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in much more apparent layer lines and much lower "
+"printing quality, but shorter printing time in some printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,6 mm, té una "
+"alçada de capa més gran i produeix línies de capa molt més aparents i una "
+"qualitat d'impressió molt menor, però un temps d'impressió més curt en "
+"alguns casos d'impressió."
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and slight higher printing "
+"quality, but longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,6 mm, té una "
+"alçada de capa més petita i produeix línies de capa menys aparents i una "
+"lleugera qualitat d'impressió més alta, però un temps d'impressió més llarg."
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,6 mm, té una "
+"alçada de capa més petita i produeix línies de capa menys aparents i una "
+"qualitat d'impressió més alta, però un temps d'impressió més llarg."
+
+msgid ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low printing quality and general printing time."
+msgstr ""
+"Té una alçada de capa molt gran i produeix línies de capa molt aparents, "
+"baixa qualitat d'impressió i temps d'impressió general."
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height, and results in very apparent layer lines and much lower printing "
+"quality, but shorter printing time in some printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,8 mm, té una "
+"alçada de capa més gran i produeix línies de capa molt aparents i una "
+"qualitat d'impressió molt menor, però un temps d'impressió més curt en "
+"alguns casos d'impressió."
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height, and results in extremely apparent layer lines and much lower "
+"printing quality, but much shorter printing time in some printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,8 mm, té una "
+"alçada de capa molt més gran, i produeix línies de capa extremadament "
+"aparents i una qualitat d'impressió molt menor, però un temps d'impressió "
+"molt més curt en alguns casos d'impressió."
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height, and results in slightly less but still apparent layer "
+"lines and slightly higher printing quality, but longer printing time in some "
+"printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,8 mm, té una "
+"alçada de capa lleugerament més petita i produeix línies de capa "
+"lleugerament inferiors però encara aparents i una qualitat d'impressió "
+"lleugerament superior, però un temps d'impressió més llarg en alguns casos "
+"d'impressió."
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height, and results in less but still apparent layer lines and slightly "
+"higher printing quality, but longer printing time in some printing cases."
+msgstr ""
+"En comparació amb el perfil predeterminat del broquet de 0,8 mm, té una "
+"alçada de capa més petita i produeix línies de capa menys però encara "
+"aparents i una qualitat d'impressió lleugerament superior, però un temps "
+"d'impressió més llarg en alguns casos d'impressió."
+
+msgid "Connected to Obico successfully!"
+msgstr "Connectat amb Obico amb èxit!"
+
+msgid "Could not connect to Obico"
+msgstr "No s'ha pogut connectar a Obico"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "Connectat a SimplyPrint amb èxit!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "No s'ha pogut connectar a SimplyPrint"
+
+msgid "Internal error"
+msgstr "Error intern"
+
+msgid "Unknown error"
+msgstr "Error desconegut"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"No s'ha enllaçat el compte de SimplyPrint. Aneu a Opcions de Connexió per "
+"configurar-lo."
+
+msgid "Connection to Flashforge works correctly."
+msgstr "La connexió amb Flashforge funciona correctament."
+
+msgid "Could not connect to Flashforge"
+msgstr "No s'ha pogut connectar a Flashforge"
+
+msgid "The provided state is not correct."
+msgstr "L'estat proporcionat no és correcte."
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr "Doneu els permisos necessaris quan autoritzeu aquesta aplicació."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+"Alguna cosa inesperada ha passat en intentar iniciar sessió, torneu-ho a "
+"provar."
+
+msgid "User cancelled."
+msgstr "Usuari cancel·lat."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -15064,7 +16877,7 @@ msgid ""
 "Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "Filtració d'Aire/Ventilador d'Extracció\n"
-"Sabíeu que OrcaSlicer admet lea funcionalitat de Filtració d'Aire/Ventilador "
+"Sabíeu que OrcaSlicer admet la funcionalitat de Filtració d'Aire/Ventilador "
 "d'Extracció?"
 
 #: resources/data/hints.ini: [hint:G-code window]
@@ -15398,42 +17211,395 @@ msgstr ""
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
 
-#~ msgid ""
-#~ "Alternate extra wall only works with ensure vertical shell thickness "
-#~ "disabled. "
+#~ msgid "up to"
+#~ msgstr "fins a"
+
+#~ msgid "above"
+#~ msgstr "sobre"
+
+#~ msgid "from"
+#~ msgstr "des de"
+
+#~ msgid "Switching application language while some presets are modified."
 #~ msgstr ""
-#~ "El perímetre addicional alternat només funciona amb el gruix vertical de "
-#~ "la carcassa desactivat. "
+#~ "Canviant l'idioma de l'aplicació mentre es modifiquen alguns perfils."
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Maj+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Maj+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Qualsevol fletxa"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Botó esquerre del ratolí"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Botó esquerre del ratolí"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Qualsevol fletxa"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Botó esquerre del ratolí"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Botó esquerre del ratolí"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Roda del ratolí"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Roda del ratolí"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Roda del ratolí"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Roda del ratolí"
 
 #~ msgid ""
-#~ "Change these settings automatically? \n"
-#~ "Yes - Disable ensure vertical shell thickness and enable alternate extra "
-#~ "wall\n"
-#~ "No  - Dont use alternate extra wall"
+#~ "Different nozzle diameters and different filament diameters is not "
+#~ "allowed when prime tower is enabled."
 #~ msgstr ""
-#~ "Canviar aquesta configuració automàticament? \n"
-#~ "Sí - Desactivar assegurar el gruix vertical de la carcassa i activar un "
-#~ "perímetre addicional alternat\n"
-#~ "No - No utilitzar perímetre addicional alternat"
+#~ "No es permeten diferents diàmetres de broquet i diferents diàmetres de "
+#~ "filament quan s'habilita la Torre de Purga."
 
 #~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
+#~ "Ooze prevention is currently not supported with the prime tower enabled."
 #~ msgstr ""
-#~ "Afegir farciment sòlid a prop de les superfícies inclinades per garantir "
-#~ "el gruix vertical requerit ( capes sòlides superior+inferior )."
+#~ "Actualment, la Prevenció d'Ooze( goteig ) no és compatible amb la Torre "
+#~ "de Purga habilitada."
 
-#~ msgid " "
-#~ msgstr " "
+#~ msgid ""
+#~ "Interlocking depth of a segmented region. Zero disables this feature."
+#~ msgstr ""
+#~ "Profunditat d'entrellaçament d'una regió segmentada. Zero desactiva "
+#~ "aquesta funció."
 
-#~ msgid "Text-Rotate"
-#~ msgstr "Rotació-Text"
+#~ msgid "Wipe tower extruder"
+#~ msgstr "Extrusor de la Torre de Purga"
 
-#~ msgid "SVG-Rotate"
-#~ msgstr "SVG-Rotar"
+#~ msgid "Associate prusaslicer://"
+#~ msgstr "Associar prusaslicer://"
+
+#~ msgid "Not associated to any application"
+#~ msgstr "No associar a cap aplicació"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "models from Printable.com"
+#~ msgstr ""
+#~ "Associar OrcaSlicer amb els enllaços prusaslicer:// perquè Orca pugui "
+#~ "obrir models des de Printable.com"
+
+#~ msgid "Associate bambustudio://"
+#~ msgstr "Associar bambustudio://"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with bambustudio:// links so that Orca can open "
+#~ "models from makerworld.com"
+#~ msgstr ""
+#~ "Associar OrcaSlicer amb els enllaços bambustudio:// perquè Orca pugui "
+#~ "obrir models des de makerworld.com"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "La connexió local de la impressora ha fallat, torneu-ho a provar."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "Ja hi ha un resultat històric de calibratge amb el mateix nom: %s. Només "
+#~ "es pot guardar un dels resultats amb el mateix nom. Estàs segur que vols "
+#~ "sobreescriure el resultat històric?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "La mida del fitxer supera el límit de pujada de 100 MB. Si us plau, "
+#~ "carregueu el vostre fitxer a través del panell."
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
+
+#~ msgid "V"
+#~ msgstr "V"
+
+#, fuzzy
+#~ msgid "Maximum print speed when purging"
+#~ msgstr "Màxima velocitat d'impressió en purgar"
+
+#~ msgid ""
+#~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
+#~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
+#~ "Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Orca Slicer es basa en BambuStudio de Bambulab, que és de PrusaSlicer de "
+#~ "Prusa Research.  PrusaSlicer és de Slic3r d'Alessandro Ranellucci i la "
+#~ "comunitat RepRap"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Exportar &Configuracions"
+
+#~ msgid "Open &Studio"
+#~ msgstr "Obrir &Studio"
+
+#~ msgid "Open Studio"
+#~ msgstr "Obrir Studio"
+
+#, fuzzy
+#~ msgid ""
+#~ "Over 4 systems/handy are using remote access, you can close some and try "
+#~ "again."
+#~ msgstr ""
+#~ "Hi ha més de 4 sistemes / pràctics que utilitzen accés remot, podeu "
+#~ "tancar-ne alguns i tornar-ho a provar."
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Habiliteu-lo per obtenir un fitxer de Codi-G que tingui moviments G2 i "
+#~ "G3. I la tolerància de curvatura és la mateixa que la resolució"
+
+#~ msgid "Export Configs"
+#~ msgstr "Exportar Configuracions"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Descarregar Filament"
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "Placa Base"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#, fuzzy
+#~| msgid "Unsaved Changes"
+#~ msgid "Actions For Unsaved Changes"
+#~ msgstr "Canvis no desats"
+
+#, fuzzy
+#~| msgid "Reset scale"
+#~ msgid "Preset Value"
+#~ msgstr "Valor predefinit esquerre"
+
+#, fuzzy
+#~| msgid "Modified G-codes"
+#~ msgid "Modified Value"
+#~ msgstr "Valor modificat"
+
+#, fuzzy
+#~| msgid "User Preset"
+#~ msgid "Use Preset Value"
+#~ msgstr "Perfil d'usuari"
+
+#, fuzzy
+#~| msgid "Save file as:"
+#~ msgid "Save Modified Value"
+#~ msgstr "Desa el fitxer com a:"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to save these changed settings(modified value)?"
+#~ msgstr ""
+#~ "\n"
+#~ "Voleu desar aquests paràmetres canviats (valor modificat)?"
+
+#, fuzzy
+#~| msgid ""
+#~| "You have changed some preset settings. \n"
+#~| "Would you like to keep these changed settings (new value) after "
+#~| "switching preset?"
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to keep these changed settings(modified value) after "
+#~ "switching preset?"
+#~ msgstr ""
+#~ "Heu canviat algunes opcions de configuració del perfil. \n"
+#~ "Voleu mantenir aquests paràmetres modificats després de canviar el perfil?"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to keep your current modified settings, or use preset "
+#~ "settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Voleu mantenir la configuració modificada actual o utilitzar la "
+#~ "configuració predeterminada?"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to save your current modified settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Voleu desar la configuració modificada actual?"
+
+#~ msgid "- ℃"
+#~ msgstr "- °C"
+
+#~ msgid "0.5"
+#~ msgstr "0,5"
+
+#~ msgid "0.005"
+#~ msgstr "0,005"
+
+#~ msgid "active"
+#~ msgstr "actiu"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Saltar a la capa"
+
+#~ msgid ""
+#~ "Green means that AMS humidity is normal, orange represent humidity is "
+#~ "high, red represent humidity is too high.(Hygrometer: lower the better.)"
+#~ msgstr ""
+#~ "El verd significa que la humitat AMS és normal, el taronja representa que "
+#~ "la humitat és alta, el vermell representa que la humitat és excessiva. "
+#~ "( Higròmetre: com més baix millor. )"
+
+#~ msgid ""
+#~ "A desiccant status lower than two bars indicates that desiccant may be "
+#~ "inactive. Please change the desiccant.(The bars: higher the better.)"
+#~ msgstr ""
+#~ "Un estat del dessecant inferior a dues barres indica que el dessecant pot "
+#~ "estar inactiu. Si us plau, canvieu el dessecant. ( Les barres: com més "
+#~ "altes millor. )"
+
+#~ msgid ""
+#~ "Note: When the lid is open or the desiccant pack is changed, it can take "
+#~ "hours or a night to absorb the moisture. Low temperatures also slow down "
+#~ "the process. During this time, the indicator may not represent the "
+#~ "chamber accurately."
+#~ msgstr ""
+#~ "Nota: Quan la tapa està oberta o es canvia el paquet dessecant, pot "
+#~ "trigar hores o una nit a absorbir la humitat. Les baixes temperatures "
+#~ "també alenteixen el procés. Durant aquest temps, és possible que "
+#~ "l'indicador no representi la cambra amb precisió."
+
+#~ msgid "Initialize failed (No Device)!"
+#~ msgstr "Inicialització fallida ( No hi ha dispositiu )!"
+
+#~ msgid "Initialize failed (No Camera Device)!"
+#~ msgstr "Inicialització fallida ( Sense Dispositiu de Càmera )!"
+
+#~ msgid "Initialize failed (Not supported on the current printer version)!"
+#~ msgstr ""
+#~ "Inicialització fallida ( No és compatible amb la versió actual de la "
+#~ "impressora )!"
+
+#~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
+#~ msgstr "Inicialització fallida ( no accessible en mode només LAN )!"
+
+#~ msgid "Initialize failed (Missing LAN ip of printer)!"
+#~ msgstr "Inicialització fallida ( Manca la IP LAN de la impressora )!"
+
+#, c-format, boost-format
+#~ msgid "Stopped [%d]!"
+#~ msgstr "Aturat [%d]!"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]!"
+#~ msgstr "La càrrega ha fallat [%d]!"
+
+#~ msgid "Connection lost. Please retry."
+#~ msgstr "S'ha perdut la connexió. Si us plau, torna-ho a intentar."
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Heu canviat alguns paràmetres del perfil \"%1%\". \n"
+#~ "Voleu mantenir aquests paràmetres modificats després de canviar el perfil?"
+
+#~ msgid " ℃"
+#~ msgstr " °C"
+
+#~ msgid ""
+#~ "The speed setting exceeds the printer's maximum speed "
+#~ "(machine_max_speed_x/machine_max_speed_y).\n"
+#~ "Orca will automatically cap the print speed to ensure it doesn't surpass "
+#~ "the printer's capabilities.\n"
+#~ "You can adjust the maximum speed setting in your printer's configuration "
+#~ "to get higher speeds."
+#~ msgstr ""
+#~ "La configuració de velocitat supera la velocitat màxima de la impressora "
+#~ "(machine_max_speed_x/machine_max_speed_y).\n"
+#~ "L'Orca limitarà automàticament la velocitat d'impressió per assegurar-se "
+#~ "que no superi les capacitats de la impressora.\n"
+#~ "Podeu ajustar la configuració de velocitat màxima a la configuració de la "
+#~ "impressora per obtenir velocitats més altes."
+
+#~ msgid "Studio Version:"
+#~ msgstr "Versió d'Studio:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Prova BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Prova BambuLab:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Prova HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Prova el servei HTTP:"
+
+#~ msgid "Test storage"
+#~ msgstr "Prova d'emmagatzematge"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Prova de càrrega d'emmagatzematge:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Prova d'actualització de l'emmagatzematge"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Prova d'Actualització de l'Emmagatzematge:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Prova de descàrrega des de l'emmagatzematge"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Prova de Descàrrega des de l'Emmagatzematge:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Prova de descàrrega de plugins"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Prova de Descàrrega de Plugins:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Prova de pujada a l'emmagatzematge"
 
 #~ msgid "Resize"
 #~ msgstr "Redimensionar"
+
+#~ msgid " "
+#~ msgstr " "
 
 #~ msgid "The Config can not be loaded."
 #~ msgstr "La Configuració no es pot carregar."
@@ -15447,32 +17613,11 @@ msgstr ""
 #~ msgstr "Paquet de configuració actualitzat a "
 
 #~ msgid ""
-#~ "Improve shell precision by adjusting outer wall spacing. This also "
-#~ "improves layer consistency."
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
 #~ msgstr ""
-#~ "Milloreu la precisió de la carcassa ajustant l'espaiat del perímetre "
-#~ "exterior. Això també millora la consistència de la capa."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "If a top surface has to be printed and it's partially covered by another "
-#~ "layer, it won't be considered at a top layer where its width is below "
-#~ "this value. This can be useful to not let the 'one perimeter on top' "
-#~ "trigger on surface that should be covered only by perimeters. This value "
-#~ "can be a mm or a % of the perimeter extrusion width.\n"
-#~ "Warning: If enabled, artifacts can be created is you have some thin "
-#~ "features on the next layer, like letters. Set this setting to 0 to remove "
-#~ "these artifacts."
-#~ msgstr ""
-#~ "Si s'ha d'imprimir una superfície superior i està parcialment coberta per "
-#~ "una altra capa, no es considerarà una capa superior si la seva amplada és "
-#~ "inferior a aquest valor. Això pot ser útil per no deixar que el "
-#~ "\"perímetre a la part superior\" s'activi quan les superfícies estan "
-#~ "pensades per ser cobertes només per perímetres. Aquest valor pot "
-#~ "especificar en mm o com a % o de l'amplada d'extrusió perimetral.\n"
-#~ "Advertència: Si està activat, es poden produir artefactes si teniu alguna "
-#~ "característica fina a la capa següent, com ara lletres. Establiu aquest "
-#~ "paràmetre a 0 per eliminar aquests artefactes."
+#~ "Afegir farciment sòlid a prop de les superfícies inclinades per garantir "
+#~ "el gruix vertical requerit ( capes sòlides superior+inferior )."
 
 #~ msgid ""
 #~ "The minimum printing speed for the filament when slow down for better "
@@ -15484,17 +17629,5 @@ msgstr ""
 #~ "d'impressió i quan les velocitats de les característiques no "
 #~ "s'especifiquen explícitament."
 
-#~ msgid "No sparse layers (EXPERIMENTAL)"
-#~ msgstr "Sense capes poc denses( EXPERIMENTAL )"
-
 #~ msgid "End end: "
 #~ msgstr "Final: "
-
-#~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
-#~ "\". \n"
-#~ "To add preset for more prinetrs, Please go to printer selection"
-#~ msgstr ""
-#~ "Canviaríem el nom dels perfils seleccionats com a \"Proveïdor Tipus "
-#~ "Número_de_Sèrie @impressora\". \n"
-#~ "Per afegir perfils per a més impressores, aneu a la selecció d'impressora"

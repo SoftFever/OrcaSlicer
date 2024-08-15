@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Bubník @bubnikv
-///|/ Copyright (c) 2021 Justin Schuh @jschuh
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "GLGizmoMmuSegmentation.hpp"
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -250,7 +245,7 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 bool GLGizmoMmuSegmentation::on_number_key_down(int number)
 {
     int extruder_idx = number - 1;
-    if (extruder_idx < m_extruders_colors.size())
+    if (extruder_idx < m_extruders_colors.size() && extruder_idx >= 0)
         m_selected_extruder_idx = extruder_idx;
 
     return true;
@@ -343,10 +338,10 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
-    float font_size = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_parent.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -470,14 +465,14 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
         #ifdef __APPLE__
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGuiWrapper::COL_ORCA); // ORCA use orca color for selected filament border
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0);
             bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(1);
         #else
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGuiWrapper::COL_ORCA); // ORCA use orca color for selected filament border
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0);
             bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
@@ -487,7 +482,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
         if (color_picked) { m_selected_extruder_idx = extruder_idx; }
 
-        if (extruder_idx < 9 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
+        if (extruder_idx < 16 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
 
         // draw filament id
         float gray = 0.299 * extruder_color.r() + 0.587 * extruder_color.g() + 0.114 * extruder_color.b();
@@ -519,11 +514,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.5f));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));                     // ORCA Removes button background on dark mode
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));                       // ORCA Fixes icon rendered without colors while using Light theme
         if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Button,          ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,   ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,    ImVec4(0.f, 0.59f, 0.53f, 0.30f));  // ORCA use orca color for selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Border,          ImGuiWrapper::COL_ORCA);            // ORCA use orca color for border on selected tool / brush
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
@@ -533,6 +530,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
+        ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(1);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
