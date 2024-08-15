@@ -162,6 +162,9 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         m_new_enabled  = true;
         m_new_title_string = L("Group Operations");
+    } else if (selection.is_wipe_tower()) {
+        const BoundingBoxf3 &box = selection.get_bounding_box();
+        m_new_position           = box.center();
     }
 	else {
         // No selection, reset the cache.
@@ -760,7 +763,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     Selection &              selection = m_glcanvas.get_selection();
     std::vector<std::string> modes     = {_u8L("World coordinates"), _u8L("Object coordinates")};//_u8L("Part coordinates")
-    if (selection.is_multiple_full_object()) {
+    if (selection.is_multiple_full_object() || selection.is_wipe_tower()) {
         modes.pop_back();
     }
     size_t selection_idx = (int) m_coordinates_type;
