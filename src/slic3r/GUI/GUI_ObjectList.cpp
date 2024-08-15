@@ -396,6 +396,7 @@ void ObjectList::create_objects_ctrl()
 
     m_columns_width.resize(colCount);
     m_columns_width[colName] = 22;
+    m_columns_width[colHeight] = 3;
     m_columns_width[colPrint] = 3;
     m_columns_width[colFilament] = 5;
     m_columns_width[colSupportPaint] = 3;
@@ -416,6 +417,10 @@ void ObjectList::create_objects_ctrl()
         colName, m_columns_width[colName] * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
+
+    // column Variable height Property (Icon) of the view control:
+    AppendBitmapColumn(" ", colHeight, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, 3 * em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column PrintableProperty (Icon) of the view control:
     AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colPrint]*em,
@@ -1000,6 +1005,12 @@ void ObjectList::set_filament_column_hidden(const bool hide) const
     update_name_column_width();
 }
 
+void ObjectList::set_variable_height_column_hidden(const bool hide) const
+{
+    GetColumn(colHeight)->SetHidden(hide);
+    update_name_column_width();
+}
+
 // BBS
 void ObjectList::set_color_paint_hidden(const bool hide) const
 {
@@ -1376,7 +1387,9 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
     {
 	    const wxString title = col->GetTitle();
         ColumnNumber col_num = (ColumnNumber)col->GetModelColumn();
-	    if (col_num == colPrint)
+        if (col_num == colHeight)
+            enable_layers_editing();
+        else if (col_num == colPrint)
 	        toggle_printable_state();
         else if (col_num == colSupportPaint) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
@@ -1509,7 +1522,7 @@ void ObjectList::extruder_editing()
 
     wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
-    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
+    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + GetColumn(colHeight)->GetWidth() + 5;
     pos.y -= GetTextExtent("m").y;
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
@@ -3641,6 +3654,18 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
 #endif
 }
 
+void ObjectList::update_variable_layer_obj_num(ObjectDataViewModelNode* obj_node, size_t layer_data_count) {
+    if (obj_node){
+        if (obj_node->IsVaribaleHeight() == hiVariable && layer_data_count <= 4){
+            m_variable_layer_obj_num--;
+        }
+        else if (obj_node->IsVaribaleHeight() == hiUnVariable && layer_data_count > 4){
+            m_variable_layer_obj_num++;
+        }
+        GetColumn(colHeight)->SetHidden(m_variable_layer_obj_num == 0);
+        update_name_column_width();
+    }
+}
 
 void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/, bool added_object/* = false*/)
 {
@@ -3677,6 +3702,14 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
             } else
                 Select(item_obj);
         }
+    }
+
+    {
+        ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(item_obj.GetID());
+        auto layer_data_count = model_object->layer_height_profile.get().size();
+        update_variable_layer_obj_num(obj_node, layer_data_count);
+        // If the length of layer_height_profile is greater than 4, variable layer height is applied
+        m_objects_model->SetObjectVariableHeightState(layer_data_count > 4 ? hiVariable : hiUnVariable, item_obj);
     }
 
     {
@@ -3841,6 +3874,8 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
     else
         m_objects_model->SetPrintableState(model_object->instances[0]->printable ? piPrintable : piUnprintable, obj_idx);
 
+    m_objects_model->SetObjectVariableHeightState(model_object->layer_height_profile.get().size() > 4 ? hiVariable : hiUnVariable, m_objects_model->GetItemById(obj_idx));
+
     // add settings to the object, if it has those
     add_settings_item(item, &model_object->config.get());
 
@@ -3953,17 +3988,23 @@ void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t in
 
 void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx)
 {
-    if ( !(type&(itObject|itVolume|itInstance)) )
+    if (!(type&(itObject|itVolume|itInstance)))
         return;
 
     take_snapshot("Delete selected");
 
     if (type&itObject) {
         bool was_cut = object(obj_idx)->is_cut();
+        // For variable layer height, the size of layer data is larger than 4
+        bool vari_layer_height = (object(obj_idx)->layer_height_profile.get().size() > 4);
         if (del_object(obj_idx)) {
             delete_object_from_list(obj_idx);
             if (was_cut)
                 update_lock_icons_for_model();
+            if (vari_layer_height) {
+                m_variable_layer_obj_num--;
+                set_variable_height_column_hidden(m_variable_layer_obj_num == 0);
+            }
         }
     }
     else {
@@ -3992,11 +4033,17 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             need_update = true;
             bool refresh_immediately = false;
             bool was_cut = object(item->obj_idx)->is_cut();
+            // For variable layer height, the size of layer data is larger than 4
+            bool vari_layer_height = (object(item->obj_idx)->layer_height_profile.get().size() > 4);
             if (!del_object(item->obj_idx, refresh_immediately))
                 return;
             m_objects_model->Delete(m_objects_model->GetItemById(item->obj_idx));
             if (was_cut)
                 update_lock_icons_for_model();
+            if (vari_layer_height) {
+                m_variable_layer_obj_num--;
+                set_variable_height_column_hidden(m_variable_layer_obj_num == 0);
+            }
         }
         else {
             if (!del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type))

@@ -166,6 +166,7 @@ private:
     ObjectDataViewModel         *m_objects_model{ nullptr };
     ModelConfig                 *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
+    size_t                      m_variable_layer_obj_num = 0;
 
     BitmapComboBox              *m_extruder_editor { nullptr };
 
@@ -225,6 +226,8 @@ public:
     void                update_filament_colors();
     // show/hide "Extruder" column for Objects List
     void                set_filament_column_hidden(const bool hide) const;
+    // show/hide variable height column for Objects List
+    void                set_variable_height_column_hidden(const bool hide) const;
     // BBS
     void                set_color_paint_hidden(const bool hide) const;
     void                set_support_paint_hidden(const bool hide) const;
@@ -417,6 +420,7 @@ public:
     void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);
     void update_object_list_by_printer_technology();
     void update_info_items(size_t obj_idx, wxDataViewItemArray* selections = nullptr, bool added_object = false);
+    void update_variable_layer_obj_num(ObjectDataViewModelNode* obj_node, size_t layer_data_count);
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
     void instances_to_separated_objects(const int obj_idx);
@@ -441,6 +445,7 @@ public:
     //update printable state for item from objects model
     void update_printable_state(int obj_idx, int instance_idx);
     void toggle_printable_state();
+    void enable_layers_editing();
 
     //BBS: remove const qualifier
     void set_extruder_for_selected_items(const int extruder);
