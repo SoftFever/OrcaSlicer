@@ -1662,12 +1662,14 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                         case '0': { process_M140(line); break; } // Set bed temperature
                         default: break;
                         }
+                        break;
                     case '9':
                         switch (cmd[3]) {
                         case '0': { process_M190(line); break; } // Wait bed temperature
                         case '1': { process_M191(line); break; } // Wait chamber temperature
                         default: break;
-                    }
+                        }
+                        break;
                     default:
                         break;
                     }
