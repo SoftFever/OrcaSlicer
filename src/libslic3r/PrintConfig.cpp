@@ -2549,7 +2549,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
-    def->tooltip = L("Filter out gaps smaller than the threshold specified");
+    def->tooltip = L("Don't print gap fill with a length is smaller than the threshold specified (in mm). This setting applies to top, "
+                     "bottom and solid infill and, if using the classic perimeter generator, to wall gap fill. ");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
