@@ -4,25 +4,34 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 
 The Wiki is work in progress so bear with us while we get it up and running!
 
-# Print Settings, Tips and Tricks (Work In Progress)
+## Print Settings, Tips and Tricks (Work In Progress)
 The below sections provide a detailed settings explanation as well as tips and tricks in setting these for optimal print results.
 
-## Quality Settings
+### Quality Settings
 - [Layer Height Settings](print_settings/quality/quality_settings_layer_height)
 - [Line Width Settings](print_settings/quality/quality_settings_line_width)
 - [Seam Settings](print_settings/quality/quality_settings_seam)
-
-## Other Settings:
-- [Auxiliary fan](auxiliary-fan)
-- [Chamber temperature](chamber-temperature)
-- [Air filtration/Exhaust fan](air-filtration)
-- [Single Extruder Multimaterial](semm)
 - [Precise wall](Precise-wall)
 
-# Calibration
+### Speed Settings
+- [Extrusion rate smoothing](print_settings/speed/extrusion-rate-smoothing)
+
+### Multi material
+- [Single Extruder Multimaterial](semm)
+
+### Printer Settings:
+- [Air filtration/Exhaust fan handling](air-filtration)
+- [Auxiliary fan handling](Auxiliary-fan)
+- [Chamber temperature control](chamber-temperature)
+- [Adaptive Bed Mesh](adaptive-bed-mesh)
+- [Using different bed types in Orca](bed-types)
+- [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
+
+## Printer Calibration
 The guide below takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances and maximum volumetric speed
 - [Calibration Guide](./Calibration)
 
-# Developer Section
+## Developer Section
 - [How to build Orca Slicer](./How-to-build)
+- [Localization and translation guide](Localization_guide)
 - [Developer Reference](./developer-reference/Home)
