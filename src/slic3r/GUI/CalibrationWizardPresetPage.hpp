@@ -216,6 +216,10 @@ public:
     void msw_rescale() override;
     void on_sys_color_changed() override;
 
+    int get_extruder_id(int ams_id);
+    NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
+    ExtruderType get_extruder_type(int extruder_id) const;
+
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
@@ -277,6 +281,39 @@ protected:
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
     
+    // multi_extruder
+    void update_multi_extruder_filament_combobox(const std::string &ams_id, int nozzle_id);
+    void create_multi_extruder_filament_list_panel(wxWindow *parent);
+    void on_select_nozzle_volume_type(wxCommandEvent &evt, size_t extruder_id);
+
+    std::vector<ComboBox*> m_comboBox_nozzle_volume_types;
+    wxPanel*    m_nozzle_volume_type_panel{nullptr};
+    wxPanel*    m_multi_exutrder_filament_list_panel{nullptr};
+
+    wxPanel*    m_main_ams_preview_panel{nullptr};
+    wxPanel*    m_deputy_ams_preview_panel{nullptr};
+    wxBoxSizer*    m_main_ams_items_sizer{nullptr};
+    wxBoxSizer*    m_deputy_ams_items_sizer{nullptr};
+
+    std::vector<AMSPreview *> m_main_ams_preview_list;
+    std::vector<AMSPreview *> m_deputy_ams_preview_list;
+    FilamentComboBoxList      m_main_filament_comboBox_list;
+    FilamentComboBoxList      m_deputy_filament_comboBox_list;
+
+    std::unordered_map<int, int> m_ams_id_to_extruder_id_map;
+    std::vector<ExtruderType>     m_extrder_types;
+    std::vector<NozzleVolumeType> m_extruder_nozzle_types;
+    bool                          m_main_extruder_on_left{true};
+
+    wxBoxSizer* m_multi_extruder_ams_panel_sizer;
+    wxBoxSizer *       m_multi_exturder_ams_sizer;
+    wxStaticBoxSizer * m_main_sizer;
+    wxStaticBoxSizer * m_deputy_sizer;
+    wxStaticBoxSizer * m_left_nozzle_volume_type_sizer;
+    wxStaticBoxSizer * m_right_nozzle_volume_type_sizer;
+
+
+
     wxRadioButton*      m_ams_radiobox;
     wxRadioButton*      m_ext_spool_radiobox;
     

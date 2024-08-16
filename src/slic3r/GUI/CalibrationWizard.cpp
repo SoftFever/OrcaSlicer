@@ -17,6 +17,7 @@ wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 static const wxString NA_STR = _L("N/A");
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
+
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     std::map<int, Preset*> selected_filament_map;
     if (!obj) return selected_filament_map;
@@ -613,6 +614,9 @@ void PressureAdvanceWizard::on_cali_start()
 
             X1CCalibInfos::X1CCalibInfo calib_info;
             get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
+            calib_info.extruder_id          = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type        = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type   = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             calib_info.nozzle_diameter      = nozzle_dia;
             calib_info.filament_id          = item.second->filament_id;
             calib_info.setting_id           = item.second->setting_id;
@@ -648,6 +652,9 @@ void PressureAdvanceWizard::on_cali_start()
             CalibInfo calib_info;
             calib_info.dev_id            = curr_obj->dev_id;
             get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.extruder_id       = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type     = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset *preset               = selected_filaments.begin()->second;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
@@ -1015,6 +1022,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id          = item.first;
             get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
+            calib_info.extruder_id      = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type    = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             calib_info.nozzle_diameter  = nozzle_dia;
             calib_info.filament_id      = item.second->filament_id;
             calib_info.setting_id       = item.second->setting_id;
@@ -1068,6 +1078,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             int selected_tray_id  = 0;
             get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
             calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
+            calib_info.extruder_id = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             Preset* preset = selected_filaments.begin()->second;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
@@ -1446,6 +1459,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
         int selected_tray_id = 0;
         get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
         calib_info.select_ams     = "[" + std::to_string(selected_tray_id) + "]";
+        calib_info.extruder_id        = preset_page->get_extruder_id(calib_info.ams_id);
+        calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
+        calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
         calib_info.filament_prest = selected_filaments.begin()->second;
     }
 

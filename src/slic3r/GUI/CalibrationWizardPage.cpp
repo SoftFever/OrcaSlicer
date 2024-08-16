@@ -275,6 +275,18 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const w
     main_sizer->Fit(this);
 }
 
+void FilamentComboBox::ShowPanel()
+{
+    this->Show();
+    m_radioBox->Show();
+}
+
+void FilamentComboBox::HidePanel()
+{
+    this->Hide();
+    m_radioBox->Hide();
+}
+
 void FilamentComboBox::set_select_mode(CalibrationFilamentMode mode)
 {
     m_mode = mode;

@@ -58,6 +58,7 @@ public:
         int         ams_id = 0;
         int         slot_id = 0;
         int         bed_temp;
+        ExtruderType        extruder_type{ExtruderType::etDirectDrive};
         NozzleVolumeType    nozzle_volume_type = NozzleVolumeType::nvtNormal;
         int         nozzle_temp;
         float       nozzle_diameter;

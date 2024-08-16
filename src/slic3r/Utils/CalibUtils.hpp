@@ -19,6 +19,8 @@ public:
     int                                extruder_id = 0;
     int                                ams_id = 0;
     int                                slot_id = 0;
+    ExtruderType                       extruder_type{ExtruderType::etDirectDrive};
+    NozzleVolumeType                   nozzle_volume_type;
     Calib_Params                       params;
     Preset*                            printer_prest;
     Preset*                            filament_prest;
