@@ -1,6 +1,8 @@
 #include "ESP3D.hpp"
 
 #include <algorithm>
+#include <ctime>
+#include <chrono>
 #include <thread>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
@@ -10,7 +12,13 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <wx/frame.h>
 #include <wx/event.h>
+#include <wx/progdlg.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/GUI.hpp"
@@ -18,6 +26,7 @@
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "Http.hpp"
 #include "SerialMessage.hpp"
+#include "SerialMessageType.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
@@ -58,7 +67,7 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
     std::string short_name = get_short_name(upload_data.upload_path.string());
     bool        res        = false;
 
-    auto http = Http::post(std::move((boost::format("http://%1%/upload_serial") % m_host).str()));
+    auto http = Http::post((boost::format("http://%1%/upload_serial") % m_host).str());
     http.header("Connection", "keep-alive")
         .form_add_file("file", upload_data.source_path, short_name)
         .on_complete([&](std::string body, unsigned status) {

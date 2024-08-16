@@ -113,6 +113,9 @@ double get_profile_area(std::vector<std::pair<gp_Pnt, gp_Pnt>> profile_line_poin
 
     double area = 0;
     for (auto line_points : profile_line_points) {
+        bool flag = true;
+        if (line_points.second.Y() < line_points.first.Y()) flag = false;
+
         area += (line_points.second.X() + line_points.first.X() - 2 * min_x) * (line_points.second.Y() - line_points.first.Y()) / 2;
     }
 
@@ -134,6 +137,8 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
 
     int name_index = 1;
     for (NSVGshape *shape = svg_data->shapes; shape; shape = shape->next) {
+        char *      id     = shape->id;
+
         int interpolation_precision = 10;  // Number of interpolation points
         float step = 1.0f / float(interpolation_precision - 1);
 
@@ -379,6 +384,7 @@ bool load_svg(const char *path, Model *model, std::string &message)
     ModelObject *new_object = model->add_object();
     // new_object->name ?
     new_object->input_file = path;
+    auto stage_unit3 = stl.size() / LOAD_STEP_STAGE_UNIT_NUM + 1;
     for (size_t i = 0; i < stl.size(); i++) {
         // BBS: maybe mesh is empty from step file. Don't add
         if (stl[i].stats.number_of_facets > 0) {

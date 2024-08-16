@@ -62,6 +62,19 @@ public:
         }
         return out;
     }
+    bool has_perimeters() const
+    {
+        return std::any_of(entities.begin(), entities.end(), [](const ExtrusionEntity* ee) { return is_perimeter(ee->role()); });
+    }
+    bool has_infill() const
+    {
+        return std::any_of(entities.begin(), entities.end(), [](const ExtrusionEntity* ee) { return is_infill(ee->role()); });
+    }
+    bool has_solid_infill() const
+    {
+        return std::any_of(entities.begin(), entities.end(), [](const ExtrusionEntity* ee) { return is_solid_infill(ee->role()); });
+    }
+    
     bool can_sort() const override { return !this->no_sort; }
     bool can_reverse() const override
     {

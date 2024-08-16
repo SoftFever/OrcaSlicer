@@ -2,10 +2,14 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "SkeletalTrapezoidationGraph.hpp"
+#include "../Line.hpp"
 #include <ankerl/unordered_dense.h>
 
 
 #include <boost/log/trivial.hpp>
+
+#include "utils/linearAlg2D.hpp"
+#include "../Line.hpp"
 
 namespace Slic3r::Arachne
 {

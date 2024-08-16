@@ -101,7 +101,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
     m_desc["on_overhangs_only"] = _L("On overhangs only");
 
-    memset(&m_print_instance, sizeof(m_print_instance), 0);
+    memset(&m_print_instance, 0, sizeof(m_print_instance));
     return true;
 }
 
@@ -245,9 +245,16 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
     const float reset_button_slider_left = m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2;
+    const float on_overhangs_only_width  = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(1.5f);
+    const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
+    const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.5f);
     const float gap_area_txt_width = m_imgui->calc_text_size(m_desc.at("gap_area")).x + m_imgui->scaled(1.5f);
     const float smart_fill_angle_txt_width = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
+    const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
+
+    const float tips_width           = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.5f);
+    const float minimal_slider_width = m_imgui->scaled(4.f);
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -264,6 +271,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
+
+    float drag_pos_times     = 0.7;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
@@ -688,6 +697,7 @@ wxString GLGizmoFdmSupports::handle_snapshot_action_name(bool shift_down, GLGizm
 void GLGizmoFdmSupports::init_print_instance()
 {
     const PrintObject* print_object = NULL;
+    PrintInstance print_instance = { 0 };
     const Print *print = m_parent.fff_print();
 
     if (!m_c->selection_info() || (m_print_instance.print_object))

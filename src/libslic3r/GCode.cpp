@@ -116,6 +116,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     if (excluse_area.size() != 4)
         return out_points;
 
+    double cutter_area_x = excluse_area[2].x() + 2;
     double cutter_area_y = excluse_area[2].y() + 2;
 
     double start_x_position = start_point.x();
@@ -2491,6 +2492,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     m_avoid_crossing_perimeters.use_external_mp_once();
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {
+                        const PrintObjectConfig& object_config = object.config();
                         coordf_t initial_layer_print_height = print.config().initial_layer_print_height.value;
                         file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height, true));
                         prime_extruder = true;
@@ -3275,17 +3277,14 @@ namespace ProcessLayer
         const PrintConfig                                       &config)
     {
         std::string gcode;
+        // BBS
+        bool single_filament_print = config.filament_diameter.size() == 1;
 
         if (custom_gcode != nullptr) {
             // Extruder switches are processed by LayerTools, they should be filtered out.
             assert(custom_gcode->type != CustomGCode::ToolChange);
 
             CustomGCode::Type   gcode_type = custom_gcode->type;
-
-            //BBS: inserting color gcode is removed
-#if 0
-            // BBS
-            bool single_filament_print = config.filament_diameter.size() == 1;
             bool  				color_change = gcode_type == CustomGCode::ColorChange;
             bool 				tool_change = gcode_type == CustomGCode::ToolChange;
             // Tool Change is applied as Color Change for a single extruder printer only.
@@ -3297,7 +3296,8 @@ namespace ProcessLayer
                 m600_extruder_before_layer = custom_gcode->extruder - 1;
             else if (gcode_type == CustomGCode::PausePrint)
                 pause_print_msg = custom_gcode->extra;
-
+            //BBS: inserting color gcode is removed
+#if 0
             // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
             if (color_change || tool_change)
             {
@@ -3360,8 +3360,8 @@ namespace Skirt {
     {
         // Prime all extruders printing over the 1st layer over the skirt lines.
         size_t n_loops = print.skirt().entities.size();
-        // size_t n_tools = layer_tools.extruders.size();
-        // size_t lines_per_extruder = (n_loops + n_tools - 1) / n_tools;
+        size_t n_tools = layer_tools.extruders.size();
+        size_t lines_per_extruder = (n_loops + n_tools - 1) / n_tools;
 
         // BBS. Extrude skirt with first extruder if min_skirt_length is zero
         //ORCA: Always extrude skirt with first extruder, independantly of if the minimum skirt length is zero or not. The code below
@@ -3717,8 +3717,7 @@ LayerResult GCode::process_layer(
         Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
     // BBS: get next extruder according to flush and soluble
-    // Orca: Left unused due to removed code below
-/*     auto get_next_extruder = [&](int current_extruder,const std::vector<unsigned int>&extruders) {
+    auto get_next_extruder = [&](int current_extruder,const std::vector<unsigned int>&extruders) {
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
         // Extract purging volumes for each extruder pair:
@@ -3736,7 +3735,7 @@ LayerResult GCode::process_layer(
             }
         }
         return next_extruder;
-    }; */
+    };
     
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic) {
         for (const auto &layer_to_print : layers) {
@@ -4365,6 +4364,8 @@ void GCode::append_full_config(const Print &print, std::string &str)
             if (key == "wipe_tower_x" || key == "wipe_tower_y") {
                 ss << std::fixed << std::setprecision(3) << "; " << key << " = " << dynamic_cast<const ConfigOptionFloats*>(cfg.option(key))->get_at(print.get_plate_index()) << "\n";
             }
+            if(key == "extruder_colour")
+                ss << "; " << key << " = " << cfg.opt_serialize("filament_colour") << "\n";
             else
                 ss << "; " << key << " = " << cfg.opt_serialize(key) << "\n";
         }
@@ -4869,8 +4870,8 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
-        // const double  support_speed            = m_config.support_speed.value;
-        // const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
+        const double  support_speed            = m_config.support_speed.value;
+        const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
         for (const ExtrusionEntity *ee : support_fills.entities) {
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
@@ -5269,8 +5270,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
             }
             variable_speed = std::any_of(new_points.begin(), new_points.end(),
-                                         [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > EPSILON; });
-
+                                         [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
@@ -5727,10 +5727,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 }
             }// ORCA: End of adaptive PA code segment
             
-            
-            if (last_set_speed != new_speed) {
+            // Ignore small speed variations - emit speed change if the delta between current and new is greater than 60mm/min / 1mm/sec
+            // Reset speed to F if delta to F is less than 1mm/sec
+            if ((std::abs(last_set_speed - new_speed) > 60)) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
+            } else if ((std::abs(F - new_speed) <= 60)) {
+                gcode += m_writer.set_speed(F, "", comment);
+                last_set_speed = F;
             }
             auto dE = e_per_mm * line_length;
             if (!this->on_first_layer() && m_small_area_infill_flow_compensator
@@ -6036,6 +6040,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     for (int i = 0; i < m_config.z_hop.size(); i++)
         max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
     float travel_len_thresh = scale_(max_z_hop / tan(this->writer().extruder()->travel_slope()));
+    float accum_len = 0.f;
     Polyline clipped_travel;
 
     clipped_travel.append(Polyline(travel.points[0], travel.points[1]));
@@ -6137,6 +6142,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     }
 
     if (needs_lift && can_lift) {
+        size_t extruder_id = m_writer.extruder()->id();
         gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
     }
 

@@ -135,7 +135,7 @@ public:
     bool Show(bool show);
     void update_page_number();
     void start_timer();
-    void        on_timer();
+    void on_timer(wxTimerEvent& event);
 
     void pause_all(wxCommandEvent& evt);
     void resume_all(wxCommandEvent& evt);

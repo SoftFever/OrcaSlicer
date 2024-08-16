@@ -2773,7 +2773,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             ModelInstanceEPrintVolumeState state;
             const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state);
             const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
-            // const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
+            const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
 
             _set_warning_notification(EWarning::ObjectClashed, partlyOut);
             //BBS: turn off the warning when fully outside
@@ -4080,12 +4080,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Set focus in order to remove it from sidebar fields
         if (m_canvas != nullptr) {
             // Only set focus, if the top level window of this canvas is active.
-//            auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
-//            while (p->GetParent())
-//                p = p->GetParent();
-//            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-//            if (top_level_wnd && top_level_wnd->IsActive() && !wxGetApp().get_side_menu_popup_status())
-                // m_canvas->SetFocus();
+            auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
+            while (p->GetParent())
+                p = p->GetParent();
+            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+            if (top_level_wnd && top_level_wnd->IsActive() && !wxGetApp().get_side_menu_popup_status())
+                ;// m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
             m_tooltip_enabled = false;
             // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
@@ -4875,6 +4875,14 @@ void GLCanvas3D::do_center()
     m_selection.center();
 }
 
+void GLCanvas3D::do_drop()
+{
+    if (m_model == nullptr)
+        return;
+
+    m_selection.drop();
+}
+
 void GLCanvas3D::do_center_plate(const int plate_idx) {
     if (m_model == nullptr)
         return;
@@ -5085,6 +5093,7 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
         }
     for (size_t i = 0; i < m_model->objects.size(); ++i) {
         ModelObject* model_object = m_model->objects[i];
+        auto id = model_object->id().id;
         ModelInstance* model_instance0 = model_object->instances.front();
         Polygon hull_2d = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
             model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
@@ -5355,6 +5364,7 @@ void GLCanvas3D::update_sequential_clearance()
 
         for (int i = k+1; i < bounding_box_count; i++)
         {
+            Polygon&     next_convex = convex_and_bounding_boxes[i].hull_polygon;
             BoundingBox& next_bbox   = convex_and_bounding_boxes[i].bounding_box;
             auto py1 = next_bbox.min.y();
             auto py2 = next_bbox.max.y();
@@ -5415,6 +5425,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
     auto canvas_w = float(get_canvas_size().get_width());
+    auto canvas_h = float(get_canvas_size().get_height());
     //BBS: GUI refactor: move main toolbar to the right
     //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
@@ -5423,7 +5434,6 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     ImGuiWrapper::push_toolbar_style(get_scale());
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 #else
-    auto canvas_h = float(get_canvas_size().get_height());
     const float x = canvas_w - m_main_toolbar.get_width();
     const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
     imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
@@ -5438,13 +5448,13 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     PrinterTechnology ptech = current_printer_technology();
 
     bool settings_changed = false;
-    // float angle_min = 45.f;
+    float angle_min = 45.f;
     std::string angle_key = "overhang_angle", rot_key = "enable_rotation";
     std::string key_min_area = "min_area";
     std::string postfix = "_fff";
 
     if (ptech == ptSLA) {
-        // angle_min = 45.f;
+        angle_min = 45.f;
         postfix = "_sla";
     }
 
@@ -5500,6 +5510,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     ImGuiWrapper *imgui = wxGetApp().imgui();
 
     auto canvas_w = float(get_canvas_size().get_width());
+    auto canvas_h = float(get_canvas_size().get_height());
     //BBS: GUI refactor: move main toolbar to the right
     //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
@@ -5507,8 +5518,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     float left_pos = m_main_toolbar.get_item("arrange")->render_left_pos;
     const float x = (1 + left_pos) * canvas_w / 2;
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.0f, 0.0f);
+
 #else
-    auto canvas_h = float(get_canvas_size().get_height());
     const float x = canvas_w - m_main_toolbar.get_width();
     const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
     imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
@@ -7470,7 +7481,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 #if ENABLE_RETINA_GL
     new_scale /= m_retina_helper->get_scale_factor();
 #endif
-    if (fabs(new_scale - scale) > 0.01) // scale is changed by 1% and more
+    if (fabs(new_scale - scale) > 0.05) // scale is changed by 5% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
@@ -8041,7 +8052,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 4.0f, start_pos.y + 2.0f); // ORCA move close to corner to prevent overlapping with preview
         ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
 
         ImGui::PopID();
@@ -8088,13 +8099,16 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+    Size cnv_size = get_canvas_size();
+    auto canvas_w = float(cnv_size.get_width());
+    auto canvas_h = float(cnv_size.get_height());
+    float window_width = real_size.x + button_icon_size.x + imgui.scaled(2.0f);
+    float window_height = button_icon_size.y + imgui.scaled(2.0f);
     float window_pos_x = 30.0f + (is_collapse_toolbar_on_left() ? (get_collapse_toolbar_width() + 5.f) : 0);
     float window_pos_y = 14.0f;
 
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
 #ifdef __WINDOWS__
-    float window_width = real_size.x + button_icon_size.x + imgui.scaled(2.0f);
-    float window_height = button_icon_size.y + imgui.scaled(2.0f);
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 #endif
 
@@ -8108,6 +8122,9 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.begin(_L("Assembly Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
         | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
 
+    float button_width = 20;
+    float button_height = 20;
+    ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
     ImVec2 uv0 = ImVec2(0.0f, 0.0f);
     ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
@@ -8383,11 +8400,11 @@ void GLCanvas3D::_render_assemble_control() const
 
         ImGui::SameLine(window_padding.x + 2 * text_size_x + slider_width + item_spacing * 7 + value_size);
         ImGui::PushItemWidth(slider_width);
-        imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
+        bool explosion_slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
 
         ImGui::SameLine(window_padding.x + 2 * text_size_x + 2 * slider_width + item_spacing * 8 + value_size);
         ImGui::PushItemWidth(value_size);
-        ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
+        bool explosion_input_changed = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
     }
 
     imgui->end();
@@ -8417,6 +8434,7 @@ void GLCanvas3D::_render_assemble_info() const
     auto canvas_h = float(get_canvas_size().get_height());
     float space_size = imgui->get_style_scaling() * 8.0f;
     float caption_max = imgui->calc_text_size(_L("Total Volume:")).x + 3 * space_size;
+    char buf[3][64];
 
     ImGuiIO& io = ImGui::GetIO();
     ImFont* font = io.Fonts->Fonts[0];

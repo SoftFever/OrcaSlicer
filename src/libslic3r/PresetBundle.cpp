@@ -1853,7 +1853,7 @@ void PresetBundle::export_selections(AppConfig &config)
 // BBS
 void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
-    size_t old_filament_count = this->filament_presets.size();
+    int old_filament_count = this->filament_presets.size();
     if (n > old_filament_count && old_filament_count != 0)
         filament_presets.resize(n, filament_presets.back());
     else {
@@ -1867,7 +1867,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
         if (!new_color.empty()) {
-            for (size_t i = old_filament_count; i < n; i++) {
+            for (int i = old_filament_count; i < n; i++) {
                 filament_color->values[i] = new_color;
             }
         }
@@ -2054,7 +2054,7 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
 //BBS: check whether this is the only edited filament
 bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 {
-    size_t n = this->filament_presets.size();
+    int n = this->filament_presets.size();
     if (filament_index >= n)
         return false;
 
@@ -2117,6 +2117,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
 
     // BBS
     size_t  num_filaments = this->filament_presets.size();
+    auto* extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> compatible_prints_condition;
@@ -2275,7 +2276,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     //BBS: add logic for settings check between different system presets
     out.erase("different_settings_to_system");
 
-    static const char *keys[] = { "support_filament", "support_interface_filament" };
+    static const char* keys[] = {"support_filament", "support_interface_filament", "wipe_tower_filament"};
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
         std::string key = std::string(keys[i]);
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
@@ -2283,6 +2284,14 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_filaments));
     }
 
+    static const char* keys_1based[] = {"wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    for (size_t i = 0; i < sizeof(keys_1based) / sizeof(keys_1based[0]); ++ i) {
+        std::string key = std::string(keys_1based[i]);
+        auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
+        assert(opt != nullptr);
+        if(opt->value < 1 || opt->value > int(num_filaments))
+            opt->value = 1;
+    }
     out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
@@ -2471,7 +2480,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> filament_ids                           = std::move(config.option<ConfigOptionStrings>("filament_ids", true)->values);
     std::vector<std::string> print_compatible_printers              = std::move(config.option<ConfigOptionStrings>("print_compatible_printers", true)->values);
     //BBS: add different settings check logic
-    // bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
+    bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
     std::vector<std::string> different_values                       = std::move(config.option<ConfigOptionStrings>("different_settings_to_system", true)->values);
     std::string &compatible_printers_condition  = Preset::compatible_printers_condition(config);
     std::string &compatible_prints_condition    = Preset::compatible_prints_condition(config);

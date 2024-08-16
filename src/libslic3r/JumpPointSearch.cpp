@@ -1,17 +1,25 @@
 #include "JumpPointSearch.hpp"
 #include "BoundingBox.hpp"
+#include "ExPolygon.hpp"
 #include "Point.hpp"
 #include "libslic3r/AStar.hpp"
 #include "libslic3r/KDTreeIndirect.hpp"
+#include "libslic3r/Polygon.hpp"
 #include "libslic3r/Polyline.hpp"
 #include "libslic3r/libslic3r.h"
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <iterator>
 #include <limits>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <oneapi/tbb/scalable_allocator.h>
 
 //#define DEBUG_FILES
 #ifdef DEBUG_FILES

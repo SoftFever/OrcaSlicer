@@ -150,6 +150,7 @@ public:
     void sync_ams_list();
     // Orca
     void show_SEMM_buttons(bool bshow);
+    void update_dynamic_filament_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -529,6 +530,7 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
+    void drop_selection();
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
