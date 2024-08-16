@@ -26,7 +26,7 @@ public:
 	~PresetUpdater();
 
 	// If either version check or config updating is enabled, get the appropriate data in the background and cache it.
-	void sync(std::string http_url, std::string language, std::string plugin_version, PresetBundle *preset_bundle);
+	void sync(std::string http_url, std::string language, std::string plugin_version, PresetBundle *preset_bundle, bool sync_on_start);
 
 	// If version check is enabled, check if chaced online slic3r version is newer, notify if so.
 	void slic3r_update_notify();

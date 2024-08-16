@@ -3,34 +3,34 @@ function OnInit()
 {
 	TranslatePage();
 	
-	SendInstallPluginCheck();
+	SendStealthModeCheck();
 }
 
 
 
-function SendInstallPluginCheck()
+function SendSyncOnStartCheck()
 {
 	let nVal="no";
-	if( $('#InstallCheck').is(':checked') ) 
+	if( $('#SyncCheck').is(':checked') ) 
 		nVal="yes";
 	
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="network_plugin_install";
+	tSend['command']="save_sync_on_start";
 	tSend['data']={};
 	tSend['data']['action']=nVal;
 	
-	SendWXMessage( JSON.stringify(tSend) );		
+	SendWXMessage( JSON.stringify(tSend) );
 
 	return true;
 }
 
-function GotoNextPluginPage()
+function GotoNetPluginPage()
 {
-	let bRet=SendInstallPluginCheck();
-
+	let bRet=SendStealthModeCheck();
+	
 	if(bRet)
-		window.location.href="../7orca/index.html";
+		window.location.href="../5/index.html";
 }
 
 function FinishGuide()

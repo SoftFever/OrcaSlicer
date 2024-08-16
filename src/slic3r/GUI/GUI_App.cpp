@@ -964,11 +964,12 @@ void GUI_App::post_init()
         CallAfter([this] {
             this->config_wizard_startup();
 
-            std::string http_url = get_http_url(app_config->get_country_code());
+            std::string http_url = get_http_url(app_config->get_country_code(), {}, true);
             std::string language = GUI::into_u8(current_language_code());
             std::string network_ver = Slic3r::NetworkAgent::get_version();
-            bool        sys_preset  = app_config->get("sync_system_preset") == "true";
-            this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
+            bool        sys_preset  = app_config->get_bool("sync_system_preset");
+            bool sync_on_start = app_config->get_bool("sync_on_start");
+            this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr, sync_on_start);
 
             this->check_new_version_sf();
             if (is_user_login() && !app_config->get_stealth_mode()) {
@@ -1102,9 +1103,9 @@ void GUI_App::shutdown()
 }
 
 
-std::string GUI_App::get_http_url(std::string country_code, std::string path)
+std::string GUI_App::get_http_url(std::string country_code, std::string path, bool override_stealth_mode)
 {
-    if (app_config->get_stealth_mode()) {
+    if (app_config->get_stealth_mode() && !override_stealth_mode) {
         return "";
     }
 
