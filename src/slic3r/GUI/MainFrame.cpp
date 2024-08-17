@@ -2813,15 +2813,16 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     auto flowrate_menu = new wxMenu();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO flowrate calibration"), _L("Orca YOLO flowrate calibration"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate_linear(); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 1(deprecated)"), _L("Flow rate test - Pass 1(deprecated)"),
+        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2(deprecated)"), _L("Flow rate test - Pass 2(deprecated)"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO flowrate calibration"), _L("Orca YOLO flowrate calibration"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate_linear(); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
@@ -2905,18 +2906,19 @@ void MainFrame::init_menubar_as_editor()
         
     // Flowrate
     auto flowrate_menu = new wxMenu();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO flowrate calibration"), _L("Orca YOLO flowrate calibration"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate_linear(); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1(deprecated)"), _L("Flow rate test - Pass 1(deprecated)"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2(deprecated)"), _L("Flow rate test - Pass 2(deprecated)"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
-
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO flowrate calibration"), _L("Orca YOLO flowrate calibration"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate_linear(); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
     // PA
     append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
         [this](wxCommandEvent&) {
