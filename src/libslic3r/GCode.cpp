@@ -3995,6 +3995,35 @@ LayerResult GCode::process_layer(
                     path.height = layer_skirt_flow.height();
                     path.mm3_per_mm = mm3_per_mm;
                 }
+
+                //set skirt start point location
+                if (i==0) {
+                    coord_t min_x = std::numeric_limits<coord_t>::max();
+                    coord_t max_x = std::numeric_limits<coord_t>::min();
+                    coord_t min_y = min_x;
+                    coord_t max_y = max_x;
+
+                    Points pts;
+                    loop.collect_points(pts);
+                    for (Point pt: pts) {
+                        if (pt.x() < min_x)
+                            min_x = pt.x();
+                        else if (pt.x() > max_x)
+                            max_x = pt.x();
+                        if (pt.y() < min_y)
+                            min_y = pt.y();
+                        else if (pt.y() > max_y)
+                            max_y = pt.y();
+                    }
+
+                    Point center((min_x + max_x)/2., (min_y + max_y)/2.);
+                    double r = center.distance_to(Point(min_x, min_y));
+                    double deg = m_config.skirt_start_angle.value * PI / 180;
+                    double shift_x = r * std::cos(deg);
+                    double shift_y = r * std::sin(deg);
+
+                    this->set_last_pos(Point(center.x()+shift_x, center.y() + shift_y));
+                }
                 //FIXME using the support_speed of the 1st object printed.
                 gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
             }

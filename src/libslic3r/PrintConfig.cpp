@@ -3981,6 +3981,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2));
 
+    def = this->add("skirt_start_angle", coFloat);
+    def->label = L("Skirt start point");
+    def->tooltip = L("Angle from the object center to skirt start point. Zero is the most right position, counter clockwise is positive angle.");
+    def->sidetext = L("°");
+    def->min = -180;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-135));
+
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
     //def->label = "Skirt height";

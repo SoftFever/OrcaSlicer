@@ -225,6 +225,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "min_skirt_length"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
+            || opt_key == "skirt_start_angle"
             || opt_key == "ooze_prevention"
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"

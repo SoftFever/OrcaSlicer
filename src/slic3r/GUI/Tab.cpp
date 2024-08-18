@@ -61,7 +61,7 @@ namespace GUI {
 
 #define DISABLE_UNDO_SYS
 
-static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
+static const std::vector<std::string> plate_keys = { "curr_bed_type", "skirt_start_angle", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
 
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
@@ -2321,6 +2321,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
+        optgroup->append_single_option_line("skirt_start_angle");
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
@@ -2789,6 +2790,7 @@ void TabPrintPlate::build()
     auto page = add_options_page(L("Plate Settings"), "empty");
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
+    optgroup->append_single_option_line("skirt_start_angle");        
     optgroup->append_single_option_line("print_sequence");
     optgroup->append_single_option_line("spiral_mode");
     optgroup->append_single_option_line("first_layer_sequence_choice");
@@ -2837,6 +2839,8 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
             auto plate = dynamic_cast<PartPlate*>(plate_item.first);
             if (k == "curr_bed_type")
                 plate->reset_bed_type();
+            if (k == "skirt_start_angle")
+                plate->config()->erase("skirt_start_angle");
             if (k == "print_sequence")
                 plate->set_print_seq(PrintSequence::ByDefault);
             if (k == "first_layer_sequence_choice")
@@ -2859,6 +2863,10 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
             if (k == "curr_bed_type") {
                 bed_type = m_config->opt_enum<BedType>("curr_bed_type");
                 plate->set_bed_type(BedType(bed_type));
+            }
+            if (k == "skirt_start_angle") {
+                float angle = m_config->opt_float("skirt_start_angle");
+                plate->config()->set_key_value("skirt_start_angle", new ConfigOptionFloat(angle));
             }
             if (k == "print_sequence") {
                 print_seq = m_config->opt_enum<PrintSequence>("print_sequence");
