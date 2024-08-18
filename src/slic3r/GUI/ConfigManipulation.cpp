@@ -569,7 +569,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : { "skirt_distance", "draft_shield"})
+    for (auto el : { "skirt_distance", "skirt_start_angle", "draft_shield"})
         toggle_field(el, have_skirt);
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);

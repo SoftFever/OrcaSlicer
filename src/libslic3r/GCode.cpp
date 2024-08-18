@@ -3425,6 +3425,33 @@ namespace Skirt {
         return skirt_loops_per_extruder_out;
     }
 
+    static Point find_start_point(ExtrusionLoop& loop, float start_angle) {
+        coord_t min_x = std::numeric_limits<coord_t>::max();
+        coord_t max_x = std::numeric_limits<coord_t>::min();
+        coord_t min_y = min_x;
+        coord_t max_y = max_x;
+
+        Points pts;
+        loop.collect_points(pts);
+        for (Point pt: pts) {
+            if (pt.x() < min_x)
+                min_x = pt.x();
+            else if (pt.x() > max_x)
+                max_x = pt.x();
+            if (pt.y() < min_y)
+                min_y = pt.y();
+            else if (pt.y() > max_y)
+                max_y = pt.y();
+        }
+
+        Point center((min_x + max_x)/2., (min_y + max_y)/2.);
+        double r       = center.distance_to(Point(min_x, min_y));
+        double deg     = start_angle * PI / 180;
+        double shift_x = r * std::cos(deg);
+        double shift_y = r * std::sin(deg);
+        return Point(center.x()+shift_x, center.y() + shift_y);
+    }
+
 } // namespace Skirt
 
 // Orca: Klipper can't parse object names with spaces and other spetical characters
@@ -3995,6 +4022,11 @@ LayerResult GCode::process_layer(
                     path.height = layer_skirt_flow.height();
                     path.mm3_per_mm = mm3_per_mm;
                 }
+
+                //set skirt start point location
+                if (first_layer && i==loops.first)
+                    this->set_last_pos(Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle));
+
                 //FIXME using the support_speed of the 1st object printed.
                 gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
             }
