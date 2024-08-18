@@ -136,6 +136,7 @@ void ArrangeJob::prepare_selected() {
                 inst_sel[size_t(inst_id)] = true;
 
         for (size_t i = 0; i < inst_sel.size(); ++i) {
+            ModelInstance* mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
@@ -207,6 +208,7 @@ void ArrangeJob::prepare_all() {
         ModelObject *mo = model.objects[oidx];
 
         for (size_t i = 0; i < mo->instances.size(); ++i) {
+            ModelInstance * mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
@@ -322,6 +324,7 @@ void ArrangeJob::prepare_wipe_tower()
     wipe_tower_ap.name = "WipeTower";
     wipe_tower_ap.is_virt_object = true;
     wipe_tower_ap.is_wipe_tower = true;
+    const GLCanvas3D* canvas3D = static_cast<const GLCanvas3D*>(m_plater->canvas3D());
 
     std::set<int> extruder_ids;
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
@@ -527,6 +530,7 @@ void ArrangeJob::process(Ctl &ctl)
     auto & partplate_list = m_plater->get_partplate_list();
 
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor();
     if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);

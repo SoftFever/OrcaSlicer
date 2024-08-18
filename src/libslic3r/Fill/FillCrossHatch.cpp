@@ -1,5 +1,6 @@
 #include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
+#include "../Surface.hpp"
 #include <cmath>
 
 #include "FillCrossHatch.hpp"
@@ -64,6 +65,7 @@ static Polylines generate_transform_pattern(double inprogress, int direction, co
     odd_poly.points.reserve(num_of_cycle * one_cycle.size());
 
     // replicate to odd line
+    Point translate = Point(0, 0);
     for (size_t i = 0; i < num_of_cycle; i++) {
         Polyline odd_points;
         odd_points = Polyline(one_cycle);
@@ -150,6 +152,7 @@ static Polylines generate_infill_layers(coordf_t z_height, double repeat_ratio, 
     coordf_t  period            = trans_layer_size + repeat_layer_size;
     coordf_t  remains           = z_height - std::floor(z_height / period) * period;
     coordf_t  trans_z           = remains - repeat_layer_size; // put repeat layer first.
+    coordf_t  repeat_z          = remains;
 
     int phase     = fmod(z_height, period * 2) - (period - 1); // add epsilon
     int direction = phase <= 0 ? -1 : 1;

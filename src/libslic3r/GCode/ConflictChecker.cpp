@@ -28,6 +28,7 @@ inline Grids line_rasterization(const Line &line, int64_t xdist = scale_(1), int
     Point     rayStart     = line.a;
     Point     rayEnd       = line.b;
     IndexPair currentVoxel = point_map_grid_index(rayStart, xdist, ydist);
+    IndexPair firstVoxel   = currentVoxel;
     IndexPair lastVoxel    = point_map_grid_index(rayEnd, xdist, ydist);
 
     Point ray = rayEnd - rayStart;

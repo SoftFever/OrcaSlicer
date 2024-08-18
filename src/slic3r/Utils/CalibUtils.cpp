@@ -519,7 +519,7 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
-    // float xyScale         = nozzle_diameter / 0.6;
+    float xyScale         = nozzle_diameter / 0.6;
     // scale z to have 7 layers
     double first_layer_height = print_config.option<ConfigOptionFloat>("initial_layer_print_height")->value;
     double layer_height       = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
@@ -618,7 +618,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
 
     float nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
 
@@ -627,11 +627,11 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
             full_config, print_config.get_abs_value("line_width"),
             print_config.get_abs_value("layer_height"), 0)));
     
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
     }
 
@@ -1067,6 +1067,7 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     {
         GLVolumeCollection glvolume_collection;
         std::vector<ColorRGBA> colors_out(1);
+        unsigned char  rgb_color[4] = {255, 255, 255, 255};
         ColorRGBA new_color {1.0f, 1.0f, 1.0f, 1.0f};
         colors_out.push_back(new_color);
 
@@ -1079,9 +1080,9 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
             const ModelObject &model_object = *model->objects[obj_idx];
 
             for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
-                // const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                const ModelVolume &model_volume = *model_object.volumes[volume_idx];
                 for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
-                    // const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                    const ModelInstance &model_instance = *model_object.instances[instance_idx];
                     glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
                     glvolume_collection.volumes.back()->set_render_color(new_color);
                     glvolume_collection.volumes.back()->set_color(new_color);
@@ -1127,11 +1128,11 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
     store_params.strategy = SaveStrategy::Silence | SaveStrategy::WithGcode | SaveStrategy::SplitModel | SaveStrategy::SkipModel;
 
-    Slic3r::store_bbs_3mf(store_params);
+    bool success = Slic3r::store_bbs_3mf(store_params);
 
     store_params.strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithSliceInfo | SaveStrategy::SkipAuxiliary;
     store_params.path = config_3mf_path.c_str();
-    Slic3r::store_bbs_3mf(store_params);
+    success           = Slic3r::store_bbs_3mf(store_params);
 
     release_PlateData_list(plate_data_list);
     return true;

@@ -226,7 +226,7 @@ SelectMObjectPopup::SelectMObjectPopup(wxWindow* parent)
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     Bind(EVT_UPDATE_USER_MLIST, &SelectMObjectPopup::update_machine_list, this);
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &SelectMObjectPopup::on_timer, this);
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMObjectPopup::on_dissmiss_win, this);
 }
 
@@ -265,7 +265,7 @@ void SelectMObjectPopup::Popup(wxWindow* WXUNUSED(focus))
         }
     }
 
-    on_timer();
+    wxPostEvent(this, wxTimerEvent());
     PopupWindow::Popup();
 }
 
@@ -304,7 +304,7 @@ bool SelectMObjectPopup::Show(bool show) {
     return PopupWindow::Show(show);
 }
 
-void SelectMObjectPopup::on_timer()
+void SelectMObjectPopup::on_timer(wxTimerEvent& event)
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMObjectPopup on_timer";
     wxGetApp().reset_to_active();
@@ -459,7 +459,7 @@ CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoin
     Layout();
 
     init_timer();
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &CalibrationPanel::on_timer, this);
 }
 
 void CalibrationPanel::init_tabpanel() {
@@ -502,10 +502,10 @@ void CalibrationPanel::init_timer()
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(REFRESH_INTERVAL);
-    on_timer();
+    wxPostEvent(this, wxTimerEvent());
 }
 
-void CalibrationPanel::on_timer() {
+void CalibrationPanel::on_timer(wxTimerEvent& event) {
     update_all();
 }
 
@@ -644,7 +644,7 @@ bool CalibrationPanel::Show(bool show) {
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
-        on_timer();
+        wxPostEvent(this, wxTimerEvent());
 
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (dev) {
@@ -670,6 +670,9 @@ bool CalibrationPanel::Show(bool show) {
 
 void CalibrationPanel::on_printer_clicked(wxMouseEvent& event)
 {
+    auto mouse_pos = ClientToScreen(event.GetPosition());
+    wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
+
     if (!m_side_tools->is_in_interval()) {
         wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;

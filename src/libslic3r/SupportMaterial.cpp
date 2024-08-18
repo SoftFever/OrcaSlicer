@@ -338,7 +338,7 @@ static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag 
         rand_init = true;
     }
 
-    // int rand_num = rand() % 1000000;
+    int rand_num = rand() % 1000000;
     //makedir("./SVG");
     std::string prefix = "./SVG/";
     std::string suffix = ".svg";
@@ -1554,6 +1554,7 @@ static inline ExPolygons detect_overhangs(
     double thresh_angle = object_config.support_threshold_angle.value > 0 ? object_config.support_threshold_angle.value + 1 : 0;
     thresh_angle = std::min(thresh_angle, 89.); // BBS should be smaller than 90
     const double threshold_rad = Geometry::deg2rad(thresh_angle);
+    const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
     const bool bridge_no_support = object_config.bridge_no_support.value;
     const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
 
@@ -1576,6 +1577,7 @@ static inline ExPolygons detect_overhangs(
     {
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
         // Can't directly use lower_layer.lslices, or we'll miss some very sharp tails.
         // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
         // FIXME if there are multiple regions with different extrusion width, the following code may not be right.
@@ -1687,6 +1689,7 @@ static inline ExPolygons detect_overhangs(
     // check cantilever
     if (layer.lower_layer) {
         for (ExPolygon& poly : overhang_areas) {
+            float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
             auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, scale_(0.5)));
             Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
             if (cluster_boundary.empty()) continue;
@@ -1731,6 +1734,7 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
     Polygons enforcer_polygons;
 
     // BBS.
+    const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
     const bool   buildplate_only = !annotations.buildplate_covered.empty();
     float        no_interface_offset = 0.f;
 
@@ -1744,6 +1748,8 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer& lower_layer = *layer.lower_layer;
         const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
+        const ExPolygons& lower_layer_expolys = lower_layer.lslices;
+        const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
 
         // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
         auto slices_margin_update =
@@ -2181,6 +2187,7 @@ struct OverhangCluster {
 
 static OverhangCluster* add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
     OverhangCluster* cluster = nullptr;
+    bool found = false;
     for (int i = 0; i < clusters.size(); i++) {
         auto cluster_i = &clusters[i];
         if (cluster_i->intersects(*overhang, layer_nr)) {
@@ -3539,13 +3546,13 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
     // distinguish between interface and base interface layers
     // Contact layer is considered an interface layer, therefore run the following block only if support_interface_top_layers > 1.
     // Contact layer needs a base_interface layer, therefore run the following block if support_interface_top_layers > 0, has soluble support and extruders are different.
-//    bool   soluble_interface_non_soluble_base =
-//        // Zero z-gap between the overhangs and the support interface.
-//        m_slicing_params.soluble_interface &&
-//        // Interface extruder soluble.
-//        m_object_config->support_interface_filament.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_interface_filament.value - 1) &&
-//        // Base extruder: Either "print with active extruder" not soluble.
-//        (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
+    bool   soluble_interface_non_soluble_base =
+        // Zero z-gap between the overhangs and the support interface.
+        m_slicing_params.soluble_interface && 
+        // Interface extruder soluble.
+        m_object_config->support_interface_filament.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_interface_filament.value - 1) && 
+        // Base extruder: Either "print with active extruder" not soluble.
+        (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
     bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
     // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
     bool differnt_support_interface_filament = m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
@@ -4621,6 +4628,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
                 if (object_layer != nullptr) {
                     float biggest_bridge_area = 0.f;
+                    const Polygons& top_contact_polys = top_contact_layer.polygons_to_extrude();
                     for (auto layerm : object_layer->regions()) {
                         for (auto bridge_surface : layerm->fill_surfaces.filter_by_type(stBottomBridge)) {
                             float bs_area = bridge_surface->area();

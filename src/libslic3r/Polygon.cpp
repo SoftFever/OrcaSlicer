@@ -355,6 +355,8 @@ Polygon Polygon::transform(const Transform3d& trafo) const
     if (vertices_count == 0)
         return dstpoly;
 
+    unsigned int data_size = 3 * vertices_count * sizeof(float);
+
     Eigen::MatrixXd src(3, vertices_count);
     for (size_t i = 0; i < vertices_count; i++)
     {

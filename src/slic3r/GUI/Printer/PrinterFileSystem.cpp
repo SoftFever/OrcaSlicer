@@ -548,6 +548,7 @@ void PrinterFileSystem::BuildGroups()
 void PrinterFileSystem::UpdateGroupSelect()
 {
     m_group_flags.clear();
+    int beg = 0;
     if (m_group_mode != G_NONE) {
         auto group = m_group_mode == G_YEAR ? m_group_year : m_group_month;
         if (m_group_mode == G_YEAR)

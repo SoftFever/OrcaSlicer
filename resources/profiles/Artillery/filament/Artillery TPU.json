@@ -29,10 +29,10 @@
         "0.4"
     ],
     "hot_plate_temp": [
-        "70"
+        "45"
     ],
     "hot_plate_temp_initial_layer": [
-        "70"
+        "45"
     ],
     "inherits": "Artillery Generic PLA",
     "name": "Artillery TPU",
@@ -49,22 +49,28 @@
         "200"
     ],
     "fan_max_speed": [
-        "80"
+        "100"
     ],
     "fan_min_speed": [
-        "60"
+        "100"
     ],
     "fan_cooling_layer_time": [
-        "80"
+        "100"
     ],
     "slow_down_layer_time": [
         "8"
     ],
     "filament_max_volumetric_speed": [
-        "18"
+        "3.6"
     ],
     "temperature_vitrification": [
         "190"
+    ],
+	"filament_density": [
+        "1.22"
+    ],
+	"overhang_fan_threshold": [
+        "95%"
     ],
     "version": "2.0.2.0"
 }

@@ -396,9 +396,10 @@ Sidebar::priv::~priv()
 
 void Sidebar::priv::show_preset_comboboxes()
 {
+    const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
+
 //BBS
 #if 0
-    const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
     for (size_t i = 0; i < 4; ++i)
         sizer_presets->Show(i, !showSLA);
 
@@ -1157,7 +1158,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     // BBS:  filament double columns
-    // int em = wxGetApp().em_unit();
+    int em = wxGetApp().em_unit();
     combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
@@ -1325,6 +1326,7 @@ void Sidebar::update_all_preset_comboboxes()
 void Sidebar::update_presets(Preset::Type preset_type)
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preset_type %1%")%preset_type;
     switch (preset_type) {
@@ -1332,7 +1334,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
     {
         // BBS
 #if 0
-        const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
         const size_t extruder_cnt = print_tech != ptFFF ? 1 :
                                 dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
         const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
@@ -1788,7 +1789,7 @@ void Sidebar::sync_ams_list()
 
     // BBS:Record consumables information before synchronization
     std::vector<string> color_before_sync;
-    std::vector<bool> is_support_before;
+    std::vector<int> is_support_before;
     DynamicPrintConfig& project_config = wxGetApp().preset_bundle->project_config;
     ConfigOptionStrings* color_opt = project_config.option<ConfigOptionStrings>("filament_colour");
     for (int i = 0; i < p->combos_filament.size(); ++i) {
@@ -2027,13 +2028,18 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
 {
     auto& preset_bundle = wxGetApp().preset_bundle;
     auto& project_config = preset_bundle->project_config;
+    auto& printer_config = preset_bundle->printers.get_edited_preset().config;
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
+    auto& ams_filament_list = preset_bundle->filament_ams_list;
 
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+    const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
 
     const std::vector<int>&   min_flush_volumes= get_min_flush_volumes(full_config);
 
+    ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
+    float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
     std::vector<double> matrix = init_matrix;
     int m_max_flush_volume = Slic3r::g_max_flush_volume;
     unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
@@ -2931,7 +2937,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
     //BBS: GUI refactor
-    // wxGLCanvas* preview_canvas = preview->get_wxglcanvas();
+    wxGLCanvas* preview_canvas = preview->get_wxglcanvas();
 
     if (wxGetApp().is_editor()) {
         // 3DScene events:
@@ -3649,8 +3655,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     std::string  designer_model_id;
     std::string  designer_country_code;
 
+    int answer_convert_from_meters          = wxOK_DEFAULT;
+    int answer_convert_from_imperial_units  = wxOK_DEFAULT;
     int tolal_model_count                   = 0;
 
+    int progress_percent = 0;
     int total_files = input_files.size();
     const int stage_percent[IMPORT_STAGE_MAX+1] = {
             5,      // IMPORT_STAGE_RESTORE
@@ -3817,7 +3826,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
                             text += "\n";
-                            // bool     first = true;
+                            bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
                             // if (wxGetApp().app_config->get("user_mode") == "develop") {
@@ -3923,7 +3932,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
 
                         // Based on the printer technology field found in the loaded config, select the base for the config,
-                        // PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
+                        PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
 
                         config.apply(static_cast<const ConfigBase &>(FullPrintConfig::defaults()));
                         // and place the loaded config over the base.
@@ -3978,7 +3987,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                                 MessageDialog dlg(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
                                 dlg.show_dsa_button();
-                                dlg.ShowModal();
+                                auto  res = dlg.ShowModal();
                                 if (dlg.get_checkbox_state())
                                     wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
                             }
@@ -3991,7 +4000,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 //show_info(q, _L("The 3mf has following customized filament or printer presets:") + warning_message + _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
                                 MessageDialog dlg(q, _L("The 3mf has following customized filament or printer presets:") + from_u8(warning_message)+ _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
                                 dlg.show_dsa_button();
-                                dlg.ShowModal();
+                                auto  res = dlg.ShowModal();
                                 if (dlg.get_checkbox_state())
                                     wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
                             }
@@ -4494,7 +4503,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #ifndef AUTOPLACEMENT_ON_LOAD
     // bool need_arrange = false;
 #endif /* AUTOPLACEMENT_ON_LOAD */
-    // bool scaled_down = false;
+    bool scaled_down = false;
     std::vector<size_t> obj_idxs;
     unsigned int obj_count = model.objects.size();
 
@@ -4531,15 +4540,15 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             const Vec3d ratio = size.cwiseQuotient(bed_size);
             const double max_ratio = std::max(ratio(0), ratio(1));
             if (max_ratio > 10000) {
-                MessageDialog dlg(q, _L("Your object appears to be too large. It will be scaled down to fit the heat bed automatically."), _L("Object too large"),
-                                  wxICON_QUESTION | wxOK);
-                dlg.ShowModal();
+                MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
+                                  wxICON_QUESTION | wxYES);
+                int           answer = dlg.ShowModal();
                 // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
                 // so scale down the mesh
                 object->scale_mesh_after_creation(1. / max_ratio);
                 object->origin_translation = Vec3d::Zero();
                 object->center_around_origin();
-                // scaled_down = true;
+                scaled_down = true;
                 break;
             }
             else if (max_ratio > 10) {
@@ -4548,7 +4557,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                 int           answer = dlg.ShowModal();
                 if (answer == wxID_YES) {
                     instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
-                    // scaled_down = true;
+                    scaled_down = true;
                 }
             }
         }
@@ -5302,7 +5311,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             process_validation_warning(warning);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
-                // const Print* print = background_process.fff_print();
+                const Print* print = background_process.fff_print();
                 //Polygons polygons;
                 //if (print->config().print_sequence == PrintSequence::ByObject)
                 //    Print::sequential_print_clearance_valid(*print, &polygons);
@@ -6446,6 +6455,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     int selection = combo->GetSelection();
     std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[selection];
 
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
 
@@ -8284,7 +8294,7 @@ void Plater::priv::on_create_filament(SimpleEvent &)
         update_ui_from_settings();
         sidebar->update_all_preset_comboboxes();
         CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
-        success_dlg.ShowModal();
+        int                          res = success_dlg.ShowModal();
     }
 }
 
@@ -8396,7 +8406,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     // BBS: add partplate logic
     if (this->printer_technology == ptFFF) {
-        // const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
         const DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
         const ConfigOptionFloats* tower_x_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_x");
         const ConfigOptionFloats* tower_y_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_y");
@@ -8506,7 +8516,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
     // BBS: add partplate logic
     if (this->printer_technology == ptFFF) {
-        // const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
         const DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
         const ConfigOptionFloats* tower_x_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_x");
         const ConfigOptionFloats* tower_y_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_y");
@@ -8573,7 +8583,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
         // BBS: add partplate logic
         if (this->printer_technology == ptFFF) {
-            // const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             const DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
             ConfigOptionFloats* tower_x_opt = const_cast<ConfigOptionFloats*>(proj_cfg.option<ConfigOptionFloats>("wipe_tower_x"));
             ConfigOptionFloats* tower_y_opt = const_cast<ConfigOptionFloats*>(proj_cfg.option<ConfigOptionFloats>("wipe_tower_y"));
@@ -8754,6 +8764,7 @@ void Plater::priv::record_start_print_preset(std::string action) {
         }
 
         j["record_event"] = action;
+        NetworkAgent* agent = wxGetApp().getAgent();
     }
     catch (...) {
         return;
@@ -8956,7 +8967,7 @@ void Plater::load_project(wxString const& filename2,
 
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << (load_restore ? originfile : filename);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
         p->set_project_filename(load_restore ? originfile : filename);
         if (load_restore && originfile.IsEmpty()) {
         p->set_project_name(_L("Untitled"));
@@ -9038,6 +9049,8 @@ int Plater::save_project(bool saveAs)
         boost::uintmax_t size = boost::filesystem::file_size(into_path(filename));
         j["file_size"] = size;
         j["file_name"] = std::string(filename.mb_str());
+
+        NetworkAgent* agent = wxGetApp().getAgent();
     }
     catch (...) {}
 
@@ -9070,7 +9083,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
     }
-    catch (std::exception&)
+    catch (const std::exception& error)
     {
         //wxString sError = error.what();
     }
@@ -9111,6 +9124,8 @@ void Plater::import_model_id(wxString download_info)
 //        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
 //        if (!m_agent) return;
 
+        int res = 0;
+        unsigned int http_code;
         std::string http_body;
 
         msg = _L("prepare 3mf file...");
@@ -9149,7 +9164,7 @@ void Plater::import_model_id(wxString download_info)
                 if (sFile == filename) is_already_exist = true;
             }
         }
-        catch (std::exception&)
+        catch (const std::exception& error)
         {
             //wxString sError = error.what();
         }
@@ -9451,21 +9466,21 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
     }
     
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
@@ -9903,6 +9918,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     add_model(false, Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl");
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto obj = model().objects[0];
 
@@ -10233,7 +10249,7 @@ bool Plater::preview_zip_archive(const boost::filesystem::path& archive_path)
                             std::replace(name.begin(), name.end(), '\\', '/');
                             // rename if file exists
                             std::string filename = path.filename().string();
-                            std::string extension = path.extension().string();
+                            std::string extension = boost::filesystem::extension(path);
                             std::string just_filename = filename.substr(0, filename.size() - extension.size());
                             std::string final_filename = just_filename;
 
@@ -10539,6 +10555,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     auto limit_width   = m_fname_f->GetSize().GetWidth() - 2;
     auto current_width = 0;
+    auto cut_index     = 0;
     auto fstring       = wxString("");
     auto bstring       = wxString("");
 
@@ -10546,6 +10563,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     auto file_name = wxString(filename);
     for (int x = 0; x < file_name.length(); x++) {
         current_width += m_fname_s->GetTextExtent(file_name[x]).GetWidth();
+        cut_index = x;
 
         if (current_width > limit_width) {
             bstring += file_name[x];
@@ -11448,6 +11466,7 @@ void Plater::export_gcode(bool prefer_removable)
             if (preset_bundle) {
                 j["gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
             }
+            NetworkAgent *agent = wxGetApp().getAgent();
         } catch (...) {}
 
     }
@@ -11557,7 +11576,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     std::vector<csg::CSGPart> csgmesh;
     csgmesh.reserve(2 * mo.volumes.size());
-    csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+    bool has_splitable_volume = csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
         
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
@@ -11637,9 +11656,9 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
 
     wxBusyCursor wait;
     const auto& selection = p->get_selection();
+    const auto obj_idx = selection.get_object_idx();
 
 #if EXPORT_WITH_BOOLEAN
-    const auto obj_idx = selection.get_object_idx();
     if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
         return;
 #else
@@ -12402,6 +12421,7 @@ void Plater::record_slice_preset(std::string action)
         }
 
         j["record_event"] = action;
+        NetworkAgent* agent = wxGetApp().getAgent();
     }
     catch (...)
     {
@@ -12584,7 +12604,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         p->m_print_job_data._3mf_path = fs::path(plate->get_tmp_gcode_path());
         p->m_print_job_data._3mf_path.replace_extension("3mf");
     }
-    catch (std::exception&) {
+    catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
         return -1;
     }
@@ -12617,7 +12637,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
     try {
         p->m_print_job_data._3mf_config_path = fs::path(plate->get_temp_config_3mf_path());
     }
-    catch (std::exception&) {
+    catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
         return -1;
     }
