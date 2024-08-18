@@ -8,13 +8,13 @@ The Wiki is work in progress so bear with us while we get it up and running!
 The below sections provide a detailed settings explanation as well as tips and tricks in setting these for optimal print results.
 
 ### Quality Settings
-- [Layer Height Settings](print_settings/quality/quality_settings_layer_height)
-- [Line Width Settings](print_settings/quality/quality_settings_line_width)
-- [Seam Settings](print_settings/quality/quality_settings_seam)
+- [Layer Height Settings](quality_settings_layer_height)
+- [Line Width Settings](quality_settings_line_width)
+- [Seam Settings](quality_settings_seam)
 - [Precise wall](Precise-wall)
 
 ### Speed Settings
-- [Extrusion rate smoothing](print_settings/speed/extrusion-rate-smoothing)
+- [Extrusion rate smoothing](extrusion-rate-smoothing)
 
 ### Multi material
 - [Single Extruder Multimaterial](semm)
