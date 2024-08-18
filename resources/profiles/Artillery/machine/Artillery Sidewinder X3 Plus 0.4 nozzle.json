@@ -123,8 +123,8 @@
         "0",
         "0"
     ],
-    "machine_pause_gcode": "M0",
-    "machine_start_gcode": "M140 S60\nM104 S160\nM190 S[first_layer_bed_temperature]\nM109 S{temperature_vitrification[0]}\nM211 S0\nG1 Z-0.2 F1000\nG1 X285 F3600\nG1 X260 F3600\nG1 X285 F3600\nG1 X260 F3600\nG1 X230 F3600\nG1 X260 F3600\nG1 X230 F3600\nG1 X260 F3600\nG92 E0\nG1 Z1.0 F3000 ; move z up little to prevent scratching of surface\nG1 X180 Y303 Z0.1 F6000.0 ; move to start-line position\nG1 X70   Y303 Z0.1 F1000.0 E15.0 ; draw 1st line\nG1 X70   Y303 Z0.2 F1000.0  ; move to side a little\nG1 X180 Y303 Z0.2 F1000.0 E30.0 ; draw 2st line\nG92 E0 ; reset extruder\nG1 E-2 Z5 F1800 ; move z up little to prevent scratching of surface\nG92 E0\nG1 Y300 F1800\nM211 S1\nM140 S[first_layer_bed_temperature];\nM104 S[first_layer_temperature];",
+    "machine_pause_gcode": "M600",
+    "machine_start_gcode": "M140 S60\nM104 S140\nM190 S[first_layer_bed_temperature]\nM109 S{temperature_vitrification[0]}\nG28;\nNOZZLE_WIPE\nM140 S[first_layer_bed_temperature];\nM104 S[first_layer_temperature];\nDRAW_LINE_ONLY",
     "machine_unload_filament_time": "0",
     "manual_filament_change": "0",
     "max_layer_height": [
