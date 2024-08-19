@@ -277,7 +277,7 @@ static wxArrayString get_exist_vendor_choices(VendorMap& vendors)
         vendors[users_models.name] = users_models;
     }
 
-    for (const pair<std::string, VendorProfile> &vendor : vendors) {
+    for (const auto& vendor : vendors) {
         if (vendor.second.models.empty() || vendor.second.id.empty()) continue;
         choices.Add(vendor.first);
     }
@@ -658,11 +658,11 @@ void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
 
 bool CreateFilamentPresetDialog::is_check_box_selected()
 {
-    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+    for (const auto& checkbox_preset : m_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
-    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+    for (const auto& checkbox_preset : m_machint_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
@@ -693,7 +693,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5)); 
 
     wxArrayString choices;
-    for (const wxString &vendor : filament_vendors) {
+    for (const wxString vendor : filament_vendors) {
         choices.push_back(vendor);
     }
     choices.Sort();
@@ -775,7 +775,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
-    for (const wxString &filament : m_system_filament_types_set) {
+    for (const wxString filament : m_system_filament_types_set) {
         filament_type.Add(filament);
     }
     filament_type.Sort();
@@ -1050,7 +1050,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         
         if (curr_create_type == m_create_type.base_filament) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament  create type  filament ";
-            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+            for (const auto& checkbox_preset : m_filament_preset) {
                 if (checkbox_preset.first->GetValue()) { 
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -1077,7 +1077,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             }
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament presets  create type  filament preset";
-            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+            for (const auto& checkbox_preset : m_machint_filament_preset) {
                 if (checkbox_preset.first->GetValue()) {
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -1155,7 +1155,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
     }
     
     int suffix = 0;
-    for (const pair<std::string, std::vector<Preset *>> &preset : m_filament_choice_map) { 
+    for (const auto& preset : m_filament_choice_map) {
         if (preset.second.empty()) continue;
         std::set<wxString> preset_name_set;
         for (Preset* filament_preset : preset.second) { 
@@ -1752,7 +1752,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_nozzle_diameter         = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, OPTION_SIZE, 0, nullptr, wxCB_READONLY);
     wxArrayString nozzle_diameters;
-    for (const std::string nozzle : nozzle_diameter_vec) { 
+    for (const std::string& nozzle : nozzle_diameter_vec) {
         nozzle_diameters.Add(nozzle + " mm");
     }
     m_nozzle_diameter->Set(nozzle_diameters);
@@ -3899,7 +3899,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 BOOST_LOG_TRIVIAL(info) << "Filament preset json add successful: " << filament_preset->name;
             }
             
-            for (const std::pair<std::string, json>& vendor_name_to_json : vendor_structure) {
+            for (const auto& vendor_name_to_json : vendor_structure) {
                 json j;
                 std::string printer_vendor = vendor_name_to_json.first;
                 j["vendor"]                = printer_vendor;

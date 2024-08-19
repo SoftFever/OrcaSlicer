@@ -3538,7 +3538,7 @@ void check_model_ids_validity(const Model &model)
         for (const ModelInstance *model_instance : model_object->instances)
             check(model_instance->id());
     }
-    for (const auto mm : model.materials) {
+    for (const auto& mm : model.materials) {
         check(mm.second->id());
         check(mm.second->config.id());
     }
