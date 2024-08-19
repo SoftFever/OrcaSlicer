@@ -1052,7 +1052,16 @@ void PrintConfigDef::init_fff_params()
     def = this->add("slowdown_for_curled_perimeters", coBool);
     def->label = L("Slow down for curled perimeters");
     def->category = L("Speed");
-    def->tooltip = L("Enable this option to slow printing down in areas where potential curled perimeters may exist");
+    def->tooltip = L("Enable this option to slow down printing in areas where perimeters may have curled upwards."
+                     "For example, additional slowdown will be applied when printing overhangs on sharp corners like the "
+                     "front of the Benchy hull, reducing curling which compounds over multiple layers.\n\n "
+                     "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the "
+                     "print speed slow enough that perimeter curling does not happen. If printing with a high external perimeter speed, "
+                     "this parameter may introduce slight artifacts when slowing down due to the large variance in print speeds. "
+                     "If you notice artifacts, ensure your pressure advance is tuned correctly.\n\n"
+                     "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is "
+                     "applied even if the overhanging perimeter is part of a bridge. For example, when the perimeters are 100% overhanging"
+                     ", with no wall supporting them from underneath, the 100% overhang speed will be applied.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{ false });
 
@@ -1105,7 +1114,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_speed", coFloat);
     def->label = L("External");
     def->category = L("Speed");
-    def->tooltip = L("Speed of bridge and completely overhang wall");
+    def->tooltip = L("Speed of the externally visible bridge extrusions. "
+                     "\n\nIn addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, "
+                     "it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge "
+                     "or an overhang.");
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
@@ -1114,7 +1126,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_bridge_speed", coFloatOrPercent);
     def->label = L("Internal");
     def->category = L("Speed");
-    def->tooltip = L("Speed of internal bridge. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
+    def->tooltip = L("Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "bridge_speed";
     def->min = 1;
