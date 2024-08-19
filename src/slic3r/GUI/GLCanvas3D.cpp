@@ -1490,6 +1490,8 @@ void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
     m_config = config;
     m_layers_editing.set_config(config);
+    
+    // Orca: Filament shrinkage compensation
     const Print *print = fff_print();
     if (print != nullptr)
         m_layers_editing.set_shrinkage_compensation(fff_print()->shrinkage_compensation());
