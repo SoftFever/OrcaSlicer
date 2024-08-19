@@ -116,6 +116,7 @@ class NetworkAgent
 {
 
 public:
+    static std::string get_libpath_in_current_directory(std::string library_name);
     static int initialize_network_module(bool using_backup = false);
     static int unload_network_module();
 #if defined(_MSC_VER) || defined(_WIN32)
