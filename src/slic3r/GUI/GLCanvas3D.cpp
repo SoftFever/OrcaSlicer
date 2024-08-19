@@ -2149,6 +2149,9 @@ void GLCanvas3D::update_plate_thumbnails()
 
 void GLCanvas3D::select_all()
 {
+    if (!m_gizmos.is_allow_select_all()) {
+        return;
+    }
     m_selection.add_all();
     m_dirty = true;
 }

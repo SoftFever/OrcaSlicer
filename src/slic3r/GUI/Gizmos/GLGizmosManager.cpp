@@ -468,6 +468,22 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return false;
 }
 
+bool GLGizmosManager::is_paint_gizmo()
+{
+    return m_current == EType::FdmSupports ||
+           m_current == EType::MmuSegmentation ||
+           m_current == EType::Seam;
+}
+
+bool GLGizmosManager::is_allow_select_all() {
+    if (m_current == Undefined || m_current == EType::Move||
+        m_current == EType::Rotate ||
+        m_current == EType::Scale) {
+        return true;
+    }
+    return false;
+}
+
 ClippingPlane GLGizmosManager::get_clipping_plane() const
 {
     if (! m_common_gizmos_data

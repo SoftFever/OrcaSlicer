@@ -261,6 +261,8 @@ public:
             return nullptr;
     }
 
+    bool is_paint_gizmo();
+    bool is_allow_select_all();
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
