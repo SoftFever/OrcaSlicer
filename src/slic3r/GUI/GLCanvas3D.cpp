@@ -666,8 +666,9 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 {
     if (m_slicing_parameters == nullptr) {
         m_slicing_parameters = new SlicingParameters();
-        *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
+        *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z, m_shrinkage_compensation);
     }
+    
 }
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D & canvas)
@@ -1489,6 +1490,9 @@ void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
     m_config = config;
     m_layers_editing.set_config(config);
+    const Print *print = fff_print();
+    if (print != nullptr)
+        m_layers_editing.set_shrinkage_compensation(fff_print()->shrinkage_compensation());
 }
 
 void GLCanvas3D::set_process(BackgroundSlicingProcess *process)

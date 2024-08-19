@@ -1895,12 +1895,22 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
     def = this->add("filament_shrink", coPercents);
-    def->label = L("Shrinkage");
+    def->label = L("Shrinkage (XY)");
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm)."
         " The part will be scaled in xy to compensate."
         " Only the filament used for the perimeter is taken into account."
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
+    def->sidetext = L("%");
+    def->ratio_over = "";
+    def->min = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercents{ 100 });
+    
+    def = this->add("filament_shrinkage_compensation_z", coPercents);
+    def->label = L("Shrinkage (Z)");
+    def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm)."
+        " The part will be scaled in Z to compensate.");
     def->sidetext = L("%");
     def->ratio_over = "";
     def->min = 10;

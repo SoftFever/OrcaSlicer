@@ -3252,6 +3252,7 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
+        optgroup->append_single_option_line("filament_shrinkage_compensation_z");
         optgroup->append_single_option_line("filament_cost");
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
