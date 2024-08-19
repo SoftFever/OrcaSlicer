@@ -85,7 +85,7 @@ float GetTolerance(float d, float k)
     return -k*(d+A)*(d+A)/B;   
 }
 
-float DetectSilho(ivec2 fragCoord, ivec2 dir)
+float DetectSilho(vec2 fragCoord, vec2 dir)
 {
     // -------------------------------------------
     //   x0 ___ x1----o 
@@ -99,10 +99,10 @@ float DetectSilho(ivec2 fragCoord, ivec2 dir)
     // plane) depth values.
     // -------------------------------------------
     
-    float x0 = abs(texelFetch(depth_tex, (fragCoord + dir*-2), 0).r);
-    float x1 = abs(texelFetch(depth_tex, (fragCoord + dir*-1), 0).r);
-    float x2 = abs(texelFetch(depth_tex, (fragCoord + dir* 0), 0).r);
-    float x3 = abs(texelFetch(depth_tex, (fragCoord + dir* 1), 0).r);
+    float x0 = abs(texture(depth_tex, (fragCoord + dir*-2.0) / screen_size).r);
+    float x1 = abs(texture(depth_tex, (fragCoord + dir*-1.0) / screen_size).r);
+    float x2 = abs(texture(depth_tex, (fragCoord + dir* 0.0) / screen_size).r);
+    float x3 = abs(texture(depth_tex, (fragCoord + dir* 1.0) / screen_size).r);
     
     float d0 = (x1-x0);
     float d1 = (x2-x3);
@@ -116,11 +116,11 @@ float DetectSilho(ivec2 fragCoord, ivec2 dir)
 
 }
 
-float DetectSilho(ivec2 fragCoord)
+float DetectSilho(vec2 fragCoord)
 {
     return max(
-        DetectSilho(fragCoord, ivec2(1,0)), // Horizontal
-        DetectSilho(fragCoord, ivec2(0,1))  // Vertical
+        DetectSilho(fragCoord, vec2(1,0)), // Horizontal
+        DetectSilho(fragCoord, vec2(0,1))  // Vertical
         );
 }
 
@@ -170,13 +170,13 @@ void main()
     //BBS: add outline_color
     if (is_outline) {
         color = vec4(vec3(intensity.y) + color.rgb * intensity.x, color.a);
-        ivec2 fragCoord = ivec2(gl_FragCoord.xy);
+        vec2 fragCoord = gl_FragCoord.xy;
         float s = DetectSilho(fragCoord);
         // Makes silhouettes thicker.
         for(int i=1;i<=INFLATE; i++)
         {
-           s = max(s, DetectSilho(fragCoord.xy + ivec2(i, 0)));
-           s = max(s, DetectSilho(fragCoord.xy + ivec2(0, i)));
+           s = max(s, DetectSilho(fragCoord.xy + vec2(i, 0)));
+           s = max(s, DetectSilho(fragCoord.xy + vec2(0, i)));
         }   
         out_color = vec4(mix(color.rgb, getBackfaceColor(color.rgb), s), color.a);
     }
