@@ -718,7 +718,8 @@ public:
 
     enum class EViewType : unsigned char
     {
-        FeatureType = 0,
+        Summary = 0,
+        FeatureType,
         Height,
         Width,
         Feedrate,
