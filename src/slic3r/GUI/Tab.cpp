@@ -2010,23 +2010,23 @@ void TabPrint::build()
 
     auto page = add_options_page(L("Quality"), "custom-gcode_quality"); // ORCA: icon only visible on placeholders
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
-        optgroup->append_single_option_line("layer_height");
-        optgroup->append_single_option_line("initial_layer_print_height");
+        optgroup->append_single_option_line("layer_height","quality_settings_layer_height");
+        optgroup->append_single_option_line("initial_layer_print_height","quality_settings_layer_height");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
-        optgroup->append_single_option_line("line_width");
-        optgroup->append_single_option_line("initial_layer_line_width");
-        optgroup->append_single_option_line("outer_wall_line_width");
-        optgroup->append_single_option_line("inner_wall_line_width");
-        optgroup->append_single_option_line("top_surface_line_width");
-        optgroup->append_single_option_line("sparse_infill_line_width");
-        optgroup->append_single_option_line("internal_solid_infill_line_width");
-        optgroup->append_single_option_line("support_line_width");
+        optgroup->append_single_option_line("line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("initial_layer_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("outer_wall_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("inner_wall_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("top_surface_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("sparse_infill_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("internal_solid_infill_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("support_line_width","quality_settings_line_width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
-        optgroup->append_single_option_line("seam_position", "seam");
-        optgroup->append_single_option_line("staggered_inner_seams", "seam");
-        optgroup->append_single_option_line("seam_gap","seam");
+        optgroup->append_single_option_line("seam_position", "quality_settings_seam");
+        optgroup->append_single_option_line("staggered_inner_seams", "quality_settings_seam");
+        optgroup->append_single_option_line("seam_gap","quality_settings_seam");
         optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
@@ -2038,10 +2038,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_steps", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_joint_flow_ratio", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_inner_walls", "seam#scarf-joint-seam");
-        optgroup->append_single_option_line("role_based_wipe_speed","seam");
-        optgroup->append_single_option_line("wipe_speed", "seam");
-        optgroup->append_single_option_line("wipe_on_loops","seam");
-        optgroup->append_single_option_line("wipe_before_external_loop","seam");
+        optgroup->append_single_option_line("role_based_wipe_speed","quality_settings_seam");
+        optgroup->append_single_option_line("wipe_speed", "quality_settings_seam");
+        optgroup->append_single_option_line("wipe_on_loops","quality_settings_seam");
+        optgroup->append_single_option_line("wipe_before_external_loop","quality_settings_seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
