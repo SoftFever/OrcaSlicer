@@ -3168,7 +3168,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (!key_field_only) {
                         if (jj.contains("flag3")) {
                             int flag3 = jj["flag3"].get<int>();
-                            is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
+                            //is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
                         }
                     }
                     if (!key_field_only) {
