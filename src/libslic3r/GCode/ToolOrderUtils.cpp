@@ -290,6 +290,16 @@ namespace Slic3r
 
 
 
+    template<class T>
+    static std::vector<T> collect_filaments_in_groups(const std::set<unsigned int>& group, const std::vector<unsigned int>& filament_list) {
+        std::vector<T>ret;
+        for (auto& f : filament_list) {
+            if (auto iter = group.find(f); iter != group.end())
+                ret.emplace_back(static_cast<T>(f));
+        }
+        return ret;
+    }
+
     // get best filament order of single nozzle
     std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>>& wipe_volumes,
         const std::vector<unsigned int>& curr_layer_extruders,
@@ -333,7 +343,6 @@ namespace Slic3r
         int cost = 0;
         std::vector<std::set<unsigned int>>groups(2); //save the grouped filaments
         std::vector<std::vector<std::vector<unsigned int>>> layer_sequences(2); //save the reordered filament sequence by group
-        std::map<size_t, std::vector<int>> custom_layer_filament_map; //save the custom layers,second key stores the last extruder of that layer by group
         std::map<size_t, std::vector<unsigned int>> custom_layer_sequence_map; // save the filament sequences of custom layer
 
         // group the filament
@@ -360,14 +369,6 @@ namespace Slic3r
                 assert(curr_lf.size() == unsign_custom_extruder_seq.size());
 
                 custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
-                custom_layer_filament_map[layer].resize(2, -1);
-
-                for (auto iter = unsign_custom_extruder_seq.rbegin(); iter != unsign_custom_extruder_seq.rend(); ++iter) {
-                    if (groups[0].find(*iter) != groups[0].end() && custom_layer_filament_map[layer][0] == -1)
-                        custom_layer_filament_map[layer][0] = *iter;
-                    if (groups[1].find(*iter) != groups[1].end() && custom_layer_filament_map[layer][1] == -1)
-                        custom_layer_filament_map[layer][1] = *iter;
-                }
             }
         }
 
@@ -404,32 +405,33 @@ namespace Slic3r
 
             for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
                 const auto& curr_lf = layer_filaments[layer];
-                std::vector<int>custom_filament_seq;
-                if (get_custom_seq && (*get_custom_seq)(layer, custom_filament_seq) && !custom_filament_seq.empty()) {
-                    if (custom_layer_filament_map[layer][idx] != -1)
-                        current_extruder_id = (unsigned int)(custom_layer_filament_map[layer][idx]);
+
+                if (auto iter = custom_layer_sequence_map.find(layer); iter != custom_layer_sequence_map.end()) {
+                    auto sequence_in_group = collect_filaments_in_groups<unsigned int>(groups[idx], iter->second);
+
+                    float tmp_cost = 0;
+                    std::optional<unsigned int>prev = current_extruder_id;
+                    for (auto& f : sequence_in_group) {
+                        if (prev) { tmp_cost += flush_matrix[idx][*prev][f]; }
+                        prev = f;
+                    }
+                    cost += tmp_cost;
+
+                    if (!sequence_in_group.empty())
+                        current_extruder_id = sequence_in_group.back();
                     //insert an empty array
                     if (filament_sequences)
                         layer_sequences[idx].emplace_back(std::vector<unsigned int>());
+
                     continue;
                 }
 
-                std::vector<unsigned int>filament_used_in_group;
-                for (const auto& filament : curr_lf) {
-                    if (groups[idx].find(filament) != groups[idx].end())
-                        filament_used_in_group.emplace_back(filament);
-                }
+                std::vector<unsigned int>filament_used_in_group = collect_filaments_in_groups<unsigned int>(groups[idx], curr_lf);
 
-                std::vector<unsigned int>filament_used_in_group_next_layer;
-                {
-                    std::vector<unsigned int>next_lf;
-                    if (layer + 1 < layer_filaments.size())
-                        next_lf = layer_filaments[layer + 1];
-                    for (const auto& filament : next_lf) {
-                        if (groups[idx].find(filament) != groups[idx].end())
-                            filament_used_in_group_next_layer.emplace_back(filament);
-                    }
-                }
+                std::vector<unsigned int>next_lf;
+                if (layer + 1 < layer_filaments.size())
+                    next_lf = layer_filaments[layer + 1];
+                std::vector<unsigned int>filament_used_in_group_next_layer = collect_filaments_in_groups<unsigned int>(groups[idx], next_lf);
 
                 bool use_forcast = (filament_used_in_group.size() <= max_n_with_forcast && filament_used_in_group_next_layer.size() <= max_n_with_forcast);
                 float tmp_cost = 0;
@@ -460,13 +462,15 @@ namespace Slic3r
         if (filament_sequences) {
             filament_sequences->clear();
             filament_sequences->resize(layer_filaments.size());
-
             bool last_group = 0;
             //if last_group == 0,print group 0 first ,else print group 1 first
             if (!custom_layer_sequence_map.empty()) {
-                int custom_first_layer = custom_layer_sequence_map.begin()->first;
-                bool custom_first_group = groups[0].count(custom_first_layer) ? 0 : 1;
-                last_group = (custom_first_layer & 1) ? !custom_first_group : custom_first_group;
+                const auto& first_layer = custom_layer_sequence_map.begin()->first;
+                const auto& first_layer_filaments = custom_layer_sequence_map.begin()->second;
+                assert(!first_layer_filaments.empty());
+
+                bool first_group = groups[0].count(first_layer_filaments.front()) ? 0 : 1;
+                last_group = (first_layer & 1) ? !first_group : first_group;
             }
 
             for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {

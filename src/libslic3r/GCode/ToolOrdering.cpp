@@ -1000,7 +1000,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     else if (map_mode == fmmManual)
         m_stats_by_multi_extruder_manual = curr_flush_info;
 
-    // in multi extruder mode
+    // in multi extruder mode,collect data with other mode
     if (nozzle_nums > 1) {
         // always calculate the info by one extruder
         {
