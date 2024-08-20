@@ -24,7 +24,17 @@ endif()
 
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-    # git commit hash macro
+    # Check if Orca is on a tag
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} describe --exact-match --tags
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        RESULT_VARIABLE GIT_TAG_CHECK
+    )
+    if(NOT GIT_TAG_CHECK EQUAL 0)
+    add_definitions("-DSNAPSHOT_BUILD=1")
+    endif()
+
+    # Check current Git commit hash
     execute_process(
         COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
