@@ -5891,8 +5891,10 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // generate G-code for the travel move
     if (needs_retraction) {
-        if (m_config.reduce_crossing_wall && could_be_wipe_disabled)
-            m_wipe.reset_path();
+        // ORCA: Fix scenario where wipe is disabled when avoid crossing perimeters was enabled even though a retraction move was performed.
+        // This replicates the existing behaviour of always wiping when retracting
+        /*if (m_config.reduce_crossing_wall && could_be_wipe_disabled)
+            m_wipe.reset_path();*/
 
         Point last_post_before_retract = this->last_pos();
         gcode += this->retract(false, false, lift_type);
