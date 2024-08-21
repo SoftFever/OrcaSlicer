@@ -74,7 +74,7 @@ With the above in mind, let’s create a worked example to identify the optimal 
 1. **Accelerations:** 1k, 2k, 4k
 2. **Print speeds:** 50mm/sec, 100mm/sec, 150mm/sec, 200mm/sec.
 
-**That means we need to run 3x4 = 12 PA tests and identify the optimal PA for them. **
+**That means we need to run 3x4 = 12 PA tests and identify the optimal PA for them.**
 
 Finally, if the maximum acceleration given by input shaper is materially higher than 4k, run a set of tests with the higher accelerations. For example, if input shaper allows a 6k value, run PA tests as below:
 
