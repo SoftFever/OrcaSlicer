@@ -20,7 +20,7 @@ This feature introduces the below options under the filament settings:
 
 This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn’t adversely affect the machine; however, the quality results from enabling it are not validated.  
 
-**Older versions of Klipper used to stutter when pressure advance was changed while the toolhead was in motion. This has been fixed with the latest Klipper firmware releases. Therefore, make sure your Klipper installation is updated to the latest version before enabling this feature, in order to avoid any adverse quality impacts. **
+**Older versions of Klipper used to stutter when pressure advance was changed while the toolhead was in motion. This has been fixed with the latest Klipper firmware releases. Therefore, make sure your Klipper installation is updated to the latest version before enabling this feature, in order to avoid any adverse quality impacts.**
 
 Klipper firmware released after July 11th, 2024 (version greater than approximately v0.12.0-267) contains the above fix and is compatible with adaptive pressure advance. If you are upgrading from an older version, make sure you update both your Klipper installation as well as reflash the printer MCU’s (main board and toolhead board if present).
 
@@ -36,13 +36,13 @@ What this means is that we never get ideal PA values for each print feature, esp
 
 This compromise usually means that we settle for tuning an "in-between" PA value between slower external features and faster internal features so we don't get gaps, but also not get too much bulging in external perimeters. 
 
-_**However, what this also means is that if you are printing with a single layer height, single speed, and acceleration, there is no need to enable this feature. ** _
+**However, what this also means is that if you are printing with a single layer height, single speed, and acceleration, there is no need to enable this feature.**
 
-Adaptive pressure advance aims to address this limitation by implementing a completely different method of setting pressure advance. **_Following a set of PA calibration tests done at different flow rates (speeds and layer heights) and accelerations, a pressure advance model is calculated by the slicer_. **Then that model is used to emit the best fit PA for any arbitrary feature flow rate (speed) and acceleration used in the print process.  
+Adaptive pressure advance aims to address this limitation by implementing a completely different method of setting pressure advance. **Following a set of PA calibration tests done at different flow rates (speeds and layer heights) and accelerations, a pressure advance model is calculated by the slicer.** Then that model is used to emit the best fit PA for any arbitrary feature flow rate (speed) and acceleration used in the print process.  
 
 In addition, it means that you only need to tune this feature once and print across different layer heights with good PA performance.  
 
-Finally, if during calibration you notice that there is little to no variance between the PA tests, this feature is redundant for you. _**From experiments, high flow nozzles fitted on high-speed core XY printers appear to benefit the most from this feature as they print with a larger range of flow rates and at a larger range of accelerations.**_
+Finally, if during calibration you notice that there is little to no variance between the PA tests, this feature is redundant for you. **From experiments, high flow nozzles fitted on high-speed core XY printers appear to benefit the most from this feature as they print with a larger range of flow rates and at a larger range of accelerations.**
 
 ### Expected results:
 
@@ -65,7 +65,7 @@ Firstly, it is important to understand your printer speed and acceleration limit
 1. **Upper acceleration range:** Do not attempt to calibrate adaptive PA for an acceleration that is larger than what the Klipper input shaper calibration tool recommends for your selected shaper. For example, if Klipper recommends an EI shaper with 4k maximum acceleration for your slowest axis (usually the Y axis), don’t calibrate adaptive PA beyond that value. This is because after 4k the input shaper smoothing is magnified and the perimeter separations that appear like PA issues are caused by the input shaper smoothing the shape of the corner. Basically, you’d be attempting to compensate for an input shaper artefact with PA.
 2. **Upper print speed range:** The Ellis PA pattern test has been proven to be the most efficient and effective test to run to calibrate adaptive PA. It is fast and allows for a reasonably accurate and easy-to-read PA value. However, the size of the line segments is quite small, which means that for the faster print speeds and slower accelerations, the toolhead will not be able to reach the full flow rate that we are calibrating against. It is therefore generally not recommended to attempt calibration with a print speed of higher than ~200-250mm/sec and accelerations slower than 1k in the PA pattern test. If your lowest acceleration is higher than 1k, then proportionally higher maximum print speeds can be used.
 
-**Remember: ** With the calibration process, we aim to create a PA – Flow Rate – Acceleration profile for the toolhead. As we cannot directly control flow rate, we use print speed as a proxy (higher speed -> higher flow).  
+**Remember:** With the calibration process, we aim to create a PA – Flow Rate – Acceleration profile for the toolhead. As we cannot directly control flow rate, we use print speed as a proxy (higher speed -> higher flow).  
 
 With the above in mind, let’s create a worked example to identify the optimal number of PA tests to calibrate the adaptive PA model. 
 
@@ -74,7 +74,7 @@ With the above in mind, let’s create a worked example to identify the optimal 
 1. **Accelerations:** 1k, 2k, 4k
 2. **Print speeds:** 50mm/sec, 100mm/sec, 150mm/sec, 200mm/sec.
 
-**That means we need to run 3x4 = 12 PA tests and identify the optimal PA for them.  **
+**That means we need to run 3x4 = 12 PA tests and identify the optimal PA for them. **
 
 Finally, if the maximum acceleration given by input shaper is materially higher than 4k, run a set of tests with the higher accelerations. For example, if input shaper allows a 6k value, run PA tests as below:
 
@@ -138,7 +138,7 @@ Now run the tests and note the optimal PA value, the flow, and the acceleration.
 
 Concatenate the PA value, the flow value, and the acceleration value into the final comma-separated sets to create the values entered in the model as shown above.  
 
-**You’re now done! The PA profile is created and calibrated!  **
+**You’re now done! The PA profile is created and calibrated!**
 
 Remember to paste the values in the adaptive pressure advance measurements text box as shown below, and save your filament profile.
 
