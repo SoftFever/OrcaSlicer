@@ -111,20 +111,25 @@ Setup your PA test as usual from the calibration menu in Orca slicer. It is reco
 Set the end PA to a value high enough to start showing perimeter separation for the lowest flow (print speed) and acceleration test. For example, for a Voron 350 using Revo HF, the maximum value was set to 0.05 as that was sufficient to show perimeter separation even at the slowest flow rates and accelerations.  
 If the test is too big to fit on the build plate, increase your starting PA value or the PA step value accordingly until the test can fit. If the lowest value becomes too high and there is no ideal PA present in the test, focus on increasing the PA step value to reduce the number of herringbones printed (hence the size of the print).
 
-Once setup, your PA test should look like the below:
+<img width="402" alt="PA calibration parameters" src="https://github.com/user-attachments/assets/b411dc30-5556-4e7c-8c40-5279d3074eae">
 
+Once setup, your PA test should look like the below:
+<img width="437" alt="PA calibration test 1" src="https://github.com/user-attachments/assets/1e6159fe-c3c5-4480-95a1-4383f1fae422">
+<img width="437" alt="Pa calibration test 2" src="https://github.com/user-attachments/assets/c360bb18-a97a-4f37-b5a3-bb0c67cac2b6">
 
 
 Now input your identified print speeds and accelerations in the fields above and run the PA tests. **IMPORTANT:** Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.  
 Now run the tests and note the optimal PA value, the flow, and the acceleration. You should produce a table like this:
 
-<<table>>
+<img width="452" alt="calibration table" src="https://github.com/user-attachments/assets/9451e8e4-352f-4cfc-b835-dffa4420d580">
+
 
 Concatenate the PA value, the flow value, and the acceleration value into the final comma-separated sets to create the values entered in the model as shown above.  
 You’re now done! The PA profile is created and calibrated!  
 Remember to paste the values in the adaptive pressure advance measurements text box as shown below, and save your filament profile.
 
-<<image>>
+<img width="452" alt="pa profile" src="https://github.com/user-attachments/assets/e6e61d1b-e422-4a6a-88ff-f55e10f79900">
+
 
 ### Tips
 
@@ -141,10 +146,13 @@ Higher acceleration and higher flow rate PA tests are easier to identify the opt
 However, the lower the flow rate and accelerations are, the range of good values is much wider. Having examined the PA tests even under a microscope, what is evident, is that if you can’t distinguish a value as being evidently better than another (i.e. sharper corner with no gaps) with the naked eye, then both values are correct. In which case, if you can’t find any meaningful difference, simply use the optimal values from the higher flow rates.
 
 - **Too high PA**  
-  <<image>>
+
+![Too high PA](https://github.com/user-attachments/assets/ebc4e2d4-373e-42d5-af72-4d5bc81048ca)
 
 - **Too low PA**  
-  <<image>>
+
+![Too low PA](https://github.com/user-attachments/assets/6a2b6f16-7d1c-46d0-91f3-def5ed560318)
 
 - **Optimal PA**  
-  <<image>>
+
+![Optimal PA](https://github.com/user-attachments/assets/cd47cf2e-dd32-47b4-bbdd-1563de8849be)
