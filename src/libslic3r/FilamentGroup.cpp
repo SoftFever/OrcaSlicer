@@ -208,7 +208,7 @@ namespace Slic3r
         int used_filament_num = used_filaments.size();
         bool have_enough_size = (used_filament_num <= (m_max_group_size[0] + m_max_group_size[1]));
 
-        uint64_t max_group_num = static_cast<uint64_t>(1 << used_filament_num);
+        uint64_t max_group_num = (static_cast<uint64_t>(1) << used_filament_num);
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_label;
 
@@ -228,7 +228,7 @@ namespace Slic3r
 
             std::set<int>group_0, group_1;
             for (int j = 0; j < used_filament_num; ++j) {
-                if (i & static_cast<uint64_t>(1 << j))
+                if (i & (static_cast<uint64_t>(1) << j))
                     group_1.insert(used_filaments[j]);
                 else
                     group_0.insert(used_filaments[j]);
