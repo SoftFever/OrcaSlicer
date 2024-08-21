@@ -711,9 +711,14 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
 {
-    if(!m_is_third || !obj->is_support_filament_setting_inprinting)
+    if(!m_is_third)
         return;
 
+    if (obj->is_in_printing() || obj->can_resume()) {
+        if (!obj->is_support_filament_setting_inprinting) {
+            return;
+        }
+    }
 
     std::vector<wxColour> ams_colors;
     for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ++ams_it) {
