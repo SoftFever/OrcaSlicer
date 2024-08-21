@@ -20,7 +20,7 @@ This feature introduces the below options under the filament settings:
 
 This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn’t adversely affect the machine; however, the quality results from enabling it are not validated.  
 
-_**Older versions of Klipper used to stutter when pressure advance was changed while the toolhead was in motion. This has been fixed with the latest Klipper firmware releases. Therefore, make sure your Klipper installation is updated to the latest version before enabling this feature, in order to avoid any adverse quality impacts. ** _
+**Older versions of Klipper used to stutter when pressure advance was changed while the toolhead was in motion. This has been fixed with the latest Klipper firmware releases. Therefore, make sure your Klipper installation is updated to the latest version before enabling this feature, in order to avoid any adverse quality impacts. **
 
 Klipper firmware released after July 11th, 2024 (version greater than approximately v0.12.0-267) contains the above fix and is compatible with adaptive pressure advance. If you are upgrading from an older version, make sure you update both your Klipper installation as well as reflash the printer MCU’s (main board and toolhead board if present).
 
