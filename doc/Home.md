@@ -30,6 +30,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 ## Printer Calibration
 The guide below takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances and maximum volumetric speed
 - [Calibration Guide](./Calibration)
+- [Adaptive Pressure Advance Guide](adaptive-pressure-advance)
 
 ## Developer Section
 - [How to build Orca Slicer](./How-to-build)
