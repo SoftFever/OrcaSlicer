@@ -13,6 +13,9 @@ This feature introduces the below options under the filament settings:
 4. **Adaptive pressure advance measurements:** This field contains the calibration values used to generate the pressure advance profile for the nozzle/printer. Input sets of pressure advance (PA) values and the corresponding volumetric flow speeds and accelerations they were measured at, separated by a comma. Add one set of values per line. More information on how to calibrate the model follows in the sections below.
 5. **Pressure advance:** The old field is still needed and is required to be populated with a PA value. A “good enough” median PA value should be entered here, as this will act as a fallback value when performing tool changes, printing a purge/wipe tower for multi-color prints as well as a fallback in case the model fails to identify an appropriate value (unlikely but it’s the ultimate backstop).
 
+<img width="452" alt="Adaptive PA settings" src="https://github.com/user-attachments/assets/68c46885-54c7-4123-afa0-762d3995185f">
+
+
 ## Pre-Requisites
 
 This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn’t adversely affect the machine; however, the quality results from enabling it are not validated.  
@@ -37,9 +40,14 @@ Finally, if during calibration you notice that there is little to no variance be
 ### Expected results:
 
 With this feature enabled there should be absolutely no bulge in the corners, just the smooth rounding caused by the square corner velocity of your printer.  
+![337601149-cbd96b75-a49f-4dde-ab5a-9bbaf96eae9c](https://github.com/user-attachments/assets/01234996-0528-4462-90c6-43828a246e41)
 In addition, seams should appear smooth with no bulging or under extrusion.  
+![337601500-95e2350f-cffd-4af5-9c7a-e8f60870db7b](https://github.com/user-attachments/assets/46e16f2a-cf52-4862-ab06-12883b909615)
 Solid infill should have no gaps, pinholes, or separation from the perimeters.  
+![337616471-9d949a67-c8b3-477e-9f06-c429d4e40be0](https://github.com/user-attachments/assets/3b8ddbff-47e7-48b5-9576-3d9e7fb24a9d)
 Compared to with this feature disabled, where the internal solid infill and external-internal perimeters show signs of separation and under extrusion, when PA is tuned for optimal external perimeter performance as shown below.
+![337621601-eacc816d-cff0-42e4-965d-fb5c00d34205](https://github.com/user-attachments/assets/82edfd96-d870-48fe-91c7-012e8c0d9ed0)
+
 
 ## How to calibrate the adaptive pressure advance model
 
@@ -94,6 +102,8 @@ We, therefore, need to run 12 PA tests as below:
 ### Identifying the flow rates from the print speed
 
 As mentioned earlier, the print speed is used as a proxy to vary the extrusion flow rate. Once your PA test is set up, change the gcode preview to “flow” and move the horizontal slider over one of the herringbone patterns and take note of the flow rate for different speeds.
+![337939815-e358b960-cf96-41b5-8c7e-addde927933f](https://github.com/user-attachments/assets/21290435-6f2a-4a21-bcf0-28cd6ae1912a)
+
 
 ### Running the tests
 
@@ -103,7 +113,7 @@ If the test is too big to fit on the build plate, increase your starting PA valu
 
 Once setup, your PA test should look like the below:
 
-<<image>>
+
 
 Now input your identified print speeds and accelerations in the fields above and run the PA tests. **IMPORTANT:** Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.  
 Now run the tests and note the optimal PA value, the flow, and the acceleration. You should produce a table like this:
