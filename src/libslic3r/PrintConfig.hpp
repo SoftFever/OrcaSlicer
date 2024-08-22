@@ -225,7 +225,7 @@ enum TimelapseType : int {
 };
 
 enum DraftShield {
-    dsDisabled, dsLimited, dsEnabled
+    dsDisabled, dsEnabled
 };
 
 enum class PerimeterGeneratorType

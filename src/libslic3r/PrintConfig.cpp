@@ -319,7 +319,6 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
 static const t_config_enum_values s_keys_map_DraftShield = {
     { "disabled", dsDisabled },
-    { "limited",  dsLimited  },
     { "enabled",  dsEnabled  }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(DraftShield)
@@ -4006,17 +4005,13 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Draft shield");
     def->tooltip = L("A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. "
                      "It is usually needed only with open frame printers, i.e. without an enclosure. \n\n"
-                     "Options:\n"
-                     "Enabled = skirt is as tall as the highest printed object.\n"
-                     "Limited = skirt is as tall as specified by skirt height.\n\n"
+                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
     				 "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims "
                      "are active it may intersect with them. To avoid this, increase the skirt distance value.\n");
     def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
     def->enum_values.push_back("disabled");
-    def->enum_values.push_back("limited");
     def->enum_values.push_back("enabled");
     def->enum_labels.push_back(L("Disabled"));
-    def->enum_labels.push_back(L("Limited"));
     def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
@@ -6144,8 +6139,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     else if(opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
     }
-    else if(opt_key == "counterbole_hole_bridging"){
+    else if(opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
+    }
+    else if (opt_key == "draft_shield" && value == "limited") {
+        value = "disabled";
     }
 
     // Ignore the following obsolete configuration keys:
