@@ -2341,6 +2341,7 @@ void Print::_make_skirt()
     const double object_skirt_distance = scale_(1.0);
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
+        object->m_skirt.clear();
         for (int i = 0; i < 1; i++) {
             distance += float(scale_(spacing));
             Polygon loop;
