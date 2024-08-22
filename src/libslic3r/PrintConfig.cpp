@@ -1613,7 +1613,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(4));
+    def->set_default_value(new ConfigOptionFloat(2.5));
 
     def          = this->add("bed_mesh_min", coPoint);
     def->label   = L("Bed mesh min");

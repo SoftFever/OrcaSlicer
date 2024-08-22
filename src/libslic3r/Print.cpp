@@ -578,10 +578,9 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             polygons->clear();
         std::vector<size_t> intersecting_idxs;
 
-        bool all_objects_are_short = print.is_all_objects_are_short();
         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-        float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_DIAMETER-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
+        float obj_distance = print.is_all_objects_are_short() ? scale_(0.5*MAX_OUTER_NOZZLE_DIAMETER-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
 
         for (const PrintObject *print_object : print.objects()) {
             assert(! print_object->model_object()->instances.empty());
