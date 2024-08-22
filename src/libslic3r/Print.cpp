@@ -713,6 +713,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 auto inter_y   = inter_max - inter_min;
 
                 // 如果y方向的重合超过轮廓的膨胀量，说明两个物体在一行，应该先打左边的物体，即先比较二者的x坐标。
+                // If the overlap in the y direction exceeds the expansion of the contour, it means that the two objects are in a row and the object on the left should be hit first, that is, the x coordinates of the two should be compared first.
                 if (inter_y > scale_(0.5 * print.config().extruder_clearance_radius.value)) {
                     if (std::max(rx1 - lx2, lx1 - rx2) < unsafe_dist) {
                         if (lx1 > rx1) {
@@ -813,6 +814,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         {
             auto inst = print_instance_with_bounding_box[k].print_instance;
             // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
+            // Only the offset from the nozzle to the slide bar needs to be considered, which is much smaller than the collision radius of the entire tool head.
             auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(0.5 * print.config().extruder_clearance_radius.value));
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
