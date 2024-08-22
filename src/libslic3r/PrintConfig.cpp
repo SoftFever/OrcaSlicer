@@ -317,6 +317,12 @@ static const t_config_enum_values s_keys_map_TimelapseType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
+static const t_config_enum_values s_keys_map_SkirtType = {
+    { "common", stCommon },
+    { "object", stObject }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SkirtType)
+
 static const t_config_enum_values s_keys_map_DraftShield = {
     { "disabled", dsDisabled },
     { "enabled",  dsEnabled  }
@@ -4025,6 +4031,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
+    def = this->add("skirt_type", coEnum);
+    def->label = L("Skirt type");
+    def->full_label = L("Skirt type");
+    def->tooltip = L("Common - single skirt for all objects, Object - individual per object skirt.");
+    def->enum_keys_map = &ConfigOptionEnum<SkirtType>::get_enum_values();
+    def->enum_values.push_back("common");
+    def->enum_values.push_back("object");
+    def->enum_labels.push_back(L("Common"));
+    def->enum_labels.push_back(L("Object"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SkirtType>(stCommon));
+    
     def = this->add("skirt_loops", coInt);
     def->label = L("Skirt loops");
     def->full_label = L("Skirt loops");
@@ -4047,7 +4065,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
-                     "Using a non zero value is useful if the printer is set up to print without a prime line.");
+                     "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
+                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case. ");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;

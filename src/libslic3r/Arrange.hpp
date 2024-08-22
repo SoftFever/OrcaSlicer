@@ -3,6 +3,7 @@
 
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
+#include "Print.hpp"
 
 #define BED_SHRINK_SEQ_PRINT 5
 
@@ -132,6 +133,7 @@ struct ArrangeParams {
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;
     float clearance_radius = 0;
+    float object_skirt_offset = 0;
     float nozzle_height = 0;
     bool  all_objects_are_short = false;
     float printable_height = 256.0;

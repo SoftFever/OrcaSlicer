@@ -219,7 +219,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
-               opt_key == "skirt_loops"
+               opt_key == "skirt_type"
+            || opt_key == "skirt_loops"
             || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "min_skirt_length"
@@ -507,7 +508,7 @@ bool Print::has_infinite_skirt() const
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirt_loops > 0) || m_config.draft_shield != dsDisabled;
+    return (m_config.skirt_height > 0);
 }
 
 bool Print::has_brim() const
@@ -570,6 +571,8 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         }
         return -1;
     };
+
+    auto [object_skirt_offset, _] = print.object_skirt_offset();
     std::vector<struct print_instance_info> print_instance_with_bounding_box;
     {
         // sequential_print_horizontal_clearance_valid
@@ -580,7 +583,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-        float obj_distance = print.is_all_objects_are_short() ? scale_(0.5*MAX_OUTER_NOZZLE_DIAMETER-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
+        float obj_distance = print.is_all_objects_are_short() ? scale_(std::max(0.5f * MAX_OUTER_NOZZLE_DIAMETER, object_skirt_offset) - 0.1) : scale_(0.5 * print.config().extruder_clearance_radius.value + object_skirt_offset - 0.1);
 
         for (const PrintObject *print_object : print.objects()) {
             assert(! print_object->model_object()->instances.empty());
@@ -815,7 +818,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             auto inst = print_instance_with_bounding_box[k].print_instance;
             // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
             // Only the offset from the nozzle to the slide bar needs to be considered, which is much smaller than the collision radius of the entire tool head.
-            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(0.5 * print.config().extruder_clearance_radius.value));
+            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(0.5 * print.config().extruder_clearance_radius.value + object_skirt_offset));
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
             (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;
@@ -2287,48 +2290,52 @@ void Print::_make_skirt()
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
-    for (size_t i = m_config.skirt_loops, extruder_idx = 0; i > 0; -- i) {
-        this->throw_if_canceled();
-        // Offset the skirt outside.
-        distance += float(scale_(spacing));
-        // Generate the skirt centerline.
-        Polygon loop;
-        {
-            // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
-            Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, float(scale_(0.1)));
-            Geometry::simplify_polygons(loops, scale_(0.05), &loops);
-			if (loops.empty())
-				break;
-			loop = loops.front();
-        }
-        // Extrude the skirt loop.
-        ExtrusionLoop eloop(elrSkirt);
-        eloop.paths.emplace_back(ExtrusionPath(
-            ExtrusionPath(
-                erSkirt,
-                (float)mm3_per_mm,         // this will be overridden at G-code export time
-                flow.width(),
-				(float)initial_layer_print_height  // this will be overridden at G-code export time
-            )));
-        eloop.paths.back().polyline = loop.split_at_first_point();
-        m_skirt.append(eloop);
-        if (m_config.min_skirt_length.value > 0) {
-            // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
-            extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
-            if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
-                // Not extruded enough yet with the current extruder. Add another loop.
-                if (i == 1)
-                    ++ i;
-            } else {
-                assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
-                // Enough extruded with the current extruder. Extrude with the next one,
-                // until the prescribed number of skirt loops is extruded.
-                if (extruder_idx + 1 < extruders.size())
-                    ++ extruder_idx;
+    if (m_config.skirt_type == stCommon) {
+        for (size_t i = m_config.skirt_loops, extruder_idx = 0; i > 0; -- i) {
+            this->throw_if_canceled();
+            // Offset the skirt outside.
+            distance += float(scale_(spacing));
+            // Generate the skirt centerline.
+            Polygon loop;
+            {
+                // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
+                Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, float(scale_(0.1)));
+                Geometry::simplify_polygons(loops, scale_(0.05), &loops);
+			    if (loops.empty())
+				    break;
+			    loop = loops.front();
             }
-        } else {
-            // The skirt lenght is not limited, extrude the skirt with the 1st extruder only.
+            // Extrude the skirt loop.
+            ExtrusionLoop eloop(elrSkirt);
+            eloop.paths.emplace_back(ExtrusionPath(
+                ExtrusionPath(
+                    erSkirt,
+                    (float)mm3_per_mm,         // this will be overridden at G-code export time
+                    flow.width(),
+				    (float)initial_layer_print_height  // this will be overridden at G-code export time
+                )));
+            eloop.paths.back().polyline = loop.split_at_first_point();
+            m_skirt.append(eloop);
+            if (m_config.min_skirt_length.value > 0) {
+                // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
+                extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
+                if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
+                    // Not extruded enough yet with the current extruder. Add another loop.
+                    if (i == 1)
+                        ++ i;
+                } else {
+                    assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
+                    // Enough extruded with the current extruder. Extrude with the next one,
+                    // until the prescribed number of skirt loops is extruded.
+                    if (extruder_idx + 1 < extruders.size())
+                        ++ extruder_idx;
+                }
+            } else {
+                // The skirt lenght is not limited, extrude the skirt with the 1st extruder only.
+            }
         }
+    } else {
+        m_skirt.clear();
     }
     // Brims were generated inside out, reverse to print the outmost contour first.
     m_skirt.reverse();
@@ -2337,34 +2344,56 @@ void Print::_make_skirt()
     for (Polygon &poly : offset(convex_hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
         append(m_skirt_convex_hull, std::move(poly.points));
 
-    // BBS
-    const double object_skirt_distance = scale_(1.0);
-    for (auto obj_cvx_hull : object_convex_hulls) {
-        PrintObject* object = obj_cvx_hull.first;
-        object->m_skirt.clear();
-        for (int i = 0; i < 1; i++) {
-            distance += float(scale_(spacing));
-            Polygon loop;
-            {
-                // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
-                Polygons loops = offset(obj_cvx_hull.second, object_skirt_distance, ClipperLib::jtRound, float(scale_(0.1)));
-                Geometry::simplify_polygons(loops, scale_(0.05), &loops);
-                if (loops.empty())
-                    break;
-                loop = loops.front();
-            }
+    if (m_config.skirt_type == stObject) {
+        // BBS
+        for (auto obj_cvx_hull : object_convex_hulls) {
+            double object_skirt_distance = float(scale_(m_config.skirt_distance.value - spacing/2.));
+            PrintObject* object = obj_cvx_hull.first;
+            object->m_skirt.clear();
+            extruded_length.assign(extruded_length.size(), 0.);
+            for (size_t i = m_config.skirt_loops.value, extruder_idx = 0; i > 0; -- i) {
+                object_skirt_distance += float(scale_(spacing));
+                Polygon loop;
+                {
+                    // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
+                    Polygons loops = offset(obj_cvx_hull.second, object_skirt_distance, ClipperLib::jtRound, float(scale_(0.1)));
+                    Geometry::simplify_polygons(loops, scale_(0.05), &loops);
+                    if (loops.empty())
+                        break;
+                    loop = loops.front();
+                }
 
-            // Extrude the skirt loop.
-            ExtrusionLoop eloop(elrSkirt);
-            eloop.paths.emplace_back(ExtrusionPath(
-                ExtrusionPath(
-                    erSkirt,
-                    (float)mm3_per_mm,         // this will be overridden at G-code export time
-                    flow.width(),
-                    (float)initial_layer_print_height  // this will be overridden at G-code export time
-                )));
-            eloop.paths.back().polyline = loop.split_at_first_point();
-            object->m_skirt.append(std::move(eloop));
+                // Extrude the skirt loop.
+                ExtrusionLoop eloop(elrSkirt);
+                eloop.paths.emplace_back(ExtrusionPath(
+                    ExtrusionPath(
+                        erSkirt,
+                        (float)mm3_per_mm,         // this will be overridden at G-code export time
+                        flow.width(),
+                        (float)initial_layer_print_height  // this will be overridden at G-code export time
+                    )));
+                eloop.paths.back().polyline = loop.split_at_first_point();
+                object->m_skirt.append(std::move(eloop));
+                if (m_config.min_skirt_length.value > 0) {
+                    // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
+                    extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
+                    if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
+                        // Not extruded enough yet with the current extruder. Add another loop.
+                        if (i == 1)
+                            ++ i;
+                    } else {
+                        assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
+                        // Enough extruded with the current extruder. Extrude with the next one,
+                        // until the prescribed number of skirt loops is extruded.
+                        if (extruder_idx + 1 < extruders.size())
+                            ++ extruder_idx;
+                    }
+                } else {
+                    // The skirt lenght is not limited, extrude the skirt with the 1st extruder only.
+                }
+
+            }
+            object->m_skirt.reverse();
         }
     }
 }
@@ -2898,6 +2927,29 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str();
+}
+
+std::tuple<float, float> Print::object_skirt_offset(double margin_height) const
+{
+    if (config().skirt_loops == 0 || config().skirt_type != stObject)
+        return std::make_tuple(0, 0);
+    
+    float max_nozzle_diameter = *std::max_element(m_config.nozzle_diameter.values.begin(), m_config.nozzle_diameter.values.end());
+    float max_layer_height    = *std::max_element(config().max_layer_height.values.begin(), config().max_layer_height.values.end());
+    float line_width = m_config.initial_layer_line_width.get_abs_value(max_nozzle_diameter);
+    float object_skirt_witdh  = skirt_flow().width() + (config().skirt_loops - 1) * skirt_flow().spacing();
+    float object_skirt_offset = 0;
+
+    if (is_all_objects_are_short())
+        object_skirt_offset = config().skirt_distance + object_skirt_witdh;
+    else if (config().draft_shield == dsEnabled || config().skirt_height * max_layer_height > config().nozzle_height - margin_height)
+        object_skirt_offset = config().skirt_distance + line_width;
+    else if (config().skirt_distance + object_skirt_witdh > config().extruder_clearance_radius/2)
+        object_skirt_offset = (config().skirt_distance + object_skirt_witdh - config().extruder_clearance_radius/2);
+    else
+        return std::make_tuple(0, 0);
+
+    return std::make_tuple(object_skirt_offset, object_skirt_witdh);
 }
 
 DynamicConfig PrintStatistics::config() const

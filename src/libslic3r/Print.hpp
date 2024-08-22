@@ -981,6 +981,8 @@ public:
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
 
+    std::tuple<float, float> object_skirt_offset(double margin_height = 0) const;
+
 protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
