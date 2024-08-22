@@ -2105,12 +2105,14 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
 
             // get recommended filament map
-            {
+            if (get_filament_map_mode() == FilamentMapMode::fmmAuto) {
                 std::vector<std::vector<unsigned int>> all_filaments;
                 print_object_instance_sequential_active = print_object_instances_ordering.begin();
                 for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
                     tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                    for (const auto &layer_tool : tool_ordering.layer_tools()) { all_filaments.emplace_back(layer_tool.extruders); }
+                    for (const auto &layer_tool : tool_ordering.layer_tools()) {
+                        all_filaments.emplace_back(layer_tool.extruders);
+                    }
                 }
 
                 std::vector<int> recomended_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config());
