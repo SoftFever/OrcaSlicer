@@ -131,7 +131,7 @@ struct ArrangeParams {
     float brim_skirt_distance = 0;
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;
-    float cleareance_radius = 0;
+    float clearance_radius = 0;
     float nozzle_height = 0;
     float printable_height = 256.0;
     Vec2d align_center{ 0.5,0.5 };
@@ -168,7 +168,7 @@ struct ArrangeParams {
         ret += "\"brim_skirt_distance\":" + std::to_string(brim_skirt_distance) + ",";
         ret += "\"clearance_height_to_rod\":" + std::to_string(clearance_height_to_rod) + ",";
         ret += "\"clearance_height_to_lid\":" + std::to_string(clearance_height_to_lid) + ",";
-        ret += "\"cleareance_radius\":" + std::to_string(cleareance_radius) + ",";
+        ret += "\"clearance_radius\":" + std::to_string(clearance_radius) + ",";
         ret += "\"printable_height\":" + std::to_string(printable_height) + ",";
         return ret;
     }

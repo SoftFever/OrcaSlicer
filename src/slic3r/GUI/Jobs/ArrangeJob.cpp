@@ -768,7 +768,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
 
     params.clearance_height_to_rod             = print_config.extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;
-    params.cleareance_radius                   = print_config.extruder_clearance_radius.value;
+    params.clearance_radius                   = print_config.extruder_clearance_radius.value;
     params.printable_height                    = print_config.printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
     params.nozzle_height                       = print.config().nozzle_height.value;
