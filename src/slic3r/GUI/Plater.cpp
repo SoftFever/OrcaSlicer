@@ -9646,21 +9646,11 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
-void Plater::calib_flowrate(int pass) {
-    if (pass != 1 && pass != 2)
-        return;
-    const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
-    if (new_project(false, false, calib_name) == wxID_CANCEL)
-        return;
-
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    
-    if(pass == 1)
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
-    else
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
-
-    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+// Adjust settings for flowrate calibration
+// For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
+void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
+{
+auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
@@ -9670,37 +9660,47 @@ void Plater::calib_flowrate(int pass) {
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
     float xyScale = nozzle_diameter / 0.6;
-    //scale z to have 7 layers
+    //scale z to have 10 layers
+    // 2 bottom, 5 top, 3 sparse infill
     double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
     double layer_height = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
     first_layer_height = std::max(first_layer_height, layer_height);
 
-    float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    float zscale = (first_layer_height + 9 * layer_height) / 2;
     // only enlarge
     if (xyScale > 1.2) {
-        for (auto _obj : model().objects)
+        for (auto _obj : objects)
             _obj->scale(xyScale, xyScale, zscale); 
     }
     else {
-        for (auto _obj : model().objects)
+        for (auto _obj : objects)
             _obj->scale(1, 1, zscale);
     }
 
+    auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     Flow infill_flow = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
-    double max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
+    double max_infill_speed;
+    if (linear)
+        max_infill_speed = filament_max_volumetric_speed /
+                           (infill_flow.mm3_per_mm() * (cur_flowrate + (pass == 2 ? 0.035 : 0.05)) / cur_flowrate);
+    else
+        max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
     double internal_solid_speed = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
     double top_surface_speed = std::floor(std::min(print_config->opt_float("top_surface_speed"), max_infill_speed));
 
     // adjust parameters
-    for (auto _obj : model().objects) {
+    for (auto _obj : objects) {
         _obj->ensure_on_bed();
-        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(1));
         _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
         _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100,true));
-        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
+        _obj->config.set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
@@ -9724,14 +9724,18 @@ void Plater::calib_flowrate(int pass) {
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
         auto modifier = stof(obj_name);
-        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
+        if(linear)
+            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
+        else
+            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
+
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
-    //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
@@ -9740,6 +9744,43 @@ void Plater::calib_flowrate(int pass) {
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 }
+
+void Plater::calib_flowrate(bool is_linear, int pass) {
+    if (pass != 1 && pass != 2)
+        return;
+    wxString calib_name;
+    if (is_linear) {
+        calib_name = L"Orca YOLO Flow Calibration";
+        if (pass == 2)
+            calib_name += L" - Perfectionist version";
+    } else
+        calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
+
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
+
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+    if (is_linear) {
+        if (pass == 1)
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "Orca-LinearFlow.3mf").string());
+        else
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "Orca-LinearFlow_fine.3mf").string());
+    } else {
+        if (pass == 1)
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+        else
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+    }
+
+    adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+}
+
 
 void Plater::calib_temp(const Calib_Params& params) {
     const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
