@@ -2281,18 +2281,13 @@ void Print::_make_skirt()
         }
     }
 
-    // Number of skirt loops per skirt layer.
-    size_t n_skirts = m_config.skirt_loops.value;
-    if (this->has_infinite_skirt() && n_skirts == 0)
-        n_skirts = 1;
-
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
     auto   distance = float(scale_(m_config.skirt_distance.value) - spacing/2.);
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
-    for (size_t i = n_skirts, extruder_idx = 0; i > 0; -- i) {
+    for (size_t i = m_config.skirt_loops, extruder_idx = 0; i > 0; -- i) {
         this->throw_if_canceled();
         // Offset the skirt outside.
         distance += float(scale_(spacing));
@@ -2343,11 +2338,10 @@ void Print::_make_skirt()
         append(m_skirt_convex_hull, std::move(poly.points));
 
     // BBS
-    const int n_object_skirts = 1;
     const double object_skirt_distance = scale_(1.0);
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
-        for (int i = 0; i < n_object_skirts; i++) {
+        for (int i = 0; i < 1; i++) {
             distance += float(scale_(spacing));
             Polygon loop;
             {
