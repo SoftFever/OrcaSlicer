@@ -190,6 +190,7 @@ enum ConfigOptionType {
     coEnum          = 9,
     // BBS: vector of enums
     coEnums         = coEnum + coVectorType,
+    coPointsGroups  = 10 + coVectorType
 };
 
 enum ConfigOptionMode {
@@ -1416,6 +1417,106 @@ private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionSingle<Vec3d>>(this)); }
 };
+
+class ConfigOptionPointsGroups :public ConfigOptionVector<Vec2ds>
+{
+public:
+    ConfigOptionPointsGroups() :ConfigOptionVector<Vec2ds>() {}
+    explicit ConfigOptionPointsGroups(std::initializer_list<Vec2ds> il) :ConfigOptionVector<Vec2ds>(std::move(il)) {}
+    explicit ConfigOptionPointsGroups(const std::vector<Vec2ds>& values) :ConfigOptionVector<Vec2ds>(values) {}
+
+    static ConfigOptionType static_type() { return coPointsGroups; }
+    ConfigOptionType type()const override { return static_type(); }
+    ConfigOption* clone()const override { return new ConfigOptionPointsGroups(*this); }
+    ConfigOptionPointsGroups& operator=(const ConfigOption* opt) { this->set(opt); return *this; }
+    bool operator == (const ConfigOptionPointsGroups& rhs)const throw() { return this->values == rhs.values; }
+    bool operator == (const ConfigOption& rhs) const override {
+        if (rhs.type() != this->type())
+            throw ConfigurationError("ConfigOptionPointsGroupsTempl: Comparing incompatible types");
+        assert(dynamic_cast<const ConfigOptionVector<Vec2ds>*>(&rhs));
+
+        return this->values == static_cast<const ConfigOptionVector<Vec2ds>*>(&rhs)->values;
+    }
+    bool nullable() const override { return false; }
+    bool is_nil(size_t) const override { return false; }
+
+    std::string serialize()const override
+    {
+        std::ostringstream ss;
+        for (auto iter = this->values.begin(); iter != this->values.end(); ++iter) {
+            if (iter != this->values.begin())
+                ss << "#";
+            serialize_single_value(ss, *iter);
+        }
+
+        return ss.str();
+    }
+
+    std::vector<std::string> vserialize()const override
+    {
+        std::vector<std::string>ret;
+        for (const auto& points : this->values) {
+            std::ostringstream ss;
+            serialize_single_value(ss, points);
+            ret.emplace_back(ss.str());
+        }
+        return ret;
+    }
+
+    bool deserialize(const std::string& str, bool append = false) override
+    {
+        if (!append)
+            this->values.clear();
+        std::istringstream is(str);
+        std::string group_str;
+        while (std::getline(is, group_str, '#')) {
+            Vec2ds group;
+            std::istringstream iss(group_str);
+            std::string point_str;
+            while (std::getline(iss, point_str, ',')) {
+                Vec2d point(Vec2d::Zero());
+                std::istringstream iss(point_str);
+                std::string coord_str;
+                if (std::getline(iss, coord_str, 'x')) {
+                    std::istringstream(coord_str) >> point(0);
+                    if (std::getline(iss, coord_str, 'x')) {
+                        std::istringstream(coord_str) >> point(1);
+                    }
+                }
+                group.push_back(point);
+            }
+            this->values.emplace_back(std::move(group));
+        }
+        return true;
+    }
+    std::vector<std::string> vserialize_single(int idx) const
+    {
+        std::vector<std::string>ret;
+        assert(idx < this->size());
+        for (auto iter = values[idx].begin(); iter != values[idx].end(); ++iter) {
+            std::ostringstream ss;
+            ss << (*iter)(0);
+            ss << "x";
+            ss << (*iter)(1);
+            ret.emplace_back(ss.str());
+        }
+        return ret;
+    }
+protected:
+    void serialize_single_value(std::ostringstream& ss, const Vec2ds& v) const {
+        for (auto iter = v.begin(); iter != v.end(); ++iter) {
+            if (iter - v.begin() != 0)
+                ss << ",";
+            ss << (*iter)(0);
+            ss << "x";
+            ss << (*iter)(1);
+        }
+    }
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionVector>(this)); }
+};
+
 
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {

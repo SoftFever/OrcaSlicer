@@ -529,7 +529,6 @@ void Preset::save(DynamicPrintConfig* parent_config)
     if (parent_config) {
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = config.diff(*parent_config);
-
         for (auto option: dirty_options)
         {
             ConfigOption *opt_src = config.option(option);
@@ -893,7 +892,7 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
-    "printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
+    "printable_area", "extruder_printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
     "fan_kickstart", "fan_speedup_time", "fan_speedup_overhangs",
     "single_extruder_multi_material", "manual_filament_change", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "printing_by_object_gcode", "layer_change_gcode", "time_lapse_gcode", "change_filament_gcode", "change_extrusion_role_gcode",
     "printer_model", "printer_variant", "printer_extruder_id", "printer_extruder_variant", "extruder_variant_list", "nozzle_volume_type",

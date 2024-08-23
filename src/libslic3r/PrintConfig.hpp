@@ -1322,6 +1322,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               reduce_crossing_wall))
     ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
     ((ConfigOptionPoints,             printable_area))
+    ((ConfigOptionPointsGroups,       extruder_printable_area))
     ((ConfigOptionFloats,             extruder_change_length))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))

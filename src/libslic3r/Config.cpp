@@ -804,6 +804,50 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
 
     CNumericLocalesSetter locales_setter;
 
+    std::function<bool(const json::const_iterator&, const char,const char,const bool,std::string&)> parse_str_arr = [&parse_str_arr](const json::const_iterator& it, const char single_sep,const char array_sep,const bool escape_string_style,std::string& value_str)->bool {
+        // must have consistent type name
+        std::string consistent_type;
+        for (auto iter = it.value().begin(); iter != it.value().end(); ++iter) {
+            if (consistent_type.empty())
+                consistent_type = iter.value().type_name();
+            else {
+                if (consistent_type != iter.value().type_name())
+                    return false;
+            }
+        }
+
+        bool first = true;
+        for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
+            if (iter.value().is_array()) {
+                if (!first)
+                    value_str += array_sep;
+                else
+                    first = false;
+                bool success = parse_str_arr(iter, single_sep, array_sep,escape_string_style, value_str);
+                if (!success)
+                    return false;
+            }
+            else if (iter.value().is_string()) {
+                if (!first)
+                    value_str += single_sep;
+                else
+                    first = false;
+                if (!escape_string_style)
+                    value_str += iter.value();
+                else {
+                    value_str += "\"";
+                    value_str += escape_string_cstyle(iter.value());
+                    value_str += "\"";
+                }
+            }
+            else {
+                //should not happen
+                return false;
+            }
+        }
+        return true;
+        };
+
     try {
         boost::nowide::ifstream ifs(file);
         ifs >> j;
@@ -887,8 +931,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         substitution_context.unrecogized_keys.push_back(opt_key_src);
                         continue;
                     }
-                    bool valid = true, first = true, use_comma = true;
-                    //bool test2 = (it.key() == std::string("filament_end_gcode"));
+                    bool valid = true, first = true;
                     const ConfigOptionDef* optdef = config_def->get(opt_key);
                     if (optdef == nullptr) {
                         // If we didn't find an option, look for any other option having this as an alias.
@@ -905,34 +948,29 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         }
                     }
 
-                    if (optdef && optdef->type == coStrings) {
-                        use_comma = false;
-                    }
-                    for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
-                        if (iter.value().is_string()) {
-                            if (!first) {
-                                if (use_comma)
-                                    value_str += ",";
-                                else
-                                    value_str += ";";
-                            }
-                            else
-                                first = false;
-
-                            if (use_comma)
-                                value_str += iter.value();
-                            else {
-                                value_str += "\"";
-                                value_str += escape_string_cstyle(iter.value());
-                                value_str += "\"";
-                            }
-                        }
-                        else {
-                            //should not happen
-                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json array for " << it.key();
-                            valid = false;
+                    char single_sep = ',';
+                    char array_sep = '#';  // currenty not used
+                    bool escape_string_type = false;
+                    if (optdef) {
+                        switch (optdef->type)
+                        {
+                        case coStrings:
+                            escape_string_type = true;
+                            single_sep = ';';
+                            break;
+                        case coPointsGroups:
+                            single_sep = '#';
+                            break;
+                        default:
                             break;
                         }
+                    }
+
+                    // BBS: we only support 2 depth array
+                    valid = parse_str_arr(it, single_sep, array_sep,escape_string_type, value_str);
+                    if (!valid) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file << " error, invalid json array for " << it.key();
+                        break;
                     }
                     if (valid)
                         this->set_deserialize(opt_key, value_str, substitution_context);
@@ -1419,14 +1457,14 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
                 j[opt_key] = opt->serialize();
         }
         else {
-            const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
+            const ConfigOptionVectorBase* vec = static_cast<const ConfigOptionVectorBase*>(opt);
             //if (!vec->empty())
             std::vector<std::string> string_values = vec->vserialize();
 
             /*for (int i = 0; i < string_values.size(); i++)
             {
-                std::string string_value = escape_string_cstyle(string_values[i]);
-                j[opt_key][i] = string_value;
+            std::string string_value = escape_string_cstyle(string_values[i]);
+            j[opt_key][i] = string_value;
             }*/
 
             json j_array(string_values);
