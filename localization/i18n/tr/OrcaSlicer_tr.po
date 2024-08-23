@@ -1816,16 +1816,16 @@ msgid "Scale an object to fit the build volume"
 msgstr "Bir nesneyi yapı hacmine uyacak şekilde ölçeklendirin"
 
 msgid "Flush Options"
-msgstr "Hizalama Seçenekleri"
+msgstr "Akıtma Seçenekleri"
 
 msgid "Flush into objects' infill"
-msgstr "Nesnelerin dolgusuna hizalayın"
+msgstr "Nesnelerin dolgusuna akıtın"
 
 msgid "Flush into this object"
-msgstr "Bu nesnenin içine hizala"
+msgstr "Bu nesneye akıt"
 
 msgid "Flush into objects' support"
-msgstr "Nesnelerin desteğine hizalayın"
+msgstr "Nesnelerin desteğine akıt"
 
 msgid "Edit in Parameter Table"
 msgstr "Parametre tablosunda düzenle"

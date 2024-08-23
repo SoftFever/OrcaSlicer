@@ -816,7 +816,6 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
     wxDataViewItem    item;
-    wxDataViewColumn *col;
     wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
