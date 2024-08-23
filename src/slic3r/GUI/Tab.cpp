@@ -4746,19 +4746,28 @@ void Tab::rebuild_page_tree()
     // To avoid redundant clear/activate functions call
     // suppress activate page before page_tree rebuilding
     m_disable_tree_sel_changed_event = true;
-    m_tabctrl->DeleteAllItems();
 
+    int curr_item = 0;
     for (auto p : m_pages)
     {
         if (!p->get_show())
             continue;
-        auto itemId = m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
-        m_tabctrl->SetItemTextColour(itemId, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
+        if (m_tabctrl->GetCount() <= curr_item) {
+            m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
+        } else {
+            m_tabctrl->SetItemText(curr_item, translate_category(p->title(), m_type));
+        }
+        m_tabctrl->SetItemTextColour(curr_item, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
                         std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
                         std::make_pair(p->get_item_colour(), (int) StateColor::Normal)));
         if (translate_category(p->title(), m_type) == selected)
-            item = itemId;
+            item = curr_item;
+        curr_item++;
     }
+    while (m_tabctrl->GetCount() > curr_item) {
+        m_tabctrl->DeleteItem(m_tabctrl->GetCount() - 1);
+    }
+
     // BBS: on mac, root is selected, this fix it
     m_tabctrl->Unselect();
     // BBS: not select on hide tab
