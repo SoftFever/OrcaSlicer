@@ -216,7 +216,7 @@ private:
 					// This is a match.  Record result in neighbors list.
 					match_neighbors(edge, *link->next);
 					// Delete the matched edge from the list.
-					// HashEdge *temp = link->next;
+					HashEdge *temp = link->next;
 					link->next = link->next->next;
 					// pool.destroy(temp);
 #ifndef NDEBUG

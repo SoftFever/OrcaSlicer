@@ -24,7 +24,7 @@ static wxWindow *GetScrollParent(wxWindow *pWindow)
     wxWindow *pWin = pWindow;
     while (pWin->GetParent()) {
         auto pWin2 = pWin->GetParent();
-        if (dynamic_cast<wxScrollHelper *>(pWin2))
+        if (auto top = dynamic_cast<wxScrollHelper *>(pWin2))
             return dynamic_cast<wxWindow *>(pWin);
         pWin = pWin2;
     }

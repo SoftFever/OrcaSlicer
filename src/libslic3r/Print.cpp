@@ -382,12 +382,12 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_print_regions.size() * m_objects.size() * 3);
-    // BBS
-#if 0
+
+    //Orca: Collect extruders from all regions.
     for (const PrintObject *object : m_objects)
 		for (const PrintRegion &region : object->all_regions())
         	region.collect_object_printing_extruders(*this, extruders);
-#else
+
     for (const PrintObject* object : m_objects) {
         const ModelObject* mo = object->model_object();
         for (const ModelVolume* mv : mo->volumes) {
@@ -410,7 +410,6 @@ std::vector<unsigned int> Print::object_extruders() const
             }
         }
     }
-#endif
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -832,6 +831,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
             for (int i = k+1; i < print_instance_count; i++)
             {
+                auto& p = print_instance_with_bounding_box[i].print_instance;
                 auto bbox2 = print_instance_with_bounding_box[i].bounding_box;
                 auto py1 = bbox2.min.y();
                 auto py2 = bbox2.max.y();
@@ -1402,30 +1402,32 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
 
-    if (is_BBL_printer()) {
+	    if (is_BBL_printer()) {
 	    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
-        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
 	    for (unsigned int extruder_id : extruders) {
-	        int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-	        if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
-	            std::string bed_type_name;
-	            for (auto item : *bed_type_keys_map) {
-	                if (item.second == m_config.curr_bed_type) {
-	                    bed_type_name = item.first;
-	                    break;
+	        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+	        for (unsigned int extruder_id : extruders) {
+	            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
+	            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+	                std::string bed_type_name;
+	                for (auto item : *bed_type_keys_map) {
+	                    if (item.second == m_config.curr_bed_type) {
+	                        bed_type_name = item.first;
+	                        break;
+	                    }
 	                }
-	            }
 
-	            StringObjectException except;
-	            except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
-	            except.string += "\n";
-	            except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
-	            except.params.push_back(std::to_string(this->get_plate_index() + 1));
-	            except.params.push_back(L(bed_type_name));
-	            except.params.push_back(std::to_string(extruder_id+1));
-	            except.object = nullptr;
-	            return except;
-	       }
+	                StringObjectException except;
+	                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+	                except.string += "\n";
+	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+	                except.params.push_back(std::to_string(this->get_plate_index() + 1));
+	                except.params.push_back(L(bed_type_name));
+	                except.params.push_back(std::to_string(extruder_id+1));
+	                except.object = nullptr;
+	                return except;
+	           }
+            }
         }
     }
 
@@ -1442,7 +1444,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
                 return warning_key;
             };
-            /* auto check_motion_ability_region_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
+            auto check_motion_ability_region_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
                 std::string warning_key;
                 for (const auto& key : keys_to_check) {
                     if (m_default_region_config.get_abs_value(key) > limit) {
@@ -1451,7 +1453,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     }
                 }
                 return warning_key;
-            }; */
+            };
             std::string warning_key;
 
             // check jerk
@@ -2404,14 +2406,24 @@ std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_e
         double width = m_config.prime_tower_width + 2*m_wipe_tower_data.brim_width;
         double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
         Vec2d pt0(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
-        for (Vec2d pt : {
-                pt0,
-                Vec2d(pt0.x()+width, pt0.y()      ),
-                Vec2d(pt0.x()+width, pt0.y()+depth),
-                Vec2d(pt0.x(),       pt0.y()+depth)
-            }) {
+        
+        // First the corners.
+        std::vector<Vec2d> pts = { pt0,
+                                   Vec2d(pt0.x()+width, pt0.y()),
+                                   Vec2d(pt0.x()+width, pt0.y()+depth),
+                                   Vec2d(pt0.x(),pt0.y()+depth)
+                                 };
+
+        // Now the stabilization cone.
+        Vec2d center = (pts[0] + pts[2])/2.;
+        const auto [cone_R, cone_x_scale] = WipeTower2::get_wipe_tower_cone_base(m_config.prime_tower_width, m_wipe_tower_data.height, m_wipe_tower_data.depth, m_config.wipe_tower_cone_angle);
+        double r = cone_R + m_wipe_tower_data.brim_width;
+        for (double alpha = 0.; alpha<2*M_PI; alpha += M_PI/20.)
+            pts.emplace_back(center + r*Vec2d(std::cos(alpha)/cone_x_scale, std::sin(alpha)));
+
+        for (Vec2d& pt : pts) {
             pt = Eigen::Rotation2Dd(Geometry::deg2rad(m_config.wipe_tower_rotation_angle.value)) * pt;
-            // BBS: add partplate logic
+            //Orca: offset the wipe tower to the plate origin
             pt += Vec2d(m_config.wipe_tower_x.get_at(m_plate_index) + m_origin(0), m_config.wipe_tower_y.get_at(m_plate_index) + m_origin(1));
             corners.emplace_back(Point(scale_(pt.x()), scale_(pt.y())));
         }
@@ -2454,7 +2466,7 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
             in.close();
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
             filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
-            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH","SBS"};
             filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }
     }
@@ -2657,7 +2669,7 @@ void Print::_make_wipe_tower()
             for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
                 if (!layer_tools.has_wipe_tower)
                     continue;
-                // bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
                 wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
                                            current_extruder_id);
 
@@ -2913,7 +2925,7 @@ DynamicConfig PrintStatistics::config() const
 DynamicConfig PrintStatistics::placeholders()
 {
     DynamicConfig config;
-    for (const std::string &key : {
+    for (const std::string key : {
         "print_time", "normal_print_time", "silent_print_time",
         "used_filament", "extruded_volume", "total_cost", "total_weight",
         "initial_tool", "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})

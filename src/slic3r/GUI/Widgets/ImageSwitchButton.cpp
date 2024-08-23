@@ -108,6 +108,7 @@ void ImageSwitchButton::render(wxDC& dc)
 	wxSize size = GetSize();
 
 	wxSize szIcon;
+	wxSize szContent = textSize;
     ScalableBitmap &icon      = GetValue() ? m_on : m_off;
 	
 	int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
@@ -267,6 +268,7 @@ void FanSwitchButton::render(wxDC& dc)
     wxSize size = GetSize();
 
     wxSize szIcon;
+    wxSize szContent = textSize;
     ScalableBitmap& icon = GetValue() ? m_on : m_off;
 
     //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;

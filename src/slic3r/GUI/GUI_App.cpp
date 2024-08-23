@@ -301,6 +301,7 @@ public:
             memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
+            int text_width = memDC.GetTextExtent(text).GetWidth();
             wxRect text_rect(wxPoint(0, m_action_line_y_position), wxPoint(width, m_action_line_y_position + text_height));
             memDC.DrawLabel(text, text_rect, wxALIGN_CENTER);
 
@@ -940,7 +941,7 @@ void GUI_App::post_init()
     }
 #endif
 
-    if (app_config->get("stealth_mode") == "false")
+    if (!app_config->get_stealth_mode())
         hms_query = new HMSQuery();
 
     m_show_gcode_window = app_config->get_bool("show_gcode_window");
@@ -962,7 +963,7 @@ void GUI_App::post_init()
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
     if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
         CallAfter([this] {
-            this->config_wizard_startup();
+            bool cw_showed = this->config_wizard_startup();
 
             std::string http_url = get_http_url(app_config->get_country_code());
             std::string language = GUI::into_u8(current_language_code());
@@ -971,7 +972,7 @@ void GUI_App::post_init()
             this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
 
             this->check_new_version_sf();
-            if (is_user_login() && app_config->get("stealth_mode") == "false") {
+            if (is_user_login() && !app_config->get_stealth_mode()) {
               // this->check_privacy_version(0);
               request_user_handle(0);
             }
@@ -1025,7 +1026,8 @@ void GUI_App::post_init()
                try {
                    std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
                    files_vec.push_back({ lw_t, temp_path.filename().string() });
-               } catch (std::exception&) {}
+               } catch (const std::exception &) {
+               }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
                std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
@@ -1315,6 +1317,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
             bool cancel = false;
+            int percent = 0;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
             file.write(body.c_str(), body.size());
             file.close();
@@ -1924,13 +1927,8 @@ void GUI_App::init_app_config()
             boost::filesystem::create_directory(data_dir_path);
         }
 
-        // Change current directory of application
-        auto path = encode_path((Slic3r::data_dir() + "/log").c_str());
-#ifdef _WIN32
-        _chdir(path.c_str());
-#else
-        chdir(path.c_str());
-#endif
+        // Change current dirtory of application
+        chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }
@@ -3367,7 +3365,7 @@ if (res) {
             mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
-    } catch (std::exception&) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3381,7 +3379,9 @@ void GUI_App::ShowDownNetPluginDlg() {
             return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
-    } catch (std::exception&) {}
+    } catch (std::exception &) {
+        ;
+    }
 }
 
 void GUI_App::ShowUserLogin(bool show)
@@ -3396,7 +3396,9 @@ void GUI_App::ShowUserLogin(bool show)
                 login_dlg = new ZUserLogin();
             }
             login_dlg->ShowModal();
-        } catch (std::exception&) {}
+        } catch (std::exception &) {
+            ;
+        }
     } else {
         if (login_dlg)
             login_dlg->EndModal(wxID_OK);
@@ -3416,7 +3418,7 @@ void GUI_App::ShowOnlyFilament() {
 
             // BBS: remove SLA related message
         }
-    } catch (std::exception&) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3828,10 +3830,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     auto keyCode = key_event_node.get<int>("key");
                     auto ctrlKey = key_event_node.get<bool>("ctrl");
                     auto shiftKey = key_event_node.get<bool>("shift");
+                    auto cmdKey = key_event_node.get<bool>("cmd");
 
                     wxKeyEvent e(wxEVT_CHAR_HOOK);
 #ifdef __APPLE__
-                    auto cmdKey = key_event_node.get<bool>("cmd");
                     e.SetControlDown(cmdKey);
                     e.SetRawControlDown(ctrlKey);
 #else
@@ -4141,6 +4143,7 @@ void GUI_App::check_update(bool show_tips, int by_user)
 
 void GUI_App::check_new_version(bool show_tips, int by_user)
 {
+    return; // orca: not used, see check_new_version_sf
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -4674,7 +4677,7 @@ void GUI_App::sync_preset(Preset* preset)
 
 void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
-    if (app_config->get("stealth_mode") == "true")
+    if (app_config->get_stealth_mode())
         return;
 
     if (!m_agent || !m_agent->is_user_login()) return;
@@ -4785,6 +4788,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                     plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
                             });
                         }
+
+                        unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
                         std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
@@ -5254,6 +5259,8 @@ void GUI_App::update_mode()
         mainframe->m_param_panel->update_mode();
     if (mainframe->m_param_dialog)
         mainframe->m_param_dialog->panel()->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
     mainframe->m_webview->update_mode();
 
 #ifdef _MSW_DARK_MODE
@@ -5273,6 +5280,8 @@ void GUI_App::update_mode()
 
 void GUI_App::update_internal_development() {
     mainframe->m_webview->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
 }
 
 void GUI_App::show_ip_address_enter_dialog(wxString title)
@@ -5465,7 +5474,7 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 
 void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
 {
-    // bool app_layout_changed = false;
+    bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor

@@ -1072,6 +1072,8 @@ void WipeTower::toolchange_Wipe(
     const float target_speed = is_first_layer() ? std::min(m_first_layer_speed * 60.f, 4800.f) : 4800.f;
     float wipe_speed = 0.33f * target_speed;
 
+    float start_y = writer.y();
+
 #if 0
     // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
     if ((m_left_to_right ? xr-writer.x() : writer.x()-xl) < 2.5f*m_perimeter_width) {
@@ -1129,6 +1131,8 @@ void WipeTower::toolchange_Wipe(
         writer.extrude(writer.x(), writer.y() + dy);
 		m_left_to_right = !m_left_to_right;
 	}
+
+    float end_y = writer.y();
 
     // We may be going back to the model - wipe the nozzle. If this is followed
     // by finish_layer, this wipe path will be overwritten.
@@ -1418,6 +1422,7 @@ void WipeTower::plan_tower()
         // If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
         auto next_height_to_depth = *iter;
         if (next_height_to_depth.first > m_wipe_tower_height) {
+            float height_base = curr_height_to_depth.first;
             float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
             float min_depth_base = curr_height_to_depth.second;
             float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;

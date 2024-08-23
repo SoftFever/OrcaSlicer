@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.14",
+    "version": "01.09.00.18",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -674,6 +674,10 @@
             "sub_path": "filament/fdm_filament_bvoh.json"
         },
         {
+          "name": "fdm_filament_sbs",
+          "sub_path": "filament/fdm_filament_sbs.json"
+        },
+        {
             "name": "Bambu PLA Matte @base",
             "sub_path": "filament/Bambu PLA Matte @base.json"
         },
@@ -732,6 +736,10 @@
         {
             "name": "Generic PLA-CF @base",
             "sub_path": "filament/Generic PLA-CF @base.json"
+        },
+        {
+          "name": "Generic SBS @base",
+          "sub_path": "filament/Generic SBS @base.json"
         },
         {
             "name": "Bambu PLA-CF @base",
@@ -822,6 +830,10 @@
             "sub_path": "filament/Generic PCTG @base.json"
         },
         {
+            "name": "Bambu PETG HF @base",
+            "sub_path": "filament/Bambu PETG HF @base.json"
+        },
+        {
             "name": "Bambu ABS @base",
             "sub_path": "filament/Bambu ABS @base.json"
         },
@@ -836,6 +848,10 @@
         {
             "name": "Bambu ABS-GF @base",
             "sub_path": "filament/Bambu ABS-GF @base.json"
+        },
+        {
+            "name": "Bambu Support for ABS @base",
+            "sub_path": "filament/Bambu Support for ABS @base.json"
         },
         {
             "name": "Bambu PC @base",
@@ -1382,6 +1398,10 @@
             "sub_path": "filament/Generic PLA-CF @BBL A1.json"
         },
         {
+          "name": "Generic SBS",
+          "sub_path": "filament/Generic SBS.json"
+        },
+        {
             "name": "Bambu PLA-CF @BBL X1C 0.8 nozzle",
             "sub_path": "filament/Bambu PLA-CF @BBL X1C 0.8 nozzle.json"
         },
@@ -1870,6 +1890,42 @@
             "sub_path": "filament/Bambu PETG Translucent @BBL A1.json"
         },
         {
+            "name": "Bambu PETG HF @BBL X1C",
+            "sub_path": "filament/Bambu PETG HF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1",
+            "sub_path": "filament/Bambu PETG HF @BBL A1.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL A1 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1M",
+            "sub_path": "filament/Bambu PETG HF @BBL A1M.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL A1M 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL A1M 0.8 nozzle.json"
+        },
+        {
             "name": "Generic PCTG @BBL X1C",
             "sub_path": "filament/Generic PCTG @BBL X1C.json"
         },
@@ -1960,6 +2016,14 @@
         {
             "name": "Bambu ABS-GF @BBL A1",
             "sub_path": "filament/Bambu ABS-GF @BBL A1.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL X1C",
+            "sub_path": "filament/Bambu Support for ABS @BBL X1C.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL A1",
+            "sub_path": "filament/Bambu Support for ABS @BBL A1.json"
         },
         {
             "name": "Bambu PC @BBL X1C",

@@ -13,6 +13,12 @@ Orca Slicer is an open source slicer for FDM printers.
 - More granular controls
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
 
+# Wiki
+The wiki below aims to provide a detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
+
+The wiki is work in progress so bear with us while we get it up and running!
+
+**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**  
 
 # Download
 

@@ -775,9 +775,10 @@ ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibili
 //BBS: add json support
 ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values, std::string& reason)
 {
+    int ret = 0;
     ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
 
-    load_from_json(file, substitutions_ctxt, true, key_values, reason);
+    ret = load_from_json(file, substitutions_ctxt, true, key_values, reason);
     return std::move(substitutions_ctxt.substitutions);
 }
 
