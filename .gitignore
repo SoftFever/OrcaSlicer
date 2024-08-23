@@ -27,8 +27,8 @@ src/OrcaSlicer-doc/
 .idea/
 /.cache/
 *.mo
-**/process_full/
-**/machine_full/
+**/process/
+**/machine/
 **/filament_full/
 /deps/DL_CACHE/
 /deps/DL_CACHE
