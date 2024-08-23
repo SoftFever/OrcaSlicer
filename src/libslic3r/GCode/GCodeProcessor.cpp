@@ -706,8 +706,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     m_single_extruder_multi_material = config.single_extruder_multi_material;
 
-    size_t extruders_count = config.filament_diameter.values.size();
-    m_result.filaments_count = extruders_count;
+    size_t filament_count = config.filament_diameter.values.size();
+    m_result.filaments_count = filament_count;
 
     // Orca: 
     m_is_XL_printer = is_XL_printer(config);
@@ -718,19 +718,27 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_preheat_steps = 1;
     m_result.backtrace_enabled = m_preheat_time > 0 && (m_is_XL_printer || (!m_single_extruder_multi_material && extruders_count > 1));
 
-    m_extruder_offsets.resize(extruders_count);
-    m_extruder_colors.resize(extruders_count);
-    m_result.filament_diameters.resize(extruders_count);
-    m_result.required_nozzle_HRC.resize(extruders_count);
-    m_result.filament_densities.resize(extruders_count);
-    m_result.filament_vitrification_temperature.resize(extruders_count);
-    m_result.filament_costs.resize(extruders_count);
-    m_extruder_temps.resize(extruders_count);
-    m_extruder_temps_config.resize(extruders_count);
-    m_extruder_temps_first_layer_config.resize(extruders_count);
+    assert(config.nozzle_volume.size() == config.nozzle_diameter.size());
+    m_nozzle_volume.resize(config.nozzle_volume.size());
+    for (size_t idx = 0; idx < config.nozzle_volume.size(); ++idx)
+        m_nozzle_volume[idx] = config.nozzle_volume.values[idx];
+
+    m_extruder_offsets.resize(filament_count);
+    m_extruder_colors.resize(filament_count);
+    m_result.filament_diameters.resize(filament_count);
+    m_result.required_nozzle_HRC.resize(filament_count);
+    m_result.filament_densities.resize(filament_count);
+    m_result.filament_vitrification_temperature.resize(filament_count);
+    m_result.filament_costs.resize(filament_count);
+    m_extruder_temps.resize(filament_count);
+    m_extruder_temps_config.resize(filament_count);
+    m_extruder_temps_first_layer_config.resize(filament_count);
     m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
-    m_result.nozzle_type = config.nozzle_type;
-    for (size_t i = 0; i < extruders_count; ++ i) {
+    std::vector<NozzleType>(config.nozzle_type.size()).swap(m_result.nozzle_type);
+    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
+        m_result.nozzle_type[idx] = NozzleType(config.nozzle_type.values[idx]);
+    }
+    for (size_t i = 0; i < filament_count; ++ i) {
         m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
         m_extruder_temps_first_layer_config[i] = static_cast<int>(config.nozzle_temperature_initial_layer.get_at(i));
@@ -820,16 +828,23 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     m_parser.apply_config(config);
 
     //BBS
-    const ConfigOptionFloat* nozzle_volume = config.option<ConfigOptionFloat>("nozzle_volume");
-    if (nozzle_volume != nullptr)
-        m_nozzle_volume = nozzle_volume->value;
+    const ConfigOptionFloatsNullable* nozzle_volume = config.option<ConfigOptionFloatsNullable>("nozzle_volume");
+    if (nozzle_volume != nullptr) {
+        m_nozzle_volume.resize(nozzle_volume->size(), 0);
+        for (size_t idx = 0; idx < nozzle_volume->size(); ++idx)
+            m_nozzle_volume[idx] = nozzle_volume->values[idx];
+    }
 
     const ConfigOptionInt *nozzle_HRC = config.option<ConfigOptionInt>("nozzle_hrc");
     if (nozzle_HRC != nullptr) m_result.nozzle_hrc = nozzle_HRC->value;
 
-    const ConfigOptionEnum<NozzleType>* nozzle_type = config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
-    if (nozzle_type != nullptr)
-        m_result.nozzle_type=nozzle_type->value;
+    const ConfigOptionEnumsGenericNullable* nozzle_type = config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
+    if (nozzle_type != nullptr) {
+        m_result.nozzle_type.resize(nozzle_type->size());
+        for (size_t idx = 0; idx < nozzle_type->values.size(); ++idx) {
+            m_result.nozzle_type[idx] = NozzleType(nozzle_type->values[idx]);
+        }
+    }
 
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
@@ -1139,7 +1154,7 @@ void GCodeProcessor::reset()
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(MIN_EXTRUDERS_COUNT, Vec3f::Zero());
     m_flavor = gcfRepRapSprinter;
-    m_nozzle_volume = 0.f;
+    m_nozzle_volume = {0.f,0.f};
 
     m_start_position = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_end_position = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1148,7 +1163,7 @@ void GCodeProcessor::reset()
     m_wiping = false;
     m_flushing = false;
     m_wipe_tower = false;
-    m_remaining_volume = 0.f;
+    m_remaining_volume = { 0.f,0.f };
     // BBS: arc move related data
     m_move_path_type = EMovePathType::Noop_move;
     m_arc_center = Vec3f::Zero();
@@ -2749,16 +2764,17 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     }
     else if (type == EMoveType::Unretract && m_flushing) {
+        int extruder_id = get_extruder_id();
         float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
-        if (m_remaining_volume > volume_flushed_filament)
+        if (m_remaining_volume[extruder_id] > volume_flushed_filament)
         {
             m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
-            m_remaining_volume -= volume_flushed_filament;
+            m_remaining_volume[extruder_id] -= volume_flushed_filament;
         }
         else {
-            m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume);
-            m_used_filaments.update_flush_per_filament(filament_id, volume_flushed_filament - m_remaining_volume);
-            m_remaining_volume = 0.f;
+            m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
+            m_used_filaments.update_flush_per_filament(filament_id, volume_flushed_filament - m_remaining_volume[extruder_id]);
+            m_remaining_volume[extruder_id] = 0.f;
         }
     }
 
@@ -5105,7 +5121,8 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
         m_used_filaments.process_support_cache(this);
         m_used_filaments.process_total_volume_cache(this);
         //BBS: reset remaining filament
-        m_remaining_volume = m_nozzle_volume;
+        size_t last_extruder_id = get_extruder_id();
+        m_remaining_volume[last_extruder_id] = m_nozzle_volume[last_extruder_id];
     }
 }
 
@@ -5148,24 +5165,24 @@ void GCodeProcessor::update_slice_warnings()
 {
     m_result.warnings.clear();
 
-    auto get_used_extruders = [this]() {
-        std::vector<size_t> used_extruders;
-        used_extruders.reserve(m_used_filaments.total_volumes_per_filament.size());
+    auto get_used_filaments = [this]() {
+        std::vector<size_t> used_filaments;
+        used_filaments.reserve(m_used_filaments.total_volumes_per_filament.size());
         for (auto item : m_used_filaments.total_volumes_per_filament) {
-            used_extruders.push_back(item.first);
+            used_filaments.push_back(item.first);
         }
-        return used_extruders;
+        return used_filaments;
     };
 
-    auto used_extruders = get_used_extruders();
-    assert(!used_extruders.empty());
+    auto used_filaments = get_used_filaments();
+    assert(!used_filaments.empty());
     GCodeProcessorResult::SliceWarning warning;
     warning.level = 1;
     if (m_highest_bed_temp != 0) {
-        for (size_t i = 0; i < used_extruders.size(); i++) {
-            int temperature = get_filament_vitrification_temperature(used_extruders[i]);
+        for (size_t i = 0; i < used_filaments.size(); i++) {
+            int temperature = get_filament_vitrification_temperature(used_filaments[i]);
             if (temperature != 0 && m_highest_bed_temp >= temperature)
-                warning.params.push_back(std::to_string(used_extruders[i]));
+                warning.params.push_back(std::to_string(used_filaments[i]));
         }
     }
 
@@ -5179,17 +5196,26 @@ void GCodeProcessor::update_slice_warnings()
     warning.params.clear();
     warning.level=1;
 
-    int nozzle_hrc = m_result.nozzle_hrc;
-    if(nozzle_hrc <= 0)
-        nozzle_hrc = Print::get_hrc_by_nozzle_type(m_result.nozzle_type);
-    if (nozzle_hrc!=0) {
-        for (size_t i = 0; i < used_extruders.size(); i++) {
-            int HRC=0;
-            if (used_extruders[i] < m_result.required_nozzle_HRC.size())
-                HRC = m_result.required_nozzle_HRC[used_extruders[i]];
-            if (HRC != 0 && (nozzle_hrc<HRC))
-                warning.params.push_back(std::to_string(used_extruders[i]));
-        }
+    std::vector<int>nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
+    // store the nozzle hrc of each extruder
+    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
+        nozzle_hrc_lists[idx] = m_result.nozzle_hrc;
+        if(nozzle_hrc_lists[idx] <= 0)
+            nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
+
+    for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
+        int filament_hrc = 0;
+
+        if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
+            filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
+
+        int filament_extruder_id = m_filament_maps[used_filaments[idx]];
+        int extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
+
+        if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
+            warning.params.push_back(std::to_string(used_filaments[idx]));
     }
 
     if (!warning.params.empty()) {

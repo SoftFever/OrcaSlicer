@@ -309,6 +309,7 @@ public:
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
+    // get used filaments, 1 based idx
     std::vector<int> get_used_extruders();
 
     /* instance related operations*/
@@ -490,6 +491,7 @@ public:
     bool has_auto_filament_map_reslut();
     void set_auto_filament_map_result(bool has_result);
 
+    // get filament map, 0 based filament ids, 1 based extruder ids
     std::vector<int> get_filament_maps();
     void set_filament_maps(const std::vector<int>& f_maps);
 

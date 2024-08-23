@@ -3099,7 +3099,7 @@ void PrintConfigDef::init_fff_params()
     // def->mode = comSimple;
     // def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("nozzle_type", coEnum);
+    def = this->add("nozzle_type", coEnums);
     def->label = L("Nozzle type");
     def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
                      "what kind of filament can be printed.");
@@ -3113,7 +3113,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Stainless steel"));
     def->enum_labels.push_back(L("Brass"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionEnumsGenericNullable({ ntUndefine }));
 
 
     def                = this->add("nozzle_hrc", coInt);
@@ -4025,15 +4026,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
-    
 
-    def = this->add("nozzle_volume", coFloat);
+    def = this->add("nozzle_volume", coFloats);
     def->label = L("Nozzle volume");
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle.");
     def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
     def->mode = comAdvanced;
     def->readonly = false;
-    def->set_default_value(new ConfigOptionFloat { 0.0 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { {0.0} });
 
     def = this->add("cooling_tube_retraction", coFloat);
     def->label = L("Cooling tube position");
@@ -7182,6 +7183,8 @@ const PrintConfigDef print_config_def;
 
 //todo
 std::set<std::string> print_options_with_variant = {
+    "initial_layer_speed",
+    "initial_layer_infill_speed",
     "outer_wall_speed",
     "inner_wall_speed",
     "small_perimeter_speed",
@@ -7196,8 +7199,8 @@ std::set<std::string> print_options_with_variant = {
     "overhang_4_4_speed",
     "bridge_speed",
     "gap_infill_speed",
-    "initial_layer_speed",
-    "initial_layer_infill_speed",
+    "support_speed",
+    "support_interface_speed",
     "travel_speed",
     "travel_speed_z",
     "default_acceleration",
@@ -7206,8 +7209,6 @@ std::set<std::string> print_options_with_variant = {
     "inner_wall_acceleration",
     "sparse_infill_acceleration",
     "top_surface_acceleration",
-    "support_interface_speed",
-    "support_speed",
     "print_extruder_id",
     "print_extruder_variant"
 };
@@ -7261,6 +7262,8 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
+    "nozzle_volume",
+    "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant"
 };
@@ -7528,6 +7531,7 @@ size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, siz
         if (nozzle_volume_type_opt) {
             volume_type_size = nozzle_volume_type_opt->values.size();
         }
+        bool flag = (param_name == "nozzle_volume");
         if (printer_options_with_variant_1.count(param_name) > 0) {
             return extruder_nums * volume_type_size;
         }
