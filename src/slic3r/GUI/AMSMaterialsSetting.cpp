@@ -484,6 +484,19 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
 
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+            auto        filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+            std::string filament_id   = filament_item.filament_id;
+            if (it->filament_id.compare(filament_id) == 0) {
+                ams_filament_id = it->filament_id;
+                ams_setting_id  = it->setting_id;
+                break;
+            }
+        }
+    }
+
     if (obj) {
         // set filament
         if (is_virtual_tray()) {
