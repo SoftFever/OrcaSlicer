@@ -1664,6 +1664,118 @@ void GCodeProcessor::process_buffer(const std::string &buffer)
     });
 }
 
+void GCodeProcessor::export_makerlink_stats()
+{
+    auto                                  plate_print_statistics = m_result.print_statistics;
+    const PrintEstimatedStatistics::Mode& plate_time_mode        = plate_print_statistics
+                                                                .modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
+
+    auto get_used_extruders = [this]() {
+        std::vector<size_t> used_extruders;
+        used_extruders.reserve(m_used_filaments.total_volumes_per_extruder.size());
+        for (auto item : m_used_filaments.total_volumes_per_extruder) {
+            used_extruders.push_back(item.first);
+        }
+        return used_extruders;
+    };
+
+    auto get_used_filament_from_volume = [this](double volume, int extruder_id) {
+        double                    koef = 0.001;
+        std::pair<double, double> ret  = {koef * volume / (PI * sqr(0.5 * this->m_result.filament_diameters[extruder_id])),
+                                          volume * this->m_result.filament_densities[extruder_id] * 0.001};
+        return ret;
+    };
+
+    std::map<int, double> model_volume_of_extruders_all_plates;      // map<extruder_idx, volume>
+    std::map<int, double> flushed_volume_of_extruders_all_plates;    // map<extruder_idx, flushed volume>
+    std::map<int, double> wipe_tower_volume_of_extruders_all_plates; // map<extruder_idx, flushed volume>
+    std::map<int, double> support_volume_of_extruders_all_plates;    // map<extruder_idx, flushed volume>
+    std::vector<double>   model_used_filaments_m_all_plates;
+    std::vector<double>   model_used_filaments_g_all_plates;
+    std::vector<double>   flushed_filaments_m_all_plates;
+    std::vector<double>   flushed_filaments_g_all_plates;
+    std::vector<double>   wipe_tower_used_filaments_m_all_plates;
+    std::vector<double>   wipe_tower_used_filaments_g_all_plates;
+    std::vector<double>   support_used_filaments_m_all_plates;
+    std::vector<double>   support_used_filaments_g_all_plates;
+
+    auto used_extruders = get_used_extruders();
+    for (size_t i = 0; i < used_extruders.size(); i++) {
+        auto extruder_id = used_extruders[i];
+
+        if (plate_print_statistics.model_volumes_per_extruder.find(extruder_id) == plate_print_statistics.model_volumes_per_extruder.end())
+            model_volume_of_extruders_all_plates[extruder_id] += 0;
+        else {
+            double model_volume = plate_print_statistics.model_volumes_per_extruder.at(extruder_id);
+            model_volume_of_extruders_all_plates[extruder_id] += model_volume;
+        }
+        if (plate_print_statistics.flush_per_filament.find(extruder_id) == plate_print_statistics.flush_per_filament.end())
+            flushed_volume_of_extruders_all_plates[extruder_id] += 0;
+        else {
+            double flushed_volume = plate_print_statistics.flush_per_filament.at(extruder_id);
+            flushed_volume_of_extruders_all_plates[extruder_id] += flushed_volume;
+        }
+        if (plate_print_statistics.wipe_tower_volumes_per_extruder.find(extruder_id) ==
+            plate_print_statistics.wipe_tower_volumes_per_extruder.end())
+            wipe_tower_volume_of_extruders_all_plates[extruder_id] += 0;
+        else {
+            double wipe_tower_volume = plate_print_statistics.wipe_tower_volumes_per_extruder.at(extruder_id);
+            wipe_tower_volume_of_extruders_all_plates[extruder_id] += wipe_tower_volume;
+        }
+        if (plate_print_statistics.support_volumes_per_extruder.find(extruder_id) ==
+            plate_print_statistics.support_volumes_per_extruder.end())
+            support_volume_of_extruders_all_plates[extruder_id] += 0;
+        else {
+            double support_volume = plate_print_statistics.support_volumes_per_extruder.at(extruder_id);
+            support_volume_of_extruders_all_plates[extruder_id] += support_volume;
+        }
+    }
+
+    float column_sum_g = 0.0f;
+    for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
+        auto [model_used_filament_m, model_used_filament_g] = get_used_filament_from_volume(it->second, it->first);
+        model_used_filaments_m_all_plates.push_back(model_used_filament_m);
+        model_used_filaments_g_all_plates.push_back(model_used_filament_g);
+        column_sum_g += model_used_filament_g;
+    }
+    for (auto it = flushed_volume_of_extruders_all_plates.begin(); it != flushed_volume_of_extruders_all_plates.end(); it++) {
+        auto [flushed_filament_m, flushed_filament_g] = get_used_filament_from_volume(it->second, it->first);
+        flushed_filaments_m_all_plates.push_back(flushed_filament_m);
+        flushed_filaments_g_all_plates.push_back(flushed_filament_g);
+        column_sum_g += flushed_filament_g;
+    }
+    for (auto it = wipe_tower_volume_of_extruders_all_plates.begin(); it != wipe_tower_volume_of_extruders_all_plates.end(); it++) {
+        auto [wipe_tower_filament_m, wipe_tower_filament_g] = get_used_filament_from_volume(it->second, it->first);
+        wipe_tower_used_filaments_m_all_plates.push_back(wipe_tower_filament_m);
+        wipe_tower_used_filaments_g_all_plates.push_back(wipe_tower_filament_g);
+        column_sum_g += wipe_tower_filament_g;
+    }
+    for (auto it = support_volume_of_extruders_all_plates.begin(); it != support_volume_of_extruders_all_plates.end(); it++) {
+        auto [support_filament_m, support_filament_g] = get_used_filament_from_volume(it->second, it->first);
+        support_used_filaments_m_all_plates.push_back(support_filament_m);
+        support_used_filaments_g_all_plates.push_back(support_filament_g);
+        column_sum_g += support_filament_g;
+    }
+
+    nlohmann::json root_json;
+    
+    root_json["makerlinkStatsVersion"]  = 1;
+    root_json["totalTimeInSeconds"]  = plate_time_mode.time;
+    root_json["totalGrams"] = column_sum_g;
+
+    // Trim off ".gcode.tmp"
+    auto filename = boost::algorithm::erase_tail_copy(m_result.filename, 10) + ".json";
+    try {
+        boost::nowide::ofstream c;
+        c.open(filename, std::ios::out | std::ios::trunc);
+        c << root_json.dump(0) << std::endl;
+        c.close();
+    } catch (std::exception& err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": save to " << filename << " got a generic exception, reason = " << err.what();
+    }
+}
+
+
 void GCodeProcessor::finalize(bool post_process)
 {
     // update width/height of wipe moves
@@ -1686,6 +1798,7 @@ void GCodeProcessor::finalize(bool post_process)
     m_used_filaments.process_caches(this);
 
     update_estimated_times_stats();
+    export_makerlink_stats();
     auto time_mode = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
 
     auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return erCustom == item.first; });
