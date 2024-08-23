@@ -117,7 +117,23 @@ int TabCtrl::AppendItem(const wxString &item,
 
 bool TabCtrl::DeleteItem(int item)
 {
-    return false;
+    if (item < 0 || item >= btns.size()) {
+        return false;
+    }
+
+    Button* btn = btns[item];
+    btn->Destroy();
+    btns.erase(btns.begin() + item);
+    sizer->Remove(item * 2);
+    if (btns.size() > 1)
+        sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({0, 0});
+    relayout();
+    if (sel >= item) {
+        sel--;
+        sendTabCtrlEvent();
+    }
+
+    return true;
 }
 
 void TabCtrl::DeleteAllItems()
