@@ -5282,10 +5282,10 @@ bool Tab::update_current_page_in_background(int& item)
 
         // clear pages from the controlls
         // BBS: fix after new layout, clear page in backgroud
-        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
-            m_parent->clear_page();
         for (auto p : m_pages)
             p->clear();
+        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
+            m_parent->clear_page();
 
         update_undo_buttons();
 
