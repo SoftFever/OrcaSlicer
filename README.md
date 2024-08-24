@@ -92,7 +92,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
           - Run => Info tab => Build Configuration: `RelWithDebInfo`
           - Run => Options tab => Document Versions: uncheck `Allow debugging when browsing versions`
       - menu bar: Product => Run
-- Linux
+- Linux (All Distros)
     - Docker
         - Dependencies: Docker [Installation Instructions](https://www.docker.com/get-started/), git
         - clone this repository `git clone https://github.com/SoftFever/OrcaSlicer`
