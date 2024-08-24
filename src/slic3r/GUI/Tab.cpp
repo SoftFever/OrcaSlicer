@@ -468,14 +468,7 @@ void Tab::create_preset_tab()
     // so that the cursor jumps to the last item.
     // BBS: bold selection
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& event) {
-        if (m_disable_tree_sel_changed_event)
-            return;
         const auto sel_item = m_tabctrl->GetSelection();
-        //OutputDebugStringA("wxEVT_TAB_SEL_CHANGING ");
-        //OutputDebugStringA(m_title.c_str());
-        //const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
-        //OutputDebugString(selection);
-        //OutputDebugStringA("\n");
         m_tabctrl->SetItemBold(sel_item, false);
         });
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& event) {
