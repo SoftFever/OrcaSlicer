@@ -98,7 +98,6 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
         - clone this repository `git clone https://github.com/SoftFever/OrcaSlicer`
         - run `cd OrcaSlicer`
         - run `./DockerBuild.sh`
-            - If you get low RAM error, run `./DockerBuildLowRam.sh`
         - To run OrcaSlicer:
             - run `./DockerRun.sh`
                 - For most common errors, open `DockerRun.sh` and read the comments.  
