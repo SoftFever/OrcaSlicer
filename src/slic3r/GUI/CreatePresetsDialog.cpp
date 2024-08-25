@@ -4122,13 +4122,13 @@ wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     m_scrolled_preset_window = new wxScrolledWindow(parent);
     m_scrolled_preset_window->SetScrollRate(5, 5);
-    m_scrolled_preset_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
+    m_scrolled_preset_window->SetBackgroundColour(*wxWHITE);
     m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(660), FromDIP(400)));
     m_scrolled_preset_window->SetSize(wxSize(FromDIP(660), FromDIP(400)));
     wxBoxSizer *scrolled_window = new wxBoxSizer(wxHORIZONTAL);
 
     m_presets_window = new wxPanel(m_scrolled_preset_window, wxID_ANY);
-    m_presets_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
+    m_presets_window->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *select_printer_sizer  = new wxBoxSizer(wxVERTICAL);
 
     m_preset_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
