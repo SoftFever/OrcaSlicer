@@ -5568,6 +5568,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         size_t start_index = fitting_result[fitting_index].start_point_index;
                         size_t end_index = fitting_result[fitting_index].end_point_index;
                         for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
+                            tempDescription = description;
                             const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
                             const double line_length = line.length() * SCALING_FACTOR;
                             if (line_length < EPSILON)
