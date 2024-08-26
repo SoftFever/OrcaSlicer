@@ -1052,7 +1052,16 @@ void PrintConfigDef::init_fff_params()
     def = this->add("slowdown_for_curled_perimeters", coBool);
     def->label = L("Slow down for curled perimeters");
     def->category = L("Speed");
-    def->tooltip = L("Enable this option to slow printing down in areas where potential curled perimeters may exist");
+    def->tooltip = L("Enable this option to slow down printing in areas where perimeters may have curled upwards."
+                     "For example, additional slowdown will be applied when printing overhangs on sharp corners like the "
+                     "front of the Benchy hull, reducing curling which compounds over multiple layers.\n\n "
+                     "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the "
+                     "print speed slow enough that perimeter curling does not happen. If printing with a high external perimeter speed, "
+                     "this parameter may introduce slight artifacts when slowing down due to the large variance in print speeds. "
+                     "If you notice artifacts, ensure your pressure advance is tuned correctly.\n\n"
+                     "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is "
+                     "applied even if the overhanging perimeter is part of a bridge. For example, when the perimeters are 100% overhanging"
+                     ", with no wall supporting them from underneath, the 100% overhang speed will be applied.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{ false });
 
@@ -1105,7 +1114,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_speed", coFloat);
     def->label = L("External");
     def->category = L("Speed");
-    def->tooltip = L("Speed of bridge and completely overhang wall");
+    def->tooltip = L("Speed of the externally visible bridge extrusions. "
+                     "\n\nIn addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, "
+                     "it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge "
+                     "or an overhang.");
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
@@ -1114,7 +1126,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_bridge_speed", coFloatOrPercent);
     def->label = L("Internal");
     def->category = L("Speed");
-    def->tooltip = L("Speed of internal bridge. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
+    def->tooltip = L("Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "bridge_speed";
     def->min = 1;
@@ -4755,15 +4767,21 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("activate_chamber_temp_control",coBools);
     def->label = L("Activate temperature control");
-    def->tooltip = L("Enable this option for chamber temperature control. An M191 command will be added before \"machine_start_gcode\"\nG-code commands: M141/M191 S(0-255)");
+    def->tooltip = L("Enable this option for automated chamber temperature control. This option activates the emitting of an M191 command before the \"machine_start_gcode\"\n which sets the "
+                     "chamber temperature and waits until it is reached. In addition, it emits an M141 command at the end of the print to turn off the chamber heater, if present. \n\n"
+                     "This option relies on the firmware supporting the M191 and M141 commands either via macros or natively and is usually used when an active chamber heater is installed.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{false});
 
     def = this->add("chamber_temperature", coInts);
     def->label = L("Chamber temperature");
-    def->tooltip = L("Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on."
-                    "At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,"
-                    "the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
+    def->tooltip = L("For high-temperature materials like ABS, ASA, PC, and PA, a higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength. "
+                     "However, at the same time, a higher chamber temperature will reduce the efficiency of air filtration for ABS and ASA. \n\n"
+                     "For PLA, PETG, TPU, PVA, and other low-temperature materials, this option should be disabled (set to 0) as the chamber temperature should be low to avoid extruder clogging caused "
+                     "by material softening at the heat break.\n\n"
+                     "If enabled, this parameter also sets a gcode variable named chamber_temperature, which can be used to pass the desired chamber temperature to your print start macro, "
+                     "or a heat soak macro like this: PRINT_START (other variables) CHAMBER_TEMP=[chamber_temperature]. This may be useful if your printer does not support M141/M191 commands, or if you desire "
+                     "to handle heat soaking in the print start macro if no active chamber heater is installed."
                     );
     def->sidetext = L("°C");
     def->full_label = L("Chamber temperature");
