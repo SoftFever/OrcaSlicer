@@ -1616,9 +1616,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
         else {
             _extract_xml_from_archive(archive, sub_rels, _handle_start_relationships_element, _handle_end_relationships_element);
+            int index = 0;
 
 #if 0
-            int index = 0;
             for (auto path : m_sub_model_paths) {
                 if (proFn) {
                     proFn(IMPORT_STAGE_READ_FILES, ++index, 3 + m_sub_model_paths.size(), cb_cancel);
@@ -2218,6 +2218,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)> extract, bool restore)
     {
+        mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
         mz_zip_archive_file_stat stat;
         std::string path2 = path;
         if (path2.front() == '/') path2 = path2.substr(1);
@@ -3317,9 +3318,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 // Adjust backup object/volume id
                 std::istringstream iss(m_curr_object->uuid);
                 int backup_id;
-                // bool need_replace = false;
+                bool need_replace = false;
                 if (iss >> std::hex >> backup_id) {
-                    // need_replace = (m_curr_object->id != backup_id);
+                    need_replace = (m_curr_object->id != backup_id);
                     m_curr_object->id = backup_id;
                 }
                 if (!m_curr_object->components.empty())
@@ -4620,7 +4621,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
 
                 // BBS
-                for (const std::string prop_str : sub_object->geometry.face_properties) {
+                for (const std::string& prop_str : sub_object->geometry.face_properties) {
                     FaceProperty face_prop;
                     face_prop.from_string(prop_str);
                     its.properties.push_back(face_prop);
@@ -4992,9 +4993,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (is_bbl_3mf && boost::ends_with(current_object->uuid, OBJECT_UUID_SUFFIX) && top_importer->m_load_restore) {
                 std::istringstream iss(current_object->uuid);
                 int backup_id;
-                // bool need_replace = false;
+                bool need_replace = false;
                 if (iss >> std::hex >> backup_id) {
-                    // need_replace = (current_object->id != backup_id);
+                    need_replace = (current_object->id != backup_id);
                     current_object->id = backup_id;
                 }
                 //if (need_replace)
@@ -5989,6 +5990,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     auto                        src_gcode_file = plate_data->gcode_file;
                     boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
                     std::string                 buf(64 * 1024, 0);
+                    const std::size_t &         size      = boost::filesystem::file_size(src_gcode_file);
+                    std::size_t                 left_size = size;
                     while (ifs) {
                         ifs.read(buf.data(), buf.size());
                         int read_bytes = ifs.gcount();
@@ -6226,6 +6229,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Exporter::_add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index)
     {
+        bool res = false;
         nlohmann::json j;
         id_bboxes.to_json(j);
         std::string out = j.dump();
@@ -6615,6 +6619,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     auto iter = objects_data.find(objects[i]);
                     ObjectToObjectDataMap objects_data2;
                     objects_data2.insert(*iter);
+                    auto & object = *iter->second.object;
                     mz_zip_archive archive;
                     mz_zip_zero_struct(&archive);
                     mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
@@ -7531,7 +7536,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 if (!m_skip_model && instance_size > 0)
                 {
-                    for (int j = 0; j < instance_size; ++j)
+                    for (unsigned int j = 0; j < instance_size; ++j)
                     {
                         stream << "    <" << INSTANCE_TAG << ">\n";
                         int obj_id = plate_data->objects_and_instances[j].first;

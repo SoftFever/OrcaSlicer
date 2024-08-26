@@ -5,9 +5,13 @@
 #include "format.hpp"
 
 #include <wx/app.h>
+#include <wx/panel.h>
+#include <wx/stdpaths.h>
 
 // For zipped archive creation
+#include <wx/stdstream.h>
 #include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 #include <miniz.h>
 
@@ -16,17 +20,22 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
+#include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
 #include <stdexcept>
+#include <cctype>
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 //#include "RemovableDriveManager.hpp"
+
+#include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
 

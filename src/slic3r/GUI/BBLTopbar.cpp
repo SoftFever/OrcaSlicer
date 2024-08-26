@@ -230,7 +230,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(10));
 
     wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
-    this->AddTool(wxID_SAVE, "", save_bitmap);
+    wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
 
     this->AddSpacer(FromDIP(10));
 
@@ -278,7 +278,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(4));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
-    this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
+    wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
     this->AddSpacer(FromDIP(4));
 
@@ -294,7 +294,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(4));
 
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
-    this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
+    wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
     Realize();
     // m_toolbar_h = this->GetSize().GetHeight();
@@ -466,6 +466,7 @@ void BBLTopbar::UpdateToolbarWidth(int width)
 }
 
 void BBLTopbar::Rescale() {
+    int em = em_unit(this);
     wxAuiToolBarItem* item;
 
     /*item = this->FindTool(ID_LOGO);
@@ -495,7 +496,7 @@ void BBLTopbar::Rescale() {
     item->SetBitmap(create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE));
 
-    // item = this->FindTool(ID_TITLE);
+    item = this->FindTool(ID_TITLE);
 
     /*item = this->FindTool(ID_PUBLISH);
     item->SetBitmap(create_scaled_bitmap("topbar_publish", this, TOPBAR_ICON_SIZE));
@@ -547,14 +548,14 @@ void BBLTopbar::OnCloseFrame(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
 {
+    wxPoint mouse_pos = ::wxGetMousePosition();
     // check whether mouse is not on any tool item
     if (this->FindToolByCurrentPosition() != NULL &&
         this->FindToolByCurrentPosition() != m_title_item) {
         mouse.Skip();
         return;
     }
-#ifdef __WXMSW__
-    wxPoint mouse_pos = ::wxGetMousePosition();
+#ifdef __W1XMSW__
     ::PostMessage((HWND) m_frame->GetHandle(), WM_NCLBUTTONDBLCLK, HTCAPTION, MAKELPARAM(mouse_pos.x, mouse_pos.y));
     return;
 #endif //  __WXMSW__
@@ -636,6 +637,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
 
 void BBLTopbar::OnMouseLeftUp(wxMouseEvent& event)
 {
+    wxPoint mouse_pos = ::wxGetMousePosition();
     if (HasCapture())
     {
         ReleaseMouse();

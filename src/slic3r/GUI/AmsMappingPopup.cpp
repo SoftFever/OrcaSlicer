@@ -366,6 +366,7 @@ void MaterialItem::doRender(wxDC &dc)
 
      wxString out_txt      = m_msg;
      wxString count_txt    = "";
+     int      new_line_pos = 0;
 
      for (int i = 0; i < m_msg.length(); i++) {
          auto text_size = m_warning_text->GetTextExtent(count_txt);
@@ -401,6 +402,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
     auto pos = ClientToScreen(evt.GetPosition());
     for (MappingItem *item : m_mapping_item_list) {
         auto p_rect = item->ClientToScreen(wxPoint(0, 0));
+        auto left = item->GetSize();
 
         if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
             if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.filament_type)) return;
@@ -1522,6 +1524,9 @@ void AmsRMGroup::on_mouse_move(wxMouseEvent& evt)
         std::string tray_name = iter->first;
         wxColour tray_color = iter->second;
 
+        int x = size.x / 2;
+        int y = size.y / 2;
+        int radius = size.x / 2;
         endAngle += ev_angle;
 
         if (click_angle >= startAngle && click_angle < endAngle) {

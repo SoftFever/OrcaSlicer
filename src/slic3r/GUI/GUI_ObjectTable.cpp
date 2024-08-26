@@ -280,6 +280,7 @@ wxGridActivationResult GridCellFilamentsEditor::TryActivate(int row, int col, wx
 {
     ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
     ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
 
     if ( actSource.GetOrigin() == wxGridActivationSource::Key ) {
         const wxKeyEvent& key_event = actSource.GetKeyEvent();
@@ -315,6 +316,7 @@ void GridCellFilamentsEditor::DoActivate(int row, int col, wxGrid* grid)
     if (m_cached_value != -1) {
         ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
         ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
         if (m_cached_value <= grid_col->choice_count) {
             wxString choice = grid_col->choices[m_cached_value-1];
             table->SetValue(row, col, choice);
@@ -330,6 +332,7 @@ void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &d
     wxRect           text_rect = rect;
 
     if (table) {
+        ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
         ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
         ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
 
@@ -469,6 +472,7 @@ wxGridActivationResult GridCellChoiceEditor::TryActivate(int row, int col, wxGri
 {
     ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
     ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
 
     if (actSource.GetOrigin() == wxGridActivationSource::Key) {
         const wxKeyEvent &key_event = actSource.GetKeyEvent();
@@ -501,6 +505,7 @@ void GridCellChoiceEditor::DoActivate(int row, int col, wxGrid *grid)
     if (m_cached_value != -1) {
         ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
         ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
         if (m_cached_value <= grid_col->choice_count) {
             wxString choice = grid_col->choices[m_cached_value - 1];
             table->SetValue(row, col, choice);
@@ -516,6 +521,7 @@ void GridCellComboBoxRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc
     wxRect           text_rect = rect;
 
     if (table) {
+        ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
         ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
         ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
 
@@ -555,6 +561,7 @@ wxString GridCellSupportEditor::ms_stringValues[2] = { wxT(""), wxT("") };
 
 void GridCellSupportEditor::DoActivate(int row, int col, wxGrid* grid)
 {
+    ObjectGrid* local_table = dynamic_cast<ObjectGrid*>(grid);
     wxGridBlocks cell_array = grid->GetSelectedBlocks();
    
     auto left_col = cell_array.begin()->GetLeftCol();
@@ -684,6 +691,7 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
     //wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
 
     ObjectGridTable *               table      = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
     ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
     ConfigOptionBool &              cur_option = dynamic_cast<ConfigOptionBool &>((*grid_row)[(ObjectGridTable::GridColType) col]);
     
@@ -883,6 +891,7 @@ void ObjectGrid::OnKeyDown( wxKeyEvent& event )
 	// see include/wx/defs.h enum wxKeyCode
 	int keyCode = event.GetKeyCode();
 	int ctrlMask = wxMOD_CONTROL;
+	int shiftMask = wxMOD_SHIFT;
 	// Coordinates of the selected block to copy to clipboard.
 	wxGridBlockCoords selection;
 	wxTextDataObject text_data;
@@ -1535,6 +1544,7 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
         return;
     ObjectGridRow* grid_row = m_grid_data[row - 1];
     ObjectGridCol* grid_col = m_col_data[col];
+    ObjectList* obj_list = wxGetApp().obj_list();
     if (grid_col->type == coEnum) {
         int enum_value = 0;
         for (int i = 0; i < grid_col->choice_count; i++)
@@ -1802,6 +1812,9 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
 
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 {
+    const float font_size = 1.5f * wxGetApp().em_unit();
+
+
     // printable for object
     ObjectGridCol *col = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Printable")).x;
@@ -1897,6 +1910,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col = new ObjectGridCol(coFloat, "inner_wall_speed_reset", L("Speed"), false, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
+    return;
 }
 
 void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
@@ -1915,8 +1929,8 @@ void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
     int object_count = m_panel->m_model->objects.size();
     PartPlateList& partplate_list = m_panel->m_plater->get_partplate_list();
     DynamicPrintConfig&  global_config   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    // const DynamicPrintConfig* plater_config = m_panel->m_plater->config();
-    // const DynamicPrintConfig&  filament_config = *plater_config;
+    const DynamicPrintConfig* plater_config = m_panel->m_plater->config();
+    const DynamicPrintConfig&  filament_config = *plater_config;
 
     for (int i = 0; i < object_count; i++)
     {
@@ -2812,7 +2826,7 @@ int ObjectTablePanel::init_filaments_and_colors()
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", invalid color count:%1%, extruder count: %2%") %color_count %m_filaments_count;
     }
 
-    int i = 0;
+    unsigned int i = 0;
     ColorRGB rgb;
     while (i < m_filaments_count) {
         const std::string& txt_color = global_config->opt_string("filament_colour", i);
@@ -3018,6 +3032,7 @@ void ObjectTablePanel::load_data()
     {
         ObjectGridTable::ObjectGridCol *grid_col = m_object_grid_table->get_grid_col(i);
         if (grid_col->size > 0) {
+            int fit_size1 = m_object_grid->GetColSize(i);
             m_object_grid->SetColSize(i, grid_col->size);
         }
     }
@@ -3158,7 +3173,7 @@ void ObjectTablePanel::OnRowSize( wxGridSizeEvent& ev)
     g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
     this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
 
-    // wxSize current_size = GetParent()->GetSize();
+    wxSize current_size = GetParent()->GetSize();
     //if (current_size.GetHeight() < g_dialog_max_height)
         GetParent()->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
     GetParent()->SetSize(wxSize(g_dialog_max_width, g_dialog_max_height));
@@ -3172,7 +3187,7 @@ void ObjectTablePanel::OnColSize( wxGridSizeEvent& ev)
     g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
     this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
 
-    // wxSize current_size = GetParent()->GetSize();
+    wxSize current_size = GetParent()->GetSize();
     //if (current_size.GetWidth() < g_dialog_max_width)
         GetParent()->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
     GetParent()->SetSize(wxSize(g_dialog_max_width, g_dialog_max_height));
@@ -3456,6 +3471,8 @@ void GridCellTextEditor::SetSize(const wxRect &rect) { wxGridCellTextEditor::Set
 void GridCellTextEditor::BeginEdit(int row, int col, wxGrid *grid) 
 {
     ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
 
     auto val = table->GetValue(row, col);
 
@@ -3489,6 +3506,10 @@ void GridCellTextEditor::BeginEdit(int row, int col, wxGrid *grid)
 
 bool GridCellTextEditor::EndEdit(int row, int col, const wxGrid *grid, const wxString &WXUNUSED(oldval), wxString *newval)
 {
+    ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
+
     wxCHECK_MSG(m_control, false, "wxGridCellTextEditor must be created first!");
 
     const wxString value = Text()->GetTextCtrl()->GetValue();

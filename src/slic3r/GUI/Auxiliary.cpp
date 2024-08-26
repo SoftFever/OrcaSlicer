@@ -989,7 +989,7 @@ void AuxiliaryPanel::create_folder(wxString name)
     fs::path bfs_path((m_root_dir + "/" + folder_name).ToStdWstring());
     if (fs::exists(bfs_path)) {
         try {
-            fs::remove_all(bfs_path);
+            bool is_done = fs::remove_all(bfs_path);
         } catch (...) {
             BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
         }

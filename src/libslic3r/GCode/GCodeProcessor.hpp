@@ -215,7 +215,6 @@ class Print;
         std::vector<int>   required_nozzle_HRC;
         std::vector<float> filament_densities;
         std::vector<float> filament_costs;
-        std::vector<float> filament_flow_ratios;
         std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
@@ -251,7 +250,6 @@ class Print;
             filament_diameters = other.filament_diameters;
             filament_densities = other.filament_densities;
             filament_costs = other.filament_costs;
-            filament_flow_ratios = other.filament_flow_ratios;
             print_statistics = other.print_statistics;
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
             spiral_vase_layers = other.spiral_vase_layers;
@@ -492,8 +490,10 @@ class Print;
             bool machine_envelope_processing_enabled;
             MachineEnvelopeConfig machine_limits;
             // Additional load / unload times for a filament exchange sequence.
-            std::vector<float> filament_load_times;
-            std::vector<float> filament_unload_times;
+            float filament_load_times;
+            float filament_unload_times;
+            //Orca:  time for tool change
+            float machine_tool_change_time;
             bool  disable_m73;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;

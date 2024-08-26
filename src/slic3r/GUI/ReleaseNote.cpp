@@ -1375,6 +1375,7 @@ wxString ConfirmBeforeSendDialog::format_text(wxString str, int warp)
     Label st (this, str);
     wxString out_txt      = str;
     wxString count_txt    = "";
+    int      new_line_pos = 0;
 
     for (int i = 0; i < str.length(); i++) {
         auto text_size = st.GetTextExtent(count_txt);

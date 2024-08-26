@@ -51,6 +51,7 @@ void Polyline::reverse()
 // removes the given distance from the end of the polyline
 void Polyline::clip_end(double distance)
 {
+    bool last_point_inserted = false;
     size_t remove_after_index = MultiPoint::size();
     while (distance > 0) {
         Vec2d  last_point = this->last_point().cast<double>();
@@ -64,6 +65,7 @@ void Polyline::clip_end(double distance)
         double lsqr = v.squaredNorm();
         if (lsqr > distance * distance) {
             this->points.emplace_back((last_point + v * (distance / sqrt(lsqr))).cast<coord_t>());
+            last_point_inserted = true;
             break;
         }
         distance -= sqrt(lsqr);

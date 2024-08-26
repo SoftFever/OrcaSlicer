@@ -41,7 +41,7 @@ public:
 
     void init_tabpanel();
     void init_timer();
-    void on_timer();
+    void on_timer(wxTimerEvent& event);
 
     void clear_page();
 };

@@ -576,6 +576,7 @@ double getadhesionCoeff(const PrintObject* printObject)
     auto& insts = printObject->instances();
     auto objectVolumes = insts[0].model_instance->get_object()->volumes;
 
+    auto print = printObject->print();
     std::vector<size_t> extrudersFirstLayer;
     auto firstLayerRegions = printObject->layers().front()->regions();
     if (!firstLayerRegions.empty()) {
@@ -1583,6 +1584,7 @@ static void make_inner_brim(const Print& print, const ConstPrintObjectPtrs& top_
 //BBS: generate out brim by offseting ExPolygons 'islands_area_ex'
 Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
 {
+    const auto scaled_resolution = scaled<double>(print.config().resolution.value);
     Polygons   loops;
     ExPolygons islands_ex;
     Flow       flow = print.brim_flow();
@@ -1657,6 +1659,7 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     std::map<ObjectID, ExPolygons> brimAreaMap;
     std::map<ObjectID, ExPolygons> supportBrimAreaMap;
     Flow                 flow = print.brim_flow();
+    const auto           scaled_resolution = scaled<double>(print.config().resolution.value);
     ExPolygons           islands_area_ex = outer_inner_brim_area(print,
         float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec, printExtruders);
 
