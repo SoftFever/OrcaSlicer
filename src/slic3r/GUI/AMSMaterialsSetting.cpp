@@ -667,9 +667,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             ;
         }
 
+        auto vt_tray = ams_id;
+        if (!obj->is_enable_np) {
+            vt_tray = VIRTUAL_TRAY_ID;
+        }
+
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = tray_id;
+            select_index_info.tray_id = vt_tray;
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
@@ -685,7 +690,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             CalibUtils::select_PA_calib_result(select_index_info);
         }
         else {
-            obj->command_extrusion_cali_set(VIRTUAL_TRAY_ID, "", "", k, n);
+            obj->command_extrusion_cali_set(vt_tray, "", "", k, n);
         }
     }
     else {
@@ -1169,7 +1174,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-        if (tray_id == VIRTUAL_TRAY_ID) {
+        if (ams_id == VIRTUAL_TRAY_ID) {
             AmsTray selected_tray = this->obj->vt_tray;
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
             if (cali_select_idx >= 0) {

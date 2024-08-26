@@ -1780,7 +1780,7 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     empty_config.set_key_value("filament_colour", new ConfigOptionStrings{ "" });
     empty_config.set_key_value("filament_exist", new ConfigOptionBools{ false });
 
-    /* update virtual tray combo box*/
+    // update virtual tray combo box
     m_virtual_tray_comboBox->update_from_preset();
     auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [](auto& entry) {
         return entry.first == VIRTUAL_TRAY_ID;

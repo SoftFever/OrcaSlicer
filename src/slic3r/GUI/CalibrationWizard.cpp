@@ -17,7 +17,6 @@ wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 static const wxString NA_STR = _L("N/A");
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
-
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     std::map<int, Preset*> selected_filament_map;
     if (!obj) return selected_filament_map;
@@ -101,6 +100,26 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
 CalibrationWizard::~CalibrationWizard()
 {
     ;
+}
+
+void CalibrationWizard::get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, int &slot_id, int &tray_id)
+{
+    assert(curr_obj);
+    if (!curr_obj)
+        return;
+
+    if (in_tray_id == VIRTUAL_TRAY_ID || in_tray_id == VIRTUAL_TRAY_ID) {
+        ams_id = in_tray_id;
+        slot_id = 0;
+        tray_id = ams_id;
+        if (!curr_obj->is_enable_np)
+            tray_id = VIRTUAL_TRAY_ID;
+    }
+    else {
+        ams_id  = in_tray_id / 4;
+        slot_id = in_tray_id % 4;
+        tray_id = in_tray_id;
+    }
 }
 
 void CalibrationWizard::on_cali_job_finished(wxCommandEvent& event)
@@ -591,7 +610,7 @@ void PressureAdvanceWizard::on_cali_start()
             }
 
             X1CCalibInfos::X1CCalibInfo calib_info;
-            calib_info.tray_id              = item.first;
+            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
             calib_info.nozzle_diameter      = nozzle_dia;
             calib_info.filament_id          = item.second->filament_id;
             calib_info.setting_id           = item.second->setting_id;
@@ -623,9 +642,11 @@ void PressureAdvanceWizard::on_cali_start()
                 return;
             }
 
+            int selected_tray_id = 0;
             CalibInfo calib_info;
             calib_info.dev_id            = curr_obj->dev_id;
-            calib_info.select_ams        = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset *preset               = selected_filaments.begin()->second;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
@@ -991,6 +1012,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id          = item.first;
+            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
             calib_info.nozzle_diameter  = nozzle_dia;
             calib_info.filament_id      = item.second->filament_id;
             calib_info.setting_id       = item.second->setting_id;
@@ -1041,7 +1063,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         }
 
         if (!selected_filaments.empty()) {
-            calib_info.select_ams     = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+            int selected_tray_id  = 0;
+            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset* preset = selected_filaments.begin()->second;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
@@ -1417,7 +1441,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     calib_info.params = params;
     calib_info.dev_id = curr_obj->dev_id;
     if (!selected_filaments.empty()) {
-        calib_info.select_ams     = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+        int selected_tray_id = 0;
+        get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+        calib_info.select_ams     = "[" + std::to_string(selected_tray_id) + "]";
         calib_info.filament_prest = selected_filaments.begin()->second;
     }
 
