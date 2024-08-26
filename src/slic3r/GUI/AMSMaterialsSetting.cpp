@@ -484,14 +484,14 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
 
+    std::string   selected_ams_id;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             auto        filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
             std::string filament_id   = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
-                ams_filament_id = it->filament_id;
-                ams_setting_id  = it->setting_id;
+                selected_ams_id = it->filament_id;
                 break;
             }
         }
@@ -546,7 +546,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
             select_index_info.tray_id = tray_id;
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
             select_index_info.cali_idx = -1;
-            select_index_info.filament_id = ams_filament_id;
+            select_index_info.filament_id     = selected_ams_id;
             CalibUtils::select_PA_calib_result(select_index_info);
         }
     }
@@ -712,7 +712,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
-            if (m_pa_profile_items.size() > 0 && cali_select_id >= 0) {
+            if (m_pa_profile_items.size() > 0 && cali_select_id > 0) {
                 select_index_info.cali_idx = m_pa_profile_items[cali_select_id].cali_idx;
                 select_index_info.filament_id = m_pa_profile_items[cali_select_id].filament_id;
             }
@@ -1154,6 +1154,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         PACalibResult default_item;
         default_item.filament_id = ams_filament_id;
         default_item.cali_idx = -1;
+        default_item.filament_id = ams_filament_id;
         get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
         m_pa_profile_items.emplace_back(default_item);
         items.push_back(_L("Default"));
