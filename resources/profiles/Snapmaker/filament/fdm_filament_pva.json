@@ -7,12 +7,6 @@
   "filament_is_support": [
     "1"
   ],
-  "hot_plate_temp": [
-    "50"
-  ],
-  "hot_plate_temp_initial_layer": [
-    "50"
-  ],
   "overhang_fan_threshold": [
     "50%"
   ],
@@ -32,7 +26,7 @@
     "15"
   ],
   "filament_max_volumetric_speed": [
-    "2.4"
+    "6"
   ],
   "filament_retraction_length": [
     "2"
