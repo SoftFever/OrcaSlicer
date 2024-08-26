@@ -1241,6 +1241,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         // add default item
         PACalibResult default_item;
         default_item.cali_idx = -1;
+        default_item.filament_id = ams_filament_id;
         get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
         m_pa_profile_items.emplace_back(default_item);
         items.push_back(_L("Default"));
