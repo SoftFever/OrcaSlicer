@@ -740,12 +740,20 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 
 NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int extruder_id) const
 {
-    return NozzleVolumeType(m_comboBox_nozzle_volume_types[extruder_id]->GetSelection());
+    if (m_comboBox_nozzle_volume_types.size() > extruder_id)
+        return NozzleVolumeType(m_comboBox_nozzle_volume_types[extruder_id]->GetSelection());
+    else {
+        return NozzleVolumeType::nvtNormal;
+    }
 }
 
 ExtruderType CalibrationPresetPage::get_extruder_type(int extruder_id) const
 {
-    return ExtruderType(m_extrder_types[extruder_id]);
+    if (m_extrder_types.size() > extruder_id)
+        return ExtruderType(m_extrder_types[extruder_id]);
+    else {
+        return ExtruderType::etDirectDrive;
+    }
 }
 
 void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *parent)
@@ -2289,14 +2297,14 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     // update virtual tray combo box
     m_virtual_tray_comboBox->update_from_preset();
     auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [](auto& entry) {
-        return entry.first == VIRTUAL_TRAY_DEPUTY_ID;
+        return entry.first == VIRTUAL_TRAY_MAIN_ID;
         });
 
     if (it != filament_ams_list.end()) {
-        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_DEPUTY_ID, it->second);
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_MAIN_ID, it->second);
     }
     else {
-        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_DEPUTY_ID, empty_config);
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_MAIN_ID, empty_config);
     }
 
     if (filament_ams_list.empty())
