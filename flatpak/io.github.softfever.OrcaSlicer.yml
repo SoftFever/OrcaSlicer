@@ -159,8 +159,8 @@ modules:
         cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
     sources:
       - type: git
-        url: https://github.com/SoftFever/Orca-deps-wxWidgets
-        branch: master
+        url: https://github.com/powpingdone/Orca-deps-wxWidgets
+        branch: no-gst-player
         path: ../
     cleanup:
       - "*.la"
