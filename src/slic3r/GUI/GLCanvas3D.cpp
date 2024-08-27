@@ -8434,7 +8434,6 @@ void GLCanvas3D::_render_assemble_info() const
     auto canvas_h = float(get_canvas_size().get_height());
     float space_size = imgui->get_style_scaling() * 8.0f;
     float caption_max = imgui->calc_text_size(_L("Total Volume:")).x + 3 * space_size;
-    char buf[3][64];
 
     ImGuiIO& io = ImGui::GetIO();
     ImFont* font = io.Fonts->Fonts[0];
