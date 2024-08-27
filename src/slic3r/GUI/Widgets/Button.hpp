@@ -39,7 +39,8 @@ class Button : public StaticBox
     bool pressedDown = false;
     bool m_selected  = true;
     bool canFocus  = true;
-    bool isCenter = true;
+    bool isCenter    = true;
+    bool vertical    = false;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -60,7 +61,7 @@ public:
     void SetInactiveIcon(const wxString& icon);
 
     void SetMinSize(const wxSize& size) override;
-    
+
     void SetPaddingSize(const wxSize& size);
 
     void SetStyle(const ButtonStyle style /*= ButtonStyle::Regular*/, const ButtonType type /*= ButtonType::None*/);
@@ -80,6 +81,8 @@ public:
     bool GetValue() const;
 
     void SetCenter(bool isCenter);
+
+    void SetVertical(bool vertical = true);
 
     void Rescale();
 

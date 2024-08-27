@@ -368,7 +368,7 @@ struct Sidebar::priv
     StaticBox* m_panel_printer_title = nullptr;
     ScalableButton* m_printer_icon = nullptr;
     ScalableButton* m_printer_setting = nullptr;
-    ScalableButton *m_extruder_sync = nullptr;
+    Button *m_extruder_sync = nullptr;
     wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
 
@@ -839,13 +839,6 @@ Sidebar::Sidebar(Plater *parent)
             // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
-        auto extruder_btn = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                                     wxBU_EXACTFIT | wxNO_BORDER, false, 18);
-        extruder_btn->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
-        extruder_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-            p->sync_extruder_list();
-        });
-        p->m_extruder_sync = extruder_btn;
 
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT, FromDIP(SidebarProps::TitlebarMargin()));
@@ -1016,6 +1009,22 @@ Sidebar::Sidebar(Plater *parent)
         p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
         auto right_extruder = add_extruder(1, _L("Right Extruder"));
         p->m_right_ams_count = right_extruder;
+        p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
+
+        auto extruder_btn = new Button(p->m_panel_printer_content, _L("Sync AMS Nozzle information"), "ams_nozzle_sync");
+        extruder_btn->SetFont(Label::Body_8);
+        extruder_btn->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
+        extruder_btn->SetCornerRadius(0);
+        extruder_btn->SetBorderColor(0xE4E4E4);
+        extruder_btn->SetPaddingSize({FromDIP(6), FromDIP(12)});
+        extruder_btn->SetMinSize({FromDIP(48), FromDIP(68)});
+        extruder_btn->SetMinSize({FromDIP(48), FromDIP(68)});
+        extruder_btn->SetMaxSize({FromDIP(48), FromDIP(82)});
+        extruder_btn->SetVertical();
+        extruder_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { p->sync_extruder_list(); });
+        p->m_extruder_sync = extruder_btn;
+        p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
+        p->m_dual_extruder_sizer->Add(extruder_btn, 0, wxEXPAND);
         p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
 
         vsizer_printer->Add(p->m_dual_extruder_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -1632,6 +1641,12 @@ void Sidebar::msw_rescale()
     //BBS
     p->m_bed_type_list->Rescale();
     p->m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
+
+    p->m_extruder_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
+    p->m_extruder_sync->SetMinSize({FromDIP(48), FromDIP(68)});
+    p->m_extruder_sync->SetMinSize({FromDIP(48), FromDIP(68)});
+    p->m_extruder_sync->SetMaxSize({FromDIP(48), FromDIP(82)});
+    p->m_extruder_sync->Rescale();
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
