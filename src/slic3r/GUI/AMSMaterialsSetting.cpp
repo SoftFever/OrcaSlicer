@@ -482,7 +482,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     long nozzle_temp_max_int = 0;
     wxColour color = *wxWHITE;
     char col_buf[10];
-    sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
+    sprintf(col_buf, "%02X%02X%02X00", (int)color.Red(), (int)color.Green(), (int)color.Blue());
 
     std::string   selected_ams_id;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -1190,12 +1190,12 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
             if(!selected_tray) return;
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-            if (cali_select_idx >= 0) {
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            if (cali_select_idx < 0) {
+                BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
+                    << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
+                cali_select_idx = 0;
             }
-            else {
-                m_comboBox_cali_result->SetSelection(0);
-            }
+            m_comboBox_cali_result->SetSelection(cali_select_idx);
         }
 
         if (cali_select_idx >= 0) {
