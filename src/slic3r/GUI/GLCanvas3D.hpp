@@ -216,6 +216,9 @@ class GLCanvas3D
         };
 
         static const float THICKNESS_BAR_WIDTH;
+        
+        // Orca: Shrinkage compensation
+        void set_shrinkage_compensation(const Vec3d &shrinkage_compensation) { m_shrinkage_compensation = shrinkage_compensation; };
 
     private:
         bool                        m_enabled{ false };
@@ -229,6 +232,9 @@ class GLCanvas3D
         // Owned by LayersEditing.
         SlicingParameters* m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
+        
+        // Orca: Shrinkage compensation to apply when we need to use object_max_z with Z compensation.
+        Vec3d                       m_shrinkage_compensation{ Vec3d::Ones() };
 
         mutable float               m_adaptive_quality{ 0.5f };
         mutable HeightProfileSmoothingParams m_smooth_params;
