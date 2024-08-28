@@ -275,7 +275,7 @@ bool GCodeReader::GCodeLine::has_value(char axis, float &value) const
     return false;
 }
 
-void GCodeReader::GCodeLine::set(const GCodeReader &reader, const Axis axis, const float new_value, const int decimal_digits)
+void GCodeReader::GCodeLine::set(const Axis axis, const float new_value, const int decimal_digits)
 {
     std::ostringstream ss;
     ss << std::fixed << std::setprecision(decimal_digits) << new_value;

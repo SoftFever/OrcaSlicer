@@ -494,7 +494,7 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
 void SearchItem::on_mouse_enter(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -506,7 +506,7 @@ void SearchItem::on_mouse_leave(wxMouseEvent &evt)
 
 void SearchItem::on_mouse_left_down(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(228, 228, 228)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -816,7 +816,6 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
     wxDataViewItem    item;
-    wxDataViewColumn *col;
     wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
@@ -866,7 +865,7 @@ void SearchDialog::msw_rescale()
 SearchListModel::SearchListModel(wxWindow *parent) : wxDataViewVirtualListModel(0)
 {
     int icon_id = 0;
-    for (const std::string &icon : {"cog", "printer", "printer", "spool", "blank_16"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
+    for (const std::string icon : {"cog", "printer", "printer", "spool", "blank_16"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
 }
 
 void SearchListModel::Clear()

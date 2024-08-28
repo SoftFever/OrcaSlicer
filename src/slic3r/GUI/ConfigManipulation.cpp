@@ -268,7 +268,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloat>("elefant_foot_compensation")->value > 1)
     {
-        const wxString msg_text = _(L("Too large elefant foot compensation is unreasonable.\n"
+        const wxString msg_text = _(L("Too large elephant foot compensation is unreasonable.\n"
                                       "If really have serious elephant foot effect, please check other settings.\n"
                                       "For example, whether bed temperature is too high.\n\n"
                                       "The value will be reset to 0."));
@@ -515,11 +515,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
-    // Orca: Hide the filter out tiny gaps field when gap fill target is nowhere as no gap fill will be applied.
-    bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
-    toggle_line("filter_out_gap_fill", have_gap_fill);
-
-    
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
         "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
@@ -665,20 +660,35 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
     toggle_field("print_order", !have_sequential_printing);
+
+    toggle_field("single_extruder_multi_material", !is_BBL_Printer);
     
+    auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
+
+    toggle_field("ooze_prevention", !bSEMM);
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
-    toggle_field("standby_temperature_delta", have_ooze_prevention);
-    
+    toggle_line("standby_temperature_delta", have_ooze_prevention);
+    toggle_line("preheat_time", have_ooze_prevention);
+    int preheat_steps = config->opt_int("preheat_steps");
+    toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
+
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);
-    
+
+    for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
+        toggle_line(el, !bSEMM);
+
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
-    
-    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
-        toggle_line(el, have_prime_tower && purge_in_primetower);
-    
-    toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
+
+    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
+                    "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
+                    "wipe_tower_bridging", "wipe_tower_extra_flow",
+                    "wipe_tower_no_sparse_layers",
+                    "single_extruder_multi_material_priming"})
+      toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);

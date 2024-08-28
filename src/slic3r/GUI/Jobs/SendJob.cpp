@@ -78,7 +78,7 @@ wxString SendJob::get_http_error_msg(unsigned int status, std::string body)
         return _L("Service Unavailable");
     }
     else {
-        wxString unkown_text = _L("Unkown Error.");
+        wxString unkown_text = _L("Unknown Error.");
         unkown_text += wxString::Format("status=%u, body=%s", status, body);
         return unkown_text;
     }
@@ -111,7 +111,6 @@ void SendJob::process(Ctl &ctl)
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
     int result = -1;
-    unsigned int http_code;
     std::string http_body;
 
     if (this->connection_type == "lan") {

@@ -1,3 +1,4 @@
+#include "ExtrusionEntity.hpp"
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 #include "Layer.hpp"
@@ -171,12 +172,25 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
 	assert(region.config().sparse_infill_filament.value > 0);
 	assert(region.config().solid_infill_filament.value > 0);
 	// 1 based extruder ID.
-	unsigned int extruder = ((this->extruder_override == 0) ?
-	    (is_infill(extrusions.role()) ?
-	    	(is_solid_infill(extrusions.entities.front()->role()) ? region.config().solid_infill_filament : region.config().sparse_infill_filament) :
-			region.config().wall_filament.value) :
-		this->extruder_override);
-	return (extruder == 0) ? 0 : extruder - 1;
+    unsigned int extruder = 1;
+
+    if (this->extruder_override == 0) {
+        if (extrusions.has_infill()) {
+            if (extrusions.has_solid_infill()) {
+                extruder = region.config().solid_infill_filament;
+            } else {
+                extruder = region.config().sparse_infill_filament;
+            }
+        } else if (extrusions.has_perimeters()) {
+            extruder = region.config().wall_filament.value;
+        } else {
+            extruder = this->extruder_override;
+        }
+    } else {
+        extruder = this->extruder_override;
+    }
+
+    return (extruder == 0) ? 0 : extruder - 1;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
@@ -219,10 +233,14 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     // BBS
     // Reorder the extruders to minimize tool switches.
-    if (first_extruder == (unsigned int)-1) {
-        this->reorder_extruders(generate_first_layer_tool_order(object));
+    std::vector<unsigned int> first_layer_tool_order;
+    if (first_extruder == (unsigned int) -1) {
+        first_layer_tool_order = generate_first_layer_tool_order(object);
     }
-    else {
+
+    if (!first_layer_tool_order.empty()) {
+        this->reorder_extruders(first_layer_tool_order);
+    } else {
         this->reorder_extruders(first_extruder);
     }
 
@@ -875,7 +893,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return false;
     };
 
-    std::optional<unsigned int>current_extruder_id;
+    std::optional<unsigned int>current_extruder_id(-1);
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())

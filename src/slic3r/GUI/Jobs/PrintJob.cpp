@@ -114,7 +114,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             return _L("Service Unavailable");
         }
         else {
-            wxString unkown_text = _L("Unkown Error.");
+            wxString unkown_text = _L("Unknown Error.");
             unkown_text += wxString::Format("status=%u, body=%s", status, body);
             BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
             return unkown_text;
@@ -150,7 +150,6 @@ void PrintJob::process(Ctl &ctl)
     ctl.call_on_main_thread([this] { prepare(); }).wait();
 
     int result = -1;
-    unsigned int http_code;
     std::string http_body;
 
     int total_plate_num = plate_data.plate_count;
@@ -312,7 +311,7 @@ void PrintJob::process(Ctl &ctl)
             try {
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
-            catch (const std::exception& e) {
+            catch (const std::exception&) {
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
