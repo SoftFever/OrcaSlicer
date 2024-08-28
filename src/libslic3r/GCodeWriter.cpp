@@ -994,6 +994,15 @@ std::string GCodeWriter::set_extruder(unsigned int filament_id)
     return this->need_toolchange(filament_id) ? this->toolchange(filament_id) : "";
 }
 
+void GCodeWriter::init_extruder(unsigned int filament_id)
+{
+    if (m_curr_extruder_id == -1 && filament_id != -1) {
+        auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
+        assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
+        m_curr_extruder_id = filament_extruder_iter->extruder_id();
+        m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+    }
+}
 
 bool GCodeWriter::need_toolchange(unsigned int filament_id)const
 {

@@ -6460,6 +6460,9 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
 std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bool by_object)
 {
+    //init extrude
+    m_writer.init_extruder(new_filament_id);
+
     int new_extruder_id = get_extruder_id(new_filament_id);
     if (!m_writer.need_toolchange(new_filament_id))
         return "";
