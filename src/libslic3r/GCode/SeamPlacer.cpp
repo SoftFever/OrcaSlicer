@@ -1486,7 +1486,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
   }
 }
 
-void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first,
+void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
                             const Point &last_pos, float& overhang) const {
   using namespace SeamPlacerImpl;
   const PrintObject *po = layer->object();

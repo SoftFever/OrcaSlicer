@@ -28,7 +28,7 @@ bool model_to_csgmesh(const ModelObject &mo,
 {
     bool do_positives  = parts_to_include & mpartsPositive;
     bool do_negatives  = parts_to_include & mpartsNegative;
-    // bool do_drillholes = parts_to_include & mpartsDrillHoles;
+    bool do_drillholes = parts_to_include & mpartsDrillHoles;
     bool do_splits     = parts_to_include & mpartsDoSplits;
     bool has_splitable_volume = false;
 

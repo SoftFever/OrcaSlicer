@@ -49,22 +49,31 @@
         "240"
     ],
     "fan_max_speed": [
-        "80"
+        "20"
     ],
     "fan_min_speed": [
-        "60"
+        "10"
     ],
     "fan_cooling_layer_time": [
-        "80"
+        "30"
     ],
     "slow_down_layer_time": [
-        "8"
+        "3"
     ],
     "filament_max_volumetric_speed": [
-        "18"
+        "16"
     ],
     "temperature_vitrification": [
         "220"
+    ],
+	"overhang_fan_threshold": [
+        "25%"
+    ],
+	"overhang_fan_speed": [
+        "80"
+    ],
+	"close_fan_the_first_x_layers": [
+        "3"
     ],
     "version": "2.0.2.0"
 }

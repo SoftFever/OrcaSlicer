@@ -266,7 +266,7 @@ void Tab::create_preset_tab()
     set_tooltips_text();
 
     add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
-    add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
+    //add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_btn_search,      "search");
     m_btn_search->SetToolTip(_L("Search in preset"));
 
@@ -347,7 +347,7 @@ void Tab::create_preset_tab()
         });
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
-    m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
+    //m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
     /* m_search_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent) { wxGetApp().plater()->search(false); });*/
 
     // Colors for ui "decoration"
@@ -468,14 +468,7 @@ void Tab::create_preset_tab()
     // so that the cursor jumps to the last item.
     // BBS: bold selection
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& event) {
-        if (m_disable_tree_sel_changed_event)
-            return;
         const auto sel_item = m_tabctrl->GetSelection();
-        //OutputDebugStringA("wxEVT_TAB_SEL_CHANGING ");
-        //OutputDebugStringA(m_title.c_str());
-        //const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
-        //OutputDebugString(selection);
-        //OutputDebugStringA("\n");
         m_tabctrl->SetItemBold(sel_item, false);
         });
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& event) {
@@ -1034,10 +1027,10 @@ void Tab::update_undo_buttons()
 {
     // BBS: restore all pages in preset
     m_undo_btn->        SetBitmap_(m_presets->get_edited_preset().is_dirty ? m_bmp_value_revert: m_bmp_white_bullet);
-    m_undo_to_sys_btn-> SetBitmap_(m_is_nonsys_values   ? *m_bmp_non_system : m_bmp_value_lock);
+    //m_undo_to_sys_btn-> SetBitmap_(m_is_nonsys_values   ? *m_bmp_non_system : m_bmp_value_lock);
 
     m_undo_btn->SetToolTip(m_presets->get_edited_preset().is_dirty ? _L("Click to reset all settings to the last saved preset.") : m_ttg_white_bullet);
-    m_undo_to_sys_btn->SetToolTip(m_is_nonsys_values ? *m_ttg_non_system : m_ttg_value_lock);
+    //m_undo_to_sys_btn->SetToolTip(m_is_nonsys_values ? *m_ttg_non_system : m_ttg_value_lock);
 }
 
 void Tab::on_roll_back_value(const bool to_sys /*= true*/)
@@ -1222,7 +1215,7 @@ void Tab::msw_rescale()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    // for (ScalableBitmap& bmp : m_scaled_icons_list)
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1256,7 +1249,7 @@ void Tab::sys_color_changed()
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
-    // for (ScalableBitmap& bmp : m_scaled_icons_list)
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
@@ -1616,6 +1609,19 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             wxGetApp().plater()->update();
         }
     }
+
+
+    // -1 means caculate all
+    auto update_flush_volume = [](int idx = -1) {
+        if (idx < 0) {
+            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+            for (size_t i = 0; i < filament_size; ++i)
+                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
+        }
+        else
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+        };
+
 
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
@@ -1997,23 +2003,23 @@ void TabPrint::build()
 
     auto page = add_options_page(L("Quality"), "custom-gcode_quality"); // ORCA: icon only visible on placeholders
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
-        optgroup->append_single_option_line("layer_height");
-        optgroup->append_single_option_line("initial_layer_print_height");
+        optgroup->append_single_option_line("layer_height","quality_settings_layer_height");
+        optgroup->append_single_option_line("initial_layer_print_height","quality_settings_layer_height");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
-        optgroup->append_single_option_line("line_width");
-        optgroup->append_single_option_line("initial_layer_line_width");
-        optgroup->append_single_option_line("outer_wall_line_width");
-        optgroup->append_single_option_line("inner_wall_line_width");
-        optgroup->append_single_option_line("top_surface_line_width");
-        optgroup->append_single_option_line("sparse_infill_line_width");
-        optgroup->append_single_option_line("internal_solid_infill_line_width");
-        optgroup->append_single_option_line("support_line_width");
+        optgroup->append_single_option_line("line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("initial_layer_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("outer_wall_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("inner_wall_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("top_surface_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("sparse_infill_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("internal_solid_infill_line_width","quality_settings_line_width");
+        optgroup->append_single_option_line("support_line_width","quality_settings_line_width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
-        optgroup->append_single_option_line("seam_position", "seam");
-        optgroup->append_single_option_line("staggered_inner_seams", "seam");
-        optgroup->append_single_option_line("seam_gap","seam");
+        optgroup->append_single_option_line("seam_position", "quality_settings_seam");
+        optgroup->append_single_option_line("staggered_inner_seams", "quality_settings_seam");
+        optgroup->append_single_option_line("seam_gap","quality_settings_seam");
         optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
@@ -2025,10 +2031,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_steps", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_joint_flow_ratio", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_inner_walls", "seam#scarf-joint-seam");
-        optgroup->append_single_option_line("role_based_wipe_speed","seam");
-        optgroup->append_single_option_line("wipe_speed", "seam");
-        optgroup->append_single_option_line("wipe_on_loops","seam");
-        optgroup->append_single_option_line("wipe_before_external_loop","seam");
+        optgroup->append_single_option_line("role_based_wipe_speed","quality_settings_seam");
+        optgroup->append_single_option_line("wipe_speed", "quality_settings_seam");
+        optgroup->append_single_option_line("wipe_on_loops","quality_settings_seam");
+        optgroup->append_single_option_line("wipe_before_external_loop","quality_settings_seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
@@ -2601,6 +2607,8 @@ void TabPrintModel::update_model_config()
             // Reset m_config manually because there's no corresponding config in m_parent_tab->m_config
             for (auto plate_item : m_object_configs) {
                 const DynamicPrintConfig& plate_config = plate_item.second->get();
+                BedType plate_bed_type = (BedType)0;
+                PrintSequence plate_print_seq = (PrintSequence)0;
                 if (!plate_config.has("curr_bed_type")) {
                     // same as global
                     DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
@@ -2911,6 +2919,7 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
 
 void TabPrintPlate::notify_changed(ObjectBase* object)
 {
+    auto plate = dynamic_cast<PartPlate*>(object);
     auto objects_list = wxGetApp().obj_list();
     wxDataViewItemArray items;
     objects_list->GetSelections(items);
@@ -3455,8 +3464,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
         optgroup->append_single_option_line("filament_unloading_speed", "semm");
-        optgroup->append_single_option_line("filament_load_time", "semm");
-        optgroup->append_single_option_line("filament_unload_time", "semm");
         optgroup->append_single_option_line("filament_toolchange_delay", "semm");
         optgroup->append_single_option_line("filament_cooling_moves", "semm");
         optgroup->append_single_option_line("filament_cooling_initial_speed", "semm");
@@ -3599,10 +3606,9 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == L("Multimaterial")) {
         // Orca: hide specific settings for BBL printers
-        for (auto el :
-             {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
-              "filament_unloading_speed_start", "filament_unloading_speed", "filament_load_time", "filament_unload_time",
-              "filament_toolchange_delay", "filament_cooling_moves", "filament_cooling_initial_speed", "filament_cooling_final_speed"})
+        for (auto el : {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
+                        "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
+                        "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
     }
 }
@@ -3759,8 +3765,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");
-        optgroup->append_single_option_line("machine_load_filament_time");
-        optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("time_cost");
         
         optgroup  = page->new_optgroup(L("Cooling Fan"), "param_cooling_fan");
@@ -4215,6 +4219,11 @@ if (is_marlin_flavor)
         optgroup->append_single_option_line("parking_pos_retraction", "semm");
         optgroup->append_single_option_line("extra_loading_move", "semm");
         optgroup->append_single_option_line("high_current_on_filament_swap", "semm");
+
+        optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("machine_load_filament_time");
+        optgroup->append_single_option_line("machine_unload_filament_time");
+        optgroup->append_single_option_line("machine_tool_change_time");
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 
@@ -4461,9 +4470,8 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == L("Basic information")) {
 
         // SoftFever: hide BBL specific settings
-        for (auto el :
-             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo", "bbl_use_printhost"})
-          toggle_line(el, is_BBL_printer);
+        for (auto el : {"scan_first_layer", "bbl_calib_mark_logo", "bbl_use_printhost"})
+            toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer"})
@@ -4749,19 +4757,28 @@ void Tab::rebuild_page_tree()
     // To avoid redundant clear/activate functions call
     // suppress activate page before page_tree rebuilding
     m_disable_tree_sel_changed_event = true;
-    m_tabctrl->DeleteAllItems();
 
+    int curr_item = 0;
     for (auto p : m_pages)
     {
         if (!p->get_show())
             continue;
-        auto itemId = m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
-        m_tabctrl->SetItemTextColour(itemId, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
+        if (m_tabctrl->GetCount() <= curr_item) {
+            m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
+        } else {
+            m_tabctrl->SetItemText(curr_item, translate_category(p->title(), m_type));
+        }
+        m_tabctrl->SetItemTextColour(curr_item, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
                         std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
                         std::make_pair(p->get_item_colour(), (int) StateColor::Normal)));
         if (translate_category(p->title(), m_type) == selected)
-            item = itemId;
+            item = curr_item;
+        curr_item++;
     }
+    while (m_tabctrl->GetCount() > curr_item) {
+        m_tabctrl->DeleteItem(m_tabctrl->GetCount() - 1);
+    }
+
     // BBS: on mac, root is selected, this fix it
     m_tabctrl->Unselect();
     // BBS: not select on hide tab
@@ -4773,14 +4790,14 @@ void Tab::rebuild_page_tree()
     if (sel_item == m_last_select_item)
         m_last_select_item = item;
     else
-        m_last_select_item = 0;
+        m_last_select_item = NULL;
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
     //BBS: GUI refactor
     if (item >= 0)
     {
-        update_current_page_in_background(item);
+        bool ret = update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
          if (m_parent->is_active_and_shown_tab(this)) // FIX: modify state not update
@@ -5276,10 +5293,10 @@ bool Tab::update_current_page_in_background(int& item)
 
         // clear pages from the controlls
         // BBS: fix after new layout, clear page in backgroud
-        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
-            m_parent->clear_page();
         for (auto p : m_pages)
             p->clear();
+        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
+            m_parent->clear_page();
 
         update_undo_buttons();
 
@@ -5600,6 +5617,7 @@ void Tab::delete_preset()
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         is_base_preset = true;
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
+            Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
             int process_preset_num     = 0;
             for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
@@ -5863,6 +5881,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
+            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
             BedShapeDialog dlg(this);
             dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
                 *m_config->option<ConfigOptionString>("bed_custom_texture"),

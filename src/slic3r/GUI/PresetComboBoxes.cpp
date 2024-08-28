@@ -401,7 +401,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             auto color = tray.opt_string("filament_colour", 0u);
             auto name = tray.opt_string("tray_name", 0u);
             wxBitmap bmp(*get_extruder_color_icon(color, name, 24, 16));
-            Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
+            int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
@@ -668,6 +668,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 
     // BBS
     if (m_type == Preset::TYPE_FILAMENT) {
+        int em = wxGetApp().em_unit();
         clr_picker = new wxBitmapButton(parent, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
         clr_picker->SetToolTip(_L("Click to pick filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
@@ -798,10 +799,13 @@ bool PlaterPresetComboBox::switch_to_tab()
     //BBS  Select NoteBook Tab params
     if (tab->GetParent() == wxGetApp().params_panel())
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-    else
+    else {
         wxGetApp().params_dialog()->Popup();
+        tab->OnActivate();
+    }
     tab->restore_last_select_item();
 
+    const Preset* selected_filament_preset = nullptr;
     if (m_type == Preset::TYPE_FILAMENT)
     {
         const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
@@ -981,6 +985,7 @@ void PlaterPresetComboBox::update()
         if (!preset.is_visible || (!preset.is_compatible && !is_selected))
             continue;
 
+        bool single_bar = false;
         if (m_type == Preset::TYPE_FILAMENT)
         {
 #if 0
@@ -988,7 +993,7 @@ void PlaterPresetComboBox::update()
             filament_rgb = is_selected ? selected_filament_preset->config.opt_string("filament_colour", 0) :
                                          preset.config.opt_string("filament_colour", 0);
             extruder_rgb = (is_selected && !filament_color.empty()) ? filament_color : filament_rgb;
-            bool single_bar = filament_rgb == extruder_rgb;
+            single_bar = filament_rgb == extruder_rgb;
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
@@ -1475,6 +1480,8 @@ void GUI::CalibrateFilamentComboBox::update()
     this->Freeze();
     this->Clear();
     invalidate_selection();
+
+    const Preset* selected_filament_preset = nullptr;
 
     m_nonsys_presets.clear();
     m_system_presets.clear();

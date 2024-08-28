@@ -512,6 +512,7 @@ public:
 	TextInput*      	x_input{nullptr};
 	TextInput*      	y_input{nullptr};
 
+    wxWindow*       window{nullptr};
 	void			BUILD()  override;
 	bool			value_was_changed(wxTextCtrl* win);
     // Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
@@ -530,7 +531,7 @@ public:
 		x_textctrl->Disable();
 		y_textctrl->Disable(); }
 	wxSizer*		getSizer() override { return sizer; }
-	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(x_textctrl); }
+	wxWindow*		getWindow() override { return window; }
 };
 
 class StaticText : public Field {

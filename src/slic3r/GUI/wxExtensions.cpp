@@ -491,6 +491,7 @@ wxBitmap* get_default_extruder_color_icon(bool thin_icon/* = false*/)
     const double em = Slic3r::GUI::wxGetApp().em_unit();
     const int icon_width = lround((thin_icon ? 2 : 4.5) * em);
     const int icon_height = lround(2 * em);
+    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
 
     wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
     wxMemoryDC dc(&cdc);

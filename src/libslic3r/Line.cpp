@@ -1,7 +1,9 @@
 #include "Geometry.hpp"
 #include "Line.hpp"
+#include "Polyline.hpp"
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 
 namespace Slic3r {
 

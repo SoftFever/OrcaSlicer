@@ -626,6 +626,7 @@ void ExtrusionCalibration::update_combobox_filaments()
 {
     m_comboBox_filament->SetValue(wxEmptyString);
     user_filaments.clear();
+    int selection_idx = -1;
     int filament_index = -1;
     int curr_selection = -1;
     wxArrayString filament_items;
