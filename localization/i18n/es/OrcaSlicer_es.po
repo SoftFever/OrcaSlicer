@@ -6265,21 +6265,14 @@ msgid "The file does not contain any geometry data."
 msgstr "El archivo no contiene ninguna información geométrica."
 
 msgid ""
-"Your object appears to be too large. It will be scaled down to fit the heat "
-"bed automatically."
-msgstr ""
-"Su objeto parece demasiado grande. Será reducido automáticamente para que "
-"quepa en la cama caliente."
-
-msgid "Object too large"
-msgstr "Objeto demasiado grande"
-
-msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
 "Su objeto parece demasiado grande, ¿Desea reducir el tamaño automáticamente "
 "para que quepa en la cama caliente?"
+
+msgid "Object too large"
+msgstr "Objeto demasiado grande"
 
 msgid "Export STL file:"
 msgstr "Exportar archivo STL:"
@@ -8755,13 +8748,13 @@ msgid "Movement in camera space"
 msgstr "Movimiento en el espacio de la cámara"
 
 msgid "⌥+Left mouse button"
-msgstr "Botón de ratón ⌥+Left"
+msgstr "⌥+Botón izquierdo de ratón"
 
 msgid "Select a part"
 msgstr "Seleccionar una pieza"
 
 msgid "⌘+Left mouse button"
-msgstr "⌘+botón izquierdo de ratón"
+msgstr "⌘+Botón izquierdo de ratón"
 
 msgid "Select multiple objects"
 msgstr "Seleccionar varios objetos"
