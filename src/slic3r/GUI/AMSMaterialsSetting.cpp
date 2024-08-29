@@ -1185,17 +1185,21 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             }
         }
         else {
-            Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-            if(!selected_ams) return;
-            AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
-            if(!selected_tray) return;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-            if (cali_select_idx < 0) {
-                BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
-                    << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
-                cali_select_idx = 0;
+            if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
+                Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
+                if (!selected_ams)
+                    return;
+                AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
+                if (!selected_tray)
+                    return;
+                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+                if (cali_select_idx < 0) {
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
+                        << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
+                    cali_select_idx = 0;
+                }
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
-            m_comboBox_cali_result->SetSelection(cali_select_idx);
         }
 
         if (cali_select_idx >= 0) {
