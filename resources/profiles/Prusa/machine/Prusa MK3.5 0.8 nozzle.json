@@ -30,10 +30,11 @@
   "deretraction_speed": [
     "25"
 ],
-    "thumbnails": [
-        "16x16/QOI",
-        "220x124/QOI",
-        "200x240/QOI",
-        "640x480/PNG"
-    ]
+"thumbnails": [
+  "16x16/QOI",
+  "313x173/QOI",
+  "440x240/QOI",
+  "480x240/QOI",
+  "640x480/PNG"
+]
 }
