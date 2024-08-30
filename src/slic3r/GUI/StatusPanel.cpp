@@ -2643,6 +2643,16 @@ void StatusPanel::update_ams(MachineObject *obj)
             ams_info.push_back(info);
         }
     }
+    std::vector<AMSinfo> ext_info;
+    ext_info.clear();
+    for (auto slot : obj->vt_slot) {
+        AMSinfo info;
+        info.parse_ext_info(obj, slot);
+        if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
+        ext_info.push_back(info);
+    }
+    std::string dev_id = obj->dev_id;
+    NozzleData data = obj->m_nozzle_data;
     //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
     //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
     //    m_ams_control->UpdateAms(ams_info, false);

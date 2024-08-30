@@ -1993,7 +1993,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         for (const AmsTray& vt_tray : obj->vt_slot) {
             if (vt_tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
                 AMSinfo     info;
-                info.ReadExtInfo(vt_tray);
+                info.parse_ext_info(obj, vt_tray);
                 info.ams_type = AMSModel::EXT_AMS;
 
                 assert(m_main_ams_preview_list.size() == 4);
@@ -2003,7 +2003,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
             }
             else if (vt_tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                 AMSinfo info;
-                info.ReadExtInfo(vt_tray);
+                info.parse_ext_info(obj, vt_tray);
                 info.ams_type = AMSModel::EXT_AMS;
 
                 assert(m_deputy_ams_preview_list.size() == 4);

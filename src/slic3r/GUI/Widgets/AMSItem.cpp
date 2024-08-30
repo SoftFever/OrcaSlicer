@@ -120,23 +120,50 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     return true;
 }
 
-void AMSinfo::ReadExtInfo(AmsTray tray) {
+void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
+
     this->ams_id = tray.id;
     this->ams_type = AMSModel::EXT_AMS;
-    Caninfo can;
-    can.can_id = std::to_string(0);
-    can.material_name = tray.filament_setting_id;
-    this->cans.push_back(can);
-    if (tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+    Caninfo info;
+    info.can_id = std::to_string(0);
+    this->cans.clear();
+
+    if (tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID))
         this->nozzle_id = 0;
+    else if (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID))
+        this->nozzle_id = 1;
+
+    if (tray.is_tray_info_ready()) {
+        info.ctype = tray.ctype;
+        info.material_name = tray.get_display_filament_type();
+        if (!tray.color.empty()) {
+            info.material_colour = AmsTray::decode_color(tray.color);
+        }
+        else {
+            // set to white by default
+            info.material_colour = AMS_TRAY_DEFAULT_COL;
+        }
+
+        for (std::string cols : tray.cols) {
+            info.material_cols.push_back(AmsTray::decode_color(cols));
+        }
+        info.material_remain = 100;
     }
     else {
-        this->nozzle_id = 1;
+        info.material_name = "";
+        info.ctype = 0;
+        info.material_colour = AMS_TRAY_DEFAULT_COL;
+        wxColour(255, 255, 255);
     }
-    this->cans[0].material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-    this->cans[0].material_colour = tray.decode_color(tray.color);
-    this->cans[0].material_remain = tray.remain;
-    this->cans[0].material_name = tray.type;
+    info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
+    if (tray.is_tray_info_ready() && obj->cali_version >= 0) {
+        CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, info.k, info.n);
+    }
+    else {
+        info.k = tray.k;
+        info.n = tray.n;
+    }
+    this->cans.push_back(info);
 }
 
 /*************************************************
