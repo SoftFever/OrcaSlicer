@@ -6,45 +6,42 @@
 
 namespace Slic3r {
 struct SupportParameters {
-    SupportParameters() = default;
-	SupportParameters(const PrintObject &object)
+    SupportParameters() = delete;
+    SupportParameters(const PrintObject& object)
     {
-        const PrintConfig       &print_config   = object.print()->config();
-        const PrintObjectConfig &object_config  = object.config();
-        const SlicingParameters &slicing_params = object.slicing_parameters();
-        
-        this->soluble_interface = slicing_params.soluble_interface;
-        this->soluble_interface_non_soluble_base =
-            // Zero z-gap between the overhangs and the support interface.
-            slicing_params.soluble_interface &&
-            // Interface extruder soluble.
-            object_config.support_interface_filament.value > 0 && print_config.filament_soluble.get_at(object_config.support_interface_filament.value - 1) &&
-            // Base extruder: Either "print with active extruder" not soluble.
-            (object_config.support_filament.value == 0 || ! print_config.filament_soluble.get_at(object_config.support_filament.value - 1));
-        
-        {
-            int num_top_interface_layers    = std::max(0, object_config.support_interface_top_layers.value);
-            int num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ? 
-                num_top_interface_layers : object_config.support_interface_bottom_layers;
-            this->has_top_contacts              = num_top_interface_layers    > 0;
-            this->has_bottom_contacts           = num_bottom_interface_layers > 0;
-            this->num_top_interface_layers      = this->has_top_contacts ? size_t(num_top_interface_layers - 1) : 0;
-            this->num_bottom_interface_layers   = this->has_bottom_contacts ? size_t(num_bottom_interface_layers - 1) : 0;
-            if (this->soluble_interface_non_soluble_base) {
-                // Try to support soluble dense interfaces with non-soluble dense interfaces.
-                this->num_top_base_interface_layers    = size_t(std::min(num_top_interface_layers / 2, 2));
-                this->num_bottom_base_interface_layers = size_t(std::min(num_bottom_interface_layers / 2, 2));
-            } else {
-                this->num_top_base_interface_layers    = 0;
-                this->num_bottom_base_interface_layers = 0;
-            }
-        }
-        
-        this->first_layer_flow                   = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
-        this->support_material_flow              = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
-        this->support_material_interface_flow    = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
-        this->raft_interface_flow                = support_material_interface_flow;
-        
+        const PrintConfig& print_config = object.print()->config();
+        const PrintObjectConfig& object_config = object.config();
+        const SlicingParameters& slicing_params = object.slicing_parameters();
+
+	    this->soluble_interface = slicing_params.soluble_interface;
+	    this->soluble_interface_non_soluble_base =
+	        // Zero z-gap between the overhangs and the support interface.
+	        slicing_params.soluble_interface &&
+	        // Interface extruder soluble.
+	        object_config.support_interface_filament.value > 0 && print_config.filament_soluble.get_at(object_config.support_interface_filament.value - 1) &&
+	        // Base extruder: Either "print with active extruder" not soluble.
+	        (object_config.support_filament.value == 0 || ! print_config.filament_soluble.get_at(object_config.support_filament.value - 1));
+
+	    {
+	        this->num_top_interface_layers    = std::max(0, object_config.support_interface_top_layers.value);
+	        this->num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ? 
+	            num_top_interface_layers : object_config.support_interface_bottom_layers;
+	        this->has_top_contacts              = num_top_interface_layers    > 0;
+	        this->has_bottom_contacts           = num_bottom_interface_layers > 0;
+	        if (this->soluble_interface_non_soluble_base) {
+	            // Try to support soluble dense interfaces with non-soluble dense interfaces.
+	            this->num_top_base_interface_layers    = size_t(std::min(int(num_top_interface_layers) / 2, 2));
+	            this->num_bottom_base_interface_layers = size_t(std::min(int(num_bottom_interface_layers) / 2, 2));
+	        } else {
+	            this->num_top_base_interface_layers    = 0;
+	            this->num_bottom_base_interface_layers = 0;
+	        }
+	    }
+        this->first_layer_flow = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
+        this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
+        this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
+    	this->raft_interface_flow                = support_material_interface_flow;
+
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
         for (auto lh : print_config.min_layer_height.values)
@@ -155,7 +152,8 @@ struct SupportParameters {
 
         independent_layer_height = print_config.independent_support_layer_height;
 
-        tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.tree_support_branch_diameter_double_wall.value)) * M_PI;
+        // force double walls everywhere if wall count is larger than 1        
+        tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value > 1 ? 0.1 : 0.25 * sqr(scaled<double>(5.0)) * M_PI;
 
         support_style = object_config.support_style;
         if (support_style == smsDefault) {
@@ -236,7 +234,7 @@ struct SupportParameters {
     // Shall the sparse (base) layers be printed with a single perimeter line (sheath) for robustness?
     bool                    with_sheath;
     // Branches of organic supports with area larger than this threshold will be extruded with double lines.
-    double                  tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(3.0)) * M_PI;;
+    double                  tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(5.0)) * M_PI;;
 
     float 					raft_angle_1st_layer;
     float 					raft_angle_base;

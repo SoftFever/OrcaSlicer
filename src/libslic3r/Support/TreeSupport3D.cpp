@@ -3434,6 +3434,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 // The trees will have the density zeroed in tree_supports_generate_paths()
 //        support_params.support_density = 0;
 
+
         SupportGeneratorLayerStorage layer_storage;
         SupportGeneratorLayersPtr    top_contacts;
         SupportGeneratorLayersPtr    bottom_contacts;

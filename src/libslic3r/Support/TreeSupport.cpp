@@ -1541,12 +1541,16 @@ void TreeSupport::generate_toolpaths()
                             }
                             else {
                                 size_t walls = wall_count;
-                                if (area_group.need_extra_wall && walls < 2) walls += 1;
-                                for (size_t i = 1; i < walls; i++) {
-                                    Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
-                                    loops.insert(loops.end(), contour_new.begin(), contour_new.end());
-                                }
-                                fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, nullptr, 0, erSupportMaterial, flow, m_support_params, true, false);
+                                //if (area_group.need_extra_wall && walls < 2) walls += 1;
+                                //for (size_t i = 1; i < walls; i++) {
+                                //    Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
+                                //    loops.insert(loops.end(), contour_new.begin(), contour_new.end());
+                                //}
+                                //fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, nullptr, 0, erSupportMaterial, flow, true, false);
+                                SupportParameters support_params = m_support_params;
+                                if(walls>1)
+                                    support_params.tree_branch_diameter_double_wall_area_scaled=0.1;
+                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
                             }
                         }
                     }
@@ -1606,8 +1610,12 @@ void TreeSupport::generate_toolpaths()
                 }
 
                 // sort extrusions to reduce travel, also make sure walls go before infills
-                if(ts_layer->support_fills.no_sort==false)
+                if (ts_layer->support_fills.no_sort == false) {
+                    // chain_and_reorder_extrusion_entities crashes if there are empty elements in entities
+                    auto &entities = ts_layer->support_fills.entities;
+                    entities.erase(std::remove_if(entities.begin(), entities.end(), [](ExtrusionEntity* entity) { return static_cast<ExtrusionEntityCollection*>(entity)->empty(); }), entities.end());
                     chain_and_reorder_extrusion_entities(ts_layer->support_fills.entities);
+                }
             }
         }
     );
