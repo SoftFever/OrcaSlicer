@@ -29,16 +29,24 @@ class BuildVolume
 {
 public:
 
+    struct BuildExtruderVolume {
+        bool                same_with_bed{false};
+        Type                type{Type::Invalid};
+        BoundingBox         bbox;
+        BoundingBoxf3       bboxf;
+        Geometry::Circled   circle;
+    };
 
     // Initialized to empty, all zeros, Invalid.
     BuildVolume() {}
     // Initialize from PrintConfig::printable_area and PrintConfig::printable_height
-    BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height);
+    BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height, const std::vector<std::vector<Vec2d>> &extruder_areas);
 
     // Source data, unscaled coordinates.
     const std::vector<Vec2d>&   printable_area()         const { return m_bed_shape; }
     double                      printable_height()  const { return m_max_print_height; }
-    
+    const std::vector<std::vector<Vec2d>>& extruder_areas() const { return m_extruder_shapes; }
+
     // Derived data
     BuildVolume_Type                        type()              const { return m_type; }
     // Format the type for console output.
@@ -69,9 +77,11 @@ public:
         Colliding,
         // Outside of the build volume means the object is ignored: Not printed and no error is shown.
         Outside,
-        // Completely below the print bed. The same as Outside, but an object with one printable part below the print bed 
+        // Completely below the print bed. The same as Outside, but an object with one printable part below the print bed
         // and at least one part above the print bed is still printable.
         Below,
+        //in Limited area
+        Limited
     };
 
     // 1) Tests called on the plater.
@@ -94,12 +104,22 @@ public:
     // Called on initial G-code preview on OpenGL vertex buffer interleaved normals and vertices.
     bool         all_paths_inside_vertices_and_normals_interleaved(const std::vector<float>& paths, const Eigen::AlignedBox<float, 3>& bbox, bool ignore_bottom = true) const;
 
+    int          get_extruder_area_count() const { return m_extruder_volumes.size(); }
+    const BuildExtruderVolume&  get_extruder_area_volume(int index) const;
+    ObjectState  check_object_state_with_extruder_area(const indexed_triangle_set &its, const Transform3f &trafo, int index) const;
+    ObjectState  check_object_state_with_extruder_areas(const indexed_triangle_set &its, const Transform3f &trafo, std::vector<bool>& inside_extruders) const;
+    ObjectState  check_volume_bbox_state_with_extruder_area(const BoundingBoxf3& volume_bbox, int index) const;
+    ObjectState  check_volume_bbox_state_with_extruder_areas(const BoundingBoxf3& volume_bbox, std::vector<bool>& inside_extruders) const;
+
     const std::pair<std::vector<Vec2d>, std::vector<Vec2d>>& top_bottom_convex_hull_decomposition_scene() const { return m_top_bottom_convex_hull_decomposition_scene; }
     const std::pair<std::vector<Vec2d>, std::vector<Vec2d>>& top_bottom_convex_hull_decomposition_bed() const { return m_top_bottom_convex_hull_decomposition_bed; }
 
 private:
     // Source definition of the print bed geometry (PrintConfig::printable_area)
     std::vector<Vec2d>  m_bed_shape;
+    //BBS: extruder shapes
+    std::vector<std::vector<Vec2d>>  m_extruder_shapes;
+    std::vector<BuildExtruderVolume> m_extruder_volumes;
     // Source definition of the print volume height (PrintConfig::printable_height)
     double              m_max_print_height { 0.f };
 

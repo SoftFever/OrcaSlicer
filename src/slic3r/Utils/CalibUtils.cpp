@@ -987,6 +987,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
 bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
 {
     Pointfs bedfs         = make_counter_clockwise(full_config.opt<ConfigOptionPoints>("printable_area")->values);
+    std::vector<Pointfs> extruder_areas = full_config.option<ConfigOptionPointsGroups>("extruder_printable_area")->values;
     double  print_height  = full_config.opt_float("printable_height");
     double  current_width = bedfs[2].x() - bedfs[0].x();
     double  current_depth = bedfs[2].y() - bedfs[0].y();
@@ -1033,7 +1034,7 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     int                       print_index;
     part_plate->get_print(&print, &gcode_result, &print_index);
 
-    BuildVolume build_volume(bedfs, print_height);
+    BuildVolume build_volume(bedfs, print_height, extruder_areas);
     unsigned int count = model->update_print_volume_state(build_volume);
     if (count == 0) {
         error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");

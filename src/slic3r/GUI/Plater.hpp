@@ -664,7 +664,7 @@ public:
     void update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzle_size);
     //BBS: add bed exclude area
 	void set_bed_shape() const;
-    void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
+    void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
 
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();

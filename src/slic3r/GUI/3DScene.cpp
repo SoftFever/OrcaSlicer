@@ -1067,15 +1067,15 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     auto                volume_convex_mesh = [volume_sinking, &model](GLVolume& volume) -> const TriangleMesh&
         { return volume_sinking(volume) ? model.objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh() : *volume.convex_hull(); };
 
-    ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Inside;
+    ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Fully_Outside;
     bool contained_min_one = false;
 
     //BBS: add instance judge logic, besides to original volume judge logic
-    std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
+    //std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
 
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
-    BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height());
+    BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)
@@ -1090,14 +1090,27 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
                     const BoundingBoxf3& bb = volume_bbox(*volume);
                     state = plate_build_volume.volume_state_bbox(bb);
+                    if ((state == BuildVolume::ObjectState::Inside) && (build_volume.get_extruder_area_count() > 0))
+                    {
+                        std::vector<bool> inside_extruders;
+                        state = plate_build_volume.check_volume_bbox_state_with_extruder_areas(bb, inside_extruders);
                 }
                     break;
                 case BuildVolume_Type::Circle:
                 case BuildVolume_Type::Convex:
                 //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
                 case BuildVolume_Type::Custom:
-                    state = plate_build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
+                {
+                    const indexed_triangle_set& convex_mesh_it = volume_convex_mesh(*volume).its;
+                    const Transform3f trafo = volume->world_matrix().cast<float>();
+                    state = plate_build_volume.object_state(convex_mesh_it, trafo, volume_sinking(*volume));
+                    if ((state == BuildVolume::ObjectState::Inside) && (build_volume.get_extruder_area_count() > 0))
+                    {
+                        std::vector<bool> inside_extruders;
+                        state = plate_build_volume.check_object_state_with_extruder_areas(convex_mesh_it, trafo, inside_extruders);
+                    }
                     break;
+                }
                 default:
                     // Ignore, don't produce any collision.
                     state = BuildVolume::ObjectState::Inside;
@@ -1106,22 +1119,23 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 assert(state != BuildVolume::ObjectState::Below);
             }
 
-            int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
-            volume->is_outside = state != BuildVolume::ObjectState::Inside;
-            //volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
+            //int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
+            volume->is_outside = (state != BuildVolume::ObjectState::Inside && state != BuildVolume::ObjectState::Limited);
+            volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
             if (volume->printable) {
-                if (overall_state == ModelInstancePVS_Inside && volume->is_outside) {
-                    overall_state = ModelInstancePVS_Fully_Outside;
-                }
-
-                if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && (state == BuildVolume::ObjectState::Colliding))
+                if (state == BuildVolume::ObjectState::Colliding)
                 {
                     overall_state = ModelInstancePVS_Partly_Outside;
+                }
+                else if ((state == BuildVolume::ObjectState::Limited) && (overall_state != ModelInstancePVS_Partly_Outside))
+                    overall_state = ModelInstancePVS_Limited;
+                else if ((state == BuildVolume::ObjectState::Inside) && (overall_state == ModelInstancePVS_Fully_Outside)) {
+                    overall_state = ModelInstancePVS_Fully_Outside;
                 }
                 contained_min_one |= !volume->is_outside;
             }
 
-            ModelInstanceEPrintVolumeState volume_state;
+            /*ModelInstanceEPrintVolumeState volume_state;
             //if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box())))
             if (volume->is_outside && (state == BuildVolume::ObjectState::Colliding))
                 volume_state = ModelInstancePVS_Partly_Outside;
@@ -1150,11 +1164,11 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
             if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
                 overall_state = ModelInstancePVS_Partly_Outside;
                 BOOST_LOG_TRIVIAL(debug) << "instance includes " << volume->name << " is partially outside of bed";
-            }
+            }*/
         }
     }
 
-    for (GLVolume* volume : this->volumes)
+    /*for (GLVolume* volume : this->volumes)
     {
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0)))
         {
@@ -1168,7 +1182,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     volume->partly_inside = false;
             }
         }
-    }
+    }*/
 
     if (out_state != nullptr)
         *out_state = overall_state;

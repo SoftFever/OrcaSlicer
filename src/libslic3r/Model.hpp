@@ -1227,6 +1227,7 @@ inline const ModelVolume* model_volume_find_by_id(const ModelVolumePtrs &model_v
 enum ModelInstanceEPrintVolumeState : unsigned char
 {
     ModelInstancePVS_Inside,
+    ModelInstancePVS_Limited,
     ModelInstancePVS_Partly_Outside,
     ModelInstancePVS_Fully_Outside,
     ModelInstanceNum_BedStates

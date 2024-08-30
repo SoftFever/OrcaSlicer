@@ -2,7 +2,7 @@
 #include "GUI_App.hpp"
 #include "OptionsGroup.hpp"
 
-#include <wx/wx.h> 
+#include <wx/wx.h>
 #include <wx/numformatter.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
@@ -25,7 +25,7 @@ namespace GUI {
 
 BedShape::BedShape(const Pointfs& points)
 {
-    m_build_volume = { points, 0. };
+    m_build_volume = { points, 0.f, {} };
 }
 
 static std::string get_option_label(BedShape::Parameter param)
@@ -283,7 +283,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& tit
     optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
         update_shape();
     };
-	
+
     m_optgroups.push_back(optgroup);
 //    panel->SetSizerAndFit(optgroup->sizer);
     m_shape_options_book->AddPage(panel, title);
@@ -522,7 +522,7 @@ void BedShapePanel::update_shape()
     {
         double diameter;
 		try { diameter = boost::any_cast<double>(opt_group->get_value("diameter")); }
-		catch (const std::exception & /* e */) { return; } 
+		catch (const std::exception & /* e */) { return; }
 
  		if (diameter == 0.0) return ;
 		auto r = diameter / 2;

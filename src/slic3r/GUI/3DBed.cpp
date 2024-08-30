@@ -251,7 +251,7 @@ void Bed3D::Axes::render()
 }
 
 //BBS: add part plate logic
-bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_model, bool force_as_custom,
+bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_model, bool force_as_custom,
     const Vec2d& position, bool with_reset)
 {
     /*auto check_texture = [](const std::string& texture) {
@@ -289,7 +289,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position)
+    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position && m_extruder_shapes == extruder_areas)
         // No change, no need to update the UI.
         return false;
 
@@ -297,16 +297,26 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
     m_position = position;
     m_bed_shape = printable_area;
+    m_extruder_shapes = extruder_areas;
     if ((position(0) != 0) || (position(1) != 0)) {
         Pointfs new_bed_shape;
         for (const Vec2d& p : m_bed_shape) {
             Vec2d point(p(0) + m_position.x(), p(1) + m_position.y());
             new_bed_shape.push_back(point);
         }
-        m_build_volume = BuildVolume { new_bed_shape, printable_height };
+        std::vector<Pointfs> new_extruder_shapes;
+        for (const std::vector<Vec2d>& shape : m_extruder_shapes) {
+            std::vector<Vec2d> new_extruder_shape;
+            for (const Vec2d& p : shape) {
+                Vec2d point(p(0) + m_position.x(), p(1) + m_position.y());
+                new_extruder_shape.push_back(point);
+            }
+            new_extruder_shapes.push_back(new_extruder_shape);
+        }
+        m_build_volume = BuildVolume { new_bed_shape, printable_height, new_extruder_shapes };
     }
     else
-        m_build_volume = BuildVolume { printable_area, printable_height };
+        m_build_volume = BuildVolume { printable_area, printable_height, m_extruder_shapes };
     m_type = type;
     //m_texture_filename = texture_filename;
     m_model_filename = model_filename;
@@ -342,7 +352,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 //BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_bed_shape, m_build_volume.printable_height(), m_model_filename, false, position, false);
+    set_shape(m_bed_shape, m_build_volume.printable_height(), m_extruder_shapes, m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)

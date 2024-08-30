@@ -2810,8 +2810,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state);
             const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
+            const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
             _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+            _set_warning_notification(EWarning::ObjectLimited, objectLimited);
             //BBS: turn off the warning when fully outside
             //_set_warning_notification(EWarning::ObjectOutside, fullyOut);
             if (printer_technology != ptSLA || !contained_min_one)
@@ -2823,6 +2825,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
             _set_warning_notification(EWarning::ObjectClashed, false);
+            _set_warning_notification(EWarning::ObjectLimited, false);
             _set_warning_notification(EWarning::SlaSupportsOutside, false);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -9650,6 +9653,11 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     _set_warning_notification(warning, show);
 }
 
+std::string object_limited_text = _u8L("An object is laid on the left/right extruder only area.\n"
+            "Please make sure the filaments used by this object on this area are not mapped to the other extruders.");
+std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
+
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     enum ErrorType{
@@ -9686,9 +9694,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
-        text = _u8L("An object is laid over the plate boundaries or exceeds the height limit.\n"
-            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
+        text = object_clashed_text;
         error = ErrorType::PLATER_ERROR;
+        break;
+    case EWarning::ObjectLimited:
+        text = object_limited_text;
         break;
     }
     //BBS: this may happened when exit the app, plater is null

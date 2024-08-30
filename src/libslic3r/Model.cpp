@@ -3349,8 +3349,23 @@ ModelInstanceEPrintVolumeState ModelInstance::calc_print_volume_state(const Buil
             BuildVolume::ObjectState state;
             if (!build_volume.bounding_volume2d().inflated(BuildVolume::SceneEpsilon).overlap(bbox2d))
                 state = BuildVolume::ObjectState::Outside;
-            else
-                state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+            else {
+                switch(build_volume.type())
+                {
+                    case BuildVolume_Type::Rectangle:
+                    {
+                        state = build_volume.volume_state_bbox(bboxt);
+                        break;
+                    }
+                    case BuildVolume_Type::Circle:
+                    case BuildVolume_Type::Convex:
+                    case BuildVolume_Type::Custom:
+                    default:
+                        state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+                        break;
+                }
+            }
+
             if (state == BuildVolume::ObjectState::Inside)
                 // Volume is completely inside.
                 inside_outside |= INSIDE;

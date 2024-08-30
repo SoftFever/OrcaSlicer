@@ -4020,7 +4020,7 @@ void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_suppo
     Points bedpts = tree_support->m_machine_border.contour.points;
     Pointfs bedptsf;
     std::transform(bedpts.begin(), bedpts.end(), std::back_inserter(bedptsf), [](const Point &p) { return unscale(p); });
-    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height };
+    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height, {}};
 
     TreeSupport3D::generate_support_areas(*print_object.print(), tree_support, build_volume, { idx }, throw_on_cancel);
 }
