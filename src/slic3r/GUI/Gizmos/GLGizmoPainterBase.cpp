@@ -1533,6 +1533,7 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, bool show_wireframe
     if (shader == nullptr)
         return;
 
+    glsafe(::glBindVertexArray(this->m_vertices_VAO_ids[triangle_indices_idx]));
     // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
     const GLint position_id = shader->get_attrib_location("v_position");
@@ -1584,6 +1585,10 @@ void TriangleSelectorPatch::release_geometry()
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
         triangle_indices_VBO_id = 0;
     }
+    for (auto& vertice_VAO_id : m_vertices_VAO_ids) {
+        glsafe(::glDeleteVertexArrays(1, &vertice_VAO_id));
+        vertice_VAO_id = 0;
+    }
     this->clear();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: released geometry")%__LINE__;
@@ -1603,12 +1608,16 @@ void TriangleSelectorPatch::finalize_vertices()
 
 void TriangleSelectorPatch::finalize_triangle_indices()
 {
+    m_vertices_VAO_ids.resize(m_triangle_patches.size());
     m_vertices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_sizes.resize(m_triangle_patches.size());
     assert(std::all_of(m_triangle_indices_VBO_ids.cbegin(), m_triangle_indices_VBO_ids.cend(), [](const auto& ti_VBO_id) { return ti_VBO_id == 0; }));
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
+        glsafe(::glGenVertexArrays(1, &m_vertices_VAO_ids[buffer_idx]));
+        glsafe(::glBindVertexArray(m_vertices_VAO_ids[buffer_idx]));
+
         std::vector<float>& patch_vertices = m_triangle_patches[buffer_idx].patch_vertices;
         if (!patch_vertices.empty()) {
             glsafe(::glGenBuffers(1, &m_vertices_VBO_ids[buffer_idx]));
