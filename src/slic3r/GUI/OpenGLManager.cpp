@@ -2,6 +2,7 @@
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
+#include "GUI_Init.hpp"
 #include "I18N.hpp"
 #include "3DScene.hpp"
 
@@ -30,6 +31,7 @@ namespace GUI {
 std::string gl_get_string_safe(GLenum param, const std::string& default_value)
 {
     const char* value = (const char*)::glGetString(param);
+    glcheck();
     return std::string((value != nullptr) ? value : default_value);
 }
 
@@ -114,6 +116,10 @@ void OpenGLManager::GLInfo::detect() const
         float* max_anisotropy = const_cast<float*>(&m_max_anisotropy);
         glsafe(::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
     }
+
+    if (!GLEW_ARB_compatibility)
+        *const_cast<bool*>(&m_core_profile) = true;
+
     *const_cast<bool*>(&m_detected) = true;
 }
 
@@ -182,15 +188,13 @@ std::string OpenGLManager::GLInfo::to_string(bool for_github) const
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
     out << b_start << "GL version:   " << b_end << m_version << line_end;
-    out << b_start << "Profile:      " << b_end << (GLEW_ARB_compatibility ? "Compatibility" : "Core") << line_end;
+    out << b_start << "Profile:      " << b_end << (is_core_profile() ? "Core" : "Compatibility") << line_end;
     out << b_start << "Vendor:       " << b_end << m_vendor << line_end;
     out << b_start << "Renderer:     " << b_end << m_renderer << line_end;
     out << b_start << "GLSL version: " << b_end << m_glsl_version << line_end;
 
     {
-        std::vector<std::string> extensions_list;
-        std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
-        boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_on);
+        std::vector<std::string>  extensions_list = get_extensions_list();
 
         if (!extensions_list.empty()) {
             if (for_github)
@@ -209,6 +213,29 @@ std::string OpenGLManager::GLInfo::to_string(bool for_github) const
     }
 
     return out.str();
+}
+
+std::vector<std::string> OpenGLManager::GLInfo::get_extensions_list() const
+{
+    std::vector<std::string> ret;
+
+    if (is_core_profile()) {
+        GLint n = 0;
+        glsafe(::glGetIntegerv(GL_NUM_EXTENSIONS, &n));
+        ret.reserve(n);
+        for (GLint i = 0; i < n; ++i) {
+            const char* extension = (const char*)::glGetStringi(GL_EXTENSIONS, i);
+            glcheck();
+            if (extension != nullptr)
+                ret.emplace_back(extension);
+        }
+    }
+    else {
+        const std::string extensions_str = gl_get_string_safe(GL_EXTENSIONS, "");
+        boost::split(ret, extensions_str, boost::is_any_of(" "), boost::token_compress_on);
+    }
+
+    return ret;
 }
 
 OpenGLManager::GLInfo OpenGLManager::s_gl_info;
@@ -274,7 +301,7 @@ bool OpenGLManager::init_gl(bool popup_error)
             BOOST_LOG_TRIVIAL(warning) << "Found Framebuffer Type unknown!"<< std::endl;
         }
 
-        bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
+        bool valid_version = s_gl_info.is_core_profile() ? s_gl_info.is_version_greater_or_equal_to(3, 2) : s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
             BOOST_LOG_TRIVIAL(error) << "Found opengl version <= 2.0"<< std::endl;
             // Complain about the OpenGL version.
@@ -327,11 +354,32 @@ bool OpenGLManager::init_gl(bool popup_error)
 wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 {
     if (m_context == nullptr) {
-        wxGLContextAttrs attrs;
-        attrs.CoreProfile().ForwardCompatible().OGLVersion(3, 3).EndList();
-        m_context = new wxGLContext(&canvas, nullptr, &attrs);
+            // search for highest supported core profile version
+            // disable wxWidgets logging to avoid showing the log dialog in case the following code fails generating a valid gl context
+            wxLogNull logNo;
+            for (auto v = OpenGLVersions::core.rbegin(); v != OpenGLVersions::core.rend(); ++v) {
+                wxGLContextAttrs attrs;
+                attrs.PlatformDefaults().MajorVersion(v->first).MinorVersion(v->second).CoreProfile().ForwardCompatible();
+                attrs.EndList();
+                m_context = new wxGLContext(&canvas, nullptr, &attrs);
+                if (m_context->IsOK())
+                    break;
+                else {
+                    delete m_context;
+                    m_context = nullptr;
+                }
+            }
 
-#ifdef __APPLE__
+
+        if (m_context == nullptr) {
+            wxGLContextAttrs attrs;
+            attrs.PlatformDefaults();
+            attrs.EndList();
+            // if no valid context was created use the default one
+            m_context = new wxGLContext(&canvas, nullptr, &attrs);
+        }
+
+#ifdef __APPLE__ 
         // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
         s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
         s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
@@ -345,7 +393,12 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 {
     wxGLAttributes attribList;
     //BBS: turn on stencil buffer for outline
-    attribList.PlatformDefaults().RGBA().DoubleBuffer().MinRGBA(8, 8, 8, 8).Depth(24).Stencil(8).SampleBuffers(1).Samplers(4).EndList();
+    attribList.PlatformDefaults().RGBA().DoubleBuffer().MinRGBA(8, 8, 8, 8).Depth(24).Stencil(8).SampleBuffers(1).Samplers(4);
+#ifdef __APPLE__
+    // on MAC the method RGBA() has no effect
+    attribList.SetNeedsARB(true);
+#endif // __APPLE__
+    attribList.EndList();
 
     if (s_multisample == EMultisampleState::Unknown) {
         detect_multisample(attribList);
@@ -356,7 +409,12 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
     if (! can_multisample())
     {
         attribList.Reset();
-        attribList.PlatformDefaults().RGBA().DoubleBuffer().MinRGBA(8, 8, 8, 8).Depth(24).Stencil(8).EndList();
+        attribList.PlatformDefaults().RGBA().DoubleBuffer().MinRGBA(8, 8, 8, 8).Depth(24).Stencil(8);
+#ifdef __APPLE__
+        // on MAC the method RGBA() has no effect
+        attribList.SetNeedsARB(true);
+#endif // __APPLE__
+        attribList.EndList();
     }
 
     return new wxGLCanvas(&parent, attribList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);

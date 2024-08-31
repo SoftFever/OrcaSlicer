@@ -25,6 +25,7 @@ public:
     class GLInfo
     {
         bool m_detected{ false };
+        bool m_core_profile{ false };
         int m_max_tex_size{ 0 };
         float m_max_anisotropy{ 0.0f };
 
@@ -41,6 +42,8 @@ public:
         const std::string& get_vendor() const;
         const std::string& get_renderer() const;
 
+        bool is_core_profile() const { return m_core_profile; }
+
         bool is_mesa() const;
 
         int get_max_tex_size() const;
@@ -52,6 +55,8 @@ public:
         // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
         // Otherwise HTML formatted for the system info dialog.
         std::string to_string(bool for_github) const;
+
+        std::vector<std::string> get_extensions_list() const;
 
     private:
         void detect() const;
