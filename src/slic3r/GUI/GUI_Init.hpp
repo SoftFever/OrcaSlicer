@@ -8,6 +8,15 @@ namespace Slic3r {
 
 namespace GUI {
 
+struct OpenGLVersions
+{
+	static const std::vector<std::string> core_str;
+	static const std::vector<std::string> precore_str;
+
+	static const std::vector<std::pair<int, int>> core;
+	static const std::vector<std::pair<int, int>> precore;
+};
+
 struct GUI_InitParams
 {
 	int		                    argc;

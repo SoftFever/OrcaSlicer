@@ -2,6 +2,7 @@
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
+#include "GUI_Init.hpp"
 #include "I18N.hpp"
 #include "3DScene.hpp"
 
@@ -300,7 +301,7 @@ bool OpenGLManager::init_gl(bool popup_error)
             BOOST_LOG_TRIVIAL(warning) << "Found Framebuffer Type unknown!"<< std::endl;
         }
 
-        bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
+        bool valid_version = s_gl_info.is_core_profile() ? s_gl_info.is_version_greater_or_equal_to(3, 2) : s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
             BOOST_LOG_TRIVIAL(error) << "Found opengl version <= 2.0"<< std::endl;
             // Complain about the OpenGL version.
@@ -353,11 +354,32 @@ bool OpenGLManager::init_gl(bool popup_error)
 wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 {
     if (m_context == nullptr) {
-        wxGLContextAttrs attrs;
-        attrs.CoreProfile().ForwardCompatible().OGLVersion(3, 3).EndList();
-        m_context = new wxGLContext(&canvas, nullptr, &attrs);
+            // search for highest supported core profile version
+            // disable wxWidgets logging to avoid showing the log dialog in case the following code fails generating a valid gl context
+            wxLogNull logNo;
+            for (auto v = OpenGLVersions::core.rbegin(); v != OpenGLVersions::core.rend(); ++v) {
+                wxGLContextAttrs attrs;
+                attrs.PlatformDefaults().MajorVersion(v->first).MinorVersion(v->second).CoreProfile().ForwardCompatible();
+                attrs.EndList();
+                m_context = new wxGLContext(&canvas, nullptr, &attrs);
+                if (m_context->IsOK())
+                    break;
+                else {
+                    delete m_context;
+                    m_context = nullptr;
+                }
+            }
 
-#ifdef __APPLE__
+
+        if (m_context == nullptr) {
+            wxGLContextAttrs attrs;
+            attrs.PlatformDefaults();
+            attrs.EndList();
+            // if no valid context was created use the default one
+            m_context = new wxGLContext(&canvas, nullptr, &attrs);
+        }
+
+#ifdef __APPLE__ 
         // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
         s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
         s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
