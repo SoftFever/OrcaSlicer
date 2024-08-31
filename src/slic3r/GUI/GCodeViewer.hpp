@@ -369,12 +369,12 @@ class GCodeViewer
             {
             case ERenderPrimitiveType::Line:
             case ERenderPrimitiveType::Triangle: {
-                return !vertices.vaos.empty() && vertices.vaos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
+                return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
             case ERenderPrimitiveType::InstancedModel: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
             case ERenderPrimitiveType::BatchedModel: {
                 return !model.data.vertices.empty() && !model.data.indices.empty() &&
-                    !vertices.vaos.empty() && vertices.vaos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
+                    !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
             default: { return false; }
             }
