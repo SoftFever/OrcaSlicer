@@ -496,7 +496,6 @@ void GLVolume::render_with_outline(const GUI::Size& cnv_size)
 
     // Some clean up to do
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-    shader->set_uniform("screen_size", 0);
     shader->set_uniform("is_outline", false);
     if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Arb) {
         glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
