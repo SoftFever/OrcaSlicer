@@ -41,7 +41,7 @@ class Button;
 namespace Slic3r {
 
 class BuildVolume;
-enum class BuildVolume_Type : unsigned char;
+enum class BuildVolume_Type : char;
 class Model;
 class ModelObject;
 class ModelInstance;

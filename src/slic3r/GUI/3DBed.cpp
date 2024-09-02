@@ -690,15 +690,32 @@ void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& proj
     }
 
     if (!m_model.get_filename().empty()) {
-        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+        const Camera &     camera      = wxGetApp().plater()->get_camera();
+        const Transform3d &view_matrix = camera.get_view_matrix();
+        const Transform3d &projection_matrix = camera.get_projection_matrix();
+        GLShaderProgram* shader = wxGetApp().get_shader("hotbed");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0f);
             const Transform3d model_matrix = Geometry::assemble_transform(m_model_offset);
+            shader->set_uniform("volume_world_matrix",  model_matrix);
             shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
             const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
             shader->set_uniform("view_normal_matrix", view_normal_matrix);
+            if (m_build_volume.get_extruder_area_count() > 0) {
+                const BuildVolume::BuildSharedVolume& shared_volume = m_build_volume.get_shared_volume();
+                std::array<float, 4>       xy_data       = shared_volume.data;
+                shader->set_uniform("print_volume.type", shared_volume.type);
+                shader->set_uniform("print_volume.xy_data", xy_data);
+                std::array<float, 2> zs = shared_volume.zs;
+                zs[0]                   = -1;
+                shader->set_uniform("print_volume.z_data", zs);
+            }
+            else {
+                //use -1 ad a invalid type
+                shader->set_uniform("print_volume.type", -1);
+            }
             m_model.render();
             shader->stop_using();
         }

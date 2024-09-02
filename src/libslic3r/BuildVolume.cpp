@@ -79,10 +79,23 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
 
     if (m_extruder_shapes.size() > 0)
     {
+        m_shared_volume.data[0] = m_bboxf.min.x();
+        m_shared_volume.data[1] = m_bboxf.min.y();
+        m_shared_volume.data[2] = m_bboxf.max.x();
+        m_shared_volume.data[3] = m_bboxf.max.y();
         for (unsigned int index = 0; index < m_extruder_shapes.size(); index++)
         {
             std::vector<Vec2d>& extruder_shape = m_extruder_shapes[index];
             BuildExtruderVolume extruder_volume;
+
+            if (extruder_shape.empty())
+            {
+                //should not happen
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Found invalid extruder_printable_area of index %1%")%index;
+                assert(false);
+                m_extruder_shapes.clear();
+                return;
+            }
 
             if (extruder_shape == printable_area) {
                 extruder_volume.same_with_bed = true;
@@ -137,7 +150,20 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                 }
                 m_extruder_volumes.push_back(std::move(extruder_volume));
             }
+
+            if (m_shared_volume.data[0] < extruder_volume.bboxf.min.x())
+                m_shared_volume.data[0] = extruder_volume.bboxf.min.x();
+            if (m_shared_volume.data[1] < extruder_volume.bboxf.min.y())
+                m_shared_volume.data[1] = extruder_volume.bboxf.min.y();
+            if (m_shared_volume.data[2] > extruder_volume.bboxf.max.x())
+                m_shared_volume.data[2] = extruder_volume.bboxf.max.x();
+            if (m_shared_volume.data[3] > extruder_volume.bboxf.max.y())
+                m_shared_volume.data[3] = extruder_volume.bboxf.max.y();
         }
+
+        m_shared_volume.type = static_cast<int>(m_type);
+        m_shared_volume.zs[0] = 0.f;
+        m_shared_volume.zs[1] = printable_height;
     }
 
     BOOST_LOG_TRIVIAL(debug) << "BuildVolume printable_area clasified as: " << this->type_name();
