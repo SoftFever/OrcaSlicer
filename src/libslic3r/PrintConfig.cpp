@@ -634,7 +634,7 @@ void PrintConfigDef::init_common_params()
     def->label = L("Extruder printable area");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionPointsGroups{ {} });
+    def->set_default_value(new ConfigOptionPointsGroups{});
 
     //BBS: add "bed_exclude_area"
     def = this->add("bed_exclude_area", coPoints);
