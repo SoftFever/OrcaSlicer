@@ -234,6 +234,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
             || opt_key == "filament_shrink"
+            || opt_key == "filament_shrinkage_compensation_z"
             || opt_key == "resolution"
             || opt_key == "precise_z_height"
             // Spiral Vase forces different kind of slicing than the normal model:
@@ -1120,13 +1121,29 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         const PrintObject &print_object = *m_objects[print_object_idx];
         //FIXME It is quite expensive to generate object layers just to get the print height!
         if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
-            ! layers.empty() && layers.back() > this->config().printable_height + EPSILON) {
-            return
+            !layers.empty()) {
+
+            Vec3d test =this->shrinkage_compensation();
+            const double shrinkage_compensation_z = this->shrinkage_compensation().z();
+            
+            if (shrinkage_compensation_z != 1. && layers.back() > (this->config().printable_height / shrinkage_compensation_z + EPSILON)) {
+                // The object exceeds the maximum build volume height because of shrinkage compensation.
+                return StringObjectException{
+                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, it exceeds the maximum build volume height because of material shrinkage compensation."), print_object.model_object()->name),
+                    print_object.model_object(),
+                    ""
+                };
+            } else if (layers.back() > this->config().printable_height + EPSILON) {
                 // Test whether the last slicing plane is below or above the print volume.
-                { 0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
+                return StringObjectException{
+                    0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
                     Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
                     Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
-                " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") };
+                    " " + _u8L("You might want to reduce the size of your model or change current print settings and retry."),
+                    print_object.model_object(),
+                    ""
+                };
+            }
         }
     }
 
@@ -1567,6 +1584,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         } catch (std::exception& e) {
             BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;
         }
+    }
+    if (!this->has_same_shrinkage_compensations()){
+        warning->string = L("Filament shrinkage will not be used because filament shrinkage for the used filaments differs significantly.");
+        warning->opt_key = "";
     }
     return {};
 }
@@ -2925,7 +2946,7 @@ DynamicConfig PrintStatistics::config() const
 DynamicConfig PrintStatistics::placeholders()
 {
     DynamicConfig config;
-    for (const std::string &key : {
+    for (const std::string key : {
         "print_time", "normal_print_time", "silent_print_time",
         "used_filament", "extruded_volume", "total_cost", "total_weight",
         "initial_tool", "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
@@ -2947,6 +2968,44 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
         final_path = path_in;
     }
     return final_path;
+}
+
+// Orca: Implement prusa's filament shrink compensation approach
+// Returns if all used filaments have same shrinkage compensations.
+ bool Print::has_same_shrinkage_compensations() const {
+     const std::vector<unsigned int> extruders = this->extruders();
+     if (extruders.empty())
+         return false;
+
+     const double filament_shrinkage_compensation_xy = m_config.filament_shrink.get_at(extruders.front());
+     const double filament_shrinkage_compensation_z  = m_config.filament_shrinkage_compensation_z.get_at(extruders.front());
+
+     for (unsigned int extruder : extruders) {
+         if (filament_shrinkage_compensation_xy != m_config.filament_shrink.get_at(extruder) ||
+             filament_shrinkage_compensation_z  != m_config.filament_shrinkage_compensation_z.get_at(extruder)) {
+             return false;
+         }
+     }
+
+     return true;
+ }
+
+// Orca: Implement prusa's filament shrink compensation approach, but amended so 100% from the user is the equivalent to 0 in orca.
+ // Returns scaling for each axis representing shrinkage compensations in each axis.
+Vec3d Print::shrinkage_compensation() const
+{
+    if (!this->has_same_shrinkage_compensations())
+        return Vec3d::Ones();
+
+    const unsigned int first_extruder = this->extruders().front();
+
+    const double xy_shrinkage_percent = m_config.filament_shrink.get_at(first_extruder);
+    const double z_shrinkage_percent  = m_config.filament_shrinkage_compensation_z.get_at(first_extruder);
+
+    const double xy_compensation = 100.0 / xy_shrinkage_percent;
+    const double z_compensation  = 100.0 / z_shrinkage_percent;
+
+    return { xy_compensation, xy_compensation, z_compensation };
 }
 
 const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";

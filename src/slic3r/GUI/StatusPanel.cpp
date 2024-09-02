@@ -4846,7 +4846,7 @@ wxBoxSizer *ScoreDialog::get_photo_btn_sizer() {
                 it = m_selected_image_list.erase(it);
             }
             m_image_url_paths.clear();
-            for (const std::pair<wxStaticBitmap *, ImageMsg> &bitmap : m_image) {
+            for (const auto& bitmap : m_image) {
                 if (bitmap.second.is_uploaded) {
                     if (!bitmap.second.img_url_paths.empty()) {
                         m_image_url_paths.push_back(bitmap.second.img_url_paths);

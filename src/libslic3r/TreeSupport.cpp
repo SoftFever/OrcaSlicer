@@ -482,7 +482,7 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
         // because we compare with vsize2_with_unscale here (no division by zero), we also need to compare by vsize2_with_unscale inside the loop
         // to avoid integer rounding edge cases
         bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vsize2_with_unscale(p1 - p0);
-        for(const Point p2 : poly.contour.points)
+        for(const Point& p2 : poly.contour.points)
         {
             // X = A + Normal(B-A) * (((B-A) dot_with_unscale (P-A)) / VSize(B-A));
             //   = A +       (B-A) *  ((B-A) dot_with_unscale (P-A)) / VSize2(B-A);
@@ -1437,11 +1437,11 @@ void TreeSupport::generate_toolpaths()
 
     if (m_object->support_layer_count() > m_raft_layers) {
         const SupportLayer *ts_layer = m_object->get_support_layer(m_raft_layers);
-        for (const ExPolygon expoly : ts_layer->floor_areas)
+        for (const ExPolygon& expoly : ts_layer->floor_areas)
             raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->roof_areas)
+        for (const ExPolygon& expoly : ts_layer->roof_areas)
             raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->base_areas)
+        for (const ExPolygon& expoly : ts_layer->base_areas)
             raft_areas.push_back(expoly);
     }
 
@@ -3628,7 +3628,7 @@ const ExPolygons& TreeSupportData::get_avoidance(coordf_t radius, size_t layer_n
 Polygons TreeSupportData::get_contours(size_t layer_nr) const
 {
     Polygons contours;
-    for (const ExPolygon expoly : m_layer_outlines[layer_nr]) {
+    for (const ExPolygon& expoly : m_layer_outlines[layer_nr]) {
         contours.push_back(expoly.contour);
     }
 
@@ -3638,7 +3638,7 @@ Polygons TreeSupportData::get_contours(size_t layer_nr) const
 Polygons TreeSupportData::get_contours_with_holes(size_t layer_nr) const
 {
     Polygons contours;
-    for (const ExPolygon expoly : m_layer_outlines[layer_nr]) {
+    for (const ExPolygon& expoly : m_layer_outlines[layer_nr]) {
         for(int i=0;i<expoly.num_contours();i++)
             contours.push_back(expoly.contour_or_hole(i));
     }
