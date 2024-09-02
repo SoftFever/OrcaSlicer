@@ -654,7 +654,7 @@ msgid "Angle"
 msgstr "Úhel"
 
 msgid ""
-"Embeded\n"
+"Embedded\n"
 "depth"
 msgstr ""
 "Vloženo\n"
@@ -1124,11 +1124,11 @@ msgstr "Otevřená vyplněná cesta"
 msgid "Undefined stroke type"
 msgstr "Nedefinovaný typ obrysu"
 
-msgid "Path can't be healed from selfintersection and multiple points."
+msgid "Path can't be healed from self-intersection and multiple points."
 msgstr "Cestu nelze opravit z křížení sama sebe a více bodů."
 
 msgid ""
-"Final shape constains selfintersection or multiple points with same "
+"Final shape contains self-intersection or multiple points with same "
 "coordinate."
 msgstr ""
 "Konečný tvar obsahuje vlastní průsečík nebo více bodů se stejnou souřadnicí."
@@ -1503,10 +1503,10 @@ msgid "Some presets are modified."
 msgstr "Některé předvolby jsou upraveny."
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
-"Předvolby modifield můžete ponechat pro nový projekt, zahodit nebo uložit "
+"Předvolby modified můžete ponechat pro nový projekt, zahodit nebo uložit "
 "změny jako nové předvolby."
 
 msgid "User logged out"
@@ -1590,7 +1590,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr "Inicializace grafického rozhraní Orca Slicer se nezdařila"
 
 #, boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr "Závažná chyba, zachycená výjimka: %1%"
 
 msgid "Quality"
@@ -2092,7 +2092,7 @@ msgid ""
 "After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"cut information first."
 msgstr ""
 "Tato akce způsobí ztrátu informací o řezu.\n"
 "Po této akci nelze zaručit konzistenci modelu. \n"
@@ -2106,7 +2106,7 @@ msgstr "Smazat všechny spojky"
 msgid "Deleting the last solid part is not allowed."
 msgstr "Smazání poslední pevné části není povoleno."
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr "Cílový objekt obsahuje pouze jednu část a nelze jej rozdělit."
 
 msgid "Assembly"
@@ -2484,7 +2484,7 @@ msgstr ""
 "Všechny vybrané objekty jsou na uzamčené desce,\n"
 "Tyto objekty nelze automaticky uspořádat."
 
-msgid "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
 msgstr "Nejsou vybrány žádné aranžovatelné objekty."
 
 msgid ""
@@ -3165,7 +3165,7 @@ msgstr "Vykonávají se postprodukční skripty"
 msgid "Successfully executed post-processing script"
 msgstr ""
 
-msgid "Unknown error occured during exporting G-code."
+msgid "Unknown error occurred during exporting G-code."
 msgstr "Během exportu G-codu došlo k neznámé chybě."
 
 #, boost-format
@@ -3632,7 +3632,7 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable "
 "alternate extra wall\n"
-"No  - Dont use alternate extra wall"
+"No  - Don't use alternate extra wall"
 msgstr ""
 
 msgid ""
@@ -4742,7 +4742,7 @@ msgstr "Použít ortogonální zobrazení"
 msgid "Show &G-code Window"
 msgstr ""
 
-msgid "Show g-code window in Previce scene"
+msgid "Show g-code window in Preview scene"
 msgstr ""
 
 msgid "Show 3D Navigator"
@@ -4973,7 +4973,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr ""
 
 msgid ""
@@ -5143,7 +5143,7 @@ msgstr "Chcete smazat soubor '%s' z tiskárny?"
 msgid "Delete file"
 msgstr "Smazat soubor"
 
-msgid "Fetching model infomations ..."
+msgid "Fetching model information..."
 msgstr "Načítání informací o modelu ..."
 
 msgid "Failed to fetch model information from printer."
@@ -5410,7 +5410,7 @@ msgstr "Informace"
 msgid "Get oss config failed."
 msgstr "Získání konfigurace OSS se nezdařilo."
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "Nahrát obrázky"
 
 msgid "Number of images successfully uploaded"
@@ -15549,7 +15549,7 @@ msgstr "Připojení k Duet funguje správně."
 msgid "Could not connect to Duet"
 msgstr "Nelze se připojit k Duet"
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr "Došlo k neznámé chybě"
 
 msgid "Wrong password"
@@ -16517,10 +16517,10 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "Načítání selhalo [%d]"
 
-#~ msgid "Failed to fetching model infomations from printer."
+#~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Nepodařilo se načíst informace o modelu z tiskárny."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model information."
 #~ msgstr "Nepodařilo se zpracovat informace o modelu."
 
 #~ msgid ""
@@ -17002,7 +17002,7 @@ msgstr ""
 #~ "hotendu při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného "
 #~ "prostoru. Další informace naleznete ve Wiki."
 
-#~ msgid "Embeded"
+#~ msgid "Embedded"
 #~ msgstr "Vloženo"
 
 #~ msgid ""

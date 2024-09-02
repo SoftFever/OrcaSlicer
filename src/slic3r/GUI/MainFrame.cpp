@@ -2605,7 +2605,7 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
 
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Previce scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Preview scene"),
             [this](wxCommandEvent &) {
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));

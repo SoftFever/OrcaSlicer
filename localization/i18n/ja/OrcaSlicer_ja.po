@@ -643,7 +643,7 @@ msgid "Angle"
 msgstr "Angle"
 
 msgid ""
-"Embeded\n"
+"Embedded\n"
 "depth"
 msgstr "Embedded depth"
 
@@ -1117,11 +1117,11 @@ msgstr "塗りつぶしパスを開く"
 msgid "Undefined stroke type"
 msgstr "未定義のストロークタイプ"
 
-msgid "Path can't be healed from selfintersection and multiple points."
+msgid "Path can't be healed from self-intersection and multiple points."
 msgstr "自己交差および複数のポイントからパスを修復できません。"
 
 msgid ""
-"Final shape constains selfintersection or multiple points with same "
+"Final shape contains self-intersection or multiple points with same "
 "coordinate."
 msgstr "最終的な形状には、同じ座標を持つ複数の点の自己交差が含まれています。"
 
@@ -1481,7 +1481,7 @@ msgid "Some presets are modified."
 msgstr "プリセットが変更されました。"
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
 msgstr "変更したプリセットをデフォルトとして保存できます"
 
@@ -1567,7 +1567,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr "GUI初期化に失敗した"
 
 #, boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr "重大なエラー: %1%"
 
 msgid "Quality"
@@ -2059,7 +2059,7 @@ msgid ""
 "After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"cut information first."
 msgstr ""
 "This action will break a cut correspondence.\n"
 "After that, model consistency can't be guaranteed .\n"
@@ -2073,7 +2073,7 @@ msgstr "Delete all connectors"
 msgid "Deleting the last solid part is not allowed."
 msgstr "最後のソリッドパーツは削除できません。"
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr "オブジェクトは一つだけのパーツが入っており、分割できません。"
 
 msgid "Assembly"
@@ -2451,7 +2451,7 @@ msgstr ""
 "選択したオブジェクトはロックされたプレートにあるため、自動レイアウトできませ"
 "ん"
 
-msgid "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
 msgstr "選択したオブジェクトがレイアウト不可です"
 
 msgid ""
@@ -3118,7 +3118,7 @@ msgstr "後処理スクリプトを実行"
 msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
 
-msgid "Unknown error occured during exporting G-code."
+msgid "Unknown error occurred during exporting G-code."
 msgstr "Gコードのエクスポート中に不明なエラーが発生しました。"
 
 #, boost-format
@@ -3572,7 +3572,7 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable "
 "alternate extra wall\n"
-"No  - Dont use alternate extra wall"
+"No  - Don't use alternate extra wall"
 msgstr ""
 
 msgid ""
@@ -4675,7 +4675,7 @@ msgstr "直交投影を使用"
 msgid "Show &G-code Window"
 msgstr ""
 
-msgid "Show g-code window in Previce scene"
+msgid "Show g-code window in Preview scene"
 msgstr ""
 
 msgid "Show 3D Navigator"
@@ -4897,7 +4897,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr "Printer camera is malfunctioning."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "A problem occurred. Please update the printer firmware and try again."
 
 msgid ""
@@ -5065,7 +5065,7 @@ msgstr "Do you want to delete the file '%s' from printer?"
 msgid "Delete file"
 msgstr "Delete file"
 
-msgid "Fetching model infomations ..."
+msgid "Fetching model information..."
 msgstr "Fetching model information..."
 
 msgid "Failed to fetch model information from printer."
@@ -5338,7 +5338,7 @@ msgstr "Info"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "Upload Pictures"
 
 msgid "Number of images successfully uploaded"
@@ -13334,7 +13334,7 @@ msgid "No check"
 msgstr "No check"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
-msgstr "Do not run any validity checks, such as G-code path conflicts check."
+msgstr "Do not run any validity checks, such as gcode path conflicts check."
 
 msgid "Ensure on bed"
 msgstr "ベッド上で確認"
@@ -15188,8 +15188,8 @@ msgstr "Connection to Duet is working correctly."
 msgid "Could not connect to Duet"
 msgstr "Could not connect to Duet"
 
-msgid "Unknown error occured"
-msgstr "Unknown error occured"
+msgid "Unknown error occurred"
+msgstr "Unknown error occurred"
 
 msgid "Wrong password"
 msgstr "Wrong password"
@@ -16186,10 +16186,10 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "Load failed [%d]"
 
-#~ msgid "Failed to fetching model infomations from printer."
+#~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Failed to fetch model infomation from printer."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model information."
 #~ msgstr "Failed to parse model infomation"
 
 #~ msgid ""
@@ -16542,7 +16542,7 @@ msgstr ""
 #~ "モデル修復\n"
 #~ "破損したモデルでも修復してスライスできます。"
 
-#~ msgid "Embeded"
+#~ msgid "Embedded"
 #~ msgstr "Embedded"
 
 #~ msgid "Online Models"

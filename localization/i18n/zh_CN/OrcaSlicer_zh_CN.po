@@ -644,7 +644,7 @@ msgid "Angle"
 msgstr "角度"
 
 msgid ""
-"Embeded\n"
+"Embedded\n"
 "depth"
 msgstr "内嵌深度"
 
@@ -1110,11 +1110,11 @@ msgstr ""
 msgid "Undefined stroke type"
 msgstr "未定义的描边类型"
 
-msgid "Path can't be healed from selfintersection and multiple points."
+msgid "Path can't be healed from self-intersection and multiple points."
 msgstr ""
 
 msgid ""
-"Final shape constains selfintersection or multiple points with same "
+"Final shape contains self-intersection or multiple points with same "
 "coordinate."
 msgstr ""
 
@@ -1477,7 +1477,7 @@ msgid "Some presets are modified."
 msgstr "预设已被修改。"
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
 msgstr "您可以保留未保存修改的预设应用到新项目中，或者选择忽略。"
 
@@ -1557,7 +1557,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr "逆戟鲸图形界面初始化失败"
 
 #, boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr "致命错误，捕获到异常：%1%"
 
 msgid "Quality"
@@ -2053,7 +2053,7 @@ msgid ""
 "After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"cut information first."
 msgstr ""
 "该行为将破坏切割关系，在此之后将无法保证模型一致性。\n"
 "\n"
@@ -2065,7 +2065,7 @@ msgstr "删除所有连接件"
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr "目标对象仅包含一个零件，无法被拆分。"
 
 msgid "Assembly"
@@ -2436,7 +2436,7 @@ msgstr ""
 "所有选中的对象都处于被锁定的盘上，\n"
 "无法对这些对象做自动摆盘。"
 
-msgid "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
 msgstr "没有可摆盘的对象被选中。"
 
 msgid ""
@@ -3076,7 +3076,7 @@ msgstr "运行后处理脚本"
 msgid "Successfully executed post-processing script"
 msgstr "成功执行后处理脚本"
 
-msgid "Unknown error occured during exporting G-code."
+msgid "Unknown error occurred during exporting G-code."
 msgstr "导出 G-Code 时出现未知错误。"
 
 #, boost-format
@@ -3524,7 +3524,7 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable "
 "alternate extra wall\n"
-"No  - Dont use alternate extra wall"
+"No  - Don't use alternate extra wall"
 msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整确保垂直外壳厚度为“适量”，并开启交替添加额外内墙\n"
@@ -4625,7 +4625,7 @@ msgstr "使用正交视角"
 msgid "Show &G-code Window"
 msgstr "显示G-code窗口"
 
-msgid "Show g-code window in Previce scene"
+msgid "Show g-code window in Preview scene"
 msgstr "显示G-code窗口"
 
 msgid "Show 3D Navigator"
@@ -4849,7 +4849,7 @@ msgstr "打印机正在忙于下载，请等下载完成后再尝试。"
 msgid "Printer camera is malfunctioning."
 msgstr "打印机摄像头异常。"
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "出现了一些问题。请更新打印机固件后重试。"
 
 msgid ""
@@ -5013,7 +5013,7 @@ msgstr "你确定要从打印机中删除文件'%s'吗？"
 msgid "Delete file"
 msgstr "删除文件"
 
-msgid "Fetching model infomations ..."
+msgid "Fetching model information..."
 msgstr "正在获取模型信息..."
 
 msgid "Failed to fetch model information from printer."
@@ -5276,7 +5276,7 @@ msgstr "信息"
 msgid "Get oss config failed."
 msgstr "获取oss配置失败。"
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "上传图片"
 
 msgid "Number of images successfully uploaded"
@@ -15101,7 +15101,7 @@ msgstr "成功连接到 Duet 控制器。"
 msgid "Could not connect to Duet"
 msgstr "无法连接到 Duet 控制器。"
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr "发生了未知错误。"
 
 msgid "Wrong password"
@@ -16030,10 +16030,10 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "加载失败 [%d]"
 
-#~ msgid "Failed to fetching model infomations from printer."
+#~ msgid "Failed to fetching model information from printer."
 #~ msgstr "无法从打印机获取模型信息。"
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model information."
 #~ msgstr "解析模型信息失败。"
 
 #~ msgid "Connection lost. Please retry."
@@ -16537,7 +16537,7 @@ msgstr ""
 #~ "修复模型\n"
 #~ "您知道吗？您可以修复一个损坏的3D模型以避免诸多切片问题。"
 
-#~ msgid "Embeded"
+#~ msgid "Embedded"
 #~ msgstr "嵌入的"
 
 #~ msgid ""

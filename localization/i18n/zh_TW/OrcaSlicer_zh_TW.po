@@ -665,7 +665,7 @@ msgid "Angle"
 msgstr "角度"
 
 msgid ""
-"Embeded\n"
+"Embedded\n"
 "depth"
 msgstr "內嵌深度"
 
@@ -1126,11 +1126,11 @@ msgstr ""
 msgid "Undefined stroke type"
 msgstr ""
 
-msgid "Path can't be healed from selfintersection and multiple points."
+msgid "Path can't be healed from self-intersection and multiple points."
 msgstr ""
 
 msgid ""
-"Final shape constains selfintersection or multiple points with same "
+"Final shape contains self-intersection or multiple points with same "
 "coordinate."
 msgstr ""
 
@@ -1503,7 +1503,7 @@ msgid "Some presets are modified."
 msgstr "部分預設已被修改。"
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
 msgstr "您可以保留尚未儲存修改的預設應用到新項目中，或者選擇忽略。"
 
@@ -1585,7 +1585,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr " Orca Slicer 圖形界面初始化失敗"
 
 #, boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr "致命錯誤，遭遇到異常：%1%"
 
 #, fuzzy
@@ -2104,7 +2104,7 @@ msgid ""
 "After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"cut information first."
 msgstr ""
 "該行為將破壞切割關係，在此之後將無法保證模型一致性。\n"
 "\n"
@@ -2116,7 +2116,7 @@ msgstr "刪除所有連接件"
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允許刪除物件的最後一個實體零件。"
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr "目標物件僅包含一個零件，無法被拆分。"
 
 msgid "Assembly"
@@ -2501,7 +2501,7 @@ msgstr ""
 "所有選中的物件都處於被鎖定的列印板上，\n"
 "無法對這些物件做自動擺放。"
 
-msgid "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
 msgstr "未選擇欲排列的物件象。"
 
 #, fuzzy
@@ -3167,7 +3167,7 @@ msgstr "執行後處理腳本"
 msgid "Successfully executed post-processing script"
 msgstr ""
 
-msgid "Unknown error occured during exporting G-code."
+msgid "Unknown error occurred during exporting G-code."
 msgstr "匯出 G-code 期間發生未知錯誤。"
 
 #, boost-format
@@ -3629,7 +3629,7 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable "
 "alternate extra wall\n"
-"No  - Dont use alternate extra wall"
+"No  - Don't use alternate extra wall"
 msgstr ""
 
 msgid ""
@@ -4779,7 +4779,7 @@ msgstr "使用正交視角"
 msgid "Show &G-code Window"
 msgstr ""
 
-msgid "Show g-code window in Previce scene"
+msgid "Show g-code window in Preview scene"
 msgstr ""
 
 msgid "Show 3D Navigator"
@@ -5005,7 +5005,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr ""
 
 msgid ""
@@ -5173,7 +5173,7 @@ msgstr "確定要從列印設備中刪除檔案 '%s' 嗎？"
 msgid "Delete file"
 msgstr "刪除檔案"
 
-msgid "Fetching model infomations ..."
+msgid "Fetching model information..."
 msgstr "正在獲取模型資訊..."
 
 msgid "Failed to fetch model information from printer."
@@ -5446,7 +5446,7 @@ msgstr "資訊"
 msgid "Get oss config failed."
 msgstr "取得 oss 設定失敗。"
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "上傳圖片"
 
 msgid "Number of images successfully uploaded"
@@ -15403,7 +15403,7 @@ msgstr "與 Duet 的連接工作正常。"
 msgid "Could not connect to Duet"
 msgstr "無法連接到 Duet"
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr "發生未知的錯誤"
 
 msgid "Wrong password"
@@ -16313,10 +16313,10 @@ msgstr ""
 #~ msgstr "載入失敗 [%d]"
 
 #, fuzzy
-#~ msgid "Failed to fetching model infomations from printer."
+#~ msgid "Failed to fetching model information from printer."
 #~ msgstr "無法從列印設備獲取模型資訊。"
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model information."
 #~ msgstr "解析模型資訊失敗。"
 
 #, fuzzy
@@ -16780,7 +16780,7 @@ msgstr ""
 #~ "當列印較低溫度的耗材時，打開印表機門可以減少擠出機或熱端堵塞的可能性。 有"
 #~ "關此內容的更多信息，請參見 Wiki。"
 
-#~ msgid "Embeded"
+#~ msgid "Embedded"
 #~ msgstr "嵌入的"
 
 #~ msgid ""

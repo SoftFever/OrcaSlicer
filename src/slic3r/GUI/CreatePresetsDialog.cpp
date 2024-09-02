@@ -995,7 +995,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         wxString    serial_str = m_filament_serial_input->GetTextCtrl()->GetValue();
         std::string serial_name;
         if (serial_str.empty()) {
-            MessageDialog dlg(this, _L("Filament serial is not inputed, please input serial."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            MessageDialog dlg(this, _L("Filament serial is not entered, please enter serial."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
@@ -3542,7 +3542,7 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
-    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's fillment preset set. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's filament preset set. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_filament_preset_bundle_text->SetFont(Label::Body_12);
     static_export_filament_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_filament_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
