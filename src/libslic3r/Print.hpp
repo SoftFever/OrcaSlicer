@@ -956,6 +956,13 @@ public:
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
 
+    // 1 based ids
+    const std::vector<std::vector<int>>& get_unprintable_filament_ids() const { return m_unprintable_filament_ids; }
+    void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids) { m_unprintable_filament_ids = filament_ids; }
+
+    std::vector<Vec2d> get_printable_area();
+    std::vector<std::vector<Vec2d>> get_extruder_printable_area();
+
     bool                        enable_timelapse_print() const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;

@@ -2114,19 +2114,21 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
+            std::vector<std::vector<unsigned int>> all_filaments;
+            for (print_object_instance_sequential_active = print_object_instances_ordering.begin(); print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
+                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+                for (const auto& layer_tool : tool_ordering.layer_tools()) {
+                    all_filaments.emplace_back(layer_tool.extruders);
+                }
+            }
+
+            auto used_filaments = collect_sorted_used_filaments(all_filaments);
+            auto physical_unprintables = ToolOrdering::get_physical_unprintables(used_filaments, &m_config);
+            auto geometric_unprintables = ToolOrdering::get_geometrical_unprintables(get_unprintable_filament_ids(), &m_config);
 
             // get recommended filament map
             if (get_filament_map_mode() == FilamentMapMode::fmmAuto) {
-                std::vector<std::vector<unsigned int>> all_filaments;
-                print_object_instance_sequential_active = print_object_instances_ordering.begin();
-                for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                    tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                    for (const auto &layer_tool : tool_ordering.layer_tools()) {
-                        all_filaments.emplace_back(layer_tool.extruders);
-                    }
-                }
-
-                std::vector<int> recomended_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config());
+                std::vector<int> recomended_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config(), physical_unprintables, geometric_unprintables);
                 std::transform(recomended_maps.begin(), recomended_maps.end(), recomended_maps.begin(), [](int value) { return value + 1; });
                 update_filament_maps_to_config(recomended_maps);
             }

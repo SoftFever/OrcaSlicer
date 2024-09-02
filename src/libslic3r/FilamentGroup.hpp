@@ -1,12 +1,20 @@
 #ifndef FILAMENT_GROUP_HPP
 #define FILAMENT_GROUP_HPP
 
-#include<chrono>
-#include<numeric>
+#include <chrono>
+#include <memory>
+#include <numeric>
+#include <set>
+#include <map>
+#include <vector>
 #include "GCode/ToolOrderUtils.hpp"
+
+const static int DEFAULT_CLUSTER_SIZE = 16;
 
 namespace Slic3r
 {
+    std::vector<unsigned int>collect_sorted_used_filaments(const std::vector<std::vector<unsigned int>>& layer_filaments);
+
     struct FlushTimeMachine
     {
     private:
@@ -31,29 +39,43 @@ namespace Slic3r
         BestFit
     };
 
+    struct FilamentGroupContext
+    {
+        std::vector<FlushMatrix> flush_matrix;
+        std::vector<std::set<int>>physical_unprintables;
+        std::vector<std::set<int>>geometric_unprintables;
+        std::vector<int>max_group_size;
+        int total_filament_num;
+    };
+
+
+    class FlushDistanceEvaluator
+    {
+    public:
+        FlushDistanceEvaluator(const FlushMatrix& flush_matrix,const std::vector<unsigned int>&used_filaments,const std::vector<std::vector<unsigned int>>& layer_filaments, double p = 0.65);
+        ~FlushDistanceEvaluator() = default;
+        double get_distance(int idx_a, int idx_b) const;
+    private:
+        std::vector<std::vector<float>>m_distance_matrix;
+
+    };
+
     class FilamentGroup
     {
     public:
-        FilamentGroup(const std::vector<FlushMatrix>& flush_matrix, const int total_filament_num, const std::vector<int>& max_group_size) :
-            m_flush_matrix{ flush_matrix },
-            m_total_filament_num{ total_filament_num },
-            m_max_group_size{ max_group_size }
-        {}
-
+        FilamentGroup(const FilamentGroupContext& context);
         std::vector<int> calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments, const FGStrategy& g_strategy = FGStrategy::BestFit, int* cost = nullptr);
-    private:
+    public:
         std::vector<int> calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr);
-        std::vector<int> calc_filament_group_by_pam(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr, int timeout_ms = 300);
+        std::vector<int> calc_filament_group_by_pam2(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr, int timeout_ms = 300);
     private:
-        std::vector<FlushMatrix>m_flush_matrix;
-        std::vector<int>m_max_group_size;
-        int m_total_filament_num;
+        FilamentGroupContext m_context;
     public:
         std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq;
     };
 
 
-    class KMediods
+    class KMediods2
     {
         enum INIT_TYPE
         {
@@ -61,29 +83,34 @@ namespace Slic3r
             Farthest
         };
     public:
-        KMediods(const std::vector<std::vector<float>>& distance_matrix, const int filament_num,const std::vector<int>& max_group_size) :
-            m_distance_matrix{ distance_matrix },
-            m_filament_num{ filament_num },
-            m_max_group_size{ max_group_size }{}
-
-        void fit(const FGStrategy& g_strategy,int timeout_ms = 300);
-        std::vector<int>get_filament_labels()const {
-            return m_filament_labels;
+        KMediods2(const int elem_count, const std::shared_ptr<FlushDistanceEvaluator>& evaluator) :
+            m_evaluator{ evaluator },
+            m_elem_count{ elem_count }
+        {
+            m_max_cluster_size = std::vector<int>(m_k, DEFAULT_CLUSTER_SIZE);
         }
 
+        // set max group size
+        void set_max_cluster_size(const std::vector<int>& group_size) { m_max_cluster_size = group_size; }
+
+        // key stores elem idx, value stores the cluster id that elem cnanot be placed
+        void set_unplaceable_limits(const std::map<int, int>& placeable_limits) { m_unplaceable_limits = placeable_limits; }
+
+        void do_clustering(const FGStrategy& g_strategy,int timeout_ms = 100);
+        std::vector<int>get_cluster_labels()const { return m_cluster_labels; }
+
     private:
-        std::vector<int>initialize(INIT_TYPE type);
-        std::vector<int>assign_label(const std::vector<int>& medoids,const FGStrategy&g_strategy);
+        std::vector<int>cluster_small_data(const std::map<int, int>& unplaceable_limits, const std::vector<int>& group_size);
+        std::vector<int>assign_cluster_label(const std::vector<int>& center, const std::map<int, int>& unplaceable_limits, const std::vector<int>& group_size, const FGStrategy& strategy);
         int calc_cost(const std::vector<int>& labels, const std::vector<int>& medoids);
     private:
-        std::vector<std::vector<float>>m_distance_matrix;
-        int m_filament_num;
-        std::vector<int>m_max_group_size;
-        std::set<int>m_medoids_set;
-        const int k = 2;
-    private:
-        std::vector<int>m_filament_labels;
-    };
+        std::shared_ptr<FlushDistanceEvaluator> m_evaluator;
+        std::map<int, int>m_unplaceable_limits;
+        std::vector<int>m_max_cluster_size;
+        int m_elem_count;
+        const int m_k = 2;
 
+        std::vector<int>m_cluster_labels;
+    };
 }
 #endif // !FILAMENT_GROUP_HPP
