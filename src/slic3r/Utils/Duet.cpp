@@ -85,7 +85,7 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 			int err_code = dsf ? (status == 201 ? 0 : 1) : get_err_code_from_body(body);
 			if (err_code != 0) {
 				BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Request completed but error code was received: %1%") % err_code;
-				error_fn(format_error(body, L("Unknown error occured"), 0));
+				error_fn(format_error(body, L("Unknown error occurred"), 0));
 				res = false;
 			} else if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
 				wxString errormsg;
@@ -154,7 +154,7 @@ Duet::ConnectionType Duet::connect(wxString &msg) const
 					msg = format_error(body, L("Could not get resources to create a new connection"), 0);
 					break;
 				default:
-					msg = format_error(body, L("Unknown error occured"), 0);
+					msg = format_error(body, L("Unknown error occurred"), 0);
 					break;
 			}
 

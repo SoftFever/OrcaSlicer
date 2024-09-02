@@ -237,7 +237,7 @@ void ArrangeJob::prepare_all() {
     if (m_selected.empty()) {
         if (!selected_is_locked) {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected.")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangeable objects are selected.")));
         }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,

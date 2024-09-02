@@ -813,7 +813,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("The number of bottom solid layers is increased when slicing if the thickness calculated by bottom shell layers is "
                      "thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that "
-                     "this setting is disabled and thickness of bottom shell is absolutely determained by bottom shell layers");
+                     "this setting is disabled and thickness of bottom shell is absolutely determined by bottom shell layers");
     def->full_label = L("Bottom shell thickness");
     def->sidetext = L("mm");
     def->min = 0;
@@ -868,7 +868,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
-                     "Expressed as percentage which indicides how much width of the line without support from lower layer. "
+                     "Expressed as percentage which indicates how much width of the line without support from lower layer. "
                      "0% means forcing cooling for all outer wall no matter how much overhang degree");
     def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
@@ -1004,7 +1004,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse only internal perimeters");
     def->full_label = L("Reverse only internal perimeters");
     def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
+    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recommended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -1152,7 +1152,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Brim type");
     def->category = L("Support");
     def->tooltip = L("This controls the generation of the brim at outer and/or inner side of models. "
-                     "Auto means the brim width is analysed and calculated automatically.");
+                     "Auto means the brim width is analyzed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("brim_ears");
@@ -1200,7 +1200,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_ears_detection_length", coFloat);
     def->label = L("Brim ear detection radius");
     def->category = L("Support");
-    def->tooltip = L("The geometry will be decimated before dectecting sharp angles. This parameter indicates the "
+    def->tooltip = L("The geometry will be decimated before detecting sharp angles. This parameter indicates the "
                      "minimum length of the deviation for the decimation."
                      "\n0 to deactivate");
     def->sidetext = L("mm");
@@ -1552,7 +1552,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
-    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting infill first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
+    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting infill first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slightly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
@@ -1560,7 +1560,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_direction", coEnum);
     def->label = L("Wall loop direction");
     def->category = L("Quality");
-    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if sprial vase mode is enabled.");
+    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if spiral vase mode is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
     def->enum_values.push_back("auto");
     def->enum_values.push_back("ccw");
@@ -1703,7 +1703,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_pressure_advance", coBools);
     def->label = L("Enable pressure advance");
-    def->tooltip = L("Enable pressure advance, auto calibration result will be overwriten once enabled.");
+    def->tooltip = L("Enable pressure advance, auto calibration result will be overwritten once enabled.");
     def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("pressure_advance", coFloats);
@@ -1722,9 +1722,9 @@ void PrintConfigDef::init_fff_params()
                      "that does not cause too much bulging on features with lower flow speed and accelerations while also not causing gaps on faster features.\n\n"
                      "This feature aims to address this limitation by modeling the response of your printer's extrusion system depending "
                      "on the volumetric flow speed and acceleration it is printing at. Internally, it generates a fitted model that can extrapolate the needed pressure "
-                     "advance for any given volumetric flow speed and acceleration, which is then emmited to the printer depending on the current print conditions.\n\n"
-                     "When enabled, the pressure advance value above is overriden. However, a reasonable default value above is "
-                     "strongly recomended to act as a fallback and for when tool changing.\n\n");
+                     "advance for any given volumetric flow speed and acceleration, which is then emitted to the printer depending on the current print conditions.\n\n"
+                     "When enabled, the pressure advance value above is overridden. However, a reasonable default value above is "
+                     "strongly recommended to act as a fallback and for when tool changing.\n\n");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
     
@@ -1738,7 +1738,7 @@ void PrintConfigDef::init_fff_params()
                      "1. Run the pressure advance test for at least 3 speeds per acceleration value. It is recommended that the test is run "
                      "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
                      "print speed in your profile (usually its the sparse or solid infill). Then run them for the same speeds for the slowest and fastest print accelerations,"
-                     "and no faster than the recommended maximum acceleration as given by the klipper input shaper.\n"
+                     "and no faster than the recommended maximum acceleration as given by the Klipper input shaper.\n"
                      "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting "
                      "flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible "
                      "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly."
@@ -1781,8 +1781,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
-    def->tooltip = L("If enable this setting, part cooling fan will never be stoped and will run at least "
-                     "at minimum speed to reduce the frequency of starting and stoping");
+    def->tooltip = L("If enable this setting, part cooling fan will never be stopped and will run at least "
+                     "at minimum speed to reduce the frequency of starting and stopping");
     def->set_default_value(new ConfigOptionBools { false });
     
     def = this->add("dont_slow_down_outer_wall", coBools);
@@ -1790,8 +1790,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
                      "This is particularly helpful in the below scenarios:\n\n "
                      "1. To avoid changes in shine when printing glossy filaments \n"
-                     "2. To avoid changes in external wall speed which may create slight wall artefacts that appear like z banding \n"
-                     "3. To avoid printing at speeds which cause VFAs (fine artefacts) on the external walls\n\n");
+                     "2. To avoid changes in external wall speed which may create slight wall artifacts that appear like z banding \n"
+                     "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls\n\n");
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("fan_cooling_layer_time", coFloats);
@@ -1907,7 +1907,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pellet_flow_coefficient", coFloats);
     def->label = L("Pellet flow coefficient");
-    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
+    def->tooltip = L("Pellet flow coefficient is empirically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
@@ -2128,7 +2128,7 @@ void PrintConfigDef::init_fff_params()
     // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
-    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
+    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid clogging.");
     def->sidetext = L("°C"); // ORCA add side text
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
@@ -2522,7 +2522,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Support interface fan speed");
     def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
         "\nSet to -1 to disable this override."
-        "\nCan only be overriden by disable_fan_first_layers.");
+        "\nCan only be overridden by disable_fan_first_layers.");
     def->sidetext = L("%");
     def->min = -1;
     def->max = 100;
@@ -2550,7 +2550,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
     def->category = L("Others");
-    def->tooltip = L("The width within which to jitter. It's adversed to be below outer wall line width");
+    def->tooltip = L("The width within which to jitter. It's advised to be below outer wall line width");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 1;
@@ -2560,7 +2560,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_point_distance", coFloat);
     def->label = L("Fuzzy skin point distance");
     def->category = L("Others");
-    def->tooltip = L("The average diatance between the random points introducded on each line segment");
+    def->tooltip = L("The average distance between the random points introduced on each line segment");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 5;
@@ -2606,7 +2606,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Arc fitting");
     def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "
                      "The fitting tolerance is same as the resolution. \n\n"
-                     "Note: For klipper machines, this option is recomended to be disabled. Klipper does not benefit from "
+                     "Note: For Klipper machines, this option is recommended to be disabled. Klipper does not benefit from "
                      "arc commands as these are split again into line segments by the firmware. This results in a reduction "
                      "in surface quality as line segments are converted to arcs by the slicer and then back to line segments "
                      "by the firmware.");
@@ -2696,8 +2696,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
-        "\nIt won't move fan comands from custom gcodes (they act as a sort of 'barrier')."
-        "\nIt won't move fan comands into the start gcode if the 'only custom start gcode' is activated."
+        "\nIt won't move fan commands from custom gcodes (they act as a sort of 'barrier')."
+        "\nIt won't move fan commands into the start gcode if the 'only custom start gcode' is activated."
         "\nUse 0 to deactivate.");
     def->sidetext = L("s");
     def->mode = comAdvanced;
@@ -2867,7 +2867,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top/Bottom solid infill/wall overlap");
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
-    def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimising the appearance of pinholes. The percentage value is relative to line width of sparse infill");
+    def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill");
     def->sidetext = L("%");
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
@@ -3650,7 +3650,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("resolution", coFloat);
     def->label = L("Resolution");
-    def->tooltip = L("G-code path is genereated after simplifing the contour of model to avoid too much points and gcode lines "
+    def->tooltip = L("G-code path is generated after simplifying the contour of model to avoid too much points and gcode lines "
                      "in gcode file. Smaller value means higher resolution and more time to slice");
     def->sidetext = L("mm");
     def->min = 0;
@@ -3994,11 +3994,11 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("wipe_before_external_loop", coBool);
     def->label = L("Wipe before external loop");
-    def->tooltip = L("To minimise visibility of potential overextrusion at the start of an external perimeter when printing with "
-                     "Outer/Inner or Inner/Outer/Inner wall print order, the deretraction is performed slightly on the inside from the "
+    def->tooltip = L("To minimize visibility of potential overextrusion at the start of an external perimeter when printing with "
+                     "Outer/Inner or Inner/Outer/Inner wall print order, the de-retraction is performed slightly on the inside from the "
                      "start of the external perimeter. That way any potential over extrusion is hidden from the outside surface. \n\nThis "
                      "is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely "
-                     "an external perimeter is printed immediately after a deretraction move.");
+                     "an external perimeter is printed immediately after a de-retraction move.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -4155,7 +4155,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_mode_smooth", coBool);
     def->label = L("Smooth Spiral");
-    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+    def->tooltip = L("Smooth Spiral smooths out X and Y moves as well"
                      "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
@@ -4918,7 +4918,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is "
                      "thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that "
-                     "this setting is disabled and thickness of top shell is absolutely determained by top shell layers");
+                     "this setting is disabled and thickness of top shell is absolutely determined by top shell layers");
     def->full_label = L("Top shell thickness");
     def->sidetext = L("mm");
     def->min = 0;
@@ -4951,7 +4951,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
-    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
+    def->tooltip = L("Describe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -5173,7 +5173,7 @@ void PrintConfigDef::init_fff_params()
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Maximum defection of a point to the estimated radius of the circle."
                      "\nAs cylinders are often exported as triangles of varying size, points may not be on the circle circumference."
-                     " This setting allows you some leway to broaden the detection."
+                     " This setting allows you some leeway to broaden the detection."
                      "\nIn mm or in % of the radius.");
     def->sidetext = L("mm or %");
     def->max_literal = 10;
@@ -5214,7 +5214,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("use_relative_e_distances", coBool);
     def->label = L("Use relative E distances");
     def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
-                   "Some extruders work better with this option unckecked (absolute extrusion mode). "
+                   "Some extruders work better with this option unchecked (absolute extrusion mode). "
                    "Wipe tower is only compatible with relative mode. It is recommended on "
                    "most printers. Default is checked");
     def->mode = comAdvanced;
@@ -5299,9 +5299,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. "
     "Higher values remove more and longer walls.\n\n"
-    "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
+    "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. "
     "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
-    "'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
+    "'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
     def->sidetext = L("mm"); // ORCA add side text
     def->mode = comAdvanced;
     def->min = 0.0;
@@ -5377,7 +5377,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("This option will auto detect narrow internal solid infill area."
                    " If enabled, concentric pattern will be used for the area to speed printing up."
-                   " Otherwise, rectilinear pattern is used defaultly.");
+                   " Otherwise, rectilinear pattern is used by default.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 }
@@ -6949,8 +6949,8 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("export_stls", coString);
-    def->label = "Export multiple stls";
-    def->tooltip = "Export the objects as multiple stls to directory";
+    def->label = "Export multiple STLs";
+    def->tooltip = "Export the objects as multiple STLs to directory";
     def->set_default_value(new ConfigOptionString("stl_path"));
 
     /*def = this->add("export_gcode", coBool);
@@ -7417,11 +7417,11 @@ ReadWriteSlicingStatesConfigDef::ReadWriteSlicingStatesConfigDef()
     def = this->add("e_retracted", coFloats);
     def->label = L("Retraction");
     def->tooltip = L("Retraction state at the beginning of the custom G-code block. If the custom G-code moves the extruder axis, "
-                     "it should write to this variable so PrusaSlicer deretracts correctly when it gets control back.");
+                     "it should write to this variable so PrusaSlicer de-retracts correctly when it gets control back.");
 
     def = this->add("e_restart_extra", coFloats);
-    def->label = L("Extra deretraction");
-    def->tooltip = L("Currently planned extra extruder priming after deretraction.");
+    def->label = L("Extra de-retraction");
+    def->tooltip = L("Currently planned extra extruder priming after de-retraction.");
 
    def = this->add("e_position", coFloats);
    def->label = L("Absolute E position");
@@ -7454,7 +7454,7 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
 
     def = this->add("is_extruder_used", coBools);
     def->label = L("Is extruder used?");
-    def->tooltip = L("Vector of bools stating whether a given extruder is used in the print.");
+    def->tooltip = L("Vector of booleans stating whether a given extruder is used in the print.");
 
     // Options from PS not used in Orca
     //    def = this->add("initial_filament_type", coString);
