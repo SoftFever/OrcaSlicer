@@ -382,7 +382,8 @@ class GLCanvas3D
         ObjectClashed,
         ObjectLimited,
         GCodeConflict,
-        ToolHeightOutside
+        ToolHeightOutside,
+        MultiExtruderPrintableError,      // after slice
     };
 
     class RenderStats

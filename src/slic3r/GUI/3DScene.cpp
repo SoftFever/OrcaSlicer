@@ -1078,6 +1078,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
+    curr_plate->clear_unprintable_filament_ids();
     for (GLVolume* volume : this->volumes)
     {
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
@@ -1094,6 +1095,17 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     {
                         std::vector<bool> inside_extruders;
                         state = plate_build_volume.check_volume_bbox_state_with_extruder_areas(bb, inside_extruders);
+                        if (state == BuildVolume::ObjectState::Limited) {
+                            const ModelObjectPtrs &model_objects = model.objects;
+                            ModelObject *model_object = model_objects[volume->object_idx()];
+                            ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
+                            for (size_t i = 0; i < inside_extruders.size(); ++i) {
+                                if (!inside_extruders[i]) {
+                                    std::vector<int> extruders = model_volume->get_extruders();
+                                    curr_plate->append_unprintable_filament_ids(i, extruders);
+                                }
+                            }
+                        }
                     }
                     break;
                 }

@@ -112,6 +112,9 @@ private:
     std::vector<FilamentInfo> slice_filaments_info;
     int m_print_index;
 
+    // filament ids of extruder
+    std::vector<std::vector<int>> m_unprintable_filament_ids;
+
     std::string m_tmp_gcode_path;       //use a temp path to store the gcode
     std::string m_temp_config_3mf_path; //use a temp path to store the config 3mf
     std::string m_gcode_path_from_3mf;  //use a path to store the gcode loaded from 3mf
@@ -496,6 +499,11 @@ public:
     // get filament map, 0 based filament ids, 1 based extruder ids
     std::vector<int> get_filament_maps();
     void set_filament_maps(const std::vector<int>& f_maps);
+
+    const std::vector<std::vector<int>> &get_unprintable_filament_ids() const { return m_unprintable_filament_ids; }
+    void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids) { m_unprintable_filament_ids = filament_ids; }
+    void clear_unprintable_filament_ids() { m_unprintable_filament_ids.clear(); }
+    void append_unprintable_filament_ids(int extruder_id, const std::vector<int> &filament_ids);
 
     void on_extruder_count_changed(int extruder_count);
     void set_filament_count(int filament_count);

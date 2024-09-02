@@ -956,7 +956,6 @@ public:
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
 
-    // 1 based ids
     const std::vector<std::vector<int>>& get_unprintable_filament_ids() const { return m_unprintable_filament_ids; }
     void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids) { m_unprintable_filament_ids = filament_ids; }
 
@@ -1099,6 +1098,8 @@ private:
     FakeWipeTower     m_fake_wipe_tower;
     bool              m_has_auto_filament_map_result{false};
     
+    std::vector<std::vector<int>> m_unprintable_filament_ids;
+
     //SoftFever: calibration
     Calib_Params m_calib_params;
 

@@ -698,6 +698,59 @@ GCodeProcessor::GCodeProcessor()
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].line_m73_stop_mask = "M73 D%s\n";
 }
 
+bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int> &filament_map)
+{
+    m_result.gcode_check_result.reset();
+
+    auto to_2d = [](const Vec3d &pos) -> Point {
+        Point ps(scale_(pos.x()), scale_(pos.y()));
+        return ps;
+    };
+
+    std::map<int, Points> gcode_path_pos;
+    for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
+        if (move.type == EMoveType::Extrude/* || move.type == EMoveType::Travel*/) {
+            if (move.is_arc_move_with_interpolation_points()) {
+                for (int i = 0; i < move.interpolation_points.size(); i++) {
+                    gcode_path_pos[int(move.extruder_id)].emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                }
+            }
+            else {
+                gcode_path_pos[int(move.extruder_id)].emplace_back(to_2d(move.position.cast<double>()));
+            }
+        }
+    }
+
+    bool valid = true;
+    for (auto iter = gcode_path_pos.begin(); iter != gcode_path_pos.end(); ++iter) {
+        int extruder_id = filament_map[iter->first] - 1;
+        Polygon path_poly(iter->second);
+        BoundingBox bbox = path_poly.bounding_box();
+
+        // Simplified use bounding_box, Accurate calculation is not efficient
+        for (const Polygon &poly : unprintable_areas[extruder_id]) {
+            if (poly.bounding_box().overlap(bbox)) {
+                m_result.gcode_check_result.error_code = 1;
+                m_result.gcode_check_result.error_infos[extruder_id].push_back(iter->first);
+                valid = false;
+            }
+        }
+
+        /*
+        // Accurate calculation is not efficient
+        for (const Polygon& poly : unprintable_areas[extruder_id]) {
+            if (poly.overlaps({path_poly})) {
+                m_result.gcode_check_result.error_code = 1;
+                valid = false;
+                break;
+            }
+        }
+        */
+    }
+
+    return valid;
+}
+
 void GCodeProcessor::apply_config(const PrintConfig& config)
 {
     m_parser.apply_config(config);

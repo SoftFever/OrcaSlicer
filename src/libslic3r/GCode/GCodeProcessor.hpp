@@ -133,9 +133,21 @@ class Print;
 
     using ConflictResultOpt = std::optional<ConflictResult>;
 
+    struct GCodeCheckResult
+    {
+        int error_code = 0;   // 0 means succeed
+        std::map<int, std::vector<int>> error_infos;   // extruder_id to filament_ids
+
+        void reset() {
+            error_code = 0;
+            error_infos.clear();
+        }
+    };
+
     struct GCodeProcessorResult
     {
         ConflictResultOpt conflict_result;
+        GCodeCheckResult  gcode_check_result;
         BedMatchResult  bed_match_result;
 
         struct SettingsIds
@@ -260,6 +272,7 @@ class Print;
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
             bed_type = other.bed_type;
+            gcode_check_result = other.gcode_check_result;
             bed_match_result = other.bed_match_result;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
@@ -776,6 +789,8 @@ class Print;
     public:
         GCodeProcessor();
 
+        // check whether the gcode path meets the filament_map grouping requirements
+        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int>& filament_map);
         void apply_config(const PrintConfig& config);
         void set_print(Print* print) { m_print = print; }
         void enable_stealth_time_estimator(bool enabled);

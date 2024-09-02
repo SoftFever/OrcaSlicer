@@ -2651,6 +2651,16 @@ FilamentMapMode Print::get_filament_map_mode() const
     return m_config.filament_map_mode;
 }
 
+std::vector<Vec2d> Print::get_printable_area()
+{
+    return m_config.printable_area.values;
+}
+
+std::vector<std::vector<Vec2d>> Print::get_extruder_printable_area()
+{
+    return m_config.extruder_printable_area.values;
+}
+
 size_t Print::get_extruder_id(unsigned int filament_id) const
 {
     std::vector<int> filament_map = get_filament_maps();
