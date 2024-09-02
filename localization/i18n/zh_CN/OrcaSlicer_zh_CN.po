@@ -16033,7 +16033,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "无法从打印机获取模型信息。"
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "解析模型信息失败。"
 
 #~ msgid "Connection lost. Please retry."
@@ -16537,7 +16537,7 @@ msgstr ""
 #~ "修复模型\n"
 #~ "您知道吗？您可以修复一个损坏的3D模型以避免诸多切片问题。"
 
-#~ msgid "Embedded"
+#~ msgid "Embeded"
 #~ msgstr "嵌入的"
 
 #~ msgid ""

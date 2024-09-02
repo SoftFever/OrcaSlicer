@@ -16316,7 +16316,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "無法從列印設備獲取模型資訊。"
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "解析模型資訊失敗。"
 
 #, fuzzy
@@ -16780,7 +16780,7 @@ msgstr ""
 #~ "當列印較低溫度的耗材時，打開印表機門可以減少擠出機或熱端堵塞的可能性。 有"
 #~ "關此內容的更多信息，請參見 Wiki。"
 
-#~ msgid "Embedded"
+#~ msgid "Embeded"
 #~ msgstr "嵌入的"
 
 #~ msgid ""

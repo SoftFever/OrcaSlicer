@@ -16517,10 +16517,10 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "Načítání selhalo [%d]"
 
-#~ msgid "Failed to fetching model information from printer."
+#~ msgid "Failed to fetching model infomations from printer."
 #~ msgstr "Nepodařilo se načíst informace o modelu z tiskárny."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Nepodařilo se zpracovat informace o modelu."
 
 #~ msgid ""
@@ -17002,7 +17002,7 @@ msgstr ""
 #~ "hotendu při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného "
 #~ "prostoru. Další informace naleznete ve Wiki."
 
-#~ msgid "Embedded"
+#~ msgid "Embeded"
 #~ msgstr "Vloženo"
 
 #~ msgid ""
