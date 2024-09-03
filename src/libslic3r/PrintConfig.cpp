@@ -542,6 +542,14 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("read_timeout", coInt);
+    def->label = L("Read timeout");
+    def->tooltip = L("Read timeout for transfer in sec");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->min = 30;
+    def->set_default_value(new ConfigOptionInt(30));
+
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");
     def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");

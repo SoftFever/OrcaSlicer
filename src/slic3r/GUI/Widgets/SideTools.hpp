@@ -74,7 +74,7 @@ public:
     void set_none_printer_mode();
     void on_timer(wxTimerEvent &event);
     void set_current_printer_name(std::string dev_name);
-    void set_current_printer_signal(WifiSignal sign);;
+    void set_current_printer_signal(WifiSignal sign);
     void start_interval();
     void stop_interval(wxTimerEvent &event);
     bool is_in_interval();

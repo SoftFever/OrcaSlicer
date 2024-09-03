@@ -8504,6 +8504,9 @@ msgstr "Nom d'hôte, adresse IP ou URL"
 msgid "Orca Slicer can upload G-code files to a printer host. This field should contain the hostname, IP address or URL of the printer host instance. Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL in the following format: https://username:password@your-octopi-address/"
 msgstr "Orca Slicer peut téléverser des fichiers G-code sur une imprimante hôte. Ce champ doit contenir le nom d'hôte, l'adresse IP ou l'URL de l'instance hôte de l'imprimante. L'hôte d'impression derrière HAProxy avec l'authentification de base activée est accessible en saisissant le nom d'utilisateur et le mot de passe dans l'URL au format suivant : https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Interface utilisateur de l’appareil"
 

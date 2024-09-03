@@ -8802,6 +8802,9 @@ msgid ""
 "username:password@your-octopi-address/"
 msgstr ""
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr ""
 

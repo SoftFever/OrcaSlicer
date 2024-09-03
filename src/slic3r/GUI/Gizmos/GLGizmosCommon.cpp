@@ -345,7 +345,7 @@ std::vector<Vec3d> ObjectClipper::point_per_contour() const
 
     for (const auto& clipper : m_clippers) {
         const std::vector<Vec3d> pts_clipper = clipper.first->point_per_contour();
-        pts.insert(pts.end(), pts_clipper.begin(), pts_clipper.end());;
+        pts.insert(pts.end(), pts_clipper.begin(), pts_clipper.end());
     }
     return pts;
 }

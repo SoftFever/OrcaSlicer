@@ -33,8 +33,8 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
-Flashforge::Flashforge(DynamicPrintConfig* config) : m_host(config->opt_string("print_host")), m_console_port("8899")
-{
+Flashforge::Flashforge(DynamicPrintConfig* config) : m_host(config->opt_string("print_host")), m_console_port("8899") {
+    m_read_timeout = config->opt_int("read_timeout");
 }
 
 const char* Flashforge::get_name() const { return "Flashforge"; }
@@ -43,7 +43,7 @@ bool Flashforge::test(wxString& msg) const
 {
     BOOST_LOG_TRIVIAL(debug) << boost::format("[Flashforge] testing connection");
     // Utils::TCPConsole console(m_host, m_console_port);
-    Utils::TCPConsole client(m_host, m_console_port);
+    Utils::TCPConsole client(m_host, m_console_port,m_read_timeout * 1000);
     client.enqueue_cmd(controlCommand);
     bool res = client.run_queue();
     if (!res) {
@@ -66,38 +66,36 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
 {
     bool res = true;
 
-    Utils::TCPConsole client(m_host, m_console_port);
+    Utils::TCPConsole client(m_host, m_console_port,m_read_timeout);
     client.enqueue_cmd(controlCommand);
-   
+
     client.enqueue_cmd(connect5MCommand);
-   
+
     client.enqueue_cmd(statusCommand);
     wxString errormsg;
     try {
-        std::ifstream newfile;
-        newfile.open(upload_data.source_path.c_str(), std::ios::binary); // open a file to perform read operation using file object
-        if (newfile.is_open()) {                                         // checking whether the file is open
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...");
-            newfile.seekg(0, std::ios::end);
-            std::ifstream::pos_type pos = newfile.tellg();
-
-            std::vector<char> result(pos);
-
-            newfile.seekg(0, std::ios::beg);
-            newfile.read(&result[0], pos);
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...done size is %1%") % result.size();
-
+        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...");
+        std::uintmax_t filesize = boost::filesystem::file_size(upload_data.source_path.c_str());
+        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] File size is %1%") % filesize;
+        auto buf = new char[filesize];
+        // Read file
+        std::ifstream fin(upload_data.source_path.c_str(), std::ios::binary);
+        fin.read(buf, filesize);
+        if (!fin) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("Error reading file, could only read %1% bytes") % fin.gcount();
+        } else {
             Slic3r::Utils::SerialMessage fileuploadCommand =
-                {(boost::format("~M28 %1% 0:/user/%2%") % result.size() % upload_data.upload_path.generic_string()).str(),
+                {(boost::format("~M28 %1% 0:/user/%2%") % filesize % upload_data.upload_path.generic_string()).str(),
                  Slic3r::Utils::Command};
             client.enqueue_cmd(fileuploadCommand);
-            Slic3r::Utils::SerialMessage dataCommand = {std::string(result.begin(), result.end()), Slic3r::Utils::Data};
+            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file upload command ");
+            std::string                  content     = buf;
+            Slic3r::Utils::SerialMessage dataCommand = {content.substr(0, filesize), Slic3r::Utils::Data};
             client.enqueue_cmd(dataCommand);
-            newfile.close(); // close the file object.
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sent %1% ") % result.size();
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file save command ");
-        client.enqueue_cmd(saveFileCommand);
+        // Close file
+        fin.close();
+
         if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
             BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Starting print %1%") % upload_data.upload_path.string();
             Slic3r::Utils::SerialMessage startPrintCommand = {(boost::format("~M23 0:/user/%1%") % upload_data.upload_path.string()).str(),

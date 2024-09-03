@@ -9333,6 +9333,9 @@ msgstr ""
 "aktiverad genom att ange användarnamn och lösenord i URL:en i följande "
 "format: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Enhetens gränssnitt"
 

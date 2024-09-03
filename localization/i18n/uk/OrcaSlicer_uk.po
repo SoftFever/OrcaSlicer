@@ -9618,6 +9618,9 @@ msgstr ""
 "форматі: https://username:\n"
 "password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Інтерфейс користувача"
 

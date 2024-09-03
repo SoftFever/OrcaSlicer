@@ -9543,6 +9543,9 @@ msgstr ""
 "biçimdeki URL'ye girilmesiyle erişilebilir: https://username:password@your-"
 "octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Cihaz kullanıcı arayüzü"
 

@@ -9312,6 +9312,9 @@ msgstr ""
 "user name and password into the URL in the following format: https://"
 "username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Device UI"
 

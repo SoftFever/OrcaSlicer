@@ -251,6 +251,10 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     host_line.append_widget(print_host_logout);
     m_optgroup->append_line(host_line);
 
+    option = m_optgroup->get_option("read_timeout");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+
     option = m_optgroup->get_option("print_host_webui");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
@@ -533,7 +537,7 @@ void PhysicalPrinterDialog::update_preset_input() {
 void PhysicalPrinterDialog::update(bool printer_change)
 {
     m_optgroup->reload_config();
-
+    m_optgroup->hide_field("read_timeout");
     const PrinterTechnology tech = Preset::printer_technology(*m_config);
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     bool supports_multiple_printers = false;
@@ -630,6 +634,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
         }
         
         if (opt->value == htFlashforge) {
+                m_optgroup->show_field("read_timeout");
                 m_optgroup->hide_field("printhost_apikey");
                 m_optgroup->hide_field("printhost_authorization_type");
             }

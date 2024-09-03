@@ -57,6 +57,7 @@
     "0x175"
   ],
   "print_host": "10.0.0.51",
+  "read_timeout": "30",
   "print_host_webui": "10.0.0.51",
   "gcode_flavor": "marlin",
   "thumbnails": [

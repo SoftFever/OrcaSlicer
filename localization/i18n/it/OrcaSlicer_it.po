@@ -9647,6 +9647,9 @@ msgstr ""
 "base abilitata è accessibile inserendo il nome utente e la password nell'URL "
 "nel seguente formato: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Interfaccia utente del dispositivo"
 

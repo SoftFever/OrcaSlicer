@@ -9364,6 +9364,9 @@ msgstr ""
 "zadáním uživatelského jména a hesla do adresy URL v následujícím formátu: "
 "https://username: password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "Uživatelské rozhraní zařízení"
 

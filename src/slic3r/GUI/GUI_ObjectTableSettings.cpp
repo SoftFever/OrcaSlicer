@@ -286,7 +286,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
 
         auto toggle_field = [this, optgroup](const t_config_option_key & opt_key, bool toggle, int opt_index)
         {
-            Field* field = optgroup->get_fieldc(opt_key, opt_index);;
+            Field* field = optgroup->get_fieldc(opt_key, opt_index);
             if (field)
                 field->toggle(toggle);
         };

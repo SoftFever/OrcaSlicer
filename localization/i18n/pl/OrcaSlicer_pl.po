@@ -9656,6 +9656,9 @@ msgstr ""
 "użytkownika i hasło w URL w następującym formacie: https://username:"
 "password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "UI urządzenia"
 

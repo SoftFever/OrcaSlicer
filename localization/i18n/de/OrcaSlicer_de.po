@@ -9774,6 +9774,9 @@ msgstr ""
 msgid "Device UI"
 msgstr "Gerät"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
 msgstr ""

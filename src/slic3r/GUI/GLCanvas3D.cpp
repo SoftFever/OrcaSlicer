@@ -8925,7 +8925,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
-            return std::min<int>(filaments_cnt - 1, std::max<int>(extruder - 1, 0));;
+            return std::min<int>(filaments_cnt - 1, std::max<int>(extruder - 1, 0));
         }
 
     private:

@@ -9729,6 +9729,9 @@ msgstr ""
 "URL en el siguiente formato: https://nombredeusuario:"
 "contraseña@tudirecciondeoctopi/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
 msgid "Device UI"
 msgstr "IU de dispositivo"
 

@@ -82,7 +82,7 @@ GLGizmosManager::EType GLGizmosManager::get_gizmo_from_mouse(const Vec2d &mouse_
     float border     = m_layout.scaled_border();
 
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-    //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
+    //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     float top_x;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         const float cnv_w = (float)m_parent.get_canvas_size().get_width();

@@ -70,6 +70,7 @@
   "pellet_modded_printer": "1",
   "preferred_orientation": "0",
   "print_host": "http://10.0.1.200/",
+  "read_timeout": "30",
   "print_host_webui": "",
   "printable_area": ["0x0", "1000x0", "1000x1000", "0x1000"],
   "printable_height": "1000",

@@ -142,6 +142,7 @@
     "parking_pos_retraction": "92",
     "preferred_orientation": "0",
     "print_host": "",
+    "read_timeout": "30",
     "print_host_webui": "",
     "printable_area": [
         "0x0",

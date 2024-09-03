@@ -92,7 +92,7 @@ t_construct_q()
     QCOMPARE(pc5.count(), 1);
     QCOMPARE(pc5.extraCoordinatesCount(), 2);
     QCOMPARE(pc5.extraCoordinates()[1], 5.0);
-    QVERIFY(!pc5.isEmpty());;
+    QVERIFY(!pc5.isEmpty());
     std::vector<coordT> vc;
     vc.push_back(3.0);
     vc.push_back(4.0);
@@ -163,7 +163,7 @@ t_construct_qh()
     QCOMPARE(pc5.count(), 1);
     QCOMPARE(pc5.extraCoordinatesCount(), 2);
     QCOMPARE(pc5.extraCoordinates()[1], 5.0);
-    QVERIFY(!pc5.isEmpty());;
+    QVERIFY(!pc5.isEmpty());
     std::vector<coordT> vc;
     vc.push_back(3.0);
     vc.push_back(4.0);

@@ -703,7 +703,7 @@ LocalTaskManagerPage::LocalTaskManagerPage(wxWindow* parent)
     btn_stop_all->SetCornerRadius(FromDIP(5));
     m_sel_text = new wxStaticText(m_ctrl_btn_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
 
-    m_btn_sizer->Add(m_sel_text, 0, wxLEFT, FromDIP(15));;
+    m_btn_sizer->Add(m_sel_text, 0, wxLEFT, FromDIP(15));
     m_btn_sizer->Add(btn_stop_all, 0, wxLEFT, FromDIP(10));
     m_ctrl_btn_panel->SetSizer(m_btn_sizer);
     m_ctrl_btn_panel->Layout();

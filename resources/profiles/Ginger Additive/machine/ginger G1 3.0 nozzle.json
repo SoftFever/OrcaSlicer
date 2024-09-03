@@ -18,6 +18,7 @@
   "printer_model": "ginger G1",
   "name": "ginger G1 3.0 nozzle",
   "print_host": "192.168.1.39",
+  "read_timeout": "30",
   "printer_settings_id": "ginger G1 3.0 nozzle",
   "retract_before_wipe": ["20%"],
   "retract_restart_extra": ["5"],

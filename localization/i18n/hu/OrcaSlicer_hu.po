@@ -9424,6 +9424,9 @@ msgstr ""
 "felhasználónevet és a jelszót a következő formátumban beleírod az URL-be: "
 "https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Időtúllépés (másodperc)"
+
 msgid "Device UI"
 msgstr "Eszköz UI"
 

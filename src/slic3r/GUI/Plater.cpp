@@ -6892,7 +6892,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
                 sidebar->set_btn_label(btn, invalid_str);
 #endif
-            process_completed_with_error = partplate_list.get_curr_plate_index();;
+            process_completed_with_error = partplate_list.get_curr_plate_index();
         }
         has_error = true;
         is_finished = true;
@@ -12191,7 +12191,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     for (unsigned int i = 0; i < picking_thumbnails.size(); i++)
     {
         //release the data here, as it will always be generated when export
-        picking_thumbnails[i]->reset();;
+        picking_thumbnails[i]->reset();
     }
     picking_thumbnails.clear();
 
@@ -13688,7 +13688,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
     validate_error = false;
     if (p->printer_technology == ptFFF) {
         std::string plater_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
-                    "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");;
+                    "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
         StringObjectException warning;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
