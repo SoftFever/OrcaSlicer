@@ -1611,9 +1611,6 @@ void TreeSupport::generate_toolpaths()
 
                 // sort extrusions to reduce travel, also make sure walls go before infills
                 if (ts_layer->support_fills.no_sort == false) {
-                    // chain_and_reorder_extrusion_entities crashes if there are empty elements in entities
-                    auto &entities = ts_layer->support_fills.entities;
-                    entities.erase(std::remove_if(entities.begin(), entities.end(), [](ExtrusionEntity* entity) { return static_cast<ExtrusionEntityCollection*>(entity)->empty(); }), entities.end());
                     chain_and_reorder_extrusion_entities(ts_layer->support_fills.entities);
                 }
             }
