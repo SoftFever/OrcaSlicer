@@ -16,6 +16,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
+#include <wx/display.h>
 #include <map>
 
 #ifdef __WINDOWS__
@@ -228,13 +229,13 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 }
             }
 
-            /*auto check = [this](bool yes_or_no) {
+            auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
                 int act_btns = ActionButtons::SAVE;
                 return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"),
                                                                         _L("Switching application language while some presets are modified."), act_btns);
-            };*/
+            };
 
             m_current_language_selected = combobox->GetSelection();
             if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {

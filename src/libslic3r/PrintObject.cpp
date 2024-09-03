@@ -680,6 +680,7 @@ void PrintObject::estimate_curled_extrusions()
                         [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
 
             // Estimate curling of support material and add it to the malformaition lines of each layer
+            float support_flow_width = support_material_flow(this, this->config().layer_height).width();
             SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
                                                  float(this->print()->default_object_config().inner_wall_acceleration.getFloat()),
                                                  this->config().raft_layers.getInt(), this->config().brim_type.value,
@@ -2951,26 +2952,29 @@ struct POProfiler
 
 void PrintObject::generate_support_preview()
 {
-    // POProfiler profiler;
+    POProfiler profiler;
 
-    // boost::posix_time::ptime ts1 = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::ptime ts1 = boost::posix_time::microsec_clock::local_time();
     this->slice();
-    // boost::posix_time::ptime ts2 = boost::posix_time::microsec_clock::local_time();
-    // profiler.duration1 = (ts2 - ts1).total_milliseconds();
+    boost::posix_time::ptime ts2 = boost::posix_time::microsec_clock::local_time();
+    profiler.duration1 = (ts2 - ts1).total_milliseconds();
 
     this->generate_support_material();
-    // boost::posix_time::ptime ts3 = boost::posix_time::microsec_clock::local_time();
-    // profiler.duration2 = (ts3 - ts2).total_milliseconds();
+    boost::posix_time::ptime ts3 = boost::posix_time::microsec_clock::local_time();
+    profiler.duration2 = (ts3 - ts2).total_milliseconds();
 }
 
 void PrintObject::update_slicing_parameters()
 {
-    if (!m_slicing_params.valid)
-        m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->max_z(), this->object_extruders());
+    // Orca: updated function call for XYZ shrinkage compensation
+    if (!m_slicing_params.valid) {
+          m_slicing_params = SlicingParameters::create_from_config(this->print()->config(), m_config, this->model_object()->max_z(),
+                                                                   this->object_extruders(), this->print()->shrinkage_compensation());
+      }
 }
 
-SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)
+// Orca: XYZ shrinkage compensation has introduced the const Vec3d &object_shrinkage_compensation parameter to the function below
+SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, const Vec3d &object_shrinkage_compensation)
 {
 	PrintConfig         print_config;
 	PrintObjectConfig   object_config;
@@ -3005,7 +3009,7 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();
-    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
+    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders, object_shrinkage_compensation);
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
@@ -3048,7 +3052,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         // Must not be of even length.
         ((layer_height_profile.size() & 1) != 0 ||
             // Last entry must be at the top of the object.
-            std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max + slicing_parameters.object_print_z_min) > 1e-3))
+            std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_uncompensated_max + slicing_parameters.object_print_z_min) > 1e-3))
         layer_height_profile.clear();
 
     if (layer_height_profile.empty() || layer_height_profile[1] != slicing_parameters.first_object_layer_height) {
@@ -3670,6 +3674,7 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
+    static const double super_overhang_area_threshold = SQ(scale_(5.0));
     const double cantilevel_dist_thresh = scale_(6);
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;

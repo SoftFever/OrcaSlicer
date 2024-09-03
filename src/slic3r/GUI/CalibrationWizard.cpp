@@ -1126,6 +1126,7 @@ void FlowRateWizard::on_cali_save()
             }
 
             std::string old_preset_name;
+            CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
             if (!selected_filaments.empty()) {
                 old_preset_name = selected_filaments.begin()->second->name;
@@ -1172,6 +1173,7 @@ void FlowRateWizard::on_cali_save()
                 return;
 
             std::string old_preset_name;
+            CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
             if (!selected_filaments.empty()) {
                 old_preset_name = selected_filaments.begin()->second->name;
@@ -1441,6 +1443,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     std::string old_preset_name;
     std::string new_preset_name;
 
+    CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(preset_step->page));
     std::map<int, Preset *> selected_filaments = get_cached_selected_filament(curr_obj);
     if (!selected_filaments.empty()) {
         old_preset_name = selected_filaments.begin()->second->name;

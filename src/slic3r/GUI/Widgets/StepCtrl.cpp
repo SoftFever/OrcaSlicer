@@ -322,6 +322,7 @@ void StepIndicator::doRender(wxDC &dc)
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);
         // Draw content ( icon or text ) in circle
         if (disabled) {
+            wxSize sz = bmp_ok.GetBmpSize();
             dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);
         } else {
             dc.SetFont(font_tip);

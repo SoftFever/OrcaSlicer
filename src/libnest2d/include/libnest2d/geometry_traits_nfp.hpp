@@ -182,6 +182,7 @@ inline TPoint<RawShape> referenceVertex(const RawShape& sh)
 template<class RawBox, class RawShape, class Ratio = double> inline NfpResult<RawShape> nfpInnerRectBed(const RawBox &bed, const RawShape &other)
 {
     using Vertex = TPoint<RawShape>;
+    using Edge   = _Segment<Vertex>;
     namespace sl = shapelike;
 
     auto    sbox         = sl::boundingBox(other);

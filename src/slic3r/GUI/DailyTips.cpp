@@ -89,6 +89,7 @@ void DailyTipsDataRenderer::open_wiki() const
 
 void DailyTipsDataRenderer::render(const ImVec2& pos, const ImVec2& size) const
 {
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
     int window_flags = parent_window->Flags;
     window_flags &= ~ImGuiWindowFlags_NoScrollbar;
@@ -189,6 +190,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         std::string tips_line = _u8L("For more information, please check out Wiki");
         std::string wiki_part_text = _u8L("Wiki");
         std::string first_part_text = tips_line.substr(0, tips_line.find(wiki_part_text));
+        ImVec2 wiki_part_size = ImGui::CalcTextSize(wiki_part_text.c_str());
         ImVec2 first_part_size = ImGui::CalcTextSize(first_part_text.c_str());
 
         //text
@@ -198,6 +200,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
 
         ImColor HyperColor = ImColor(31, 142, 234, (int)(255 * m_fade_opacity)).Value;
         ImVec2 wiki_part_rect_min = ImVec2(link_start_pos.x + first_part_size.x, link_start_pos.y);
+        ImVec2 wiki_part_rect_max = wiki_part_rect_min + wiki_part_size;
         ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
         ImGui::SetCursorScreenPos(wiki_part_rect_min);
         imgui.text(wiki_part_text.c_str());
@@ -261,6 +264,9 @@ ImVec2 DailyTipsPanel::get_size()
 
 void DailyTipsPanel::render()
 {
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float scale = imgui.get_font_size() / 15.0f;
+
     if (!m_first_enter) {
         retrieve_data_from_hint_database(HintDataNavigation::Curr);
         m_first_enter = true;

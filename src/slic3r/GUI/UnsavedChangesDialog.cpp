@@ -1654,7 +1654,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         const DynamicPrintConfig& new_config = presets->get_edited_preset().config;
         type = presets->type();
 
-        // const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
+        const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
 
         //m_tree->model->AddPreset(type, from_u8(presets->get_edited_preset().name), old_pt);
 

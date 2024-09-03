@@ -278,7 +278,7 @@ private:
 
 private:
     void OnLeftUp(wxMouseEvent &event);
-    void on_timer();
+    void on_timer(wxTimerEvent &event);
 
 	void      update_other_devices();
     void      update_user_devices();

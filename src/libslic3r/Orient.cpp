@@ -138,6 +138,8 @@ public:
 
             auto cost_items = get_features(orientation, params.min_volume);
 
+            float unprintability = target_function(cost_items, params.min_volume);
+
             results[orientation] = cost_items;
 
             BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << std::fixed << std::setprecision(4) << cost_items.field_values();
@@ -228,10 +230,10 @@ public:
     {
         std::unordered_map<stl_normal, float, VecHash> alignments;
         // init to 0
-        for (Eigen::Index i = 0; i < areas_.size(); i++)
+        for (size_t i = 0; i < areas_.size(); i++)
             alignments.insert(std::pair(normals_.row(i), 0));
         // cumulate areas
-        for (Eigen::Index i = 0; i < areas_.size(); i++)
+        for (size_t i = 0; i < areas_.size(); i++)
         {
             alignments[normals_.row(i)] += areas_(i);
         }
@@ -255,11 +257,11 @@ public:
         Vec3f n1 = { 0, 0, 0 };
         std::vector<float> current_areas = {0, 0};
         // init to 0
-        for (Eigen::Index i = 0; i < areas_.size(); i++) {
+        for (size_t i = 0; i < areas_.size(); i++) {
             alignments_.insert(std::pair(quantize_normals_.row(i), std::pair(current_areas, n1)));
         }
         // cumulate areas
-        for (Eigen::Index i = 0; i < areas_.size(); i++)
+        for (size_t i = 0; i < areas_.size(); i++)
         {
             alignments_[quantize_normals_.row(i)].first[1] += areas_(i);
             if (areas_(i) > alignments_[quantize_normals_.row(i)].first[0]){
@@ -337,7 +339,7 @@ public:
 
         z_max_hull.resize(mesh_convex_hull.facets_count(), 1);
         its = mesh_convex_hull.its;
-        for (Eigen::Index i = 0; i < z_max_hull.rows(); i++)
+        for (size_t i = 0; i < z_max_hull.rows(); i++)
         {
             float z0 = its.get_vertex(i,0).dot(orientation);
             float z1 = its.get_vertex(i,1).dot(orientation);
@@ -391,7 +393,7 @@ public:
 
         // filter overhang
         Eigen::VectorXf normal_projection(normals.rows(), 1);// = this->normals.dot(orientation);
-        for (Eigen::Index i = 0; i < normals.rows(); i++)
+        for (size_t i = 0; i < normals.rows(); i++)
         {
             normal_projection(i) = normals.row(i).dot(orientation);
         }
@@ -457,6 +459,7 @@ public:
             cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
         }
         else {
+            float overhang = costs.overhang;
             cost = params.RELATIVE_F * (costs.overhang * params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
         }
         cost += (costs.bottom < params.BOTTOM_MIN) * 100;// +(costs.height_to_bottom_hull_ratio > params.height_to_bottom_hull_ratio_MIN) * 110;

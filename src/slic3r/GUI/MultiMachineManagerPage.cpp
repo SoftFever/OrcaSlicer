@@ -320,7 +320,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_table_head_panel->SetBackgroundColour(TABLE_HEAR_NORMAL_COLOUR);
     m_table_head_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
+    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
     m_printer_name->SetBackgroundColor(head_bg);
     m_printer_name->SetFont(TABLE_HEAD_FONT);
     m_printer_name->SetCornerRadius(0);
@@ -343,7 +343,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     });
     
 
-    m_task_name = new Button(m_table_head_panel, _L("Task Name"), "", wxNO_BORDER, MM_ICON_SIZE);
+    m_task_name = new Button(m_table_head_panel, _L("Task Name"), "", wxNO_BORDER, ICON_SIZE);
     m_task_name->SetBackgroundColor(TABLE_HEAR_NORMAL_COLOUR);
     m_task_name->SetFont(TABLE_HEAD_FONT);
     m_task_name->SetCornerRadius(0);
@@ -353,7 +353,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
 
     
 
-    m_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, MM_ICON_SIZE);
+    m_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
     m_status->SetBackgroundColor(head_bg);
     m_status->SetFont(TABLE_HEAD_FONT);
     m_status->SetCornerRadius(0);
@@ -376,7 +376,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     });
     
 
-    m_action = new Button(m_table_head_panel, _L("Actions"), "", wxNO_BORDER, MM_ICON_SIZE, false);
+    m_action = new Button(m_table_head_panel, _L("Actions"), "", wxNO_BORDER, ICON_SIZE, false);
     m_action->SetBackgroundColor(TABLE_HEAR_NORMAL_COLOUR);
     m_action->SetFont(TABLE_HEAD_FONT);
     m_action->SetCornerRadius(0);
@@ -523,7 +523,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     Layout();
     Fit();
 
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &MultiMachineManagerPage::on_timer, this);
 }
 
 void MultiMachineManagerPage::update_page()
@@ -676,7 +676,7 @@ void MultiMachineManagerPage::start_timer()
 
     m_flipping_timer->SetOwner(this);
     m_flipping_timer->Start(1000);
-    on_timer();
+    wxPostEvent(this, wxTimerEvent());
 }
 
 void MultiMachineManagerPage::update_page_number()
@@ -688,7 +688,7 @@ void MultiMachineManagerPage::update_page_number()
     st_page_number->SetLabel(number);
 }
 
-void MultiMachineManagerPage::on_timer()
+void MultiMachineManagerPage::on_timer(wxTimerEvent& event)
 {
     m_flipping_timer->Stop();
     if (btn_last_page)

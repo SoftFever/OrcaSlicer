@@ -24,11 +24,12 @@
 namespace Slic3r {
 namespace GUI {
 
-// Orca: Replace static char* with macro defs
-// currently disabled until needed
-// #define URL_CHANGELOG   "%1%"
-// #define URL_DOWNLOAD    "%1%"
-// #define URL_DEV         "%1%"
+
+static const char* URL_CHANGELOG = "%1%";
+static const char* URL_DOWNLOAD = "%1%";
+static const char* URL_DEV = "%1%";
+
+static const std::string CONFIG_UPDATE_WIKI_URL("");
 
 
 // MsgUpdateSlic3r
