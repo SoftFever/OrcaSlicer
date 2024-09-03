@@ -1,7 +1,6 @@
 name: Check locale
 
 on: 
-    workflow_dispatch:
     pull_request:
       branches: 
        - main 
