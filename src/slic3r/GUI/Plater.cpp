@@ -1129,14 +1129,14 @@ Sidebar::Sidebar(Plater *parent)
 
     // ORCA Moved add button after delete button to prevent add button position change when remove icon automatically hidden
 
-    //ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    //del_btn->SetToolTip(_L("Remove last filament"));
-    //del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
-    //    delete_filament();
-    //});
-    //p->m_bpButton_del_filament = del_btn;
+    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
+    del_btn->SetToolTip(_L("Remove last filament"));
+    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
+        delete_filament();
+    });
+    p->m_bpButton_del_filament = del_btn;
 
-    //bSizer39->Add(del_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
     bSizer39->Add(add_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing())); // ORCA Moved add button after delete button to prevent add button position change when remove icon automatically hidden
     bSizer39->AddSpacer(FromDIP(20));
 
@@ -1712,7 +1712,7 @@ void Sidebar::sys_color_changed()
     p->m_printer_setting->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
-    //p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
