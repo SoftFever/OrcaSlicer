@@ -7234,6 +7234,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     if (shader != nullptr) {
         shader->start_using();
 
+        const Size&   cvn_size = get_canvas_size();
+        {
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("z_far", camera.get_far_z());
+            shader->set_uniform("z_near", camera.get_near_z());
+        }
         switch (type)
         {
         default:
@@ -7245,7 +7251,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
                     int object_id = m_layers_editing.last_object_id;
                 const Camera& camera = wxGetApp().plater()->get_camera();
-                m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), [object_id](const GLVolume& volume) {
+                m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [object_id](const GLVolume& volume) {
                     // Which volume to paint without the layer height profile shader?
                     return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                     });
@@ -7261,14 +7267,14 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     //BBS:add assemble view related logic
                     // do not cull backfaces to show broken geometry, if any
                 const Camera& camera = wxGetApp().plater()->get_camera();
-                    m_volumes.render(type, m_picking_enabled, camera.get_view_matrix(), camera.get_projection_matrix(), [this, canvas_type](const GLVolume& volume) {
+                    m_volumes.render(type, m_picking_enabled, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [this, canvas_type](const GLVolume& volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
                             return !volume.is_modifier && !volume.is_wipe_tower;
                         }
                         else {
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
-                        }, with_outline);
+                        });
                 }
             }
             else {
@@ -7295,14 +7301,14 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }*/
             const Camera& camera = wxGetApp().plater()->get_camera();
             //BBS:add assemble view related logic
-            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), [this, canvas_type](const GLVolume& volume) {
+            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [this, canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
                 }
                 else {
                     return true;
                 }
-                }, with_outline);
+                });
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
