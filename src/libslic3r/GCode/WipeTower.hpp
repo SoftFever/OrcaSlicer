@@ -263,6 +263,9 @@ public:
 
 	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
 
+	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
+    bool has_tpu_filament() const { return m_has_tpu_filament; }
+
     struct FilamentParameters {
         std::string 	    material = "PLA";
         bool                is_soluble = false;
@@ -324,6 +327,8 @@ private:
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
     std::vector<int>   m_filament_map;
+    bool               m_has_tpu_filament{false};
+    bool               m_is_multi_extruder{false};
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
@@ -386,6 +391,8 @@ private:
 
     // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
     void save_on_last_wipe();
+
+	bool is_tpu_filament(int filament_id) const;
 
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);

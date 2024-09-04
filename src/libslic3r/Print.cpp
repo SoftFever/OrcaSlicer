@@ -69,6 +69,17 @@ void Print::clear()
     m_statistics_by_extruder_count.clear();
 }
 
+bool Print::has_tpu_filament() const
+{
+    for (unsigned int filament_id : m_wipe_tower_data.tool_ordering.all_extruders()) {
+        std::string filament_name = m_config.filament_type.get_at(filament_id);
+        if (filament_name == "TPU") {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Called by Print::apply().
 // This method only accepts PrintConfig option keys.
 bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* new_config */, const std::vector<t_config_option_key> &opt_keys)
@@ -2754,7 +2765,7 @@ void Print::_make_wipe_tower()
         // in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
         WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
                              m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
-
+        wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
         wipe_tower.set_filament_map(this->get_filament_maps());
         // Set the extruder & material properties at the wipe tower object.
         for (size_t i = 0; i < number_of_extruders; ++i)

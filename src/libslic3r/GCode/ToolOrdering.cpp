@@ -486,6 +486,52 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     }
 }
 
+std::set<int> ToolOrdering::get_tpu_filaments() const
+{
+    std::vector<unsigned int> all_filaments;
+    for (const auto &lt : m_layer_tools) {
+        append(all_filaments, lt.extruders);
+        sort_remove_duplicates(all_filaments);
+    }
+
+    std::set<int> tpu_filaments;
+    for (unsigned int filament_id : all_filaments) {
+        std::string filament_name = m_print->config().filament_type.get_at(filament_id);
+        if (filament_name == "TPU") {
+            tpu_filaments.insert(filament_id);
+        }
+    }
+
+    return tpu_filaments;
+}
+
+bool ToolOrdering::check_tpu_group(std::vector<int> filament_maps) const
+{
+    std::vector<unsigned int> all_filaments;
+    for (const auto &lt : m_layer_tools) {
+        append(all_filaments, lt.extruders);
+        sort_remove_duplicates(all_filaments);
+    }
+
+    int check_extruder_id = -1;
+    std::map<int, std::vector<int>> extruder_filament_nums;
+    for (unsigned int filament_id : all_filaments) {
+        int extruder_id = filament_maps[filament_id];
+        extruder_filament_nums[extruder_id].push_back(filament_id);
+
+        std::string filament_name = m_print->config().filament_type.get_at(filament_id);
+        if (filament_name == "TPU") {
+            check_extruder_id = filament_maps[filament_id];
+        }
+
+        if (check_extruder_id != -1 && (extruder_filament_nums[check_extruder_id].size() > 1)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // Reorder extruders to minimize layer changes.
 void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
 {
@@ -903,6 +949,18 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     using FlushMatrix = std::vector<std::vector<float>>;
     size_t             nozzle_nums = print_config->nozzle_diameter.values.size();
+
+    std::vector<std::set<int>> extruder_tpu_status(2, std::set<int>());
+    if (nozzle_nums > 1) {
+        std::set<int> tpu_filaments = get_tpu_filaments();
+        if (tpu_filaments.size() > 1) {
+            throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
+        }
+
+        // todo multi_exturder: Need to determine whether the TPU can be placed on the left or right head according to the print model.
+        extruder_tpu_status[0] = tpu_filaments;
+    }
+
     std::vector<FlushMatrix> nozzle_flush_mtx;
     for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
         std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(print_config->flush_volumes_matrix.values, nozzle_id, nozzle_nums)));
@@ -943,6 +1001,15 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             m_print->update_filament_maps_to_config(filament_maps);
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
+
+        if (!check_tpu_group(filament_maps)) {
+            if (map_mode == FilamentMapMode::fmmManual) {
+                throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
+            }
+            else {
+                throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
+            }
+        }
     }
 
     std::vector<std::vector<unsigned int>>filament_sequences;
