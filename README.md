@@ -125,11 +125,6 @@ Thank you! :)
 <table>
 <tr>
 <td>
-<a href="https://peopoly.net/">
-    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="96" height="">
-</a>
-</td> 
-<td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
 </a>
