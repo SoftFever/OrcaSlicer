@@ -1058,149 +1058,57 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
 
     int filament_result = 0;
-    if (nozzle_nums > 1)
-    {
-        //get nozzle property, the nozzles are same?, wait fill
-        if (!is_two_nozzle_same())
-        {
-            std::vector<FilamentInfo>           m_ams_mapping_result_first;
-            std::vector<FilamentInfo>           m_ams_mapping_result_second;
-            std::vector<FilamentInfo>           m_filament_first;
-            std::vector<FilamentInfo>           m_filament_second;
-            for (auto it = m_filaments.begin(); it != m_filaments.end(); it++)
-            {
-                if (it->id < 0 || it->id > m_filaments_map.size())
-                {
+    std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+    if (nozzle_nums > 1){
+        //get nozzle property, the nozzles are same?
+        if (!can_hybrid_mapping(obj_->m_nozzle_data)){
+            std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
+            std::vector<FilamentInfo>           m_filament_left, m_filament_right;
+            for (auto it = m_filaments.begin(); it != m_filaments.end(); it++){
+                if (it->id < 0 || it->id > m_filaments_map.size()){
                     BOOST_LOG_TRIVIAL(info) << "error: do_ams_mapping: m_filaments[].it" << it->id;
                     BOOST_LOG_TRIVIAL(info) << "m_filaments_map.size()" << m_filaments_map.size();
                     return false;
                 }
                 if (m_filaments_map[it->id] == 1)
-                {
-                    m_filament_first.push_back(*it);
-                }
+                    m_filament_left.push_back(*it);
                 else if (m_filaments_map[it->id] == 2)
-                {
-                    m_filament_second.push_back(*it);
-                }
+                    m_filament_right.push_back(*it);
             }
-            std::vector<FilamentInfo>           temp_result_first;
-            std::vector<FilamentInfo>           temp_result_second;
-            int result_first = obj_->ams_filament_mapping(m_filament_first, m_ams_mapping_result_first, true, false);
-            int result_second = obj_->ams_filament_mapping(m_filament_second, m_ams_mapping_result_second, false, true);
+            map_opt = {true, false, true, false};   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            int result_first = obj_->ams_filament_mapping(m_filament_left, m_ams_mapping_result_left, map_opt);
+            map_opt = { false, true, false, true };
+            int result_second = obj_->ams_filament_mapping(m_filament_right, m_ams_mapping_result_right, map_opt);
 
-            m_ams_mapping_result.clear();
-            auto iter_first = m_ams_mapping_result_first.begin();
-            auto iter_second = m_ams_mapping_result_second.begin();
-            auto it = m_filaments.begin();
-            while (it != m_filaments.end() && iter_first != m_ams_mapping_result_first.end() && iter_second != m_ams_mapping_result_second.end())
-            {
-                if (it->id < 0 || it->id >= m_filaments_map.size())
-                {
-                    break;
-                }
-                if (m_filaments_map[it->id] == 1)
-                {
-                    m_ams_mapping_result.push_back(*iter_first);
-                    iter_first++;
-                    it++;
-                }
-                else
-                {
-                    m_ams_mapping_result.push_back(*iter_second);
-                    iter_second++;
-                    it++;
-                }
-            }
-            while (iter_first != m_ams_mapping_result_first.end())
-            {
-                m_ams_mapping_result.push_back(*iter_first);
-                iter_first++;
-            }
-            while (iter_second != m_ams_mapping_result_second.end())
-            {
-                m_ams_mapping_result.push_back(*iter_second);
-                iter_second++;
-            }
+            //m_ams_mapping_result.clear();
+            m_ams_mapping_result.resize(m_ams_mapping_result_left.size() + m_ams_mapping_result_right.size());
+            std::merge(m_ams_mapping_result_left.begin(), m_ams_mapping_result_left.end(), m_ams_mapping_result_right.begin(),
+                m_ams_mapping_result_right.end(), m_ams_mapping_result.begin(),
+                [](const FilamentInfo& f1, const FilamentInfo& f2) {
+                    return f1.id < f2.id; // Merge based on age
+                });
             filament_result = (result_first && result_second);
         }
+        //can hybrid mapping
         else {
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, true, true);
+            map_opt = { true, true, true, true };   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
         }
-
-        for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
-        {
-            if (it->ams_id == "")
-            {
-                if (m_filaments_map[it->id] == 1)
-                {
-                    if (obj_->vt_slot.size() == 2)
-                    {
-                        it->ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
-                        it->color = obj_->vt_slot[1].color;
-                        it->type = obj_->vt_slot[1].type;
-                        it->colors = obj_->vt_slot[1].cols;
-                        it->tray_id = VIRTUAL_TRAY_DEPUTY_ID;
-                    }
-                    else
-                    {
-                        it->ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-                        it->color = obj_->vt_slot[0].color;
-                        it->type = obj_->vt_slot[0].type;
-                        it->colors = obj_->vt_slot[0].cols;
-                        it->tray_id = VIRTUAL_TRAY_MAIN_ID;
-                    }
-                    it->slot_id = "0";
-                }
-                else if (m_filaments_map[it->id] == 2)
-                {
-                    it->ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-                    it->color = obj_->vt_slot[0].color;
-                    it->type = obj_->vt_slot[0].type;
-                    it->colors = obj_->vt_slot[0].cols;
-                    it->slot_id = "0";
-                    it->tray_id = VIRTUAL_TRAY_MAIN_ID;
-                }
-            }
-        }
+        //When filaments cannot be matched automatically, whether to use ext for automatic supply
+        //auto_supply_with_ext(obj_->vt_slot);
     }
 
+    //single nozzle
     else {
-        if (obj_->is_support_amx_ext_mix_mapping())
-        {
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, false, true);
-            for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
-            {
-                if (it->ams_id == "")
-                {
-                    it->ams_id = VIRTUAL_TRAY_MAIN_ID;
-                    it->color = obj_->vt_slot[0].color;
-                    it->type = obj_->vt_slot[0].type;
-                    it->colors = obj_->vt_slot[0].cols;
-                    it->slot_id = "0";
-                    it->tray_id = VIRTUAL_TRAY_MAIN_ID;
-                }
-            }
+        if (obj_->is_support_amx_ext_mix_mapping()){
+            map_opt = { false, true, false, true }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
+            //auto_supply_with_ext(obj_->vt_slot);
         }
         else {
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, false, false);
-            if (obj_->amsList.empty())
-            {
-                for (auto it = m_ams_mapping_result.begin(); it != m_ams_mapping_result.end(); it++)
-                {
-                    if (it->ams_id == "")
-                    {
-                        it->ams_id = VIRTUAL_TRAY_MAIN_ID;
-                        it->color = obj_->vt_slot[0].color;
-                        it->type = obj_->vt_slot[0].type;
-                        it->colors = obj_->vt_slot[0].cols;
-                        it->slot_id = "0";
-                        it->tray_id = VIRTUAL_TRAY_MAIN_ID;
-                    }
-                }
-            }
+            map_opt = { false, true, false, false };
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
         }
-
     }
 
     if (filament_result == 0) {
@@ -1375,11 +1283,56 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
     return true;
 }
 
-bool SelectMachineDialog::is_two_nozzle_same() {
-    //if two extruder are same and can be mix-used, return true
-    //else return false
-    //wait to fill
-    return false;
+bool SelectMachineDialog::can_hybrid_mapping(NozzleData data) {
+    if (data.total_nozzle_count <= 1 || data.nozzles.size() <= 1 || !wxGetApp().preset_bundle)
+        return false;
+
+    //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
+    //Therefore, some adjustments need to be made.
+    std::vector<std::string>flow_type_of_machine;
+    for (auto it = data.nozzles.rbegin(); it != data.nozzles.rend(); it++){
+        //exist field is not updated, wait add
+        //if (it->exist < 3) return false;
+        std::string type_str = it->flow_type ? "Big Traffic" : "Normal";
+        flow_type_of_machine.push_back(type_str);
+    }
+    //get the nozzle type of preset --> flow_types
+    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
+    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
+    std::string base_name = base_printer->name;
+    auto flow_data = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
+    std::vector<string> flow_types;
+    boost::split(flow_types, flow_data, boost::is_any_of(","));
+    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
+
+    //Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
+    auto type = flow_types[0];
+    for (int i = 0; i < flow_types.size(); i++){
+        if (flow_types[i] != type || flow_type_of_machine[i] != type)
+            return false;
+    }
+    return true;
+}
+
+//When filaments cannot be matched automatically, whether to use ext for automatic supply
+void SelectMachineDialog::auto_supply_with_ext(std::vector<AmsTray> slots) {
+    if (slots.size() <= 0) return;
+
+    for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+        auto it = m_ams_mapping_result[i];
+        if (it.ams_id == "") {
+            AmsTray slot("");
+            if (m_filaments_map[it.id] == 1 && slots.size() > 1) slot = slots[1];
+            else if (m_filaments_map[it.id] == 2) slot = slots[0];
+            if (slot.id.empty()) continue;
+            m_ams_mapping_result[i].ams_id = slot.id;
+            m_ams_mapping_result[i].color = slot.color;
+            m_ams_mapping_result[i].type = slot.type;
+            m_ams_mapping_result[i].colors = slot.cols;
+            m_ams_mapping_result[i].tray_id = atoi(slot.id.c_str());
+            m_ams_mapping_result[i].slot_id = "0";
+        }
+    }
 }
 
 void SelectMachineDialog::prepare(int print_plate_idx)
@@ -3516,7 +3469,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
             if (nozzle_nums > 1)
             {
-                if (is_two_nozzle_same())
+                if (obj_ && can_hybrid_mapping(obj_->m_nozzle_data))
                 {
                     m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
                 }

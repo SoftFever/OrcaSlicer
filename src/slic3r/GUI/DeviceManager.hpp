@@ -482,6 +482,13 @@ public:
         UpdateToDate
     };
 
+    enum MappingOption {
+        USE_LEFT_AMS = 0,
+        USE_RIGHT_AMS,
+        USE_LEFT_EXT,
+        USE_RIGHT_EXT
+    };
+
     class ExtrusionRatioInfo
     {
     public:
@@ -614,7 +621,8 @@ public:
     bool is_support_amx_ext_mix_mapping();
 
     void get_ams_colors(std::vector<wxColour>& ams_colors);
-    int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, bool ext_first = false, bool ext_second = false, std::vector<int> exclude_id = std::vector<int>());
+    void parse_tray_info(int ams_id, int sot_id, AmsTray tray, FilamentInfo& result);
+    int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>());
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result, bool check_empty_slot = false);
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);

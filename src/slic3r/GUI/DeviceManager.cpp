@@ -880,7 +880,28 @@ void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
     }
 }
 
-int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, bool ext_first, bool ext_second, std::vector<int> exclude_id)
+void MachineObject::parse_tray_info(int ams_id, int slot_id, AmsTray tray, FilamentInfo& result) {
+    result.color = tray.color;
+    result.type = tray.get_filament_type();
+    result.filament_id = tray.setting_id;
+    result.ctype = tray.ctype;
+    result.colors = tray.cols;
+
+    /*for new ams mapping*/
+    result.ams_id = std::to_string(ams_id);
+    result.slot_id = std::to_string(slot_id);
+
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID){
+        result.tray_id = atoi(tray.id.c_str());
+        result.id = atoi(tray.id.c_str());
+    }
+    else{
+        result.id = ams_id * 4 + slot_id;
+    }
+
+}
+
+int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id)
 {
     if (filaments.empty())
         return -1;
@@ -889,7 +910,6 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     std::map<int, FilamentInfo> tray_filaments;
 
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
-
         std::string ams_id = ams->second->id;
         FilamentInfo info;
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
@@ -902,48 +922,21 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     continue;
             }
             // push
-            if (tray->second->is_tray_info_ready()) {
-                info.color = tray->second->color;
-                info.type = tray->second->get_filament_type();
-                info.id = tray_index;
-                info.filament_id = tray->second->setting_id;
-                info.ctype = tray->second->ctype;
-                info.colors = tray->second->cols;
-
-                /*for new ams mapping*/
-                info.ams_id = ams->first.c_str();
-                info.slot_id = tray->first.c_str();
-            }
+            if (tray->second->is_tray_info_ready())
+                parse_tray_info(ams_id, tray_id, *(tray->second), info);
 
             //first: left,nozzle=1,map=1   second: right,nozzle=0,map=2
-            if ((!ext_first && !ext_second) || (ams->second->nozzle == 0 && ext_second) || (ams->second->nozzle == 1 && ext_first))
-            {
+            if ((ams->second->nozzle == 0 && map_opt[MappingOption::USE_RIGHT_AMS]) || (ams->second->nozzle == 1 && map_opt[MappingOption::USE_LEFT_AMS]))
                 tray_filaments.emplace(std::make_pair(tray_index, info));
-            }
         }
     }
 
-    if (ext_first || ext_second)
-    {
-        for (auto tray : vt_slot)
-        {
-            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && ext_second) || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && ext_first))
-            {
-
+    if (map_opt[MappingOption::USE_RIGHT_EXT] || map_opt[MappingOption::USE_LEFT_EXT]){
+        for (auto tray : vt_slot){
+            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && map_opt[MappingOption::USE_RIGHT_EXT])
+                || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && map_opt[MappingOption::USE_LEFT_EXT])){
                 FilamentInfo info;
-                info.color = tray.color;
-                //info.color = "EEEEEEFF";
-                info.type = tray.get_filament_type();
-                //info.type = "PLA"; //temp change
-                info.tray_id = atoi(tray.id.c_str());
-                info.id = atoi(tray.id.c_str());
-                info.filament_id = tray.setting_id;
-                info.ctype = tray.ctype;
-                info.colors = tray.cols;
-
-                /*for new ams mapping*/
-                info.ams_id = tray.id.c_str();
-                info.slot_id = std::to_string(0);
+                parse_tray_info(atoi(tray.id.c_str()), 0, tray, info);
                 tray_filaments.emplace(std::make_pair(info.tray_id, info));
             }
         }
