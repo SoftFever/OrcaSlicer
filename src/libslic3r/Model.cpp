@@ -3344,7 +3344,7 @@ ModelInstanceEPrintVolumeState ModelInstance::calc_print_volume_state(const Buil
 
             const Transform3d matrix = this->get_matrix() * vol->get_matrix();
 
-            const auto bboxt = bb.transformed(matrix);
+            const auto bboxt = vol->get_convex_hull().transformed_bounding_box(matrix);
             const BoundingBoxf bbox2d{to_2d(bboxt.min), to_2d(bboxt.max)};
             BuildVolume::ObjectState state;
             if (!build_volume.bounding_volume2d().inflated(BuildVolume::SceneEpsilon).overlap(bbox2d))
