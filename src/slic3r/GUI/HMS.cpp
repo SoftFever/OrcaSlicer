@@ -243,14 +243,15 @@ wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_
     return wxEmptyString;
 }
 
-wxString HMSQuery::_query_error_msg(std::string error_code, std::string lang_code)
+bool HMSQuery::_query_error_msg(wxString &error_msg, std::string error_code, std::string lang_code)
 {
     if (m_hms_info_json.contains("device_error")) {
         if (m_hms_info_json["device_error"].contains(lang_code)) {
             for (auto item = m_hms_info_json["device_error"][lang_code].begin(); item != m_hms_info_json["device_error"][lang_code].end(); item++) {
                 if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
                     if (item->contains("intro")) {
-                        return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                        error_msg = wxString::FromUTF8((*item)["intro"].get<std::string>());
+                        return true;
                     }
                 }
             }
@@ -263,7 +264,8 @@ wxString HMSQuery::_query_error_msg(std::string error_code, std::string lang_cod
                     for (auto item = lang.begin(); item != lang.end(); item++) {
                         if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
                             if (item->contains("intro")) {
-                                return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                                error_msg = wxString::FromUTF8((*item)["intro"].get<std::string>());
+                                return true;
                             }
                         }
                     }
@@ -273,9 +275,11 @@ wxString HMSQuery::_query_error_msg(std::string error_code, std::string lang_cod
     }
     else {
         BOOST_LOG_TRIVIAL(info) << "device_error is not exists";
-        return wxEmptyString;
+        error_msg = wxEmptyString;
+        return false;
     }
-    return wxEmptyString;
+    error_msg = wxEmptyString;
+    return false;
 }
 
 wxString HMSQuery::_query_error_url_action(std::string long_error_code, std::string dev_id, std::vector<int>& button_action)
@@ -305,12 +309,12 @@ wxString HMSQuery::_query_error_url_action(std::string long_error_code, std::str
 }
 
 
-wxString HMSQuery::query_print_error_msg(int print_error)
+bool HMSQuery::query_print_error_msg(int print_error, wxString &error_msg)
 {
     char buf[32];
     ::sprintf(buf, "%08X", print_error);
     std::string lang_code = HMSQuery::hms_language_code();
-    return _query_error_msg(std::string(buf), lang_code);
+    return _query_error_msg(error_msg, std::string(buf), lang_code);
 }
 
 wxString HMSQuery::query_print_error_url_action(int print_error, std::string dev_id, std::vector<int>& button_action)

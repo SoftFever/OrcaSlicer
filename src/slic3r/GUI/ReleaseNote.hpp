@@ -189,7 +189,7 @@ public:
         const wxSize& size = wxDefaultSize,
         long            style = wxCLOSE_BOX | wxCAPTION
     );
-    void update_text_image(wxString text, wxString image_url);
+    void update_text_image(const wxString& text, const wxString& error_code,const wxString& image_url);
     void on_show();
     void on_hide();
     void update_title_style(wxString title, std::vector<int> style, wxWindow* parent = nullptr);
@@ -206,6 +206,7 @@ public:
     wxWebRequest web_request;
     wxStaticBitmap* m_error_prompt_pic_static;
     Label* m_staticText_release_note{ nullptr };
+    Label* m_staticText_error_code{ nullptr };
     wxBoxSizer* m_sizer_main;
     wxBoxSizer* m_sizer_button;
     wxScrolledWindow* m_vebview_release_note{ nullptr };

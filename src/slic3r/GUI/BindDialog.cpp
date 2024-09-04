@@ -760,7 +760,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
-             extra = wxGetApp().get_hms_query()->query_print_error_msg(error_code);
+             wxGetApp().get_hms_query()->query_print_error_msg(error_code, extra);
          }
      }
      catch (...) {

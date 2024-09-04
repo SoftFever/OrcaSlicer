@@ -896,7 +896,7 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
 
     bottom_sizer->Add(m_sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
-    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
@@ -952,20 +952,34 @@ void PrintErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
     }
 }
 
-void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
+void PrintErrorDialog::update_text_image(const wxString& text, const wxString& error_code, const wxString& image_url)
 {
     //if (!m_sizer_text_release_note) {
     //    m_sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     //}
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
-    
+    wxString error_code_msg = error_code;
+    if (!error_code.IsEmpty()) {
+        wxDateTime now       = wxDateTime::Now();
+        wxString  show_time = now.Format("%H%M%d");
+        error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
+    }
+
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
         sizer_text_release_note->Add(m_error_prompt_pic_static, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->AddSpacer(10);
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER , FromDIP(5));
-        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
+    if (!m_staticText_error_code) {
+        m_staticText_error_code = new Label(m_vebview_release_note, error_code_msg, LB_AUTO_WRAP);
+        sizer_text_release_note->AddSpacer(5);
+        sizer_text_release_note->Add(m_staticText_error_code, 0, wxALIGN_CENTER, FromDIP(5));
+    }
+
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+
     if (!image_url.empty()) {
         web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
         BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
@@ -982,6 +996,9 @@ void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetLabelText(text);
+    m_staticText_error_code->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetMinSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetLabelText(error_code_msg);
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
@@ -1048,7 +1065,8 @@ void PrintErrorDialog::update_title_style(wxString title, std::vector<int> butto
 
 }
 
-void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
+void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
+{
     Button* print_error_button = new Button(this, buton_text);
     print_error_button->SetBackgroundColor(btn_bg_white);
     print_error_button->SetBorderColor(wxColour(38, 46, 48));
@@ -1062,8 +1080,8 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
 
 }
 
-void PrintErrorDialog::init_button_list() {
-    
+void PrintErrorDialog::init_button_list()
+{
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
