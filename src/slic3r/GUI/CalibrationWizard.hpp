@@ -30,6 +30,12 @@ public:
     }
 };
 
+struct ConfigIndexValue
+{
+    float value{0};
+    int   index{0};
+};
+
 class CalibrationWizard : public wxPanel {
 public:
     CalibrationWizard(wxWindow* parent, CalibMode mode,
@@ -61,6 +67,7 @@ public:
     CalibMode get_calibration_mode() { return m_mode; }
 
     bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, wxString& message);
+    bool save_preset_with_index(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigIndexValue> &key_values, wxString &message);
 
     virtual void cache_preset_info(MachineObject* obj, float nozzle_dia);
     virtual void recover_preset_info(MachineObject *obj);

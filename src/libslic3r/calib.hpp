@@ -75,6 +75,8 @@ class CaliPresetInfo
 {
 public:
     int         tray_id;
+    int         extruder_id;
+    NozzleVolumeType nozzle_volume_type;
     float       nozzle_diameter;
     std::string filament_id;
     std::string setting_id;
@@ -83,6 +85,8 @@ public:
     CaliPresetInfo &operator=(const CaliPresetInfo &other)
     {
         this->tray_id         = other.tray_id;
+        this->extruder_id     = other.extruder_id;
+        this->nozzle_volume_type = other.nozzle_volume_type;
         this->nozzle_diameter = other.nozzle_diameter;
         this->filament_id     = other.filament_id;
         this->setting_id      = other.setting_id;

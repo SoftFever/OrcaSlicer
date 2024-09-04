@@ -33,6 +33,32 @@ std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     return selected_filament_map;
 }
 
+struct TrayInfo
+{
+    int     extruder_id;
+    NozzleVolumeType nozzle_volume_type;
+    Preset *preset;
+};
+std::map<int, TrayInfo> get_cached_selected_filament_for_multi_extruder(MachineObject *obj)
+{
+    std::map<int, TrayInfo> selected_filament_map;
+    if (!obj)
+        return selected_filament_map;
+
+    PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+    for (auto selected_prest : obj->selected_cali_preset) {
+        TrayInfo tray_info;
+        tray_info.preset = filament_presets->find_preset(selected_prest.name);
+        if (!tray_info.preset)
+            continue;
+
+        tray_info.extruder_id = selected_prest.extruder_id;
+        tray_info.nozzle_volume_type = selected_prest.nozzle_volume_type;
+        selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, tray_info));
+    }
+    return selected_filament_map;
+}
+
 bool is_pa_params_valid(const Calib_Params& params)
 {
     if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
@@ -287,6 +313,85 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     return true;
 }
 
+bool CalibrationWizard::save_preset_with_index(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigIndexValue> &key_values, wxString &message)
+{
+    if (new_preset_name.empty()) {
+        message = _L("The name cannot be empty.");
+        return false;
+    }
+
+    PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+    Preset           *preset           = filament_presets->find_preset(old_preset_name);
+    if (!preset) {
+        message = wxString::Format(_L("The selected preset: %s is not found."), old_preset_name);
+        return false;
+    }
+
+    Preset temp_preset = *preset;
+
+    std::string new_name     = filament_presets->get_preset_name_by_alias(new_preset_name);
+    bool        exist_preset = false;
+    // If name is current, get the editing preset
+    Preset *new_preset = filament_presets->find_preset(new_name);
+    if (new_preset) {
+        if (new_preset->is_system) {
+            message = _L("The name cannot be the same as the system preset name.");
+            return false;
+        }
+
+        if (new_preset != preset) {
+            message = _L("The name is the same as another existing preset name");
+            return false;
+        }
+        if (new_preset != &filament_presets->get_edited_preset())
+            new_preset = &temp_preset;
+        exist_preset = true;
+    } else {
+        new_preset = &temp_preset;
+    }
+
+    for (auto item : key_values) {
+        auto config_opt = new_preset->config.option<ConfigOptionFloatsNullable>(item.first);
+        if (!config_opt) {
+            auto& config_value = config_opt->values;
+            config_value[item.second.index] = item.second.value;
+        }
+    }
+
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+    filament_presets->save_current_preset(new_name, false, false, new_preset);
+
+    // BBS create new settings
+    new_preset = filament_presets->find_preset(new_name, false, true);
+    // Preset* preset = &m_presets.preset(it - m_presets.begin(), true);
+    if (!new_preset) {
+        BOOST_LOG_TRIVIAL(info) << "create new preset failed";
+        message = _L("create new preset failed.");
+        return false;
+    }
+
+    // set sync_info for sync service
+    if (exist_preset) {
+        new_preset->sync_info = "update";
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: update preset = " << new_preset->name;
+    } else {
+        new_preset->sync_info = "create";
+        if (wxGetApp().is_user_login()) new_preset->user_id = wxGetApp().getAgent()->get_user_id();
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
+    }
+    new_preset->save_info();
+
+    // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are
+    // no more compatible.
+    wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+
+    // BBS if create a new prset name, preset changed from preset name to new preset name
+    if (!exist_preset) { wxGetApp().plater()->sidebar().update_presets_from_to(Preset::Type::TYPE_FILAMENT, old_preset_name, new_preset->name); }
+
+    return true;
+}
+
 void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
 {
     if (!obj) return;
@@ -303,6 +408,14 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
         result.filament_id = item.second->filament_id;
         result.setting_id = item.second->setting_id;
         result.name = item.second->name;
+
+        if (obj->is_multi_extruders()) {
+            int ams_id, slot_id, tray_id;
+            get_tray_ams_and_slot_id(result.extruder_id, ams_id, slot_id, tray_id);
+            result.extruder_id = preset_page->get_extruder_id(ams_id);
+            result.nozzle_volume_type = preset_page->get_nozzle_volume_type(ams_id);
+        }
+
         obj->selected_cali_preset.push_back(result);
     }
 
@@ -1215,15 +1328,26 @@ void FlowRateWizard::on_cali_save()
 
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
-            std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
+            std::map<int, TrayInfo> selected_filaments = get_cached_selected_filament_for_multi_extruder(curr_obj);
+
+
+            std::map<std::string, ConfigIndexValue> key_value_map;
+            int index = 0;
             if (!selected_filaments.empty()) {
-                old_preset_name = selected_filaments.begin()->second->name;
+                TrayInfo tray_info = selected_filaments.begin()->second;
+                old_preset_name    = tray_info.preset->name;
+
+                // todo multi_extruder: get_extruder_type from obj
+                ExtruderType extruder_type = ExtruderType::etDirectDrive;
+                index = get_index_for_extruder_parameter(tray_info.preset->config, "filament_flow_ratio", tray_info.extruder_id, extruder_type, tray_info.nozzle_volume_type);
+                ConfigIndexValue config_value;
+                config_value.index = index;
+                config_value.value = new_flow_ratio;
+                key_value_map.insert(std::make_pair("filament_flow_ratio", config_value));
             }
-            std::map<std::string, ConfigOption*> key_value_map;
-            key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio }));
 
             wxString message;
-            if (!save_preset(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
+            if (!save_preset_with_index(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
                 MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                 error_msg_dlg.ShowModal();
                 return;

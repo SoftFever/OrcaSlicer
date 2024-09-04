@@ -775,10 +775,13 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
         m_main_ams_preview_panel  = new wxPanel(parent);
         auto ams_items_sizer      = new wxBoxSizer(wxHORIZONTAL);
         for (int i = 0; i < 5; i++) {  // most connect 4 ams(multi + single)
+            AMSModel ams_type = AMSModel::GENERIC_AMS;
             AMSinfo temp_info     = AMSinfo{std::to_string(i), std::vector<Caninfo>{}};
-            if (i == 4)
+            if (i == 4) {
                 temp_info.ams_type = AMSModel::EXT_AMS;
-            auto preview_ams_item = new AMSPreview(m_main_ams_preview_panel, wxID_ANY, temp_info);
+                ams_type           = AMSModel::EXT_AMS;
+            }
+            auto preview_ams_item = new AMSPreview(m_main_ams_preview_panel, wxID_ANY, temp_info, ams_type);
             m_main_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_main_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
@@ -834,10 +837,13 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
         m_deputy_ams_preview_panel = new wxPanel(parent);
         auto ams_items_sizer     = new wxBoxSizer(wxHORIZONTAL);
         for (int i = 0; i < 5; i++) { // most connect 4 ams(multi + single) + 1 vt_slot
+            AMSModel ams_type  = AMSModel::GENERIC_AMS;
             AMSinfo temp_info        = AMSinfo{std::to_string(i), std::vector<Caninfo>{}};
-            if (i == 4)
+            if (i == 4) {
                 temp_info.ams_type = AMSModel::EXT_AMS;
-            auto    preview_ams_item = new AMSPreview(m_deputy_ams_preview_panel, wxID_ANY, temp_info);
+                ams_type           = AMSModel::EXT_AMS;
+            }
+            auto preview_ams_item = new AMSPreview(m_deputy_ams_preview_panel, wxID_ANY, temp_info, ams_type);
             m_deputy_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_deputy_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
@@ -889,14 +895,14 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
     if (m_main_extruder_on_left) {
         m_main_sizer->GetStaticBox()->SetLabel("Left");
         m_deputy_sizer->GetStaticBox()->SetLabel("Right");
-        m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL, 10);
-        m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL, 10);
+        m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
+        m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
     }
     else {
         m_main_sizer->GetStaticBox()->SetLabel("Right");
         m_deputy_sizer->GetStaticBox()->SetLabel("Left");
-        m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL, 10);
-        m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL, 10);
+        m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
+        m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
     }
     m_multi_extruder_ams_panel_sizer->Add(m_multi_exturder_ams_sizer);
 
@@ -1457,16 +1463,19 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
         return;
     }
-    else if (!obj_->is_multi_extruders() && !obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
-        show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
-        return;
-    }
 
-    // check sdcard when if lan mode printer
-    if (obj_->is_lan_mode_printer()) {
-        if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-            show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
+    if (obj_->need_SD_card()) {
+        if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
             return;
+        }
+
+        // check sdcard when if lan mode printer
+        if (obj_->is_lan_mode_printer()) {
+            if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+                show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
+                return;
+            }
         }
     }
 
@@ -1783,7 +1792,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_comboBox_nozzle_volume_types[i]->SetSelection(0);
         }
 
-        if (obj->printer_type.find("O1D") != std::string::npos && m_main_extruder_on_left) {
+        if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
             m_left_nozzle_volume_type_sizer->Detach(0);
@@ -1791,15 +1800,15 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
             m_main_sizer->GetStaticBox()->SetLabel("Right");
             m_deputy_sizer->GetStaticBox()->SetLabel("Left");
-            m_multi_exturder_ams_sizer->Add(m_deputy_sizer);
-            m_multi_exturder_ams_sizer->Add(m_main_sizer);
+            m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
+            m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
             m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
             m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
 
             m_main_extruder_on_left = false;
         }
-        else if (obj->printer_type.find("O1D") == std::string::npos && !m_main_extruder_on_left) {
+        else if (obj->is_main_extruder_on_left() && !m_main_extruder_on_left) {
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
 
@@ -1808,8 +1817,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
             m_main_sizer->GetStaticBox()->SetLabel("Left");
             m_deputy_sizer->GetStaticBox()->SetLabel("Right");
-            m_multi_exturder_ams_sizer->Add(m_main_sizer);
-            m_multi_exturder_ams_sizer->Add(m_deputy_sizer);
+            m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
+            m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
             m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
             m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
@@ -1841,7 +1850,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         m_ext_spool_radiobox->SetValue(false);
         m_ams_radiobox->SetValue(false);
     }
-    else if ( !obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) )
+    else if (!obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)))
     {
         m_ext_spool_radiobox->SetValue(true);
         m_ams_radiobox->SetValue(false);
@@ -1929,6 +1938,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                     deputy_done = true;
                 }
             }
+
+            if (!main_done)
+                update_multi_extruder_filament_combobox(std::to_string(VIRTUAL_TRAY_MAIN_ID), 0);
+
+            if (!deputy_done)
+                update_multi_extruder_filament_combobox(std::to_string(VIRTUAL_TRAY_DEPUTY_ID), 1);
         }
     }
     else {
