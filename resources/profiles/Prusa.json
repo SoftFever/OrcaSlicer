@@ -255,16 +255,16 @@
             "sub_path": "process/0.40mm Standard @MINIIS.json"
         },
         {
-            "name": "process_common_mk3.5",
-            "sub_path": "process/process_common_mk3.5.json"
+            "name": "process_common_MK3.5",
+            "sub_path": "process/process_common_MK3.5.json"
         },
         {
-            "name": "process_speed_mk3.5",
-            "sub_path": "process/process_speed_mk3.5.json"
+            "name": "process_speed_MK3.5",
+            "sub_path": "process/process_speed_MK3.5.json"
         },
         {
-            "name": "process_detail_mk3.5",
-            "sub_path": "process/process_detail_mk3.5.json"
+            "name": "process_detail_MK3.5",
+            "sub_path": "process/process_detail_MK3.5.json"
         },
         {
             "name": "0.07mm Detail @MK3.5",
