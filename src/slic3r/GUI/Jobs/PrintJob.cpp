@@ -446,7 +446,7 @@ void PrintJob::process(Ctl &ctl)
             std::string curr_job_id;
             json job_info_j;
             try {
-                (void)job_info_j.parse(job_info);
+                std::ignore = job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
                     curr_job_id = job_info_j["job_id"].get<std::string>();
                 }
