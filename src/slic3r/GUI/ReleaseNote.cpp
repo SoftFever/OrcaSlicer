@@ -1858,6 +1858,7 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
     }
 
     if (detectData.bind_state == "occupied") {
+        update_test_msg(wxEmptyString, true);
         update_test_msg(_L("The printer has already been bound."), false);
         Layout();
         Fit();
@@ -1865,6 +1866,7 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
     }
 
     if (detectData.connect_type == "cloud") {
+        update_test_msg(wxEmptyString, true);
         update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
         Layout();
         Fit();
