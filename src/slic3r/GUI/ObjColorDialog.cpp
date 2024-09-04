@@ -388,7 +388,7 @@ bool ObjColorPanel::is_ok() {
 void ObjColorPanel::update_filament_ids()
 {
     if (m_is_add_filament) {
-        for (auto c:m_new_add_colors) {
+        for (auto c : m_new_add_final_colors) {
             /*auto evt = new ColorEvent(EVT_ADD_CUSTOM_FILAMENT, c);
             wxQueueEvent(wxGetApp().plater(), evt);*/
             wxGetApp().sidebar().add_custom_filament(c);
@@ -463,7 +463,7 @@ wxBoxSizer *ObjColorPanel::create_reset_btn_sizer(wxWindow *parent)
     StateColor calc_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     // create btn
     m_quick_reset_btn = new Button(parent, _L("Reset"));
-    m_quick_add_btn->SetToolTip(_L("Reset mapped extruders."));
+    m_quick_reset_btn->SetToolTip(_L("Reset mapped extruders."));
     auto cur_btn      = m_quick_reset_btn;
     cur_btn->SetFont(Label::Body_13);
     cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
@@ -532,7 +532,13 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
     c_editor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto *com_box = static_cast<ComboBox *>(evt.GetEventObject());
         int   i       = atoi(com_box->GetName().c_str());
-        if (i < m_cluster_map_filaments.size()) { m_cluster_map_filaments[i] = com_box->GetSelection(); }
+        if (i < m_cluster_map_filaments.size()) {
+            m_cluster_map_filaments[i] = com_box->GetSelection();
+            if (m_cluster_map_filaments[i] > m_max_filament_index) {
+                m_max_filament_index = m_cluster_map_filaments[i];
+                update_new_add_final_colors();
+            }
+        }
         evt.StopPropagation();
     });
     return c_editor;
@@ -567,7 +573,11 @@ void ObjColorPanel::deal_approximate_match_btn()
         auto new_index= color_dists[0].id;
         m_result_icon_list[i]->bitmap_combox->SetSelection(new_index);
         m_cluster_map_filaments[i] = new_index;
+        if (new_index > m_max_filament_index) {
+            m_max_filament_index = new_index;
+        }
     }
+    update_new_add_final_colors();
 }
 
 void ObjColorPanel::show_sizer(wxSizer *sizer, bool show)
@@ -681,6 +691,16 @@ void ObjColorPanel::draw_table()
     m_scrolledWindow->SetScrollRate(20, 20);
 }
 
+void ObjColorPanel::update_new_add_final_colors()
+{
+    m_new_add_final_colors = m_new_add_colors;
+    if (m_max_filament_index <= m_colours.size()) { // Fix 20240904
+        m_new_add_final_colors.clear();
+    } else {
+        m_new_add_final_colors.resize(m_max_filament_index - m_colours.size());
+    }
+}
+
 void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
 {
     if (m_last_cluster_number == cluster_number) {
@@ -768,6 +788,7 @@ void ObjColorPanel::deal_reset_btn()
     }
     m_is_add_filament = false;
     m_new_add_colors.clear();
+    m_new_add_final_colors.clear();
     m_warning_text->SetLabelText("");
 }
 
