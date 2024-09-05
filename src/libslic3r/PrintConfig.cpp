@@ -2809,7 +2809,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Maximum layer height for the combined sparse infill. \n\nSet it to 0 or 100% to use the nozzle diameter (for maximum reduction in print time) or a value of ~80% to maximize sparse infill strength.\n\n"
                      "The number of layers over which infill is combined is derived by dividing this value with the layer height and rounded down to the nearest decimal.\n\n"
-                     "Use either absolute mm values (eg. 0.32mm for a 0.4mm nozzle) or % values (eg 80%).");
+                     "Use either absolute mm values (eg. 0.32mm for a 0.4mm nozzle) or % values (eg 80%). This value must not be larger "
+                     "than the nozzle diameter.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
