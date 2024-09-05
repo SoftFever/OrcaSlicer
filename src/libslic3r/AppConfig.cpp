@@ -619,8 +619,10 @@ std::string AppConfig::load()
                         for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
                             CaliPresetInfo preset_info;
                             preset_info.tray_id     = cali_it.value()["tray_id"].get<int>();
-                            preset_info.extruder_id = cali_it.value()["extruder_id"].get<int>();
-                            preset_info.nozzle_volume_type  = NozzleVolumeType(cali_it.value()["nozzle_volume_type"].get<int>());
+                            if (cali_it.value().contains("extruder_id"))
+                                preset_info.extruder_id = cali_it.value()["extruder_id"].get<int>();
+                            if (cali_it.value().contains("nozzle_volume_type"))
+                                preset_info.nozzle_volume_type  = NozzleVolumeType(cali_it.value()["nozzle_volume_type"].get<int>());
                             preset_info.nozzle_diameter = cali_it.value()["nozzle_diameter"].get<float>();
                             preset_info.filament_id = cali_it.value()["filament_id"].get<std::string>();
                             preset_info.setting_id  = cali_it.value()["setting_id"].get<std::string>();

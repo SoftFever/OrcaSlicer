@@ -514,9 +514,8 @@ int CalibrationPresetPage::get_extruder_id(int ams_id)
     if (m_ams_id_to_extruder_id_map.find(ams_id) != m_ams_id_to_extruder_id_map.end()) {
         return m_ams_id_to_extruder_id_map[ams_id];
     }
-    else {
-        return -1;
-    }
+
+    return 0;
 }
 
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
@@ -662,7 +661,7 @@ void CalibrationPresetPage::init_selection_values()
         }
 
         for (size_t i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->SetSelection(int(NozzleVolumeType::nvtBigTraffic));
+            m_comboBox_nozzle_volume_types[i]->SetSelection(int(NozzleVolumeType::nvtNormal));  // default for single extruder printer
         }
     }
 }
@@ -1176,7 +1175,7 @@ void CalibrationPresetPage::on_recommend_input_value()
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_stage_panel) {
         Preset *selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
-            const ConfigOptionFloats* flow_ratio_opt = selected_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio");
+            const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
             }
@@ -2011,7 +2010,6 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                 info.parse_ext_info(obj, vt_tray);
                 info.ams_type = AMSModel::EXT_AMS;
 
-                assert(m_main_ams_preview_list.size() == 4);
                 AMSPreview *vt_item = m_main_ams_preview_list[4];
                 vt_item->Update(info);
                 vt_item->Open();
@@ -2021,7 +2019,6 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                 info.parse_ext_info(obj, vt_tray);
                 info.ams_type = AMSModel::EXT_AMS;
 
-                assert(m_deputy_ams_preview_list.size() == 4);
                 AMSPreview *vt_item = m_deputy_ams_preview_list[4];
                 vt_item->Update(info);
                 vt_item->Open();
@@ -2203,7 +2200,7 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
     if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
         std::map<int, Preset*> selected_filaments = get_selected_filaments();
         if (!selected_filaments.empty()) {
-            const ConfigOptionFloats* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloats>("filament_flow_ratio");
+            const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
                 value = flow_ratio_opt->get_at(0);

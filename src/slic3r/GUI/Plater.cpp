@@ -10357,13 +10357,11 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
         cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
     }
 
-    auto new_params = params;
-    auto mm3_per_mm = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() *
-                      filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-    new_params.end = params.end / mm3_per_mm;
+    auto new_params  = params;
+    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config->option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0);
+    new_params.end   = params.end / mm3_per_mm;
     new_params.start = params.start / mm3_per_mm;
-    new_params.step = params.step / mm3_per_mm;
-
+    new_params.step  = params.step / mm3_per_mm;
 
     p->background_process.fff_print()->set_calib_params(new_params);
 }

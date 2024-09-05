@@ -242,7 +242,7 @@ std::string CalibPressureAdvance::draw_line(
     const double e_per_mm = CalibPressureAdvance::e_per_mm(line_width, layer_height,
                                                            m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0),
                                                            m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
-                                                           m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0));
+                                                           m_config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0));
 
     const double length = get_distance(Vec2d(m_last_pos.x(), m_last_pos.y()), to_pt);
     auto         dE     = e_per_mm * length;

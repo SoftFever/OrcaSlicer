@@ -157,6 +157,8 @@ protected:
     void update(MachineObject* obj) override;
 
     void on_device_connected(MachineObject* obj) override;
+
+    std::map<std::string, ConfigIndexValue> generate_index_key_value(MachineObject *obj, const std::string &key, float value);
 };
 
 class MaxVolumetricSpeedWizard : public CalibrationWizard {

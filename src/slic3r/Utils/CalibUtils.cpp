@@ -836,7 +836,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     }
 
     auto new_params  = params;
-    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0);
     new_params.end   = params.end / mm3_per_mm;
     new_params.start = params.start / mm3_per_mm;
     new_params.step  = params.step / mm3_per_mm;

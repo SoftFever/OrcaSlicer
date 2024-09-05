@@ -352,9 +352,12 @@ bool CalibrationWizard::save_preset_with_index(const std::string &old_preset_nam
 
     for (auto item : key_values) {
         auto config_opt = new_preset->config.option<ConfigOptionFloatsNullable>(item.first);
-        if (!config_opt) {
+        if (config_opt) {
             auto& config_value = config_opt->values;
             config_value[item.second.index] = item.second.value;
+        }
+        else {
+            message = wxString::Format(_L("Could not find parameter: %s."), item.first);
         }
     }
 
@@ -414,6 +417,10 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
             get_tray_ams_and_slot_id(result.extruder_id, ams_id, slot_id, tray_id);
             result.extruder_id = preset_page->get_extruder_id(ams_id);
             result.nozzle_volume_type = preset_page->get_nozzle_volume_type(ams_id);
+        }
+        else {
+            result.extruder_id = 0;
+            result.nozzle_volume_type = NozzleVolumeType::nvtNormal;
         }
 
         obj->selected_cali_preset.push_back(result);
@@ -663,7 +670,7 @@ static bool get_preset_info(const DynamicConfig& config, const BedType plate_typ
 
 static bool get_flow_ratio(const DynamicConfig& config, float& flow_ratio)
 {
-    const ConfigOptionFloats *flow_ratio_opt = config.option<ConfigOptionFloats>("filament_flow_ratio");
+    const ConfigOptionFloatsNullable *flow_ratio_opt = config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
     if (flow_ratio_opt) {
         flow_ratio = flow_ratio_opt->get_at(0);
         if (flow_ratio > 0)
@@ -1209,7 +1216,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             }
             else if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 cali_stage = 2;
-                temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ cali_value });
+                auto flow_ratio_values = temp_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->values;
+                std::map<std::string, ConfigIndexValue> key_value_map = generate_index_key_value(curr_obj, "filament_flow_ratio", cali_value);
+                if (!key_value_map.empty()) {
+                    flow_ratio_values[key_value_map.begin()->second.index] = key_value_map.begin()->second.value;
+                }
+
+                temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloatsNullable{flow_ratio_values});
                 if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
                     calib_info.process_bar = preset_page->get_sending_progress_bar();
                 }
@@ -1287,7 +1300,7 @@ void FlowRateWizard::on_cali_save()
             }
             for (int i = 0; i < new_results.size(); i++) {
                 std::map<std::string, ConfigOption*> key_value_map;
-                key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_results[i].second }));
+                key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloatsNullable{ new_results[i].second }));
                 wxString message;
                 if (!save_preset(old_preset_name, into_u8(new_results[i].first), key_value_map, message)) {
                     MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
@@ -1329,21 +1342,10 @@ void FlowRateWizard::on_cali_save()
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, TrayInfo> selected_filaments = get_cached_selected_filament_for_multi_extruder(curr_obj);
+            std::map<std::string, ConfigIndexValue> key_value_map = generate_index_key_value(curr_obj, "filament_flow_ratio", new_flow_ratio);
 
-
-            std::map<std::string, ConfigIndexValue> key_value_map;
-            int index = 0;
             if (!selected_filaments.empty()) {
-                TrayInfo tray_info = selected_filaments.begin()->second;
-                old_preset_name    = tray_info.preset->name;
-
-                // todo multi_extruder: get_extruder_type from obj
-                ExtruderType extruder_type = ExtruderType::etDirectDrive;
-                index = get_index_for_extruder_parameter(tray_info.preset->config, "filament_flow_ratio", tray_info.extruder_id, extruder_type, tray_info.nozzle_volume_type);
-                ConfigIndexValue config_value;
-                config_value.index = index;
-                config_value.value = new_flow_ratio;
-                key_value_map.insert(std::make_pair("filament_flow_ratio", config_value));
+                old_preset_name = selected_filaments.begin()->second.preset->name;
             }
 
             wxString message;
@@ -1402,6 +1404,28 @@ void FlowRateWizard::on_device_connected(MachineObject* obj)
             }
         }
     }
+}
+
+std::map<std::string, ConfigIndexValue> FlowRateWizard::generate_index_key_value(MachineObject *obj, const std::string &key, float value)
+{
+    std::map<std::string, ConfigIndexValue> key_value_map;
+    if (!obj)
+        return key_value_map;
+
+    std::map<int, TrayInfo> selected_filaments = get_cached_selected_filament_for_multi_extruder(obj);
+    int  index = 0;
+    if (!selected_filaments.empty()) {
+        TrayInfo tray_info = selected_filaments.begin()->second;
+        // todo multi_extruder: get_extruder_type from obj
+        ExtruderType extruder_type = ExtruderType::etDirectDrive;
+        index = get_index_for_extruder_parameter(tray_info.preset->config, "filament_flow_ratio", tray_info.extruder_id, extruder_type, tray_info.nozzle_volume_type);
+        ConfigIndexValue config_value;
+        config_value.index = index;
+        config_value.value = value;
+        key_value_map.insert(std::make_pair("filament_flow_ratio", config_value));
+    }
+
+    return key_value_map;
 }
 
 void FlowRateWizard::set_cali_method(CalibrationMethod method)

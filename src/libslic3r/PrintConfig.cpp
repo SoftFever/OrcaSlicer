@@ -1961,7 +1961,8 @@ void PrintConfigDef::init_fff_params()
                      "You may be able to tune this value to get a nice flat surface if there is slight overflow or underflow.");
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 1. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 1. });
 
     def = this->add("print_flow_ratio", coFloat);
     def->label = L("Flow ratio");
@@ -7214,6 +7215,7 @@ std::set<std::string> print_options_with_variant = {
 };
 
 std::set<std::string> filament_options_with_variant = {
+    "filament_flow_ratio",
     "filament_max_volumetric_speed",
     //"filament_extruder_id",
     "filament_extruder_variant",

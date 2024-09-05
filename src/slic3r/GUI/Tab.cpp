@@ -3527,7 +3527,7 @@ void TabFilament::build()
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_flow_ratio_and_pressure_advance");
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("filament_flow_ratio");
+        optgroup->append_single_option_line("filament_flow_ratio", "", 0);
 
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
