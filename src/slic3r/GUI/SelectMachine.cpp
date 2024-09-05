@@ -1335,6 +1335,32 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<AmsTray> slots) {
     }
 }
 
+bool SelectMachineDialog::is_nozzle_type_match(NozzleData data) {
+    if (data.total_nozzle_count <= 1 || data.nozzles.size() <= 1 || !wxGetApp().preset_bundle)
+        return false;
+
+    //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
+    std::vector<std::string>flow_type_of_machine;
+    for (auto it = data.nozzles.rbegin(); it != data.nozzles.rend(); it++) {
+        std::string str_flow = it->flow_type ? "Big Traffic" : "Normal";
+        flow_type_of_machine.push_back(str_flow);
+    }
+    //get the nozzle type of preset --> flow_types
+    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
+    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
+    auto flow_data = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_printer->name);
+    std::vector<string> flow_types;
+    boost::split(flow_types, flow_data, boost::is_any_of(","));
+
+    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
+
+    //Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
+    for (int i = 0; i < flow_types.size(); i++) {
+        if (flow_types[i] != flow_type_of_machine[i]) return false;
+    }
+    return true;
+}
+
 void SelectMachineDialog::prepare(int print_plate_idx)
 {
     m_print_plate_idx = print_plate_idx;
@@ -1527,6 +1553,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with Ams");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid) {
+        wxString msg_text = _L("Please check whether the nozzle type of the device is the same as the preset nozzle type.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -2950,6 +2981,13 @@ void SelectMachineDialog::update_show_status()
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
+    //the nozzle type of preset and machine are different
+    if (nozzle_nums > 1 && !is_nozzle_type_match(obj_->m_nozzle_data)) {
+        show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
+        return;
+    }
+
     if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
     {
         bool useAms = false;

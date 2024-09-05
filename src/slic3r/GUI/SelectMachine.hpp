@@ -74,6 +74,7 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingInvalid,
     PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingMixInvalid,
+    PrintStatusNozzleMatchInvalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -375,6 +376,7 @@ public:
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(NozzleData data);
     void auto_supply_with_ext(std::vector<AmsTray> slots);
+    bool is_nozzle_type_match(NozzleData data);
 
     std::string get_print_status_info(PrintDialogStatus status);
 
