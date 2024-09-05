@@ -1276,6 +1276,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool, independent_support_layer_height))
     // SoftFever
     ((ConfigOptionPercents,            filament_shrink))
+    ((ConfigOptionPercents,            filament_shrinkage_compensation_z))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))

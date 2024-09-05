@@ -468,14 +468,7 @@ void Tab::create_preset_tab()
     // so that the cursor jumps to the last item.
     // BBS: bold selection
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& event) {
-        if (m_disable_tree_sel_changed_event)
-            return;
         const auto sel_item = m_tabctrl->GetSelection();
-        //OutputDebugStringA("wxEVT_TAB_SEL_CHANGING ");
-        //OutputDebugStringA(m_title.c_str());
-        //const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
-        //OutputDebugString(selection);
-        //OutputDebugStringA("\n");
         m_tabctrl->SetItemBold(sel_item, false);
         });
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& event) {
@@ -3253,6 +3246,7 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
+        optgroup->append_single_option_line("filament_shrinkage_compensation_z");
         optgroup->append_single_option_line("filament_cost");
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
@@ -4464,7 +4458,7 @@ void TabPrinter::toggle_options()
             toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
     }
 
@@ -5283,10 +5277,10 @@ bool Tab::update_current_page_in_background(int& item)
 
         // clear pages from the controlls
         // BBS: fix after new layout, clear page in backgroud
-        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
-            m_parent->clear_page();
         for (auto p : m_pages)
             p->clear();
+        if (m_parent->is_active_and_shown_tab((wxPanel*)this))
+            m_parent->clear_page();
 
         update_undo_buttons();
 
