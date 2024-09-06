@@ -127,6 +127,8 @@ public:
     void set_is_validation_mode(bool mode) { validation_mode = mode; }
     void set_vendor_to_validate(std::string vendor) { vendor_to_validate = vendor; }
 
+    std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
+
     std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
                                                                                                std::string &      nozzle_diameter_str,
@@ -188,7 +190,7 @@ public:
     DynamicPrintConfig          full_config_secure(std::vector<int> filament_maps = std::vector<int>()) const;
 
     //BBS: add some functions for multiple extruders
-    int get_printer_extruder_count();
+    int get_printer_extruder_count() const;
     bool support_different_extruders();
 
     // Load user configuration and store it into the user profiles.

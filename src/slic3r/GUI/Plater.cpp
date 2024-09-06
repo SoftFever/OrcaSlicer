@@ -5536,6 +5536,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_filament_maps();
         invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false, f_maps));
+        background_process.fff_print()->set_extruder_filament_info(wxGetApp().preset_bundle->get_extruder_filament_info());
     }
     else
         invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false));

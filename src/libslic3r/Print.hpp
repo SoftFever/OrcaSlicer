@@ -957,6 +957,10 @@ public:
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
 
+    const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
+    void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
+
+    // 1 based ids
     const std::vector<std::vector<int>>& get_unprintable_filament_ids() const { return m_unprintable_filament_ids; }
     void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids) { m_unprintable_filament_ids = filament_ids; }
 
@@ -1080,6 +1084,8 @@ private:
     // It does NOT encompass MMU/MMU2 starting (wipe) areas.
     Polygon                                 m_first_layer_convex_hull;
     Points                                  m_skirt_convex_hull;
+
+    std::vector<std::vector<DynamicPrintConfig>> m_extruder_filament_info;
 
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;

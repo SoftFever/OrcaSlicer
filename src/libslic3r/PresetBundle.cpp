@@ -1997,6 +1997,23 @@ void PresetBundle::set_calibrate_printer(std::string name)
     }
 }
 
+std::vector<std::vector<DynamicPrintConfig>> PresetBundle::get_extruder_filament_info() const
+{
+    std::vector<std::vector<DynamicPrintConfig>> filament_infos;
+    int extruder_nums = get_printer_extruder_count();
+    if (extruder_nums > 1) {
+        filament_infos.resize(extruder_nums, std::vector<DynamicPrintConfig>());
+        for (auto ams_item : filament_ams_list) {
+            if (ams_item.first & 0x10000) { // right
+                filament_infos[1].push_back(ams_item.second);
+            } else { // left
+                filament_infos[0].push_back(ams_item.second);
+            }
+        }
+    }
+    return filament_infos;
+}
+
 std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str)
 {
     std::set<std::string> printer_names;
@@ -2116,9 +2133,9 @@ bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
     return true;
 }
 
-int PresetBundle::get_printer_extruder_count()
+int PresetBundle::get_printer_extruder_count() const
 {
-    Preset& printer_preset = this->printers.get_edited_preset();
+    const Preset& printer_preset = this->printers.get_edited_preset();
 
     int count = printer_preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
