@@ -3,6 +3,7 @@
 #include <queue>
 #include <random>
 #include <cassert>
+#include <sstream>
 
 namespace Slic3r
 {
@@ -50,6 +51,161 @@ namespace Slic3r
             }
         }
         return true;
+    }
+
+    static int calc_color_distance(const Color &src, const Color &dst)
+    {
+        double rmean = (src.r + dst.r) / 2.f;
+        double dr = src.r - dst.r;
+        double dg = src.g - dst.g;
+        double db = src.b - dst.b;
+
+        return sqrt((512 + rmean) / 256.f * dr * dr + 4 * dg * dg + (767 - rmean) / 256 * db * db);
+    }
+
+    // clear the array and heap,save the groups in heap to the array
+    static void change_memoryed_heaps_to_arrays(FilamentGroupUtils::MemoryedGroupHeap& heap,const int total_filament_num,const std::vector<unsigned int>& used_filaments, std::vector<std::vector<int>>& arrs)
+    {
+        // switch the label idx
+        arrs.clear();
+        while (!heap.empty()) {
+            auto top = heap.top();
+            heap.pop();
+            std::vector<int> labels_tmp(total_filament_num, 0);
+            for (size_t idx = 0; idx < top.group.size(); ++idx)
+                labels_tmp[used_filaments[idx]] = top.group[idx];
+            arrs.emplace_back(std::move(labels_tmp));
+        }
+    }
+
+    Color::Color(const std::string& hexstr) {
+        if (hexstr.empty() || (hexstr.length() != 9 && hexstr.length() != 7) || hexstr[0] != '#')
+        {
+            assert(false);
+            r = 0, g = 0, b = 0, a = 255;
+            return;
+        }
+
+        auto hexToByte = [](const std::string& hex)->unsigned char
+            {
+                unsigned int byte;
+                std::istringstream(hex) >> std::hex >> byte;
+                return static_cast<unsigned char>(byte);
+            };
+        r = hexToByte(hexstr.substr(1, 2));
+        g = hexToByte(hexstr.substr(3, 2));
+        b = hexToByte(hexstr.substr(5, 2));
+        if (hexstr.size() == 9)
+            a = hexToByte(hexstr.substr(7, 2));
+    }
+
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors_str, const std::vector<std::vector<std::string>>& ams_filament_colors_str)
+    {
+        assert(used_filaments.size() == ams_filament_colors_str.size());
+        // change the color str to real colors
+        std::vector<Color>used_filament_colors;
+        std::vector<std::vector<Color>>ams_filament_colors;
+        for (auto& item : used_filament_colors_str)
+            used_filament_colors.emplace_back(Color(item));
+
+        for (auto& arr : ams_filament_colors_str) {
+            std::vector<Color>tmp;
+            for (auto& item : arr)
+                tmp.emplace_back(Color(item));
+            ams_filament_colors.emplace_back(std::move(tmp));
+        }
+
+
+        int best_cost = std::numeric_limits<int>::max();
+        std::vector<int>best_map;
+        for (auto& map : map_lists) {
+            std::vector<std::vector<Color>>group_colors(2);
+
+            for (size_t i = 0; i < used_filaments.size(); ++i) {
+                if (map[used_filaments[i]] == 0)
+                    group_colors[0].emplace_back(used_filament_colors[i]);
+                else
+                    group_colors[1].emplace_back(used_filament_colors[i]);
+            }
+            int tmp_cost = 0;
+            for (size_t i = 0; i < 2; ++i) {
+                if (group_colors[i].empty() || ams_filament_colors[i].empty())
+                    continue;
+                std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(ams_filament_colors[i].size()));
+
+                // calculate color distance matrix
+                for (size_t src = 0; src < group_colors[i].size(); ++src) {
+                    for (size_t dst = 0; dst < ams_filament_colors[i].size(); ++dst)
+                        distance_matrix[src][dst] = calc_color_distance(group_colors[i][src], ams_filament_colors[i][dst]);
+                }
+
+                // get min cost by min cost max flow
+                std::vector<int>l_nodes(group_colors[i].size()), r_nodes(ams_filament_colors[i].size());
+                std::iota(l_nodes.begin(), l_nodes.end(), 0);
+                std::iota(r_nodes.begin(), r_nodes.end(), 0);
+                MCMF mcmf(distance_matrix, l_nodes, r_nodes);
+                auto ams_map = mcmf.solve();
+
+                for (size_t idx = 0; idx < ams_map.size(); ++idx) {
+                    if (ams_map[idx] == -1)
+                        continue;
+                    tmp_cost += distance_matrix[idx][ams_map[idx]];
+                }
+            }
+
+            if (tmp_cost < best_cost) {
+                best_cost = tmp_cost;
+                best_map = map;
+            }
+        }
+
+        return best_map;
+    }
+
+
+    void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double gap_threshold, MemoryedGroupHeap& groups)
+    {
+        auto emplace_if_accepatle = [gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
+            if (best.cost == 0) {
+                if (std::abs(elem.cost - best.cost) <= ABSOLUTE_FLUSH_GAP_TOLERANCE)
+                    heap.push(elem);
+                return;
+            }
+            double gap_rate = (double)std::abs(elem.cost - best.cost) / (double)best.cost;
+            if (gap_rate < gap_threshold)
+                heap.push(elem);
+            };
+
+        if (groups.empty()) {
+            groups.push(item);
+        }
+        else {
+            auto top = groups.top();
+            // we only memory items with the highest prefer level
+            if (top.prefer_level > item.prefer_level)
+                return;
+            else if (top.prefer_level == item.prefer_level) {
+                if (top.cost <= item.cost) {
+                    emplace_if_accepatle(groups, item, top);
+                }
+                // find a group with lower cost, rebuild the heap
+                else {
+                    MemoryedGroupHeap new_heap;
+                    new_heap.push(item);
+                    while (!groups.empty()) {
+                        auto top = groups.top();
+                        groups.pop();
+                        emplace_if_accepatle(new_heap, top, item);
+                    }
+                    groups = std::move(new_heap);
+                }
+            }
+            // find a group with the higher prefer level, rebuild the heap
+            else {
+                groups = MemoryedGroupHeap();
+                groups.push(item);
+            }
+        }
     }
 
     std::vector<unsigned int> collect_sorted_used_filaments(const std::vector<std::vector<unsigned int>>& layer_filaments)
@@ -217,7 +373,7 @@ namespace Slic3r
 
     void KMediods2::do_clustering(const FGStrategy& g_strategy, int timeout_ms)
     {
-        FlushTimeMachine T;
+        FilamentGroupUtils::FlushTimeMachine T;
         T.time_machine_start();
 
         if (m_elem_count < m_k) {
@@ -245,6 +401,15 @@ namespace Slic3r
                     best_cost = new_cost;
                     best_labels = new_labels;
                 }
+
+                {
+                    MemoryedGroup g;
+                    g.prefer_level = 1; // in non enum mode, we use the same prefer level
+                    g.cost = new_cost;
+                    g.group = new_labels;
+                    update_memoryed_groups(g, memory_threshold, memoryed_groups);
+                }
+
                 if (T.time_machine_end() > timeout_ms)
                     break;
             }
@@ -281,6 +446,9 @@ namespace Slic3r
         static constexpr int UNPLACEABLE_LIMIT_REWARD = 100;  // reward value if the group result follows the unprintable limit
         static constexpr int MAX_SIZE_LIMIT_REWARD = 10;    // reward value if the group result follows the max size per extruder
         static constexpr int BEST_FIT_LIMIT_REWARD = 1;     // reward value if the group result try to fill the max size per extruder
+
+        MemoryedGroupHeap memoryed_groups;
+
         auto bit_count_one = [](uint64_t n)
             {
                 int count = 0;
@@ -360,14 +528,25 @@ namespace Slic3r
                 best_cost = total_cost;
                 best_label = filament_maps;
             }
+
+            {
+                MemoryedGroup mg;
+                mg.prefer_level = prefer_level;
+                mg.cost = total_cost;
+                mg.group = std::move(filament_maps);
+                update_memoryed_groups(mg, memory_threshold, memoryed_groups);
+            }
         }
 
         if (cost)
             *cost = best_cost;
 
         std::vector<int> filament_labels(m_context.total_filament_num, 0);
-        for (int i = 0; i < best_label.size(); ++i)
+        for (size_t i = 0; i < best_label.size(); ++i)
             filament_labels[used_filaments[i]] = best_label[i];
+
+
+        change_memoryed_heaps_to_arrays(memoryed_groups, m_context.total_filament_num, used_filaments, m_memoryed_groups);
 
         return filament_labels;
     }
@@ -400,8 +579,15 @@ namespace Slic3r
         KMediods2 PAM((int)used_filaments.size(),distance_evaluator);
         PAM.set_max_cluster_size(m_context.max_group_size);
         PAM.set_unplaceable_limits(unplaceable_limits);
+        PAM.set_memory_threshold(memory_threshold);
         PAM.do_clustering(g_strategy, timeout_ms);
         std::vector<int>filament_labels = PAM.get_cluster_labels();
+
+
+        {
+            auto memoryed_groups = PAM.get_memoryed_groups();
+            change_memoryed_heaps_to_arrays(memoryed_groups, m_context.total_filament_num, used_filaments, m_memoryed_groups);
+        }
 
         if(cost)
             *cost=reorder_filaments_for_minimum_flush_volume(used_filaments,filament_labels,layer_filaments,m_context.flush_matrix,std::nullopt,nullptr);

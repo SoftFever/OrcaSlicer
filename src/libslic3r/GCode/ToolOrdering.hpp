@@ -234,7 +234,7 @@ public:
     * called in dual extruder mode, the value in map will be 0 or 1
     * 0 based group id
     */
-    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
+    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const Print* print, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
 
     static std::vector<std::set<int>> get_physical_unprintables(const std::vector<unsigned int>& layer_filaments, const PrintConfig* config, int master_extruder_id = 1);
     static std::vector<std::set<int>> get_geometrical_unprintables(const std::vector<std::vector<int>>& unprintable_arrs, const PrintConfig* config);

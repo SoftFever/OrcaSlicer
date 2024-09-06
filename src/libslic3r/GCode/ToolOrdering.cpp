@@ -890,7 +890,7 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
     return flush_volume;
 }
 
-std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
+std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const Print* print, const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
 {
     if (!print_config || layer_filaments.empty())
         return std::vector<int>();
@@ -968,8 +968,25 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         }
         else {
             FilamentGroup fg(context);
+            fg.set_memory_threshold(0.02);
             fg.get_custom_seq = get_custom_seq;
+
             ret = fg.calc_filament_group(layer_filaments, FGStrategy::BestFit);
+            auto memoryed_maps = fg.get_memoryed_groups();
+
+            std::vector<std::string>used_colors;
+            for (size_t idx = 0; idx < used_filaments.size(); ++idx)
+                used_colors.emplace_back(print_config->filament_colour.get_at(used_filaments[idx]));
+
+            auto ams_filament_info = print->get_extruder_filament_info();
+            std::vector<std::vector<std::string>> ams_colors;
+            for (auto& arr : ams_filament_info) {
+                std::vector<std::string>colors;
+                for (auto& item : arr)
+                    colors.emplace_back(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
+                ams_colors.emplace_back(std::move(colors));
+            }
+            ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors);
         }
     }
 
@@ -1046,7 +1063,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                     print_config = &(m_print_object_ptr->print()->config());
                 }
 
-                filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config, physical_unprintables, geometric_unprintables);
+                filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
 
                 if (filament_maps.empty())
                     return;
@@ -1144,7 +1161,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         if (map_mode == fmmManual)
         {
             std::vector<std::vector<unsigned int>>filament_sequences_one_extruder;
-            std::vector<int>filament_maps_auto = get_recommended_filament_maps(layer_filaments, print_config, physical_unprintables, geometric_unprintables);
+            std::vector<int>filament_maps_auto = get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
             reorder_filaments_for_minimum_flush_volume(
                 filament_lists,
                 filament_maps_auto,

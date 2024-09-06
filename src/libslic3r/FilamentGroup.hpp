@@ -7,37 +7,67 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <queue>
 #include "GCode/ToolOrderUtils.hpp"
 
 const static int DEFAULT_CLUSTER_SIZE = 16;
+
+const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 2000;
 
 namespace Slic3r
 {
     std::vector<unsigned int>collect_sorted_used_filaments(const std::vector<std::vector<unsigned int>>& layer_filaments);
 
-    struct FlushTimeMachine
-    {
-    private:
-        std::chrono::high_resolution_clock::time_point start;
-
-    public:
-        void time_machine_start()
-        {
-            start = std::chrono::high_resolution_clock::now();
-        }
-
-        int time_machine_end()
-        {
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-            return duration.count();
-        }
-    };
-
     enum FGStrategy {
         BestCost,
         BestFit
     };
+
+    struct Color
+    {
+        unsigned char r = 0;
+        unsigned char g = 0;
+        unsigned char b = 0;
+        unsigned char a = 255;
+        Color(unsigned char r_ = 0, unsigned char g_ = 0, unsigned char b_ = 0, unsigned a_ = 255) :r(r_), g(g_), b(b_), a(a_) {}
+        Color(const std::string& hexstr);
+    };
+
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors, const std::vector<std::vector<std::string>>& ams_filament_colros);
+
+    namespace FilamentGroupUtils
+    {
+        struct FlushTimeMachine
+        {
+        private:
+            std::chrono::high_resolution_clock::time_point start;
+
+        public:
+            void time_machine_start()
+            {
+                start = std::chrono::high_resolution_clock::now();
+            }
+
+            int time_machine_end()
+            {
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                return duration.count();
+            }
+        };
+
+        struct MemoryedGroup {
+            int cost{ 0 };
+            int prefer_level{ 0 };
+            std::vector<int>group;
+            bool operator>(const MemoryedGroup& other) const {
+                return prefer_level < other.prefer_level || (prefer_level == other.prefer_level && cost > other.cost);
+            }
+        };
+        using MemoryedGroupHeap = std::priority_queue<MemoryedGroup, std::vector<MemoryedGroup>, std::greater<MemoryedGroup>>;
+
+        void update_memoryed_groups(const MemoryedGroup& item,const double gap_threshold, MemoryedGroupHeap& groups);
+    }
 
     struct FilamentGroupContext
     {
@@ -62,14 +92,21 @@ namespace Slic3r
 
     class FilamentGroup
     {
+        using MemoryedGroupHeap = FilamentGroupUtils::MemoryedGroupHeap;
+        using MemoryedGroup = FilamentGroupUtils::MemoryedGroup;
     public:
         FilamentGroup(const FilamentGroupContext& context);
         std::vector<int> calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments, const FGStrategy& g_strategy = FGStrategy::BestFit, int* cost = nullptr);
     public:
         std::vector<int> calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr);
         std::vector<int> calc_filament_group_by_pam2(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr, int timeout_ms = 300);
+        void set_memory_threshold(double threshold) { memory_threshold = threshold; }
+        std::vector<std::vector<int>> get_memoryed_groups()const { return m_memoryed_groups; }
     private:
         FilamentGroupContext m_context;
+        double memory_threshold{ 0 };
+        std::vector<std::vector<int>> m_memoryed_groups;
+
     public:
         std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq;
     };
@@ -77,6 +114,9 @@ namespace Slic3r
 
     class KMediods2
     {
+        using MemoryedGroupHeap = FilamentGroupUtils::MemoryedGroupHeap;
+        using MemoryedGroup = FilamentGroupUtils::MemoryedGroup;
+
         enum INIT_TYPE
         {
             Random = 0,
@@ -97,6 +137,10 @@ namespace Slic3r
         void set_unplaceable_limits(const std::map<int, int>& placeable_limits) { m_unplaceable_limits = placeable_limits; }
 
         void do_clustering(const FGStrategy& g_strategy,int timeout_ms = 100);
+
+        void set_memory_threshold(double threshold) { memory_threshold; }
+        MemoryedGroupHeap get_memoryed_groups()const { return memoryed_groups; }
+
         std::vector<int>get_cluster_labels()const { return m_cluster_labels; }
 
     private:
@@ -109,6 +153,9 @@ namespace Slic3r
         std::vector<int>m_max_cluster_size;
         int m_elem_count;
         const int m_k = 2;
+
+        double memory_threshold{ 0 };
+        FilamentGroupUtils::MemoryedGroupHeap memoryed_groups;
 
         std::vector<int>m_cluster_labels;
     };
