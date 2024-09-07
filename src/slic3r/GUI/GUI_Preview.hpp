@@ -66,6 +66,7 @@ public:
     void exit_gizmo();
     void delete_selected();
     void center_selected();
+    void drop_selected();
     void center_selected_plate(const int plate_idx);
     void mirror_selection(Axis axis);
 

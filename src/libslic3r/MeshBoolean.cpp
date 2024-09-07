@@ -201,12 +201,12 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
     const auto &vertices = cgalmesh.vertices();
     int vsize = int(vertices.size());
 
-    for (auto &vi : vertices) {
+    for (const auto &vi : vertices) {
         auto &v = cgalmesh.point(vi); // Don't ask...
         its.vertices.emplace_back(to_vec3f(v));
     }
 
-    for (auto &face : faces) {
+    for (const auto &face : faces) {
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
