@@ -143,6 +143,15 @@ static bool str_is_all_digit(const std::string &str) {
     return true; 
 }
 
+// Custom comparator for case-insensitive sorting
+static bool caseInsensitiveCompare(const std::string& a, const std::string& b) {
+    std::string lowerA = a;
+    std::string lowerB = b;
+    std::transform(lowerA.begin(), lowerA.end(), lowerA.begin(), ::tolower);
+    std::transform(lowerB.begin(), lowerB.end(), lowerB.begin(), ::tolower);
+    return lowerA < lowerB;
+}
+
 static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select preset, name %1%") % delete_preset_name;
@@ -692,11 +701,19 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5)); 
 
-    wxArrayString choices;
-    for (const wxString vendor : filament_vendors) {
-        choices.push_back(vendor);
+    // Convert all std::any to std::string
+    std::vector<std::string> string_vendors;
+    for (const auto& vendor_any : filament_vendors) {
+        string_vendors.push_back(std::any_cast<std::string>(vendor_any));
     }
-    choices.Sort();
+
+    // Sort the vendors alphabetically
+    std::sort(string_vendors.begin(), string_vendors.end(), caseInsensitiveCompare);
+
+    wxArrayString choices;
+    for (const std::string &vendor : string_vendors) {
+        choices.push_back(wxString(vendor)); // Convert std::string to wxString before adding
+    }
 
     wxBoxSizer *vendor_sizer   = new wxBoxSizer(wxHORIZONTAL);
     m_filament_vendor_combobox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
@@ -4122,13 +4139,13 @@ wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     m_scrolled_preset_window = new wxScrolledWindow(parent);
     m_scrolled_preset_window->SetScrollRate(5, 5);
-    m_scrolled_preset_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
+    m_scrolled_preset_window->SetBackgroundColour(*wxWHITE);
     m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(660), FromDIP(400)));
     m_scrolled_preset_window->SetSize(wxSize(FromDIP(660), FromDIP(400)));
     wxBoxSizer *scrolled_window = new wxBoxSizer(wxHORIZONTAL);
 
     m_presets_window = new wxPanel(m_scrolled_preset_window, wxID_ANY);
-    m_presets_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
+    m_presets_window->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *select_printer_sizer  = new wxBoxSizer(wxVERTICAL);
 
     m_preset_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));

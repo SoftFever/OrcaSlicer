@@ -227,7 +227,7 @@ void DownPluginFrame::OnScriptMessage(wxWebViewEvent &evt)
             auto plugin_folder = (boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins").make_preferred().string();
             desktop_open_any_folder(plugin_folder);
         }
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }
