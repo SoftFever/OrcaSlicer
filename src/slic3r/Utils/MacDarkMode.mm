@@ -151,6 +151,9 @@ void openFolderForFile(wxString const & file)
 - (BOOL)performDragOperation2:(id<NSDraggingInfo>)info
 {
     NSURL* url = [NSURL URLFromPasteboard:[info draggingPasteboard]];
+    if (!url) {
+        return FALSE;
+    }
     NSString * path = [url path];
     url = [NSURL fileURLWithPath: path];
     [self loadFileURL:url allowingReadAccessToURL:url];
