@@ -38,7 +38,6 @@ class SupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
-#define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_DIAMETER   4
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
@@ -988,6 +987,8 @@ public:
      bool has_same_shrinkage_compensations() const;
     // Returns scaling for each axis representing shrinkage compensations in each axis.
      Vec3d shrinkage_compensation() const;
+
+    std::tuple<float, float> object_skirt_offset(double margin_height = 0) const;
 
 protected:
     // Invalidates the step, and its depending steps in Print.
