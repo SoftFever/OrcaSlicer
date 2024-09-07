@@ -17760,7 +17760,7 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "Wyładuj"
 
-#~ msgid "A problem occurred during calibration. Click to view the solution."
+#~ msgid "A problem occured during calibration. Click to view the solution."
 #~ msgstr ""
 #~ "Wystąpił problem podczas kalibracji. Kliknij, aby zobaczyć rozwiązanie."
 
@@ -17880,7 +17880,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Nie udało się pobrać informacji o modelach z drukarki."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Nie udało się sparsować informacji o modelach."
 
 #~ msgid "Connection lost. Please retry."
@@ -19034,10 +19034,6 @@ msgstr ""
 #~ "Aby modyfikować bryły stałe lub obszary ujemne, najpierw trzeba "
 #~ "unieważnić informacje o cięciu."
 
-#~ msgid "The target object contains only one part and can not be split."
-#~ msgstr ""
-#~ "Obiekt docelowy zawiera tylko jedną część i nie może zostać podzielony."
-
 #~ msgid ""
 #~ "If first selected item is an object, the second one should also be an "
 #~ "object."
@@ -19195,9 +19191,6 @@ msgstr ""
 
 #~ msgid "Connect Printer (LAN)"
 #~ msgstr "Podłącz drukarkę (LAN)"
-
-#~ msgid "Show g-code window in Preview scene"
-#~ msgstr "Pokaż okno G-code w scenie podglądu"
 
 #~ msgid ""
 #~ "Please heat the nozzle to above 170 degrees before loading or unloading "

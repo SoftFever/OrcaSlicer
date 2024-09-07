@@ -18198,7 +18198,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Failed to fetch model infomation from printer."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Fallo al analizar la información de modelado."
 
 #~ msgid "Connection lost. Please retry."
@@ -19946,7 +19946,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Preview only mode:\n"
-#~ "The loaded file contains gcode only."
+#~ "The loaded file contains G-Code only."
 #~ msgstr ""
 #~ "Modo de vista previa solamente:\n"
 #~ "El archivo cargado sólo contiene G-Code."

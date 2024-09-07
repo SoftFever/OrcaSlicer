@@ -18526,7 +18526,7 @@ msgstr ""
 #~ msgstr ""
 #~ "Impossible de récupérer les informations du modèle depuis l'imprimante."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Impossible d'analyser les informations du modèle."
 
 #~ msgid "Connection lost. Please retry."

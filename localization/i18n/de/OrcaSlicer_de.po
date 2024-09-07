@@ -5316,7 +5316,7 @@ msgstr "Modellinformationen werden abgerufen..."
 msgid "Failed to fetch model information from printer."
 msgstr "Abrufen von Modellinformationen vom Drucker fehlgeschlagen."
 
-msgid "Failed to parse model information."
+msgid "Failed to parse model infomations."
 msgstr "Analysieren von Modellinformationen fehlgeschlagen."
 
 msgid ""

@@ -17015,7 +17015,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "프린터에서 모델 정보를 가져오지 못했습니다."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "모델 정보를 해석하지 못했습니다."
 
 #~ msgid "Connection lost. Please retry."

@@ -16573,7 +16573,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Failed to fetch model infomation from printer."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Failed to parse model infomation"
 
 #~ msgid ""
