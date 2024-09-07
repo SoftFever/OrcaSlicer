@@ -12712,7 +12712,7 @@ msgstr ""
 msgid ""
 "Retraction state at the beginning of the custom G-code block. If the custom "
 "G-code moves the extruder axis, it should write to this variable so "
-"PrusaSlicer de-retracts correctly when it gets control back."
+"OrcaSlicer de-retracts correctly when it gets control back."
 msgstr ""
 
 msgid "Extra de-retraction"
