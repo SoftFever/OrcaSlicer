@@ -1366,26 +1366,26 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
-    def->label = L("Don't filter out small internal bridges (beta)");
+    def->label = L("Filter out small internal bridges (beta)");
     def->category = L("Quality");
     def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
                       "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
                       " over the sparse infill. This works well in most cases, speeding up printing without too much compromise"
                       " on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse"
                      " infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
-                      "Enabling this option will print internal bridge layer over slightly unsupported internal"
+                      "Disabling this option will print internal bridge layer over slightly unsupported internal"
                       " solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges "
                      "created.\n\n"
-                     "Disabled - Disables this option. This is the default behaviour and works well in most cases.\n\n"
-                     "Limited filtering - Creates internal bridges on heavily slanted surfaces, while avoiding creating "
+                     "Filter - enable this option. This is the default behaviour and works well in most cases.\n\n"
+                     "Limited filtering - creates internal bridges on heavily slanted surfaces, while avoiding creating "
                      "uncessesary interal bridges. This works well for most difficult models.\n\n"
-                     "No filtering - Creates internal bridges on every potential internal overhang. This option is useful "
+                     "No filtering - creates internal bridges on every potential internal overhang. This option is useful "
                      "for heavily slanted top surface models. However, in most cases it creates too many unecessary bridges.");
     def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
     def->enum_values.push_back("nofilter");
-    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Filter"));
     def->enum_labels.push_back(L("Limited filtering"));
     def->enum_labels.push_back(L("No filtering"));
     def->mode = comAdvanced;
@@ -2812,7 +2812,20 @@ void PrintConfigDef::init_fff_params()
                      "with original layer height.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-
+    
+    // Orca: max layer height for combined infill
+    def = this->add("infill_combination_max_layer_height", coFloatOrPercent);
+    def->label = L("Infill combination - Max layer height");
+    def->category = L("Strength");
+    def->tooltip = L("Maximum layer height for the combined sparse infill. \n\nSet it to 0 or 100% to use the nozzle diameter (for maximum reduction in print time) or a value of ~80% to maximize sparse infill strength.\n\n"
+                     "The number of layers over which infill is combined is derived by dividing this value with the layer height and rounded down to the nearest decimal.\n\n"
+                     "Use either absolute mm values (eg. 0.32mm for a 0.4mm nozzle) or % values (eg 80%). This value must not be larger "
+                     "than the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100., true));
+    
     def = this->add("sparse_infill_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Infill");
@@ -4572,17 +4585,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("default");
     def->enum_values.push_back("grid");
     def->enum_values.push_back("snug");
+    def->enum_values.push_back("organic");
     def->enum_values.push_back("tree_slim");
     def->enum_values.push_back("tree_strong");
     def->enum_values.push_back("tree_hybrid");
-    def->enum_values.push_back("organic");
-    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Default (Grid/Organic"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
+    def->enum_labels.push_back(L("Organic"));
     def->enum_labels.push_back(L("Tree Slim"));
     def->enum_labels.push_back(L("Tree Strong"));
     def->enum_labels.push_back(L("Tree Hybrid"));
-    def->enum_labels.push_back(L("Organic"));
+
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
