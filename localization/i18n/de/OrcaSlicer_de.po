@@ -5316,7 +5316,7 @@ msgstr "Modellinformationen werden abgerufen..."
 msgid "Failed to fetch model information from printer."
 msgstr "Abrufen von Modellinformationen vom Drucker fehlgeschlagen."
 
-msgid "Failed to parse model infomations."
+msgid "Failed to parse model information."
 msgstr "Analysieren von Modellinformationen fehlgeschlagen."
 
 msgid ""
@@ -18301,7 +18301,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Die Modellinformationen konnten nicht vom Drucker abgerufen werden."
 
-#~ msgid "Failed to parse model information."
+#~ msgid "Failed to parse model infomations."
 #~ msgstr "Modellinformationen konnten nicht analysiert werden"
 
 #~ msgid "Connection lost. Please retry."
