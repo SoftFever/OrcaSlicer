@@ -3057,7 +3057,7 @@ bool GLGizmoEmboss::choose_font_by_wxdialog()
 }
 #endif // ALLOW_ADD_FONT_BY_OS_SELECTOR
 
-#if defined ALLOW_ADD_FONT_BY_FILE or defined ALLOW_DEBUG_MODE
+#if defined ALLOW_ADD_FONT_BY_FILE || defined ALLOW_DEBUG_MODE
 namespace priv {
 static std::string get_file_name(const std::string &file_path)
 {
