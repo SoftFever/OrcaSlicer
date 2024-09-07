@@ -4054,7 +4054,7 @@ LayerResult GCode::process_layer(
         if (layer_tools.has_wipe_tower && m_wipe_tower)
             m_last_processor_extrusion_role = erWipeTower;
         
-        if (print.config().skirt_type == stCommon && !print.skirt().empty())
+        if (print.config().skirt_type == stCombined && !print.skirt().empty())
             gcode += generate_skirt(print, print.skirt(), Point(0,0), layer_tools, layer, extruder_id);
 
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
@@ -4090,7 +4090,7 @@ LayerResult GCode::process_layer(
         }
 
         // BBS
-        if (print.config().skirt_type == stObject &&
+        if (print.config().skirt_type == stPerObject &&
             print.config().print_sequence == PrintSequence::ByObject &&
             !layer.object()->object_skirt().empty() &&
             ((layer.id() < print.config().skirt_height || print.config().draft_shield == DraftShield::dsEnabled))
@@ -4126,7 +4126,7 @@ LayerResult GCode::process_layer(
                 gcode+="; PURGING FINISHED\n";
 
             for (InstanceToPrint &instance_to_print : instances_to_print) {
-                if (print.config().skirt_type == stObject && 
+                if (print.config().skirt_type == stPerObject && 
                     !instance_to_print.print_object.object_skirt().empty() &&
                     print.config().print_sequence == PrintSequence::ByLayer
                     &&

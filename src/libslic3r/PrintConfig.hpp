@@ -225,7 +225,7 @@ enum TimelapseType : int {
 };
 
 enum SkirtType {
-    stCommon, stObject
+    stCombined, stPerObject
 };
 
 enum DraftShield {

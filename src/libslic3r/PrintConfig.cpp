@@ -318,8 +318,8 @@ static const t_config_enum_values s_keys_map_TimelapseType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
 static const t_config_enum_values s_keys_map_SkirtType = {
-    { "common", stCommon },
-    { "object", stObject }
+    { "combined", stCombined },
+    { "perobject", stPerObject }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SkirtType)
 
@@ -4044,14 +4044,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("skirt_type", coEnum);
     def->label = L("Skirt type");
     def->full_label = L("Skirt type");
-    def->tooltip = L("Common - single skirt for all objects, Object - individual per object skirt.");
+    def->tooltip = L("Combined - single skirt for all objects, Per object - individual object skirt.");
     def->enum_keys_map = &ConfigOptionEnum<SkirtType>::get_enum_values();
-    def->enum_values.push_back("common");
-    def->enum_values.push_back("object");
-    def->enum_labels.push_back(L("Common"));
-    def->enum_labels.push_back(L("Object"));
+    def->enum_values.push_back("combined");
+    def->enum_values.push_back("perobject");
+    def->enum_labels.push_back(L("Combined"));
+    def->enum_labels.push_back(L("Per object"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SkirtType>(stCommon));
+    def->set_default_value(new ConfigOptionEnum<SkirtType>(stCombined));
     
     def = this->add("skirt_loops", coInt);
     def->label = L("Skirt loops");

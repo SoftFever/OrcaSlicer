@@ -2311,7 +2311,7 @@ void Print::_make_skirt()
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
-    if (m_config.skirt_type == stCommon) {
+    if (m_config.skirt_type == stCombined) {
         for (size_t i = m_config.skirt_loops, extruder_idx = 0; i > 0; -- i) {
             this->throw_if_canceled();
             // Offset the skirt outside.
@@ -2365,7 +2365,7 @@ void Print::_make_skirt()
     for (Polygon &poly : offset(convex_hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
         append(m_skirt_convex_hull, std::move(poly.points));
 
-    if (m_config.skirt_type == stObject) {
+    if (m_config.skirt_type == stPerObject) {
         // BBS
         for (auto obj_cvx_hull : object_convex_hulls) {
             double object_skirt_distance = float(scale_(m_config.skirt_distance.value - spacing/2.));
@@ -2952,7 +2952,7 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 
 std::tuple<float, float> Print::object_skirt_offset(double margin_height) const
 {
-    if (config().skirt_loops == 0 || config().skirt_type != stObject)
+    if (config().skirt_loops == 0 || config().skirt_type != stPerObject)
         return std::make_tuple(0, 0);
     
     float max_nozzle_diameter = *std::max_element(m_config.nozzle_diameter.values.begin(), m_config.nozzle_diameter.values.end());
