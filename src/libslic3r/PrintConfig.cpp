@@ -317,9 +317,14 @@ static const t_config_enum_values s_keys_map_TimelapseType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
+static const t_config_enum_values s_keys_map_SkirtType = {
+    { "combined", stCombined },
+    { "perobject", stPerObject }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SkirtType)
+
 static const t_config_enum_values s_keys_map_DraftShield = {
     { "disabled", dsDisabled },
-    { "limited",  dsLimited  },
     { "enabled",  dsEnabled  }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(DraftShield)
@@ -1614,7 +1619,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(4));
+    def->set_default_value(new ConfigOptionFloat(2.5));
 
     def          = this->add("bed_mesh_min", coPoint);
     def->label   = L("Bed mesh min");
@@ -4017,6 +4022,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2));
 
+    def = this->add("skirt_start_angle", coFloat);
+    def->label = L("Skirt start point");
+    def->tooltip = L("Angle from the object center to skirt start point. Zero is the most right position, counter clockwise is positive angle.");
+    def->sidetext = L("°");
+    def->min = -180;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-135));
+
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
     //def->label = "Skirt height";
@@ -4030,21 +4044,29 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Draft shield");
     def->tooltip = L("A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. "
                      "It is usually needed only with open frame printers, i.e. without an enclosure. \n\n"
-                     "Options:\n"
-                     "Enabled = skirt is as tall as the highest printed object.\n"
-                     "Limited = skirt is as tall as specified by skirt height.\n\n"
+                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
     				 "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims "
                      "are active it may intersect with them. To avoid this, increase the skirt distance value.\n");
     def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
     def->enum_values.push_back("disabled");
-    def->enum_values.push_back("limited");
     def->enum_values.push_back("enabled");
     def->enum_labels.push_back(L("Disabled"));
-    def->enum_labels.push_back(L("Limited"));
     def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
+    def = this->add("skirt_type", coEnum);
+    def->label = L("Skirt type");
+    def->full_label = L("Skirt type");
+    def->tooltip = L("Combined - single skirt for all objects, Per object - individual object skirt.");
+    def->enum_keys_map = &ConfigOptionEnum<SkirtType>::get_enum_values();
+    def->enum_values.push_back("combined");
+    def->enum_values.push_back("perobject");
+    def->enum_labels.push_back(L("Combined"));
+    def->enum_labels.push_back(L("Per object"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SkirtType>(stCombined));
+    
     def = this->add("skirt_loops", coInt);
     def->label = L("Skirt loops");
     def->full_label = L("Skirt loops");
@@ -4067,7 +4089,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
-                     "Using a non zero value is useful if the printer is set up to print without a prime line.");
+                     "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
+                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case. ");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;
@@ -6175,8 +6198,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     else if(opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
     }
-    else if(opt_key == "counterbole_hole_bridging"){
+    else if(opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
+    }
+    else if (opt_key == "draft_shield" && value == "limited") {
+        value = "disabled";
     }
 
     // Ignore the following obsolete configuration keys:
