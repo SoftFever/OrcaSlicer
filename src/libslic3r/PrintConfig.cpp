@@ -1381,11 +1381,11 @@ void PrintConfigDef::init_fff_params()
                       "Disabling this option will print internal bridge layer over slightly unsupported internal"
                       " solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges "
                      "created.\n\n"
-                     "Filter - enable this option. This is the default behaviour and works well in most cases.\n\n"
+                     "Filter - enable this option. This is the default behavior and works well in most cases.\n\n"
                      "Limited filtering - creates internal bridges on heavily slanted surfaces, while avoiding creating "
-                     "uncessesary interal bridges. This works well for most difficult models.\n\n"
+                     "unnecessary internal bridges. This works well for most difficult models.\n\n"
                      "No filtering - creates internal bridges on every potential internal overhang. This option is useful "
-                     "for heavily slanted top surface models. However, in most cases it creates too many unecessary bridges.");
+                     "for heavily slanted top surface models. However, in most cases it creates too many unnecessary bridges.");
     def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
@@ -1539,7 +1539,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_sequence", coEnum);
     def->label = L("Walls printing order");
     def->category = L("Quality");
-    def->tooltip = L("Print sequence of the internal (inner) and external (outer) walls. \n\nUse Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n\nUse Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recomended against the Outer/Inner option in most cases. \n\nUse Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
+    def->tooltip = L("Print sequence of the internal (inner) and external (outer) walls. \n\nUse Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n\nUse Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases. \n\nUse Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
@@ -2037,15 +2037,15 @@ void PrintConfigDef::init_fff_params()
        " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" });
 
     def = this->add("filament_multitool_ramming", coBools);
-    def->label = L("Enable ramming for multitool setups");
-    def->tooltip = L("Perform ramming when using multitool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). "
+    def->label = L("Enable ramming for multi-tool setups");
+    def->tooltip = L("Perform ramming when using multi-tool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). "
                      "When checked, a small amount of filament is rapidly extruded on the wipe tower just before the toolchange. "
                      "This option is only used when the wipe tower is enabled.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("filament_multitool_ramming_volume", coFloats);
-    def->label = L("Multitool ramming volume");
+    def->label = L("Multi-tool ramming volume");
     def->tooltip = L("The volume to be rammed before the toolchange.");
     def->sidetext = L("mm³");
     def->min = 0;
@@ -2053,7 +2053,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("filament_multitool_ramming_flow", coFloats);
-    def->label = L("Multitool ramming flow");
+    def->label = L("Multi-tool ramming flow");
     def->tooltip = L("Flow used for ramming the filament before the toolchange.");
     def->sidetext = L("mm³/s");
     def->min = 0;
@@ -3822,8 +3822,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 30. });
 
     def = this->add("deretraction_speed", coFloats);
-    def->label = L("Deretraction Speed");
-    def->full_label = L("Deretraction Speed");
+    def->label = L("De-retraction Speed");
+    def->full_label = L("De-retraction Speed");
     def->tooltip = L("Speed for reloading filament into extruder. Zero means same speed with retraction");
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
@@ -7412,7 +7412,7 @@ ReadWriteSlicingStatesConfigDef::ReadWriteSlicingStatesConfigDef()
     def = this->add("position", coFloats);
     def->label = L("Position");
     def->tooltip = L("Position of the extruder at the beginning of the custom G-code block. If the custom G-code travels somewhere else, "
-                     "it should write to this variable so PrusaSlicer knows where it travels from when it gets control back.");
+                     "it should write to this variable so OrcaSlicer knows where it travels from when it gets control back.");
 
     def = this->add("e_retracted", coFloats);
     def->label = L("Retraction");

@@ -1111,11 +1111,11 @@ std::vector<std::string> create_shape_warnings(const EmbossShape &shape, float s
     if (!shape.final_shape.is_healed) {
         for (const ExPolygonsWithId &i : shape.shapes_with_ids)
             if (!i.is_healed)
-                add_warning(i.id, _u8L("Path can't be healed from selfintersection and multiple points."));
+                add_warning(i.id, _u8L("Path can't be healed from self-intersection and multiple points."));
 
         // This waning is not connected to NSVGshape. It is about union of paths, but Zero index is shown first
         size_t index = 0;
-        add_warning(index, _u8L("Final shape constains selfintersection or multiple points with same coordinate."));
+        add_warning(index, _u8L("Final shape contains self-intersection or multiple points with same coordinate."));
     }
 
     size_t shape_index = 0;
