@@ -642,7 +642,7 @@ msgid "Angle"
 msgstr "Angle"
 
 msgid ""
-"Embeded\n"
+"Embedded\n"
 "depth"
 msgstr "Embedded depth"
 
@@ -1102,11 +1102,11 @@ msgstr ""
 msgid "Undefined stroke type"
 msgstr ""
 
-msgid "Path can't be healed from selfintersection and multiple points."
+msgid "Path can't be healed from self-intersection and multiple points."
 msgstr ""
 
 msgid ""
-"Final shape constains selfintersection or multiple points with same "
+"Final shape contains self-intersection or multiple points with same "
 "coordinate."
 msgstr ""
 
@@ -1464,7 +1464,7 @@ msgid "Some presets are modified."
 msgstr "Some presets are modified."
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
 "You can keep the modified presets for the new project, discard, or save "
@@ -1550,7 +1550,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr "Orca Slicer GUI initialization failed"
 
 #, boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr "Fatal error, exception: %1%"
 
 msgid "Quality"
@@ -2046,7 +2046,7 @@ msgid ""
 "After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"cut information first."
 msgstr ""
 "This action will break a cut correspondence.\n"
 "After that, model consistency can't be guaranteed .\n"
@@ -2060,7 +2060,7 @@ msgstr "Delete all connectors"
 msgid "Deleting the last solid part is not allowed."
 msgstr "Deleting the last solid part is not allowed."
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr "The target object contains only one part and cannot be split."
 
 msgid "Assembly"
@@ -2439,8 +2439,8 @@ msgstr ""
 "All the selected objects are on a locked plate.\n"
 "Cannot auto-arrange these objects."
 
-msgid "No arrangable objects are selected."
-msgstr "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
+msgstr "No arrangeable objects are selected."
 
 msgid ""
 "This plate is locked,\n"
@@ -3130,7 +3130,7 @@ msgstr "Running post-processing scripts"
 msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
 
-msgid "Unknown error occured during exporting G-code."
+msgid "Unknown error occurred during exporting G-code."
 msgstr ""
 
 #, boost-format
@@ -3589,7 +3589,7 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable "
 "alternate extra wall\n"
-"No  - Dont use alternate extra wall"
+"No  - Don't use alternate extra wall"
 msgstr ""
 
 msgid ""
@@ -4697,7 +4697,7 @@ msgstr "Use Orthogonal View"
 msgid "Show &G-code Window"
 msgstr ""
 
-msgid "Show g-code window in Previce scene"
+msgid "Show g-code window in Preview scene"
 msgstr ""
 
 msgid "Show 3D Navigator"
@@ -4922,7 +4922,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr "Printer camera is malfunctioning."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "A problem occurred. Please update the printer firmware and try again."
 
 msgid ""
@@ -5094,7 +5094,7 @@ msgstr "Do you want to delete the file '%s' from printer?"
 msgid "Delete file"
 msgstr "Delete file"
 
-msgid "Fetching model infomations ..."
+msgid "Fetching model information..."
 msgstr "Fetching model information..."
 
 msgid "Failed to fetch model information from printer."
@@ -5367,7 +5367,7 @@ msgstr "Info"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "Upload Pictures"
 
 msgid "Number of images successfully uploaded"
@@ -13475,7 +13475,7 @@ msgid "No check"
 msgstr "No check"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
-msgstr "Do not run any validity checks, such as G-code path conflicts check."
+msgstr "Do not run any validity checks, such as gcode path conflicts check."
 
 msgid "Ensure on bed"
 msgstr ""
@@ -15303,8 +15303,8 @@ msgstr "Connection to Duet is working correctly."
 msgid "Could not connect to Duet"
 msgstr "Could not connect to Duet"
 
-msgid "Unknown error occured"
-msgstr "Unknown error occured"
+msgid "Unknown error occurred"
+msgstr "Unknown error occurred"
 
 msgid "Wrong password"
 msgstr "Wrong password"
