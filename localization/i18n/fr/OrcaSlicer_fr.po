@@ -636,8 +636,7 @@ msgstr "Espacement du texte"
 msgid "Angle"
 msgstr "Angle"
 
-msgid ""
-"Embedded\n"
+msgid "Embeded\n"
 "depth"
 msgstr "Profondeur intégrée"
 
@@ -1094,10 +1093,10 @@ msgstr "Ouvrir un chemin rempli"
 msgid "Undefined stroke type"
 msgstr "Type de trait non défini"
 
-msgid "Path can't be healed from self-intersection and multiple points."
+msgid "Path can't be healed from selfintersection and multiple points."
 msgstr "Le chemin ne peut pas être consolidé à partir d’une auto-intersection et de points multiples."
 
-msgid "Final shape contains self-intersection or multiple points with same coordinate."
+msgid "Final shape constains selfintersection or multiple points with same coordinate."
 msgstr "La forme finale contient une auto-intersection ou plusieurs points ayant les mêmes coordonnées."
 
 #, boost-format
@@ -1443,7 +1442,7 @@ msgstr "Choisissez un fichier (gcode/3mf):"
 msgid "Some presets are modified."
 msgstr "Certains préréglages sont modifiés."
 
-msgid "You can keep the modified presets to the new project, discard or save changes as new presets."
+msgid "You can keep the modifield presets to the new project, discard or save changes as new presets."
 msgstr "Vous pouvez conserver les préréglages modifiés dans le nouveau projet, annuler ou enregistrer les modifications en tant que nouveaux préréglages."
 
 msgid "User logged out"
@@ -1517,7 +1516,7 @@ msgid "Orca Slicer GUI initialization failed"
 msgstr "L'initialisation de l'interface de Orca Slicer a échoué"
 
 #, boost-format
-msgid "Fatal error, exception caught: %1%"
+msgid "Fatal error, exception catched: %1%"
 msgstr "Erreur fatale, exception interceptée : %1%"
 
 msgid "Quality"
@@ -2002,10 +2001,8 @@ msgstr "Pour enregistrer la correspondance coupée, vous pouvez supprimer tous l
 msgid "This action will break a cut correspondence.\n"
 "After that model consistency can't be guaranteed .\n"
 "\n"
-
-"To manipulate with solid parts or negative volumes you have to invalidate cut information first."
-msgstr ""
-"Cette action rompra une correspondance coupée.\n"
+"To manipulate with solid parts or negative volumes you have to invalidate cut infornation first."
+msgstr "Cette action rompra une correspondance coupée.\n"
 "Après cela, la cohérence du modèle ne peut être garantie.\n"
 "\n"
 "Pour manipuler des pièces pleines ou des volumes négatifs, vous devez d'abord invalider les informations de coupe."
@@ -2016,7 +2013,7 @@ msgstr "Supprimer tous les connecteurs"
 msgid "Deleting the last solid part is not allowed."
 msgstr "La suppression de la dernière partie pleine n'est pas autorisée."
 
-msgid "The target object contains only one part and can not be split."
+msgid "The target object contains only one part and can not be splited."
 msgstr "L'objet cible ne contient qu'une seule partie et ne peut pas être divisé."
 
 msgid "Assembly"
@@ -2382,7 +2379,7 @@ msgid "All the selected objects are on the locked plate,\n"
 msgstr "Tous les objets sélectionnés sont sur la plaque verrouillée,\n"
 "nous ne pouvons pas faire d'auto-arrangement sur ces objets"
 
-msgid "No arrangeable objects are selected."
+msgid "No arrangable objects are selected."
 msgstr "Aucun objet réorganisable n'est sélectionné."
 
 msgid "This plate is locked,\n"
@@ -2938,7 +2935,7 @@ msgstr "Exécution de scripts de post-traitement"
 msgid "Successfully executed post-processing script"
 msgstr "Le script de post-traitement a été exécuté avec succès"
 
-msgid "Unknown error occurred during exporting G-code."
+msgid "Unknown error occured during exporting G-code."
 msgstr "Une erreur inconnue s’est produite lors de l’exportation du G-code."
 
 #, boost-format
@@ -3315,9 +3312,8 @@ msgstr "La paroi supplémentaire alternée ne fonctionne pas bien lorsque le par
 
 msgid "Change these settings automatically? \n"
 "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
-"No  - Don't use alternate extra wall"
-msgstr ""
-"Modifier ces paramètres automatiquement ? \n"
+"No  - Dont use alternate extra wall"
+msgstr "Modifier ces paramètres automatiquement ? \n"
 "Oui - Modifier l’épaisseur de la coque verticale pour qu’elle soit modérée et activer la paroi supplémentaire\n"
 "Non - Ne pas utiliser la paroi supplémentaire alternée"
 
@@ -4364,7 +4360,7 @@ msgstr "Utiliser la vue orthogonale"
 msgid "Show &G-code Window"
 msgstr "Afficher la fenêtre du &G-code"
 
-msgid "Show g-code window in Preview scene"
+msgid "Show g-code window in Previce scene"
 msgstr "Afficher la fenêtre du G-code dans la scène précédente"
 
 msgid "Show 3D Navigator"
@@ -4587,7 +4583,7 @@ msgstr "L’imprimante est actuellement occupée à télécharger. Veuillez rée
 msgid "Printer camera is malfunctioning."
 msgstr "La caméra de l’imprimante ne fonctionne pas correctement."
 
-msgid "Problem occurred. Please update the printer firmware and try again."
+msgid "Problem occured. Please update the printer firmware and try again."
 msgstr "Un problème s’est produit. Veuillez mettre à jour le micrologiciel de l’imprimante et réessayer."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -4744,7 +4740,7 @@ msgstr "Voulez-vous supprimer le fichier '%s' de l'imprimante ?"
 msgid "Delete file"
 msgstr "Supprimer le fichier"
 
-msgid "Fetching model information..."
+msgid "Fetching model infomations ..."
 msgstr "Récupération des informations sur le modèle…"
 
 msgid "Failed to fetch model information from printer."
@@ -4995,7 +4991,7 @@ msgstr "Info"
 msgid "Get oss config failed."
 msgstr "Échec de l’obtention de la configuration du système d’exploitation."
 
-msgid "Upload Pictures"
+msgid "Upload Pictrues"
 msgstr "Envoyer des images"
 
 msgid "Number of images successfully uploaded"
@@ -13030,7 +13026,7 @@ msgstr "La connexion à Duet fonctionne correctement."
 msgid "Could not connect to Duet"
 msgstr "Impossible de se connecter à Duet"
 
-msgid "Unknown error occurred"
+msgid "Unknown error occured"
 msgstr "Une erreur inconnue s’est produite"
 
 msgid "Wrong password"
@@ -14087,9 +14083,9 @@ msgstr "Éviter la déformation\n"
 #~ msgid "Load failed [%d]"
 #~ msgstr "Échec du chargement [%d]"
 
-#~ msgid "Failed to fetching model information from printer."
-#~ msgstr "Impossible de récupérer les informations du modèle depuis l'imprimante."
-
+#~ msgid "Failed to fetching model infomations from printer."
+#~ msgstr ""
+#~ "Impossible de récupérer les informations du modèle depuis l'imprimante."
 
 #~ msgid "Failed to parse model infomations."
 #~ msgstr "Impossible d'analyser les informations du modèle."
