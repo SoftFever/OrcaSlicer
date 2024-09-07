@@ -45,6 +45,7 @@ public:
 
 	std::string get_language_code();
 	std::string get_hms_host();
+	bool get_stealth_mode();
 
 	// Clear and reset to defaults.
 	void 			   	reset();
@@ -80,8 +81,10 @@ public:
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
+	bool				get_bool(const std::string &section, const std::string &key) const
+		{ return this->get(section, key) == "true" || this->get(key) == "1"; }
 	bool				get_bool(const std::string &key) const
-		{ return this->get(key) == "true" || this->get(key) == "1"; }
+		{ return this->get_bool("app", key); }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG

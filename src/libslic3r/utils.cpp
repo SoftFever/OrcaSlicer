@@ -301,6 +301,9 @@ std::string debug_out_path(const char *name, ...)
 	static constexpr const char *SLIC3R_DEBUG_OUT_PATH_PREFIX = "out/";
     if (! debug_out_path_called.exchange(true)) {
 		std::string path = boost::filesystem::system_complete(SLIC3R_DEBUG_OUT_PATH_PREFIX).string();
+        if (!boost::filesystem::exists(path)) {
+            boost::filesystem::create_directory(path);
+		}
         printf("Debugging output files will be written to %s\n", path.c_str());
     }
 	char buffer[2048];

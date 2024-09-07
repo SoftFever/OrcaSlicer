@@ -1944,6 +1944,7 @@ void PointCtrl::BUILD()
     y_textctrl->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { e.Skip(); propagate_value(y_textctrl); }), y_textctrl->GetId());
 
 	// 	// recast as a wxWindow to fit the calling convention
+    window = dynamic_cast<wxWindow*>(x_input);
 	sizer = dynamic_cast<wxSizer*>(temp);
 
 	x_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));

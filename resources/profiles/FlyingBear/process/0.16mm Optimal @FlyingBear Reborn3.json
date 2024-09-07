@@ -14,7 +14,7 @@
     "bottom_shell_layers": "4",
     "bridge_speed": "25",
     "brim_object_gap": "0.1",
-    "exclude_object": "0",
+    "exclude_object": "1",
     "gap_infill_speed": "300",
     "inner_wall_speed": "300",
     "internal_bridge_speed": "50",

@@ -1,0 +1,10 @@
+{
+    "type": "machine_model",
+    "name": "Kingroon KLP1",
+    "model_id": "Kingroon KLP1",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Kingroon",
+    "hotend_model": "",
+    "default_materials": "Kingroon Generic ABS;Kingroon Generic PLA;Kingroon Generic PLA-CF;Kingroon Generic PETG;Kingroon Generic TPU;Kingroon Generic ASA;Kingroon Generic PC;Kingroon Generic PVA;Kingroon Generic PA;Kingroon Generic PA-CF"
+}

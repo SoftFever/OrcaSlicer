@@ -640,6 +640,22 @@ Transform3d Transformation::get_matrix_no_scaling_factor() const
     return copy.get_matrix();
 }
 
+// Orca: Implement prusa's filament shrink compensation approach
+Transform3d Transformation::get_matrix_with_applied_shrinkage_compensation(const Vec3d &shrinkage_compensation) const {
+     const Transform3d shrinkage_trafo = Geometry::scale_transform(shrinkage_compensation);
+     const Vec3d trafo_offset         = this->get_offset();
+     const Vec3d trafo_offset_xy      = Vec3d(trafo_offset.x(), trafo_offset.y(), 0.);
+
+     Transformation copy(*this);
+     copy.set_offset(Axis::X, 0.);
+     copy.set_offset(Axis::Y, 0.);
+
+     Transform3d trafo_after_shrinkage    = (shrinkage_trafo * copy.get_matrix());
+     trafo_after_shrinkage.translation() += trafo_offset_xy;
+
+     return trafo_after_shrinkage;
+ }
+
 Transformation Transformation::operator * (const Transformation& other) const
 {
     return Transformation(get_matrix() * other.get_matrix());

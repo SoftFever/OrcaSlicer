@@ -67,7 +67,7 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
     std::string short_name = get_short_name(upload_data.upload_path.string());
     bool        res        = false;
 
-    auto http = Http::post(std::move((boost::format("http://%1%/upload_serial") % m_host).str()));
+    auto http = Http::post((boost::format("http://%1%/upload_serial") % m_host).str());
     http.header("Connection", "keep-alive")
         .form_add_file("file", upload_data.source_path, short_name)
         .on_complete([&](std::string body, unsigned status) {

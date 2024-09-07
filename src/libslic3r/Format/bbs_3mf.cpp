@@ -878,7 +878,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             bool extract_object_model()
             {
                 mz_zip_archive archive;
-                mz_zip_archive_file_stat stat;
                 mz_zip_zero_struct(&archive);
 
                 if (!open_zip_reader(&archive, zip_path)) {
@@ -4622,7 +4621,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
 
                 // BBS
-                for (const std::string prop_str : sub_object->geometry.face_properties) {
+                for (const std::string& prop_str : sub_object->geometry.face_properties) {
                     FaceProperty face_prop;
                     face_prop.from_string(prop_str);
                     its.properties.push_back(face_prop);
