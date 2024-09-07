@@ -67,9 +67,6 @@ wxString SendJob::get_http_error_msg(unsigned int status, std::string body)
             if (!j["message"].is_null())
                 message = j["message"].get<std::string>();
         }
-        switch (status) {
-            ;
-        }
     }
     catch (...) {
         ;
