@@ -5401,4 +5401,4 @@ void GCodeProcessor::update_slice_warnings()
     m_result.warnings.shrink_to_fit();
 }
 
-} /* namespace Slic3r */
+} /* slic3r_GCodeProcessor_cpp_ */
