@@ -327,7 +327,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
-                                     "No  - Dont use alternate extra wall"));
+                                     "No  - Don't use alternate extra wall"));
         
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
