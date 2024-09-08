@@ -997,27 +997,20 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                 render_icon_texture(m_del_icon.model, m_partplate_list->m_del_texture);
 
             if (hover_id == 2) {
-                render_icon_texture(m_duplicate_icon.model, m_partplate_list->m_duplicate_hovered_texture);
-                show_tooltip(_u8L("Duplicate current plate with objects"));
-            }
-            else
-                render_icon_texture(m_duplicate_icon.model, m_partplate_list->m_duplicate_texture);
-
-            if (hover_id == 3) {
                 render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_hovered_texture);
                 show_tooltip(_u8L("Auto orient objects on current plate"));
             }
             else
                 render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_texture);
 
-            if (hover_id == 4) {
+            if (hover_id == 3) {
                 render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_hovered_texture);
                 show_tooltip(_u8L("Arrange objects on current plate"));
             }
             else
                 render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_texture);
 
-            if (hover_id == 5) {
+            if (hover_id == 4) {
                 if (this->is_locked()) {
                     render_icon_texture(m_lock_icon.model,
                                         m_partplate_list->m_locked_hovered_texture);
@@ -1035,7 +1028,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                     render_icon_texture(m_lock_icon.model, m_partplate_list->m_lockopen_texture);
             }
 
-			if (hover_id == 7) {
+			if (hover_id == 6) {
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_hovered_texture);
                 show_tooltip(_u8L("Edit current plate name"));
 			}
@@ -1044,7 +1037,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
 			if (m_partplate_list->render_plate_settings) {
 				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
-                if (hover_id == 6) {
+                if (hover_id == 5) {
                     if (!has_plate_settings)
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
                     else
@@ -1335,15 +1328,14 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 {
     register_model_for_picking(canvas, m_triangles, picking_id_component(0));
     register_model_for_picking(canvas, m_del_icon, picking_id_component(1));
-    register_model_for_picking(canvas, m_duplicate_icon, picking_id_component(2));
-    register_model_for_picking(canvas, m_orient_icon, picking_id_component(3));
-    register_model_for_picking(canvas, m_arrange_icon, picking_id_component(4));
-    register_model_for_picking(canvas, m_lock_icon, picking_id_component(5));
+    register_model_for_picking(canvas, m_orient_icon, picking_id_component(2));
+    register_model_for_picking(canvas, m_arrange_icon, picking_id_component(3));
+    register_model_for_picking(canvas, m_lock_icon, picking_id_component(4));
     if (m_partplate_list->render_plate_settings)
-        register_model_for_picking(canvas, m_plate_settings_icon, picking_id_component(6));
+        register_model_for_picking(canvas, m_plate_settings_icon, picking_id_component(5));
 
-    canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(7));
-    register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(7));
+    canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
+    register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(6));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -1919,9 +1911,9 @@ void PartPlate::generate_plate_name_texture()
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
 	auto canvas = this->m_partplate_list->m_plater->get_view3D_canvas3D();
-    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(7));
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
     calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-    register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(7));
+    register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(6));
 }
 void PartPlate::set_plate_name(const std::string& name) 
 { 
@@ -2716,11 +2708,10 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		//calc_vertex_for_icons_background(5, m_del_and_background_icon);
 		//calc_vertex_for_icons(4, m_del_icon);
 		calc_vertex_for_icons(0, m_del_icon);
-		calc_vertex_for_icons(1, m_duplicate_icon);
-		calc_vertex_for_icons(2, m_orient_icon);
-		calc_vertex_for_icons(3, m_arrange_icon);
-		calc_vertex_for_icons(4, m_lock_icon);
-		calc_vertex_for_icons(5, m_plate_settings_icon);
+        calc_vertex_for_icons(1, m_orient_icon);
+        calc_vertex_for_icons(2, m_arrange_icon);
+        calc_vertex_for_icons(3, m_lock_icon);
+        calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
@@ -3293,22 +3284,6 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
-	//if (m_duplicate_texture.get_id() == 0)
-	{
-		file_name = path + (m_is_dark ? "plate_duplicate_dark.svg" : "plate_duplicate.svg");
-		if (!m_duplicate_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
-		}
-	}
-
-	//if (m_duplicate_hovered_texture.get_id() == 0)
-	{
-		file_name = path + (m_is_dark ? "plate_duplicate_hover_dark.svg" : "plate_duplicate_hover.svg");
-		if (!m_duplicate_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
-		}
-	}
-
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -3444,8 +3419,6 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
-	m_duplicate_texture.reset();
-	m_duplicate_hovered_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
