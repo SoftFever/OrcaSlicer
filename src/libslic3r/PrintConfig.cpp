@@ -4155,7 +4155,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_mode_smooth", coBool);
     def->label = L("Smooth Spiral");
-    def->tooltip = L("Smooth Spiral smooths out X and Y moves as well"
+    def->tooltip = L("Smooth Spiral smooths out X and Y moves as well, "
                      "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
