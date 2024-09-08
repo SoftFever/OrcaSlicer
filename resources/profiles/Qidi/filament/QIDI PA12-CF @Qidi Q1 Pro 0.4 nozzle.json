@@ -21,9 +21,6 @@
     "nozzle_temperature_initial_layer": [
         "280"
     ],
-    "overhang_fan_speed": [
-        "100"
-    ],
     "pressure_advance": [
         "0.035"
     ],
