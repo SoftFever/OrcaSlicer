@@ -34,9 +34,6 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
-const double STEP_TRANS_CHORD_ERROR = 0.003;
-const double STEP_TRANS_ANGLE_RES = 0.5;
-
 
 namespace Slic3r {
 
@@ -223,7 +220,10 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     }
 }
 
-bool load_step(const char *path, Model *model, bool& is_cancel, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn)
+bool load_step(const char *path, Model *model, bool& is_cancel,
+               double linear_defletion/*=0.003*/,
+               double angle_defletion/*= 0.5*/,
+               ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn, long& mesh_face_num)
 {
     bool cb_cancel = false;
     if (stepFn) {
@@ -278,7 +278,7 @@ bool load_step(const char *path, Model *model, bool& is_cancel, ImportStepProgre
     stl.resize(namedSolids.size());
     tbb::parallel_for(tbb::blocked_range<size_t>(0, namedSolids.size()), [&](const tbb::blocked_range<size_t> &range) {
         for (size_t i = range.begin(); i < range.end(); i++) {
-            BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, false, STEP_TRANS_ANGLE_RES, true);
+            BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, linear_defletion, false, angle_defletion, true);
             // BBS: calculate total number of the nodes and triangles
             int aNbNodes     = 0;
             int aNbTriangles = 0;
@@ -350,6 +350,14 @@ bool load_step(const char *path, Model *model, bool& is_cancel, ImportStepProgre
             }
         }
     });
+
+    if (mesh_face_num != -1) {
+        for (size_t i = 0; i < stl.size(); i++) {
+            // Test for overflow
+            mesh_face_num += stl[i].stats.number_of_facets;
+        }
+        return true;
+    }
 
     ModelObject *new_object = model->add_object();
     const char * last_slash = strrchr(path, DIR_SEPARATOR);

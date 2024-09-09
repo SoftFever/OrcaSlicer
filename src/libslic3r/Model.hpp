@@ -1543,7 +1543,8 @@ public:
                                 StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
                                 BBLProject *               project              = nullptr,
                                 int                        plate_id             = 0,
-                                ObjImportColorFn           objFn                = nullptr
+                                ObjImportColorFn           objFn                = nullptr,
+                                std::function<int(double&, double&)>      step_mesh_fn = nullptr
                                 );
     // BBS
     static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);

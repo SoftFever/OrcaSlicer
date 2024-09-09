@@ -17,7 +17,13 @@ typedef std::function<void(int load_stage, int current, int total, bool& cancel)
 typedef std::function<void(bool isUtf8)> StepIsUtf8Fn;
 
 //BBS: Load an step file into a provided model.
-extern bool load_step(const char *path, Model *model, bool& is_cancel, ImportStepProgressFn proFn = nullptr, StepIsUtf8Fn isUtf8Fn = nullptr);
+extern bool load_step(const char *path, Model *model,
+                      bool& is_cancel,
+                      double linear_defletion = 0.003,
+                      double angle_defletion = 0.5,
+                      ImportStepProgressFn proFn = nullptr,
+                      StepIsUtf8Fn isUtf8Fn = nullptr,
+                      long& mesh_face_num = *(new long(-1)));
 
 //BBS: Used to detect what kind of encoded type is used in name field of step
 // If is encoded in UTF8, the file don't need to be handled, then return the original path directly.

@@ -151,6 +151,7 @@
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
+#include "StepMeshDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -4155,7 +4156,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         filament_ids.clear();
                     }
                 };
-                model = Slic3r::Model::read_from_file(
+                auto step_mesh = [this, &path, &is_user_cancel](double& linear_value, double& angle_value)-> int {
+                    if (boost::iends_with(path.string(), ".step") ||
+                    boost::iends_with(path.string(), ".stp")){
+                        StepMeshDialog mesh_dlg(nullptr, path);
+                        if (mesh_dlg.ShowModal() == wxID_OK) {
+                            linear_value = mesh_dlg.get_linear_defletion();
+                            angle_value = mesh_dlg.get_angle_defletion();
+                            return 1;
+                        }
+                    }
+                    is_user_cancel = false;
+                    return -1;
+                };
+                model = Slic3r::Model:: read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
                     [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code](int current, int total, bool &cancel, std::string &mode_id, std::string &code)
                     {
@@ -4194,7 +4208,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 }
                             }
                         },
-                    nullptr, 0, obj_color_fun);
+                nullptr, 0, obj_color_fun, step_mesh);
 
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {

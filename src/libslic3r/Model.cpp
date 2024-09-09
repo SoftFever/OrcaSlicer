@@ -27,6 +27,7 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include <functional>
 #include "GCodeWriter.hpp"
 
 // BBS: for segment
@@ -186,7 +187,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
                             StepIsUtf8Fn               stepIsUtf8Fn,
                             BBLProject *               project,
                             int                        plate_id,
-                            ObjImportColorFn           objFn)
+                            ObjImportColorFn           objFn,
+                            std::function<int(double&, double&)>       step_mesh_fn)
 {
     Model model;
 
@@ -211,9 +213,19 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool is_cb_cancel = false;
     std::string message;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
-        boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
-    else if (boost::algorithm::iends_with(input_file, ".stl"))
+        boost::algorithm::iends_with(input_file, ".step")) {
+        double linear_defletion = 0.003;
+        double angle_defletion = 0.5;
+        if (step_mesh_fn) {
+            if (step_mesh_fn(linear_defletion, angle_defletion) == -1) {
+                result = false;
+                goto end;
+            }
+        }
+        result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, stepFn, stepIsUtf8Fn);
+        end:
+            BOOST_LOG_TRIVIAL(info) << "Cancel step mesh dialog";
+    } else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
