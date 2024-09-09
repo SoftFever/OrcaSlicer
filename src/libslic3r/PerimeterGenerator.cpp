@@ -421,7 +421,7 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
                                   bool                    &steep_overhang_hole)
 {
     double threshold = config->overhang_reverse_threshold.get_abs_value(extrusion_width);
-    // Special case: reverse on every odd layer
+    // Special case: reverse on every even (from GUI POV) layer
     if (threshold < EPSILON) {
         if (is_contour) {
             steep_overhang_contour = true;
@@ -463,7 +463,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
-                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on odd layers
+                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on even (from GUI POV) layers
 
     for (const PerimeterGeneratorLoop &loop : loops) {
         bool is_external = loop.is_external();
@@ -855,7 +855,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 {
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
-                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on odd layers
+                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on even (from GUI POV) layers
 
     ExtrusionEntityCollection extrusion_coll;
     for (PerimeterGeneratorArachneExtrusion& pg_extrusion : pg_extrusions) {
