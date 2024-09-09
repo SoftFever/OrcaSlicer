@@ -597,9 +597,9 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    wxStaticText *basic_infomation = new wxStaticText(this, wxID_ANY, _L("Basic Information"));
-    basic_infomation->SetFont(Label::Head_16);
-    m_main_sizer->Add(basic_infomation, 0, wxLEFT, FromDIP(10));
+    wxStaticText *basic_information = new wxStaticText(this, wxID_ANY, _L("Basic Information"));
+    basic_information->SetFont(Label::Head_16);
+    m_main_sizer->Add(basic_information, 0, wxLEFT, FromDIP(10));
 
     m_main_sizer->Add(create_item(FilamentOptionType::VENDOR), 0, wxEXPAND | wxALL, FromDIP(5));
     m_main_sizer->Add(create_item(FilamentOptionType::TYPE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
@@ -611,9 +611,9 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(line_divider, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    wxStaticText *presets_infomation = new wxStaticText(this, wxID_ANY, _L("Add Filament Preset under this filament"));
-    presets_infomation->SetFont(Label::Head_16);
-    m_main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(15));
+    wxStaticText *presets_information = new wxStaticText(this, wxID_ANY, _L("Add Filament Preset under this filament"));
+    presets_information->SetFont(Label::Head_16);
+    m_main_sizer->Add(presets_information, 0, wxLEFT | wxRIGHT, FromDIP(15));
 
     m_main_sizer->Add(create_item(FilamentOptionType::FILAMENT_PRESET), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
 
@@ -4232,7 +4232,7 @@ void ExportConfigsDialog::data_init()
     }
 }
 
-EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info)
+EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, Filamentinformation *filament_info)
     : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Edit Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_filament_id("")
     , m_filament_name("")
@@ -4255,10 +4255,10 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    wxStaticText* basic_infomation = new wxStaticText(this, wxID_ANY, _L("Basic Information")); 
-    basic_infomation->SetFont(Label::Head_16);
+    wxStaticText* basic_information = new wxStaticText(this, wxID_ANY, _L("Basic Information")); 
+    basic_information->SetFont(Label::Head_16);
     
-    m_main_sizer->Add(basic_infomation, 0, wxALL, FromDIP(10));
+    m_main_sizer->Add(basic_information, 0, wxALL, FromDIP(10));
     m_filament_id = filament_info->filament_id;
     //std::string filament_name = filament_info->filament_name;
     bool get_filament_presets = get_same_filament_id_presets(m_filament_id);
@@ -4297,9 +4297,9 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     m_main_sizer->Add(line_divider, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    wxStaticText *presets_infomation = new wxStaticText(this, wxID_ANY, _L("Filament presets under this filament"));
-    presets_infomation->SetFont(Label::Head_16);
-    m_main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(10));
+    wxStaticText *presets_information = new wxStaticText(this, wxID_ANY, _L("Filament presets under this filament"));
+    presets_information->SetFont(Label::Head_16);
+    m_main_sizer->Add(presets_information, 0, wxLEFT | wxRIGHT, FromDIP(10));
 
     m_main_sizer->Add(create_add_filament_btn(), 0, wxEXPAND | wxALL, 0);
     m_main_sizer->Add(create_preset_tree_sizer(), 0, wxEXPAND | wxALL, 0);
@@ -4712,9 +4712,9 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
     main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    wxStaticText *basic_infomation = new wxStaticText(this, wxID_ANY, _L("Add preset for new printer"));
-    basic_infomation->SetFont(Label::Head_16);
-    main_sizer->Add(basic_infomation, 0, wxALL, FromDIP(10));
+    wxStaticText *basic_information = new wxStaticText(this, wxID_ANY, _L("Add preset for new printer"));
+    basic_information->SetFont(Label::Head_16);
+    main_sizer->Add(basic_information, 0, wxALL, FromDIP(10));
 
     main_sizer->Add(create_selected_printer_preset_sizer(), 0, wxALL, FromDIP(10));
     main_sizer->Add(create_selected_filament_preset_sizer(), 0, wxALL, FromDIP(10));
