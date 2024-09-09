@@ -18296,9 +18296,9 @@ msgstr ""
 #~ msgstr "Load failed [%d]"
 
 #~ msgid "Failed to fetching model information from printer."
-#~ msgstr "Failed to fetch model infomation from printer."
+#~ msgstr "Failed to fetch model information from printer."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "Fallo al analizar la información de modelado."
 
 #~ msgid "Connection lost. Please retry."
@@ -20031,7 +20031,7 @@ msgstr ""
 #~ msgstr "\n"
 
 #~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
+#~ "Please check the following information and click Confirm to continue "
 #~ "sending print:\n"
 #~ msgstr "\n"
 
@@ -20560,7 +20560,7 @@ msgstr ""
 #~ msgstr "Por favor rellene el informe de tareas."
 
 #~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
+#~ "Please check the following information and click Confirm to continue "
 #~ "sending print:"
 #~ msgstr ""
 #~ "Compruebe la siguiente información y haga clic en Confirmar para "

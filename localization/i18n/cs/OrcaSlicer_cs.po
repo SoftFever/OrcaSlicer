@@ -16626,7 +16626,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Nepodařilo se načíst informace o modelu z tiskárny."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "Nepodařilo se zpracovat informace o modelu."
 
 #~ msgid ""

@@ -17986,7 +17986,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Nie udało się pobrać informacji o modelach z drukarki."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "Nie udało się sparsować informacji o modelach."
 
 #~ msgid "Connection lost. Please retry."

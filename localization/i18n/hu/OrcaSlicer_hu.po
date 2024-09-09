@@ -16594,10 +16594,10 @@ msgstr ""
 #~ msgstr "Load failed [%d]"
 
 #~ msgid "Failed to fetching model information from printer."
-#~ msgstr "Failed to fetch model infomation from printer."
+#~ msgstr "Failed to fetch model information from printer."
 
-#~ msgid "Failed to parse model infomations."
-#~ msgstr "Failed to parse model infomation"
+#~ msgid "Failed to parse model informations."
+#~ msgstr "Failed to parse model information"
 
 #~ msgid ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "

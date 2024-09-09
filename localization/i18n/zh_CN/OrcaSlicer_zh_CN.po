@@ -16200,7 +16200,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "无法从打印机获取模型信息。"
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "解析模型信息失败。"
 
 #~ msgid "Connection lost. Please retry."

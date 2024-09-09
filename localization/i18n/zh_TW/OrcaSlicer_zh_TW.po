@@ -16414,7 +16414,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "無法從列印設備獲取模型資訊。"
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "解析模型資訊失敗。"
 
 #, fuzzy

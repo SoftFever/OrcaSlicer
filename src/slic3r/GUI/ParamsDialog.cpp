@@ -53,7 +53,7 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 #else
         Hide();
         if (!m_editing_filament_id.empty()) {
-            FilamentInfomation *filament_info = new FilamentInfomation();
+            Filamentinformation *filament_info = new Filamentinformation();
             filament_info->filament_id        = m_editing_filament_id;
             wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
             m_editing_filament_id.clear();

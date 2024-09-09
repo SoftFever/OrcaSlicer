@@ -17992,10 +17992,10 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "Yükleme başarısız [%d]"
 
-#~ msgid "Failed to fetching model infomations from printer."
+#~ msgid "Failed to fetching model informations from printer."
 #~ msgstr "Model bilgileri yazıcıdan alınamadı."
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "Model bilgileri ayrıştırılamadı."
 
 #~ msgid "Connection lost. Please retry."
