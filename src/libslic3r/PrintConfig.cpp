@@ -1040,6 +1040,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
+    // Orca: deprecated
     def = this->add("overhang_speed_classic", coBool);
     def->label = L("Classic mode");
     def->category = L("Speed");
@@ -1068,7 +1069,7 @@ void PrintConfigDef::init_fff_params()
                      "applied even if the overhanging perimeter is part of a bridge. For example, when the perimeters are 100% overhanging"
                      ", with no wall supporting them from underneath, the 100% overhang speed will be applied.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{ false });
+    def->set_default_value(new ConfigOptionBool{ true });
 
     def = this->add("overhang_1_4_speed", coFloatOrPercent);
     def->label = "(10%, 25%)";
@@ -6203,6 +6204,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
+    } else if (opt_key == "overhang_speed_classic") {
+        value = "0";
     }
 
     // Ignore the following obsolete configuration keys:
@@ -6220,7 +6223,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "z_hop_type", "z_lift_type", "bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "extruder_type",
-        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time"
+        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
+        "smooth_coefficient", "overhang_totally_speed"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
