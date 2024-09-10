@@ -101,7 +101,6 @@ namespace Slic3r
 
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors_str, const std::vector<std::vector<std::string>>& ams_filament_colors_str)
     {
-        assert(used_filaments.size() == ams_filament_colors_str.size());
         // change the color str to real colors
         std::vector<Color>used_filament_colors;
         std::vector<std::vector<Color>>ams_filament_colors;
