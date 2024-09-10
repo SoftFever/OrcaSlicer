@@ -975,7 +975,7 @@ bool GuideFrame::run()
             return false;
     } else if (result == wxID_EDIT) {
         this->Close();
-        FilamentInfomation *filament_info = new FilamentInfomation();
+        Filamentinformation *filament_info = new Filamentinformation();
         filament_info->filament_id        = m_editing_filament_id;
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
         return false;
@@ -1139,8 +1139,8 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
 
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('\\');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1158,8 +1158,8 @@ int GuideFrame::LoadProfile()
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');
+                strVendor          = strVendor.AfterLast('\\');
+                strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1656,7 +1656,7 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "/" , w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

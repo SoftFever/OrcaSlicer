@@ -421,7 +421,7 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
                                   bool                    &steep_overhang_hole)
 {
     double threshold = config->overhang_reverse_threshold.get_abs_value(extrusion_width);
-    // Special case: reverse on every odd layer
+    // Special case: reverse on every even (from GUI POV) layer
     if (threshold < EPSILON) {
         if (is_contour) {
             steep_overhang_contour = true;
@@ -463,7 +463,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
-                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on odd layers
+                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on even (from GUI POV) layers
 
     for (const PerimeterGeneratorLoop &loop : loops) {
         bool is_external = loop.is_external();
@@ -855,7 +855,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 {
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
-                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on odd layers
+                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on even (from GUI POV) layers
 
     ExtrusionEntityCollection extrusion_coll;
     for (PerimeterGeneratorArachneExtrusion& pg_extrusion : pg_extrusions) {
@@ -1729,7 +1729,7 @@ void PerimeterGenerator::process_classic()
         int sparse_infill_density = this->config->sparse_infill_density.value;
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase && sparse_infill_density > 0) // add alternating extra wall
             loop_number++;
-        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+        if (this->layer_id == object_config->raft_layers && this->config->only_one_wall_first_layer)
             loop_number = 0;
         // Set the topmost layer to be one wall
         if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
@@ -2646,7 +2646,7 @@ void PerimeterGenerator::process_arachne()
             loop_number++;
 
         // Set the bottommost layer to be one wall
-        const bool is_bottom_layer = (this->layer_id == 0) ? true : false;
+        const bool is_bottom_layer = (this->layer_id == object_config->raft_layers) ? true : false;
         if (is_bottom_layer && this->config->only_one_wall_first_layer)
             loop_number = 0;
 

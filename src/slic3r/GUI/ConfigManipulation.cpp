@@ -327,7 +327,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
-                                     "No  - Dont use alternate extra wall"));
+                                     "No  - Don't use alternate extra wall"));
         
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
@@ -449,17 +449,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 
-    if (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject && config->opt_int("skirt_height") > 1 && config->opt_int("skirt_loops") > 0) {
-        const wxString     msg_text = _(L("While printing by Object, the extruder may collide skirt.\nThus, reset the skirt layer to 1 to avoid that."));
-        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist    = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("skirt_height", new ConfigOptionInt(1));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
     if (config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None &&
         config->get_abs_value("seam_slope_start_height") >= layer_height) {
         const wxString     msg_text = _(L("seam_slope_start_height need to be smaller than layer_height.\nReset to 0."));
@@ -527,6 +516,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "minimum_sparse_infill_area", "sparse_infill_filament", "infill_anchor_max"})
         toggle_line(el, have_infill);
     
+    bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
+    toggle_line("infill_combination_max_layer_height", have_combined_infill);
+    
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
     toggle_field("infill_anchor", has_infill_anchors);
@@ -569,7 +561,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : { "skirt_distance", "draft_shield"})
+    for (auto el : {"skirt_type", "skirt_distance", "skirt_start_angle", "draft_shield"})
         toggle_field(el, have_skirt);
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);

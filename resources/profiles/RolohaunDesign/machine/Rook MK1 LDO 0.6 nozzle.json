@@ -1,0 +1,26 @@
+{
+    "type": "machine",
+    "setting_id": "RKMK1_m003",
+    "name": "Rook MK1 LDO 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_common_Rook MK1 LDO",
+    "printer_model": "Rook MK1 LDO",
+    "nozzle_diameter": [
+        "0.6"
+    ],
+    "max_layer_height": [
+        "0.4"
+    ],
+    "min_layer_height": [
+        "0.12"
+    ],
+    "printer_variant": "0.6",
+    "printable_area": [
+        "0x0",
+        "110x0",
+        "110x110",
+        "0x110"
+    ],
+    "printable_height": "111"
+}
