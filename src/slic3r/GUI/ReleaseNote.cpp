@@ -1557,7 +1557,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
 
-    auto m_button_cancel = new Button(this, _L("Close"));
+    /*auto m_button_cancel = new Button(this, _L("Close"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
@@ -1567,11 +1567,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
          on_cancel();
-    });
+    });*/
 
     m_sizer_button->AddStretchSpacer();
     m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
-    m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    //m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
 
 
@@ -1704,7 +1704,7 @@ void InputIpAddressDialog::on_cancel()
 {
     if (m_thread) {
         m_thread->interrupt();
-        m_thread->join();
+        m_thread->detach();
         delete m_thread;
         m_thread = nullptr;
     }
@@ -1842,6 +1842,16 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         else if (result == -3) {
             update_test_msg(_L("The device does not support using IP and Access Code for connection."), false);
         }
+
+        m_button_ok->Enable(true);
+
+        m_button_ok->Enable(true);
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+        m_button_ok->SetBackgroundColor(btn_bg_green);
+        m_button_ok->SetBorderColor(*wxWHITE);
+
         Layout();
         Fit();
         return;
@@ -1871,20 +1881,23 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
     }
 
 
-    closeCount = 3;
+    closeCount = 1;
+
     update_test_msg(wxEmptyString, true);
-    update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
+    update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close later"), closeCount), true);
+  
     closeTimer->Start(1000);
 
     Layout();
     Fit();
+    Refresh(true);
 }
 
 void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
     if (closeCount > 0) {
         closeCount--;
-        update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
-        Refresh();
+        //update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
+        //Refresh();
     }
     else {
         closeTimer->Stop();
