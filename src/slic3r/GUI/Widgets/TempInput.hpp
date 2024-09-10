@@ -8,6 +8,12 @@
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
+enum TempInputType {
+    TEMP_OF_MAIN_NOZZLE_TYPE,
+    TEMP_OF_DEPUTY_NOZZLE_TYPE,
+    TEMP_OF_NORMAL_TYPE
+};
+
 class TempInput : public wxNavigationEnabled<StaticBox>
 {
     bool   hover;
@@ -18,6 +24,9 @@ class TempInput : public wxNavigationEnabled<StaticBox>
     ScalableBitmap actice_icon;
     ScalableBitmap degree_icon;
 
+    ScalableBitmap left_icon;
+    ScalableBitmap right_icon;
+
     StateColor   label_color;
     StateColor   text_color;
 
@@ -27,6 +36,7 @@ class TempInput : public wxNavigationEnabled<StaticBox>
     int  max_temp     = 0;
     int  min_temp     = 0;
     bool warning_mode = false;
+    TempInputType m_input_type;
 
     int              padding_left    = 0;
     static const int TempInputWidth  = 200;
@@ -43,6 +53,7 @@ public:
     TempInput(wxWindow *     parent,
               int            type,
               wxString       text,
+              TempInputType  input_type,
               wxString       label       = "",
               wxString       normal_icon = "",
               wxString       actice_icon = "",
@@ -73,6 +84,7 @@ public:
 
     void SetCurrTemp(int temp);
     void SetCurrTemp(wxString temp);
+    void SetCurrType(TempInputType type);
    
     bool AllisNum(std::string str);
     void SetFinish();

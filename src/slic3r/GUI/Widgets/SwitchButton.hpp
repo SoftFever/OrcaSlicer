@@ -5,6 +5,8 @@
 #include "StateColor.hpp"
 
 #include <wx/tglbtn.h>
+#include "Label.hpp"
+#include "Button.hpp"
 
 class SwitchButton : public wxBitmapToggleButton
 {
@@ -38,6 +40,25 @@ private:
     StateColor   text_color2;
 	StateColor   track_color;
 	StateColor   thumb_color;
+};
+
+class SwitchBoard : public wxWindow
+{
+public:
+    SwitchBoard(wxWindow *parent = NULL, wxString leftL = "", wxString right = "", wxSize size = wxDefaultSize);
+    wxString leftLabel;
+    wxString rightLabel;
+
+	void updateState(wxString target);
+
+	bool switch_left{false};
+    bool switch_right{false};
+
+public:
+    void paintEvent(wxPaintEvent &evt);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
+    void on_left_down(wxMouseEvent &evt);
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

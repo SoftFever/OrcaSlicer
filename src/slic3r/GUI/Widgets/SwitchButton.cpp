@@ -155,3 +155,122 @@ void SwitchButton::update()
 {
 	SetBitmap((GetValue() ? m_on : m_off).bmp());
 }
+
+SwitchBoard::SwitchBoard(wxWindow *parent, wxString leftL, wxString right, wxSize size)
+ : wxWindow(parent, wxID_ANY, wxDefaultPosition, size)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    SetBackgroundColour(*wxWHITE);
+	leftLabel = leftL;
+    rightLabel = right;
+
+	SetMinSize(size);
+	SetMaxSize(size);
+
+    Bind(wxEVT_PAINT, &SwitchBoard::paintEvent, this);
+    Bind(wxEVT_LEFT_DOWN, &SwitchBoard::on_left_down, this);
+
+    Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+    Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+}
+
+void SwitchBoard::updateState(wxString target)
+{
+    if (target.empty()) {
+        switch_left = false;
+        switch_right = false;
+    } else {
+        if (target == "left") {
+            switch_left = true;
+            switch_right = false;
+        } else if (target == "right") {
+            switch_left  = false;
+            switch_right = true;
+        }
+    }
+    Refresh();
+}
+
+void SwitchBoard::paintEvent(wxPaintEvent &evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void SwitchBoard::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void SwitchBoard::doRender(wxDC &dc)
+{
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(0xeeeeee));
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 8);
+
+	/*left*/
+    if (switch_left) {
+        dc.SetBrush(wxBrush(wxColour(0, 174, 66)));
+        dc.DrawRoundedRectangle(0, 0, GetSize().x / 2, GetSize().y, 8);
+	}
+
+    auto left_txt_size = dc.GetTextExtent(leftLabel);
+    dc.SetFont(::Label::Body_13);
+    if (switch_left) {
+		dc.SetTextForeground(*wxWHITE);
+    } else {
+        dc.SetTextForeground(0x333333);
+	}
+
+    dc.DrawText(leftLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2, (GetSize().y - left_txt_size.y) / 2));
+
+	/*right*/
+    if (switch_right) {
+        dc.SetBrush(wxBrush(wxColour(0, 174, 66)));
+        dc.DrawRoundedRectangle(GetSize().x / 2, 0, GetSize().x / 2, GetSize().y, 8);
+	}
+
+    auto right_txt_size = dc.GetTextExtent(rightLabel);
+    dc.SetFont(::Label::Body_13);
+    if (switch_right) {
+        dc.SetTextForeground(*wxWHITE);
+    } else {
+        dc.SetTextForeground(0x333333);
+    }
+    dc.DrawText(rightLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2 + GetSize().x / 2, (GetSize().y - right_txt_size.y) / 2));
+
+}
+
+void SwitchBoard::on_left_down(wxMouseEvent &evt)
+{
+    auto pos = ClientToScreen(evt.GetPosition());
+    auto rect = ClientToScreen(wxPoint(0, 0));
+
+    if (pos.x > 0 && pos.x < rect.x + GetSize().x / 2) {
+        switch_left = true;
+        switch_right = false;
+    } else {
+        switch_left  = false;
+        switch_right = true;
+    }
+    Refresh();
+}

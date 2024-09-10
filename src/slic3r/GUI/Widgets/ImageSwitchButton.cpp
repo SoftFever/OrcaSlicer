@@ -272,7 +272,26 @@ void FanSwitchButton::render(wxDC& dc)
     ScalableBitmap& icon = GetValue() ? m_on : m_off;
 
     //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
-    int content_height = m_padding;
+
+    wxPoint pt = wxPoint(FromDIP(10), (size.y - icon.GetBmpHeight()) / 2);
+
+    if (icon.bmp().IsOk()) {
+        dc.DrawBitmap(icon.bmp(), pt);
+        pt.x += icon.GetBmpWidth() + FromDIP(9);
+    }
+
+    wxString fan_txt = "Fan";
+    dc.SetFont(::Label::Head_15);
+    pt.y = FromDIP(9);
+    dc.DrawText(fan_txt, pt);
+    pt.y = size.y / 2 + FromDIP(3);
+    wxString fan_num_txt = GetLabel();
+    dc.SetFont(::Label::Body_11);
+    dc.DrawText(fan_num_txt, pt);
+
+
+    //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
+    /*int content_height = m_padding;
 
     wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
 
@@ -315,7 +334,7 @@ void FanSwitchButton::render(wxDC& dc)
 
     pt.x = (size.x - dc.GetTextExtent(speed).x) / 2;
     pt.y += FromDIP(1);
-    dc.DrawText(speed, pt);
+    dc.DrawText(speed, pt);*/
 }
 
 void FanSwitchButton::Rescale()

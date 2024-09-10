@@ -141,6 +141,11 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+enum AirDuctType {
+    AIR_FAN_TYPE,
+    AIR_DOOR_TYPE
+};
+
 
 struct AmsSlot
 {
@@ -199,6 +204,31 @@ struct ExtderData
     int target_extder_id{0};
     int total_extder_count {0};
     std::vector<Extder> extders;
+};
+
+struct AirDuctFan
+{
+    //Fan and door may use the same mode_id, but they are different, they need to be distinguished by the m_type field
+    AirDuctType type;   //Type of part, fan or door
+    bool use_new_protocol{ false };
+    int id;             //the id of fan or air door
+    int func{ 0 };      //UI display, fan or door
+    int current_speed{0};
+    int target_speed{0};
+};
+
+struct AirDuct
+{
+    int airduct_id{ 0 };    //Determine the UI display content, click radonbutton to switch
+    std::vector<bool> fans_ctrl;   //Control status of each (fan) / (air door)
+    std::vector<AirDuctFan> fans_list;  //Fan or air door s
+};
+
+struct AirDuctData
+{
+    int curren_duct{0};
+    std::vector<bool> ducts_ctrl;   //Control status of each duct
+    std::vector<AirDuct> airducts;
 };
 
 struct RatingInfo {
@@ -365,6 +395,31 @@ enum HMSMessageLevel {
     HMS_MSG_LEVEL_MAX,
 };
 
+
+enum FAN_func_e {
+    FAN_FUNC_PART_COOLING = 0,
+    FAN_FUNC_AUX_COOLING,
+    FAN_FUNC_EXHAUST,
+    FAN_FUNC_FILTER,
+    FAN_FUNC_HEATING
+};
+
+enum AIR_DOOR_func_e {
+    AIR_DOOR_FUNC_CHAMBER = 0,
+    AIR_DOOR_FUNC_INNERLOOP,
+    AIR_DOOR_FUNC_TOP
+};
+
+enum AIR_DUCT_mode_e {
+    AIR_DUCT_NONE = -1,
+    AIR_DUCT_COOLING_FILT = 0,
+    AIR_DUCT_HEATING_INTERNAL_FILT,
+    AIR_DUCT_EXHAUST,
+    AIR_DUCT_FULL_COOLING,
+    AIR_DUCT_NUM,
+    AIR_DUCT_INIT = 0xFF    //Initial mode, only used within mc
+};
+
 class HMSItem
 {
 public:
@@ -426,6 +481,8 @@ public:
         COOLING_FAN = 1,
         BIG_COOLING_FAN = 2,
         CHAMBER_FAN = 3,
+        EXHAUST_FAN,
+        FILTER_FAN,
     };
 
     enum UpgradingDisplayState {
@@ -653,6 +710,10 @@ public:
     int     big_fan1_speed = 0;
     int     big_fan2_speed = 0;
     uint32_t fan_gear       = 0;
+
+    //new fan data
+    AirDuctData m_air_duct_data;
+    void converse_to_duct();    //Convert the data to duct type to make the newand old protocols consistent
 
     /* signals */
     std::string wifi_signal;
@@ -963,8 +1024,10 @@ public:
     int command_auto_leveling();
     int command_go_home();
     int command_go_home2();
-    int command_control_fan(FanType fan_type, bool on_off);
-    int command_control_fan_val(FanType fan_type, int val);
+    int command_control_fan(FanType fan_type, bool on_off); //Old protocol
+    int command_control_fan_val(FanType fan_type, int val); //Old protocol
+    int command_control_fan(int fan_id, bool on_off); //New protocol
+    int command_control_fan_val(int fan_id, int val); //New protocol
     int command_task_abort();
     /* cancelled the job_id */
     int command_task_cancel(std::string job_id);

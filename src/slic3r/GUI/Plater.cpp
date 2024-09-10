@@ -766,6 +766,11 @@ void Sidebar::priv::sync_extruder_list()
         dlg.ShowModal();
         return;
     }
+    if (obj->m_extder_data.extders.size() != 2) {
+        MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
 
     std::string machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;

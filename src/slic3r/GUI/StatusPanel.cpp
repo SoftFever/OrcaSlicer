@@ -117,13 +117,14 @@ static wxImage fail_image;
 #define TASK_THUMBNAIL_SIZE (wxSize(FromDIP(120), FromDIP(120)))
 #define TASK_BUTTON_SIZE (wxSize(FromDIP(48), FromDIP(24)))
 #define TASK_BUTTON_SIZE2 (wxSize(-1, FromDIP(24)))
-#define Z_BUTTON_SIZE (wxSize(FromDIP(52), FromDIP(52)))
+#define Z_BUTTON_SIZE (wxSize(FromDIP(44), FromDIP(40)))
 #define MISC_BUTTON_PANEL_SIZE (wxSize(FromDIP(136), FromDIP(55)))
 #define MISC_BUTTON_1FAN_SIZE (wxSize(FromDIP(132), FromDIP(51)))
 #define MISC_BUTTON_2FAN_SIZE (wxSize(FromDIP(66), FromDIP(51)))
 #define MISC_BUTTON_3FAN_SIZE (wxSize(FromDIP(44), FromDIP(51)))
-#define TEMP_CTRL_MIN_SIZE (wxSize(FromDIP(122), FromDIP(52)))
-#define AXIS_MIN_SIZE (wxSize(FromDIP(220), FromDIP(220)))
+#define TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE (wxSize(FromDIP(122), FromDIP(52)))
+#define TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE (wxSize(FromDIP(122), FromDIP(48)))
+#define AXIS_MIN_SIZE (wxSize(FromDIP(258), FromDIP(258)))
 #define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(76)))
 
 static void market_model_scoring_page(int design_id)
@@ -147,6 +148,203 @@ static void market_model_scoring_page(int design_id)
         }
     }
 }
+
+/*************************************************
+Description:Extruder
+**************************************************/
+
+ExtruderImage::ExtruderImage(wxWindow* parent, wxWindowID id, int nozzle_num, const wxPoint& pos, const wxSize& size)
+{
+    wxWindow::Create(parent, id, pos, wxSize(FromDIP(45), FromDIP(112)));
+    SetBackgroundColour(*wxWHITE);
+    m_nozzle_num = nozzle_num;
+    SetSize(wxSize(FromDIP(45), FromDIP(112)));
+    SetMinSize(wxSize(FromDIP(45), FromDIP(112)));
+    SetMaxSize(wxSize(FromDIP(45), FromDIP(112)));
+
+    m_pipe_filled_load = new ScalableBitmap(this, "pipe_of_loading_selected", 50);
+    m_pipe_filled_unload = new ScalableBitmap(this, "pipe_of_unloading_selected", 50);
+    m_pipe_empty_load = new ScalableBitmap(this, "pipe_of_empty", 50);
+    m_pipe_empty_unload = new ScalableBitmap(this, "pipe_of_empty", 50);
+    m_pipe_filled_load_unselected = new ScalableBitmap(this, "pipe_of_loading_unselected", 50);
+    m_pipe_filled_unload_unselected = new ScalableBitmap(this, "pipe_of_unloading_unselected", 50);
+    m_pipe_empty_load_unselected = new ScalableBitmap(this, "pipe_of_empty", 50);
+    m_pipe_empty_unload_unselected = new ScalableBitmap(this, "pipe_of_empty", 50);
+
+    m_left_extruder_active_filled = new ScalableBitmap(this, "left_extruder_active_filled", 62);
+    m_left_extruder_active_empty = new ScalableBitmap(this, "left_extruder_active_empty", 62);
+    m_left_extruder_unactive_filled = new ScalableBitmap(this, "left_extruder_unactive_filled", 62);
+    m_left_extruder_unactive_empty = new ScalableBitmap(this, "left_extruder_unactive_empty", 62);
+    m_right_extruder_active_filled = new ScalableBitmap(this, "right_extruder_active_filled", 62);
+    m_right_extruder_active_empty = new ScalableBitmap(this, "right_extruder_active_empty", 62);
+    m_right_extruder_unactive_filled = new ScalableBitmap(this, "right_extruder_unactive_filled", 62);
+    m_right_extruder_unactive_empty = new ScalableBitmap(this, "right_extruder_unactive_empty", 62);
+
+    m_extruder_single_nozzle_empty_load = new ScalableBitmap(this, "monitor_extruder_empty_load", 106);
+    m_extruder_single_nozzle_empty_unload = new ScalableBitmap(this, "monitor_extruder_empty_unload", 106);
+    m_extruder_single_nozzle_filled_load = new ScalableBitmap(this, "monitor_extruder_filled_load", 106);
+    m_extruder_single_nozzle_filled_unload = new ScalableBitmap(this, "monitor_extruder_filled_unload", 106);
+
+    Bind(wxEVT_PAINT, &ExtruderImage::paintEvent, this);
+}
+
+ExtruderImage::~ExtruderImage() {}
+
+void ExtruderImage::msw_rescale()
+{
+    //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
+    //auto image     = m_ams_extruder.ConvertToImage();
+    //m_extruder_pipe = ScalableBitmap(this, "pipe_of_extruder_control", 50);
+
+    m_pipe_filled_load->msw_rescale();
+    m_pipe_filled_unload->msw_rescale();
+    m_pipe_empty_load->msw_rescale();
+    m_pipe_empty_unload->msw_rescale();
+    m_pipe_filled_load_unselected->msw_rescale();
+    m_pipe_filled_unload_unselected->msw_rescale();
+    m_pipe_empty_load_unselected->msw_rescale();
+    m_pipe_empty_unload_unselected->msw_rescale();
+
+    m_left_extruder_active_filled->msw_rescale();
+    m_left_extruder_active_empty->msw_rescale();
+    m_left_extruder_unactive_filled->msw_rescale();
+    m_left_extruder_unactive_empty->msw_rescale();
+    m_right_extruder_active_filled->msw_rescale();
+    m_right_extruder_active_empty->msw_rescale();
+    m_right_extruder_unactive_filled->msw_rescale();
+    m_right_extruder_unactive_empty->msw_rescale();
+
+    m_extruder_single_nozzle_empty_load->msw_rescale();
+    m_extruder_single_nozzle_empty_unload->msw_rescale();
+    m_extruder_single_nozzle_filled_load->msw_rescale();
+    m_extruder_single_nozzle_filled_unload->msw_rescale();
+    Layout();
+    Refresh();
+}
+
+void ExtruderImage::setExtruderCount(int nozzle_num)
+{
+    m_nozzle_num = nozzle_num;
+}
+
+void ExtruderImage::setExtruderUsed(std::string loc)
+{
+    //current_nozzle_idx = nozzle_id;
+    current_nozzle_loc = loc;
+}
+
+void ExtruderImage::update(ExtruderState right_state, ExtruderState left_state) {
+    m_left_ext_state = left_state;
+    m_right_ext_state = right_state;
+}
+
+void ExtruderImage::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void ExtruderImage::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void ExtruderImage::doRender(wxDC& dc)
+{
+    auto size = GetSize();
+    //dc.DrawRectangle(0, FromDIP(5), size.x, size.y - FromDIP(5) - FromDIP(2));
+
+    auto pot = wxPoint(size.x / 2, (size.y - m_pipe_filled_load->GetBmpSize().y - m_left_extruder_active_filled->GetBmpSize().y) / 2);
+
+    if (m_nozzle_num >= 2){
+        ScalableBitmap* left_nozzle_bmp;
+        ScalableBitmap* right_nozzle_bmp;
+        ScalableBitmap* left_pipe_bmp;
+        ScalableBitmap* right_pipe_bmp;
+
+        switch (m_right_ext_state)
+        {
+        case Slic3r::GUI::FILLED_LOAD:
+            right_pipe_bmp   = current_nozzle_loc == "right" ? m_pipe_filled_load : m_pipe_filled_load_unselected;
+            right_nozzle_bmp = current_nozzle_loc == "right" ? m_right_extruder_active_filled : m_right_extruder_unactive_filled;
+            break;
+        case Slic3r::GUI::FILLED_UNLOAD:
+            right_pipe_bmp   = current_nozzle_loc == "right" ? m_pipe_filled_unload : m_pipe_filled_unload_unselected;
+            right_nozzle_bmp = current_nozzle_loc == "right" ? m_right_extruder_active_filled : m_right_extruder_unactive_filled;
+            break;
+        case Slic3r::GUI::EMPTY_LOAD:
+            right_pipe_bmp   = current_nozzle_loc == "right" ? m_pipe_empty_load : m_pipe_empty_load_unselected;
+            right_nozzle_bmp = current_nozzle_loc == "right" ? m_right_extruder_active_empty : m_right_extruder_unactive_empty;
+            break;
+        case Slic3r::GUI::EMPTY_UNLOAD:
+            right_pipe_bmp   = current_nozzle_loc == "right" ? m_pipe_empty_unload : m_pipe_empty_unload_unselected;
+            right_nozzle_bmp = current_nozzle_loc == "right" ? m_right_extruder_active_empty : m_right_extruder_unactive_empty;
+            break;
+        default:
+            break;
+        }
+
+        switch (m_left_ext_state)
+        {
+        case Slic3r::GUI::FILLED_LOAD:
+            left_pipe_bmp   = current_nozzle_loc == "left" ? m_pipe_filled_load : m_pipe_filled_load_unselected;
+            left_nozzle_bmp = current_nozzle_loc == "left" ? m_left_extruder_active_filled : m_left_extruder_unactive_filled;
+            break;
+        case Slic3r::GUI::FILLED_UNLOAD:
+            left_pipe_bmp   = current_nozzle_loc == "left" ? m_pipe_filled_unload : m_pipe_filled_unload_unselected;
+            left_nozzle_bmp = current_nozzle_loc == "left" ? m_left_extruder_active_filled : m_left_extruder_unactive_filled;
+            break;
+        case Slic3r::GUI::EMPTY_LOAD:
+            left_pipe_bmp   = current_nozzle_loc == "left" ? m_pipe_empty_load : m_pipe_empty_load_unselected;
+            left_nozzle_bmp = current_nozzle_loc == "left" ? m_left_extruder_active_empty : m_left_extruder_unactive_empty;
+            break;
+        case Slic3r::GUI::EMPTY_UNLOAD:
+            left_pipe_bmp   = current_nozzle_loc == "left" ? m_pipe_empty_unload : m_pipe_empty_unload_unselected;
+            left_nozzle_bmp = current_nozzle_loc == "left" ? m_left_extruder_active_empty : m_left_extruder_unactive_empty;
+            break;
+        default:
+            break;
+        }
+
+        left_pipe_bmp = m_pipe_filled_load;
+        right_pipe_bmp = m_pipe_filled_load;
+
+        dc.DrawBitmap(left_pipe_bmp->bmp(), pot.x - left_nozzle_bmp->GetBmpWidth() / 2 - left_pipe_bmp->GetBmpWidth() / 2, pot.y);
+        dc.DrawBitmap(left_nozzle_bmp->bmp(), pot.x - left_nozzle_bmp->GetBmpWidth(), pot.y + left_pipe_bmp->GetBmpSize().y);
+        dc.DrawBitmap(right_pipe_bmp->bmp(), pot.x + right_nozzle_bmp->GetBmpWidth() / 2 - right_pipe_bmp->GetBmpWidth() / 2, pot.y);
+        dc.DrawBitmap(right_nozzle_bmp->bmp(), pot.x, pot.y + right_pipe_bmp->GetBmpSize().y);
+    }
+    else{
+        ScalableBitmap* nozzle_bmp;
+        switch (m_single_ext_state)
+        {
+        case Slic3r::GUI::FILLED_LOAD: m_extruder_single_nozzle_filled_load; break;
+        case Slic3r::GUI::FILLED_UNLOAD: m_extruder_single_nozzle_filled_unload; break;
+        case Slic3r::GUI::EMPTY_LOAD: m_extruder_single_nozzle_empty_load; break;
+        case Slic3r::GUI::EMPTY_UNLOAD:  m_extruder_single_nozzle_empty_unload; break;
+        default:
+            break;
+        }
+        dc.DrawBitmap(m_extruder_single_nozzle_empty_load->bmp(), pot.x - m_extruder_single_nozzle_empty_load->GetBmpWidth() / 2, (size.y - m_extruder_single_nozzle_empty_load->GetBmpHeight()) / 2);
+    }
+}
+
 
 PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
     : wxPanel(parent, wxID_ANY,wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
@@ -1144,11 +1342,11 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     wxBoxSizer *bSizer_control = new wxBoxSizer(wxVERTICAL);
 
     auto temp_axis_ctrl_sizer = create_temp_axis_group(parent);
-    bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxEXPAND, 0);
-
     auto m_ams_ctrl_sizer = create_ams_group(parent);
-    bSizer_control->Add(m_ams_ctrl_sizer, 0, wxEXPAND|wxBOTTOM, FromDIP(10));
 
+    bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALL | wxEXPAND, FromDIP(4));
+    bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(10));
+    bSizer_control->Add(m_ams_ctrl_sizer, 0, wxALL | wxEXPAND, FromDIP(4));
     bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);
 
     return bSizer_right;
@@ -1173,29 +1371,41 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
 
 
-    m_temp_extruder_line = new StaticLine(box, true);
-    m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
+    m_temp_temp_line = new wxPanel(box);
+    m_temp_temp_line->SetMaxSize(wxSize(FromDIP(1), -1));
+    m_temp_temp_line->SetMinSize(wxSize(FromDIP(1), -1));
+    m_temp_temp_line->SetBackgroundColour(STATIC_BOX_LINE_COL);
 
 
     auto m_axis_sizer = create_axis_control(box);
+    auto bedPanel = create_bed_control(box);
 
-
-    wxBoxSizer *bed_sizer = create_bed_control(box);
     wxBoxSizer *extruder_sizer = create_extruder_control(box);
+    wxBoxSizer* axis_and_bed_control_sizer = new wxBoxSizer(wxVERTICAL);
+    axis_and_bed_control_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, 0);
+    axis_and_bed_control_sizer->Add(bedPanel, 0, wxALIGN_CENTER, 0);
 
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, FromDIP(5));
-    content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 1);
-    content_sizer->Add(FromDIP(9), 0, 0, wxEXPAND, 1);
-    content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
+    content_sizer->Add(m_temp_temp_line, 0, wxEXPAND, 1);
+    //content_sizer->Add(FromDIP(9), 0, 0, wxEXPAND, 1);
+    /*content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
     content_sizer->Add(m_axis_sizer, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
-    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(12));
-    content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
+    content_sizer->Add(bed_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(12));*/
+    content_sizer->Add(axis_and_bed_control_sizer, 1, wxALIGN_CENTER, 0);
+    //content_sizer->Add(0, 0, 0, wxLEFT, FromDIP(18));
+
+    m_temp_extruder_line = new wxPanel(box);
+    m_temp_extruder_line->SetMaxSize(wxSize(FromDIP(1), -1));
+    m_temp_extruder_line->SetMinSize(wxSize(FromDIP(1), -1));
+    m_temp_extruder_line->SetBackgroundColour(STATIC_BOX_LINE_COL);
+
+    content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 1);
     content_sizer->Add(extruder_sizer, 0, wxEXPAND  | wxTOP | wxBOTTOM, FromDIP(12));
+    content_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(3));
 
     box->SetSizer(content_sizer);
     sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(9));
-
     return sizer;
 }
 
@@ -1204,9 +1414,9 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxWindowID nozzle_id = wxWindow::NewControlId();
-    m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
+    m_tempCtrl_nozzle = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_MAIN_NOZZLE_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
                                       wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
     m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
     m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
@@ -1219,6 +1429,18 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle->SetBorderColor(tempinput_border_colour);
 
     sizer->Add(m_tempCtrl_nozzle, 0, wxEXPAND | wxALL, 1);
+    m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_DEPUTY_NOZZLE_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
+        wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
+    m_tempCtrl_nozzle_deputy->SetMinTemp(nozzle_temp_range[0]);
+    m_tempCtrl_nozzle_deputy->SetMaxTemp(nozzle_temp_range[1]);
+    m_tempCtrl_nozzle_deputy->SetBorderWidth(FromDIP(2));
+
+    m_tempCtrl_nozzle_deputy->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_nozzle_deputy->SetBorderColor(tempinput_border_colour);
+
+    sizer->Add(m_tempCtrl_nozzle_deputy, 0, wxEXPAND | wxALL, 1);
+    //m_tempCtrl_nozzle_deputy->Hide();
 
     m_line_nozzle = new StaticLine(parent);
     m_line_nozzle->SetLineColour(STATIC_BOX_LINE_COL);
@@ -1226,11 +1448,11 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     sizer->Add(m_line_nozzle, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     wxWindowID bed_id = wxWindow::NewControlId();
-    m_tempCtrl_bed    = new TempInput(parent, bed_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_bed_temp"), wxString("monitor_bed_temp_active"), wxDefaultPosition,
-                                   wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_bed    = new TempInput(parent, bed_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_bed_temp"),
+        wxString("monitor_bed_temp_active"), wxDefaultPosition,wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
-    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
     m_tempCtrl_bed->SetBorderWidth(FromDIP(2));
     m_tempCtrl_bed->SetTextColor(tempinput_text_colour);
     m_tempCtrl_bed->SetBorderColor(tempinput_border_colour);
@@ -1241,12 +1463,12 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     wxWindowID frame_id = wxWindow::NewControlId();
-    m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp_active"), wxDefaultPosition,
-                                     wxDefaultSize, wxALIGN_CENTER);
+    m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_frame_temp"),
+        wxString("monitor_frame_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_chamber->SetReadOnly(true);
     m_tempCtrl_chamber->SetMinTemp(nozzle_chamber_range[0]);
     m_tempCtrl_chamber->SetMaxTemp(nozzle_chamber_range[1]);
-    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
     m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
     m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
     m_tempCtrl_chamber->SetBorderColor(tempinput_border_colour);
@@ -1296,10 +1518,10 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_lamp->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     line_sizer->Add(m_switch_lamp, 1, wxALIGN_CENTER | wxALL, 0);
 
-    sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
+    /*sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
     line = new StaticLine(parent);
     line->SetLineColour(STATIC_BOX_LINE_COL);
-    sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
+    sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);*/
 
     m_fan_panel = new StaticBox(parent);
     m_fan_panel->SetMinSize(MISC_BUTTON_PANEL_SIZE);
@@ -1368,8 +1590,6 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
         m_fan_panel->SetBackgroundColor(parent->GetBackgroundColour());
     });
 
-    //m_switch_block_fan = new wxPanel(m_fan_panel);
-    //m_switch_block_fan->SetBackgroundColour(parent->GetBackgroundColour());
 
     fan_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
     fan_line_sizer->Add(m_switch_nozzle_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM , FromDIP(2));
@@ -1382,8 +1602,11 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_fan_panel->Layout();
     m_fan_panel->Fit();
     sizer->Add(m_fan_panel, 0, wxEXPAND, FromDIP(5));
+    line = new StaticLine(parent);
+    line->SetLineColour(STATIC_BOX_LINE_COL);
+    sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
-
+    sizer->Add(line_sizer, 0, wxEXPAND, FromDIP(5));
     return sizer;
 }
 
@@ -1392,13 +1615,18 @@ void StatusBasePanel::reset_temp_misc_control()
     // reset temp string
     m_tempCtrl_nozzle->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+
+    m_tempCtrl_nozzle_deputy->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_nozzle_deputy->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+
     m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-    m_button_unload->Show();
+    //m_button_unload->Show();
 
     m_tempCtrl_nozzle->Enable(true);
+    m_tempCtrl_nozzle_deputy->Enable(true);
     m_tempCtrl_chamber->Enable(true);
     m_tempCtrl_bed->Enable(true);
 
@@ -1424,26 +1652,14 @@ wxBoxSizer *StatusBasePanel::create_axis_control(wxWindow *parent)
     sizer->Add(m_bpButton_xy, 0, wxALIGN_CENTER | wxALL, 0);
     sizer->AddStretchSpacer();
 
-    /*m_staticText_xy = new wxStaticText(parent, wxID_ANY, _L("X/Y Axis"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_xy->Wrap(-1);
-
-    m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    sizer->Add(m_staticText_xy, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));*/
-    return sizer;
-}
-
-wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
-{
-    wxBoxSizer *sizer         = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *bSizer_z_ctrl = new wxBoxSizer(wxVERTICAL);
-    auto        panel         = new wxPanel(parent, wxID_ANY);
+    /*
+    wxBoxSizer* bSizer_z_ctrl = new wxBoxSizer(wxHORIZONTAL);
+    auto        panel = new wxPanel(parent, wxID_ANY);
     panel->SetBackgroundColour(*wxWHITE);
 
-    panel->SetSize(wxSize(FromDIP(52), -1));
-    panel->SetMinSize(wxSize(FromDIP(52), -1));
-    panel->SetMaxSize(wxSize(FromDIP(52), -1));
-
-
+    panel->SetSize(wxSize(FromDIP(278), -1));
+    panel->SetMinSize(wxSize(FromDIP(278), -1));
+    panel->SetMaxSize(wxSize(FromDIP(278), -1));
 
     StateColor z_10_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor z_10_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
@@ -1457,7 +1673,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_10->SetBorderWidth(2);
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
-    m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+    m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int)StateColor::Normal)));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
 
@@ -1469,11 +1685,17 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
-    m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+    m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int)StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxALL, 0);
+    //bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
+    m_staticText_z_tip = new wxStaticText(panel, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_z_tip->SetFont(::Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_staticText_z_tip->SetFont(::Label::Body_11);
+    m_staticText_z_tip->Wrap(-1);
+    m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(5));
 
     m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_1->SetFont(::Label::Body_13);
@@ -1481,8 +1703,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_down_1->SetMinSize(Z_BUTTON_SIZE);
-    m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
-
+    m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int)StateColor::Normal)));
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
 
     m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
@@ -1491,24 +1712,95 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
     m_bpButton_z_down_10->SetBorderColor(z_10_ctrl_bd);
     m_bpButton_z_down_10->SetMinSize(Z_BUTTON_SIZE);
-    m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+    m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int)StateColor::Normal)));
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL, 0);
-
     bSizer_z_ctrl->Add(0, FromDIP(16), 0, wxEXPAND, 0);
+    */
+
+    /*panel->SetSizer(bSizer_z_ctrl);
+    panel->Layout();
+    sizer->Add(panel, 1, wxEXPAND, 0);*/
+    /*m_staticText_xy = new wxStaticText(parent, wxID_ANY, _L("X/Y Axis"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_xy->Wrap(-1);
+
+    m_staticText_xy->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+    sizer->Add(m_staticText_xy, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));*/
+    return sizer;
+}
+
+wxPanel *StatusBasePanel::create_bed_control(wxWindow *parent)
+{
+    wxBoxSizer *bSizer_z_ctrl = new wxBoxSizer(wxHORIZONTAL);
+    auto        panel         = new wxPanel(parent, wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
+
+   /* panel->SetSize(wxSize(FromDIP(268), -1));
+     panel->SetMinSize(wxSize(FromDIP(268), -1));
+     panel->SetMaxSize(wxSize(FromDIP(268), -1));*/
+
+
+
+    StateColor z_10_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
+    StateColor z_10_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
+
+    StateColor z_1_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
+    StateColor z_1_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
+
+    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_10->SetFont(::Label::Body_12);
+    m_bpButton_z_10->SetBorderWidth(0);
+    m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
+    m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
+    m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+    m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
+    m_bpButton_z_10->SetMaxSize(Z_BUTTON_SIZE);
+    m_bpButton_z_10->SetCornerRadius(0);
+    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_1->SetFont(::Label::Body_12);
+    m_bpButton_z_1->SetBorderWidth(0);
+    m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
+    m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
+    m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
+    m_bpButton_z_1->SetMaxSize(Z_BUTTON_SIZE);
+    m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+
+    //bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
     m_staticText_z_tip = new wxStaticText(panel, wxID_ANY, _L("Bed"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_z_tip->SetFont(::Label::Body_13);
+    m_staticText_z_tip->SetFont(::Label::Body_12);
     if (wxGetApp().app_config->get("language") == "de_DE") m_staticText_z_tip->SetFont(::Label::Body_11);
     m_staticText_z_tip->Wrap(-1);
     m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_1->SetFont(::Label::Body_12);
+    m_bpButton_z_down_1->SetBorderWidth(0);
+    m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
+    m_bpButton_z_down_1->SetBorderColor(z_1_ctrl_bd);
+    m_bpButton_z_down_1->SetMinSize(Z_BUTTON_SIZE);
+    m_bpButton_z_down_1->SetSize(Z_BUTTON_SIZE);
+    m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+
+    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_10->SetFont(::Label::Body_12);
+    m_bpButton_z_down_10->SetBorderWidth(0);
+    m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
+    m_bpButton_z_down_10->SetBorderColor(z_10_ctrl_bd);
+    m_bpButton_z_down_10->SetMinSize(Z_BUTTON_SIZE);
+    m_bpButton_z_down_10->SetSize(Z_BUTTON_SIZE);
+    m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
+
+    bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxALL, 0);
+    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(17));
+    bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL, 0);
 
     panel->SetSizer(bSizer_z_ctrl);
     panel->Layout();
-    sizer->Add(panel, 1, wxEXPAND, 0);
+    panel->Fit();
 
-    return sizer;
+    return panel;
 }
 
 wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
@@ -1516,40 +1808,40 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *bSizer_e_ctrl = new wxBoxSizer(wxVERTICAL);
     auto        panel = new wxPanel(parent,wxID_ANY);
+
     panel->SetBackgroundColour(*wxWHITE);
-
-
-    panel->SetSize(wxSize(FromDIP(52), -1));
-    panel->SetMinSize(wxSize(FromDIP(52), -1));
-    panel->SetMaxSize(wxSize(FromDIP(52), -1));
+    panel->SetSize(wxSize(FromDIP(143), -1));
+    panel->SetMinSize(wxSize(FromDIP(143), -1));
+    panel->SetMaxSize(wxSize(FromDIP(143), -1));
 
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
+
+    m_left_right_btn_panel = new SwitchBoard(panel, _L("Left"), _L("Right"), wxSize(FromDIP(126), FromDIP(26)));
+
     m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, FromDIP(22));
     m_bpButton_e_10->SetBorderWidth(2);
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
 
-    bSizer_e_ctrl->AddStretchSpacer();
-    bSizer_e_ctrl->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
+    m_extruder_book = new wxSimplebook(panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(45), FromDIP(112)), 0);
 
-    m_bitmap_extruder_img = new wxStaticBitmap(panel, wxID_ANY, m_bitmap_extruder_empty_load, wxDefaultPosition, wxDefaultSize, 0);
-    m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
+    m_extruder_book->InsertPage(0, new wxPanel(panel), "");
+    for (int nozzle_num = 1; nozzle_num <= 2; nozzle_num++) {
+        auto extruder_img = new ExtruderImage(m_extruder_book, wxID_ANY, nozzle_num);
+        m_extruder_book->InsertPage(nozzle_num, extruder_img, "");
+        m_extruderImage.push_back(extruder_img);
+    }
+    m_extruder_book->SetSelection(0);
 
-    bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
-    bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
     m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, FromDIP(22));
     m_bpButton_e_down_10->SetBorderWidth(2);
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
 
-    bSizer_e_ctrl->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-
-
-    m_button_unload = new Button(panel, _L("Unload"));
+    /*m_button_unload = new Button(panel, _L("Unload"));
 
     StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
@@ -1563,20 +1855,26 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(12));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));
+    bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));*/
+    m_extruder_label = new ::Label(panel, _L("Extruder"));
+    m_extruder_label->SetFont(::Label::Body_13);
+    m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
 
-    bSizer_e_ctrl->Add(0, FromDIP(9), 0, wxEXPAND, 0);
-
-    m_staticText_e = new wxStaticText(panel, wxID_ANY, _L("Extruder"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_e->SetFont(::Label::Body_13);
-    m_staticText_e->Wrap(-1);
-    m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-    bSizer_e_ctrl->Add(m_staticText_e, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(15));
+    bSizer_e_ctrl->Add(m_left_right_btn_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(15));
+    bSizer_e_ctrl->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(7));
+    bSizer_e_ctrl->Add(m_extruder_book, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(7));
+    bSizer_e_ctrl->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_e_ctrl->Add(m_extruder_label, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(8));
 
     panel->SetSizer(bSizer_e_ctrl);
     panel->Layout();
     sizer->Add(panel, 1, wxEXPAND, 0);
-
     return sizer;
 }
 
@@ -1713,7 +2011,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     , m_fan_control_popup(new FanControlPopup(this))
 {
     init_scaled_buttons();
-    m_buttons.push_back(m_button_unload);
+    //m_buttons.push_back(m_button_unload);
     m_buttons.push_back(m_bpButton_z_10);
     m_buttons.push_back(m_bpButton_z_1);
     m_buttons.push_back(m_bpButton_z_down_1);
@@ -1729,6 +2027,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_switch_printing_fan->SetValue(false);
     m_switch_nozzle_fan->SetValue(false);
     m_switch_cham_fan->SetValue(false);
+    //m_switch_fan->SetValue(false);
 
     /* set default enable state */
     m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
@@ -1769,6 +2068,11 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_switch_nozzle_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); // TODO
     m_switch_printing_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
     m_switch_cham_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); 
+
+    //m_switch_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); // TODO
+    //m_switch_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+    //m_switch_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+
     m_bpButton_xy->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_xy), NULL, this); // TODO
     m_bpButton_z_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_10), NULL, this);
     m_bpButton_z_1->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_1), NULL, this);
@@ -1776,7 +2080,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_z_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
-    m_button_unload->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
+    //m_button_unload->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
@@ -1826,6 +2130,11 @@ StatusPanel::~StatusPanel()
     m_switch_nozzle_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
     m_switch_printing_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
     m_switch_cham_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+
+    //m_switch_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+    //m_switch_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+    //m_switch_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+
     m_bpButton_xy->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_xy), NULL, this);
     m_bpButton_z_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_10), NULL, this);
     m_bpButton_z_1->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_1), NULL, this);
@@ -1837,7 +2146,7 @@ StatusPanel::~StatusPanel()
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
     m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
-    m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
+    //m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
 
     // remove warning dialogs
     if (m_print_error_dlg != nullptr)
@@ -1860,8 +2169,8 @@ StatusPanel::~StatusPanel()
 void StatusPanel::init_scaled_buttons()
 {
     m_project_task_panel->init_scaled_buttons();
-    m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(12));
+    //m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
+    //m_button_unload->SetCornerRadius(FromDIP(12));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
@@ -2096,6 +2405,9 @@ void StatusPanel::update(MachineObject *obj)
     update_cali(obj);
 
     if (obj) {
+        //nozzle ui
+        //m_button_left_of_extruder->SetSelected();
+
         // update extrusion calibration
         if (m_extrusion_cali_dlg) {
             m_extrusion_cali_dlg->update_machine_obj(obj);
@@ -2306,8 +2618,8 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_e_down_10->SetIcon("monitor_extrduer_down_disable");
 
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_button_unload->Enable(false);
+        m_extruder_label->SetForegroundColour(DISCONNECT_TEXT_COL);
+        //m_button_unload->Enable(false);
         m_switch_speed->SetValue(false);
     } else {
         m_switch_speed->Enable();
@@ -2315,6 +2627,9 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_switch_nozzle_fan->Enable();
         m_switch_printing_fan->Enable();
         m_switch_cham_fan->Enable();
+
+        //m_switch_fan->Enable();
+
         m_bpButton_xy->Enable();
         m_bpButton_z_10->Enable();
         m_bpButton_z_1->Enable();
@@ -2331,13 +2646,14 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
 		m_bpButton_e_down_10->SetIcon("monitor_extrduer_down");
 
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        m_button_unload->Enable();
+        m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+        //m_button_unload->Enable();
         m_switch_speed->SetValue(true);
     }
 
     if (!temp_area) {
         m_tempCtrl_nozzle->Enable(false);
+        m_tempCtrl_nozzle_deputy->Enable(false);
         m_tempCtrl_bed->Enable(false);
         m_tempCtrl_chamber->Enable(false);
         m_switch_speed->Enable(false);
@@ -2346,8 +2662,10 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_switch_nozzle_fan->Enable(false);
         m_switch_printing_fan->Enable(false);
         m_switch_cham_fan->Enable(false);
+        //m_switch_fan->Enable(false);
     } else {
         m_tempCtrl_nozzle->Enable();
+        m_tempCtrl_nozzle_deputy->Enable();
         m_tempCtrl_bed->Enable();
         m_tempCtrl_chamber->Enable();
         m_switch_speed->Enable();
@@ -2356,6 +2674,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_switch_nozzle_fan->Enable();
         m_switch_printing_fan->Enable();
         m_switch_cham_fan->Enable();
+        //m_switch_fan->Enable();
     }
 }
 
@@ -2363,6 +2682,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
+    int nozzle_num = obj->m_extder_data.total_extder_count;
     m_tempCtrl_bed->SetCurrTemp((int) obj->bed_temp);
     m_tempCtrl_bed->SetMaxTemp(obj->get_bed_temperature_limit());
 
@@ -2380,11 +2700,14 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_extder_data.extders[0].temp);
+    if(nozzle_num == 2 && obj->m_extder_data.extders.size() > 1) m_tempCtrl_nozzle_deputy->SetCurrTemp((int)obj->m_extder_data.extders[0].temp);
     if (obj->nozzle_max_temperature > -1) {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
+        if (m_tempCtrl_nozzle_deputy && nozzle_num >= 2) m_tempCtrl_nozzle_deputy->SetMaxTemp(obj->nozzle_max_temperature);
     }
     else {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+        if (m_tempCtrl_nozzle_deputy && nozzle_num >= 2) m_tempCtrl_nozzle_deputy->SetMaxTemp(nozzle_temp_range[1]);
     }
 
     if (m_temp_nozzle_timeout > 0) {
@@ -2393,10 +2716,26 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[0].target_temp); }
     }
 
+    if (m_temp_nozzle_deputy_timeout > 0) {
+        m_temp_nozzle_deputy_timeout--;
+    }
+    else {
+        if (!nozzle_temp_input && nozzle_num >= 2) { m_tempCtrl_nozzle_deputy->SetTagTemp((int)obj->m_extder_data.extders[0].target_temp); }
+    }
+
     if ((obj->m_extder_data.extders[0].target_temp - obj->m_extder_data.extders[0].temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
+    }
+
+    if (nozzle_num >= 2 && obj->m_extder_data.extders.size() > 1){
+        if ((obj->m_extder_data.extders[1].target_temp - obj->m_extder_data.extders[1].temp) >= TEMP_THRESHOLD_VAL) {
+            m_tempCtrl_nozzle_deputy->SetIconActive();
+        }
+        else {
+            m_tempCtrl_nozzle_deputy->SetIconNormal();
+        }
     }
 
     m_tempCtrl_chamber->SetCurrTemp(obj->chamber_temp);
@@ -2420,18 +2759,51 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->can_unload_filament()) {
-        if (!m_button_unload->IsShown()) {
-            m_button_unload->Show();
-            m_button_unload->GetParent()->Layout();
+    /*extder*/
+    m_nozzle_num     = obj->m_extder_data.total_extder_count;
+    int select_index = m_nozzle_num - 1;
+
+    if (m_nozzle_num >= 2) {
+        m_extruder_book->SetSelection(m_nozzle_num);
+
+        /*style*/
+        if (m_nozzle_num == 2) {
+            m_left_right_btn_panel->Show();
+        } else {
+            m_left_right_btn_panel->Hide();
         }
+
+        m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
+        m_extruderImage[select_index]->update(ExtruderState::FILLED_LOAD, ExtruderState::FILLED_UNLOAD);
+
+        /*current*/
+        if (obj->m_extder_data.current_extder_id == 0xf) {
+            m_extruderImage[select_index]->setExtruderUsed("");
+            m_left_right_btn_panel->updateState("");
+        } else if (obj->m_extder_data.current_extder_id == MAIN_NOZZLE_ID) {
+            m_extruderImage[select_index]->setExtruderUsed("right");
+            m_left_right_btn_panel->updateState("right");
+        } else if (obj->m_extder_data.current_extder_id == DEPUTY_NOZZLE_ID) {
+            m_extruderImage[select_index]->setExtruderUsed("left");
+            m_left_right_btn_panel->updateState("left");
+        }
+        Layout();
     } else {
-        if (m_button_unload->IsShown()) {
-            m_button_unload->Hide();
-            m_button_unload->GetParent()->Layout();
-        }
+        m_extruder_book->SetSelection(m_nozzle_num);
+        m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
     }
 
+    /*switch extder*/
+    /*for (auto i = 0; i < obj->m_extder_data.extders.size(); i++) {
+        obj->m_extder_data.extders[i].ams_stat;
+    }*/
+
+
+
+
+    //m_extruder_label = new ::Label(panel, _L("Extruder"));
+
+    /*other*/
     if (obj->is_core_xy()) {
         m_staticText_z_tip->SetLabel(_L("Bed"));
     } else {
@@ -2552,20 +2924,27 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 void StatusPanel::update_extruder_status(MachineObject* obj)
 {
     if (!obj) return;
+    wxBitmap tmp;
     if (obj->is_filament_at_extruder()) {
         if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_load);
+            tmp = m_bitmap_extruder_filled_load;
         }
         else {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_unload);
+            tmp = m_bitmap_extruder_filled_unload;
         }
     }
     else {
         if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_load);
-        } else {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_unload);
+            tmp = m_bitmap_extruder_empty_load;
         }
+        else {
+            tmp = m_bitmap_extruder_empty_unload;
+        }
+    }
+
+    if (!tmp.IsSameAs(m_bitmap_extruder_now)) {
+        m_bitmap_extruder_now = tmp;
+        //m_bitmap_extruder_img->SetBitmap(tmp);
     }
 }
 
@@ -2652,7 +3031,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         ext_info.push_back(info);
     }
     std::string dev_id = obj->dev_id;
-    NozzleData data = obj->m_nozzle_data;
+    ExtderData data = obj->m_extder_data;
     //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
     //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
     //    m_ams_control->UpdateAms(ams_info, false);
@@ -3475,6 +3854,9 @@ void StatusPanel::on_set_bed_temp()
 void StatusPanel::on_set_nozzle_temp()
 {
     wxString str = m_tempCtrl_nozzle->GetTextCtrl()->GetValue();
+    wxString str_deputy;
+    int nozzle_num = obj->m_extder_data.total_extder_count;
+    if (nozzle_num >= 2) str_deputy = m_tempCtrl_nozzle_deputy->GetTextCtrl()->GetValue();
     try {
         long nozzle_temp;
         if (str.ToLong(&nozzle_temp) && obj) {
@@ -3483,6 +3865,15 @@ void StatusPanel::on_set_nozzle_temp()
                 nozzle_temp = m_tempCtrl_nozzle->get_max_temp();
                 m_tempCtrl_nozzle->SetTagTemp(wxString::Format("%d", nozzle_temp));
                 m_tempCtrl_nozzle->Warning(false);
+            }
+            obj->command_set_nozzle(nozzle_temp);
+        }
+        if (nozzle_num >= 2 && str_deputy.ToLong(&nozzle_temp) && obj) {
+            //set_hold_count(m_temp_nozzle_deputy_timeout);
+            if (nozzle_temp > m_tempCtrl_nozzle_deputy->get_max_temp()) {
+                nozzle_temp = m_tempCtrl_nozzle_deputy->get_max_temp();
+                m_tempCtrl_nozzle_deputy->SetTagTemp(wxString::Format("%d", nozzle_temp));
+                m_tempCtrl_nozzle_deputy->Warning(false);
             }
             obj->command_set_nozzle(nozzle_temp);
         }
@@ -3976,6 +4367,8 @@ void StatusPanel::on_fan_changed(wxCommandEvent& event)
 {
     auto type = event.GetInt();
     auto speed = atoi(event.GetString().c_str());
+    //set_hold_count(this->m_switch_cham_fan_timeout);
+    //return;
 
     if (type == MachineObject::FanType::COOLING_FAN) {
         set_hold_count(this->m_switch_nozzle_fan_timeout);
@@ -4498,19 +4891,23 @@ void StatusPanel::msw_rescale()
     m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
     m_temp_extruder_line->SetSize(wxSize(FromDIP(1), -1));
     update_extruder_status(obj);
-    m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
+    //m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
 
     for (Button *btn : m_buttons) { btn->Rescale(); }
     init_scaled_buttons();
 
 
     m_bpButton_xy->Rescale();
-    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    auto size = TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE;
+    if (obj->m_extder_data.total_extder_count >= 2) size = TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE;
+    m_tempCtrl_nozzle->SetMinSize(size);
     m_tempCtrl_nozzle->Rescale();
+    m_tempCtrl_nozzle_deputy->SetMinSize(size);
+    m_tempCtrl_nozzle_deputy->Rescale();
     m_line_nozzle->SetSize(wxSize(-1, FromDIP(1)));
-    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_bed->SetMinSize(size);
     m_tempCtrl_bed->Rescale();
-    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->SetMinSize(size);
     m_tempCtrl_chamber->Rescale();
 
     m_bitmap_speed.msw_rescale();
@@ -4528,6 +4925,9 @@ void StatusPanel::msw_rescale()
     m_switch_printing_fan->Rescale();
     m_switch_cham_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_cham_fan->Rescale();
+
+    //m_switch_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
+    //m_switch_fan->Rescale();
 
 
     m_ams_control->msw_rescale();
