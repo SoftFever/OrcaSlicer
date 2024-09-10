@@ -1845,7 +1845,8 @@ void PerimeterGenerator::process_classic()
                     break;
                 }
                 {
-                    const bool fuzzify_contours = (this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None && ((i == 0 && this->layer_id > 0) || this->config->fuzzy_skin == FuzzySkinType::AllWalls);
+                    const bool fuzzify_layer = (this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None;
+                    const bool fuzzify_contours = fuzzify_layer && (i == 0 || this->config->fuzzy_skin == FuzzySkinType::AllWalls);
                     const bool fuzzify_holes = fuzzify_contours && (this->config->fuzzy_skin == FuzzySkinType::All || this->config->fuzzy_skin == FuzzySkinType::AllWalls);
                     for (const ExPolygon& expolygon : offsets) {
                         // Outer contour may overlap with an inner contour,
@@ -2856,10 +2857,13 @@ void PerimeterGenerator::process_arachne()
                     current_position = best_path->junctions.back().p; //Pick the other end from where we started.
             }
         }
-        if ((this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None) {
+        const bool fuzzify_layer = (this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None;
+        if (fuzzify_layer) {
             std::vector<PerimeterGeneratorArachneExtrusion*> closed_loop_extrusions;
-            for (PerimeterGeneratorArachneExtrusion& extrusion : ordered_extrusions)
-                if (extrusion.extrusion->inset_idx == 0) {
+            for (PerimeterGeneratorArachneExtrusion& extrusion : ordered_extrusions) {
+                if (this->config->fuzzy_skin == FuzzySkinType::AllWalls) {
+                    extrusion.fuzzify = true;
+                } else if (extrusion.extrusion->inset_idx == 0) {
                     if (extrusion.extrusion->is_closed && this->config->fuzzy_skin == FuzzySkinType::External) {
                         closed_loop_extrusions.emplace_back(&extrusion);
                     }
@@ -2867,8 +2871,9 @@ void PerimeterGenerator::process_arachne()
                         extrusion.fuzzify = true;
                     }
                 }
+            }
 
-            if (this->config->fuzzy_skin == FuzzySkinType::External) {
+            if (!closed_loop_extrusions.empty()) {
                 ClipperLib_Z::Paths loops_paths;
                 loops_paths.reserve(closed_loop_extrusions.size());
                 for (const auto& cl_extrusion : closed_loop_extrusions) {
