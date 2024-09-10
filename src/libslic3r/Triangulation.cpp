@@ -1,10 +1,6 @@
 #include "Triangulation.hpp"
 #include "IntersectionPoints.hpp"
-
-#ifndef _WIN32
-// On linux and macOS, this include is required
 #include <boost/next_prior.hpp>
-#endif // _WIN32
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>

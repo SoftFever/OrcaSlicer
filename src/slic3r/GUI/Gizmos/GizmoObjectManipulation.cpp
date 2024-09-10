@@ -591,6 +591,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     float World_size    = imgui_wrapper->calc_text_size(position_title).x + space_size;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
+    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
     Vec3d original_position;
@@ -600,6 +601,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         original_position = this->m_new_position;
     Vec3d display_position = m_buffered_position;
 
+    // Rotation
+    Vec3d rotation   = this->m_buffered_rotation;
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
@@ -705,6 +708,13 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
+    // position
+    Vec3d original_position;
+    if (this->m_imperial_units)
+        original_position = this->m_new_position * this->mm_to_in;
+    else
+        original_position = this->m_new_position;
+    Vec3d display_position = m_buffered_position;
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
 
@@ -825,7 +835,10 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     Vec3d scale = m_buffered_scale;
     Vec3d display_size = m_buffered_size;
 
+    Vec3d display_position = m_buffered_position;
+
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    bool imperial_units = this->m_imperial_units;
 
     int index      = 2;
     int index_unit = 1;

@@ -13,7 +13,7 @@ namespace GUI {
 
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 
-class FilamentInfomation : public wxObject
+class Filamentinformation : public wxObject
 {
 public:
     std::string filament_id;

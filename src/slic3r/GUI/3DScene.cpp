@@ -241,7 +241,7 @@ float GLVolume::last_explosion_ratio = 1.0;
 
 void GLVolume::set_render_color()
 {
-    // bool outside = is_outside || is_below_printbed();
+    bool outside = is_outside || is_below_printbed();
 
     if (force_native_color || force_neutral_color) {
 #ifdef ENABBLE_OUTSIDE_COLOR
@@ -423,7 +423,7 @@ void GLVolume::render()
 }
 
 //BBS: add outline related logic
-void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
+void GLVolume::render_with_outline(const GUI::Size& cnv_size)
 {
     if (!is_active)
         return;
@@ -435,37 +435,79 @@ void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = get_extruders_colors();
 
-    glEnable(GL_STENCIL_TEST);
-    glStencilMask(0xFF);
-    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
+    const GUI::OpenGLManager::EFramebufferType framebuffers_type = GUI::OpenGLManager::get_framebuffers_type();
+    if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Unknown) {
+        // No supported, degrade to normal rendering
+        simple_render(shader, model_objects, colors);
+        return;
+    }
 
-    simple_render(shader, model_objects, colors);
+    // 1st. render pass, render the model into a separate render target that has only depth buffer
+    GLuint depth_fbo   = 0;
+    GLuint depth_tex = 0;
+    if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Arb) {
+        glsafe(::glGenFramebuffers(1, &depth_fbo));
+        glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo));
 
-    // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-    // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing
-    // the objects' size differences, making it look like borders.
-    glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
-    glStencilMask(0x00);
-    float scale = 1.02f;
-    ColorRGBA body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
+        glActiveTexture(GL_TEXTURE0);
+        glsafe(::glGenTextures(1, &depth_tex));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, depth_tex));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, cnv_size.get_width(), cnv_size.get_height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
 
-    model.set_color(body_color);
-    shader->set_uniform("is_outline", true);
+        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_tex, 0));
+    } else {
+        glsafe(::glGenFramebuffersEXT(1, &depth_fbo));
+        glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, depth_fbo));
 
-    Transform3d matrix = view_model_matrix;
-    matrix.scale(scale);
-    shader->set_uniform("view_model_matrix", matrix);
+        glActiveTexture(GL_TEXTURE0);
+        glsafe(::glGenTextures(1, &depth_tex));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, depth_tex));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, cnv_size.get_width(), cnv_size.get_height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+
+        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, depth_tex, 0));
+    }
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
         model.render();
     else
         model.render(this->tverts_range);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
-    shader->set_uniform("view_model_matrix", view_model_matrix);
+    // 2nd. render pass, just a normal render with the depth buffer passed as a texture
+    if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Arb) {
+        glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    } else if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Ext) {
+        glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
+    }
+    shader->set_uniform("is_outline", true);
+    shader->set_uniform("screen_size", Vec2f{cnv_size.get_width(), cnv_size.get_height()});
+    glActiveTexture(GL_TEXTURE0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, depth_tex));
+    shader->set_uniform("depth_tex", 0);
+    simple_render(shader, model_objects, colors);
+
+    // Some clean up to do
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
     shader->set_uniform("is_outline", false);
-
-    glDisable(GL_STENCIL_TEST);
+    if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Arb) {
+        glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        if (depth_fbo != 0)
+            glsafe(::glDeleteFramebuffers(1, &depth_fbo));
+    } else if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Ext) {
+        glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
+        if (depth_fbo != 0)
+            glsafe(::glDeleteFramebuffersEXT(1, &depth_fbo));
+    }
+    if (depth_tex != 0)
+        glsafe(::glDeleteTextures(1, &depth_tex));
 }
 
 //BBS add render for simple case
@@ -847,8 +889,8 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
 }
 
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, const Transform3d& projection_matrix,
-    std::function<bool(const GLVolume&)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, const Transform3d& projection_matrix, const GUI::Size& cnv_size,
+    std::function<bool(const GLVolume&)> filter_func) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -859,6 +901,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         return;
 
     GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
 
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));
@@ -952,9 +995,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
 		//BBS: add outline related logic
-        //if (with_outline && volume.first->selected)
-        //    volume.first->render_with_outline(view_matrix * model_matrix);
-        //else
+        if (volume.first->selected && GUI::wxGetApp().show_outline())
+            volume.first->render_with_outline(cnv_size);
+        else
             volume.first->render();
 
 #if ENABLE_ENVIRONMENT_MAP
@@ -1022,6 +1065,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height());
+    const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)
     {

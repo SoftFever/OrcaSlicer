@@ -403,6 +403,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float filter_btn_width = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.f);
     const float buttons_width = remove_btn_width + filter_btn_width + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
+    const float color_button_width = m_imgui->calc_text_size(std::string_view{""}).x + m_imgui->scaled(1.75f);
 
     float caption_max = 0.f;
     float total_text_max = 0.f;
@@ -443,6 +444,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float start_pos_x = ImGui::GetCursorPos().x;
     const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
+    const float item_spacing = m_imgui->scaled(0.8f);
     size_t n_extruder_colors = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
     for (int extruder_idx = 0; extruder_idx < n_extruder_colors; extruder_idx++) {
         const ColorRGBA &extruder_color = m_extruders_colors[extruder_idx];

@@ -743,6 +743,7 @@ void MainFrame::update_layout()
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
 
+    ESettingsLayout old_layout = m_layout;
     m_layout = layout;
 
     // From the very beginning the Print settings should be selected
@@ -1103,7 +1104,9 @@ void MainFrame::show_device(bool bBBLPrinter) {
             m_calibration->SetBackgroundColour(*wxWHITE);
         }
         m_calibration->Show(false);
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_calibration_active"),
+        // Calibration is always the last page, so don't use InsertPage here. Otherwise, if multi_machine page is not enabled,
+        // the calibration tab won't be properly added as well, due to the TabPosition::tpCalibration no longer matches the real tab position.
+        m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"),
                                std::string("tab_calibration_active"), false);
 
 #ifdef _MSW_DARK_MODE
@@ -1487,6 +1490,7 @@ bool MainFrame::can_reslice() const
 wxBoxSizer* MainFrame::create_side_tools()
 {
     enable_multi_machine = wxGetApp().is_enable_multi_machine();
+    int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_slice_select = eSlicePlate;
@@ -1777,7 +1781,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     aux_btn->Bind(wxEVT_BUTTON, [](auto e) {
         wxGetApp().sidebar().show_auxiliary_dialog();
     });
-    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em_unit() / 10);
+    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     */
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
@@ -1922,6 +1926,9 @@ bool MainFrame::get_enable_print_status()
 
 void MainFrame::update_side_button_style()
 {
+    // BBS
+    int em = em_unit();
+
     /*m_slice_btn->SetLayoutStyle(1);
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -2183,6 +2190,9 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
                 return;
             }
 
+            json j;
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
             wxGetApp().open_publish_page_dialog();
         });
@@ -2423,6 +2433,12 @@ void MainFrame::init_menubar_as_editor()
             },
             "menu_remove", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "menu_remove", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
 #else
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
@@ -2520,6 +2536,13 @@ void MainFrame::init_menubar_as_editor()
             },
             "", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this, handle_key_event](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
+
 #endif
 
         // BBS Select All
@@ -2580,13 +2603,13 @@ void MainFrame::init_menubar_as_editor()
 
         //BBS perspective view
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
-        append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
+        auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", true);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         //BBS orthogonal view
-        append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
+        auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
                 wxGetApp().update_ui_from_settings();
@@ -2597,7 +2620,7 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
 
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Previce scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Preview scene"),
             [this](wxCommandEvent &) {
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
@@ -2634,6 +2657,16 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
+
+        append_menu_check_item(
+            viewMenu, wxID_ANY, _L("Show Selected Outline (Experimental)"), _L("Show outline around selected object in 3D scene"),
+            [this](wxCommandEvent&) {
+                wxGetApp().toggle_show_outline();
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor; },
+            [this]() { return wxGetApp().show_outline(); }, this);
+
         /*viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Wireframe") + "\tCtrl+Shift+Enter", _L("Show wireframes in 3D scene"),
             [this](wxCommandEvent&) { m_plater->toggle_show_wireframe(); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
@@ -2661,8 +2694,7 @@ void MainFrame::init_menubar_as_editor()
     //auto preference_item = new wxMenuItem(parent_menu, OrcaSlicerMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
-    // auto preference_item =
-    new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
+    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
 
 #endif
     //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
@@ -2815,10 +2847,17 @@ void MainFrame::init_menubar_as_editor()
     auto flowrate_menu = new wxMenu();
     append_menu_item(
         flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
@@ -2902,13 +2941,20 @@ void MainFrame::init_menubar_as_editor()
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // PA
     append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
@@ -3093,6 +3139,10 @@ void MainFrame::init_menubar_as_gcodeviewer()
 
 void MainFrame::update_menubar()
 {
+    if (wxGetApp().is_gcode_viewer())
+        return;
+
+    const bool is_fff = plater()->printer_technology() == ptFFF;
 }
 
 void MainFrame::reslice_now()
@@ -3168,6 +3218,7 @@ void MainFrame::load_config_file()
         cfiles.push_back(into_u8(file));
         m_last_config = file;
     }
+    bool update = false;
     wxGetApp().preset_bundle->import_presets(cfiles, [this](std::string const & name) {
             ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), false);
             int           res = dlg.ShowModal();
@@ -3737,6 +3788,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                     wxICON_INFORMATION);
 
     /* get setting list */
+    NetworkAgent* agent = wxGetApp().getAgent();
     switch ( dialog.ShowModal() )
     {
         case wxID_YES: {

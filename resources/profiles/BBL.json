@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.18",
+    "version": "01.09.00.23",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -674,6 +674,10 @@
             "sub_path": "filament/fdm_filament_bvoh.json"
         },
         {
+          "name": "fdm_filament_sbs",
+          "sub_path": "filament/fdm_filament_sbs.json"
+        },
+        {
             "name": "Bambu PLA Matte @base",
             "sub_path": "filament/Bambu PLA Matte @base.json"
         },
@@ -732,6 +736,10 @@
         {
             "name": "Generic PLA-CF @base",
             "sub_path": "filament/Generic PLA-CF @base.json"
+        },
+        {
+          "name": "Generic SBS @base",
+          "sub_path": "filament/Generic SBS @base.json"
         },
         {
             "name": "Bambu PLA-CF @base",
@@ -928,6 +936,14 @@
         {
             "name": "Generic PPS @base",
             "sub_path": "filament/Generic PPS @base.json"
+        },
+        {
+            "name": "Bambu PPS-CF @base",
+            "sub_path": "filament/Bambu PPS-CF @base.json"
+        },
+        {
+            "name": "Bambu PPA-CF @base",
+            "sub_path": "filament/Bambu PPA-CF @base.json"
         },
         {
             "name": "Generic PPA-CF @base",
@@ -1388,6 +1404,10 @@
         {
             "name": "Generic PLA-CF @BBL A1",
             "sub_path": "filament/Generic PLA-CF @BBL A1.json"
+        },
+        {
+          "name": "Generic SBS",
+          "sub_path": "filament/Generic SBS.json"
         },
         {
             "name": "Bambu PLA-CF @BBL X1C 0.8 nozzle",
@@ -2332,6 +2352,18 @@
         {
             "name": "Generic PPS @BBL X1E",
             "sub_path": "filament/Generic PPS @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PPS-CF @BBL X1E",
+            "sub_path": "filament/Bambu PPS-CF @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PPA-CF @BBL X1C",
+            "sub_path": "filament/Bambu PPA-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PPA-CF @BBL X1E",
+            "sub_path": "filament/Bambu PPA-CF @BBL X1E.json"
         },
         {
             "name": "Generic PPA-CF @BBL X1E",

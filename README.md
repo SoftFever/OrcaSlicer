@@ -4,6 +4,10 @@ Orca Slicer is an open source slicer for FDM printers.
 
 ![discord-mark-blue](https://github.com/SoftFever/OrcaSlicer/assets/103989404/b97d5ffc-072d-4d0a-bbda-e67ef373876f) Join community: [OrcaSlicer Official Discord Server](https://discord.gg/P4VE9UY9gJ)   
 
+🚨🚨🚨Alert🚨🚨🚨: "orcaslicer.net" is **NOT** our website and appears to be potentially malicious. The content there is AI-generated, which means it lacks genuine context and it's only purpose is to profit from ADs and worse: they can redirect download links to harmful sources. Please avoid downloading OrcaSlicer from this site, as the download links could be compromised at any time.
+The only official platforms for OrcaSlicer are the GitHub project page and the Discord channel mentioned above.
+I really value the OrcaSlicer community and appreciate all the social groups that have formed. However, it’s important to address that it’s harmful if any group falsely claims to be official or misleads its members. If you notice such a group or are part of one, please help by encouraging the group owner to add a clear disclaimer or by warning its members.
+
 # Main features
 - Auto calibrations for all printers
 - Sandwich(inner-outer-inner) mode - an improved version of the `External perimeters first` mode
@@ -13,6 +17,12 @@ Orca Slicer is an open source slicer for FDM printers.
 - More granular controls
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
 
+# Wiki
+The wiki below aims to provide a detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
+
+The wiki is work in progress so bear with us while we get it up and running!
+
+**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**  
 
 # Download
 
@@ -108,11 +118,6 @@ Thank you! :)
 ### Sponsors:  
 <table>
 <tr>
-<td>
-<a href="https://peopoly.net/">
-    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="96" height="">
-</a>
-</td> 
 <td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">

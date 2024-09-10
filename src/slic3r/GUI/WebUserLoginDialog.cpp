@@ -3,6 +3,7 @@
 #include <string.h>
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "libslic3r_version.h"
 
@@ -12,9 +13,11 @@
 
 #include <wx/wx.h>
 #include <wx/fileconf.h>
+#include <wx/file.h>
 #include <wx/wfstream.h>
 
 #include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <nlohmann/json.hpp>
 #include "MainFrame.hpp"

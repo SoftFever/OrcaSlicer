@@ -1,4 +1,5 @@
 #include "RoundedRectangle.hpp"
+#include "../wxExtensions.hpp"
 #include <wx/dcgraph.h>
 #include <wx/dcclient.h>
 

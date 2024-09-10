@@ -16,6 +16,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
+#include <wx/display.h>
 #include <map>
 
 #ifdef __WINDOWS__
@@ -228,13 +229,13 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 }
             }
 
-            /*auto check = [this](bool yes_or_no) {
+            auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
                 int act_btns = ActionButtons::SAVE;
                 return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"),
                                                                         _L("Switching application language while some presets are modified."), act_btns);
-            };*/
+            };
 
             m_current_language_selected = combobox->GetSelection();
             if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
@@ -1129,7 +1130,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
 
-    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
+    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time the color changed."), page, _L("If enabled, auto-calculate every time the color changed."), 50, "auto_calculate");
     auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Orca)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
@@ -1176,7 +1177,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), page,_L("No warnings when loading 3MF with modified G-codes"), 50, "no_warn_when_modified_gcodes");
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
-    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
+    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
 
     //downloads
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));

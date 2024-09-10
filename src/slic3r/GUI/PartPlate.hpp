@@ -660,6 +660,9 @@ public:
     //create an empty plate and return its index
     int create_plate(bool adjust_position = true);
 
+    // duplicate plate
+    int duplicate_plate(int index);
+
     //destroy print which has the index of print_index
     int destroy_print(int print_index);
 

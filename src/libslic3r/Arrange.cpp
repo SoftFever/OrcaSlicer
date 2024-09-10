@@ -90,10 +90,10 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* prin
     params.brim_skirt_distance = skirt_distance;
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
-    // for sequential print, we need to inflate the bed because cleareance_radius is so large
+    // for sequential print, we need to inflate the bed because clearance_radius is so large
     if (params.is_seq_print) {
-        params.bed_shrink_x -= params.cleareance_radius / 2;
-        params.bed_shrink_y -= params.cleareance_radius / 2;
+        params.bed_shrink_x -= params.clearance_radius / 2;
+        params.bed_shrink_y -= params.clearance_radius / 2;
     }
 }
 
@@ -103,12 +103,10 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
     // set obj distance for auto seq_print
     if (params.is_seq_print) {
-        bool all_objects_are_short = std::all_of(selected.begin(), selected.end(), [&](ArrangePolygon& ap) { return ap.height < params.nozzle_height; });
-        if (all_objects_are_short) {
-            params.min_obj_distance = std::max(params.min_obj_distance, scaled(double(MAX_OUTER_NOZZLE_DIAMETER)/2+0.001));
-        }
+        if (params.all_objects_are_short)
+            params.min_obj_distance = std::max(params.min_obj_distance, scaled(std::max(MAX_OUTER_NOZZLE_DIAMETER/2.f, params.object_skirt_offset*2)+0.001));
         else
-            params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
+            params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.clearance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
     }
     double brim_max = 0;
     bool plate_has_tree_support = false;
@@ -135,8 +133,8 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
 {
     float exclusion_gap = 1.f;
     if (params.is_seq_print) {
-        // bed_shrink_x is typically (-params.cleareance_radius / 2+5) for seq_print
-        exclusion_gap = std::max(exclusion_gap, params.cleareance_radius / 2 + params.bed_shrink_x + 1.f);  // +1mm gap so the exclusion region is not too close
+        // bed_shrink_x is typically (-params.clearance_radius / 2+5) for seq_print
+        exclusion_gap = std::max(exclusion_gap, params.clearance_radius / 2 + params.bed_shrink_x + 1.f);  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
             if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
@@ -199,19 +197,23 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
             }
 
             if (std::abs(a00) > EPSILON) {
-                double db1_2, db1_6, db1_12, db1_24;
-                double m00, m10, m01, m20, m11, m02;
+                double db1_2, db1_6, db1_12, db1_24, db1_20, db1_60;
+                double m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
                 if (a00 > 0) {
                     db1_2 = 0.5;
                     db1_6 = 0.16666666666666666666666666666667;
                     db1_12 = 0.083333333333333333333333333333333;
                     db1_24 = 0.041666666666666666666666666666667;
+                    db1_20 = 0.05;
+                    db1_60 = 0.016666666666666666666666666666667;
                 }
                 else {
                     db1_2 = -0.5;
                     db1_6 = -0.16666666666666666666666666666667;
                     db1_12 = -0.083333333333333333333333333333333;
                     db1_24 = -0.041666666666666666666666666666667;
+                    db1_20 = -0.05;
+                    db1_60 = -0.016666666666666666666666666666667;
                 }
                 m00 = a00 * db1_2;
                 m10 = a10 * db1_6;
@@ -219,6 +221,10 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
                 m20 = a20 * db1_12;
                 m11 = a11 * db1_24;
                 m02 = a02 * db1_12;
+                m30 = a30 * db1_20;
+                m21 = a21 * db1_60;
+                m12 = a12 * db1_60;
+                m03 = a03 * db1_20;
 
                 double cx = m10 / m00;
                 double cy = m01 / m00;

@@ -224,8 +224,12 @@ enum TimelapseType : int {
     tlSmooth
 };
 
+enum SkirtType {
+    stCombined, stPerObject
+};
+
 enum DraftShield {
-    dsDisabled, dsLimited, dsEnabled
+    dsDisabled, dsEnabled
 };
 
 enum class PerimeterGeneratorType
@@ -393,6 +397,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TimelapseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SkirtType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
@@ -739,6 +744,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionFloat,               brim_ears_detection_length))
     ((ConfigOptionFloat,               brim_ears_max_angle))
+    ((ConfigOptionFloat,               skirt_start_angle))
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionInt,                 elefant_foot_compensation_layers))
@@ -898,6 +904,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
     ((ConfigOptionBool, infill_combination))
+    // Orca:
+    ((ConfigOptionFloatOrPercent,                infill_combination_max_layer_height))
     // Ironing options
     ((ConfigOptionEnum<IroningType>, ironing_type))
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
@@ -1119,15 +1127,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               parking_pos_retraction))
     ((ConfigOptionFloat,               extra_loading_move))
     ((ConfigOptionFloat,               machine_load_filament_time))
+    ((ConfigOptionFloat,               machine_tool_change_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloats,              filament_loading_speed))
     ((ConfigOptionFloats,              filament_loading_speed_start))
-    ((ConfigOptionFloats,              filament_load_time))
     ((ConfigOptionFloats,              filament_unloading_speed))
     ((ConfigOptionFloats,              filament_unloading_speed_start))
     ((ConfigOptionFloats,              filament_toolchange_delay))
-    // Orca todo: consolidate with machine_load_filament_time
-    ((ConfigOptionFloats,              filament_unload_time))
     ((ConfigOptionInts,                filament_cooling_moves))
     ((ConfigOptionFloats,              filament_cooling_initial_speed))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
@@ -1224,6 +1230,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))
+    ((ConfigOptionEnum<SkirtType>,    skirt_type))
     ((ConfigOptionFloat,              skirt_speed))
     ((ConfigOptionFloat,              min_skirt_length))
     ((ConfigOptionFloats,             slow_down_layer_time))
@@ -1276,6 +1283,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool, independent_support_layer_height))
     // SoftFever
     ((ConfigOptionPercents,            filament_shrink))
+    ((ConfigOptionPercents,            filament_shrinkage_compensation_z))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))

@@ -205,7 +205,7 @@ bool ObjectSettings::update_settings_list()
     bool is_object_settings = false;
     bool is_volume_settings = false;
     bool is_layer_range_settings = false;
-    // bool is_layer_root = false;
+    bool is_layer_root = false;
     ModelObject * parent_object = nullptr;
     for (auto item : items) {
         auto type = objects_model->GetItemType(item);
@@ -255,9 +255,9 @@ bool ObjectSettings::update_settings_list()
             t_layer_height_range height_range = objects_model->GetLayerRangeByItem(item);
             object_configs.emplace( (ObjectBase*)(&object->layer_config_ranges.at(height_range)), &object->layer_config_ranges.at(height_range) );
         }
-        // else if (type == itLayerRoot) {
-        //     is_layer_root = true;
-        // }
+        else if (type == itLayerRoot) {
+            is_layer_root = true;
+        }
     }
 
     auto tab_plate = dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab());

@@ -18,7 +18,9 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/format/format_fwd.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -198,6 +200,8 @@ void AppConfig::set_defaults()
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);
 
+    if (get("show_outline").empty())
+        set_bool("show_outline", false);
 
 #ifdef _WIN32
 

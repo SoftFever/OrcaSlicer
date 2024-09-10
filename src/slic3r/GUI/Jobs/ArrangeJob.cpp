@@ -136,6 +136,7 @@ void ArrangeJob::prepare_selected() {
                 inst_sel[size_t(inst_id)] = true;
 
         for (size_t i = 0; i < inst_sel.size(); ++i) {
+            ModelInstance* mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
@@ -207,6 +208,7 @@ void ArrangeJob::prepare_all() {
         ModelObject *mo = model.objects[oidx];
 
         for (size_t i = 0; i < mo->instances.size(); ++i) {
+            ModelInstance * mi = mo->instances[i];
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
@@ -235,7 +237,7 @@ void ArrangeJob::prepare_all() {
     if (m_selected.empty()) {
         if (!selected_is_locked) {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected.")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangeable objects are selected.")));
         }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
@@ -322,6 +324,7 @@ void ArrangeJob::prepare_wipe_tower()
     wipe_tower_ap.name = "WipeTower";
     wipe_tower_ap.is_virt_object = true;
     wipe_tower_ap.is_wipe_tower = true;
+    const GLCanvas3D* canvas3D = static_cast<const GLCanvas3D*>(m_plater->canvas3D());
 
     std::set<int> extruder_ids;
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
@@ -527,6 +530,7 @@ void ArrangeJob::process(Ctl &ctl)
     auto & partplate_list = m_plater->get_partplate_list();
 
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor();
     if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
@@ -762,17 +766,21 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     auto                              &print        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     const PrintConfig                 &print_config = print.config();
 
+    auto [object_skirt_offset, object_skirt_witdh] = print.object_skirt_offset();
+
     params.clearance_height_to_rod             = print_config.extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;
-    params.cleareance_radius                   = print_config.extruder_clearance_radius.value;
+    params.clearance_radius                    = print_config.extruder_clearance_radius.value + object_skirt_offset * 2;
+    params.object_skirt_offset                 = object_skirt_offset;
     params.printable_height                    = print_config.printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
-    params.nozzle_height                       = print.config().nozzle_height.value;
+    params.nozzle_height                       = print_config.nozzle_height.value;
+    params.all_objects_are_short               = print.is_all_objects_are_short();
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
     params.is_seq_print                        = settings.is_seq_print;
-    params.min_obj_distance                    = scaled(settings.distance);
+    params.min_obj_distance                    = settings.distance;
     params.align_to_y_axis                     = settings.align_to_y_axis;
 
     int state = p->get_prepare_state();

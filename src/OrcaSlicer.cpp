@@ -1191,7 +1191,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
@@ -1545,7 +1545,7 @@ int CLI::run(int argc, char **argv)
                         {
                             ModelObject* object = model.objects[obj_index];
 
-                            for (int clone_index = 1; clone_index < clone_count; clone_index++)
+                            for (unsigned int clone_index = 1; clone_index < clone_count; clone_index++)
                             {
                                 ModelObject* newObj = model.add_object(*object);
                                 newObj->name = object->name +"_"+ std::to_string(clone_index+1);
@@ -1618,7 +1618,7 @@ int CLI::run(int argc, char **argv)
             }
         }
         catch (std::exception& e) {
-            boost::nowide::cerr << "construct_assemble_list: " << e.what() << std::endl;
+            boost::nowide::cerr << construct_assemble_list << ": " << e.what() << std::endl;
             record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
             flush_and_exit(CLI_DATA_FILE_ERROR);
         }
@@ -2102,7 +2102,7 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                for (int index = 0; index < filament_count; index ++)
+                for (unsigned int index = 0; index < filament_count; index ++)
                 {
                     std::string file = uptodate_filaments[index];
                     DynamicPrintConfig  config;
@@ -2219,7 +2219,7 @@ int CLI::run(int argc, char **argv)
     }
 
     //upwards check
-    bool process_compatible = false, /* machine_upwards = false, */ machine_switch = false;
+    bool process_compatible = false, machine_upwards = false, machine_switch = false;
     BOOST_LOG_TRIVIAL(info) << boost::format("current printer %1%, new printer %2%, current process %3%, new process %4%")%current_printer_name %new_printer_name %current_process_name %new_process_name;
     BOOST_LOG_TRIVIAL(info) << boost::format("current printer inherits %1%, new printer inherits %2%, current process inherits %3%, new process inherits %4%")
         %current_printer_system_name %new_printer_system_name %current_process_system_name %new_process_system_name;
@@ -2289,7 +2289,7 @@ int CLI::run(int argc, char **argv)
             for (int index = 0; index < upward_compatible_printers.size(); index++) {
                 if (upward_compatible_printers[index] == new_printer_system_name) {
                     process_compatible = true;
-                    // machine_upwards = true;
+                    machine_upwards = true;
                     BOOST_LOG_TRIVIAL(info) << boost::format("new printer is upward_compatible");
                     break;
                 }
@@ -2899,8 +2899,7 @@ int CLI::run(int argc, char **argv)
         for (auto& model : m_models)
             for (ModelObject* o : model.objects)
             {
-                /* ModelObject* new_object =  */
-                m.add_object(*o);
+                ModelObject* new_object = m.add_object(*o);
                 //BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << "\n";
                 //orients_requirement.emplace(new_object->id().id, orients_requirement[o->id().id]);
                 //orients_requirement.erase(o->id().id);
@@ -3029,7 +3028,7 @@ int CLI::run(int argc, char **argv)
     double print_height = m_print_config.opt_float("printable_height");
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
-    double cleareance_radius = m_print_config.opt_float("extruder_clearance_radius");
+    double clearance_radius = m_print_config.opt_float("extruder_clearance_radius");
     //double plate_stride;
     std::string bed_texture;
 
@@ -3343,6 +3342,7 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
                 break;
             }
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
             Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
 
             for (int index2 = 0; index2 < downward_check_size; index2 ++)
@@ -3392,6 +3392,7 @@ int CLI::run(int argc, char **argv)
     }
 
     // Loop through transform options.
+    bool user_center_specified = false;
     Points beds = get_bed_shape(m_print_config);
     ArrangeParams arrange_cfg;
 
@@ -3415,6 +3416,7 @@ int CLI::run(int argc, char **argv)
             ModelObject* new_object = m.add_object();
             new_object->name = _u8L("Assembly");
             new_object->add_instance();
+            int idx = 0;
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects) {
                     for (auto volume : o->volumes) {
@@ -3516,6 +3518,7 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "center") {
+        	user_center_specified = true;
             for (auto &model : m_models) {
                 model.add_default_instances();
                 // this affects instances:
@@ -3745,12 +3748,12 @@ int CLI::run(int argc, char **argv)
     {
         if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
-            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)))
+            || ((old_max_radius != 0.f) && (old_max_radius != clearance_radius)))
         {
             if (is_seq_print_for_curr_plate) {
                 need_arrange = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, cleareance_radius %6%, need arrange!")
-                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %cleareance_radius;
+                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, clearance_radius %6%, need arrange!")
+                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %clearance_radius;
             }
         }
     }
@@ -3815,6 +3818,7 @@ int CLI::run(int argc, char **argv)
             {
                 //do arrange for plate
                 ArrangePolygons selected, unselected;
+                Model& model = m_models[0];
                 arrange_cfg = ArrangeParams();  // reset all params
                 get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print);
 
@@ -3840,6 +3844,7 @@ int CLI::run(int argc, char **argv)
                 if (!arrange_cfg.is_seq_print && assemble_plate.filaments_count > 1)
                 {
                     //prepare the wipe tower
+                    int plate_count = partplate_list.get_plate_count();
 
                     auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
                     const float tower_brim_width = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true)->value;
@@ -3892,7 +3897,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.avoid_extrusion_cali_region = avoid_extrusion_cali_region;
                 arrange_cfg.clearance_height_to_rod = height_to_rod;
                 arrange_cfg.clearance_height_to_lid = height_to_lid;
-                arrange_cfg.cleareance_radius = cleareance_radius;
+                arrange_cfg.clearance_radius = clearance_radius;
                 arrange_cfg.printable_height = print_height;
                 arrange_cfg.min_obj_distance = 0;
                 if (arrange_cfg.is_seq_print) {
@@ -4225,6 +4230,7 @@ int CLI::run(int argc, char **argv)
                             //float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
                             Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, v, filaments_cnt);
+                            Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
                             float depth = wipe_tower_size(1);
@@ -4294,7 +4300,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
                 arrange_cfg.clearance_height_to_rod             = height_to_rod;
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
-                arrange_cfg.cleareance_radius                   = cleareance_radius;
+                arrange_cfg.clearance_radius                   = clearance_radius;
                 arrange_cfg.printable_height                    = print_height;
                 arrange_cfg.min_obj_distance = 0;
                 if (arrange_cfg.is_seq_print) {
@@ -4603,7 +4609,7 @@ int CLI::run(int argc, char **argv)
     }
 
     // loop through action options
-    bool export_to_3mf = false, load_slicedata = false, export_slicedata = false;
+    bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
     bool no_check = false;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir, export_stls_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
@@ -5092,6 +5098,7 @@ int CLI::run(int argc, char **argv)
                                     int ret = print->export_cached_data(plate_dir, with_space);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
+                                        export_slicedata_error = true;
                                         if (fs::exists(plate_dir))
                                             fs::remove_all(plate_dir);
                                         record_exit_reson(outfile_dir, ret, index+1, cli_errors[ret], sliced_info);
@@ -5218,7 +5225,8 @@ int CLI::run(int argc, char **argv)
         bool need_regenerate_top_thumbnail = oriented_or_arranged || regenerate_thumbnails;
         bool need_create_thumbnail_group = false, need_create_no_light_group = false, need_create_top_group = false;
 
-        // get color for platedata
+        // get type and color for platedata
+        auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
         const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
         auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
         const ConfigOptionFloats* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("nozzle_diameter"));

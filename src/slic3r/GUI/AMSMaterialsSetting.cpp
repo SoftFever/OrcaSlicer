@@ -331,6 +331,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     kn_val_sizer->Add(m_input_k_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
     // n params input
+    wxBoxSizer* n_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_n_param = new wxStaticText(parent, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
     m_n_param->SetFont(::Label::Body_13);
     m_n_param->SetForegroundColour(wxColour(50, 58, 61));
