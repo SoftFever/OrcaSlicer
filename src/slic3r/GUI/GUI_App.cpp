@@ -3676,11 +3676,17 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 
 wxString GUI_App::transition_tridid(int trid_id)
 {
-    //wxString maping_dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
-    int id_index = ceil(trid_id / 4);
-    int id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
-    return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+    if (trid_id >= 128 * 4) {
+        int id_index = 4 + trid_id % 128;
+        return wxString::Format("%s", maping_dict[id_index]);
+    }
+    else {
+        int id_index = ceil(trid_id / 4);
+        int id_suffix = id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
+        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
 }
 
 //BBS

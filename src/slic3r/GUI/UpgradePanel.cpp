@@ -688,9 +688,23 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 amspanel->Show();
 
                 auto it = ver_list.find(atoi(iter->first.c_str()));
+
+                if (it == ver_list.end()) {
+                    continue;
+                }
+
                 auto ams_id = std::stoi(iter->second->id);
 
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
+                size_t pos = it->second.name.find('/');
+                wxString ams_device_name = "AMS-%s";
+
+                if (pos != std::string::npos) {
+                    wxString result = it->second.name.substr(0, pos);
+                    result.MakeUpper();
+                    ams_device_name = result + "-%s";
+                }
+
+                wxString ams_text = wxString::Format(ams_device_name, std::to_string(ams_id + 1));
                 ams_name = ams_text;
 
                 if (it == ver_list.end()) {

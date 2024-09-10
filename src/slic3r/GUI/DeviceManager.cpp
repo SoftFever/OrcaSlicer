@@ -1325,12 +1325,18 @@ wxString MachineObject::get_upgrade_result_str(int err_code)
 
 std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
 {
+    std::vector<std::string> ams_type = {"ams", "n3f", "n3s"};
+
     std::map<int, ModuleVersionInfo> result;
-    for (int i = 0; i < 4; i++) {
-        std::string ams_id = "ams/" + std::to_string(i);
-        auto it = module_vers.find(ams_id);
-        if (it != module_vers.end()) {
-            result.emplace(std::pair(i, it->second));
+    for (int i = 0; i < 8; i++) {
+        std::string ams_id;
+        for (auto type : ams_type )
+        {
+            ams_id = type + "/" + std::to_string(i);
+            auto it = module_vers.find(ams_id);
+            if (it != module_vers.end()) {
+                result.emplace(std::pair(i, it->second));
+            }
         }
     }
     return result;
