@@ -699,7 +699,10 @@ GCodeProcessor::GCodeProcessor()
 
 bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int> &filament_map)
 {
+    m_result.limit_filament_maps.clear();
     m_result.gcode_check_result.reset();
+
+    m_result.limit_filament_maps.resize(filament_map.size(), 0);
 
     auto to_2d = [](const Vec3d &pos) -> Point {
         Point ps(scale_(pos.x()), scale_(pos.y()));
@@ -732,6 +735,15 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
                 m_result.gcode_check_result.error_code = 1;
                 m_result.gcode_check_result.error_infos[extruder_id].push_back(iter->first);
                 valid = false;
+            }
+        }
+
+        for (int i = 0; i < unprintable_areas.size(); ++i) {
+            for (const Polygon &poly : unprintable_areas[i]) {
+                if (!poly.bounding_box().overlap(bbox))
+                    continue;
+
+                m_result.limit_filament_maps[iter->first] |= (1 << i);
             }
         }
 

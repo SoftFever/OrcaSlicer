@@ -233,6 +233,7 @@ class Print;
         std::vector<float> filament_costs;
         std::vector<int> filament_vitrification_temperature;
         std::vector<int>   filament_maps;
+        std::vector<int>   limit_filament_maps;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
@@ -273,6 +274,7 @@ class Print;
             warnings = other.warnings;
             bed_type = other.bed_type;
             gcode_check_result = other.gcode_check_result;
+            limit_filament_maps = other.limit_filament_maps;
             filament_printable_reuslt = other.filament_printable_reuslt;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
