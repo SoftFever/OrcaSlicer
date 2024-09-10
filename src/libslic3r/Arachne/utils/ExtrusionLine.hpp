@@ -245,6 +245,15 @@ static inline Polygon to_polygon(const ExtrusionLine &line)
     return out;
 }
 
+static Points to_points(const ExtrusionLine &extrusion_line)
+{
+    Points points;
+    points.reserve(extrusion_line.junctions.size());
+    for (const ExtrusionJunction &junction : extrusion_line.junctions)
+        points.emplace_back(junction.p);
+    return points;
+}
+
 #if 0
 static BoundingBox get_extents(const ExtrusionLine &extrusion_line)
 {
@@ -270,15 +279,6 @@ static BoundingBox get_extents(const std::vector<const ExtrusionLine *> &extrusi
         bbox.merge(get_extents(*extrusion_line));
     }
     return bbox;
-}
-
-static Points to_points(const ExtrusionLine &extrusion_line)
-{
-    Points points;
-    points.reserve(extrusion_line.junctions.size());
-    for (const ExtrusionJunction &junction : extrusion_line.junctions)
-        points.emplace_back(junction.p);
-    return points;
 }
 
 static std::vector<Points> to_points(const std::vector<const ExtrusionLine *> &extrusion_lines)

@@ -214,6 +214,9 @@ if(WIN32)
         # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
         # C4267: The compiler detected a conversion from size_t to a smaller type.
         add_compile_options(/wd4244 /wd4267)
+        # Disable warnings on comparison of unsigned and signed
+        # C4018: signed/unsigned mismatch
+        add_compile_options(/wd4018)
         # Add compile option, ignore warning C4305 (truncation from type conversion)
         add_compile_options(/wd4305)
         # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
@@ -314,6 +317,22 @@ if (NOT MSVC AND (GNU OR CLANG_VARIANT))
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
+    # Since some portions of code are just commented out or put under conditional compilation, there are
+    # a bunch of warning related to unused functions and variables. Suppress those warnings to not pollute
+    # compilers diagnostics output with warnings we not going to look at
+    add_compile_options(-Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-local-typedefs)
+
+    # Ignore signed/unsigned comparison warnings
+    add_compile_options(-Wno-sign-compare)
+
+    # The mismatch of tabs and spaces throughout the project can sometimes
+    # cause this warning to appear even though the indentation is fine.
+    # Some includes also cause the warning
+    add_compile_options(-Wno-misleading-indentation)
+
+    # Disable warning if enum value does not have a corresponding case in switch statement
+    add_compile_options(-Wno-switch)
+
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
     if(CLANG_VARIANT OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
@@ -359,6 +378,8 @@ if (SLIC3R_ASAN)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
         set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
+    else()
+        add_compile_definitions(_DISABLE_STRING_ANNOTATION=1 _DISABLE_VECTOR_ANNOTATION=1)
     endif ()
 
     if (GNU)

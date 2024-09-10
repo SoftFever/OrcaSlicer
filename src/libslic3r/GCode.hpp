@@ -45,14 +45,13 @@ class ConstPrintObjectPtrsAdaptor;
 class OozePrevention {
 public:
     bool enable;
-    Points standby_points;
 
     OozePrevention() : enable(false) {}
     std::string pre_toolchange(GCode &gcodegen);
     std::string post_toolchange(GCode &gcodegen);
 
 private:
-    int _get_temp(GCode &gcodegen);
+    int _get_temp(const GCode &gcodegen) const;
 };
 
 class Wipe {
@@ -308,6 +307,13 @@ private:
 
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
+
+    std::string generate_skirt(const Print &print,
+        const ExtrusionEntityCollection &skirt,
+        const Point& offset,
+        const LayerTools &layer_tools,
+        const Layer& layer,
+        unsigned int extruder_id);
 
     LayerResult process_layer(
         const Print                     &print,

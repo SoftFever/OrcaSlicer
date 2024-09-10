@@ -941,7 +941,7 @@ void GUI_App::post_init()
     }
 #endif
 
-    if (app_config->get("stealth_mode") == "false")
+    if (!app_config->get_stealth_mode())
         hms_query = new HMSQuery();
 
     m_show_gcode_window = app_config->get_bool("show_gcode_window");
@@ -972,7 +972,7 @@ void GUI_App::post_init()
             this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
 
             this->check_new_version_sf();
-            if (is_user_login() && app_config->get("stealth_mode") == "false") {
+            if (is_user_login() && !app_config->get_stealth_mode()) {
               // this->check_privacy_version(0);
               request_user_handle(0);
             }
@@ -1026,7 +1026,7 @@ void GUI_App::post_init()
                try {
                    std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
                    files_vec.push_back({ lw_t, temp_path.filename().string() });
-               } catch (const std::exception &ex) {
+               } catch (const std::exception &) {
                }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
@@ -3365,7 +3365,7 @@ if (res) {
             mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3379,7 +3379,7 @@ void GUI_App::ShowDownNetPluginDlg() {
             return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         ;
     }
 }
@@ -3396,7 +3396,7 @@ void GUI_App::ShowUserLogin(bool show)
                 login_dlg = new ZUserLogin();
             }
             login_dlg->ShowModal();
-        } catch (std::exception &e) {
+        } catch (std::exception &) {
             ;
         }
     } else {
@@ -3418,7 +3418,7 @@ void GUI_App::ShowOnlyFilament() {
 
             // BBS: remove SLA related message
         }
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3672,7 +3672,7 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
-            _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
+            _L("You can keep the modified presets to the new project, discard or save changes as new presets.");
         wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ActionButtons::KEEP | ActionButtons::SAVE, &transfer_preset_changes);
 
         m_device_manager->clean_user_info();
@@ -3982,16 +3982,18 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     wxString result;
     if (status >= 400 && status < 500) {
         try {
-        json j = json::parse(evt.GetString());
-        if (j.contains("code")) {
-            if (!j["code"].is_null())
-                code = j["code"].get<int>();
+        auto evt_str = evt.GetString();
+        if (!evt_str.empty()) {
+            json j = json::parse(evt_str);
+            if (j.contains("code")) {
+                if (!j["code"].is_null())
+                    code = j["code"].get<int>();
+            }
+            if (j.contains("error"))
+                if (!j["error"].is_null())
+                    error = j["error"].get<std::string>();
         }
-        if (j.contains("error"))
-            if (!j["error"].is_null())
-                error = j["error"].get<std::string>();
-        }
-        catch (...) {}
+        } catch (...) {}
     }
 
     // Version limit
@@ -4141,6 +4143,7 @@ void GUI_App::check_update(bool show_tips, int by_user)
 
 void GUI_App::check_new_version(bool show_tips, int by_user)
 {
+    return; // orca: not used, see check_new_version_sf
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -4674,7 +4677,7 @@ void GUI_App::sync_preset(Preset* preset)
 
 void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
-    if (app_config->get("stealth_mode") == "true")
+    if (app_config->get_stealth_mode())
         return;
 
     if (!m_agent || !m_agent->is_user_login()) return;
@@ -5256,6 +5259,8 @@ void GUI_App::update_mode()
         mainframe->m_param_panel->update_mode();
     if (mainframe->m_param_dialog)
         mainframe->m_param_dialog->panel()->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
     mainframe->m_webview->update_mode();
 
 #ifdef _MSW_DARK_MODE
@@ -5275,6 +5280,8 @@ void GUI_App::update_mode()
 
 void GUI_App::update_internal_development() {
     mainframe->m_webview->update_mode();
+    if (mainframe->m_printer_view)
+        mainframe->m_printer_view->update_mode();
 }
 
 void GUI_App::show_ip_address_enter_dialog(wxString title)
@@ -6500,8 +6507,6 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
         return false;
 
     if (!bDidntExist) {
-        DWORD dwDisposition;
-        HKEY  hkey;
         iRC      = ::RegDeleteKeyExW(hkeyHive, pszVar, KEY_ALL_ACCESS, 0);
         if (iRC == ERROR_SUCCESS) {
             return true;

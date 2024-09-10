@@ -166,6 +166,12 @@ void View3D::center_selected()
         m_canvas->do_center();
 }
 
+void View3D::drop_selected()
+{
+    if (m_canvas != nullptr)
+        m_canvas->do_drop();
+}
+
 void View3D::center_selected_plate(const int plate_idx) {
     if (m_canvas != nullptr)
         m_canvas->do_center_plate(plate_idx);

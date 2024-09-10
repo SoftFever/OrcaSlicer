@@ -230,6 +230,7 @@ public:
     void remove_curr_plate();
     void clone(int numbers = 1);
     void center();
+    void drop();
     void center_plate(const int plate_idx);
     void set_printable(bool printable);
 
