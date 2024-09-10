@@ -3,6 +3,7 @@
 
 #include "libslic3r.h"
 #include <vector>
+#include "Layer.hpp"
 #include "Flow.hpp"
 #include "Polygon.hpp"
 #include "PrintConfig.hpp"
@@ -14,6 +15,7 @@ class PerimeterGenerator {
 public:
     // Inputs:
     const SurfaceCollection     *slices;
+    const LayerRegionPtrs       *compatible_regions;
     const ExPolygons            *upper_slices;
     const ExPolygons            *lower_slices;
     double                       layer_height;
@@ -44,7 +46,8 @@ public:
     
     PerimeterGenerator(
         // Input:
-        const SurfaceCollection*    slices, 
+        const SurfaceCollection*    slices,
+        const LayerRegionPtrs       *compatible_regions,
         double                      layer_height,
         Flow                        flow,
         const PrintRegionConfig*    config,
@@ -60,7 +63,7 @@ public:
         SurfaceCollection*          fill_surfaces,
         //BBS
         ExPolygons*                 fill_no_overlap)
-        : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
+        : slices(slices), compatible_regions(compatible_regions), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
