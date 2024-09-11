@@ -51,13 +51,11 @@ public:
     bool is_smaller_width_perimeter;
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short                      depth;
-    // Should this contur be fuzzyfied on path generation?
-    bool                                fuzzify;
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
     
-    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, bool is_contour, bool fuzzify, bool is_small_width_perimeter = false) :
-        polygon(polygon), is_contour(is_contour), is_smaller_width_perimeter(is_small_width_perimeter), depth(depth), fuzzify(fuzzify) {}
+    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, bool is_contour, bool is_small_width_perimeter = false) :
+        polygon(polygon), is_contour(is_contour), is_smaller_width_perimeter(is_small_width_perimeter), depth(depth) {}
     // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
     bool is_external() const { return this->depth == 0; }
     // An island, which may have holes, but it does not have another internal island.
@@ -453,6 +451,25 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
     return false;
 }
 
+static bool should_fuzzify(const PerimeterGenerator& perimeter_generator, const size_t idx, const bool is_contour)
+{
+    const auto config      = perimeter_generator.config;
+    const auto fuzziy_type = config->fuzzy_skin.value;
+
+    if (fuzziy_type == FuzzySkinType::None) {
+        return false;
+    }
+    if (!config->fuzzy_skin_first_layer && perimeter_generator.layer_id <= 0) {
+        // Do not fuzzy first layer unless told to
+        return false;
+    }
+
+    const bool fuzzify_contours = idx == 0 || fuzziy_type == FuzzySkinType::AllWalls;
+    const bool fuzzify_holes    = fuzzify_contours && (fuzziy_type == FuzzySkinType::All || fuzziy_type == FuzzySkinType::AllWalls);
+
+    return is_contour ? fuzzify_contours : fuzzify_holes;
+}
+
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
@@ -480,9 +497,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             loop_role = loop.is_contour? elrDefault : elrHole;
         }
-        
-        // detect overhanging/bridging perimeters
-        ExtrusionPaths paths;
 
         // BBS: get lower polygons series, width, mm3_per_mm
         const std::vector<Polygons> *lower_polygons_series;
@@ -511,13 +525,17 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
 
-
-        const Polygon &polygon = loop.fuzzify ? fuzzified : loop.polygon;
-        if (loop.fuzzify) {
+        const bool fuzzify = should_fuzzify(perimeter_generator, loop.depth, loop.is_contour);
+        const Polygon &polygon = fuzzify ? fuzzified : loop.polygon;
+        if (fuzzify) {
             fuzzified = loop.polygon;
             fuzzy_polygon(fuzzified, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
         }
+
+        ExtrusionPaths paths;
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+            // detect overhanging/bridging perimeters
+
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             // prepare grown lower layer slices for overhang detection
             BoundingBox bbox(polygon.points);
@@ -762,8 +780,6 @@ struct PerimeterGeneratorArachneExtrusion
     Arachne::ExtrusionLine* extrusion = nullptr;
     // Indicates if closed ExtrusionLine is a contour or a hole. Used it only when ExtrusionLine is a closed loop.
     bool is_contour = false;
-    // Should this extrusion be fuzzyfied on path generation?
-    bool fuzzify = false;
 };
 
 
@@ -866,7 +882,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
 
-        if (pg_extrusion.fuzzify)
+        const bool fuzzify = should_fuzzify(perimeter_generator, pg_extrusion.extrusion->inset_idx, !pg_extrusion.extrusion->is_closed || pg_extrusion.is_contour);
+        if (fuzzify)
             fuzzy_extrusion_line(*extrusion, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
 
         ExtrusionPaths paths;
@@ -1845,32 +1862,29 @@ void PerimeterGenerator::process_classic()
                     break;
                 }
                 {
-                    const bool fuzzify_layer = (this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None;
-                    const bool fuzzify_contours = fuzzify_layer && (i == 0 || this->config->fuzzy_skin == FuzzySkinType::AllWalls);
-                    const bool fuzzify_holes = fuzzify_contours && (this->config->fuzzy_skin == FuzzySkinType::All || this->config->fuzzy_skin == FuzzySkinType::AllWalls);
                     for (const ExPolygon& expolygon : offsets) {
                         // Outer contour may overlap with an inner contour,
                         // inner contour may overlap with another inner contour,
                         // outer contour may overlap with itself.
                         //FIXME evaluate the overlaps, annotate each point with an overlap depth,
                         // compensate for the depth of intersection.
-                        contours[i].emplace_back(expolygon.contour, i, true, fuzzify_contours);
+                        contours[i].emplace_back(expolygon.contour, i, true);
 
                         if (!expolygon.holes.empty()) {
                             holes[i].reserve(holes[i].size() + expolygon.holes.size());
                             for (const Polygon& hole : expolygon.holes)
-                                holes[i].emplace_back(hole, i, false, fuzzify_holes);
+                                holes[i].emplace_back(hole, i, false);
                         }
                     }
 
                     //BBS: save perimeter loop which use smaller width
                     if (i == 0) {
                         for (const ExPolygon& expolygon : offsets_with_smaller_width) {
-                            contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, fuzzify_contours, true));
+                            contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, true));
                             if (!expolygon.holes.empty()) {
                                 holes[i].reserve(holes[i].size() + expolygon.holes.size());
                                 for (const Polygon& hole : expolygon.holes)
-                                    holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, fuzzify_contours, true));
+                                    holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, true));
                             }
                         }
                     }
@@ -2845,7 +2859,7 @@ void PerimeterGenerator::process_arachne()
             }
 
             auto& best_path = all_extrusions[best_candidate];
-            ordered_extrusions.push_back({ best_path, best_path->is_contour(), false });
+            ordered_extrusions.push_back({ best_path, best_path->is_contour() });
             processed[best_candidate] = true;
             for (size_t unlocked_idx : blocking[best_candidate])
                 blocked[unlocked_idx]--;
@@ -2855,21 +2869,6 @@ void PerimeterGenerator::process_arachne()
                     current_position = best_path->junctions[0].p; //We end where we started.
                 else
                     current_position = best_path->junctions.back().p; //Pick the other end from where we started.
-            }
-        }
-        const bool fuzzify_layer = (this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None;
-        if (fuzzify_layer) {
-            for (PerimeterGeneratorArachneExtrusion& extrusion : ordered_extrusions) {
-                if (this->config->fuzzy_skin == FuzzySkinType::AllWalls) {
-                    extrusion.fuzzify = true;
-                } else if (extrusion.extrusion->inset_idx == 0) {
-                    if (extrusion.extrusion->is_closed && this->config->fuzzy_skin == FuzzySkinType::External) {
-                        extrusion.fuzzify = extrusion.is_contour;
-                    }
-                    else {
-                        extrusion.fuzzify = true;
-                    }
-                }
             }
         }
 
