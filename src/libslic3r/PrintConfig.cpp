@@ -1058,6 +1058,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("slowdown_for_curled_perimeters", coBool);
     def->label = L("Slow down for curled perimeters");
     def->category = L("Speed");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Enable this option to slow down printing in areas where perimeters may have curled upwards."
                      "For example, additional slowdown will be applied when printing overhangs on sharp corners like the "
                      "front of the Benchy hull, reducing curling which compounds over multiple layers.\n\n "

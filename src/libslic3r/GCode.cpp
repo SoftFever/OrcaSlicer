@@ -1738,6 +1738,7 @@ namespace DoExport {
                 filament_stats_string_out += "\n" + out_filament_used_g.first;
             if (out_filament_cost.second)
                filament_stats_string_out += "\n" + out_filament_cost.first;
+            filament_stats_string_out += "\n";
         }
         return filament_stats_string_out;
     }
