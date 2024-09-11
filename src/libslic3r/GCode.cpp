@@ -603,10 +603,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // BBS
             {
                 check_add_eol(toolchange_gcode_str);
-                //BBS: gcode writer doesn't know fan speed after inserting tool change gcode
+                // BBS: gcode writer doesn't know fan speed after inserting tool change gcode
                 toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
                 
-                //BBS: check whether custom gcode changes the axis positions. Update if changed.
+                // BBS: check whether custom gcode changes the axis positions. Update if changed.
                 bool position_changed = false;
                 Vec3d new_pos = gcodegen.writer().get_position();
 
