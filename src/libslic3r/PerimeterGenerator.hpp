@@ -10,6 +10,37 @@
 #include "SurfaceCollection.hpp"
 
 namespace Slic3r {
+struct FuzzySkinConfig
+{
+    FuzzySkinType type;
+    coord_t       thickness;
+    coord_t       point_distance;
+    bool          fuzzy_first_layer;
+
+    bool operator==(const FuzzySkinConfig& r) const
+    {
+        return type == r.type && thickness == r.thickness && point_distance == r.point_distance && fuzzy_first_layer == r.fuzzy_first_layer;
+    }
+
+    bool operator!=(const FuzzySkinConfig& r) const { return !(*this == r); }
+};
+}
+
+namespace std {
+template<> struct hash<Slic3r::FuzzySkinConfig>
+{
+    size_t operator()(const Slic3r::FuzzySkinConfig& c) const noexcept
+    {
+        std::size_t seed = std::hash<Slic3r::FuzzySkinType>{}(c.type);
+        boost::hash_combine(seed, std::hash<coord_t>{}(c.thickness));
+        boost::hash_combine(seed, std::hash<coord_t>{}(c.point_distance));
+        boost::hash_combine(seed, std::hash<bool>{}(c.fuzzy_first_layer));
+        return seed;
+    }
+};
+} // namespace std
+
+namespace Slic3r {
 
 class PerimeterGenerator {
 public:
@@ -43,6 +74,7 @@ public:
     std::pair<double, double>   m_external_overhang_dist_boundary;
     std::pair<double, double>   m_smaller_external_overhang_dist_boundary;
 
+    std::unordered_map<FuzzySkinConfig, ExPolygons> regions_by_fuzzify;
     
     PerimeterGenerator(
         // Input:

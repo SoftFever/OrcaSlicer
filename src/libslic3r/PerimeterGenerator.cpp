@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <thread>
 #include "libslic3r/AABBTreeLines.hpp"
+#include "Print.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
@@ -1659,8 +1660,39 @@ static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_
     }
 }
 
+static void group_region_by_fuzzify(PerimeterGenerator& g)
+{
+    g.regions_by_fuzzify.clear();
+
+    std::unordered_map<FuzzySkinConfig, SurfacesPtr> regions;
+    for (auto region : *g.compatible_regions) {
+        const auto& region_config = region->region().config();
+        const FuzzySkinConfig cfg{
+            region_config.fuzzy_skin,
+            scaled<coord_t>(region_config.fuzzy_skin_thickness.value),
+            scaled<coord_t>(region_config.fuzzy_skin_point_distance.value),
+            region_config.fuzzy_skin_first_layer
+        };
+        auto& surfaces = regions[cfg];
+        for (const auto& surface : region->slices.surfaces) {
+            surfaces.push_back(&surface);
+        }
+    }
+
+    if (regions.size() == 1) { // optimization
+        g.regions_by_fuzzify[regions.begin()->first] = {};
+        return;
+    }
+
+    for (auto& it : regions) {
+        g.regions_by_fuzzify[it.first] = offset_ex(it.second, ClipperSafetyOffset);
+    }
+}
+
 void PerimeterGenerator::process_classic()
 {
+    group_region_by_fuzzify(*this);
+
     // other perimeters
     m_mm3_per_mm               		= this->perimeter_flow.mm3_per_mm();
     coord_t perimeter_width         = this->perimeter_flow.scaled_width();
@@ -2621,6 +2653,8 @@ void bringContoursToFront(std::vector<PerimeterGeneratorArachneExtrusion>& order
 // "A framework for adaptive width control of dense contour-parallel toolpaths in fused deposition modeling"
 void PerimeterGenerator::process_arachne()
 {
+    group_region_by_fuzzify(*this);
+
     // other perimeters
     m_mm3_per_mm = this->perimeter_flow.mm3_per_mm();
     coord_t perimeter_spacing = this->perimeter_flow.scaled_spacing();
