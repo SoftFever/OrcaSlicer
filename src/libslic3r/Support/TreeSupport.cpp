@@ -2690,21 +2690,12 @@ void TreeSupport::drop_nodes()
                     const bool to_buildplate = true;
                     // keep only the part that won't be removed by the next layer
                     ExPolygons overhangs_next = diff_clipped({ node.overhang }, get_collision(0, obj_layer_nr_next));
-                    // find the biggest overhang if there are many
-                    float area_biggest = -1;
-                    int index_biggest = -1;
-                    for (int i = 0; i < overhangs_next.size(); i++) {
-                        float a=area(overhangs_next[i]);
-                        if (a > area_biggest) {
-                            area_biggest = a;
-                            index_biggest = i;
-                        }
-                    }
-                    if (index_biggest >= 0) {
-                        SupportNode* next_node = m_ts_data->create_node(p_node->position, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1, to_buildplate,
-                            p_node, print_z_next, height_next);
+                    for(auto& overhang:overhangs_next) {
+                        Point        next_pt     = overhang.contour.centroid();
+                        SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
+                                                                          to_buildplate, p_node, print_z_next, height_next);
                         next_node->max_move_dist = 0;
-                        next_node->overhang = std::move(overhangs_next[index_biggest]);
+                        next_node->overhang = std::move(overhang);
                         m_ts_data->m_mutex.lock();
                         contact_nodes[layer_nr_next].emplace_back(next_node);
                         m_ts_data->m_mutex.unlock();
@@ -3245,15 +3236,20 @@ void TreeSupport::generate_contact_points()
                 ExPolygons overhangs_regular;
                 if (m_support_params.support_style == smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang && !is_sharp_tail) {
                     overhangs_regular           = offset_ex(intersection_ex({overhang_part}, m_ts_data->m_layer_outlines_below[layer_nr - 1]), radius_scaled);
-                    overhangs_regular           = diff_ex(overhangs_regular, relevant_forbidden);
                     ExPolygons overhangs_normal = diff_ex({overhang_part}, overhangs_regular);
-                    for(auto& overhang:overhangs_normal) {
-                        BoundingBox  overhang_bounds = get_extents(overhang);
-                        double       radius          = unscale_(overhang_bounds.radius());
-                        Point        candidate       = overhang_bounds.center();
-                        SupportNode *contact_node = insert_point(candidate, overhang, radius, true, true);
-                        contact_node->type = ePolygon;
-                        curr_nodes.emplace_back(contact_node);
+                    if (area(overhangs_normal) > m_support_params.thresh_big_overhang) {
+                        // if the outside area is still big, we can need normal nodes
+                        for (auto &overhang : overhangs_normal) {
+                            BoundingBox  overhang_bounds = get_extents(overhang);
+                            double       radius          = unscale_(overhang_bounds.radius());
+                            Point        candidate       = overhang_bounds.center();
+                            SupportNode *contact_node    = insert_point(candidate, overhang, radius, true, true);
+                            contact_node->type           = ePolygon;
+                            curr_nodes.emplace_back(contact_node);
+                        }
+                    }else{
+                        // otherwise, all nodes should be circle nodes
+                        overhangs_regular = ExPolygons{overhang_part};
                     }
                 } else {
                     overhangs_regular = ExPolygons{overhang_part};
