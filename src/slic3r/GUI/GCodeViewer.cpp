@@ -1456,9 +1456,6 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                 //shader->set_uniform("emission_factor", 0.0f);
             }
             else {
-                switch (buffer.render_primitive_type) {
-                default: break;
-                }
                 int uniform_color = shader->get_uniform_location("uniform_color");
                 auto it_path = buffer.render_paths.begin();
                 for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {

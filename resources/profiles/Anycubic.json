@@ -1,6 +1,6 @@
 {
     "name": "Anycubic",
-    "version": "02.01.01.00",
+    "version": "02.02.00.00",
     "force_update": "0",
     "description": "Anycubic configurations",
     "machine_model_list": [
@@ -15,6 +15,10 @@
 		{
             "name": "Anycubic Vyper",
             "sub_path": "machine/Anycubic Vyper.json"
+        },
+        {
+            "name": "Anycubic Kobra",
+            "sub_path": "machine/Anycubic Kobra.json"
         },
 		{
             "name": "Anycubic Kobra Max",
@@ -54,6 +58,10 @@
             "name": "0.15mm Optimal @Anycubic Vyper",
             "sub_path": "process/0.15mm Optimal @Anycubic Vyper.json"
         },
+        {
+            "name": "0.15mm Optimal @Anycubic Kobra",
+            "sub_path": "process/0.15mm Optimal @Anycubic Kobra.json"
+        },
 		{
             "name": "0.15mm Optimal @Anycubic KobraMax",
             "sub_path": "process/0.15mm Optimal @Anycubic KobraMax.json"
@@ -70,7 +78,7 @@
             "name": "0.15mm Optimal @Anycubic Kobra2",
             "sub_path": "process/0.15mm Optimal @Anycubic Kobra2.json"
         },
-		{
+        {
             "name": "0.20mm Standard @Anycubic i3MegaS",
             "sub_path": "process/0.20mm Standard @Anycubic i3MegaS.json"
         },
@@ -81,6 +89,10 @@
 		{
             "name": "0.20mm Standard @Anycubic Vyper",
             "sub_path": "process/0.20mm Standard @Anycubic Vyper.json"
+        },
+        {
+            "name": "0.20mm Standard @Anycubic Kobra",
+            "sub_path": "process/0.20mm Standard @Anycubic Kobra.json"
         },
 		{
             "name": "0.20mm Standard @Anycubic KobraMax",
@@ -114,6 +126,10 @@
             "name": "0.30mm Draft @Anycubic Vyper",
             "sub_path": "process/0.30mm Draft @Anycubic Vyper.json"
         },
+        {
+            "name": "0.30mm Draft @Anycubic Kobra",
+            "sub_path": "process/0.30mm Draft @Anycubic Kobra.json"
+        },
 		{
             "name": "0.30mm Draft @Anycubic KobraMax",
             "sub_path": "process/0.30mm Draft @Anycubic KobraMax.json"
@@ -129,7 +145,7 @@
         {
             "name": "0.30mm Draft @Anycubic Kobra2",
             "sub_path": "process/0.30mm Draft @Anycubic Kobra2.json"
-        }
+        }      
     ],
     "filament_list": [
         {
@@ -225,6 +241,10 @@
 		{
             "name": "Anycubic Vyper 0.4 nozzle",
             "sub_path": "machine/Anycubic Vyper 0.4 nozzle.json"
+        },
+        {
+            "name": "Anycubic Kobra 0.4 nozzle",
+            "sub_path": "machine/Anycubic Kobra 0.4 nozzle.json"
         },
 		{
             "name": "Anycubic Kobra Max 0.4 nozzle",

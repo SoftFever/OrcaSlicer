@@ -1,0 +1,31 @@
+{
+    "type": "filament",
+    "filament_id": "GFN99_1",
+    "setting_id": "GFSA04",
+    "name": "Prusa Generic PA @MK3.5",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "filament_flow_ratio": [
+        "1"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "filament_max_volumetric_speed": [
+        "11"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.02"
+    ],
+
+    "compatible_printers": [
+      "Prusa MK3.5 0.4 nozzle"
+    ]
+}

@@ -43,7 +43,7 @@
         "1"
     ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "fan_cooling_layer_time": [
         "60"
