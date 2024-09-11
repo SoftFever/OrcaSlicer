@@ -28,6 +28,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_VERSION VERSION_LESS "3.25")
 endif ()
 
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
+set(CMAKE_INSTALL_MESSAGE "NEVER") # Disable printing "Installing" or "Up-to-date" when running the install step
 
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
@@ -144,6 +145,7 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
             -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DCMAKE_INSTALL_MESSAGE:STRING=${CMAKE_INSTALL_MESSAGE}
             ${_cmake_osx_arch}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
@@ -173,6 +175,7 @@ elseif(FLATPAK)
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
             -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DCMAKE_INSTALL_MESSAGE:STRING=${CMAKE_INSTALL_MESSAGE}
             ${_cmake_osx_arch}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
@@ -196,6 +199,7 @@ else()
             -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
             -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
             -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DCMAKE_INSTALL_MESSAGE:STRING=${CMAKE_INSTALL_MESSAGE}
             ${_cmake_osx_arch}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
