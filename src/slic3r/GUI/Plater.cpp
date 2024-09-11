@@ -489,9 +489,6 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id)
 {
-    //todo multi_extruder:
-    nozzle_id = 0;
-
     std::vector<int>extra_flush_volumes;
     //const auto& full_config = wxGetApp().preset_bundle->full_config();
     //auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -1088,9 +1085,14 @@ Sidebar::Sidebar(Plater *parent)
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
             const auto& full_config = wxGetApp().preset_bundle->full_config();
-            const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
 
             size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
+            std::vector<std::vector<int>> extra_flush_volumes;
+            extra_flush_volumes.resize(nozzle_nums, std::vector<int>());
+            for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                extra_flush_volumes[nozzle_id] = get_min_flush_volumes(full_config, nozzle_id);
+            }
 
             std::vector<float>  flush_multiplier;
             ConfigOptionFloats *flush_multi_opt = project_config.option<ConfigOptionFloats>("flush_multiplier");

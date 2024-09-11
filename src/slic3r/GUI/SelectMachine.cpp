@@ -3443,7 +3443,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_filaments.clear();
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     bool use_double_extruder = nozzle_nums > 1 ? true : false;

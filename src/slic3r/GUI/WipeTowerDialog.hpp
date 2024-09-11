@@ -50,7 +50,7 @@ public:
     // BBS
     WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, size_t cur_extruder_id,
         const std::vector<std::string>& extruder_colours, Button* calc_button,
-        const std::vector<int>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
+        const std::vector<std::vector<int>>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();
     void toggle_advanced(bool user_action = false);
@@ -78,7 +78,7 @@ private:
     bool advanced_matches_simple();
     int calc_flushing_volume(const wxColour& from, const wxColour& to,int min_flush_volume);
     void update_warning_texts();
-        
+
     std::vector<wxSpinCtrl*> m_old;
     std::vector<wxSpinCtrl*> m_new;
     std::vector<std::vector<wxTextCtrl*>> edit_boxes;
@@ -98,7 +98,7 @@ private:
     std::vector<wxButton *> icon_list1;
     std::vector<wxButton *> icon_list2;
 
-    const std::vector<int> m_min_flush_volume;
+    const std::vector<std::vector<int>> m_min_flush_volume;
     const int m_max_flush_volume;
 
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
@@ -119,7 +119,7 @@ class WipingDialog : public Slic3r::GUI::DPIDialog
 {
 public:
     WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
-        const std::vector<int>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
+        const std::vector<std::vector<int>>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
     std::vector<float> get_matrix() const    { return m_output_matrix; }
     std::vector<float> get_extruders() const { return m_output_extruders; }
     wxBoxSizer* create_btn_sizer(long flags);

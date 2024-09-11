@@ -298,7 +298,7 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
-    const std::vector<int>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
+    const  std::vector<std::vector<int>>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
     : GUI::DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _(L("Flushing volumes for filament change")),
@@ -392,7 +392,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders,
     size_t                          cur_extruder_id,
     const std::vector<std::string>& extruder_colours, Button* calc_button,
-    const std::vector<int>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
+    const std::vector<std::vector<int>>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
     : wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
     , m_flush_multiplier(flush_multiplier)
     , m_matrix(matrix)
@@ -528,7 +528,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         multi_desc_label->SetForegroundColour(g_text_color);
         m_sizer_advanced->Add(multi_desc_label, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
 
-        wxString min_flush_str = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"),*std::min_element(m_min_flush_volume.begin(), m_min_flush_volume.end()), m_max_flush_volume);
+        wxString min_flush_str = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"),*std::min_element(m_min_flush_volume[m_cur_extruder_id].begin(), m_min_flush_volume[m_cur_extruder_id].end()), m_max_flush_volume);
         m_min_flush_label = new wxStaticText(m_page_advanced, wxID_ANY, min_flush_str, wxDefaultPosition, wxDefaultSize, 0);
         m_min_flush_label->SetForegroundColour(g_text_color);
         m_sizer_advanced->Add(m_min_flush_label, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
@@ -710,7 +710,7 @@ void WipingPanel::update_warning_texts()
             auto text_box = box_vec[j];
             wxString str = text_box->GetValue();
             int actual_volume = wxAtoi(str);
-            if (actual_volume < m_min_flush_volume[i] || actual_volume > m_max_flush_volume) {
+            if (actual_volume < m_min_flush_volume[m_cur_extruder_id][i] || actual_volume > m_max_flush_volume) {
                 if (text_box->GetForegroundColour() != g_warning_color) {
                     text_box->SetForegroundColour(g_warning_color);
                     text_box->Refresh();
@@ -775,7 +775,7 @@ void WipingPanel::calc_flushing_volumes()
                         const wxColour& from = multi_colors[from_idx][i];
                         for (int j = 0; j < multi_colors[to_idx].size(); ++j) {
                             const wxColour& to = multi_colors[to_idx][j];
-                            int volume = calc_flushing_volume(from, to, m_min_flush_volume[from_idx]);
+                            int volume = calc_flushing_volume(from, to, m_min_flush_volume[m_cur_extruder_id][from_idx]);
                             flushing_volume = std::max(flushing_volume, volume);
                         }
                     }
