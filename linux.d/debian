@@ -1,3 +1,4 @@
+#!/bin/bash
 FOUND_GTK3=$(dpkg -l libgtk* | grep gtk-3)
 
 REQUIRED_DEV_PACKAGES=(

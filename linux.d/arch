@@ -1,3 +1,4 @@
+#!/bin/bash
 # these are the Arch Linux specific build functions
 FOUND_GTK3=$(pacman -Q gtk3)
 
