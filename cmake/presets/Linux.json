@@ -9,11 +9,7 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       },
-      "generator": "Ninja",
-      "cacheVariables":{
-        "SLIC3R_STATIC": "ON",
-        "ORCA_TOOLS": "ON"
-      }
+      "generator": "Ninja"
     }
   ],
   "buildPresets": [

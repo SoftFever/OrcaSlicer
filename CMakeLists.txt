@@ -11,11 +11,7 @@ include(CMakeDependentOption)
 if (DEFINED ENV{SLIC3R_STATIC})
     set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
 else ()
-    if (MSVC OR MINGW OR APPLE)
-        set(SLIC3R_STATIC_INITIAL 1)
-    else ()
-        set(SLIC3R_STATIC_INITIAL 0)
-    endif ()
+    set(SLIC3R_STATIC_INITIAL 1)
 endif ()
 
 # Backward compatibility for old CMake versions
