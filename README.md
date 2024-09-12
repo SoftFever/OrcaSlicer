@@ -20,7 +20,7 @@ Thank you for your vigilance and support in keeping our community safe!
 
 # Main features
 - Auto-calibration for all printers
-- SSandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
+- Sandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
 - [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
 - Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
