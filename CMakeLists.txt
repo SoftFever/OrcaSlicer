@@ -64,6 +64,9 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Set compiler flags
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    set(GNU_C TRUE)
+endif ()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(GNU TRUE)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

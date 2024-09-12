@@ -10,7 +10,7 @@ add_library(minilzo_static STATIC
 	lzoconf.h
 )
 
-if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+if(GNU_C)
 	target_compile_definitions(minilzo_static PRIVATE _GNU_SOURCE)
 endif()
 

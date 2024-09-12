@@ -8,7 +8,7 @@ add_library(miniz_static STATIC
     miniz.h
 )
 
-if(${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+if(GNU_C)
     target_compile_definitions(miniz_static PRIVATE _GNU_SOURCE)
 endif()
 
