@@ -15,9 +15,6 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "WIN10SDK_PATH": "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
       }
     },
     {
