@@ -4940,26 +4940,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("tree_support_branch_diameter_double_wall", coFloat);
-    def->label = L("Branch Diameter with double walls");
-    def->category = L("Support");
-    // TRN PrintSettings: "Organic supports" > "Branch Diameter"
-    def->tooltip = L("Branches with area larger than the area of a circle of this diameter will be printed with double walls for stability. "
-                     "Set this value to zero for no double walls.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 100.f;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(3.));
-
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specifies the min count of support walls in the range of [0,2]. Actual wall count may be larger than the specified value.");
+    def->tooltip = L("This setting specifies the count of support walls in the range of [0,2]. 0 means auto.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("tree_support_with_infill", coBool);
     def->label = L("Tree support with infill");

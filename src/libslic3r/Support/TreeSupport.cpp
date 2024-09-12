@@ -1540,17 +1540,7 @@ void TreeSupport::generate_toolpaths()
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
                             else {
-                                size_t walls = wall_count;
-                                //if (area_group.need_extra_wall && walls < 2) walls += 1;
-                                //for (size_t i = 1; i < walls; i++) {
-                                //    Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
-                                //    loops.insert(loops.end(), contour_new.begin(), contour_new.end());
-                                //}
-                                //fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, nullptr, 0, erSupportMaterial, flow, true, false);
-                                SupportParameters support_params = m_support_params;
-                                if(walls>1)
-                                    support_params.tree_branch_diameter_double_wall_area_scaled=0.1;
-                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
+                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, m_support_params);
                             }
                         }
                     }
