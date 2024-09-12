@@ -103,17 +103,17 @@ namespace Slic3r
     {
         // change the color str to real colors
         std::vector<Color>used_filament_colors;
-        std::vector<std::vector<Color>>ams_filament_colors;
+        std::vector<std::vector<Color>>ams_filament_colors(2);
         for (auto& item : used_filament_colors_str)
             used_filament_colors.emplace_back(Color(item));
 
-        for (auto& arr : ams_filament_colors_str) {
-            std::vector<Color>tmp;
-            for (auto& item : arr)
-                tmp.emplace_back(Color(item));
-            ams_filament_colors.emplace_back(std::move(tmp));
-        }
 
+        for (size_t idx = 0; idx < ams_filament_colors_str.size(); ++idx) {
+            std::vector<Color> tmp;
+            for (auto& item : ams_filament_colors_str[idx])
+                tmp.emplace_back(Color(item));
+            ams_filament_colors[idx] = std::move(tmp);
+        }
 
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
