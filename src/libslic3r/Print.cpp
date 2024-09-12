@@ -303,6 +303,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "extruder_ams_count"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
+            || opt_key == "unprintable_filament_map"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_extra_flow"
             || opt_key == "wipe_tower_no_sparse_layers"
@@ -2654,6 +2655,11 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps)
         m_config.apply_only(m_full_print_config, keys, true);
     }
     m_has_auto_filament_map_result = true;
+}
+
+const std::vector<std::vector<int>>& Print::get_unprintable_filament_ids() const
+{
+    return m_config.unprintable_filament_map.values;
 }
 
 std::vector<int> Print::get_filament_maps() const

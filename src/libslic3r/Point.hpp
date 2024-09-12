@@ -630,6 +630,19 @@ namespace std {
             return seed;
         }
     };
+
+    template<>
+    struct hash<std::vector<int>>
+    {
+        size_t operator()(const std::vector<int> &vec)
+        {
+            size_t seed = 0;
+            for (const auto &element : vec) {
+                seed ^= std::hash<double>()(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
 }
 
 // start Boost

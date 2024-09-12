@@ -961,8 +961,7 @@ public:
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
 
     // 1 based ids
-    const std::vector<std::vector<int>>& get_unprintable_filament_ids() const { return m_unprintable_filament_ids; }
-    void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids) { m_unprintable_filament_ids = filament_ids; }
+    const std::vector<std::vector<int>> &get_unprintable_filament_ids() const;
 
     std::vector<Vec2d> get_printable_area();
     std::vector<std::vector<Vec2d>> get_extruder_printable_area();

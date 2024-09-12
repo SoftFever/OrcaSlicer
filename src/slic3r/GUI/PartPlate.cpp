@@ -2898,7 +2898,6 @@ void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 	process.select_technology(this->printer_technology);
 	process.set_current_plate(this);
 	m_print->set_status_callback(statuscb);
-    m_print->set_unprintable_filament_ids(m_unprintable_filament_ids);
 	process.switch_print_preprocess();
 
 	return;
@@ -3224,19 +3223,22 @@ std::vector<int> PartPlate::get_filament_maps()
     return filament_maps;
 }
 
-void PartPlate::append_unprintable_filament_ids(int extruder_id, const std::vector<int> &filament_ids)
-{
-    if (extruder_id > m_unprintable_filament_ids.size()) {
-        m_unprintable_filament_ids.resize(extruder_id + 1);
-    }
-    m_unprintable_filament_ids[extruder_id].insert(m_unprintable_filament_ids[extruder_id].end(), filament_ids.begin(), filament_ids.end());
-}
-
 void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
 {
     std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-
     filament_maps = f_maps;
+}
+
+const std::vector<std::vector<int>>& PartPlate::get_unprintable_filament_ids()
+{
+    std::vector<std::vector<int>> & unprintabel_filament_maps = m_config.option<ConfigOptionIntsGroups>("unprintable_filament_map", true)->values;
+    return unprintabel_filament_maps;
+}
+
+void PartPlate::set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids)
+{
+    std::vector<std::vector<int>> &unprintabel_filament_maps = m_config.option<ConfigOptionIntsGroups>("unprintable_filament_map", true)->values;
+    unprintabel_filament_maps = filament_ids;
 }
 
 void PartPlate::on_extruder_count_changed(int extruder_count)

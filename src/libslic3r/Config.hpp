@@ -190,7 +190,8 @@ enum ConfigOptionType {
     coEnum          = 9,
     // BBS: vector of enums
     coEnums         = coEnum + coVectorType,
-    coPointsGroups  = 10 + coVectorType
+    coPointsGroups  = 10 + coVectorType,
+    coIntsGroups    = 11 + coVectorType
 };
 
 enum ConfigOptionMode {
@@ -1517,6 +1518,110 @@ private:
     template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionVector>(this)); }
 };
 
+class ConfigOptionIntsGroups : public ConfigOptionVector<std::vector<int>>
+{
+public:
+    ConfigOptionIntsGroups() : ConfigOptionVector<std::vector<int>>() {}
+    explicit ConfigOptionIntsGroups(std::initializer_list<std::vector<int>> il) : ConfigOptionVector<std::vector<int>>(std::move(il)) {}
+    explicit ConfigOptionIntsGroups(const std::vector<std::vector<int>> &values) : ConfigOptionVector<std::vector<int>>(values) {}
+
+    static ConfigOptionType   static_type() { return coIntsGroups; }
+    ConfigOptionType          type() const override { return static_type(); }
+    ConfigOption             *clone() const override { return new ConfigOptionIntsGroups(*this); }
+    ConfigOptionIntsGroups &operator=(const ConfigOption *opt)
+    {
+        this->set(opt);
+        return *this;
+    }
+    bool operator==(const ConfigOptionIntsGroups &rhs) const throw() { return this->values == rhs.values; }
+    bool operator==(const ConfigOption &rhs) const override
+    {
+        if (rhs.type() != this->type()) throw ConfigurationError("ConfigConfigOptionIntsGroups: Comparing incompatible types");
+        assert(dynamic_cast<const ConfigOptionVector<std::vector<int>> *>(&rhs));
+
+        return this->values == static_cast<const ConfigOptionVector<std::vector<int>> *>(&rhs)->values;
+    }
+    bool operator<(const ConfigOptionIntsGroups &rhs) const throw() {
+        bool is_lower = true;
+        for (size_t i = 0; i < values.size(); ++i) {
+            if (this->values[i] == rhs.values[i])
+                continue;
+
+            return (this->values[i] < rhs.values[i]);
+        }
+        return is_lower;
+    }
+    bool nullable() const override { return false; }
+    bool is_nil(size_t) const override { return false; }
+
+    std::string serialize() const override
+    {
+        std::ostringstream ss;
+        for (auto iter = this->values.begin(); iter != this->values.end(); ++iter) {
+            if (iter != this->values.begin())
+                ss << "#";
+            serialize_single_value(ss, *iter);
+        }
+
+        return ss.str();
+    }
+
+    std::vector<std::string> vserialize() const override
+    {
+        std::vector<std::string> ret;
+        for (const auto &value : this->values) {
+            std::ostringstream ss;
+            serialize_single_value(ss, value);
+            ret.emplace_back(ss.str());
+        }
+        return ret;
+    }
+
+    bool deserialize(const std::string &str, bool append = false) override
+    {
+        if (!append) this->values.clear();
+        std::istringstream is(str);
+        std::string        group_str;
+        while (std::getline(is, group_str, '#')) {
+            std::vector<int>   group_values;
+            std::istringstream iss(group_str);
+            std::string        value_str;
+            while (std::getline(iss, value_str, ',')) {
+                int value;
+                std::istringstream(value_str) >> value;
+                group_values.push_back(value);
+            }
+            this->values.emplace_back(std::move(group_values));
+        }
+        return true;
+    }
+    std::vector<std::string> vserialize_single(int idx) const
+    {
+        std::vector<std::string> ret;
+        assert(idx < this->size());
+        for (auto iter = values[idx].begin(); iter != values[idx].end(); ++iter) {
+            std::ostringstream ss;
+            ss << (*iter);
+            ret.emplace_back(ss.str());
+        }
+        return ret;
+    }
+
+protected:
+    void serialize_single_value(std::ostringstream &ss, const std::vector<int> &v) const
+    {
+        for (auto iter = v.begin(); iter != v.end(); ++iter) {
+            if (iter - v.begin() != 0)
+                ss << ",";
+            ss << (*iter);
+        }
+    }
+
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive &ar) { ar(cereal::base_class<ConfigOptionVector>(this)); }
+};
+
 
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
@@ -1968,6 +2073,7 @@ public:
 		    case coEnum:            { auto opt = new ConfigOptionEnumGeneric(this->enum_keys_map); archive(*opt); return opt; }
             // BBS
             case coEnums:           { auto opt = new ConfigOptionEnumsGeneric(this->enum_keys_map); archive(*opt); return opt; }
+            case coIntsGroups:      { auto opt = new ConfigOptionIntsGroups();      archive(*opt); return opt; }
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::load_option_from_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}
@@ -2003,6 +2109,7 @@ public:
 		    case coEnum:            archive(*static_cast<const ConfigOptionEnumGeneric*>(opt)); 	break;
             // BBS
             case coEnums:           archive(*static_cast<const ConfigOptionEnumsGeneric*>(opt));    break;
+            case coIntsGroups:      archive(*static_cast<const ConfigOptionIntsGroups *>(opt));     break;
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::save_option_to_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}

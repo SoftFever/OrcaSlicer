@@ -294,6 +294,7 @@ static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR = "other_laye
 static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* FILAMENT_MAP_MODE_ATTR = "filament_map_mode";
 static constexpr const char* FILAMENT_MAP_ATTR = "filament_maps";
+static constexpr const char* UNPRINTABLE_FILAMENT_MAP_ATTR = "unprintable_filament_maps";
 static constexpr const char* LIMIT_FILAMENT_MAP_ATTR = "limit_filament_maps";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
@@ -4153,6 +4154,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return results;
         };
 
+        auto get_vector_array_from_string = [get_vector_from_string](const std::string &str) -> std::vector<std::vector<int>> {
+            std::vector<std::string> sub_strs;
+            size_t pos = 0;
+            size_t found = 0;
+            while ((found = str.find('#', pos)) != std::string::npos) {
+                std::string sub_str = str.substr(pos, found - pos);
+                sub_strs.push_back(sub_str);
+                pos = found + 1;
+            }
+
+            std::vector<std::vector<int>> results;
+            for (std::string sub_str : sub_strs) {
+                results.emplace_back(get_vector_from_string(sub_str));
+            }
+
+            return results;
+        };
+
         if ((m_curr_plater == nullptr)&&!m_parsing_slice_info)
         {
             IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
@@ -4216,6 +4235,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             else if (key == FILAMENT_MAP_ATTR) {
 
                 m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(get_vector_from_string(value)));
+            }
+            else if (key == UNPRINTABLE_FILAMENT_MAP_ATTR)
+            {
+                m_curr_plater->config.set_key_value("unprintable_filament_map", new ConfigOptionIntsGroups(get_vector_array_from_string(value)));
             }
             else if (key == GCODE_FILE_ATTR)
             {
@@ -7677,6 +7700,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << values[i];
                         if (i != (values.size() - 1))
                             stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
+
+                ConfigOptionIntsGroups *unprintable_filament_maps_opt = plate_data->config.option<ConfigOptionIntsGroups>("unprintable_filament_map");
+                if (unprintable_filament_maps_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << UNPRINTABLE_FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<std::vector<int>> &values = unprintable_filament_maps_opt->values;
+                    for (size_t i = 0; i < values.size(); ++i) {
+                        if (i > 0)
+                            stream << "#";
+                        std::vector<int> index_values = values[i];
+                        for (int j = 0; j < index_values.size(); ++j) {
+                            if (j > 0)
+                                stream << " ";
+                            stream << index_values[j];
+                        }
                     }
                     stream << "\"/>\n";
                 }
