@@ -452,20 +452,19 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
     return false;
 }
 
-static bool should_fuzzify(const PerimeterGenerator& perimeter_generator, const size_t idx, const bool is_contour)
+static bool should_fuzzify(const FuzzySkinConfig& config, const int layer_id, const size_t loop_idx, const bool is_contour)
 {
-    const auto config      = perimeter_generator.config;
-    const auto fuzziy_type = config->fuzzy_skin.value;
+    const auto fuzziy_type = config.type;
 
     if (fuzziy_type == FuzzySkinType::None) {
         return false;
     }
-    if (!config->fuzzy_skin_first_layer && perimeter_generator.layer_id <= 0) {
+    if (!config.fuzzy_first_layer && layer_id <= 0) {
         // Do not fuzzy first layer unless told to
         return false;
     }
 
-    const bool fuzzify_contours = idx == 0 || fuzziy_type == FuzzySkinType::AllWalls;
+    const bool fuzzify_contours = loop_idx == 0 || fuzziy_type == FuzzySkinType::AllWalls;
     const bool fuzzify_holes    = fuzzify_contours && (fuzziy_type == FuzzySkinType::All || fuzziy_type == FuzzySkinType::AllWalls);
 
     return is_contour ? fuzzify_contours : fuzzify_holes;
@@ -525,13 +524,35 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
+        const Polygon& polygon = *([&perimeter_generator, &loop, &fuzzified]() ->const Polygon* {
+            const auto& regions = perimeter_generator.regions_by_fuzzify;
+            if (regions.size() == 1) { // optimization
+                const auto& config  = regions.begin()->first;
+                const bool fuzzify = should_fuzzify(config, perimeter_generator.layer_id, loop.depth, loop.is_contour);
+                if (!fuzzify) {
+                    return &loop.polygon;
+                }
 
-        const bool fuzzify = should_fuzzify(perimeter_generator, loop.depth, loop.is_contour);
-        const Polygon &polygon = fuzzify ? fuzzified : loop.polygon;
-        if (fuzzify) {
-            fuzzified = loop.polygon;
-            fuzzy_polygon(fuzzified, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
-        }
+                fuzzified = loop.polygon;
+                fuzzy_polygon(fuzzified, config.thickness, config.point_distance);
+                return &fuzzified;
+            }
+
+            // Find all affective regions
+            std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
+            fuzzified_regions.reserve(regions.size());
+            for (const auto & region : regions) {
+                if (should_fuzzify(region.first, perimeter_generator.layer_id, loop.depth, loop.is_contour)) {
+                    fuzzified_regions.emplace_back(region.first, region.second);
+                }
+            }
+            if (fuzzified_regions.empty()) {
+                return &loop.polygon;
+            }
+
+            // TODO: Split the loops into lines with different config, and fuzzy them separately
+            return &loop.polygon;
+        }());
 
         ExtrusionPaths paths;
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
@@ -883,9 +904,26 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
 
-        const bool fuzzify = should_fuzzify(perimeter_generator, pg_extrusion.extrusion->inset_idx, !pg_extrusion.extrusion->is_closed || pg_extrusion.is_contour);
-        if (fuzzify)
-            fuzzy_extrusion_line(*extrusion, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
+        const auto& regions = perimeter_generator.regions_by_fuzzify;
+        const bool  is_contour = !extrusion->is_closed || pg_extrusion.is_contour;
+        if (regions.size() == 1) { // optimization
+            const auto& config = regions.begin()->first;
+            const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
+            if (fuzzify)
+                fuzzy_extrusion_line(*extrusion, config.thickness, config.point_distance);
+        } else {
+            // Find all affective regions
+            std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
+            fuzzified_regions.reserve(regions.size());
+            for (const auto& region : regions) {
+                if (should_fuzzify(region.first, perimeter_generator.layer_id, extrusion->inset_idx, is_contour)) {
+                    fuzzified_regions.emplace_back(region.first, region.second);
+                }
+            }
+            if (!fuzzified_regions.empty()) {
+                // TODO: Split the loops into lines with different config, and fuzzy them separately
+            }
+        }
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
