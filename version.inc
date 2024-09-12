@@ -4,12 +4,6 @@
 set(SLIC3R_APP_NAME "OrcaSlicer")
 set(SLIC3R_APP_KEY "OrcaSlicer")
 
-if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
-set(BBL_RELEASE_TO_PUBLIC "1")
-endif()
-if(NOT DEFINED BBL_INTERNAL_TESTING)
-set(BBL_INTERNAL_TESTING "0")
-endif()
 set(SoftFever_VERSION "2.2.0-beta")
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
        SoftFever_VERSION_MATCH ${SoftFever_VERSION})

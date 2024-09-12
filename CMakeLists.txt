@@ -63,6 +63,13 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
+if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
+    set(BBL_RELEASE_TO_PUBLIC "1")
+endif()
+if(NOT DEFINED BBL_INTERNAL_TESTING)
+    set(BBL_INTERNAL_TESTING "0")
+endif()
+
 # Set compiler flags
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(GNU_C TRUE)
