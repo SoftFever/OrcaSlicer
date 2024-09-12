@@ -74,6 +74,8 @@ public:
     std::pair<double, double>   m_external_overhang_dist_boundary;
     std::pair<double, double>   m_smaller_external_overhang_dist_boundary;
 
+    bool                                            has_fuzzy_skin = false;
+    bool                                            has_fuzzy_hole = false;
     std::unordered_map<FuzzySkinConfig, ExPolygons> regions_by_fuzzify;
     
     PerimeterGenerator(

@@ -564,10 +564,10 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             bbox.offset(SCALED_EPSILON);
 
             // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
-            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+            if (overhangs_reverse && perimeter_generator.has_fuzzy_skin) {
                 if (loop.is_contour) {
                     steep_overhang_contour = true;
-                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                } else if (perimeter_generator.has_fuzzy_hole) {
                     steep_overhang_hole = true;
                 }
             }
@@ -588,7 +588,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             remain_polines = diff_pl({polygon}, lower_polygons_series_clipped);
 
-            bool detect_overhang_degree = perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
+            bool detect_overhang_degree = perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && !perimeter_generator.has_fuzzy_skin;
 
             if (!detect_overhang_degree) {
                 if (!inside_polines.empty())
@@ -960,10 +960,10 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
 
             // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
-            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+            if (overhangs_reverse && perimeter_generator.has_fuzzy_skin) {
                 if (pg_extrusion.is_contour) {
                     steep_overhang_contour = true;
-                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                } else if (perimeter_generator.has_fuzzy_hole) {
                     steep_overhang_hole = true;
                 }
             }
@@ -994,7 +994,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
             }
 
-            if (perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+            if (perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && !perimeter_generator.has_fuzzy_skin) {
 
                 Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
                 std::map<double, std::vector<Polygons>> clipper_serise;
@@ -1087,7 +1087,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
                 chain_and_reorder_extrusion_paths(paths, &start_point);
 
-                if (perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+                if (perimeter_generator.config->enable_overhang_speed && !perimeter_generator.has_fuzzy_skin) {
                     // BBS: filter the speed
                     smooth_overhang_level(paths);
                 }
@@ -1701,6 +1701,8 @@ static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_
 static void group_region_by_fuzzify(PerimeterGenerator& g)
 {
     g.regions_by_fuzzify.clear();
+    g.has_fuzzy_skin = false;
+    g.has_fuzzy_hole = false;
 
     std::unordered_map<FuzzySkinConfig, SurfacesPtr> regions;
     for (auto region : *g.compatible_regions) {
@@ -1714,6 +1716,13 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
         auto& surfaces = regions[cfg];
         for (const auto& surface : region->slices.surfaces) {
             surfaces.push_back(&surface);
+        }
+
+        if (cfg.type != FuzzySkinType::None) {
+            g.has_fuzzy_skin = true;
+            if (cfg.type != FuzzySkinType::External) {
+                g.has_fuzzy_hole = true;
+            }
         }
     }
 
@@ -1803,7 +1812,7 @@ void PerimeterGenerator::process_classic()
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
-    double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
+    double surface_simplify_resolution = (print_config->enable_arc_fitting && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     //BBS: reorder the surface to reduce the travel time
     ExPolygons surface_exp;
     for (const Surface &surface : all_surfaces)
@@ -2721,7 +2730,7 @@ void PerimeterGenerator::process_arachne()
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
-    double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
+    double surface_simplify_resolution = (print_config->enable_arc_fitting && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     for (const Surface& surface : all_surfaces) {
