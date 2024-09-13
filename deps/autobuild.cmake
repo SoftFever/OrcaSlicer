@@ -76,18 +76,18 @@ if (CMAKE_GENERATOR)
     set (_gen_arg "-G${CMAKE_GENERATOR}")
 endif ()
 
-set(_build_args "")
+set(_configure_args "")
 
 if (CMAKE_C_COMPILER)
-    list(APPEND _build_args "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
+    list(APPEND _configure_args "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
 endif ()
 
 if (CMAKE_CXX_COMPILER)
-    list(APPEND _build_args "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+    list(APPEND _configure_args "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
 endif ()
 
 if (CMAKE_TOOLCHAIN_FILE)
-    list(APPEND _build_args "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+    list(APPEND _configure_args "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
 endif ()
 
 set(_release_to_public "0")
@@ -96,30 +96,30 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 endif ()
 
 # Generic args
-list(APPEND _build_args "-DDESTDIR=${DEP_DESTDIR}" "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}" "-DBBL_RELEASE_TO_PUBLIC=${_release_to_public}")
+list(APPEND _configure_args "-DDESTDIR=${DEP_DESTDIR}" "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 if (APPLE)
-    list(APPEND _build_args "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
+    list(APPEND _configure_args "-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}"
             "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
             "-DOPENSSL_ARCH=darwin64-${CMAKE_OSX_ARCHITECTURES}-cc"
     )
 elseif (WIN32)
-    list(APPEND _build_args "-A x64")
+    list(APPEND _configure_args "-A x64")
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        list(APPEND _build_args "-DDEP_DEBUG=ON")
+        list(APPEND _configure_args "-DDEP_DEBUG=ON")
     elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        list(APPEND _build_args "-DORCA_INCLUDE_DEBUG_INFO=ON")
+        list(APPEND _configure_args "-DORCA_INCLUDE_DEBUG_INFO=ON")
     endif ()
-else ()
+elseif (LINUX)
     if(NOT SLIC3R_GTK EQUAL "3")
-        list(APPEND _build_args "-DDEP_WX_GTK3=OFF")
+        list(APPEND _configure_args "-DDEP_WX_GTK3=OFF")
     endif()
 endif ()
 
-message(STATUS "Configuring dependencies with the following command: ${CMAKE_COMMAND} ${_gen_arg} -B ${DEP_BUILD_DIR} ${_build_args}")
+message(STATUS "Configuring dependencies with the following command: ${CMAKE_COMMAND} ${_gen_arg} -B ${DEP_BUILD_DIR} ${_configure_args}")
 
 execute_process(
-        COMMAND ${CMAKE_COMMAND} "${_gen_arg}" -B ${DEP_BUILD_DIR} ${_build_args}
+        COMMAND ${CMAKE_COMMAND} "${_gen_arg}" -B ${DEP_BUILD_DIR} ${_configure_args}
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
         ${_output_quiet}
         ERROR_VARIABLE _deps_configure_output
