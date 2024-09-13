@@ -49,7 +49,7 @@ if (NPROC EQUAL 0)
     set(NPROC 1)
 endif ()
 
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(DEP_DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/DL_CACHE CACHE PATH "Path for downloaded source packages.")
 set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR or not building wxwidgets")
 
 if (LINUX AND EXISTS "${CMAKE_BINARY_DIR}/destdir/usr/local" AND NOT EXISTS "${CMAKE_BINARY_DIR}/OrcaSlicer_dep/usr/local")
