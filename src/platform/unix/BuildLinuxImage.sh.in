@@ -11,6 +11,8 @@ while getopts ":ih" opt; do
         echo "   -i: Generate Appimage (optional)"
         exit 0
         ;;
+    * )
+        ;;
   esac
 done
 
