@@ -21,6 +21,7 @@
 #include <thread>
 #include "libslic3r/AABBTreeLines.hpp"
 #include "Print.hpp"
+#include "Algorithm/LineSplit.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
@@ -570,6 +571,10 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 #endif
 
             // TODO: Split the loops into lines with different config, and fuzzy them separately
+            for (const auto& r : fuzzified_regions) {
+                const auto  splitted = Algorithm::split_line(loop.polygon, r.second, true);
+            }
+
             return &loop.polygon;
         }());
 
@@ -941,6 +946,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             }
             if (!fuzzified_regions.empty()) {
                 // TODO: Split the loops into lines with different config, and fuzzy them separately
+                for (const auto& r : fuzzified_regions) {
+                    const auto splitted = Algorithm::split_line(*extrusion, r.second, extrusion->is_closed);
+                }
             }
         }
 
