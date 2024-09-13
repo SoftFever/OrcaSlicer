@@ -90,6 +90,9 @@ endif ()
 
 if(LINUX)
     option(DEP_WX_GTK3 "Build wxWidgets against GTK3" ON)
+    if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
+        cmake_policy(SET CMP0135 OLD)
+    endif()
 else() 
     if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
         cmake_policy(SET CMP0135 NEW)
