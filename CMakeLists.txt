@@ -37,6 +37,7 @@ option(ORCA_TOOLS                   "Build Orca tools" OFF)
 option(BUILD_DEPS                   "Build dependencies" OFF)
 option(CLEAN_DEPS                   "Clean build directory dependencies. Only takes effect if also building deps." OFF)
 option(FORCE_DEPS                   "Force build dependencies even if there are no changes. CLEAN_DEPS takes priority. Only takes effect if also building deps." OFF)
+option(BUILD_DEPS_QUIET             "Don't output the logs from building deps" OFF)
 # If SLIC3R_FHS is enabled, forcibly disable desktop integration during runtime.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
