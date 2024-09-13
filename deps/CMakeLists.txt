@@ -98,7 +98,9 @@ endif ()
 
 message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
-message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
+if (_is_multi)
+    message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
+endif ()
 
 find_package(Git REQUIRED)
 
