@@ -4,7 +4,7 @@
 #include "SVG.hpp"
 #include "Utils.hpp"
 
-#define DEBUG_SPLIT_LINE
+//#define DEBUG_SPLIT_LINE
 
 namespace Slic3r {
 namespace Algorithm {

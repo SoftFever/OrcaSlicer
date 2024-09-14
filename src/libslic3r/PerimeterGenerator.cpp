@@ -31,7 +31,7 @@ static const int max_overhang_degree = overhang_sampling_number - 1;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
-#define DEBUG_FUZZY
+//#define DEBUG_FUZZY
 
 namespace Slic3r {
 
