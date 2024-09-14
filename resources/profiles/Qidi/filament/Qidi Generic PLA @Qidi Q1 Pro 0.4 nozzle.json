@@ -10,7 +10,7 @@
     ],
     "from": "system",
     "full_fan_speed_layer": [
-        "0"
+        "3"
     ],
     "hot_plate_temp": [
         "60"
@@ -26,6 +26,9 @@
     ],
     "slow_down_min_speed": [
         "20"
+    ],
+    "pressure_advance": [
+        "0.042"
     ],
     "compatible_printers": [
         "Qidi Q1 Pro 0.4 nozzle"
