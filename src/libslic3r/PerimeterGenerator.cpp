@@ -67,23 +67,30 @@ public:
 };
 
 // Thanks Cura developers for this function.
-static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuzzy_skin_point_distance)
+static void fuzzy_polyline(Points& poly, bool closed, const FuzzySkinConfig& cfg)
 {
-    const double min_dist_between_points = fuzzy_skin_point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
-    const double range_random_point_dist = fuzzy_skin_point_distance / 2.;
+    const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
+    const double range_random_point_dist = cfg.point_distance / 2.;
     double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
-    Point* p0 = &poly.points.back();
+    Point* p0 = &poly.back();
     Points out;
-    out.reserve(poly.points.size());
-    for (Point &p1 : poly.points)
-    { // 'a' is the (next) new point between p0 and p1
+    out.reserve(poly.size());
+    for (Point &p1 : poly)
+    {
+        if (!closed) {
+            // Skip the first point for open path
+            closed = true;
+            p0 = &p1;
+            continue;
+        }
+        // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1      = (p1 - *p0).cast<double>();
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
         for (; p0pa_dist < p0p1_size;
             p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist)
         {
-            double r = random_value() * (fuzzy_skin_thickness * 2.) - fuzzy_skin_thickness;
+            double r = random_value() * (cfg.thickness * 2.) - cfg.thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
         }
         dist_left_over = p0pa_dist - p0p1_size;
@@ -97,7 +104,7 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
         -- point_idx;
     }
     if (out.size() >= 3)
-        poly.points = std::move(out);
+        poly = std::move(out);
 }
 
 // Thanks Cura developers for this function.
@@ -537,7 +544,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 }
 
                 fuzzified = loop.polygon;
-                fuzzy_polygon(fuzzified, config.thickness, config.point_distance);
+                fuzzy_polyline(fuzzified.points, true, config);
                 return &fuzzified;
             }
 
@@ -570,12 +577,54 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             }
 #endif
 
-            // TODO: Split the loops into lines with different config, and fuzzy them separately
+            // Split the loops into lines with different config, and fuzzy them separately
+            fuzzified = loop.polygon;
             for (const auto& r : fuzzified_regions) {
-                const auto  splitted = Algorithm::split_line(loop.polygon, r.second, true);
+                const auto splitted = Algorithm::split_line(fuzzified, r.second, true);
+                if (splitted.empty()) {
+                    // No intersection, skip
+                    continue;
+                }
+
+                // Fuzzy splitted polygon
+                if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
+                    // The entire polygon is fuzzified
+                    fuzzy_polyline(fuzzified.points, true, r.first);
+                } else {
+                    Points segment;
+                    segment.reserve(splitted.size());
+                    fuzzified.points.clear();
+
+                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r]() {
+                        fuzzified.points.push_back(segment.front());
+                        const auto back = segment.back();
+                        fuzzy_polyline(segment, false, r.first);
+                        fuzzified.points.insert(fuzzified.points.end(), segment.begin(), segment.end());
+                        fuzzified.points.push_back(back);
+                        segment.clear();
+                    };
+
+                    for (const auto& p : splitted) {
+                        if (p.clipped) {
+                            segment.push_back(p.p);
+                        } else {
+                            if (segment.empty()) {
+                                fuzzified.points.push_back(p.p);
+                            } else {
+                                segment.push_back(p.p);
+                                fuzzy_current_segment();
+                            }
+                        }
+                    }
+                    if (!segment.empty()) {
+                        // Close the loop
+                        segment.push_back(splitted.front().p);
+                        fuzzy_current_segment();
+                    }
+                }
             }
 
-            return &loop.polygon;
+            return &fuzzified;
         }());
 
         ExtrusionPaths paths;
