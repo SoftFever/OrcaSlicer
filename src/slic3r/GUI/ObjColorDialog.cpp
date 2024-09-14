@@ -27,11 +27,13 @@ const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 370;
 const int COLOR_LABEL_WIDTH = 180;
-#define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
+
+#undef  ICON_SIZE
+#define ICON_SIZE                 wxSize(FromDIP(16), FromDIP(16))
 #define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(400)
 #define FIX_SCROLL_HEIGTH         FromDIP(400)
-#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
-#define BTN_GAP                 FromDIP(20)
+#define BTN_SIZE                  wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP                   FromDIP(20)
 
 static void update_ui(wxWindow* window)
 {

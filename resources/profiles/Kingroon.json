@@ -1,7 +1,7 @@
 {
   "name": "Kingroon",
   "url": "https://kingroon.com/",
-  "version": "02.01.01.00",
+  "version": "02.02.00.00",
   "force_update": "0",
   "description": "Kingroon configuration files",
   "machine_model_list": [
@@ -13,9 +13,17 @@
       "name": "Kingroon KP3S PRO V2",
       "sub_path": "machine/Kingroon KP3S PRO V2.json"
     },
-	  {
+    {
       "name": "Kingroon KP3S 3.0",
       "sub_path": "machine/Kingroon KP3S 3.0.json"
+    },
+    {
+      "name": "Kingroon KP3S V1",
+      "sub_path": "machine/Kingroon KP3S V1.json"
+    },
+    {
+      "name": "Kingroon KLP1",
+      "sub_path": "machine/Kingroon KLP1.json"
     }
   ],
   "process_list": [
@@ -42,6 +50,18 @@
     {
       "name": "0.30mm Standard @Kingroon KP3S 3.0",
       "sub_path": "process/0.30mm Standard @Kingroon KP3S 3.0.json"
+    },
+    {
+      "name": "0.20mm Standard @Kingroon KP3S V1",
+      "sub_path": "process/0.20mm Standard @Kingroon KP3S V1.json"
+    },
+    {
+      "name": "0.12mm Standard @Kingroon KLP1",
+      "sub_path": "process/0.12mm Standard @Kingroon KLP1.json"
+    },
+    {
+      "name": "0.20mm Standard @Kingroon KLP1",
+      "sub_path": "process/0.20mm Standard @Kingroon KLP1.json"
     }
   ],
   "filament_list": [
@@ -142,6 +162,10 @@
     {
       "name": "Kingroon KP3S 0.4 nozzle",
       "sub_path": "machine/Kingroon KP3S 3.0 0.4 nozzle.json"
+    },
+    {
+      "name": "Kingroon KLP1 0.4 nozzle",
+      "sub_path": "machine/Kingroon KLP1 0.4 nozzle.json"
     }
   ]
 }

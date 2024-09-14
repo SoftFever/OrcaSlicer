@@ -1,18 +1,38 @@
-[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
-# Orca Slicer     
-Orca Slicer is an open source slicer for FDM printers.   
 
-![discord-mark-blue](https://github.com/SoftFever/OrcaSlicer/assets/103989404/b97d5ffc-072d-4d0a-bbda-e67ef373876f) Join community: [OrcaSlicer Official Discord Server](https://discord.gg/P4VE9UY9gJ)   
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+
+[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
+<br>Orca Slicer is an open source slicer for FDM printers. 
+
+
+Join our Discord community here:<br>
+<a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=7289DA&logoColor=white&labelColor=&style=for-the-badge" height="35" alt="discord logo"/> </a>
+ 
+ <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
+
+Please be aware that "orcaslicer.net" is NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
+
+The only official platforms for OrcaSlicer are our GitHub project page and the  <a href="https://discord.gg/P4VE9UY9gJ">official Discord channel</a> .
+
+We deeply value our OrcaSlicer community and appreciate all the social groups that support us. However, it is crucial to address the risk posed by any group that falsely claims to be official or misleads its members. If you encounter such a group or are part of one, please assist by encouraging the group owner to add a clear disclaimer or by alerting its members.
+
+Thank you for your vigilance and support in keeping our community safe!
 
 # Main features
-- Auto calibrations for all printers
-- Sandwich(inner-outer-inner) mode - an improved version of the `External perimeters first` mode
+- Auto-calibration for all printers
+- Sandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
 - [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
-- Polyholes conversion support [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
+- Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
 - More granular controls
-- More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
+- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
 
+# Wiki
+The wiki below aims to provide a detailed explanation of the slicer settings, including how to maximize their use and how to calibrate and set up your printer.
+
+Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
+
+**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**  
 
 # Download
 
@@ -40,7 +60,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
 **Mac**:
 1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
 2. Drag OrcaSlicer.app to Application folder. 
-3. *If you want to run a build from a PR, you also need following instructions below*  
+3. *If you want to run a build from a PR, you also need to follow the instructions below:*  
     <details quarantine>
     - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
@@ -58,15 +78,15 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
             ![image](./SoftFever_doc/mac_security_setting.png)  
     </details>
     
-**Linux(Ubuntu)**:
- 1. If you run into trouble to execute it, try this command in terminal:  
+**Linux (Ubuntu)**:
+ 1. If you run into trouble executing it, try this command in the terminal:  
     `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
     
 # How to compile
 - Windows 64-bit  
   - Tools needed: Visual Studio 2019, Cmake, git, git-lfs, Strawberry Perl.
       - You will require cmake version 3.14 or later, which is available [on their website](https://cmake.org/download/).
-      - Strawberry Perl is [available on their github repository](https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/).
+      - Strawberry Perl is [available on their GitHub repository](https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/).
   - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
   - Note: Don't forget to run `git lfs pull` after cloning the repository to download tools on Windows
 
@@ -74,9 +94,9 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
   - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
       - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
   - run `build_release_macos.sh`
-  - To build and debug in XCode:
-      - run `XCode.app`
-      - open ``build_`arch`/OrcaSlicer.xcodeproj``
+  - To build and debug in Xcode:
+      - run `Xcode.app`
+      - open ``build_`arch`/OrcaSlicer.Xcodeproj``
       - menu bar: Product => Scheme => OrcaSlicer
       - menu bar: Product => Scheme => Edit Scheme...
           - Run => Info tab => Build Configuration: `RelWithDebInfo`
@@ -84,7 +104,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
       - menu bar: Product => Run
 
 - Ubuntu 
-  - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
+  - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
 
@@ -108,11 +128,6 @@ Thank you! :)
 ### Sponsors:  
 <table>
 <tr>
-<td>
-<a href="https://peopoly.net/">
-    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="96" height="">
-</a>
-</td> 
 <td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
@@ -163,5 +178,5 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 
 Orca Slicer includes a pressure advance calibration pattern test adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
 
-The bambu networking plugin is based on non-free libraries from Bambulab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
+The Bambu networking plugin is based on non-free libraries from BambuLab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
 

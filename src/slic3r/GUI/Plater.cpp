@@ -1789,7 +1789,7 @@ void Sidebar::sync_ams_list()
 
     // BBS:Record consumables information before synchronization
     std::vector<string> color_before_sync;
-    std::vector<int> is_support_before;
+    std::vector<bool>   is_support_before;
     DynamicPrintConfig& project_config = wxGetApp().preset_bundle->project_config;
     ConfigOptionStrings* color_opt = project_config.option<ConfigOptionStrings>("filament_colour");
     for (int i = 0; i < p->combos_filament.size(); ++i) {
@@ -2770,7 +2770,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
-		"nozzle_height", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance",
+		"nozzle_height", "skirt_type", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance", "skirt_start_angle",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -2951,19 +2951,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->orient(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->orient(); });
         //BBS
@@ -3002,11 +3002,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD_PLATE, &priv::on_action_add_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DEL_PLATE, &priv::on_action_del_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->orient(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange();
             });
@@ -8300,7 +8300,7 @@ void Plater::priv::on_create_filament(SimpleEvent &)
 
 void Plater::priv::on_modify_filament(SimpleEvent &evt)
 {
-    FilamentInfomation *filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
+    Filamentinformation *filament_info = static_cast<Filamentinformation *>(evt.GetEventObject());
     int                 res;
     std::shared_ptr<Preset> need_edit_preset;
     {
@@ -8826,7 +8826,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     auto check = [&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
-                _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
+                _L("You can keep the modified presets to the new project, discard or save changes as new presets."));
         int act_buttons = ActionButtons::KEEP | ActionButtons::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ActionButtons::SAVE;
@@ -9083,7 +9083,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
     }
-    catch (const std::exception& error)
+    catch (const std::exception&)
     {
         //wxString sError = error.what();
     }
@@ -9125,7 +9125,6 @@ void Plater::import_model_id(wxString download_info)
 //        if (!m_agent) return;
 
         int res = 0;
-        unsigned int http_code;
         std::string http_body;
 
         msg = _L("prepare 3mf file...");
@@ -9164,7 +9163,7 @@ void Plater::import_model_id(wxString download_info)
                 if (sFile == filename) is_already_exist = true;
             }
         }
-        catch (const std::exception& error)
+        catch (const std::exception&)
         {
             //wxString sError = error.what();
         }
@@ -9466,21 +9465,21 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
     }
     
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false)
         );
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
@@ -9646,21 +9645,11 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
-void Plater::calib_flowrate(int pass) {
-    if (pass != 1 && pass != 2)
-        return;
-    const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
-    if (new_project(false, false, calib_name) == wxID_CANCEL)
-        return;
-
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    
-    if(pass == 1)
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
-    else
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
-
-    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+// Adjust settings for flowrate calibration
+// For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
+void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
+{
+auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
@@ -9670,37 +9659,47 @@ void Plater::calib_flowrate(int pass) {
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
     float xyScale = nozzle_diameter / 0.6;
-    //scale z to have 7 layers
+    //scale z to have 10 layers
+    // 2 bottom, 5 top, 3 sparse infill
     double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
     double layer_height = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
     first_layer_height = std::max(first_layer_height, layer_height);
 
-    float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    float zscale = (first_layer_height + 9 * layer_height) / 2;
     // only enlarge
     if (xyScale > 1.2) {
-        for (auto _obj : model().objects)
+        for (auto _obj : objects)
             _obj->scale(xyScale, xyScale, zscale); 
     }
     else {
-        for (auto _obj : model().objects)
+        for (auto _obj : objects)
             _obj->scale(1, 1, zscale);
     }
 
+    auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     Flow infill_flow = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
-    double max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
+    double max_infill_speed;
+    if (linear)
+        max_infill_speed = filament_max_volumetric_speed /
+                           (infill_flow.mm3_per_mm() * (cur_flowrate + (pass == 2 ? 0.035 : 0.05)) / cur_flowrate);
+    else
+        max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
     double internal_solid_speed = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
     double top_surface_speed = std::floor(std::min(print_config->opt_float("top_surface_speed"), max_infill_speed));
 
     // adjust parameters
-    for (auto _obj : model().objects) {
+    for (auto _obj : objects) {
         _obj->ensure_on_bed();
-        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(1));
         _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
         _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100,true));
-        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
+        _obj->config.set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
@@ -9724,14 +9723,18 @@ void Plater::calib_flowrate(int pass) {
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
         auto modifier = stof(obj_name);
-        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
+        if(linear)
+            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
+        else
+            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
+
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
-    //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
@@ -9740,6 +9743,43 @@ void Plater::calib_flowrate(int pass) {
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 }
+
+void Plater::calib_flowrate(bool is_linear, int pass) {
+    if (pass != 1 && pass != 2)
+        return;
+    wxString calib_name;
+    if (is_linear) {
+        calib_name = L"Orca YOLO Flow Calibration";
+        if (pass == 2)
+            calib_name += L" - Perfectionist version";
+    } else
+        calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
+
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
+
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+    if (is_linear) {
+        if (pass == 1)
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "Orca-LinearFlow.3mf").string());
+        else
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "Orca-LinearFlow_fine.3mf").string());
+    } else {
+        if (pass == 1)
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+        else
+            add_model(false,
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+    }
+
+    adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+}
+
 
 void Plater::calib_temp(const Calib_Params& params) {
     const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
@@ -12563,7 +12603,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         p->m_print_job_data._3mf_path = fs::path(plate->get_tmp_gcode_path());
         p->m_print_job_data._3mf_path.replace_extension("3mf");
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
         return -1;
     }
@@ -12596,7 +12636,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
     try {
         p->m_print_job_data._3mf_config_path = fs::path(plate->get_temp_config_3mf_path());
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
         return -1;
     }
@@ -13954,6 +13994,19 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
+    return ret;
+}
+
+int Plater::duplicate_plate(int plate_index)
+{
+    int index = plate_index, ret;
+    if (plate_index == -1)
+        index = p->partplate_list.get_curr_plate_index();
+
+    ret = p->partplate_list.duplicate_plate(index);
+
+    //need to call update
+    update();
     return ret;
 }
 

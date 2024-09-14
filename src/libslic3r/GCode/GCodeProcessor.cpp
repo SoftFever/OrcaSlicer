@@ -47,7 +47,6 @@ static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const float DEFAULT_FILAMENT_COST = 29.99f;
-static const float DEFAULT_FILAMENT_FLOW_RATIOS = 1.0f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
@@ -955,7 +954,6 @@ void GCodeProcessorResult::reset() {
     required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     filament_costs = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_COST);
-    filament_flow_ratios = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_FLOW_RATIOS);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     bed_match_result = BedMatchResult(true);
@@ -1078,7 +1076,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_result.filament_costs.resize(extruders_count);
-    m_result.filament_flow_ratios.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
     m_extruder_temps_config.resize(extruders_count);
     m_extruder_temps_first_layer_config.resize(extruders_count);
@@ -1098,7 +1095,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
         m_result.filament_costs[i]      = static_cast<float>(config.filament_cost.get_at(i));
-        m_result.filament_flow_ratios[i]  = static_cast<float>(config.filament_flow_ratio.get_at(i));
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
@@ -1260,15 +1256,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
     for (size_t i = m_result.filament_costs.size(); i < m_result.extruders_count; ++i) {
         m_result.filament_costs.emplace_back(DEFAULT_FILAMENT_COST);
-    }
-
-    // Orca: filament flow ratio
-    const ConfigOptionFloats* filament_flow_ratios = config.option<ConfigOptionFloats>("filament_flow_ratio");
-    if (filament_flow_ratios != nullptr) {
-        m_result.filament_flow_ratios.clear();
-        m_result.filament_flow_ratios.resize(filament_flow_ratios->values.size());
-        for (size_t i = 0; i < filament_flow_ratios->values.size(); ++i)
-            m_result.filament_flow_ratios[i]=static_cast<float>(filament_flow_ratios->values[i]);
     }
 
     //BBS
@@ -2930,7 +2917,6 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::optional<unsigned int>& remaining_internal_g1_lines)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
-    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
@@ -3008,7 +2994,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         // volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
+        m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -3359,7 +3345,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
-    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
@@ -3488,7 +3473,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         //BBS: volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
+        m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING

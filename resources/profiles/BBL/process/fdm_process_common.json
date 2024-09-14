@@ -17,7 +17,7 @@
     "line_width": "0.45",
     "infill_direction": "45",
     "sparse_infill_density": "15%",
-    "sparse_infill_pattern": "crosshatch",
+    "sparse_infill_pattern": "grid",
     "initial_layer_line_width": "0.42",
     "initial_layer_print_height": "0.2",
     "initial_layer_speed": "20",
@@ -67,5 +67,7 @@
     "prime_tower_width": "60",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
-    "compatible_printers": []
+    "compatible_printers": [],
+    "smooth_coefficient": "80",
+    "overhang_totally_speed": "24"
 }

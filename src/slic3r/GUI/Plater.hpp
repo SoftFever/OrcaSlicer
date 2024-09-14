@@ -259,7 +259,7 @@ public:
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
-    void calib_flowrate(int pass);
+    void calib_flowrate(bool is_linear, int pass);
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);
     void calib_retraction(const Calib_Params& params);
@@ -599,6 +599,7 @@ public:
     int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
+    int duplicate_plate(int plate_index = -1);
     //BBS: select the sliced plate by index
     int select_sliced_plate(int plate_index);
     //BBS: set bed positions
