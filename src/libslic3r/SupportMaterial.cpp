@@ -3322,16 +3322,26 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 // BOOST_LOG_TRIVIAL(trace) << "Support generator - trim_support_layers_by_object - trimmming non-empty layer " << idx_layer << " of " << nonempty_layers.size();
                 assert(! support_layer.polygons.empty() && support_layer.print_z >= m_slicing_params.raft_contact_top_z + EPSILON);
                 // Find the overlapping object layers including the extra above / below gap.
-                coordf_t z_threshold = support_layer.bottom_print_z() - gap_extra_below + EPSILON;
+                double layer_height = 0.f;
+                if(object.layers().size() > 0){
+                    const Layer &object_layer = *object.layers()[0];
+                    layer_height = object_layer.height;
+                }
+                double g_e_below = gap_extra_below;
+                if(g_e_below > layer_height){
+                    g_e_below = layer_height;
+                }
+                coordf_t z_threshold = support_layer.bottom_print_z() - g_e_below + EPSILON;
                 idx_object_layer_overlapping = Layer::idx_higher_or_equal(
                     object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.
                 Polygons polygons_trimming;
                 size_t i = idx_object_layer_overlapping;
+                double d_gap_extra_above = gap_extra_above > 2*layer_height ? 2*layer_height : gap_extra_above;
                 for (; i < object.layers().size(); ++ i) {
                     const Layer &object_layer = *object.layers()[i];
-                    if (object_layer.bottom_z() > support_layer.print_z + gap_extra_above - EPSILON)
+                    if (object_layer.bottom_z() > support_layer.print_z + d_gap_extra_above - EPSILON)
                         break;
 
                     bool is_overlap = is_layers_overlap(support_layer, object_layer);
