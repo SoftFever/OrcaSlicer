@@ -30,6 +30,15 @@ static void cb_split_line(const ClipperZUtils::ZPoint& e1bot,
 static bool is_src(const ClipperZUtils::ZPoint& p) { return p.z() >= 0 && p.z() != CLIP_IDX; }
 static bool is_clip(const ClipperZUtils::ZPoint& p) { return p.z() == CLIP_IDX; }
 static bool is_new(const ClipperZUtils::ZPoint& p) { return p.z() < 0; }
+static size_t to_src_idx(const ClipperZUtils::ZPoint& p)
+{
+    assert(!is_clip(p));
+    if (is_src(p)) {
+        return p.z();
+    } else {
+        return -p.z() - 1;
+    }
+}
 
 static Point to_point(const ClipperZUtils::ZPoint& p) { return {p.x(), p.y()}; }
 
@@ -127,58 +136,70 @@ SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& c
         // Only built if necessary, that is if any of the clipped segment has first point came from clip polygon,
         // and we need to find out which source edge that point came from.
         AABBTreeLines::LinesDistancer<Line> aabb_tree;
+        const auto                          resolve_clip_point = [&path, &aabb_tree](ClipperZUtils::ZPoint& zp) {
+            if (!is_clip(zp)) {
+                return;
+            }
+
+            if (aabb_tree.get_lines().empty()) {
+                Lines lines;
+                lines.reserve(path.size() - 1);
+                for (auto it = path.begin() + 1; it != path.end(); ++it) {
+                    lines.emplace_back(to_point(it[-1]), to_point(*it));
+                }
+                aabb_tree = AABBTreeLines::LinesDistancer(lines);
+            }
+
+            const Point p = to_point(zp);
+            const auto possible_edges = aabb_tree.all_lines_in_radius(p, SCALED_EPSILON);
+            assert(!possible_edges.empty());
+            for (const size_t l : possible_edges) {
+                // Check if the point is on the line
+                const Line line(to_point(path[l]), to_point(path[l + 1]));
+                if (p == line.a) {
+                    zp.z() = path[l].z();
+                    break;
+                }
+                if (p == line.b) {
+                    zp.z() = path[l + 1].z();
+                    break;
+                }
+                if (point_on_line(p, line)) {
+                    zp.z() = -(path[l].z() + 1);
+                    break;
+                }
+            }
+            if (is_clip(zp)) {
+                // Too bad! Couldn't find the src edge, so we just pick the first one and hope it works
+                zp.z() = -(path[possible_edges[0]].z() + 1);
+            }
+        };
 
         split_chain.assign(path.size(), {});
         for (ClipperZUtils::ZPath& segment : intersections) {
             assert(segment.size() >= 2);
-            ClipperZUtils::ZPoint& front = segment.front();
+            // Resolve all clip points
+            std::for_each(segment.begin(), segment.end(), resolve_clip_point);
 
-            // FIXME: there might be cases that the point is also an existing point from the src path (i.e., src and clip shears a same point)
-            if (is_clip(front)) {
-                // The segment starts with a point from clip polygon, we must find out which line of the src path this point belongs to.
-                const ClipperZUtils::ZPoint& next_point = segment[1];
-                if (is_new(next_point)) {
-                    // Same line
-                    front.z() = next_point.z();
-                } else if (is_src(next_point)) {
-                    // Previous line
-                    front.z() = -next_point.z();
-                } else {
-                    // Oops! We have no idea where this point came from, go through EVERY edge of src path and see which one this point lies on.
-                    if (aabb_tree.get_lines().empty()) {
-                        Lines lines;
-                        lines.reserve(path.size() - 1);
-                        for (auto it = path.begin() + 1; it != path.end(); ++it) {
-                            lines.emplace_back(to_point(it[-1]), to_point(*it));
-                        }
-                        aabb_tree = AABBTreeLines::LinesDistancer(lines);
-                    }
-                    const Point p = to_point(front);
-                    const auto possible_edges = aabb_tree.all_lines_in_radius(p, SCALED_EPSILON);
-                    assert(!possible_edges.empty());
-                    for (size_t l : possible_edges) {
-                        // Check if the point is on the line
-                        const Line line(to_point(path[l]), to_point(path[l + 1]));
-                        if (p == line.a) {
-                            front.z() = path[l].z();
-                            break;
-                        }
-                        if (p == line.b) {
-                            front.z() = path[l + 1].z();
-                            break;
-                        }
-                        if (point_on_line(p, line)) {
-                            front.z() = -(path[l].z() + 1);
-                            break;
-                        }
-                    }
-                    if (is_clip(front)) {
-                        // Too bad! Couldn't find the src edge, so we just pick the first one and hope it works
-                        front.z() = -(path[possible_edges[0]].z() + 1);
-                    }
+            // Ensure the point order in segment
+            std::sort(segment.begin(), segment.end(), [&path](const ClipperZUtils::ZPoint& a, const ClipperZUtils::ZPoint& b) -> bool {
+                if (is_new(a) && is_new(b) && a.z() == b.z()) {
+                    // Make sure a point is closer to the src point than b
+                    const auto src = to_point(path[-a.z() - 1]);
+                    return (to_point(a) - src).squaredNorm() < (to_point(b) - src).squaredNorm();
                 }
-            }
+                const auto a_idx = to_src_idx(a);
+                const auto b_idx = to_src_idx(b);
+                if (a_idx == b_idx) {
+                    // On same line, prefer the src point first
+                    return is_src(a);
+                } else {
+                    return a_idx < b_idx;
+                }
+            });
 
+            // Chain segment back to the original path
+            ClipperZUtils::ZPoint& front = segment.front();
             const ClipperZUtils::ZPoint* previous_src_point;
             if (is_src(front)) {
                 // The segment starts with a point from src path, which means apart from the last point,
