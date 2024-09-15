@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Bambu PPS-CF @BBL X1E",
+    "inherits": "Bambu PPS-CF @base",
+    "from": "system",
+    "setting_id": "GFST02_00",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
+    ]
+}
