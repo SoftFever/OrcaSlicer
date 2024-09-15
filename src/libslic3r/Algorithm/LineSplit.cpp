@@ -257,7 +257,10 @@ SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& c
             idx++;
         } else {
             if (!is_src(node.front()->front())) {
-                result.emplace_back(to_point(p), false, idx);
+                const auto& last = result.back();
+                if (result.empty() || last.get_src_index() != to_src_idx(p)) {
+                    result.emplace_back(to_point(p), false, idx);
+                }
             }
             for (const auto segment : node) {
                 for (const ClipperZUtils::ZPoint& sp : *segment) {
@@ -270,7 +273,13 @@ SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& c
             // Determine the next start point
             const auto back = result.back().src_idx;
             if (back < 0) {
-                idx = -back;
+                auto next_idx = -back - 1;
+                if (next_idx == idx) {
+                    next_idx++;
+                } else if (split_chain[next_idx].empty()) {
+                    next_idx++;
+                }
+                idx = next_idx;
             } else {
                 result.pop_back();
                 idx = back;

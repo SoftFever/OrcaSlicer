@@ -24,6 +24,16 @@ struct SplitLineJunction
         : p(p)
         , clipped(clipped)
         , src_idx(src_idx) {}
+
+    bool is_src() const { return src_idx >= 0; }
+    size_t get_src_index() const
+    {
+        if (is_src()) {
+            return src_idx;
+        } else {
+            return -src_idx - 1;
+        }
+    }
 };
 
 using SplittedLine = std::vector<SplitLineJunction>;
