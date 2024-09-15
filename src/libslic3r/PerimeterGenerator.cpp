@@ -108,10 +108,10 @@ static void fuzzy_polyline(Points& poly, bool closed, const FuzzySkinConfig& cfg
 }
 
 // Thanks Cura developers for this function.
-static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy_skin_thickness, double fuzzy_skin_point_dist)
+static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, const FuzzySkinConfig& cfg)
 {
-    const double min_dist_between_points = fuzzy_skin_point_dist * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
-    const double range_random_point_dist = fuzzy_skin_point_dist / 2.;
+    const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
+    const double range_random_point_dist = cfg.point_distance / 2.;
     double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
 
     auto* p0 = &ext_lines.front();
@@ -128,7 +128,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
         for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
-            double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
+            double r = double(rand()) * (cfg.thickness * 2.) / double(RAND_MAX) - cfg.thickness;
             out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
         }
         dist_left_over = p0pa_dist - p0p1_size;
@@ -147,7 +147,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
         out.front().p = out.back().p;
 
     if (out.size() >= 3)
-        ext_lines.junctions = std::move(out);
+        ext_lines = std::move(out);
 }
 
 using PerimeterGeneratorLoops = std::vector<PerimeterGeneratorLoop>;
@@ -983,7 +983,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             const auto& config = regions.begin()->first;
             const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
             if (fuzzify)
-                fuzzy_extrusion_line(*extrusion, config.thickness, config.point_distance);
+                fuzzy_extrusion_line(extrusion->junctions, config);
         } else {
             // Find all affective regions
             std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
@@ -994,9 +994,57 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
             }
             if (!fuzzified_regions.empty()) {
-                // TODO: Split the loops into lines with different config, and fuzzy them separately
+                // Split the loops into lines with different config, and fuzzy them separately
                 for (const auto& r : fuzzified_regions) {
-                    const auto splitted = Algorithm::split_line(*extrusion, r.second, extrusion->is_closed);
+                    const auto splitted = Algorithm::split_line(*extrusion, r.second, false);
+                    if (splitted.empty()) {
+                        // No intersection, skip
+                        continue;
+                    }
+
+                    // Fuzzy splitted extrusion
+                    if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
+                        // The entire polygon is fuzzified
+                        fuzzy_extrusion_line(extrusion->junctions, r.first);
+                    } else {
+                        const auto current_ext = extrusion->junctions;
+                        std::vector<Arachne::ExtrusionJunction> segment;
+                        segment.reserve(current_ext.size());
+                        extrusion->junctions.clear();
+
+                        const auto fuzzy_current_segment = [&segment, extrusion, &r]() {
+                            extrusion->junctions.push_back(segment.front());
+                            const auto back = segment.back();
+                            fuzzy_extrusion_line(segment, r.first);
+                            extrusion->junctions.insert(extrusion->junctions.end(), segment.begin(), segment.end());
+                            extrusion->junctions.push_back(back);
+                            segment.clear();
+                        };
+
+                        const auto to_ex_junction = [&current_ext](const Algorithm::SplitLineJunction& j) -> Arachne::ExtrusionJunction {
+                            Arachne::ExtrusionJunction res = current_ext[j.get_src_index()];
+                            if (!j.is_src()) {
+                                res.p = j.p;
+                            }
+                            return res;
+                        };
+
+                        for (const auto& p : splitted) {
+                            if (p.clipped) {
+                                segment.push_back(to_ex_junction(p));
+                            } else {
+                                if (segment.empty()) {
+                                    extrusion->junctions.push_back(to_ex_junction(p));
+                                } else {
+                                    segment.push_back(to_ex_junction(p));
+                                    fuzzy_current_segment();
+                                }
+                            }
+                        }
+                        if (!segment.empty()) {
+                            fuzzy_current_segment();
+                        }
+                    }
                 }
             }
         }
