@@ -523,6 +523,21 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 #endif
     }
 
+    this->fill_surfaces.remove_types({stTop});
+    {
+        Surface top_templ(stTop, {});
+        top_templ.thickness = layer_thickness;
+        this->fill_surfaces.append(std::move(expansion_zones.back().expolygons), top_templ);
+    }
+
+    expansion_zones.pop_back();
+
+    expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_bottom, expansion_step, max_nr_expansion_steps);
+    Surfaces bottoms = expand_merge_surfaces(this->fill_surfaces.surfaces, stBottom, expansion_zones, closing_radius);
+
+    expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_top, expansion_step, max_nr_expansion_steps);
+    Surfaces tops = expand_merge_surfaces(this->fill_surfaces.surfaces, stTop, expansion_zones, closing_radius);
+
     // turn too small internal regions into solid regions according to the user setting
     if (!this->layer()->object()->print()->config().spiral_mode && this->region().config().sparse_infill_density.value > 0) {
         // scaling an area requires two calls!
@@ -540,21 +555,6 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             expansion_zones[0].expolygons = union_ex(expansion_zones[0].expolygons, small_regions);
         }
     }
-
-    this->fill_surfaces.remove_types({stTop});
-    {
-        Surface top_templ(stTop, {});
-        top_templ.thickness = layer_thickness;
-        this->fill_surfaces.append(std::move(expansion_zones.back().expolygons), top_templ);
-    }
-
-    expansion_zones.pop_back();
-
-    expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_bottom, expansion_step, max_nr_expansion_steps);
-    Surfaces bottoms = expand_merge_surfaces(this->fill_surfaces.surfaces, stBottom, expansion_zones, closing_radius);
-
-    expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_top, expansion_step, max_nr_expansion_steps);
-    Surfaces tops = expand_merge_surfaces(this->fill_surfaces.surfaces, stTop, expansion_zones, closing_radius);
 
 //    this->fill_surfaces.remove_types({ stBottomBridge, stBottom, stTop, stInternal, stInternalSolid });
     this->fill_surfaces.clear();
