@@ -73,9 +73,6 @@
 	"z_hop": [
         "0.2"
     ],
-    "filament_z_hop_types": [
-        "nil"
-    ],
 	"retraction_speed": [
         "50"
     ],
