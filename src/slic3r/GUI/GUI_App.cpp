@@ -1571,6 +1571,17 @@ void GUI_App::init_networking_callbacks()
         //    GUI::wxGetApp().request_user_handle(online_login);
         //    });
 
+        m_agent->set_server_callback([this](std::string url, int status) {
+            if (!m_server_error_dialog) {
+                m_server_error_dialog = new NetworkErrorDialog(mainframe);
+            }
+
+            if (!m_server_error_dialog->IsShown()) {
+                m_server_error_dialog->ShowModal();
+            }
+        });
+
+
         m_agent->set_on_server_connected_fn([this](int return_code, int reason_code) {
             if (m_is_closing) {
             return;
@@ -3223,6 +3234,23 @@ void GUI_App::link_to_network_check()
     }
     else {
         url = "https://status.bambulab.com";
+    }
+    wxLaunchDefaultBrowser(url);
+}
+
+void GUI_App::link_to_lan_only_wiki()
+{
+    std::string url;
+    std::string country_code = app_config->get_country_code();
+
+    if (country_code == "US") {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+    }
+    else if (country_code == "CN") {
+        url = "https://wiki.bambulab.com/zh/knowledge-sharing/enable-lan-mode";
+    }
+    else {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
     }
     wxLaunchDefaultBrowser(url);
 }

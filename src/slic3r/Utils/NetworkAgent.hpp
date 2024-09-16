@@ -56,6 +56,7 @@ typedef std::string (*func_build_login_info)(void *agent);
 typedef int (*func_get_model_id_from_desgin_id)(void *agent, std::string& desgin_id, std::string& model_id);
 typedef int (*func_ping_bind)(void *agent, std::string ping_code);
 typedef int (*func_bind_detect)(void *agent, std::string dev_ip, std::string sec_link, detectResult& detect);
+typedef int (*func_set_server_callback)(void *agent, OnServerErrFn fn);
 typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
@@ -174,6 +175,7 @@ public:
     int get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id);
     int ping_bind(std::string ping_code);
     int bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect);
+    int set_server_callback(OnServerErrFn fn);
     int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
@@ -282,6 +284,7 @@ private:
     static func_get_model_id_from_desgin_id    get_model_id_from_desgin_id_ptr;
     static func_ping_bind                      ping_bind_ptr;
     static func_bind_detect                    bind_detect_ptr;
+    static func_set_server_callback            set_server_callback_ptr;
     static func_bind                           bind_ptr;
     static func_unbind                         unbind_ptr;
     static func_get_bambulab_host              get_bambulab_host_ptr;

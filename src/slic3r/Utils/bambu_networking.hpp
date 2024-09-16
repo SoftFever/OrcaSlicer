@@ -138,6 +138,9 @@ typedef std::function<void(int result, std::string info)> ResultFn;
 typedef std::function<bool()> CancelFn;
 typedef std::function<bool(std::map<std::string, std::string> info)> CheckFn;
 
+//err callbacks
+typedef std::function<void(std::string url, int status)> OnServerErrFn;
+
 enum SendingPrintJobStage {
     PrintingStageCreate = 0,
     PrintingStageUpload = 1,
