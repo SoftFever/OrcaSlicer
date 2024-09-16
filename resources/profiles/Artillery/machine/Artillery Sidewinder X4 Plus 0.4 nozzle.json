@@ -56,7 +56,7 @@
     "host_type": "octoprint",
     "is_custom_defined": "0",
     "layer_change_gcode": "G92 E0",
-    "machine_end_gcode": "G91 ;Relative positioning\nG1 E-1 F2700 ;Retract a bit\nG1 E-1 Z0.2 F2400 ;Retract and raise Z\nG1 X5 Y5 F3000 ;Wipe out\nG1 Z1 ;Raise Z more\nG90 ;Absolute positionning\nG1 X5 Y280 F3000 ;Wipe out\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
+    "machine_end_gcode": "G91 ;Relative positioning\nG1 E-1 F2700 ;Retract a bit\nG1 E-1 Z0.2 F2400 ;Retract and raise Z\nG1 X5 Y5 F3000 ;Wipe out\nG1 Z1 ;Raise Z more\nG90 ;Absolute positionning\nG1 X-5 Y305 F3000 ;Wipe out\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
     "machine_load_filament_time": "0",
     "machine_max_acceleration_e": [
         "6000",
@@ -127,7 +127,7 @@
         "0"
     ],
     "machine_pause_gcode": "M600",
-    "machine_start_gcode": "M140 S60\nM104 S140\nM190 S[first_layer_bed_temperature]\nM109 S{temperature_vitrification[0]}\nG28;\nNOZZLE_WIPE\nM140 S[first_layer_bed_temperature];\nM104 S[first_layer_temperature];\nDRAW_LINE_ONLY",
+    "machine_start_gcode": "M104 S140\nM190 S[first_layer_bed_temperature]\nM109 S{temperature_vitrification[0]}\nG28;\nG1 X230 Y300 Z10 F5000\nSET_KINEMATIC_POSITION Y=0\nG1 Y20  F4000\nG1 X230 F4000\nG1 Z-1  F600 \nG1 X270 F4000\nG1 Y25  F4000\nG1 X230 F4000\nG92 E0\nG1 Z10 F1200\nG1 Y0 F5000\nG1 E-1 F3000\nM400\nSET_KINEMATIC_POSITION Y=300\nG92 E-1\nM140 S[first_layer_bed_temperature];\nM104 S[first_layer_temperature];\nG1 X0 Y0.8 Z0.8 F18000\nG92 E0\nG1 X0 Y0.8 Z0.3 E8 F600\nG92 E0\nG1 X200 Y0.8 Z0.3 F1800.0 E20.0;draw line\nG92 E0\nG1 X200 Y0 Z0.3 F1800.0 E0.08;draw line\nG92 E0\nG1 X100 Y0 Z0.3 F1800.0 E10.0;draw line\nG92 E0\nG1 X100 Y1.6 Z0.3 F1800.0 E0.16;draw line\nG92 E0\nG1 X180 Y1.6 Z0.3 F1800.0 E8;draw line\nG92 E0\nG1 X180 Y0 Z0.3 F1800.0 E0.16;draw line\nG92 E0\nG1 E-1 Z5 F18000\nG92 E0",
     "machine_unload_filament_time": "0",
     "manual_filament_change": "0",
     "max_layer_height": [
@@ -137,7 +137,7 @@
         "0.08"
     ],
     "nozzle_hrc": "0",
-    "nozzle_type": "hardened_steel",
+    "nozzle_type": "brass",
     "nozzle_volume": "0",
     "parking_pos_retraction": "92",
     "preferred_orientation": "0",
@@ -146,8 +146,8 @@
     "printable_area": [
         "0x0",
         "300x0",
-        "300x300",
-        "0x300"
+        "300x310",
+        "0x310"
     ],
     "printable_height": "400",
     "printer_notes": "",
