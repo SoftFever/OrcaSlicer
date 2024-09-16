@@ -528,13 +528,13 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         // scaling an area requires two calls!
         double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
         ExPolygons small_regions{};
-        sparse.erase(std::remove_if(sparse.begin(), sparse.end(), [min_area, &small_regions](ExPolygon& ex_polygon) {
+        expansion_zones[1].expolygons.erase(std::remove_if(expansion_zones[1].expolygons.begin(), expansion_zones[1].expolygons.end(), [min_area, &small_regions](ExPolygon& ex_polygon) {
             if (ex_polygon.area() <= min_area) {
                 small_regions.push_back(ex_polygon);
                 return true;
             }
             return false;
-        }), sparse.end());
+        }), expansion_zones[1].expolygons.end());
 
         if (!small_regions.empty()) {
             expansion_zones[0].expolygons = union_ex(expansion_zones[0].expolygons, small_regions);
