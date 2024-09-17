@@ -10189,7 +10189,6 @@ msgstr "压力提前(Klipper)或者线性提前(Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
