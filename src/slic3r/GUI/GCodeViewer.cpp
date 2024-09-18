@@ -1244,7 +1244,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     glsafe(::glEnable(GL_DEPTH_TEST));
-    render_shells();
+    render_shells(canvas_width, canvas_height);
 
     if (m_roles.empty())
         return;
@@ -1744,10 +1744,10 @@ void GCodeViewer::update_layers_slider_mode()
     //    true  -> single-extruder printer profile OR
     //             multi-extruder printer profile , but whole model is printed by only one extruder
     //    false -> multi-extruder printer profile , and model is printed by several extruders
-    // bool one_extruder_printed_model = true;
+    bool one_extruder_printed_model = true;
 
     // extruder used for whole model for multi-extruder printer profile
-    // int only_extruder = -1;
+    int only_extruder = -1;
 
     // BBS
     if (wxGetApp().filaments_cnt() > 1) {
@@ -1770,10 +1770,10 @@ void GCodeViewer::update_layers_slider_mode()
                 return true;
             };
 
-            // if (is_one_extruder_printed_model())
-            //     only_extruder = extruder;
-            // else
-            //     one_extruder_printed_model = false;
+            if (is_one_extruder_printed_model())
+                only_extruder = extruder;
+            else
+                one_extruder_printed_model = false;
         }
     }
 
@@ -3244,6 +3244,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         return in_layers_range(path.sub_paths.front().first.s_id) && in_layers_range(path.sub_paths.back().last.s_id);
     };
 
+    //BBS
+    auto is_extruder_in_layer_range = [this](const Path& path, size_t extruder_id) {
+        return path.extruder_id == extruder_id;
+    };
+
+
     auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {
         const TBuffer& buffer = m_buffers[buffer_id(EMoveType::Travel)];
         if (path_id >= buffer.paths.size())
@@ -4014,7 +4020,7 @@ void GCodeViewer::render_toolpaths()
     }
 }
 
-void GCodeViewer::render_shells()
+void GCodeViewer::render_shells(int canvas_width, int canvas_height)
 {
     //BBS: add shell previewing logic
     if ((!m_shells.previewing && !m_shells.visible) || m_shells.volumes.empty())
@@ -4030,7 +4036,9 @@ void GCodeViewer::render_shells()
     shader->start_using();
     shader->set_uniform("emission_factor", 0.1f);
     const Camera& camera = wxGetApp().plater()->get_camera();
-    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, camera.get_view_matrix(), camera.get_projection_matrix());
+    shader->set_uniform("z_far", camera.get_far_z());
+    shader->set_uniform("z_near", camera.get_near_z());
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, camera.get_view_matrix(), camera.get_projection_matrix(), {canvas_width, canvas_height});
     shader->set_uniform("emission_factor", 0.0f);
     shader->stop_using();
 
@@ -4088,6 +4096,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<double> support_used_filaments_g_all_plates;
     float total_time_all_plates = 0.0f;
     float total_cost_all_plates = 0.0f;
+    bool show_detailed_statistics_page = false;
     struct ColumnData {
         enum {
             Model = 1,
@@ -4389,6 +4398,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     const float icon_size = ImGui::GetTextLineHeight() * 0.7;
     //BBS GUI refactor
     //const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
+    const float percent_bar_size = 0;
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -4500,6 +4510,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_range_item(0, range.min, decimals);
         }
         else {
+            const float step_size = range.step_size();
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.get_value_at_step(i), decimals);
             }
@@ -4548,7 +4559,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             return ret;
     };
 
-    /*auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
+    auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
         std::vector<std::pair<ColorRGBA, std::pair<double, double>>> ret;
         ret.reserve(custom_gcode_per_print_z.size());
 
@@ -4577,7 +4588,27 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         return ret;
-    };*/
+    };
+
+    auto upto_label = [](double z) {
+        char buf[64];
+        ::sprintf(buf, "%.2f", z);
+        return _u8L("up to") + " " + std::string(buf) + " " + _u8L("mm");
+    };
+
+    auto above_label = [](double z) {
+        char buf[64];
+        ::sprintf(buf, "%.2f", z);
+        return _u8L("above") + " " + std::string(buf) + " " + _u8L("mm");
+    };
+
+    auto fromto_label = [](double z1, double z2) {
+        char buf1[64];
+        ::sprintf(buf1, "%.2f", z1);
+        char buf2[64];
+        ::sprintf(buf2, "%.2f", z2);
+        return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
+    };
 
     auto role_time_and_percent = [time_mode](ExtrusionRole role) {
         auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
@@ -5074,7 +5105,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             const ImRect separator(ImVec2(window->Pos.x + window_padding * 3, window->DC.CursorPos.y), ImVec2(window->Pos.x + window->Size.x - window_padding * 3, window->DC.CursorPos.y + 1.0f));
             ImGui::ItemSize(ImVec2(0.0f, 0.0f));
-            ImGui::ItemAdd(separator, 0);
+            const bool item_visible = ImGui::ItemAdd(separator, 0);
             window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
 
             std::vector<std::pair<std::string, float>> columns_offsets;
@@ -5196,7 +5227,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             return items;
         };
 
-        /*auto append_color_change = [&imgui](const ColorRGBA& color1, const ColorRGBA& color2, const std::array<float, 4>& offsets, const Times& times) {
+        auto append_color_change = [&imgui](const ColorRGBA& color1, const ColorRGBA& color2, const std::array<float, 4>& offsets, const Times& times) {
             imgui.text(_u8L("Color change"));
             ImGui::SameLine();
 
@@ -5213,9 +5244,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
-        };*/
+        };
 
-        /*auto append_print = [&imgui, imperial_units](const ColorRGBA& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
+        auto append_print = [&imgui, imperial_units](const ColorRGBA& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
             imgui.text(_u8L("Print"));
             ImGui::SameLine();
 
@@ -5241,7 +5272,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 ::sprintf(buffer, "%.2f g", used_filament.second);
                 imgui.text(buffer);
             }
-        };*/
+        };
 
         PartialTimes partial_times = generate_partial_times(time_mode.custom_gcode_times, m_print_statistics.volumes_per_color_change);
         if (!partial_times.empty()) {
@@ -5348,7 +5379,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     //    }
     //}
 
-/*    auto any_option_available = [this]() {
+    auto any_option_available = [this]() {
         auto available = [this](EMoveType type) {
             const TBuffer& buffer = m_buffers[buffer_id(type)];
             return buffer.visible && buffer.has_data();
@@ -5361,7 +5392,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             available(EMoveType::Tool_change) ||
             available(EMoveType::Unretract) ||
             available(EMoveType::Seam);
-    };*/
+    };
 
     //auto add_option = [this, append_item](EMoveType move_type, EOptionsColors color, const std::string& text) {
     //    const TBuffer& buffer = m_buffers[buffer_id(move_type)];

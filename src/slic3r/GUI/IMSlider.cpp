@@ -231,7 +231,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     static bool last_spiral_vase_status = false;
 
-    // const bool was_empty = m_ticks.empty();
+    const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
     const std::vector<CustomGCode::Item> &heights = custom_gcode_per_print_z.gcodes;
@@ -239,10 +239,6 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         int tick = get_tick_from_value(h.print_z, true);
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
-
-//    if (!was_empty && m_ticks.empty())
-        // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
-        // post_ticks_changed_event();
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
@@ -1034,6 +1030,8 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
             context.IO.MouseClicked[0])
             m_show_menu = false;
         
+        ImVec2 bar_center = higher_handle.GetCenter();
+
         // draw ticks
         draw_ticks(one_slideable_region);
         // draw colored band

@@ -4,25 +4,20 @@
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
-#include "spline/spline.h"
 #include <memory>
 
-namespace Slic3r {
+namespace tk {
+class spline;
+} // namespace tk
 
-#ifndef _WIN32
-// Currently on Linux/macOS, this class spits out large amounts of subobject linkage
-// warnings because of the flowModel field. tk::spline is in an anonymous namespace which
-// causes this issue. Until the issue can be solved, this is a temporary solution.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsubobject-linkage"
-#endif
+namespace Slic3r {
 
 class SmallAreaInfillFlowCompensator
 {
 public:
     SmallAreaInfillFlowCompensator() = delete;
     explicit SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig& config);
-    ~SmallAreaInfillFlowCompensator() = default;
+    ~SmallAreaInfillFlowCompensator();
 
     double modify_flow(const double line_length, const double dE, const ExtrusionRole role);
 
@@ -38,10 +33,6 @@ private:
 
     double max_modified_length() { return eLengths.back(); }
 };
-
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
 
 } // namespace Slic3r
 

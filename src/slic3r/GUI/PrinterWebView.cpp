@@ -1,9 +1,11 @@
 #include "PrinterWebView.hpp"
 
 #include "I18N.hpp"
+#include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "libslic3r_version.h"
 
 #include <wx/sizer.h>
 #include <wx/string.h>
@@ -37,6 +39,8 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+
+    update_mode();
 
     // Log backend information
     /* m_browser->GetUserAgent() may lead crash
@@ -83,6 +87,12 @@ void PrinterWebView::reload()
 {
     m_browser->Reload();
 }
+
+void PrinterWebView::update_mode()
+{
+    m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode"));
+}
+
 /**
  * Method that retrieves the current state from the web control and updates the
  * GUI the reflect this current state.

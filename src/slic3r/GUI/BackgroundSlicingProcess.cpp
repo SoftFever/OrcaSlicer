@@ -5,9 +5,13 @@
 #include "format.hpp"
 
 #include <wx/app.h>
+#include <wx/panel.h>
+#include <wx/stdpaths.h>
 
 // For zipped archive creation
+#include <wx/stdstream.h>
 #include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 #include <miniz.h>
 
@@ -16,17 +20,22 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
+#include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
 
 #include <cassert>
 #include <stdexcept>
+#include <cctype>
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 //#include "RemovableDriveManager.hpp"
+
+#include "slic3r/GUI/Plater.hpp"
 
 namespace Slic3r {
 
@@ -801,7 +810,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 	catch (...)
 	{
 		remove_post_processed_temp_file();
-		throw Slic3r::ExportError(_u8L("Unknown error occured during exporting G-code."));
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
 	}
 	switch (copy_ret_val) {
 	case CopyFileResult::SUCCESS: break; // no error
@@ -821,7 +830,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."), export_path));
 		break;
 	default:
-		throw Slic3r::ExportError(_u8L("Unknown error occured during exporting G-code."));
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
 		BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 		break;
 	}

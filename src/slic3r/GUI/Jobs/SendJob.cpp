@@ -106,6 +106,7 @@ void SendJob::process(Ctl &ctl)
     std::string msg;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
+    AppConfig* config = wxGetApp().app_config;
     int result = -1;
     std::string http_body;
 

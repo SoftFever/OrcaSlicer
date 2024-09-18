@@ -22,7 +22,8 @@
         "PLA-CF",
         "PLA-AERO",
         "PVA",
-        "BVOH"
+        "BVOH",
+        "SBS"
     ],
     "high_low_compatible_filament":[
         "HIPS",

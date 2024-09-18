@@ -194,6 +194,8 @@ public:
 
         // check that only the selected page is visible and others are hidden:
         for (size_t page = 0; page < m_pages.size(); page++) {
+            wxWindow* win_a = GetPage(page);
+            wxWindow* win_b = GetPage(n);
             if (page != n && GetPage(page) != GetPage(n)) {
                 m_pages[page]->Hide();
             }

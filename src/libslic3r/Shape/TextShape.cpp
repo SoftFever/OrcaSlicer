@@ -99,6 +99,8 @@ std::vector<std::string> init_occt_fonts()
 
 static bool TextToBRep(const char* text, const char* font, const float theTextHeight, Font_FontAspect& theFontAspect, TopoDS_Shape& theShape, double& text_width)
 {
+    Standard_Integer anArgIt = 1;
+    Standard_CString aName = "text_shape";
     Standard_CString aText = text;
 
     Font_BRepFont           aFont;

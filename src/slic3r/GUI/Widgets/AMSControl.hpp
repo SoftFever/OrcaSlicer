@@ -175,7 +175,7 @@ public:
     void    PlayLoading();
     void    StopLoading();
     void    create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void    on_timer();
+    void    on_timer(wxTimerEvent &event);
     void    OnEnterWindow(wxMouseEvent &evt);
     void    OnLeaveWindow(wxMouseEvent &evt);
     void    OnClick(wxMouseEvent &evt);

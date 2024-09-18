@@ -499,7 +499,6 @@ HintData* HintDatabase::get_hint(HintDataNavigation nav)
 			m_hint_id = get_next_hint_id();
 		if(nav == HintDataNavigation::Prev)
 			m_hint_id = get_prev_hint_id();
-//		if (nav == HintDataNavigation::Curr)
 		if (nav == HintDataNavigation::Random)
 			init_random_hint_id();
 	}

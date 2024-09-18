@@ -1007,17 +1007,17 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     reset_mapping_result(result);
     try {
         // try to use ordering ams mapping
-        // bool order_mapping_result = true;
+        bool order_mapping_result = true;
         for (int i = 0; i < filaments.size(); i++) {
             if (i >= tray_info_list.size()) {
-                // order_mapping_result = false;
+                order_mapping_result = false;
                 break;
             }
             if (tray_info_list[i].tray_id == -1) {
                 result[i].tray_id = tray_info_list[i].tray_id;
             } else {
                 if (!tray_info_list[i].type.empty() && tray_info_list[i].type != filaments[i].type) {
-                    // order_mapping_result = false;
+                    order_mapping_result = false;
                     break;
                 } else {
                     result[i].tray_id = tray_info_list[i].tray_id;
@@ -1319,6 +1319,7 @@ wxString MachineObject::get_curr_stage()
 
 int MachineObject::get_curr_stage_idx()
 {
+    int result = -1;
     for (int i = 0; i < stage_list_info.size(); i++) {
         if (stage_list_info[i] == stage_curr) {
             return i;
@@ -2348,6 +2349,8 @@ int MachineObject::command_xcam_control(std::string module_name, bool on_off, st
 
 int MachineObject::command_xcam_control_ai_monitoring(bool on_off, std::string lvl)
 {
+    bool print_halt = (lvl == "never_halt") ? false:true;
+
     xcam_ai_monitoring = on_off;
     xcam_ai_monitoring_hold_count = HOLD_COUNT_MAX;
     xcam_ai_monitoring_sensitivity = lvl;
@@ -5659,7 +5662,9 @@ void DeviceManager::parse_user_print_info(std::string body)
             }
         }
     }
-    catch (std::exception&) {}
+    catch (std::exception&) {
+        ;
+    }
 }
 
 void DeviceManager::update_user_machine_list_info()

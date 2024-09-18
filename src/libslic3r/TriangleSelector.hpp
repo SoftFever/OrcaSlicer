@@ -7,9 +7,33 @@
 #include <cfloat>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
-#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
+
+enum class EnforcerBlockerType : int8_t {
+    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
+    NONE      = 0,
+    ENFORCER  = 1,
+    BLOCKER   = 2,
+    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    Extruder1 = ENFORCER,
+    Extruder2 = BLOCKER,
+    Extruder3,
+    Extruder4,
+    Extruder5,
+    Extruder6,
+    Extruder7,
+    Extruder8,
+    Extruder9,
+    Extruder10,
+    Extruder11,
+    Extruder12,
+    Extruder13,
+    Extruder14,
+    Extruder15,
+    Extruder16,
+    ExtruderMax = Extruder16
+};
 
 // Following class holds information about selected triangles. It also has power
 // to recursively subdivide the triangles and make the selection finer.
@@ -208,6 +232,56 @@ public:
         }
     };
 
+    struct TriangleBitStreamMapping
+    {
+        // Index of the triangle to which we assign the bitstream containing splitting information.
+        int triangle_idx        = -1;
+        // Index of the first bit of the bitstream assigned to this triangle.
+        int bitstream_start_idx = -1;
+
+        TriangleBitStreamMapping() = default;
+        explicit TriangleBitStreamMapping(int triangleIdx, int bitstreamStartIdx) : triangle_idx(triangleIdx), bitstream_start_idx(bitstreamStartIdx) {}
+
+        friend bool operator==(const TriangleBitStreamMapping &lhs, const TriangleBitStreamMapping &rhs) { return lhs.triangle_idx == rhs.triangle_idx && lhs.bitstream_start_idx == rhs.bitstream_start_idx; }
+        friend bool operator!=(const TriangleBitStreamMapping &lhs, const TriangleBitStreamMapping &rhs) { return !(lhs == rhs); }
+
+    private:
+        friend class cereal::access;
+        template<class Archive> void serialize(Archive &ar) { ar(triangle_idx, bitstream_start_idx); }
+    };
+
+    struct TriangleSplittingData {
+        // Vector of triangles and its indexes to the bitstream.
+        std::vector<TriangleBitStreamMapping> triangles_to_split;
+        // Bit stream containing splitting information.
+        std::vector<bool>                     bitstream;
+        // Array indicating which triangle state types are used (encoded inside bitstream).
+        std::vector<bool>                     used_states { std::vector<bool>(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false) };
+
+        TriangleSplittingData() = default;
+
+        friend bool operator==(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) {
+            return lhs.triangles_to_split == rhs.triangles_to_split
+                && lhs.bitstream          == rhs.bitstream
+                && lhs.used_states        == rhs.used_states;
+        }
+
+        friend bool operator!=(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) { return !(lhs == rhs); }
+
+        // Reset all used states before they are recomputed based on the bitstream.
+        void reset_used_states() {
+            used_states.resize(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false);
+            std::fill(used_states.begin(), used_states.end(), false);
+        }
+
+        // Update used states based on the bitstream. It just iterated over the bitstream from the bitstream_start_idx till the end.
+        void update_used_states(size_t bitstream_start_idx);
+
+    private:
+        friend class cereal::access;
+        template<class Archive> void serialize(Archive &ar) { ar(triangles_to_split, bitstream, used_states); }
+    };
+
     std::pair<std::vector<Vec3i32>, std::vector<Vec3i32>> precompute_all_neighbors() const;
     void precompute_all_neighbors_recursive(int facet_idx, const Vec3i32 &neighbors, const Vec3i32 &neighbors_propagated, std::vector<Vec3i32> &neighbors_out, std::vector<Vec3i32> &neighbors_normal_out) const;
 
@@ -247,7 +321,7 @@ public:
                                       bool                 force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
     bool                 has_facets(EnforcerBlockerType state) const;
-    static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, EnforcerBlockerType test_state);
+    static bool          has_facets(const TriangleSplittingData &data, EnforcerBlockerType test_state);
     int                  num_facets(EnforcerBlockerType state) const;
     // Get facets at a given state. Don't triangulate T-joints.
     indexed_triangle_set get_facets(EnforcerBlockerType state) const;
@@ -270,10 +344,15 @@ public:
 
     // Store the division trees in compact form (a long stream of bits for each triangle of the original mesh).
     // First vector contains pairs of (triangle index, first bit in the second vector).
-    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
+    TriangleSplittingData serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = EnforcerBlockerType::ExtruderMax);
+    void deserialize(const TriangleSplittingData& data,
+                     bool                         needs_reset = true,
+                     EnforcerBlockerType          max_ebt     = EnforcerBlockerType::ExtruderMax);
+
+    // Extract all used facet states from the given TriangleSplittingData.
+    static std::vector<EnforcerBlockerType> extract_used_facet_states(const TriangleSplittingData &data);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();

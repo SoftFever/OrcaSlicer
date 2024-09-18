@@ -1622,8 +1622,7 @@ void TriangleSelector::get_seed_fill_contour_recursive(const int facet_idx, cons
     }
 }
 
-std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector::serialize() const
-{
+TriangleSelector::TriangleSplittingData TriangleSelector::serialize() const {
     // Each original triangle of the mesh is assigned a number encoding its state
     // or how it is split. Each triangle is encoded by 4 bits (xxyy) or 8 bits (zzzzxxyy):
     // leaf triangle: xx = EnforcerBlockerType (Only values 0, 1, and 2. Value 3 is used as an indicator for additional 4 bits.), yy = 0
@@ -1639,7 +1638,7 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
     // (std::function calls using a pointer, while this implementation calls directly).
     struct Serializer {
         const TriangleSelector* triangle_selector;
-        std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> data;
+        TriangleSplittingData data;
 
         void serialize(int facet_idx) {
             const Triangle& tr = triangle_selector->m_triangles[facet_idx];
@@ -1648,8 +1647,8 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
             int split_sides = tr.number_of_split_sides();
             assert(split_sides >= 0 && split_sides <= 3);
 
-            data.second.push_back(split_sides & 0b01);
-            data.second.push_back(split_sides & 0b10);
+            data.bitstream.push_back(split_sides & 0b01);
+            data.bitstream.push_back(split_sides & 0b10);
 
             if (split_sides) {
                 // If this triangle is split, save which side is split (in case
@@ -1657,8 +1656,8 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
                 // be ignored for 3-side split.
                 assert(tr.is_split() && split_sides > 0);
                 assert(tr.special_side() >= 0 && tr.special_side() <= 3);
-                data.second.push_back(tr.special_side() & 0b01);
-                data.second.push_back(tr.special_side() & 0b10);
+                data.bitstream.push_back(tr.special_side() & 0b01);
+                data.bitstream.push_back(tr.special_side() & 0b10);
                 // Now save all children.
                 // Serialized in reverse order for compatibility with PrusaSlicer 2.3.1.
                 for (int child_idx = split_sides; child_idx >= 0; -- child_idx)
@@ -1666,45 +1665,48 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
             } else {
                 // In case this is leaf, we better save information about its state.
                 int n = int(tr.get_state());
+                if (n < static_cast<size_t>(EnforcerBlockerType::ExtruderMax))
+                    data.used_states[n] = true;
+
                 if (n >= 3) {
                     assert(n <= 16);
                     if (n <= 16) {
                         // Store "11" plus 4 bits of (n-3).
-                        data.second.insert(data.second.end(), { true, true });
+                        data.bitstream.insert(data.bitstream.end(), { true, true });
                         n -= 3;
                         for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx)
-                            data.second.push_back(n & (uint64_t(0b0001) << bit_idx));
+                            data.bitstream.push_back(n & (uint64_t(0b0001) << bit_idx));
                     }
                 } else {
                     // Simple case, compatible with PrusaSlicer 2.3.1 and older for storing paint on supports and seams.
                     // Store 2 bits of n.
-                    data.second.push_back(n & 0b01);
-                    data.second.push_back(n & 0b10);
+                    data.bitstream.push_back(n & 0b01);
+                    data.bitstream.push_back(n & 0b10);
                 }
             }
         }
     } out { this };
 
-    out.data.first.reserve(m_orig_size_indices);
+    out.data.triangles_to_split.reserve(m_orig_size_indices);
     for (int i=0; i<m_orig_size_indices; ++i)
         if (const Triangle& tr = m_triangles[i]; tr.is_split() || tr.get_state() != EnforcerBlockerType::NONE) {
             // Store index of the first bit assigned to ith triangle.
-            out.data.first.emplace_back(i, int(out.data.second.size()));
+            out.data.triangles_to_split.emplace_back(i, int(out.data.bitstream.size()));
             // out the triangle bits.
             out.serialize(i);
         }
 
     // May be stored onto Undo / Redo stack, thus conserve memory.
-    out.data.first.shrink_to_fit();
-    out.data.second.shrink_to_fit();
+    out.data.triangles_to_split.shrink_to_fit();
+    out.data.bitstream.shrink_to_fit();
     return out.data;
 }
 
-void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset, EnforcerBlockerType max_ebt)
+void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs_reset, EnforcerBlockerType max_ebt)
 {
     if (needs_reset)
         reset(); // dump any current state
-    for (auto [triangle_id, ibit] : data.first) {
+    for (auto [triangle_id, ibit] : data.triangles_to_split) {
         if (triangle_id >= int(m_triangles.size())) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "array bound:error:triangle_id >= int(m_triangles.size())";
             return;
@@ -1712,7 +1714,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     }
     // Reserve number of triangles as if each triangle was saved with 4 bits.
     // With MMU painting this estimate may be somehow low, but better than nothing.
-    m_triangles.reserve(std::max(m_mesh.its.indices.size(), data.second.size() / 4));
+    m_triangles.reserve(std::max(m_mesh.its.indices.size(), data.bitstream.size() / 4));
     // Number of triangles is twice the number of vertices on a large manifold mesh of genus zero.
     // Here the triangles count account for both the nodes and leaves, thus the following line may overestimate.
     m_vertices.reserve(std::max(m_mesh.its.vertices.size(), m_triangles.size() / 2));
@@ -1728,13 +1730,13 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     // kept outside of the loop to avoid re-allocating inside the loop.
     std::vector<ProcessingInfo> parents;
 
-    for (auto [triangle_id, ibit] : data.first) {
+    for (auto [triangle_id, ibit] : data.triangles_to_split) {
         assert(triangle_id < int(m_triangles.size()));
-        assert(ibit < int(data.second.size()));
+        assert(ibit < int(data.bitstream.size()));
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
             for (int i = 0; i < 4; ++ i)
-                n |= data.second[ibit ++] << i;
+                n |= data.bitstream[ibit ++] << i;
             return n;
         };
 
@@ -1811,21 +1813,53 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
     }
 }
 
+void TriangleSelector::TriangleSplittingData::update_used_states(const size_t bitstream_start_idx) {
+    assert(bitstream_start_idx < this->bitstream.size());
+    assert(!this->bitstream.empty() && this->bitstream.size() != bitstream_start_idx);
+    assert((this->bitstream.size() - bitstream_start_idx) % 4 == 0);
+
+    if (this->bitstream.empty() || this->bitstream.size() == bitstream_start_idx)
+        return;
+
+    size_t nibble_idx = bitstream_start_idx;
+
+    auto read_next_nibble = [&data_bitstream = std::as_const(this->bitstream), &nibble_idx]() -> uint8_t {
+        assert(nibble_idx + 3 < data_bitstream.size());
+        uint8_t code = 0;
+        for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx)
+            code |= data_bitstream[nibble_idx++] << bit_idx;
+        return code;
+    };
+
+    while (nibble_idx < this->bitstream.size()) {
+        const uint8_t code = read_next_nibble();
+
+        if (const bool is_split = (code & 0b11) != 0; is_split)
+            continue;
+
+        const uint8_t facet_state = (code & 0b1100) == 0b1100 ? read_next_nibble() + 3 : code >> 2;
+        assert(facet_state < this->used_states.size());
+        if (facet_state >= this->used_states.size())
+            continue;
+
+        this->used_states[facet_state] = true;
+    }
+}
+
 // Lightweight variant of deserialization, which only tests whether a face of test_state exists.
-bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, const EnforcerBlockerType test_state)
-{
+bool TriangleSelector::has_facets(const TriangleSplittingData &data, const EnforcerBlockerType test_state) {
     // Depth-first queue of a number of unvisited children.
     // Kept outside of the loop to avoid re-allocating inside the loop.
     std::vector<int> parents_children;
     parents_children.reserve(64);
 
-    for (const std::pair<int, int> &triangle_id_and_ibit : data.first) {
-        int ibit = triangle_id_and_ibit.second;
-        assert(ibit < int(data.second.size()));
+    for (const TriangleBitStreamMapping &triangle_id_and_ibit : data.triangles_to_split) {
+        int ibit = triangle_id_and_ibit.bitstream_start_idx;
+        assert(ibit < int(data.bitstream.size()));
         auto next_nibble = [&data, &ibit = ibit]() {
             int n = 0;
             for (int i = 0; i < 4; ++ i)
-                n |= data.second[ibit ++] << i;
+                n |= data.bitstream[ibit ++] << i;
             return n;
         };
         // < 0 -> negative of a number of children

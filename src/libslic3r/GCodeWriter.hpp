@@ -20,7 +20,7 @@ public:
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),
-        m_last_jerk(0), m_max_jerk(0),
+        m_last_jerk(0), m_max_jerk_x(0), m_max_jerk_y(0),
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
@@ -130,7 +130,8 @@ public:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
-    double          m_max_jerk;
+    double          m_max_jerk_x;
+    double          m_max_jerk_y;
     double          m_last_jerk;
     double          m_max_jerk_z;
     double          m_max_jerk_e;

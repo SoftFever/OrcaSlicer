@@ -3057,7 +3057,7 @@ bool GLGizmoEmboss::choose_font_by_wxdialog()
 }
 #endif // ALLOW_ADD_FONT_BY_OS_SELECTOR
 
-#if defined(ALLOW_ADD_FONT_BY_FILE) || defined(ALLOW_DEBUG_MODE)
+#if defined ALLOW_ADD_FONT_BY_FILE || defined ALLOW_DEBUG_MODE
 namespace priv {
 static std::string get_file_name(const std::string &file_path)
 {
@@ -3693,6 +3693,7 @@ GuiCfg create_gui_configuration()
     cfg.height_of_volume_type_selector = separator_height + line_height_with_spacing + input_height;
 
     int max_style_image_width = static_cast<int>(std::round(cfg.max_style_name_width/2 - 2 * style.FramePadding.x));
+    int max_style_image_height = static_cast<int>(std::round(input_height));
     cfg.max_style_image_size = Vec2i32(max_style_image_width, line_height);
     cfg.face_name_size = Vec2i32(cfg.input_width, line_height_with_spacing);
     cfg.face_name_texture_offset_x = cfg.face_name_size.x() + space;

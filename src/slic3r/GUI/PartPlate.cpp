@@ -470,7 +470,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	int count = 0;
 	int step  = 10;
 	// Orca: use 500 x 500 bed size as baseline.
-    auto      grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
+    const Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
     // if the grid is too dense, we increase the step
     if (grid_counts.minCoeff() > 1) {
         step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
@@ -1359,6 +1359,9 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
+	int glb_wall_extr = glb_config.opt_int("wall_filament");
+	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
+	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
     glb_support |= glb_config.opt_int("raft_layers") > 0;
 
@@ -1392,26 +1395,53 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 		else
 			obj_support = glb_support;
 
-		if (!obj_support)
-			continue;
+        if (obj_support) {
+            int                 obj_support_intf_extr = 0;
+            const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
+            if (support_intf_extr_opt != nullptr)
+                obj_support_intf_extr = support_intf_extr_opt->getInt();
+            if (obj_support_intf_extr != 0)
+                plate_extruders.push_back(obj_support_intf_extr);
+            else if (glb_support_intf_extr != 0)
+                plate_extruders.push_back(glb_support_intf_extr);
 
-		int obj_support_intf_extr = 0;
-		const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
-		if (support_intf_extr_opt != nullptr)
-			obj_support_intf_extr = support_intf_extr_opt->getInt();
-		if (obj_support_intf_extr != 0)
-			plate_extruders.push_back(obj_support_intf_extr);
-		else if (glb_support_intf_extr != 0)
-			plate_extruders.push_back(glb_support_intf_extr);
+            int                 obj_support_extr = 0;
+            const ConfigOption* support_extr_opt = mo->config.option("support_filament");
+            if (support_extr_opt != nullptr)
+                obj_support_extr = support_extr_opt->getInt();
+            if (obj_support_extr != 0)
+                plate_extruders.push_back(obj_support_extr);
+            else if (glb_support_extr != 0)
+                plate_extruders.push_back(glb_support_extr);
+        }
 
-		int obj_support_extr = 0;
-		const ConfigOption* support_extr_opt = mo->config.option("support_filament");
-		if (support_extr_opt != nullptr)
-			obj_support_extr = support_extr_opt->getInt();
-		if (obj_support_extr != 0)
-			plate_extruders.push_back(obj_support_extr);
-		else if (glb_support_extr != 0)
-			plate_extruders.push_back(glb_support_extr);
+        int obj_wall_extr = 1;
+		const ConfigOption* wall_opt = mo->config.option("wall_filament");
+		if (wall_opt != nullptr)
+			obj_wall_extr = wall_opt->getInt();
+		if (obj_wall_extr != 1)
+			plate_extruders.push_back(obj_wall_extr);
+		else if (glb_wall_extr != 1)
+			plate_extruders.push_back(glb_wall_extr);
+
+		int obj_sparse_infill_extr = 1;
+		const ConfigOption* sparse_infill_opt = mo->config.option("sparse_infill_filament");
+		if (sparse_infill_opt != nullptr)
+			obj_sparse_infill_extr = sparse_infill_opt->getInt();
+		if (obj_sparse_infill_extr != 1)
+			plate_extruders.push_back(obj_sparse_infill_extr);
+		else if (glb_sparse_infill_extr != 1)
+			plate_extruders.push_back(glb_sparse_infill_extr);
+
+		int obj_solid_infill_extr = 1;
+		const ConfigOption* solid_infill_opt = mo->config.option("solid_infill_filament");
+		if (solid_infill_opt != nullptr)
+			obj_solid_infill_extr = solid_infill_opt->getInt();
+		if (obj_solid_infill_extr != 1)
+			plate_extruders.push_back(obj_solid_infill_extr);
+		else if (glb_solid_infill_extr != 1)
+			plate_extruders.push_back(glb_solid_infill_extr);
+
 	}
 
 	if (conside_custom_gcode) {
@@ -1441,6 +1471,10 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     // if 3mf file
     int glb_support_intf_extr = full_config.opt_int("support_interface_filament");
     int glb_support_extr = full_config.opt_int("support_filament");
+	int glb_wall_extr = full_config.opt_int("wall_filament");
+	int glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
+	int glb_solid_infill_extr = full_config.opt_int("solid_infill_filament");
+
     bool glb_support = full_config.opt_bool("enable_support");
     glb_support |= full_config.opt_int("raft_layers") > 0;
 
@@ -1502,6 +1536,33 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
                 plate_extruders.push_back(obj_support_extr);
             else if (glb_support_extr != 0)
                 plate_extruders.push_back(glb_support_extr);
+
+			int obj_wall_extr = 1;
+			const ConfigOption* wall_opt = object->config.option("wall_filament");
+			if (wall_opt != nullptr)
+				obj_wall_extr = wall_opt->getInt();
+			if (obj_wall_extr != 1)
+				plate_extruders.push_back(obj_wall_extr);
+			else if (glb_wall_extr != 1)
+				plate_extruders.push_back(glb_wall_extr);
+
+			int obj_sparse_infill_extr = 1;
+			const ConfigOption* sparse_infill_opt = object->config.option("sparse_infill_filament");
+			if (sparse_infill_opt != nullptr)
+				obj_sparse_infill_extr = sparse_infill_opt->getInt();
+			if (obj_sparse_infill_extr != 1)
+				plate_extruders.push_back(obj_sparse_infill_extr);
+			else if (glb_sparse_infill_extr != 1)
+				plate_extruders.push_back(glb_sparse_infill_extr);
+
+			int obj_solid_infill_extr = 1;
+			const ConfigOption* solid_infill_opt = object->config.option("solid_infill_filament");
+			if (solid_infill_opt != nullptr)
+				obj_solid_infill_extr = solid_infill_opt->getInt();
+			if (obj_solid_infill_extr != 1)
+				plate_extruders.push_back(obj_solid_infill_extr);
+			else if (glb_solid_infill_extr != 1)
+				plate_extruders.push_back(glb_solid_infill_extr);
         }
     }
 
@@ -1535,6 +1596,9 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 		}
 		return plate_extruders;
 	}
+
+	// if 3mf file
+	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1594,14 +1658,14 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 {
 	Vec3d wipe_tower_size;
 
-	// double layer_height = 0.08f; // hard code layer height
+	double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();
 	wipe_tower_size(0) = w;
 
-	// const ConfigOption* layer_height_opt = config.option("layer_height");
-	// if (layer_height_opt)
-	// 	layer_height = layer_height_opt->getFloat();
+	const ConfigOption* layer_height_opt = config.option("layer_height");
+	if (layer_height_opt)
+		layer_height = layer_height_opt->getFloat();
 
 	// empty plate
 	if (plate_extruder_size == 0)
@@ -1649,6 +1713,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 			// If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
 			auto next_height_to_depth = *iter;
 			if (next_height_to_depth.first > max_height) {
+				float height_base = curr_height_to_depth.first;
 				float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
 				float min_depth_base = curr_height_to_depth.second;
 				float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;
@@ -2037,6 +2102,7 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 	if (m_printable)
 	{
 		ModelObject* object = m_model->objects[obj_id];
+		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 		result = get_plate_box().intersects(instance_box);
 	}
@@ -2060,6 +2126,7 @@ bool PartPlate::is_left_top_of(int obj_id, int instance_id)
 	}
 
 	ModelObject* object = m_model->objects[obj_id];
+	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 	BoundingBoxf3 instance_box = object->instance_convex_hull_bounding_box(instance_id);
 
@@ -2649,7 +2716,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
 			// calc vertex for plate name
-            generate_plate_name_texture();
+			generate_plate_name_texture();
 		}
 	}
 
@@ -3059,7 +3126,7 @@ void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
 
 void PartPlate::print() const
 {
-	// unsigned int count=0;
+	unsigned int count=0;
 
 	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
 	BOOST_LOG_TRIVIAL(trace) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
@@ -3587,6 +3654,38 @@ int PartPlateList::create_plate(bool adjust_position)
 	return new_index;
 }
 
+
+int PartPlateList::duplicate_plate(int index)
+{
+    // create a new plate
+    int new_plate_index = create_plate(true);
+    PartPlate* old_plate = NULL;
+    PartPlate* new_plate = NULL;
+    old_plate = get_plate(index);
+    new_plate = get_plate(new_plate_index);
+
+    // get the offset between plate centers
+    Vec3d plate_to_plate_offset = new_plate->m_origin - old_plate->m_origin;
+
+    // iterate over all the objects in this plate
+    ModelObjectPtrs obj_ptrs = old_plate->get_objects_on_this_plate();
+    for (ModelObject* object : obj_ptrs){
+        // copy and move the object to the same relative position in the new plate
+        ModelObject* object_copy = m_model->add_object(*object);
+        int new_obj_id = new_plate->m_model->objects.size() - 1;
+        // go over the instances and pair with the object
+        for (size_t new_instance_id = 0; new_instance_id < object_copy->instances.size(); new_instance_id++){
+            new_plate->obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % object_copy->id().id;
+        }
+    }
+    new_plate->translate_all_instance(plate_to_plate_offset);
+    // update the plates
+    wxGetApp().obj_list()->reload_all_plates();
+    return new_plate_index;
+}
+
+
 //destroy print's objects and results
 int PartPlateList::destroy_print(int print_index)
 {
@@ -4086,7 +4185,8 @@ int PartPlateList::find_instance_belongs(int obj_id, int instance_id)
 //newly added or modified
 int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_new)
 {
-	int index;
+	int ret = 0, index;
+	PartPlate* plate = NULL;
 	ModelObject* object = NULL;
 
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
@@ -4115,7 +4215,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 	{
 		//found it added before
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in previous plate %1%") % index;
-		PartPlate* plate = m_plate_list[index];
+		plate = m_plate_list[index];
 		if (!plate->intersect_instance(obj_id, instance_id, &boundingbox))
 		{
 			//not include anymore, remove it from original plate
@@ -4220,7 +4320,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 //notify instance is removed
 int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 {
-	int index, instance_to_delete = instance_id;
+	int ret = 0, index, instance_to_delete = instance_id;
 	PartPlate* plate = NULL;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_id % instance_id;
@@ -4318,6 +4418,7 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
+			ModelInstance* instance = object->instances[j];
 			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
 			for (k = 0; k < (unsigned int)m_plate_list.size(); ++k)
 			{
@@ -4368,7 +4469,9 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
+			ModelInstance* instance = object->instances[j];
 			already_included = false;
+
 			for (k = 0; k < (unsigned int)plate_index; ++k)
 			{
 				PartPlate* plate = m_plate_list[k];
@@ -4542,6 +4645,7 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 	nonprefered_regions.emplace_back(Vec2d{ 18,0 }, Vec2d{ 240,15 }); // new extrusion & hand-eye calibration region
 
 	//has exclude areas
+	PartPlate* plate = m_plate_list[0];
 	for (int index = 0; index < nonprefered_regions.size(); index++)
 	{
 		Polygon ap = scaled(nonprefered_regions[index]).polygon();
@@ -4709,7 +4813,7 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 	if (m_is_dark != last_dark_mode_status) {
 		last_dark_mode_status = m_is_dark;
 		generate_icon_textures();
-	}else if(m_del_texture.get_id() == 0)
+	} else if(m_del_texture.get_id() == 0)
 		generate_icon_textures();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
@@ -4768,8 +4872,11 @@ void PartPlateList::set_render_option(bool bedtype_texture, bool plate_settings)
 
 int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)
 {
+	int ret = 0, index;
+	PartPlate* plate = NULL;
+
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_index % instance_index;
-	int index = find_instance(obj_index, instance_index);
+	index = find_instance(obj_index, instance_index);
 	if (index != -1)
 	{
 		//found it in plate
@@ -4807,6 +4914,8 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 	m_height_to_lid = height_to_lid;
 	m_height_to_rod = height_to_rod;
 
+	double stride_x = plate_stride_x();
+	double stride_y = plate_stride_y();
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
@@ -5368,11 +5477,13 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	rectangle.push_back(Vec2d(x, y+h));
 	ExPolygon poly;
 
-	for (const auto& p : rectangle) {
-		Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
-		poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
+	for (int i = 0; i < 4; i++) {
+		const Vec2d & p = rectangle[i];
+		for (auto& p : rectangle) {
+			Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
+			poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
+		}
 	}
-
 
 	if (!buffer)
         buffer = new GLModel();

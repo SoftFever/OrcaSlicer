@@ -19,6 +19,8 @@
         "8"
     ],
     "compatible_printers": [
+        "Kingroon KLP1 0.4 nozzle",
+        "Kingroon KP3S V1 0.4 nozzle",
         "Kingroon KP3S PRO S1 0.4 nozzle",
         "Kingroon KP3S PRO V2 0.4 nozzle",
         "Kingroon KP3S 3.0 0.4 nozzle"

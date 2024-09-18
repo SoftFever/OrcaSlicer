@@ -9,6 +9,7 @@
 #include "RedistributeBeadingStrategy.hpp"
 #include "OuterWallInsetBeadingStrategy.hpp"
 
+#include <limits>
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r::Arachne

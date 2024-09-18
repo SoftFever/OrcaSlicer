@@ -137,7 +137,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
     SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
    
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSrefresh::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
@@ -166,14 +166,14 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-    on_timer();
+    wxPostEvent(this, wxTimerEvent());
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
 }
 
-void AMSrefresh::on_timer()
+void AMSrefresh::on_timer(wxTimerEvent &event) 
 {
     //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
     //    m_rotation_angle = 0;
@@ -1371,6 +1371,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     m_info     = info;
     m_canindex = canindex;
     // road type
+    auto mode = AMSRoadMode::AMS_ROAD_MODE_END;
     if (m_canindex == 0 && maxcan == 1) {
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE;
     } else if (m_canindex == 0 && maxcan > 1) {
@@ -3099,6 +3100,7 @@ void AMSControl::SetClibrationLink(wxString link)
 void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 {
     AmsCansHash::iterator iter             = m_ams_cans_list.begin();
+    auto                  count_item_index = 0;
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
@@ -3110,6 +3112,7 @@ void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 {
     AmsCansHash::iterator iter             = m_ams_cans_list.begin();
+    auto                  count_item_index = 0;
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];

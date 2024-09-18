@@ -328,6 +328,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                     MessageDialog(this, m, _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
                 });
                 
+            NetworkAgent* agent = wxGetApp().getAgent();
             if (result > 1 || result == 0) {
                 json j;
                 j["code"] = result;
@@ -534,7 +535,7 @@ void MediaFilePanel::doAction(size_t index, int action)
         if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
             if (index != -1) {
                 auto dlg = new MediaProgressDialog(_L("Print"), this, [fs] { fs->FetchModelCancel(); });
-                dlg->Update(0, _L("Fetching model infomations ..."));
+                dlg->Update(0, _L("Fetching model information..."));
                 fs->FetchModel(index, [this, fs, dlg, index](int result, std::string const &data) {
                     dlg->Destroy();
                     if (result == PrinterFileSystem::ERROR_CANCEL)
@@ -575,7 +576,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                     }
                     else {
                         MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
-                        dlg.ShowModal();
+                        auto res = dlg.ShowModal();
                     }
                     
                 });
