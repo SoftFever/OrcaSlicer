@@ -602,16 +602,34 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
             // BBS
             {
-                // BBS: current position and fan_speed is unclear after interting change_filament_gcode
                 check_add_eol(toolchange_gcode_str);
+                // BBS: gcode writer doesn't know fan speed after inserting tool change gcode
                 toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
-                gcodegen.writer().set_current_position_clear(false);
-                // BBS: check whether custom gcode changes the z position. Update if changed
-                double temp_z_after_tool_change;
-                if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_str, temp_z_after_tool_change)) {
-                    Vec3d pos = gcodegen.writer().get_position();
-                    pos(2)    = temp_z_after_tool_change;
-                    gcodegen.writer().set_position(pos);
+                
+                // BBS: check whether custom gcode changes the axis positions. Update if changed.
+                bool position_changed = false;
+                Vec3d new_pos = gcodegen.writer().get_position();
+
+                double temp_x_after_toolchange_gcode;
+                if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_str, 0, temp_x_after_toolchange_gcode)) {
+                    new_pos(0) = temp_x_after_toolchange_gcode;
+                    position_changed = true;
+                }
+                
+                double temp_y_after_toolchange_gcode;
+                if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_str, 1, temp_y_after_toolchange_gcode)) {
+                    new_pos(1) = temp_y_after_toolchange_gcode;
+                    position_changed = true;
+                }
+                
+                double temp_z_after_toolchange_gcode;
+                if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_str, 2, temp_z_after_toolchange_gcode)) {
+                    new_pos(2) = temp_z_after_toolchange_gcode;
+                    position_changed = true;
+                }
+                
+                if (position_changed) {
+                    gcodegen.writer().set_position(new_pos);
                 }
             }
 
@@ -1720,6 +1738,7 @@ namespace DoExport {
                 filament_stats_string_out += "\n" + out_filament_used_g.first;
             if (out_filament_cost.second)
                filament_stats_string_out += "\n" + out_filament_cost.first;
+            filament_stats_string_out += "\n";
         }
         return filament_stats_string_out;
     }
@@ -3377,7 +3396,7 @@ namespace Skirt {
 
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
         const Print             				&print,
-        const ExtrusionEntityCollection &skirt,
+	const ExtrusionEntityCollection &skirt,
         const LayerTools                		&layer_tools,
         // Heights (print_z) at which the skirt has already been extruded.
         std::vector<coordf_t>  			    	&skirt_done)
@@ -3668,17 +3687,37 @@ LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
+    // insert timelapse_gcode when traditional mode is not used (smooth mode)
     if(is_BBL_Printer()){
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
-            std::string timepals_gcode = insert_timelapse_gcode();
-            gcode += timepals_gcode;
-            m_writer.set_current_position_clear(false);
-            //BBS: check whether custom gcode changes the z position. Update if changed
-            double temp_z_after_timepals_gcode;
-            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                Vec3d pos = m_writer.get_position();
-                pos(2) = temp_z_after_timepals_gcode;
-                m_writer.set_position(pos);
+
+		        std::string timelapse_gcode = insert_timelapse_gcode();
+		        gcode += timelapse_gcode;
+		        
+		        //BBS: check whether custom gcode changes the axis positions. Update if changed.
+		        bool position_changed = false;
+		        Vec3d new_pos = m_writer.get_position();
+		        
+		        double temp_x_after_timelapse_gcode;
+		        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
+		            new_pos(0) = temp_x_after_timelapse_gcode;
+		            position_changed = true;
+		        }
+		        
+		        double temp_y_after_timelapse_gcode;
+		        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
+		            new_pos(1) = temp_y_after_timelapse_gcode;
+		            position_changed = true;
+		        }
+		        
+		        double temp_z_after_timelapse_gcode;
+		        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
+		            new_pos(2) = temp_z_after_timelapse_gcode;
+		            position_changed = true;
+		        }
+		        
+		        if (position_changed) {
+		            m_writer.set_position(new_pos);
             }
         }
     } else {
@@ -4026,21 +4065,40 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        // insert timelapse_gcode when wipe tower is enabled and traditional mode is used
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
-                    gcode += this->retract(false, false, LiftType::NormalLift);
+                    gcode += this->retract(false, false, LiftType::SpiralLift);
                     m_writer.add_object_change_labels(gcode);
 
-                    std::string timepals_gcode = insert_timelapse_gcode();
-                    gcode += timepals_gcode;
-                    m_writer.set_current_position_clear(false);
-                    //BBS: check whether custom gcode changes the z position. Update if changed
-                    double temp_z_after_timepals_gcode;
-                    if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                        Vec3d pos = m_writer.get_position();
-                        pos(2) = temp_z_after_timepals_gcode;
-                        m_writer.set_position(pos);
+                    std::string timelapse_gcode = insert_timelapse_gcode();
+                    gcode += timelapse_gcode;
+                    
+                    //BBS: check whether custom gcode changes the axis positions. Update if changed.
+                    bool position_changed = false;
+                    Vec3d new_pos = m_writer.get_position();
+                    
+                    double temp_x_after_timelapse_gcode;
+                    if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
+                        new_pos(0) = temp_x_after_timelapse_gcode;
+                        position_changed = true;
+                    }
+                    
+                    double temp_y_after_timelapse_gcode;
+                    if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
+                        new_pos(1) = temp_y_after_timelapse_gcode;
+                        position_changed = true;
+                    }
+                    
+                    double temp_z_after_timelapse_gcode;
+                    if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
+                        new_pos(2) = temp_z_after_timelapse_gcode;
+                        position_changed = true;
+                    }
+                    
+                    if (position_changed) {
+                        m_writer.set_position(new_pos);
                     }
                     has_insert_timelapse_gcode = true;
                 }
@@ -4053,7 +4111,7 @@ LayerResult GCode::process_layer(
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
             m_last_processor_extrusion_role = erWipeTower;
-        
+
         if (print.config().skirt_type == stCombined && !print.skirt().empty())
             gcode += generate_skirt(print, print.skirt(), Point(0,0), layer_tools, layer, extruder_id);
 
@@ -4151,18 +4209,22 @@ LayerResult GCode::process_layer(
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
 
+                std::string start_str;
+                std::string start_str_a;
+                std::string temp_start_str;
                 if (this->config().gcode_label_objects) {
-                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name +
+                    start_str_a = std::string("; printing object ") + instance_to_print.print_object.model_object()->name +
                              " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " +
                              std::to_string(inst.id) + "\n";
                 }
                 // exclude objects
                 if (m_enable_exclude_object) {
                     if (is_BBL_Printer()) {
-                        m_writer.set_object_start_str(
+                        start_str =
                             std::string("; start printing object, unique label id: ") +
                             std::to_string(instance_to_print.label_object_id) + "\n" + "M624 " +
-                            _encode_label_ids_to_base64({instance_to_print.label_object_id}) + "\n");
+                            _encode_label_ids_to_base64({instance_to_print.label_object_id}) + "\n";
+                            m_writer.set_object_start_str(start_str);
                     } else {
                         const auto gflavor = print.config().gcode_flavor.value;
                         if (gflavor == gcfKlipper) {
@@ -4175,6 +4237,8 @@ LayerResult GCode::process_layer(
                         }
                     }
                 }
+                temp_start_str = start_str + start_str_a;
+                gcode += start_str_a;
 
                 if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic)
                     m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
@@ -4261,20 +4325,39 @@ LayerResult GCode::process_layer(
                     };
 
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
-                    //This behaviour is same with cura
+
+                    // insert timelapse_gcode when no wipe tower, has infill and not first layer
                     if (is_infill_first && !first_layer) {
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
-                            gcode += this->retract(false, false, LiftType::NormalLift);
+                            gcode += this->retract(false, false, LiftType::SpiralLift);
 
-                            std::string timepals_gcode = insert_timelapse_gcode();
-                            gcode += timepals_gcode;
-                            m_writer.set_current_position_clear(false);
-                            //BBS: check whether custom gcode changes the z position. Update if changed
-                            double temp_z_after_timepals_gcode;
-                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                                Vec3d pos = m_writer.get_position();
-                                pos(2) = temp_z_after_timepals_gcode;
-                                m_writer.set_position(pos);
+                            std::string timelapse_gcode = insert_timelapse_gcode();
+                            gcode += timelapse_gcode;
+
+                            //BBS: check whether custom gcode changes the axis positions. Update if changed.
+                            bool position_changed = false;
+                            Vec3d new_pos = m_writer.get_position();
+                            
+                            double temp_x_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
+                                new_pos(0) = temp_x_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            double temp_y_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
+                                new_pos(1) = temp_y_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            double temp_z_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
+                                new_pos(2) = temp_z_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            if (position_changed) {
+                                m_writer.set_position(new_pos);
                             }
 
                             has_insert_timelapse_gcode = true;
@@ -4283,18 +4366,37 @@ LayerResult GCode::process_layer(
                         gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
-                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
-                            gcode += this->retract(false, false, LiftType::NormalLift);
 
-                            std::string timepals_gcode = insert_timelapse_gcode();
-                            gcode += timepals_gcode;
-                            m_writer.set_current_position_clear(false);
-                            //BBS: check whether custom gcode changes the z position. Update if changed
-                            double temp_z_after_timepals_gcode;
-                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                                Vec3d pos = m_writer.get_position();
-                                pos(2) = temp_z_after_timepals_gcode;
-                                m_writer.set_position(pos);
+                        // insert timelapse_gcode when no wipe tower, no infill and is first layer
+                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                            gcode += this->retract(false, false, LiftType::SpiralLift);
+                            std::string timelapse_gcode = insert_timelapse_gcode();
+                            gcode += timelapse_gcode;
+
+                            //BBS: check whether custom gcode changes the axis positions. Update if changed.
+                            bool position_changed = false;
+                            Vec3d new_pos = m_writer.get_position();
+                            
+                            double temp_x_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
+                                new_pos(0) = temp_x_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            double temp_y_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
+                                new_pos(1) = temp_y_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            double temp_z_after_timelapse_gcode;
+                            if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
+                                new_pos(2) = temp_z_after_timelapse_gcode;
+                                position_changed = true;
+                            }
+                            
+                            if (position_changed) {
+                                m_writer.set_position(new_pos);
                             }
 
                             has_insert_timelapse_gcode = true;
@@ -4361,22 +4463,41 @@ LayerResult GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
 
+    // insert timelapse_gcode when no wipe tower and no infill
     if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
         if (m_support_traditional_timelapse)
             m_support_traditional_timelapse = false;
 
-        gcode += this->retract(false, false, LiftType::NormalLift);
+        gcode += this->retract(false, false, LiftType::SpiralLift);
         m_writer.add_object_change_labels(gcode);
 
-        std::string timepals_gcode = insert_timelapse_gcode();
-        gcode += timepals_gcode;
-        m_writer.set_current_position_clear(false);
-        //BBS: check whether custom gcode changes the z position. Update if changed
-        double temp_z_after_timepals_gcode;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2) = temp_z_after_timepals_gcode;
-            m_writer.set_position(pos);
+        std::string timelapse_gcode = insert_timelapse_gcode();
+        gcode += timelapse_gcode;
+
+        //BBS: check whether custom gcode changes the axis positions. Update if changed.
+        bool position_changed = false;
+        Vec3d new_pos = m_writer.get_position();
+        
+        double temp_x_after_timelapse_gcode;
+        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
+            new_pos(0) = temp_x_after_timelapse_gcode;
+            position_changed = true;
+        }
+        
+        double temp_y_after_timelapse_gcode;
+        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
+            new_pos(1) = temp_y_after_timelapse_gcode;
+            position_changed = true;
+        }
+        
+        double temp_z_after_timelapse_gcode;
+        if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
+            new_pos(2) = temp_z_after_timelapse_gcode;
+            position_changed = true;
+        }
+        
+        if (position_changed) {
+            m_writer.set_position(new_pos);
         }
     }
 
@@ -6409,16 +6530,33 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
 
         //BBS
         {
-            //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
-            //Set this flag so that normal lift will be used the first time after tool change.
+            //BBS: gcode writer doesn't know fan speed after inserting tool change gcode
             gcode += ";_FORCE_RESUME_FAN_SPEED\n";
-            m_writer.set_current_position_clear(false);
-            //BBS: check whether custom gcode changes the z position. Update if changed
-            double temp_z_after_tool_change;
-            if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_parsed, temp_z_after_tool_change)) {
-                Vec3d pos = m_writer.get_position();
-                pos(2) = temp_z_after_tool_change;
-                m_writer.set_position(pos);
+
+            //BBS: check whether custom gcode changes the axis positions. Update if changed.
+            bool position_changed = false;
+            Vec3d new_pos = m_writer.get_position();
+            
+            double temp_x_after_toolchange_gcode;
+            if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 0, temp_x_after_toolchange_gcode)) {
+                new_pos(0) = temp_x_after_toolchange_gcode;
+                position_changed = true;
+            }
+            
+            double temp_y_after_toolchange_gcode;
+            if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 1, temp_y_after_toolchange_gcode)) {
+                new_pos(1) = temp_y_after_toolchange_gcode;
+                position_changed = true;
+            }
+            
+            double temp_z_after_toolchange_gcode;
+            if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 2, temp_z_after_toolchange_gcode)) {
+                new_pos(2) = temp_z_after_toolchange_gcode;
+                position_changed = true;
+            }
+            
+            if (position_changed) {
+                m_writer.set_position(new_pos);
             }
         }
     }
@@ -6666,4 +6804,4 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 // a single object, or for possibly multiple objects with multiple instances.
 
 
-} // namespace Slic3r
+} /* slic3r_GCode_cpp_ */
