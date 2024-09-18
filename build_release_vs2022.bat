@@ -2,8 +2,29 @@
 @echo off
 set WP=%CD%
 
+set build_type=Release
+set build_dir=build
+set generator="Visual Studio 17 2022"
+:GETOPTS
+ if /I "%1" == "deps" set deps=ON
+ if /I "%1" == "slicer" set slicer=ON
+ if /I "%1" == "debug" (
+    set debug=ON
+    set build_type=Debug
+    set build_dir=build-dbg
+ )
+ if /I "%1" == "debuginfo" (
+    set debuginfo=ON
+    set build_type=RelWithDebInfo
+    set build_dir=build-dbginfo
+ )
+ if /I "%1" == "pack" set pack=ON
+ if /I "%1" == "vs2019" set generator="Visual Studio 16 2019"
+ shift
+if not "%1" == "" goto GETOPTS
+
 @REM Pack deps
-if "%1"=="pack" (
+if "%pack%"=="ON" (
     setlocal ENABLEDELAYEDEXPANSION 
     cd %WP%/deps/build
     for /f "tokens=2-4 delims=/ " %%a in ('date /t') do set build_date=%%c%%b%%a
@@ -13,55 +34,39 @@ if "%1"=="pack" (
     exit /b 0
 )
 
-set debug=OFF
-set debuginfo=OFF
-if "%1"=="debug" set debug=ON
-if "%2"=="debug" set debug=ON
-if "%1"=="debuginfo" set debuginfo=ON
-if "%2"=="debuginfo" set debuginfo=ON
-if "%debug%"=="ON" (
-    set build_type=Debug
-    set build_dir=build-dbg
-) else (
-    if "%debuginfo%"=="ON" (
-        set build_type=RelWithDebInfo
-        set build_dir=build-dbginfo
-    ) else (
-        set build_type=Release
-        set build_dir=build
-    )
-)
-echo build type set to %build_type%
+echo Build type set to %build_type%
 
-setlocal DISABLEDELAYEDEXPANSION 
-cd deps
-mkdir %build_dir%
-cd %build_dir%
-set DEPS=%CD%/OrcaSlicer_dep
+setlocal DISABLEDELAYEDEXPANSION
 
-if "%1"=="slicer" (
+if "%slicer%"=="ON" (
     GOTO :slicer
 )
-echo "building deps.."
+echo "Building Orca Slicer deps..."
 
-echo on
-cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
-cmake --build . --config %build_type% --target deps -- -m
-@echo off
 
-if "%1"=="deps" exit /b 0
+echo cmake . -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+cmake . -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo cmake --build deps/%build_dir% . --config %build_type% --target deps -- -m
+cmake --build deps/%build_dir% . --config %build_type% --target deps -- -m
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+
+if not "%slicer%"=="ON" if "%deps%"=="ON" exit /b 0
 
 :slicer
-echo "building Orca Slicer..."
-cd %WP%
-mkdir %build_dir%
-cd %build_dir%
+echo Building Orca Slicer...
 
-echo on
-cmake .. -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
-cmake --build . --config %build_type% --target ALL_BUILD -- -m
-@echo off
-cd ..
+
+echo cmake . -B %build_dir% -G %generator% -A x64 -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type%
+cmake . -B %build_dir% -G %generator% -A x64 -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type%
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 call run_gettext.bat
-cd %build_dir%
-cmake --build . --target install --config %build_type%
+echo cmake --build %build_dir% --target install --config %build_type%
+cmake --build %build_dir% --target install --config %build_type%
+if %errorlevel% neq 0 exit /b %errorlevel%
