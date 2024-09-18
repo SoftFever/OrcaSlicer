@@ -151,14 +151,14 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 }
 
 //calculate the flush weight (first value) and filament change count(second value)
-static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintConfig* config,const std::vector<int>&filament_map,const std::vector<FlushMatrix>&flush_matrix,const std::vector<std::vector<unsigned int>>&layer_sequences)
+static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintConfig* config, const std::vector<int>& filament_map, const std::vector<FlushMatrix>& flush_matrix, const std::vector<std::vector<unsigned int>>& layer_sequences)
 {
     FilamentChangeStats ret;
-    std::map<int, int> flush_volume_per_filament;
+    std::unordered_map<int, int> flush_volume_per_filament;
     std::vector<unsigned int>last_filament_per_extruder(2, -1);
 
     int total_filament_change_count = 0;
-    int total_filament_flush_weight = 0;
+    float total_filament_flush_weight = 0;
     for (const auto& ls : layer_sequences) {
         for (const auto& item : ls) {
             int extruder_id = filament_map[item];
@@ -173,12 +173,12 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
     }
 
     for (auto& fv : flush_volume_per_filament) {
-        int weight = config->filament_density.get_at(fv.first) * 0.001 * fv.second;
+        float weight = config->filament_density.get_at(fv.first) * 0.001 * fv.second;
         total_filament_flush_weight += weight;
     }
 
     ret.filament_change_count = total_filament_change_count;
-    ret.filament_flush_weight = total_filament_flush_weight;
+    ret.filament_flush_weight = (int)total_filament_flush_weight;
 
     return ret;
 }
