@@ -9722,7 +9722,17 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         obj_name = obj_name.substr(9);
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
-        auto modifier = stof(obj_name);
+        // Orca: force set locale to C to avoid parsing error
+        const std::string _loc = std::setlocale(LC_NUMERIC, nullptr);
+        std::setlocale(LC_NUMERIC,"C");
+        auto              modifier  = 1.0f;
+        try {
+            modifier = stof(obj_name);
+        } catch (...) {
+        }
+        // restore locale
+        std::setlocale(LC_NUMERIC, _loc.c_str());
+
         if(linear)
             _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
         else
