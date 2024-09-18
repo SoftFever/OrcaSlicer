@@ -95,7 +95,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.09.05.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.09.07.01"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -170,17 +170,6 @@ enum ConnectStatus {
     ConnectStatusOk = 0,
     ConnectStatusFailed = 1,
     ConnectStatusLost = 2,
-};
-
-struct detectResult {
-    std::string    result_msg;
-    std::string    command;
-    std::string    dev_id;
-    std::string    model_id;
-    std::string    dev_name;
-    std::string    version;
-    std::string    bind_state;
-    std::string    connect_type;
 };
 
 /* print job*/
