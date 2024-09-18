@@ -1,0 +1,19 @@
+{
+  "type": "machine",
+  "setting_id": "GM003",
+  "name": "RatRig V-Core 4 COREXY 400 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "RatRig V-Core 4 COREXY 300 0.4 nozzle",
+  "printer_model": "RatRig V-Core 4 COREXY 400",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "400x0",
+    "400x400",
+    "0x400"
+  ],
+  "printable_height": "400"
+}

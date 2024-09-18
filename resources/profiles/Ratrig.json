@@ -29,16 +29,16 @@
             "sub_path": "machine/RatRig V-Cast.json"
         },
         {
-            "name": "RatRig V-Core 4 300",
-            "sub_path": "machine/RatRig V-Core 4 300.json"
+            "name": "RatRig V-Core 4 COREXY 300",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 300.json"
         },
         {
-            "name": "RatRig V-Core 4 400",
-            "sub_path": "machine/RatRig V-Core 4 400.json"
+            "name": "RatRig V-Core 4 COREXY 400",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 400.json"
         },
         {
-            "name": "RatRig V-Core 4 500",
-            "sub_path": "machine/RatRig V-Core 4 500.json"
+            "name": "RatRig V-Core 4 COREXY 500",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 500.json"
         },
         {
             "name": "RatRig V-Core 4 HYBRID 300",
@@ -87,76 +87,100 @@
             "sub_path": "process/0.28mm Extra Draft @RatRig.json"
         },
         {
-            "name": "0.30mm Big @RatRig V-Core 4 0.6",
-            "sub_path": "process/0.30mm Big @RatRig V-Core 4 0.6.json"
+            "name": "0.20mm QUALITY COREXY @RatRig",
+            "sub_path": "process/0.20mm QUALITY COREXY @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 0.4",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.4.json"
+            "name": "0.20mm QUALITY COREXY 0.4 @RatRig",
+            "sub_path": "process/0.20mm QUALITY COREXY 0.4 @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 0.5",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.5.json"
+            "name": "0.20mm QUALITY COREXY 0.5 @RatRig",
+            "sub_path": "process/0.20mm QUALITY COREXY 0.5 @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 0.6",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.6.json"
+            "name": "0.20mm QUALITY COREXY 0.6 @RatRig",
+            "sub_path": "process/0.20mm QUALITY COREXY 0.6 @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.4",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.4.json"
+            "name": "0.20mm QUALITY HYBRID @RatRig",
+            "sub_path": "process/0.20mm QUALITY HYBRID @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.5",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.5.json"
+            "name": "0.20mm QUALITY HYBRID 0.4 @RatRig",
+            "sub_path": "process/0.20mm QUALITY HYBRID 0.4 @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.6",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.6.json"
+            "name": "0.20mm QUALITY HYBRID 0.5 @RatRig",
+            "sub_path": "process/0.20mm QUALITY HYBRID 0.5 @RatRig.json"
         },
         {
-            "name": "0.20mm Quality @RatRig V-Core 4 0.4",
-            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 0.4.json"
+            "name": "0.20mm QUALITY HYBRID 0.6 @RatRig",
+            "sub_path": "process/0.20mm QUALITY HYBRID 0.6 @RatRig.json"
         },
         {
-            "name": "0.20mm Quality @RatRig V-Core 4 0.5",
-            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 0.5.json"
+            "name": "0.25mm QUALITY_SPEED COREXY @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED COREXY @RatRig.json"
         },
         {
-            "name": "0.30mm Big @RatRig V-Core 4 HYBRID 0.6",
-            "sub_path": "process/0.30mm Big @RatRig V-Core 4 HYBRID 0.6.json"
+            "name": "0.25mm QUALITY_SPEED COREXY 0.4 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED COREXY 0.4 @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.4",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.4.json"
+            "name": "0.25mm QUALITY_SPEED COREXY 0.5 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED COREXY 0.5 @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.5",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.5.json"
+            "name": "0.25mm QUALITY_SPEED COREXY 0.6 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED COREXY 0.6 @RatRig.json"
         },
         {
-            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.6",
-            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.6.json"
+            "name": "0.25mm QUALITY_SPEED HYBRID @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED HYBRID @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.4",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.4.json"
+            "name": "0.25mm QUALITY_SPEED HYBRID 0.4 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED HYBRID 0.4 @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.5",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.5.json"
+            "name": "0.25mm QUALITY_SPEED HYBRID 0.5 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED HYBRID 0.5 @RatRig.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.6",
-            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.6.json"
+            "name": "0.25mm QUALITY_SPEED HYBRID 0.6 @RatRig",
+            "sub_path": "process/0.25mm QUALITY_SPEED HYBRID 0.6 @RatRig.json"
         },
         {
-            "name": "0.20mm Quality @RatRig V-Core 4 HYBRID 0.4",
-            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 HYBRID 0.4.json"
+            "name": "0.25mm SPEED COREXY @RatRig",
+            "sub_path": "process/0.25mm SPEED COREXY @RatRig.json"
         },
         {
-            "name": "0.20mm Quality @RatRig V-Core 4 HYBRID 0.5",
-            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 HYBRID 0.5.json"
+            "name": "0.25mm SPEED COREXY 0.4 @RatRig",
+            "sub_path": "process/0.25mm SPEED COREXY 0.4 @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED COREXY 0.5 @RatRig",
+            "sub_path": "process/0.25mm SPEED COREXY 0.5 @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED COREXY 0.6 @RatRig",
+            "sub_path": "process/0.25mm SPEED COREXY 0.6 @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED HYBRID @RatRig",
+            "sub_path": "process/0.25mm SPEED HYBRID @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED HYBRID 0.4 @RatRig",
+            "sub_path": "process/0.25mm SPEED HYBRID 0.4 @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED HYBRID 0.5 @RatRig",
+            "sub_path": "process/0.25mm SPEED HYBRID 0.5 @RatRig.json"
+        },
+        {
+            "name": "0.25mm SPEED HYBRID 0.6 @RatRig",
+            "sub_path": "process/0.25mm SPEED HYBRID 0.6 @RatRig.json"
         }
     ],
     "filament_list": [
@@ -235,6 +259,18 @@
         {
             "name": "RatRig Generic PA-CF",
             "sub_path": "filament/RatRig Generic PA-CF.json"
+        },
+        {
+            "name": "RatRig PunkFil ABS",
+            "sub_path": "filament/RatRig PunkFil ABS.json"
+        },
+        {
+            "name": "RatRig PunkFil PETG CF",
+            "sub_path": "filament/RatRig PunkFil PETG CF.json"
+        },
+        {
+            "name": "RatRig PunkFil PETG",
+            "sub_path": "filament/RatRig PunkFil PETG.json"
         }
     ],
     "machine_list": [
@@ -275,40 +311,40 @@
             "sub_path": "machine/RatRig V-Cast 0.6 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 300 0.4 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 300 0.4 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 300 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 300 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 300 0.5 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 300 0.5 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 300 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 300 0.5 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 300 0.6 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 300 0.6 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 300 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 300 0.6 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 400 0.4 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 400 0.4 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 400 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 400 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 400 0.5 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 400 0.5 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 400 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 400 0.5 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 400 0.6 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 400 0.6 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 400 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 400 0.6 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 500 0.4 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 500 0.4 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 500 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 500 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 500 0.5 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 500 0.5 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 500 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 500 0.5 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 4 500 0.6 nozzle",
-            "sub_path": "machine/RatRig V-Core 4 500 0.6 nozzle.json"
+            "name": "RatRig V-Core 4 COREXY 500 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 COREXY 500 0.6 nozzle.json"
         },
         {
             "name": "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
