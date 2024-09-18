@@ -25,6 +25,11 @@ set generator="Visual Studio 17 2022"
  shift
 if not "%1" == "" goto GETOPTS
 
+if "%deps%"=="ON" if "%slicer%"=="ON" (
+    set deps=OFF
+    set slicer=OFF
+)
+
 @REM Pack deps
 if "%pack%"=="ON" (
     setlocal ENABLEDELAYEDEXPANSION 
@@ -40,7 +45,7 @@ echo Build type set to %build_type%
 
 setlocal DISABLEDELAYEDEXPANSION
 
-if "%slicer%"=="ON" if not "%deps%"=="ON" (
+if "%slicer%"=="ON" (
     GOTO :slicer
 )
 echo "Building Orca Slicer deps..."
@@ -55,7 +60,7 @@ cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 
-if not "%slicer%"=="ON" if "%deps%"=="ON" exit /b 0
+if "%deps%"=="ON" exit /b 0
 
 :slicer
 echo Building Orca Slicer...
