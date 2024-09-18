@@ -4,6 +4,8 @@ set WP=%CD%
 
 set build_type=Release
 set build_dir=build
+set debug=OFF
+set debuginfo=OFF
 set generator="Visual Studio 17 2022"
 :GETOPTS
  if /I "%1" == "deps" set deps=ON
@@ -38,18 +40,18 @@ echo Build type set to %build_type%
 
 setlocal DISABLEDELAYEDEXPANSION
 
-if "%slicer%"=="ON" (
+if "%slicer%"=="ON" if not "%deps%"=="ON" (
     GOTO :slicer
 )
 echo "Building Orca Slicer deps..."
 
 
 echo cmake -S deps -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
-cmake . -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+cmake -S deps -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo cmake --build deps/%build_dir% . --config %build_type% --target deps -- -m
-cmake --build deps/%build_dir% . --config %build_type% --target deps -- -m
+echo cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
+cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 
