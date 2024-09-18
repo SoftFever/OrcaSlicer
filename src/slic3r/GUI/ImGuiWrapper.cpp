@@ -415,6 +415,7 @@ void ImGuiWrapper::set_language(const std::string &language)
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
     } 
+
     else{
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesOthers();
     }

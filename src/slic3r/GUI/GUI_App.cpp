@@ -5043,6 +5043,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                 app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
             } else {
                 {
+
                     // Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
                     wxLocale temp_locale;
                     temp_locale.Init();
@@ -5139,11 +5140,14 @@ bool GUI_App::load_language(wxString language, bool initial)
         //    wxLANGUAGE_GERMAN,
         //    wxLANGUAGE_FRENCH,
         //    wxLANGUAGE_SPANISH,
-        //    wxLANGUAGE_SWEDISH,
+        //    
+        // 
+        // _SWEDISH,
         //    wxLANGUAGE_DUTCH,
         //    wxLANGUAGE_HUNGARIAN,
         //    wxLANGUAGE_JAPANESE,
-        //    wxLANGUAGE_ITALIAN
+        //    wxLANGUAGE_ITALIAN,
+        //    wxLANGUAGE_ARABIC
         //};
         //std::string cur_language = app_config->get("language");
         //if (cur_language != "") {
@@ -6176,6 +6180,8 @@ wxString GUI_App::current_language_code_safe() const
 		{ "ru", 	"ru_RU", },
         { "tr", 	"tr_TR", },
         { "pt", 	"pt_BR", },
+        { "pt", 	"pt_BR", },
+        { "ar",     "ar_AR", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);

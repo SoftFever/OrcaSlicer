@@ -1,0 +1,66 @@
+{
+	"name": "techfab",
+	"version": "02.01.01.00",
+	"force_update": "0",
+	"description": "techfab configurations",
+	"machine_model_list": [
+		{
+			"name": "techfab M5",
+			"sub_path": "machine/techfab M5.json"
+		}
+	],
+	"process_list": [
+		{
+			"name": "fdm_process_common",
+			"sub_path": "process/fdm_process_common.json"
+		},
+		{
+			"name": "fdm_process_techfab_common",
+			"sub_path": "process/fdm_process_techfab_common.json"
+		},
+		{
+			"name": "fdm_process_techfab_m5_common",
+			"sub_path": "process/fdm_process_techfab_m5_common.json"
+		},
+		{
+			"name": "0.20mm Standard @techfab M5 (0.4 nozzle)",
+			"sub_path": "process/0.20mm Standard @techfab M5 (0.4 nozzle).json"
+		}
+	],
+	"filament_list": [
+		{
+			"name": "fdm_filament_common",
+			"sub_path": "filament/fdm_filament_common.json"
+		},
+		{
+			"name": "fdm_filament_abs",
+			"sub_path": "filament/fdm_filament_abs.json"
+		},
+		{
+			"name": "fdm_filament_pet",
+			"sub_path": "filament/fdm_filament_pet.json"
+		},
+		{
+			"name": "fdm_filament_pla",
+			"sub_path": "filament/fdm_filament_pla.json"
+		},
+		{
+			"name": "techfab Generic ABS",
+			"sub_path": "filament/techfab Generic ABS.json"
+		},
+		{
+			"name": "techfab Generic PLA",
+			"sub_path": "filament/techfab Generic PLA.json"
+		}
+	],
+	"machine_list": [
+		{
+			"name": "fdm_techfab_M_Series_common",
+			"sub_path": "machine/fdm_techfab_M_Series_common.json"
+		},
+		{
+			"name": "techfab M5 0.4 nozzle",
+			"sub_path": "machine/techfab M5 (0.4 nozzle).json"
+		}
+	]
+}
