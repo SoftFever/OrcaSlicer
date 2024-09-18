@@ -10868,7 +10868,6 @@ msgstr "Basınç avansı (Klipper) Doğrusal ilerleme faktörü (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Uyarlanabilir basınç ilerlemesini etkinleştir (beta)"
 
-#, c-format, boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
