@@ -33,6 +33,7 @@ function usage() {
     echo "   -d: build deps (optional)"
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
+    echo "   -p: Pack dependencies (optional)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
     echo "   -s: build orca-slicer (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
@@ -43,7 +44,7 @@ function usage() {
 BUILD_DIR="build"
 BUILD_TYPE="Release"
 unset name
-while getopts ":1bBcdhirsu" opt; do
+while getopts ":1bBcdhiprsu" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -57,7 +58,7 @@ while getopts ":1bBcdhirsu" opt; do
         BUILD_TYPE="RelWithDebInfo"
         ;;
     c )
-        CLEAN_BUILD=1
+        CLEAN_BUILD="1"
         ;;
     d )
         BUILD_DEPS="1"
@@ -69,9 +70,12 @@ while getopts ":1bBcdhirsu" opt; do
     i )
         BUILD_IMAGE="1"
         ;;
+    p )
+        PACK_DEPS="1"
+        ;;
     r )
-	      SKIP_RAM_CHECK="1"
-	      ;;
+	    SKIP_RAM_CHECK="1"
+	    ;;
     s )
         BUILD_ORCA="1"
         ;;
@@ -153,6 +157,18 @@ then
     cmake --build ${BUILD_DIR} --target OrcaSlicer_profile_validator
 
     ./run_gettext.sh
+fi
+
+if [[ -n "${PACK_DEPS}" ]]
+then
+    echo "Packing dependencies..."
+    if [ -d "deps/${BUILD_DIR}/OrcaSlicer_dep" ]; then
+        cd deps/${BUILD_DIR}
+        tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz OrcaSlicer_dep
+    else
+        echo "The deps destination directory does not exist"
+        echo "Targeted destination directory: $(pwd)/deps/${BUILD_DIR}/OrcaSlicer_dep"
+    fi
 fi
 
 if [[ -e ${ROOT}/${BUILD_DIR}/src/BuildLinuxImage.sh ]]; then

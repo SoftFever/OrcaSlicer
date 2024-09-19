@@ -107,9 +107,7 @@ jobs:
             mkdir -p ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
-            cd deps/build
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz OrcaSlicer_dep
+            ./BuildLinux.sh -drp
 
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
