@@ -1,4 +1,4 @@
-@REM OcarSlicer build script for Windows
+@REM OrcaSlicer build script for Windows
 @echo off
 set WP=%CD%
 
@@ -53,32 +53,38 @@ setlocal DISABLEDELAYEDEXPANSION
 if "%slicer%"=="ON" (
     GOTO :slicer
 )
+
 echo "Building Orca Slicer deps..."
 
-
-echo cmake -S deps -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
-cmake -S deps -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+set command=cmake -S deps -B deps/%build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+echo Configuring deps with the following command: %command%
+%command%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
-cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
+set command=cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
+echo Building deps with the following command: %command%
+%command%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 
 if "%deps%"=="ON" exit /b 0
 
+
 :slicer
 echo Building Orca Slicer...
 
-
-echo cmake . -B %build_dir% -G %generator% -A x64 -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type%
-cmake . -B %build_dir% -G %generator% -A x64 -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type%
+set command=cmake . -B %build_dir% -G %generator% -A x64 -DCMAKE_BUILD_TYPE=%build_type%
+echo Configuring Orca Slicer with the following command: %command%
+%command%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
+set command=cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
+echo Building Orca Slicer with the following command: %command%
+%command%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 call run_gettext.bat
-echo cmake --build %build_dir% --target install --config %build_type%
-cmake --build %build_dir% --target install --config %build_type%
+set command=cmake --build %build_dir% --target install --config %build_type%
+echo Installing Orca Slicer with the following command: %command%
+%command%
 if %errorlevel% neq 0 exit /b %errorlevel%
