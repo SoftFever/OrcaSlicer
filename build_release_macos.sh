@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc:h" opt; do
+while getopts ":dpa:snt:xbc:h1" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -85,6 +85,23 @@ if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
   export OSX_DEPLOYMENT_TARGET="11.3"
 fi
 
+case ${BUILD_CONFIG} in
+Release )
+  export BUILD_DIR_NAME="build"
+  ;;
+RelWithDebInfo )
+  export BUILD_DIR_NAME="build-dbginfo"
+  ;;
+Debug )
+  export BUILD_DIR_NAME="build-debug"
+  ;;
+* )
+  echo Invalid build config \""${BUILD_CONFIG}"\". Valid options are Release, RelWithDebInfo, and Debug
+  exit 1
+  ;;
+esac
+BUILD_DIR_NAME=$BUILD_DIR_NAME"_"$ARCH
+
 echo "Build params:"
 echo " - ARCH: $ARCH"
 echo " - BUILD_CONFIG: $BUILD_CONFIG"
@@ -107,10 +124,7 @@ echo
 # fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
-DEPS_DIR="$PROJECT_DIR/deps"
-DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
-DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
+DESTDIR="deps/$BUILD_DIR_NAME/OrcaSlicer_dep_$ARCH"
 
 # Fix for Multi-config generators
 if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
@@ -123,13 +137,9 @@ function build_deps() {
     echo "Building deps..."
     (
         set -x
-        mkdir -p "$DEPS"
-        cd "$DEPS_BUILD_DIR"
-        if [ "1." != "$BUILD_ONLY". ]; then
-            cmake .. \
+        if [ -z "$BUILD_ONLY" ]; then
+            cmake -S deps -B "deps/$BUILD_DIR_NAME" \
                 -G "${DEPS_CMAKE_GENERATOR}" \
-                -DDESTDIR="$DEPS" \
-                -DOPENSSL_ARCH="darwin64-${ARCH}-cc" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                 -DCMAKE_OSX_ARCHITECTURES:STRING="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
@@ -141,10 +151,14 @@ function build_deps() {
 function pack_deps() {
     echo "Packing deps..."
     (
-        set -x
-        mkdir -p "$DEPS"
-        cd "$DEPS_BUILD_DIR"
-        tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "OrcaSlicer_dep_$ARCH"
+        if [ -d "$DESTDIR" ]; then
+            set -x
+            cd "$DESTDIR/.."
+            tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "OrcaSlicer_dep_$ARCH"
+        else
+            echo "The deps destination directory does not exist"
+            echo "Targeted destination directory: $(pwd)/$DESTDIR"
+        fi
     )
 }
 
@@ -152,17 +166,11 @@ function build_slicer() {
     echo "Building slicer..."
     (
         set -x
-        mkdir -p "$PROJECT_BUILD_DIR"
-        cd "$PROJECT_BUILD_DIR"
-        if [ "1." != "$BUILD_ONLY". ]; then
-            cmake .. \
+        if [ -z "$BUILD_ONLY" ]; then
+            cmake . -B "${PROJECT_BUILD_DIR}" \
                 -G "${SLICER_CMAKE_GENERATOR}" \
-                -DBBL_RELEASE_TO_PUBLIC=1 \
-                -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
-                -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                 -DCMAKE_MACOSX_RPATH=ON \
-                -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
                 -DCMAKE_MACOSX_BUNDLE=ON \
                 -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
@@ -205,6 +213,8 @@ function build_slicer() {
     # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
 }
 
+cd "$PROJECT_DIR"
+
 case "${BUILD_TARGET}" in
     all)
         build_deps
@@ -217,11 +227,11 @@ case "${BUILD_TARGET}" in
         build_slicer
         ;;
     *)
-        echo "Unknown target: $BUILD_TARGET. Available targets: deps, slicer, all."
+        echo "Unknown target: $BUILD_TARGET. Available targets: deps, slicer, all"
         exit 1
         ;;
 esac
 
-if [ "1." == "$PACK_DEPS". ]; then
+if [ -n "$PACK_DEPS" ]; then
     pack_deps
 fi
