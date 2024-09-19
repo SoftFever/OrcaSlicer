@@ -535,7 +535,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     // nozzle_volume_type (multi_extruder)
     {
         m_nozzle_volume_type_panel = new wxPanel(parent);
-
+        m_nozzle_volume_type_panel->SetBackgroundColour(*wxWHITE);
         auto nozzle_volume_sizer = new wxBoxSizer(wxVERTICAL);
         auto nozzle_volume_type_text = new Label(m_nozzle_volume_type_panel, _L("Nozzle Volume Type"));
         nozzle_volume_type_text->SetFont(Label::Head_14);

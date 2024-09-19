@@ -1066,14 +1066,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     }
 
     // set to color print by default if use multi extruders
-    if (m_extruder_ids.size() > 1) {
-        for (int i = 0; i < view_type_items.size(); i++) {
-            if (view_type_items[i] == EViewType::Summary) {
-                m_view_type_sel = i;
-                break;
-            }
-        }
-
+    if (m_nozzle_nums > 1) {
+        m_view_type_sel = (int) EViewType::Summary;
         set_view_type(EViewType::Summary);
     }
     else {
@@ -3031,6 +3025,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     // layers zs / roles / extruder ids -> extract from result
     size_t last_travel_s_id = 0;
     seams_count = 0;
+    m_extruder_ids.clear();
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessorResult::MoveVertex& move = gcode_result.moves[i];
         if (move.type == EMoveType::Seam)
@@ -3231,7 +3226,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         ColorRGBA color;
         switch (m_view_type)
         {
-        case EViewType::Summary:
         case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
         case EViewType::Height:         { color = m_extrusions.ranges.height.get_color_at(path.height); break; }
         case EViewType::Width:          { color = m_extrusions.ranges.width.get_color_at(path.width); break; }
@@ -3242,6 +3236,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::LayerTimeLog:   { color = m_extrusions.ranges.layer_duration_log.get_color_at(path.layer_time); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
+        case EViewType::Summary:
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tools.m_tool_colors.size()))
                 color = ColorRGBA::GRAY();
@@ -4484,12 +4479,12 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             // imgui.text(from_u8((boost::format(_u8L("Info by single extruder : %1%g filament and %2% filament changes")) %
             // stats_by_extruder.stats_by_single_extruder.filament_flush_weight % stats_by_extruder.stats_by_single_extruder.filament_change_count).str()));
 
-            imgui.text(_u8L("This arrangement would be optimal."));
-
             float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
-            int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count -
-                                              stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
-            imgui.text(from_u8((boost::format(_u8L("It will save %1%g filament and %2% filament changes")) % saved_flush_weight % saved_filament_changed_time).str()));
+            int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
+            if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
+                imgui.text(_u8L("This arrangement would be optimal."));
+                imgui.text(from_u8((boost::format(_u8L("It will save %1%g filament and %2% filament changes")) % saved_flush_weight % saved_filament_changed_time).str()));
+            }
         } else if (filament_map_mode == fmmManual) {
             // imgui.text(from_u8((boost::format(_u8L("Info by manual mode : %1%g filament and %2% filament changes")) %
             // stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count).str()));
@@ -4498,13 +4493,20 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 
             ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
-
-            imgui.text(_u8L("This arrangement is not optimal."));
-
             float more_cost = stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
             int   more_time = stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
-            imgui.text(from_u8((boost::format(_u8L("It will cost %1%g filament and %2% filament changes more than\nthe optiomal arrangrement.")) %more_cost % more_time).str()));
 
+            if (more_cost > EPSILON || more_time > 0) {
+                imgui.text(_u8L("This arrangement is not optimal."));
+                imgui.text(from_u8((boost::format(_u8L("It will cost %1%g filament and %2% filament changes more than\nthe optiomal arrangrement.")) %more_cost % more_time).str()));
+            } else {
+                float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
+                int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
+                if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
+                    imgui.text(_u8L("This arrangement would be optimal."));
+                    imgui.text(from_u8((boost::format(_u8L("It will save %1%g filament and %2% filament changes")) % saved_flush_weight % saved_filament_changed_time).str()));
+                }
+            }
             ImGui::PopStyleColor(1);
         }
 
