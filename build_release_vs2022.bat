@@ -83,7 +83,9 @@ echo Building Orca Slicer with the following command: %command%
 %command%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Calling run_gettext.bat
 call run_gettext.bat
+
 set command=cmake --build %build_dir% --target install --config %build_type%
 echo Installing Orca Slicer with the following command: %command%
 %command%
