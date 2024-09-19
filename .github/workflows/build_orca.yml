@@ -83,8 +83,6 @@ jobs:
         run: |
           brew install tree ninja libtool
           brew list
-          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}
-          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
           tree ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
 
       - name: Build slicer mac
