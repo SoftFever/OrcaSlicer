@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.13)
 
 message(STATUS "CMake version: ${CMAKE_VERSION}")
 
+# Setting CMAKE_OSX_ARCHITECTURES needs to be done before calling project()
+if (APPLE AND NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+    set(CMAKE_OSX_ARCHITECTURES ${CMAKE_HOST_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
+    message(STATUS "CMAKE_OSX_ARCHITECTURES was not set manually. Setting to the host's native architecture (${CMAKE_HOST_SYSTEM_PROCESSOR})")
+endif ()
+
 project(OrcaSlicer)
 
 include("version.inc")
@@ -103,8 +109,13 @@ if (APPLE) # Set macOS target and determine if we are cross-compiling
 
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
-    list(FIND CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} _arch_idx)
-    if (CMAKE_OSX_ARCHITECTURES AND _arch_idx LESS 0)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES _arch_len)
+    if (_arch_len GREATER 1)
+        message(FATAL_ERROR "OrcaSlicer only supports building for one architecture at a time. Please make sure only one architecture is specified in CMAKE_OSX_ARCHITECTURES")
+    elseif (_arch_len EQUAL 1)
+        list(GET CMAKE_OSX_ARCHITECTURES 0 MACOS_ARCH)
+    endif ()
+    if (NOT "${MACOS_ARCH}" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
         set(IS_CROSS_COMPILE TRUE)
     endif ()
     if (CMAKE_MACOSX_BUNDLE)
