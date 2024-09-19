@@ -144,7 +144,7 @@ function build_deps() {
                 -DCMAKE_OSX_ARCHITECTURES:STRING="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
         fi
-        cmake --build . --config "$BUILD_CONFIG" --target deps
+        cmake --build "deps/$BUILD_DIR_NAME" --config "$BUILD_CONFIG" --target deps
     )
 }
 
@@ -167,7 +167,7 @@ function build_slicer() {
     (
         set -x
         if [ -z "$BUILD_ONLY" ]; then
-            cmake . -B "${PROJECT_BUILD_DIR}" \
+            cmake . -B "${BUILD_DIR_NAME}" \
                 -G "${SLICER_CMAKE_GENERATOR}" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                 -DCMAKE_MACOSX_RPATH=ON \
@@ -175,7 +175,7 @@ function build_slicer() {
                 -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
         fi
-        cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
+        cmake --build "${BUILD_DIR_NAME}" --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
     )
 
     echo "Verify localization with gettext..."
