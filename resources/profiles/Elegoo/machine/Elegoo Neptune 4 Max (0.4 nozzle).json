@@ -65,7 +65,7 @@
     "retract_restart_extra": ["0"],
 	"retract_restart_extra_toolchange": ["0"],
     "retract_when_changing_layer": ["1"],
-    "retraction_length": ["0.7"],
+    "retraction_length": ["0.5"],
     "retraction_minimum_travel": ["1"],
     "retraction_speed": ["60"],
 	"use_firmwware_retraction": "0",
