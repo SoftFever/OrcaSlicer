@@ -23,7 +23,7 @@
   ],
   "machine_max_speed_z": [
       "12",
-      "12"
+      "20"
   ],
   "machine_max_acceleration_e": [
     "5000",
@@ -80,9 +80,9 @@
     "0.08"
   ],
   "printable_height": "280",
-  "extruder_clearance_radius": "47",
-  "extruder_clearance_height_to_rod": "34",
-  "extruder_clearance_height_to_lid": "34",
+  "extruder_clearance_radius": "57",
+  "extruder_clearance_height_to_rod": "38",
+  "extruder_clearance_height_to_lid": "280",
   "printer_settings_id": "",
   "printer_technology": "FFF",
   "printer_variant": "0.4",
@@ -114,7 +114,7 @@
     "45"
   ],
   "deretraction_speed": [
-    "45"
+    "35"
   ],
   "silent_mode": "0",
   "single_extruder_multi_material": "1",
