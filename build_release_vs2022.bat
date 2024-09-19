@@ -22,6 +22,11 @@ set generator="Visual Studio 17 2022"
  )
  if /I "%1" == "pack" set pack=ON
  if /I "%1" == "vs2019" set generator="Visual Studio 16 2019"
+ if /I "%1" == "killbuild" (
+    taskkill /F /IM cl.exe
+    taskkill /F /IM MSBuild.exe
+    exit /b 0
+ )
  shift
 if not "%1" == "" goto GETOPTS
 
