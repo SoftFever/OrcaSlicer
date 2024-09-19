@@ -6,20 +6,20 @@
   "inherits": "fdm_elegoo_common",
   "gcode_flavor": "klipper",
   "machine_max_acceleration_extruding": [
-    "10000",
-    "10000"
+    "0",
+    "0"
   ],
   "machine_max_acceleration_retracting": [
-      "10000",
-      "10000"
+      "0",
+      "0"
   ],
   "machine_max_acceleration_x": [
-      "10000",
-      "10000"
+      "20000",
+      "20000"
   ],
   "machine_max_acceleration_y": [
-      "10000",
-      "10000"
+      "20000",
+      "20000"
   ],
   "machine_max_speed_z": [
       "12",
@@ -30,16 +30,16 @@
     "5000"
   ],
   "machine_max_acceleration_travel": [
-    "10000",
-    "10000"
+    "20000",
+    "20000"
   ],
   "machine_max_jerk_x": [
-    "9",
-    "9"
+    "25",
+    "25"
   ],
   "machine_max_jerk_y": [
-    "9",
-    "9"
+    "25",
+    "25"
   ],
   "machine_max_acceleration_z": [
     "500",
@@ -96,7 +96,7 @@
     "1"
   ],
   "retraction_length": [
-    "5"
+    "0.5"
   ],
   "retract_length_toolchange": [
     "2"
@@ -111,15 +111,15 @@
     "0"
   ],
   "retraction_speed": [
-    "60"
+    "45"
   ],
   "deretraction_speed": [
-    "40"
+    "45"
   ],
   "silent_mode": "0",
   "single_extruder_multi_material": "1",
-  "change_filament_gcode": "",
-  "machine_pause_gcode": "M25 ;pause print",
+  "change_filament_gcode": "M600",
+  "machine_pause_gcode": "PAUSE",
   "wipe": [
     "1"
   ],
