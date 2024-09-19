@@ -148,6 +148,10 @@ if(SLIC3R_DESKTOP_INTEGRATION)
     add_definitions(-DSLIC3R_DESKTOP_INTEGRATION)
 endif ()
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "${CMAKE_BINARY_DIR}/OrcaSlicer")
+endif()
+
 if ("${DEP_BUILD_DIR}" STREQUAL "")
     set(DEP_BUILD_DIR "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}" CACHE PATH "Path to dependencies build directory" FORCE)
     message(STATUS "DEP_BUILD_DIR: ${DEP_BUILD_DIR} (generated automatically and saved to cache)")
