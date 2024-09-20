@@ -70,8 +70,8 @@ get_filename_component(BIN_DIR_NAME ${CMAKE_BINARY_DIR} NAME)
 message(STATUS "CMAKE_BINARY_DIR: ${BIN_DIR_NAME}")
 set(BIN_DIR_NAME ${BIN_DIR_NAME} CACHE STRING "" FORCE)
 
-# Set the default build type to Release if not specified and not using multi-config generators.
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+# Set the default build type to Release if not specified.
+if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
