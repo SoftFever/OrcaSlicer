@@ -57,6 +57,12 @@ set(CGAL_DATA_DIR ".") # Prevent warning from CGAL regarding data dir not being 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (POLICY CMP0167) # FindBoost deprecated
+    # If required boost is set to at least 1.70, this policy should be set to NEW
+    cmake_policy(SET CMP0167 OLD)
+    set(CMAKE_POLICY_DEFAULT_CMP0167 OLD)
+endif ()
+
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
