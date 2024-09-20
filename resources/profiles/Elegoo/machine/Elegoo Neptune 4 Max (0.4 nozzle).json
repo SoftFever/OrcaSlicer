@@ -16,10 +16,10 @@
 	"default_filament_profile": ["Elegoo Generic PLA @0.4 nozzle"],
 	
 	"printable_area": [
-		"0x0",
-		"420x0",
-		"420x420",
-		"0x420"
+		"5x5",
+		"425x5",
+		"425x425",
+		"5x425"
 	],
 	"printable_height": "480",
 	"auxiliary_fan": "0",
