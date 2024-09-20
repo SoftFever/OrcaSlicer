@@ -8,54 +8,55 @@
 	"printer_model": "Elegoo Neptune 4",
 	"default_print_profile": "0.20mm Standard @Elegoo Neptune4 (0.8 nozzle)",
 	"gcode_flavor": "klipper",
-	"nozzle_diameter": [
-		"0.8"
-	],
+	"nozzle_diameter": ["0.8"],
 	"printer_variant": "0.8",
+	"default_filament_profile": ["Elegoo Generic PLA @0.8 nozzle"],
 	"printable_area": [
-		"0x0",
-		"225x0",
-		"225x225",
-		"0x225"
+		"5x5",
+		"230x5",
+		"230x230",
+		"5x230"
 	],
 	"printable_height": "265",
-	"nozzle_type": "hardened_steel",
+	"extruder_clearance_height_to_lid": "265",
+	"extruder_clearance_height_to_rod": "38",
+    	"extruder_clearance_radius": "57",
+	"nozzle_type": "brass",
 	"auxiliary_fan": "0",
 
-	"max_layer_height": [
-		"0.6"
-	],
-	"min_layer_height": [
-		"0.08"
-	],
+	"max_layer_height": ["0.64"],
+	"min_layer_height": ["0.08"],
 	"printer_settings_id": "Elegoo",
-	"retraction_minimum_travel": [
-		"1"
-	],
-	"retract_before_wipe": [
-		"85%"
-	],
-	"retraction_length": [
-		"0.8"
-	  ],
-	  "retraction_speed": [
-		"60"
-	  ],
-	"retract_length_toolchange": [
-		"2"
-	],
-	"deretraction_speed": [
-		"45"
-	],
+	"use_relative_e_distances": "1",
+	
+	"use_firmwware_retraction": "0",
+	"retraction_minimum_travel": ["1"],
+	"retraction_length": ["0.8"],
+	"retraction_speed": ["45"],
+	"deretraction_speed": ["35"],
+	"retract_lift_above": ["0"],
+    	"retract_lift_below": ["0"],
+	"retract_lift_enforce": ["All Surfaces"],
+	"retract_when_changing_layer": ["1"],
+	"retract_length_toolchange": ["2"],
+
+	"wipe": ["1"],
+   	"wipe_distance": ["0.6"],
+	"retract_before_wipe": ["85%"],
+
+	"z_hop": ["0.6"],
+   	"z_hop_types": ["Normal Lift"],
+	
 	"single_extruder_multi_material": "1",
+	"manual_filament_change": "1",
+	
 	"change_filament_gcode": "M600",
 	"machine_pause_gcode": "PAUSE",
-	"default_filament_profile": [
-		"Elegoo Generic PLA @0.8 nozzle"
-	],
-	"machine_start_gcode": ";ELEGOO NEPTUNE 4\nM220 S100 ;Set the feed speed to 100%\nM221 S100 ;Set the flow rate to 100%\nM104 S140\nM190 S[bed_temperature_initial_layer_single]\nG90\nG28 ;home\nG1 Z10 F300\nG1 X67.5 Y0 F6000\nG1 Z0 F300\nM109 S[nozzle_temperature_initial_layer]\nG92 E0 ;Reset Extruder\nG1 X67.5 Y0 Z0.4 F300 ;Move to start position\nG1 X167.5 E30 F400 ;Draw the first line\nG1 Z0.6 F120.0 ;Move to side a little\nG1 X162.5 F3000\nG92 E0 ;Reset Extruder\n",
+	"machine_start_gcode": ";ELEGOO NEPTUNE 4\nPRINT_START\nM220 S100 ;Set the feed speed to 100%\nM221 S100 ;Set the flow rate to 100%\nM104 S120\nM190 S[bed_temperature_initial_layer_single]\n\nG90\nG28 ;home\nG1 X50.5 Y0.5 Z0.4 F6000 ;Move to start position\nG1 X55.5 F600\nM109 S[nozzle_temperature_initial_layer]\nG1 E5 F600 ;prime Nozzle\nG92 E0 ;Reset Extruder\n\nG1 X167.5 E40 F400 ;Draw the first line\nG1 Z0.6 F120.0 ;Move to side a little\nG1 X162.5 F3000\nG92 E0 ;Reset Extruder",
 	"machine_end_gcode": ";PRINT_END\nG91 ;Relative positionning\nG1 E-2 F2700 ;Retract a bit\nG1 E-8 X5 Y5 Z3 F3000 ;Retract\nG90 ;Absolute positionning\nG1 X10 Y220 F6000;Finish print\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
 	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0\n;[layer_z]\n\n",
 	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
 	"scan_first_layer": "0"
+
+	"printer_notes": "Settings brought to you by the Official Elegoo discord community"
 }
