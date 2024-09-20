@@ -457,6 +457,8 @@ set(lisbslic3r_sources
     FilamentGroup.cpp
     GCode/ToolOrderUtils.hpp
     GCode/ToolOrderUtils.cpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
 )
 
 if (APPLE)
