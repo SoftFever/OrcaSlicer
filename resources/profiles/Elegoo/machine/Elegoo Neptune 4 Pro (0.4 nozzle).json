@@ -53,7 +53,7 @@
 	
 	"change_filament_gcode": "M600",
 	"machine_pause_gcode": "PAUSE",
-	"machine_start_gcode": ";ELEGOO NEPTUNE 4\nPRINT_START\nM220 S100 ;Set the feed speed to 100%\nM221 S100 ;Set the flow rate to 100%\nM104 S120\nM190 S[bed_temperature_initial_layer_single]\n\nG90\nG28 ;home\nG1 X50.5 Y0.5 Z0.4 F6000 ;Move to start position\nG1 X55.5 F600\nM109 S[nozzle_temperature_initial_layer]\nG1 E5 F600 ;prime Nozzle\nG92 E0 ;Reset Extruder\n\nG1 X167.5 E40 F400 ;Draw the first line\nG1 Z0.6 F120.0 ;Move to side a little\nG1 X162.5 F3000\nG92 E0 ;Reset Extruder",
+	"machine_start_gcode": ";ELEGOO NEPTUNE 4 PRO\nPRINT_START\nM220 S100 ;Set the feed speed to 100%\nM221 S100 ;Set the flow rate to 100%\nM104 S120\nM190 S[bed_temperature_initial_layer_single]\n\nG90\nG28 ;home\nG1 X50.5 Y0.5 Z0.4 F6000 ;Move to start position\nG1 X55.5 F600\nM109 S[nozzle_temperature_initial_layer]\nG1 E5 F600 ;prime Nozzle\nG92 E0 ;Reset Extruder\n\nG1 X167.5 E40 F400 ;Draw the first line\nG1 Z0.6 F120.0 ;Move to side a little\nG1 X162.5 F3000\nG92 E0 ;Reset Extruder",
 	"machine_end_gcode": ";PRINT_END\nG91 ;Relative positionning\nG1 E-2 F2700 ;Retract a bit\nG1 E-8 X5 Y5 Z3 F3000 ;Retract\nG90 ;Absolute positionning\nG1 X10 Y220 F6000;Finish print\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
 	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0\n;[layer_z]\n\n",
 	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
