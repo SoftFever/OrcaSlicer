@@ -97,6 +97,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
+const std::string GCodeProcessor::VFlush_Start_Tag = " VFLUSH_START";
+const std::string GCodeProcessor::VFlush_End_Tag  = " VFLUSH_END";
 
 //Orca: External device purge tag
 const std::string GCodeProcessor::External_Purge_Tag = " EXTERNAL_PURGE";
@@ -1226,6 +1228,7 @@ void GCodeProcessor::reset()
     m_cached_position.reset();
     m_wiping = false;
     m_flushing = false;
+    m_virtual_flushing = false;
     m_wipe_tower = false;
     m_remaining_volume = { 0.f,0.f };
     // BBS: arc move related data
@@ -1864,9 +1867,23 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
     else {
         const std::string &comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';')
-            // Process tags embedded into comments. Tag comments always start at the start of a line
-            // with a comment and continue with a tag without any whitespace separator.
-            process_tags(comment.substr(1), producers_enabled);
+        {
+            GCodeReader reader;
+            GCodeReader::GCodeLine new_line;
+            reader.parse_line(line.raw().substr(1), [&new_line](const auto& greader, const auto& gline){
+                    new_line = gline;
+                });
+            std::string_view cmd = new_line.cmd();
+
+            if (cmd == "VG1") {
+                process_VG1(new_line);
+            }
+            else {
+                // Process tags embedded into comments. Tag comments always start at the start of a line
+                // with a comment and continue with a tag without any whitespace separator.
+                process_tags(comment.substr(1), producers_enabled);
+            }
+        }
     }
 }
 
@@ -2051,6 +2068,16 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     //BBS: flush end tag
     if (boost::starts_with(comment, GCodeProcessor::Flush_End_Tag)) {
         m_flushing = false;
+        return;
+    }
+
+    if (boost::starts_with(comment, GCodeProcessor::VFlush_Start_Tag)) {
+        m_virtual_flushing = true;
+        return;
+    }
+
+    if (boost::starts_with(comment, GCodeProcessor::VFlush_End_Tag)) {
+        m_virtual_flushing = false;
         return;
     }
     
@@ -3126,6 +3153,320 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 
     // store move
     store_move_vertex(type);
+}
+
+void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
+{
+    int filament_id = get_filament_id();
+    int last_filament_id = get_last_filament_id();
+    float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
+    float filament_radius = 0.5f * filament_diameter;
+    float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
+
+    auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
+        bool is_relative = (m_global_positioning_type == EPositioningType::Relative);
+        if (axis == E)
+            is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
+
+        if (lineG1.has(Slic3r::Axis(axis))) {
+            float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
+            float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
+            return is_relative ? m_start_position[axis] + ret : m_origin[axis] + ret;
+        }
+        else
+            return m_start_position[axis];
+        };
+
+    auto move_type = [this](const AxisCoords& delta_pos) {
+        EMoveType type = EMoveType::Noop;
+
+        if (m_wiping)
+            type = EMoveType::Wipe;
+        else if (delta_pos[E] < 0.0f)
+            type = (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
+        else if (delta_pos[E] > 0.0f) {
+            if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f)
+                type = (delta_pos[Z] == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
+            else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f)
+                type = EMoveType::Extrude;
+        }
+        else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f)
+            type = EMoveType::Travel;
+
+        return type;
+        };
+
+    ++m_g1_line_id;
+
+    // enable processing of lines M201/M203/M204/M205
+    m_time_processor.machine_envelope_processing_enabled = true;
+
+    // updates axes positions from line
+    for (unsigned char a = X; a <= E; ++a) {
+        m_end_position[a] = absolute_position((Axis)a, line);
+    }
+
+    // updates feedrate from line, if present
+    if (line.has_f())
+        m_feedrate = line.f() * MMMIN_TO_MMSEC;
+
+    // calculates movement deltas
+    float max_abs_delta = 0.0f;
+    AxisCoords delta_pos;
+    for (unsigned char a = X; a <= E; ++a) {
+        delta_pos[a] = m_end_position[a] - m_start_position[a];
+        max_abs_delta = std::max<float>(max_abs_delta, std::abs(delta_pos[a]));
+    }
+
+    // no displacement, return
+    if (max_abs_delta == 0.0f)
+        return;
+
+    EMoveType type = move_type(delta_pos);
+    // BBS: now we only support virtual flush
+    if (EMoveType::Unretract == type && m_virtual_flushing) {
+        int extruder_id = get_extruder_id();
+        float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
+        if (m_remaining_volume[extruder_id] > volume_flushed_filament)
+        {
+            m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
+            m_remaining_volume[extruder_id] -= volume_flushed_filament;
+        }
+        else {
+            m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
+            m_used_filaments.update_flush_per_filament(filament_id, volume_flushed_filament - m_remaining_volume[extruder_id]);
+            m_remaining_volume[extruder_id] = 0.f;
+        }
+    }
+
+    if (line.has_f())
+        m_feedrate = line.f() * MMMIN_TO_MMSEC;
+
+    // time estimate section
+    auto move_length = [](const AxisCoords& delta_pos) {
+        float sq_xyz_length = sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]);
+        return (sq_xyz_length > 0.0f) ? std::sqrt(sq_xyz_length) : std::abs(delta_pos[E]);
+    };
+
+    auto is_extrusion_only_move = [](const AxisCoords& delta_pos) {
+        return delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f && delta_pos[Z] == 0.0f && delta_pos[E] != 0.0f;
+    };
+
+    float distance = move_length(delta_pos);
+    assert(distance != 0.0f);
+    float inv_distance = 1.0f / distance;
+
+    for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+        TimeMachine& machine = m_time_processor.machines[i];
+        if (!machine.enabled)
+            continue;
+
+        TimeMachine::State& curr = machine.curr;
+        TimeMachine::State& prev = machine.prev;
+        std::vector<TimeBlock>& blocks = machine.blocks;
+
+        curr.feedrate = (delta_pos[E] == 0.0f) ?
+            minimum_travel_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), m_feedrate) :
+            minimum_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), m_feedrate);
+
+        //BBS: calculeta enter and exit direction
+        curr.enter_direction = { static_cast<float>(delta_pos[X]), static_cast<float>(delta_pos[Y]), static_cast<float>(delta_pos[Z]) };
+        float norm = curr.enter_direction.norm();
+        if (!is_extrusion_only_move(delta_pos))
+            curr.enter_direction = curr.enter_direction / norm;
+        curr.exit_direction = curr.enter_direction;
+
+        TimeBlock block;
+        block.move_type = type;
+        //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
+        block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
+        block.distance = distance;
+        block.g1_line_id = m_g1_line_id;
+        block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.flags.prepare_stage = m_processing_start_custom_gcode;
+
+        //BBS: limite the cruise according to centripetal acceleration
+        //Only need to handle when both prev and curr segment has movement in x-y plane
+        if ((prev.exit_direction(0) != 0.0f || prev.exit_direction(1) != 0.0f) &&
+            (curr.enter_direction(0) != 0.0f || curr.enter_direction(1) != 0.0f)) {
+            Vec3f v1 = prev.exit_direction;
+            v1(2, 0) = 0.0f;
+            v1.normalize();
+            Vec3f v2 = curr.enter_direction;
+            v2(2, 0) = 0.0f;
+            v2.normalize();
+            float norm_diff = (v2 - v1).norm();
+            //BBS: don't need to consider limitation of centripetal acceleration
+            //when angle changing is larger than 28.96 degree or two lines are almost collinear.
+            //Attention!!! these two value must be same with MC side.
+            if (norm_diff < 0.5f && norm_diff > 0.00001f) {
+                //BBS: calculate angle
+                float dot = v1(0) * v2(0) + v1(1) * v2(1);
+                float cross = v1(0) * v2(1) - v1(1) * v2(0);
+                float angle = float(atan2(double(cross), double(dot)));
+                float sin_theta_2 = sqrt((1.0f - cos(angle)) * 0.5f);
+                float r = sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y])) * 0.5 / sin_theta_2;
+                float acc = get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+                curr.feedrate = std::min(curr.feedrate, sqrt(acc * r));
+            }
+        }
+
+        // calculates block cruise feedrate
+        float min_feedrate_factor = 1.0f;
+        for (unsigned char a = X; a <= E; ++a) {
+            curr.axis_feedrate[a] = curr.feedrate * delta_pos[a] * inv_distance;
+            if (a == E)
+                curr.axis_feedrate[a] *= machine.extrude_factor_override_percentage;
+
+            curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
+            if (curr.abs_axis_feedrate[a] != 0.0f) {
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), m_extruder_id);
+                if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
+            }
+        }
+        //BBS: update curr.feedrate
+        curr.feedrate *= min_feedrate_factor;
+        block.feedrate_profile.cruise = curr.feedrate;
+
+        if (min_feedrate_factor < 1.0f) {
+            for (unsigned char a = X; a <= E; ++a) {
+                curr.axis_feedrate[a] *= min_feedrate_factor;
+                curr.abs_axis_feedrate[a] *= min_feedrate_factor;
+            }
+        }
+
+        // calculates block acceleration
+        float acceleration =
+            (type == EMoveType::Travel) ? get_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)) :
+            (is_extrusion_only_move(delta_pos) ?
+                get_retract_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)) :
+                get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)));
+
+        //BBS
+        for (unsigned char a = X; a <= E; ++a) {
+            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), m_extruder_id);
+            if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
+                acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
+        }
+
+        block.acceleration = acceleration;
+
+        // calculates block exit feedrate
+        curr.safe_feedrate = block.feedrate_profile.cruise;
+
+        for (unsigned char a = X; a <= E; ++a) {
+            float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+            if (curr.abs_axis_feedrate[a] > axis_max_jerk)
+                curr.safe_feedrate = std::min(curr.safe_feedrate, axis_max_jerk);
+        }
+
+        block.feedrate_profile.exit = curr.safe_feedrate;
+
+        static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
+
+        // calculates block entry feedrate
+        float vmax_junction = curr.safe_feedrate;
+        if (!blocks.empty() && prev.feedrate > PREVIOUS_FEEDRATE_THRESHOLD) {
+            bool prev_speed_larger = prev.feedrate > block.feedrate_profile.cruise;
+            float smaller_speed_factor = prev_speed_larger ? (block.feedrate_profile.cruise / prev.feedrate) : (prev.feedrate / block.feedrate_profile.cruise);
+            // Pick the smaller of the nominal speeds. Higher speed shall not be achieved at the junction during coasting.
+            vmax_junction = prev_speed_larger ? block.feedrate_profile.cruise : prev.feedrate;
+
+            float v_factor = 1.0f;
+            bool limited = false;
+
+            for (unsigned char a = X; a <= E; ++a) {
+                // Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
+                if (a == X) {
+                    Vec3f exit_v = prev.feedrate * (prev.exit_direction);
+                    if (prev_speed_larger)
+                        exit_v *= smaller_speed_factor;
+                    Vec3f entry_v = block.feedrate_profile.cruise * (curr.enter_direction);
+                    Vec3f jerk_v = entry_v - exit_v;
+                    jerk_v = Vec3f(abs(jerk_v.x()), abs(jerk_v.y()), abs(jerk_v.z()));
+                    Vec3f max_xyz_jerk_v = get_xyz_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+
+                    for (size_t i = 0; i < 3; i++)
+                    {
+                        if (jerk_v[i] > max_xyz_jerk_v[i]) {
+                            v_factor *= max_xyz_jerk_v[i] / jerk_v[i];
+                            jerk_v *= v_factor;
+                            limited = true;
+                        }
+                    }
+                }
+                else if (a == Y || a == Z) {
+                    continue;
+                }
+                else {
+                    float v_exit = prev.axis_feedrate[a];
+                    float v_entry = curr.axis_feedrate[a];
+
+                    if (prev_speed_larger)
+                        v_exit *= smaller_speed_factor;
+
+                    if (limited) {
+                        v_exit *= v_factor;
+                        v_entry *= v_factor;
+                    }
+
+                    // Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
+                    float jerk =
+                        (v_exit > v_entry) ?
+                        (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
+                            // coasting
+                            (v_exit - v_entry) :
+                            // axis reversal
+                            std::max(v_exit, -v_entry)) :
+                        // v_exit <= v_entry
+                        (((v_entry < 0.0f) || (v_exit > 0.0f)) ?
+                            // coasting
+                            (v_entry - v_exit) :
+                            // axis reversal
+                            std::max(-v_exit, v_entry));
+
+
+                    float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                    if (jerk > axis_max_jerk) {
+                        v_factor *= axis_max_jerk / jerk;
+                        limited = true;
+                    }
+                }
+            }
+
+            if (limited)
+                vmax_junction *= v_factor;
+
+            // Now the transition velocity is known, which maximizes the shared exit / entry velocity while
+            // respecting the jerk factors, it may be possible, that applying separate safe exit / entry velocities will achieve faster prints.
+            float vmax_junction_threshold = vmax_junction * 0.99f;
+
+            // Not coasting. The machine will stop and start the movements anyway, better to start the segment from start.
+            if (prev.safe_feedrate > vmax_junction_threshold && curr.safe_feedrate > vmax_junction_threshold)
+                vmax_junction = curr.safe_feedrate;
+        }
+
+        float v_allowable = max_allowable_speed(-acceleration, curr.safe_feedrate, block.distance);
+        block.feedrate_profile.entry = std::min(vmax_junction, v_allowable);
+
+        block.max_entry_speed = vmax_junction;
+        block.flags.nominal_length = (block.feedrate_profile.cruise <= v_allowable);
+        block.flags.recalculate = true;
+        block.safe_feedrate = curr.safe_feedrate;
+
+        // calculates block trapezoid
+        block.calculate_trapezoid();
+
+        // updates previous
+        prev = curr;
+
+        blocks.push_back(block);
+
+        if (blocks.size() > TimeProcessor::Planner::refresh_threshold)
+            machine.calculate_time(TimeProcessor::Planner::queue_size);
+    }
+
+    // do not save the move
 }
 
 // BBS: this function is absolutely new for G2 and G3 gcode
