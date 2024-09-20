@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <array>
+#include <unordered_map>
 #include <istream>
 
 namespace ObjParser {
@@ -16,22 +18,39 @@ struct ObjVertex
 
 inline bool operator==(const ObjVertex &v1, const ObjVertex &v2)
 {
-	return 
-		v1.coordIdx			== v2.coordIdx			&& 
-		v1.textureCoordIdx	== v2.textureCoordIdx	&& 
+	return  v1.coordIdx		== v2.coordIdx			&&
+		v1.textureCoordIdx	== v2.textureCoordIdx	&&
 		v1.normalIdx		== v2.normalIdx;
 }
 
 struct ObjUseMtl
 {
 	int			vertexIdxFirst;
+    int         vertexIdxEnd{-1};
+    int         face_start;
+    int         face_end{-1};
 	std::string name;
+};
+
+struct ObjNewMtl
+{
+    std::string name;
+    float       Ns;
+    float       Ni;
+    float       d;
+    float       illum;
+    float       Tr{1.0f}; //    Transmission
+    std::array<float, 3>  Tf;
+    std::array<float, 3>  Ka;
+    std::array<float, 3>  Kd;
+    std::array<float, 3>  Ks;
+    std::array<float, 3>  Ke;
+    std::string           map_Kd;//defalut png
 };
 
 inline bool operator==(const ObjUseMtl &v1, const ObjUseMtl &v2)
 {
-	return 
-		v1.vertexIdxFirst	== v2.vertexIdxFirst	&& 
+	return v1.vertexIdxFirst	== v2.vertexIdxFirst	&&
 		v1.name.compare(v2.name) == 0;
 }
 
@@ -56,8 +75,7 @@ struct ObjGroup
 
 inline bool operator==(const ObjGroup &v1, const ObjGroup &v2)
 {
-	return 
-		v1.vertexIdxFirst	== v2.vertexIdxFirst	&& 
+	return v1.vertexIdxFirst	== v2.vertexIdxFirst &&
 		v1.name.compare(v2.name) == 0;
 }
 
@@ -69,17 +87,19 @@ struct ObjSmoothingGroup
 
 inline bool operator==(const ObjSmoothingGroup &v1, const ObjSmoothingGroup &v2)
 {
-	return 
-		v1.vertexIdxFirst	== v2.vertexIdxFirst	&& 
+	return v1.vertexIdxFirst	== v2.vertexIdxFirst	&&
 		v1.smoothingGroupID == v2.smoothingGroupID;
 }
-
+#define OBJ_VERTEX_COLOR_ALPHA 6
+#define OBJ_VERTEX_LENGTH   7  // x, y, z, color_x,color_y,color_z,color_w
+#define ONE_FACE_SIZE 4//ONE_FACE format: f 8/4/6 7/3/6 6/2/6 -1/-1/-1
 struct ObjData {
 	// Version of the data structure for load / store in the private binary format.
 	int								version;
 
-	// x, y, z, w
+	// x, y, z, color_x,color_y,color_z,color_w
 	std::vector<float>				coordinates;
+    bool                            has_vertex_color{false};
 	// u, v, w
 	std::vector<float>				textureCoordinates;
 	// x, y, z
@@ -97,7 +117,14 @@ struct ObjData {
 	std::vector<ObjVertex>			vertices;
 };
 
+struct MtlData
+{
+    // Version of the data structure for load / store in the private binary format.
+    int version;
+    std::unordered_map<std::string, std::shared_ptr<ObjNewMtl>> new_mtl_unmap;
+};
 extern bool objparse(const char *path, ObjData &data);
+extern bool mtlparse(const char *path, MtlData &data);
 extern bool objparse(std::istream &stream, ObjData &data);
 
 extern bool objbinsave(const char *path, const ObjData &data);

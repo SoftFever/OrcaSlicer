@@ -103,9 +103,6 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
                 if (!j["message"].is_null())
                     message = j["message"].get<std::string>();
             }
-            switch (status) {
-                ;
-            }
         }
         catch (...) {
             ;
@@ -114,7 +111,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             return _L("Service Unavailable");
         }
         else {
-            wxString unkown_text = _L("Unkown Error.");
+            wxString unkown_text = _L("Unknown Error.");
             unkown_text += wxString::Format("status=%u, body=%s", status, body);
             BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
             return unkown_text;
@@ -150,7 +147,6 @@ void PrintJob::process(Ctl &ctl)
     ctl.call_on_main_thread([this] { prepare(); }).wait();
 
     int result = -1;
-    unsigned int http_code;
     std::string http_body;
 
     int total_plate_num = plate_data.plate_count;
@@ -281,15 +277,42 @@ void PrintJob::process(Ctl &ctl)
         }
     }
 
+    params.stl_design_id = 0;
     if (!wxGetApp().model().stl_design_id.empty()) {
-       int stl_design_id = 0;
-        try {
-            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+
+        auto country_code = wxGetApp().app_config->get_country_code();
+        bool match_code = false;
+
+        if (wxGetApp().model().stl_design_country == "DEV" && (country_code == "ENV_CN_DEV" || country_code == "NEW_ENV_DEV_HOST")) {
+            match_code = true;
         }
-        catch (const std::exception& e) {
-            stl_design_id = 0;
+
+        if (wxGetApp().model().stl_design_country == "QA" && (country_code == "ENV_CN_QA" || country_code == "NEW_ENV_QAT_HOST")) {
+            match_code = true;
         }
-        params.stl_design_id = stl_design_id;
+
+        if (wxGetApp().model().stl_design_country == "CN_PRE" && (country_code == "ENV_CN_PRE" || country_code == "NEW_ENV_PRE_HOST")) {
+            match_code = true;
+        }
+
+        if (wxGetApp().model().stl_design_country == "US_PRE" && country_code == "ENV_US_PRE") {
+            match_code = true;
+        }
+
+        if (country_code == wxGetApp().model().stl_design_country) {
+            match_code = true;
+        }
+
+        if (match_code) {
+            int stl_design_id = 0;
+            try {
+                stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+            }
+            catch (const std::exception&) {
+                stl_design_id = 0;
+            }
+            params.stl_design_id = stl_design_id;
+        }
     }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
@@ -420,7 +443,7 @@ void PrintJob::process(Ctl &ctl)
             std::string curr_job_id;
             json job_info_j;
             try {
-                job_info_j.parse(job_info);
+                std::ignore = job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
                     curr_job_id = job_info_j["job_id"].get<std::string>();
                 }
@@ -470,7 +493,12 @@ void PrintJob::process(Ctl &ctl)
 
 
         //use ftp only
-        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+        if (m_print_type == "from_sdcard_view") {
+            BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
+            ctl.update_status(curr_percent, _u8L("Sending print job through cloud service"));
+            result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
+        }
+        else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
                 error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);

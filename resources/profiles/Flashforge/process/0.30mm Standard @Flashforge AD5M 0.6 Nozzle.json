@@ -7,5 +7,7 @@
   "instantiation": "true",
   "compatible_printers": [
     "Flashforge Adventurer 5M 0.6 Nozzle"
-  ]
+  ],
+  "only_one_wall_top": "0",
+  "infill_wall_overlap": "50%"
 }

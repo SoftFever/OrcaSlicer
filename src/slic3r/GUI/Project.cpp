@@ -266,7 +266,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         }
 
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }

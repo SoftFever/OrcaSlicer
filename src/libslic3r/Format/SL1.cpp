@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "SL1.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/Time.hpp"
@@ -303,7 +299,7 @@ ConfigSubstitutions import_sla_archive(const std::string &zipfname, DynamicPrint
 // function return if the archive did not contain any profile.
 ConfigSubstitutions import_sla_archive(
     const std::string &      zipfname,
-    Vec2i                    windowsize,
+    Vec2i32                    windowsize,
     indexed_triangle_set &           out,
     DynamicPrintConfig &     profile_out,
     std::function<bool(int)> progr)

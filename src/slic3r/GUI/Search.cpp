@@ -395,13 +395,15 @@ void OptionsSearcher::add_key(const std::string &opt_key, Preset::Type type, con
 //          SearchItem
 //------------------------------------------
 
-SearchItem::SearchItem(wxWindow *parent, wxString text, int index, SearchDialog* sdialog, SearchObjectDialog* search_dialog)
+SearchItem::SearchItem(wxWindow *parent, wxString text, int index, SearchDialog* sdialog, SearchObjectDialog* search_dialog, wxString tooltip)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(parent->GetSize().GetWidth(), 3 * GUI::wxGetApp().em_unit()))
 {
     m_sdialog = sdialog;
     m_search_object_dialog = search_dialog;
     m_text  = text;
     m_index = index;
+
+    this->SetToolTip(tooltip);
 
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     Bind(wxEVT_ENTER_WINDOW, &SearchItem::on_mouse_enter, this);
@@ -492,7 +494,7 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
 void SearchItem::on_mouse_enter(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -504,7 +506,7 @@ void SearchItem::on_mouse_leave(wxMouseEvent &evt)
 
 void SearchItem::on_mouse_left_down(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(228, 228, 228)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); // ORCA color with %25 opacity
     Refresh();
 }
 
@@ -814,7 +816,6 @@ void SearchDialog::OnCheck(wxCommandEvent &event)
 void SearchDialog::OnMotion(wxMouseEvent &event)
 {
     wxDataViewItem    item;
-    wxDataViewColumn *col;
     wxWindow *        win = this;
 
     // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
@@ -864,7 +865,7 @@ void SearchDialog::msw_rescale()
 SearchListModel::SearchListModel(wxWindow *parent) : wxDataViewVirtualListModel(0)
 {
     int icon_id = 0;
-    for (const std::string &icon : {"cog", "printer", "printer", "spool", "blank_16"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
+    for (const std::string icon : {"cog", "printer", "printer", "spool", "blank_16"}) m_icon[icon_id++] = ScalableBitmap(parent, icon);
 }
 
 void SearchListModel::Clear()
@@ -997,13 +998,11 @@ void SearchObjectDialog::update_list()
     m_listPanel->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_color));
     m_listPanel->SetSize(wxSize(m_scrolledWindow->GetSize().GetWidth(), -1));
 
-    const std::vector<std::pair<GUI::ObjectDataViewModelNode*, wxString>>& found = m_object_list->GetModel()->get_found_list();
+    const std::vector<std::tuple<GUI::ObjectDataViewModelNode*, wxString, wxString>>& found = m_object_list->GetModel()->get_found_list();
     auto                            index = 0;
-    for (const auto& item : found) {
-        GUI::ObjectDataViewModelNode* data_item = item.first;
-        wxString data_str = item.second;
-        auto     tmp = new SearchItem(m_listPanel, data_str, index, nullptr, this);
-        tmp->m_item = data_item;
+    for (const auto& [model_node, name, tip] : found) {
+        auto     tmp = new SearchItem(m_listPanel, name, index, nullptr, this, tip);
+        tmp->m_item = model_node;
         m_listsizer->Add(tmp, 0, wxEXPAND, 0);
         index++;
     }

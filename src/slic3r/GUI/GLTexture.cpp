@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 //BBS:add i18n
 #include "I18N.hpp"
 //BBS: add fstream for debug output
@@ -474,7 +470,6 @@ void GLTexture::reset()
 
 bool GLTexture::generate_from_text_string(const std::string& text_str, wxFont &font, wxColor background, wxColor foreground)
 {
-    int w,h,hl;
     return generate_from_text(text_str, font, background, foreground);
 }
 

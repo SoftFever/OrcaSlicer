@@ -17,7 +17,7 @@ END_EVENT_TABLE()
 static wxColour BORDER_HOVER_COL = wxColour(0, 150, 136);
 
 const static wxColour TAB_BUTTON_BG    = wxColour("#FEFFFF");
-const static wxColour TAB_BUTTON_SEL   = wxColour(219, 253, 213, 255);
+const static wxColour TAB_BUTTON_SEL   = wxColour("#BFE1DE"); // ORCA
 
 TabButton::TabButton()
     : paddingSize(43, 16)
@@ -29,7 +29,7 @@ TabButton::TabButton()
         std::make_pair(wxColour("#FEFFFF"), (int) StateColor::Normal));
 
     border_color = StateColor(
-        std::make_pair(wxColour("#FEFFFF"), (int) StateColor::Checked),
+        std::make_pair(TAB_BUTTON_SEL, (int) StateColor::Checked), // ORCA use same color for border to prevent 1px blank border
         std::make_pair(BORDER_HOVER_COL, (int) StateColor::Hovered),
         std::make_pair(wxColour("#FEFFFF"), (int)StateColor::Normal));
 }
@@ -43,6 +43,7 @@ TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long 
 bool TabButton::Create(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+    newtag_img = ScalableBitmap(this, "monitor_hms_new",7);
     state_handler.attach({&text_color, &border_color});
     state_handler.update_binds();
     //BBS set default font
@@ -169,10 +170,17 @@ void TabButton::render(wxDC &dc)
         dc.DrawText(text, pt);
     }
 
-    if (icon.bmp().IsOk()) {
-        pt.x = size.x - icon.GetBmpWidth() - paddingSize.y;
-        pt.y = (size.y - icon.GetBmpHeight()) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+    wxBitmap showimg = icon.bmp();
+    int offset_left = 0;
+    if (show_new_tag) {
+        showimg = newtag_img.bmp();
+        offset_left = FromDIP(4);
+    }
+
+    if (showimg.IsOk()) {
+        pt.x = size.x - showimg.GetWidth() - paddingSize.y - offset_left;
+        pt.y = (size.y - showimg.GetHeight()) / 2;
+        dc.DrawBitmap(showimg, pt);
     }
 }
 

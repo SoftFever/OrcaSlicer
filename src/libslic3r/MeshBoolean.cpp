@@ -6,6 +6,7 @@
 #undef PI
 
 #include <boost/next_prior.hpp>
+#include "boost/log/trivial.hpp"
 // Include igl first. It defines "L" macro which then clashes with our localization
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #undef L
@@ -27,7 +28,6 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 // BBS: for boolean using mcut
 #include "mcut/include/mcut/mcut.h"
-#include "boost/log/trivial.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -210,7 +210,7 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
-        Vec3i facet;
+        Vec3i32 facet;
         for (auto v : vtc) {
             int iv = v;
             if (i > 2 || iv < 0 || iv >= vsize) { i = 0; break; }
@@ -550,7 +550,7 @@ TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh)
     int faceVertexOffsetBase = 0;
 
     // for each face in CC
-    std::vector<Vec3i> faces(ccFaceCount);
+    std::vector<Vec3i32> faces(ccFaceCount);
     for (uint32_t f = 0; f < ccFaceCount; ++f) {
         int faceSize = faceSizes.at(f);
 
@@ -730,7 +730,7 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
         int faceVertexOffsetBase = 0;
 
         // for each face in CC
-        std::vector<Vec3i> faces(ccFaceCount);
+        std::vector<Vec3i32> faces(ccFaceCount);
         for (uint32_t f = 0; f < ccFaceCount; ++f) {
             bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
             int  faceSize            = faceSizes.at(f);
@@ -782,7 +782,7 @@ void do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
             auto src_part = triangle_mesh_to_mcut(src_parts[i]);
             for (size_t j = 0; j < cut_parts.size(); j++) {
                 auto cut_part = triangle_mesh_to_mcut(cut_parts[j]);
-                bool success = do_boolean_single(*src_part, *cut_part, boolean_opts);
+                do_boolean_single(*src_part, *cut_part, boolean_opts);
             }
             TriangleMesh tri_part = mcut_to_triangle_mesh(*src_part);
             its_merge(all_its, tri_part.its);
@@ -811,7 +811,9 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     triangle_mesh_to_mcut(cut_mesh, cutMesh);
     //dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
     do_boolean(srcMesh, cutMesh, boolean_opts);
-    dst_mesh.push_back(mcut_to_triangle_mesh(srcMesh));
+    TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
+    if (!tri_src.empty())
+        dst_mesh.push_back(std::move(tri_src));
 }
 
 } // namespace mcut

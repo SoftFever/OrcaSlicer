@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "GLGizmoEmboss.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -264,7 +260,7 @@ struct GuiCfg
     float        max_tooltip_width                    = 0.f;
 
     // maximal width and height of style image
-    Vec2i max_style_image_size = Vec2i(0, 0);
+    Vec2i32 max_style_image_size = Vec2i32(0, 0);
 
     float indent                = 0.f;
     float input_offset          = 0.f;
@@ -274,7 +270,7 @@ struct GuiCfg
     ImVec2 text_size;
 
     // maximal size of face name image
-    Vec2i face_name_size             = Vec2i(0, 0);
+    Vec2i32 face_name_size             = Vec2i32(0, 0);
     float face_name_texture_offset_x = 0.f;
 
     // maximal texture generate jobs running at once
@@ -1567,7 +1563,7 @@ void GLGizmoEmboss::init_font_name_texture() {
     glsafe(::glBindTexture(target, id));
     glsafe(::glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     glsafe(::glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    const Vec2i &size = m_gui_cfg->face_name_size;
+    const Vec2i32 &size = m_gui_cfg->face_name_size;
     GLint w = size.x(), h = m_face_names->count_cached_textures * size.y();
     std::vector<unsigned char> data(4*w * h, {0});
     const GLenum format = GL_RGBA, type = GL_UNSIGNED_BYTE;
@@ -3061,7 +3057,7 @@ bool GLGizmoEmboss::choose_font_by_wxdialog()
 }
 #endif // ALLOW_ADD_FONT_BY_OS_SELECTOR
 
-#if defined ALLOW_ADD_FONT_BY_FILE or defined ALLOW_DEBUG_MODE
+#if defined ALLOW_ADD_FONT_BY_FILE || defined ALLOW_DEBUG_MODE
 namespace priv {
 static std::string get_file_name(const std::string &file_path)
 {
@@ -3121,7 +3117,7 @@ void GLGizmoEmboss::create_notification_not_valid_font(
     const std::string &face_name = face_name_opt.value_or(face_name_by_wx.value_or(es.path));
     std::string text =
         GUI::format(_L("Can't load exactly same font(\"%1%\"). "
-                       "Aplication selected a similar one(\"%2%\"). "
+                       "Application selected a similar one(\"%2%\"). "
                        "You have to specify font for enable edit text."),
                     face_name_3mf, face_name);
     create_notification_not_valid_font(text);
@@ -3163,7 +3159,7 @@ void GLGizmoEmboss::init_icons()
         "make_unbold.svg",   
         "search.svg",
         "open.svg", 
-        "exclamation.svg",   
+        "obj_warning.svg",  // ORCA: use obj_warning instead exclamation. exclamation is not compatible with low res
         "lock_closed.svg",  // lock,
         "lock_closed_f.svg",// lock_bold,
         "lock_open.svg",    // unlock,
@@ -3698,8 +3694,8 @@ GuiCfg create_gui_configuration()
 
     int max_style_image_width = static_cast<int>(std::round(cfg.max_style_name_width/2 - 2 * style.FramePadding.x));
     int max_style_image_height = static_cast<int>(std::round(input_height));
-    cfg.max_style_image_size = Vec2i(max_style_image_width, line_height);
-    cfg.face_name_size = Vec2i(cfg.input_width, line_height_with_spacing);
+    cfg.max_style_image_size = Vec2i32(max_style_image_width, line_height);
+    cfg.face_name_size = Vec2i32(cfg.input_width, line_height_with_spacing);
     cfg.face_name_texture_offset_x = cfg.face_name_size.x() + space;
 
     cfg.max_tooltip_width = ImGui::GetFontSize() * 20.0f;

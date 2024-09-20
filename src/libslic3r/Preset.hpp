@@ -4,6 +4,7 @@
 #include <deque>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <mutex>
 #include <boost/filesystem/path.hpp>
@@ -240,6 +241,7 @@ public:
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
     std::string         custom_defined;  // enum: "1", "0", ""
+    std::string         description;     // 
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
@@ -318,6 +320,15 @@ public:
     bool has_cali_lines(PresetBundle* preset_bundle);
 
 
+    static double convert_pellet_flow_to_filament_diameter(double pellet_flow_coefficient)
+    {
+        return sqrt(4 / (PI * pellet_flow_coefficient)); 
+    }
+
+    static double convert_filament_diameter_to_pellet_flow(double filament_diameter)
+    {
+        return 4 / (pow(filament_diameter, 2) * PI); 
+    }
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();
@@ -554,6 +565,8 @@ public:
 
     const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
 	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
+    bool                    is_alias_exist(const std::string &alias, Preset* preset = nullptr);
+    void                    set_printer_hold_alias(const std::string &alias, Preset &preset);
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
@@ -705,6 +718,8 @@ protected:
     // Update m_map_system_profile_renamed from loaded system profiles.
     void 			update_map_system_profile_renamed();
 
+    void            set_custom_preset_alias(Preset &preset);
+
 private:
     // Find a preset position in the sorted list of presets.
     // The "-- default -- " preset is always the first, so it needs
@@ -748,7 +763,8 @@ private:
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<Preset>      m_presets;
     // System profiles may have aliases. Map to the full profile name.
-    std::vector<std::pair<std::string, std::string>> m_map_alias_to_profile_name;
+    std::map<std::string, std::vector<std::string>> m_map_alias_to_profile_name;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_printer_hold_alias;
     // Map from old system profile name to a current system profile name.
     std::map<std::string, std::string> m_map_system_profile_renamed;
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.

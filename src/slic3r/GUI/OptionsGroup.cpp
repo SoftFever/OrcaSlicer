@@ -289,7 +289,7 @@ void OptionsGroup::activate_line(Line& line)
 	// Set sidetext width for a better alignment of options in line
 	// "m_show_modified_btns==true" means that options groups are in tabs
 	if (option_set.size() > 1 && m_use_custom_ctrl) {
-        // sublabel_width = Field::def_width();
+        sublabel_width = Field::def_width() + 1;
         sidetext_width = Field::def_width_thinner();
 	}
 
@@ -483,7 +483,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 			// BBS: new layout
 			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title), icon);
             stl->SetFont(Label::Head_14);
-            stl->SetForegroundColour("#262E30");
+            stl->SetForegroundColour("#363636"); // ORCA Match Parameters title color with tab title color 
             sizer = new wxBoxSizer(wxVERTICAL);
             if (title.IsEmpty()) {
                 stl->Hide();
@@ -532,6 +532,9 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 
 	return true;
 }
+
+void free_window(wxWindow *win);
+
 // delete all controls from the option group
 void OptionsGroup::clear(bool destroy_custom_ctrl)
 {
@@ -560,8 +563,10 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
     if (custom_ctrl) {
         for (auto const &item : m_fields) {
             wxWindow* win = item.second.get()->getWindow();
-            if (win)
+            if (win) {
+                free_window(win);
                 win = nullptr;
+            }
         }
 		//BBS: custom_ctrl already destroyed from sizer->clear(), no need to destroy here anymore
 		if (destroy_custom_ctrl)
@@ -692,8 +697,9 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
                  opt_key == "printable_area" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ||
                  opt_key == "thumbnails" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
         value = get_config_value(config, opt_key);
-        this->change_opt_value(opt_key, value);
-        OptionsGroup::on_change_OG(opt_key, value);
+        set_value(opt_key, value);
+        this->change_opt_value(opt_key, get_value(opt_key));
+        OptionsGroup::on_change_OG(opt_key, get_value(opt_key));
         return;
         } else {
         auto opt_id = m_opt_map.find(opt_key)->first;
@@ -1048,6 +1054,11 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             ret = 0;
             break;
         }
+        if (!config.has("other_layers_sequence_choice") && opt_key == "other_layers_sequence_choice") {
+            // reset to Auto value
+            ret = 0;
+            break;
+        }
         if (!config.has("curr_bed_type") && opt_key == "curr_bed_type") {
             // reset to global value
             DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
@@ -1067,8 +1078,6 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		if (opt_key == "printable_area")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else if (opt_key == "bed_exclude_area")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        else if (opt_key == "thumbnails")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
@@ -1182,8 +1191,6 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
         if (opt_key == "printable_area")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else if (opt_key == "bed_exclude_area")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        else if (opt_key == "thumbnails")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else
             ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);

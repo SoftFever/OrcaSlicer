@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/libslic3r.h"
 #include "Selection.hpp"
 
@@ -145,6 +141,17 @@ void Selection::set_model(Model* model)
 {
     m_model = model;
     update_valid();
+}
+
+int Selection::query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx)
+{
+    for (int i = 0; i < m_volumes->size(); i++) {
+        auto v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx && instance_idx == v->instance_idx() && model_volume_idx == v->volume_idx()) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void Selection::add(unsigned int volume_idx, bool as_single_selection, bool check_for_already_contained)
@@ -481,6 +488,12 @@ void Selection::center()
     this->move_to_center(distance);
     wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
     return;
+}
+
+void Selection::drop()
+{
+    this->move_to_center(Vec3d(0, 0, -this->get_bounding_box().min.z()));
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
 }
 
 void Selection::center_plate(const int plate_idx) {
@@ -1988,6 +2001,13 @@ void Selection::copy_to_clipboard()
 
     m_clipboard.reset();
 
+    // sort as the object list order
+    std::vector<unsigned int> selected_list;
+    selected_list.assign(m_list.begin(), m_list.end());
+    std::sort(selected_list.begin(), selected_list.end(), [this](unsigned int left, unsigned int right) {
+        return (*m_volumes)[left]->volume_idx() < (*m_volumes)[right]->volume_idx();
+    });
+
     for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content) {
         ModelObject* src_object = m_model->objects[object.first];
         ModelObject* dst_object = m_clipboard.add_object();
@@ -2005,7 +2025,7 @@ void Selection::copy_to_clipboard()
             dst_object->add_instance(*src_object->instances[i]);
         }
 
-        for (unsigned int i : m_list) {
+        for (unsigned int i : selected_list) {
             // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
             const GLVolume* volume = (*m_volumes)[i];
             if (volume->object_idx() == object.first && volume->instance_idx() == *object.second.begin()) {
@@ -3078,7 +3098,7 @@ void Selection::paste_objects_from_clipboard()
     if (src_objects.size() > 1) {
         BoundingBoxf3 bbox_all;
         for (const ModelObject *src_object : src_objects) {
-            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
             bbox_all.merge(bbox);
         }
         auto bsize = bbox_all.size();
@@ -3094,7 +3114,7 @@ void Selection::paste_objects_from_clipboard()
         ModelObject* dst_object = m_model->add_object(*src_object);
 
         // BBS: find an empty cell to put the copied object
-        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
 
         Vec3d displacement;
         bool  in_current  = plate->intersects(bbox);

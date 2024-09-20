@@ -131,7 +131,8 @@ struct PrintObjectTrafoAndInstances
 };
 
 // Generate a list of trafos and XY offsets for instances of a ModelObject
-static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object(const ModelObject &model_object)
+// Orca: Updated to include XYZ filament shrinkage compensation
+static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object(const ModelObject &model_object, const Vec3d &shrinkage_compensation)
 {
     std::set<PrintObjectTrafoAndInstances> trafos;
     PrintObjectTrafoAndInstances           trafo;
@@ -139,7 +140,10 @@ static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object
     int index = 0;
     for (ModelInstance *model_instance : model_object.instances) {
         if (model_instance->is_printable()) {
-            trafo.trafo = model_instance->get_matrix();
+            // Orca: Updated with XYZ filament shrinkage compensation
+            Geometry::Transformation model_instance_transformation = model_instance->get_transformation();
+            trafo.trafo = model_instance_transformation.get_matrix_with_applied_shrinkage_compensation(shrinkage_compensation);
+            
             auto shift = Point::new_scale(trafo.trafo.data()[12], trafo.trafo.data()[13]);
             // Reset the XY axes of the transformation.
             trafo.trafo.data()[12] = 0;
@@ -235,11 +239,16 @@ static t_config_option_keys print_config_diffs(
             bool overriden = opt_new->overriden_by(opt_new_filament);
             if (overriden || *opt_old != *opt_new) {
                 auto opt_copy = opt_new->clone();
-                opt_copy->apply_override(opt_new_filament);
+                if (!((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                    && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)) // ugly code, remove it later if firmware supports
+                    opt_copy->apply_override(opt_new_filament);
                 bool changed = *opt_old != *opt_copy;
                 if (changed)
                     print_diff.emplace_back(opt_key);
                 if (changed || overriden) {
+                    if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                        && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)
+                        continue;
                     // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
                     filament_overrides.set_key_value(opt_key, opt_copy);
                 } else
@@ -1353,7 +1362,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Walk over all new model objects and check, whether there are matching PrintObjects.
         for (ModelObject *model_object : m_model.objects) {
             ModelObjectStatus &model_object_status = const_cast<ModelObjectStatus&>(model_object_status_db.reuse(*model_object));
-            model_object_status.print_instances    = print_objects_from_model_object(*model_object);
+            // Orca: Updated for XYZ filament shrink compensation
+            model_object_status.print_instances = print_objects_from_model_object(*model_object, this->shrinkage_compensation());
             std::vector<const PrintObjectStatus*> old;
             old.reserve(print_object_status_db.count(*model_object));
             for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(*model_object))
@@ -1493,11 +1503,22 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         std::vector<unsigned int> painting_extruders;
         if (const auto &volumes = print_object.model_object()->volumes;
-            num_extruders  > 1 &&
+            num_extruders > 1 &&
             std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return ! v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
-            //FIXME be more specific! Don't enumerate extruders that are not used for painting!
-            painting_extruders.assign(num_extruders , 0);
-            std::iota(painting_extruders.begin(), painting_extruders.end(), 1);
+
+            std::array<bool, static_cast<size_t>(EnforcerBlockerType::ExtruderMax)> used_facet_states{};
+            for (const ModelVolume *volume : volumes) {
+                const std::vector<bool> &volume_used_facet_states = volume->mmu_segmentation_facets.get_data().used_states;
+
+                assert(volume_used_facet_states.size() == used_facet_states.size());
+                for (size_t state_idx = 0; state_idx < std::min(volume_used_facet_states.size(), used_facet_states.size()); ++state_idx)
+                    used_facet_states[state_idx] |= volume_used_facet_states[state_idx];
+            }
+
+            for (size_t state_idx = static_cast<size_t>(EnforcerBlockerType::Extruder1); state_idx < used_facet_states.size(); ++state_idx) {
+                if (used_facet_states[state_idx])
+                    painting_extruders.emplace_back(state_idx);
+            }
         }
         if (model_object_status.print_object_regions_status == ModelObjectStatus::PrintObjectRegionsStatus::Valid) {
             // Verify that the trafo for regions & volume bounding boxes thus for regions is still applicable.

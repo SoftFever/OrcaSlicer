@@ -11,7 +11,7 @@ using namespace GUI;
 Points CameraUtils::project(const Camera &            camera,
                             const std::vector<Vec3d> &points)
 {
-    Vec4i viewport(camera.get_viewport().data());
+    Vec4i32 viewport(camera.get_viewport().data());
 
     // Convert our std::vector to Eigen dynamic matrix.
     Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::DontAlign>
@@ -100,7 +100,7 @@ void CameraUtils::ray_from_ortho_screen_pos(const Camera &camera, const Vec2d &p
     assert(camera.get_type() == Camera::EType::Ortho);
     Matrix4d modelview  = camera.get_view_matrix().matrix();
     Matrix4d projection = camera.get_projection_matrix().matrix();
-    Vec4i    viewport(camera.get_viewport().data());
+    Vec4i32    viewport(camera.get_viewport().data());
     igl::unproject(screen_point(camera,position), modelview, projection, viewport, point);
     direction = camera.get_dir_forward();
 }
@@ -109,7 +109,7 @@ void CameraUtils::ray_from_persp_screen_pos(const Camera &camera, const Vec2d &p
     assert(camera.get_type() == Camera::EType::Perspective);
     Matrix4d modelview  = camera.get_view_matrix().matrix();
     Matrix4d projection = camera.get_projection_matrix().matrix();
-    Vec4i    viewport(camera.get_viewport().data());
+    Vec4i32    viewport(camera.get_viewport().data());
     igl::unproject(screen_point(camera, position), modelview, projection, viewport, point);
     direction = point - camera.get_position();
 }

@@ -16,9 +16,11 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/UserNotification.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
+#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
@@ -34,6 +36,7 @@
 #define TIMEOUT_RESPONSE            15
 
 #define BE_UNACTED_ON               0x00200001
+#define SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD 80
 #ifndef _MSW_DARK_MODE
     #define _MSW_DARK_MODE            1
 #endif // _MSW_DARK_MODE
@@ -55,8 +58,10 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class Model;
+class UserManager;
 class DeviceManager;
 class NetworkAgent;
+class TaskManager;
 
 namespace GUI{
 
@@ -70,10 +75,12 @@ class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
+class Downloader;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
+class PingCodeBindDialog;
 
 
 enum FileType
@@ -85,6 +92,7 @@ enum FileType
     FT_3MF,
     FT_GCODE,
     FT_MODEL,
+    FT_ZIP,
     FT_PROJECT,
     FT_GALLERY,
 
@@ -229,8 +237,6 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-//import model from mall 
-    wxString       m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
@@ -265,14 +271,18 @@ private:
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
-	//std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
-    //std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
-    //std::string m_instance_hash_string;
-	//size_t m_instance_hash_int;
+	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
+    std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
+    std::string m_instance_hash_string;
+	    size_t m_instance_hash_int;
+
+    std::unique_ptr<Downloader> m_downloader;
 
     //BBS
     bool m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
+    Slic3r::UserManager* m_user_manager { nullptr };
+    Slic3r::TaskManager* m_task_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
     std::vector<bool> m_create_preset_blocked { false, false, false, false, false, false }; // excceed limit
@@ -307,6 +317,7 @@ private:
     bool            OnInit() override;
     int             OnExit() override;
     bool            initialized() const { return m_initialized; }
+    inline bool     is_enable_multi_machine() { return this->app_config&& this->app_config->get("enable_multi_machine") == "true"; }
 
     std::map<std::string, bool> test_url_state;
 
@@ -318,6 +329,7 @@ private:
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
+    Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
@@ -331,6 +343,9 @@ private:
 
     bool show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
     void toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
+
+    bool show_outline() const { return app_config->get_bool("show_outline"); }
+    void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
@@ -414,6 +429,7 @@ private:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+    void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString transition_tridid(int trid_id);
@@ -442,6 +458,7 @@ private:
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_set_selected_machine(wxCommandEvent& evt);
+    void            on_update_machine_list(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
@@ -460,7 +477,9 @@ private:
     void            set_skip_version(bool skip = true);
     void            no_new_version();
     static std::string format_display_version();
+    std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
+    void            push_notification(wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
@@ -547,11 +566,13 @@ private:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
+    Downloader*          downloader();
 
 
     std::string         m_mall_model_download_url;
     std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+    PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
@@ -570,6 +591,9 @@ private:
     std::string     url_encode(std::string value);
     std::string     url_decode(std::string value);
 
+    void            popup_ping_bind_dialog();
+    void            remove_ping_bind_dialog();
+
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };
 
@@ -587,19 +611,20 @@ private:
 
     // BBS
     int             filaments_cnt() const;
+    PrintSequence   global_print_sequence() const;
 
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;
     Tab*                    plate_tab;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
-	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
-    //wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
+	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
+    wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
 
-	//void        init_single_instance_checker(const std::string &name, const std::string &path);
-	//void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
-    //std::string get_instance_hash_string ()           { return m_instance_hash_string; }
-	//size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
+	void        init_single_instance_checker(const std::string &name, const std::string &path);
+	void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
+    std::string get_instance_hash_string ()           { return m_instance_hash_string; }
+	size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 
@@ -623,11 +648,16 @@ private:
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
-#ifdef __WXMSW__
-    // extend is stl/3mf/gcode/step etc
+    // extend is stl/3mf/gcode/step etc 
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
-#endif // __WXMSW__
+    bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
+    void            associate_url(std::wstring url_prefix);
+    void            disassociate_url(std::wstring url_prefix);
+
+    // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
+    void            start_download(std::string url);
+
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);

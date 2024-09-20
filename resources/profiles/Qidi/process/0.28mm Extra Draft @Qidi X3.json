@@ -21,7 +21,7 @@
 	"line_width": "0.42",
 	"infill_direction": "45",
 	"sparse_infill_density": "15%",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "crosshatch",
 	"initial_layer_line_width": "0.5",
 	"infill_combination": "0",
 	"sparse_infill_line_width": "0.45",

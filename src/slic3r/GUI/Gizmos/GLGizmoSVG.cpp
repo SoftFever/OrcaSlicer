@@ -84,9 +84,9 @@ wxString last_used_directory = wxEmptyString;
 /// <returns>File path to svg</returns>
 std::string choose_svg_file();
 
-constexpr double get_tesselation_tolerance(double scale){ 
-    constexpr double tesselation_tolerance_in_mm = .1; //8e-2;
-    constexpr double tesselation_tolerance_scaled = (tesselation_tolerance_in_mm*tesselation_tolerance_in_mm) / SCALING_FACTOR / SCALING_FACTOR;
+double get_tesselation_tolerance(double scale){ 
+    double tesselation_tolerance_in_mm = .1; //8e-2;
+    double tesselation_tolerance_scaled = (tesselation_tolerance_in_mm*tesselation_tolerance_in_mm) / SCALING_FACTOR / SCALING_FACTOR;
     return tesselation_tolerance_scaled / scale / scale;
 }
 
@@ -397,7 +397,7 @@ IconManager::VIcons init_icons(IconManager &mng, const GuiCfg &cfg)
         "open.svg",          // changhe_file
         "burn.svg",          // bake
         "save.svg",          // save
-        "exclamation.svg",   // exclamation
+        "obj_warning.svg",   // exclamation // ORCA: use obj_warning instead exclamation. exclamation is not compatible with low res
         "lock_closed.svg",   // lock
         "lock_open.svg",     // unlock
         "reflection_x.svg",  // reflection_x
@@ -1111,11 +1111,11 @@ std::vector<std::string> create_shape_warnings(const EmbossShape &shape, float s
     if (!shape.final_shape.is_healed) {
         for (const ExPolygonsWithId &i : shape.shapes_with_ids)
             if (!i.is_healed)
-                add_warning(i.id, _u8L("Path can't be healed from selfintersection and multiple points."));
+                add_warning(i.id, _u8L("Path can't be healed from self-intersection and multiple points."));
 
         // This waning is not connected to NSVGshape. It is about union of paths, but Zero index is shown first
         size_t index = 0;
-        add_warning(index, _u8L("Final shape constains selfintersection or multiple points with same coordinate."));
+        add_warning(index, _u8L("Final shape contains self-intersection or multiple points with same coordinate."));
     }
 
     size_t shape_index = 0;

@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef PLATERWORKER_HPP
 #define PLATERWORKER_HPP
 
@@ -92,7 +88,7 @@ class PlaterWorker: public Worker {
             if (eptr) try {
                 std::rethrow_exception(eptr);
             }  catch (std::exception &e) {
-                show_error(m_plater, _L("An unexpected error occured") + ": " + e.what());
+                show_error(m_plater, _L("An unexpected error occurred") + ": " + e.what());
                 eptr = nullptr;
             }
         }

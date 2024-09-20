@@ -16,6 +16,8 @@ enum FlowRatioCaliSource {
     FROM_COARSE_PAGE,
 };
 
+class CalibrationPresetPage;
+
 class CaliPresetCaliStagePanel : public wxPanel
 {
 public:
@@ -30,14 +32,17 @@ public:
     void get_cali_stage(CaliPresetStage& stage, float& value);
 
     void set_flow_ratio_value(float flow_ratio);
-
+    void set_parent(CalibrationPresetPage* parent) { m_stage_panel_parent = parent; }
+    void set_flow_ratio_calibration_type(FlowRatioCalibrationType type);
 protected:
     CaliPresetStage m_stage;
     wxBoxSizer*   m_top_sizer;
     wxRadioButton* m_complete_radioBox;
     wxRadioButton* m_fine_radioBox;
     TextInput *    flow_ratio_input;
+    wxPanel*       input_panel;
     float m_flow_ratio_value;
+    CalibrationPresetPage* m_stage_panel_parent;
 };
 
 class CaliComboBox : public wxPanel
@@ -162,6 +167,7 @@ public:
     void stripWhiteSpace(std::string& str);
     void update_priner_status_msg(wxString msg, bool is_warning);
     void update(MachineObject* obj) override;
+    void update_flow_ratio_type(FlowRatioCalibrationType type) { curr_obj->flow_ratio_calibration_type = type; }
 
     void on_device_connected(MachineObject* obj) override;
 
@@ -206,7 +212,7 @@ public:
     CalibMode     get_pa_cali_method();
 
     CaliPresetPageStatus get_page_status() { return m_page_status; }
-
+    MachineObject* get_current_object() { return curr_obj; }
     void msw_rescale() override;
     void on_sys_color_changed() override;
 

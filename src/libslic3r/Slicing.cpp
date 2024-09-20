@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include <limits>
 
 #include "libslic3r.h"
@@ -64,10 +60,11 @@ coordf_t Slicing::max_layer_height_from_nozzle(const DynamicPrintConfig &print_c
 }
 
 SlicingParameters SlicingParameters::create_from_config(
-	const PrintConfig 		&print_config, 
-	const PrintObjectConfig &object_config,
-	coordf_t				 object_height,
-	const std::vector<unsigned int> &object_extruders)
+     const PrintConfig                 &print_config,
+     const PrintObjectConfig         &object_config,
+     coordf_t                         object_height,
+     const std::vector<unsigned int> &object_extruders,
+     const Vec3d                     &object_shrinkage_compensation)
 {
     coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
         object_config.layer_height.value : print_config.initial_layer_print_height.value;
@@ -85,7 +82,10 @@ SlicingParameters SlicingParameters::create_from_config(
     params.first_print_layer_height = initial_layer_print_height;
     params.first_object_layer_height = initial_layer_print_height;
     params.object_print_z_min = 0.;
-    params.object_print_z_max = object_height;
+    // Orca: XYZ filament compensation
+    params.object_print_z_max = object_height * object_shrinkage_compensation.z();
+    params.object_print_z_uncompensated_max = object_height;
+    params.object_shrinkage_compensation_z = object_shrinkage_compensation.z();
     params.base_raft_layers = object_config.raft_layers.value;
     params.soluble_interface = soluble_interface;
 
@@ -157,6 +157,7 @@ SlicingParameters SlicingParameters::create_from_config(
         coordf_t print_z = params.raft_contact_top_z + params.gap_raft_object;
         params.object_print_z_min  = print_z;
         params.object_print_z_max += print_z;
+        params.object_print_z_uncompensated_max += print_z;
     }
 
     params.valid = true;
@@ -229,10 +230,10 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
         lh_append(hi, height);
     }
 
-    if (coordf_t z = last_z(); z < slicing_params.object_print_z_height()) {
+    if (coordf_t z = last_z(); z < slicing_params.object_print_z_uncompensated_height()) {
         // Insert a step of normal layer height up to the object top.
         lh_append(z, slicing_params.layer_height);
-        lh_append(slicing_params.object_print_z_height(), slicing_params.layer_height);
+        lh_append(slicing_params.object_print_z_uncompensated_height(), slicing_params.layer_height);
     }
 
    	return layer_height_profile;
@@ -454,12 +455,12 @@ void adjust_layer_height_profile(
     std::pair<coordf_t, coordf_t> z_span_variable = 
         std::pair<coordf_t, coordf_t>(
             slicing_params.first_object_layer_height_fixed() ? slicing_params.first_object_layer_height : 0.,
-            slicing_params.object_print_z_height());
+            slicing_params.object_print_z_uncompensated_height());
     if (z < z_span_variable.first || z > z_span_variable.second)
         return;
 
 	assert(layer_height_profile.size() >= 2);
-    assert(std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_height()) < EPSILON);
+    assert(std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_uncompensated_height()) < EPSILON);
 
     // 1) Get the current layer thickness at z.
     coordf_t current_layer_height = slicing_params.layer_height;
@@ -620,7 +621,7 @@ void adjust_layer_height_profile(
 	assert(layer_height_profile.size() > 2);
 	assert(layer_height_profile.size() % 2 == 0);
 	assert(layer_height_profile[0] == 0.);
-    assert(std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_height()) < EPSILON);
+    assert(std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_uncompensated_height()) < EPSILON);
 #ifdef _DEBUG
 	for (size_t i = 2; i < layer_height_profile.size(); i += 2)
 		assert(layer_height_profile[i - 2] <= layer_height_profile[i]);
@@ -631,10 +632,104 @@ void adjust_layer_height_profile(
 #endif /* _DEBUG */
 }
 
+bool adjust_layer_series_to_align_object_height(const SlicingParameters &slicing_params, std::vector<coordf_t>& layer_series)
+{
+    coordf_t object_height = slicing_params.object_print_z_height();
+    if (is_approx(layer_series.back(), object_height))
+        return true;
+
+    // need at least 5 + 1(first_layer) layers to adjust the height
+    size_t layer_size = layer_series.size();
+    if (layer_size < 12)
+        return false;
+
+    std::vector<coordf_t> last_5_layers_heght;
+    for (size_t i = 0; i < 5; ++i) {
+        last_5_layers_heght.emplace_back(layer_series[layer_size - 10 + 2 * i + 1] - layer_series[layer_size - 10 + 2 * i]);
+    }
+
+    coordf_t gap = abs(layer_series.back() - object_height);
+    std::vector<bool> can_adjust(5, true); // to record whether every layer can adjust layer height
+    bool taller_than_object = layer_series.back() < object_height;
+
+    auto get_valid_size = [&can_adjust]() -> int {
+        int valid_size = 0;
+        for (auto b_adjust : can_adjust) {
+            valid_size += b_adjust ? 1 : 0;
+        }
+        return valid_size;
+    };
+
+    auto adjust_layer_height = [&slicing_params, &last_5_layers_heght, &can_adjust, &get_valid_size, &taller_than_object](coordf_t gap) -> coordf_t {
+        coordf_t delta_gap = gap / get_valid_size();
+        coordf_t remain_gap = 0;
+        for (size_t i = 0; i < last_5_layers_heght.size(); ++i) {
+            coordf_t& l_height = last_5_layers_heght[i];
+            if (taller_than_object) {
+                if (can_adjust[i] && is_approx(l_height, slicing_params.max_layer_height)) {
+                    remain_gap += delta_gap;
+                    can_adjust[i] = false;
+                    continue;
+                }
+
+                if (can_adjust[i] && l_height + delta_gap > slicing_params.max_layer_height) {
+                    remain_gap += l_height + delta_gap - slicing_params.max_layer_height;
+                    l_height      = slicing_params.max_layer_height;
+                    can_adjust[i] = false;
+                }
+                else {
+                    l_height += delta_gap;
+                }
+            }
+            else {
+                if (can_adjust[i] && is_approx(l_height, slicing_params.min_layer_height)) {
+                    remain_gap += delta_gap;
+                    can_adjust[i] = false;
+                    continue;
+                }
+
+                if (can_adjust[i] && l_height - delta_gap < slicing_params.min_layer_height) {
+                    remain_gap += slicing_params.min_layer_height + delta_gap - l_height;
+                    l_height      = slicing_params.min_layer_height;
+                    can_adjust[i] = false;
+                }
+                else {
+                    l_height -= delta_gap;
+                }
+            }
+        }
+        return remain_gap;
+    };
+
+    while (gap > 0) {
+        int valid_size = get_valid_size();
+        if (valid_size == 0) {
+            // 5 layers can not adjust z within valid layer height
+            return false;
+        }
+
+        gap = adjust_layer_height(gap);
+        if (is_approx(gap, 0.0)) {
+            // adjust succeed
+            break;
+        }
+    }
+
+    for (size_t i = 0; i < last_5_layers_heght.size(); ++i) {
+        if (i > 0) {
+            layer_series[layer_size - 10 + 2 * i] = layer_series[layer_size - 10 + 2 * i - 1];
+        }
+        layer_series[layer_size - 10 + 2 * i + 1] = layer_series[layer_size - 10 + 2 * i] + last_5_layers_heght[i];
+    }
+
+    return true;
+}
+
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
 std::vector<coordf_t> generate_object_layers(
 	const SlicingParameters 	&slicing_params,
-	const std::vector<coordf_t> &layer_height_profile)
+	const std::vector<coordf_t> &layer_height_profile,
+    bool is_precise_z_height)
 {
     assert(! layer_height_profile.empty());
 
@@ -649,6 +744,8 @@ std::vector<coordf_t> generate_object_layers(
         out.push_back(print_z);
     }
 
+    // Orca: XYZ shrinkage compensation
+    const coordf_t shrinkage_compensation_z = slicing_params.object_shrinkage_compensation_z;
     size_t idx_layer_height_profile = 0;
     // loop until we have at least one layer and the max slice_z reaches the object height
     coordf_t slice_z = print_z + 0.5 * slicing_params.min_layer_height;
@@ -657,17 +754,20 @@ std::vector<coordf_t> generate_object_layers(
         if (idx_layer_height_profile < layer_height_profile.size()) {
             size_t next = idx_layer_height_profile + 2;
             for (;;) {
-                if (next >= layer_height_profile.size() || slice_z < layer_height_profile[next])
+                // Orca: XYZ shrinkage compensation
+                if (next >= layer_height_profile.size() || slice_z < layer_height_profile[next] * shrinkage_compensation_z)
                     break;
                 idx_layer_height_profile = next;
                 next += 2;
             }
-            coordf_t z1 = layer_height_profile[idx_layer_height_profile];
-            coordf_t h1 = layer_height_profile[idx_layer_height_profile + 1];
+            // Orca: XYZ shrinkage compensation
+            const coordf_t z1 = layer_height_profile[idx_layer_height_profile] * shrinkage_compensation_z;
+            const coordf_t h1 = layer_height_profile[idx_layer_height_profile + 1];
             height = h1;
             if (next < layer_height_profile.size()) {
-                coordf_t z2 = layer_height_profile[next];
-                coordf_t h2 = layer_height_profile[next + 1];
+                // Orca: XYZ shrinkage compensation
+                const coordf_t z2 = layer_height_profile[next] * shrinkage_compensation_z;
+                const coordf_t h2 = layer_height_profile[next + 1];
                 height = lerp(h1, h2, (slice_z - z1) / (z2 - z1));
                 assert(height >= slicing_params.min_layer_height - EPSILON && height <= slicing_params.max_layer_height + EPSILON);
             }
@@ -683,7 +783,8 @@ std::vector<coordf_t> generate_object_layers(
         out.push_back(print_z);
     }
 
-    //FIXME Adjust the last layer to align with the top object layer exactly?
+    if (is_precise_z_height)
+        adjust_layer_series_to_align_object_height(slicing_params, out);
     return out;
 }
 

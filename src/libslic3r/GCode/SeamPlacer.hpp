@@ -119,7 +119,7 @@ public:
   // snapping angle - angles larger than this value will be snapped to during seam painting
   static constexpr float sharp_angle_snapping_threshold = 55.0f * float(PI) / 180.0f;
   // overhang angle for seam placement that still yields good results, in degrees, measured from vertical direction
-  static constexpr float overhang_angle_threshold = 50.0f * float(PI) / 180.0f;
+  static constexpr float overhang_angle_threshold = 45.0f * float(PI) / 180.0f;
 
   // determines angle importance compared to visibility ( neutral value is 1.0f. )
   static constexpr float angle_importance_aligned = 0.6f;
@@ -143,7 +143,7 @@ public:
 
   void init(const Print &print, std::function<void(void)> throw_if_canceled_func);
 
-  void place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos, float& overhang) const;
+  void place_seam(const Layer *layer, ExtrusionLoop &loop, const Point &last_pos, float& overhang) const;
 private:
   void gather_seam_candidates(const PrintObject *po, const SeamPlacerImpl::GlobalModelInfo &global_model_info);
   void calculate_candidates_visibility(const PrintObject *po,

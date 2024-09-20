@@ -1,15 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/ Copyright (c) 2019 Sijmen Schoon
-///|/ Copyright (c) 2017 Eyal Soha @eyal0
-///|/ Copyright (c) Slic3r 2014 - 2015 Alessandro Ranellucci @alranel
-///|/
-///|/ ported from lib/Slic3r/Model.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2022 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_Model_hpp_
 #define slic3r_Model_hpp_
 
@@ -28,6 +16,7 @@
 #include "enum_bitmask.hpp"
 #include "TextConfiguration.hpp"
 #include "EmbossShape.hpp"
+#include "TriangleSelector.hpp"
 
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
@@ -35,6 +24,7 @@
 #include "Format/STEP.hpp"
 //BBS: add stl
 #include "Format/STL.hpp"
+#include "Format/OBJ.hpp"
 
 #include <map>
 #include <memory>
@@ -434,7 +424,7 @@ public:
     bool                    is_mm_painted() const;
     // This object may have a varying layer height by painting or by a table.
     // Even if true is returned, the layer height profile may be "flat" with no difference to default layering.
-    bool                    has_custom_layering() const 
+    bool                    has_custom_layering() const
         { return ! this->layer_config_ranges.empty() || ! this->layer_height_profile.empty(); }
 
     ModelInstance*          add_instance();
@@ -482,6 +472,7 @@ public:
 
     //BBS: add instance convex hull bounding box
     BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+    BoundingBoxf3 instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate = false) const;
 
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
@@ -714,31 +705,6 @@ private:
     void update_min_max_z();
 };
 
-enum class EnforcerBlockerType : int8_t {
-    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
-    NONE      = 0,
-    ENFORCER  = 1,
-    BLOCKER   = 2,
-    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
-    Extruder1 = ENFORCER,
-    Extruder2 = BLOCKER,
-    Extruder3,
-    Extruder4,
-    Extruder5,
-    Extruder6,
-    Extruder7,
-    Extruder8,
-    Extruder9,
-    Extruder10,
-    Extruder11,
-    Extruder12,
-    Extruder13,
-    Extruder14,
-    Extruder15,
-    Extruder16,
-    ExtruderMax = Extruder16
-};
-
 enum class ConversionType : int {
     CONV_TO_INCH,
     CONV_FROM_INCH,
@@ -755,9 +721,9 @@ enum class En3mfType : int {
 class FacetsAnnotation final : public ObjectWithTimestamp {
 public:
     // Assign the content if the timestamp differs, don't assign an ObjectID.
-    void assign(const FacetsAnnotation& rhs) { if (! this->timestamp_matches(rhs)) { m_data = rhs.m_data; this->copy_timestamp(rhs); } }
-    void assign(FacetsAnnotation&& rhs) { if (! this->timestamp_matches(rhs)) { m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
-    const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& get_data() const throw() { return m_data; }
+    void assign(const FacetsAnnotation &rhs) { if (! this->timestamp_matches(rhs)) { m_data = rhs.m_data; this->copy_timestamp(rhs); } }
+    void assign(FacetsAnnotation &&rhs) { if (! this->timestamp_matches(rhs)) { m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
+    const TriangleSelector::TriangleSplittingData &get_data() const noexcept { return m_data; }
     bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     // BBS
@@ -765,7 +731,7 @@ public:
     void set_enforcer_block_type_limit(const ModelVolume& mv, EnforcerBlockerType max_type);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
-    bool empty() const { return m_data.first.empty(); }
+    bool empty() const { return m_data.triangles_to_split.empty(); }
 
     // Following method clears the config and increases its timestamp, so the deleted
     // state is considered changed from perspective of the undo/redo stack.
@@ -775,11 +741,11 @@ public:
     std::string get_triangle_as_string(int i) const;
 
     // Before deserialization, reserve space for n_triangles.
-    void reserve(int n_triangles) { m_data.first.reserve(n_triangles); }
+    void reserve(int n_triangles) { m_data.triangles_to_split.reserve(n_triangles); }
     // Deserialize triangles one by one, with strictly increasing triangle_id.
     void set_triangle_from_string(int triangle_id, const std::string& str);
     // After deserializing the last triangle, shrink data to fit.
-    void shrink_to_fit() { m_data.first.shrink_to_fit(); m_data.second.shrink_to_fit(); }
+    void shrink_to_fit() { m_data.triangles_to_split.shrink_to_fit(); m_data.bitstream.shrink_to_fit(); }
     bool equals(const FacetsAnnotation &other) const;
 
 private:
@@ -806,7 +772,7 @@ private:
         ar(cereal::base_class<ObjectWithTimestamp>(this), m_data);
     }
 
-    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
+    TriangleSelector::TriangleSplittingData m_data;
 
     // To access set_new_unique_id() when copy / pasting a ModelVolume.
     friend class ModelVolume;
@@ -1025,6 +991,10 @@ public:
     bool is_fdm_support_painted() const { return !this->supported_facets.empty(); }
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
+    
+    // Orca: Implement prusa's filament shrink compensation approach
+    // Returns 0-based indices of extruders painted by multi-material painting gizmo.
+     std::vector<size_t> get_extruders_from_multi_material_painting() const;
 
 protected:
 	friend class Print;
@@ -1332,7 +1302,7 @@ public:
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
     //BBS
-    double get_auto_brim_width(double deltaT, double adhension) const;
+    double get_auto_brim_width(double deltaT, double adhesion) const;
     double get_auto_brim_width() const;
     // BBS
     Polygon convex_hull_2d();
@@ -1510,6 +1480,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
@@ -1517,6 +1488,8 @@ public:
     //makerlab information
     std::string mk_name;
     std::string mk_version;
+    std::vector<std::string> md_name;
+    std::vector<std::string> md_value;
 
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {
@@ -1562,8 +1535,16 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr, int plate_id = 0);
+                                ImportstlProgressFn        stlFn                = nullptr,
+                                ImportStepProgressFn       stepFn               = nullptr,
+                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
+                                BBLProject *               project              = nullptr,
+                                int                        plate_id             = 0,
+                                ObjImportColorFn           objFn                = nullptr
+                                );
     // BBS
+    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);

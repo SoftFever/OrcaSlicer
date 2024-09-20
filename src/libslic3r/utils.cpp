@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Pavel Mikuš @Godrak, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Roman Beránek @zavorka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Justin Schuh @jschuh
-///|/ Copyright (c) Slic3r 2013 - 2015 Alessandro Ranellucci @alranel
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Utils.hpp"
 #include "I18N.hpp"
 
@@ -307,6 +301,9 @@ std::string debug_out_path(const char *name, ...)
 	static constexpr const char *SLIC3R_DEBUG_OUT_PATH_PREFIX = "out/";
     if (! debug_out_path_called.exchange(true)) {
 		std::string path = boost::filesystem::system_complete(SLIC3R_DEBUG_OUT_PATH_PREFIX).string();
+        if (!boost::filesystem::exists(path)) {
+            boost::filesystem::create_directory(path);
+		}
         printf("Debugging output files will be written to %s\n", path.c_str());
     }
 	char buffer[2048];

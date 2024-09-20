@@ -2,6 +2,7 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "SkeletalTrapezoidationGraph.hpp"
+#include "../Line.hpp"
 #include <ankerl/unordered_dense.h>
 
 

@@ -1,20 +1,23 @@
-///|/ Copyright (c) Prusa Research 2022 Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_GCodeThumbnails_hpp_
 #define slic3r_GCodeThumbnails_hpp_
 
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
-#include "PrintConfig.hpp"
+#include "../enum_bitmask.hpp"
 #include "ThumbnailData.hpp"
+#include "../enum_bitmask.hpp"
 
 #include <vector>
 #include <memory>
 #include <string_view>
 
 #include <boost/beast/core/detail/base64.hpp>
+
+namespace Slic3r {
+    enum class ThumbnailError : int { InvalidVal, OutOfRange, InvalidExt };
+    using ThumbnailErrors = enum_bitmask<ThumbnailError>;
+    ENABLE_ENUM_BITMASK_OPERATORS(ThumbnailError);
+}
 
 namespace Slic3r::GCodeThumbnails {
 
@@ -29,20 +32,30 @@ struct CompressedImageBuffer
 std::string get_hex(const unsigned int input);
 std::string rjust(std::string input, unsigned int width, char fill_char);
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &data, GCodeThumbnailsFormat format);
+std::string get_error_string(const ThumbnailErrors& errors);
+
+
+typedef std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>> GCodeThumbnailDefinitionsList;
+using namespace std::literals;
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const std::string& thumbnails_string, const std::string_view def_ext = "PNG"sv);
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const ConfigBase &config);
+
 
 template<typename WriteToOutput, typename ThrowIfCanceledCallback>
-inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
-                                      int                          plate_id,
-                                      const std::vector<Vec2d>    &sizes,
-                                      GCodeThumbnailsFormat        format,
-                                      WriteToOutput                output,
-                                      ThrowIfCanceledCallback      throw_if_canceled)
+inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback&                                thumbnail_cb,
+                                      int                                                         plate_id,
+                                      const std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>>& thumbnails_list,
+                                      WriteToOutput                                               output,
+                                      ThrowIfCanceledCallback                                     throw_if_canceled)
 {
     // Write thumbnails using base64 encoding
-    if (thumbnail_cb != nullptr) {
+    if (thumbnail_cb == nullptr)
+        return;
+    short i = 0;
+    bool first_ColPic = true;
+    for (const auto& [format, size] : thumbnails_list) {
         static constexpr const size_t max_row_length = 78;
-        ThumbnailsList                thumbnails     = thumbnail_cb(ThumbnailsParams{sizes, true, true, true, true, plate_id});
-        short                         i              = 0;
+        ThumbnailsList                thumbnails     = thumbnail_cb(ThumbnailsParams{{size}, true, true, true, true, plate_id});
         for (const ThumbnailData &data : thumbnails) {
             if (data.is_valid()) {
                 auto compressed = compress_thumbnail(data, format);
@@ -51,15 +64,16 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                         // write BTT_TFT header
                         output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\r\n").c_str());
                         output((char *) compressed->data);
-                        if (i == (thumbnails.size() - 1))
+                        if (i == (thumbnails_list.size() - 1))
                             output("; bigtree thumbnail end\r\n\r\n");
                     }
                     else if (format == GCodeThumbnailsFormat::ColPic) {
-                        if (i == 0) {
+                        if (first_ColPic) {
                             output((boost::format("\n\n;gimage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
                         } else {
                             output((boost::format("\n\n;simage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
                         }
+                        first_ColPic = false;
                     } 
                     else {
                         output("; THUMBNAIL_BLOCK_START\n");
@@ -84,10 +98,9 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                     }
                     throw_if_canceled();
                 }
-
-                i++;
             }
         }
+        i++;
     }
 }
 

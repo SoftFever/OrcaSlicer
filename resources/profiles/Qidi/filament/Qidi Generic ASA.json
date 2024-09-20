@@ -6,7 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
-	"filament_max_volumetric_speed": [
+    "filament_max_volumetric_speed": [
         "16"
     ],
     "filament_flow_ratio": [

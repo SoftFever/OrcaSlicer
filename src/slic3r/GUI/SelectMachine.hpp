@@ -64,6 +64,34 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+static int get_brightness_value(wxImage image) {
+
+    wxImage grayImage = image.ConvertToGreyscale();
+
+    int width = grayImage.GetWidth();
+    int height = grayImage.GetHeight();
+
+    int totalLuminance = 0;
+    unsigned char alpha;
+    int num_none_transparent = 0;
+    for (int y = 0; y < height; y += 2) {
+
+        for (int x = 0; x < width; x += 2) {
+
+            alpha = image.GetAlpha(x, y);
+            if (alpha != 0) {
+                wxColour pixelColor = grayImage.GetRed(x, y);
+                totalLuminance += pixelColor.Red();
+                num_none_transparent = num_none_transparent + 1;
+            }
+        }
+    }
+    if (totalLuminance <= 0 || num_none_transparent <= 0) {
+        return 0;
+    }
+    return totalLuminance / num_none_transparent;
+}
+
 class Material
 {
 public:
@@ -182,6 +210,27 @@ public:
     MachineObjectPanel *mPanel;
 };
 
+class PinCodePanel : public wxPanel
+{
+public:
+    PinCodePanel(wxWindow* parent,
+        wxWindowID      winid = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    ~PinCodePanel() {};
+
+    ScalableBitmap       m_bitmap;
+    bool           m_hover{false};
+
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+    void on_mouse_enter(wxMouseEvent& evt);
+    void on_mouse_leave(wxMouseEvent& evt);
+    void on_mouse_left_up(wxMouseEvent& evt);
+};
+
 
 class ThumbnailPanel;
 
@@ -204,8 +253,11 @@ public:
 private:
     int                               m_my_devices_count{0};
     int                               m_other_devices_count{0};
+    PinCodePanel*                     m_panel_ping_code{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
     wxHyperlinkCtrl*                  m_hyperlink{nullptr};
+    Label*                            m_ping_code_text{nullptr};
+    wxStaticBitmap*                   m_img_ping_code{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
@@ -288,7 +340,7 @@ private:
     int                                 m_print_plate_idx{0};
     int                                 m_print_plate_total{0};
     int                                 m_timeout_count{0};
-    int                                 m_print_error_code;
+    int                                 m_print_error_code{0};
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
     bool                                m_ams_mapping_valid{ false };
@@ -393,6 +445,12 @@ protected:
     wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
+    ThumbnailData                       m_cur_input_thumbnail_data;
+    ThumbnailData                       m_cur_no_light_thumbnail_data;
+    ThumbnailData                       m_preview_thumbnail_data;//when ams map change
+    std::vector<wxColour>               m_preview_colors_in_thumbnail;
+    std::vector<wxColour>               m_cur_colors_in_thumbnail;
+    std::vector<bool>                   m_edge_pixels;
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -431,7 +489,15 @@ public:
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
-    void set_default_normal();
+    void reset_and_sync_ams_list();
+    void clone_thumbnail_data();
+    void record_edge_pixels_data();
+    wxColour adjust_color_for_render(const wxColour& color);
+    void final_deal_edge_pixels_data(ThumbnailData& data);
+    void updata_thumbnail_data_after_connected_printer();
+    void unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data);
+    void change_default_normal(int old_filament_id, wxColour temp_ams_color);
+    void set_default_normal(const ThumbnailData&);
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
@@ -515,12 +581,12 @@ public:
     void OnPaint(wxPaintEvent &event);
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
-    void set_thumbnail(wxImage img);
+    void set_thumbnail(wxImage &img);
     void render(wxDC &dc);
 private:
     ScalableBitmap m_background_bitmap;
     wxBitmap bitmap_with_background;
-    
+    int m_brightness_value{ -1 };
 };
 
 }} // namespace Slic3r::GUI

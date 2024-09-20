@@ -7,9 +7,33 @@
 #include <cfloat>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
-#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
+
+enum class EnforcerBlockerType : int8_t {
+    // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
+    NONE      = 0,
+    ENFORCER  = 1,
+    BLOCKER   = 2,
+    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    Extruder1 = ENFORCER,
+    Extruder2 = BLOCKER,
+    Extruder3,
+    Extruder4,
+    Extruder5,
+    Extruder6,
+    Extruder7,
+    Extruder8,
+    Extruder9,
+    Extruder10,
+    Extruder11,
+    Extruder12,
+    Extruder13,
+    Extruder14,
+    Extruder15,
+    Extruder16,
+    ExtruderMax = Extruder16
+};
 
 // Following class holds information about selected triangles. It also has power
 // to recursively subdivide the triangles and make the selection finer.
@@ -208,8 +232,58 @@ public:
         }
     };
 
-    std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
-    void precompute_all_neighbors_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out, std::vector<Vec3i> &neighbors_normal_out) const;
+    struct TriangleBitStreamMapping
+    {
+        // Index of the triangle to which we assign the bitstream containing splitting information.
+        int triangle_idx        = -1;
+        // Index of the first bit of the bitstream assigned to this triangle.
+        int bitstream_start_idx = -1;
+
+        TriangleBitStreamMapping() = default;
+        explicit TriangleBitStreamMapping(int triangleIdx, int bitstreamStartIdx) : triangle_idx(triangleIdx), bitstream_start_idx(bitstreamStartIdx) {}
+
+        friend bool operator==(const TriangleBitStreamMapping &lhs, const TriangleBitStreamMapping &rhs) { return lhs.triangle_idx == rhs.triangle_idx && lhs.bitstream_start_idx == rhs.bitstream_start_idx; }
+        friend bool operator!=(const TriangleBitStreamMapping &lhs, const TriangleBitStreamMapping &rhs) { return !(lhs == rhs); }
+
+    private:
+        friend class cereal::access;
+        template<class Archive> void serialize(Archive &ar) { ar(triangle_idx, bitstream_start_idx); }
+    };
+
+    struct TriangleSplittingData {
+        // Vector of triangles and its indexes to the bitstream.
+        std::vector<TriangleBitStreamMapping> triangles_to_split;
+        // Bit stream containing splitting information.
+        std::vector<bool>                     bitstream;
+        // Array indicating which triangle state types are used (encoded inside bitstream).
+        std::vector<bool>                     used_states { std::vector<bool>(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false) };
+
+        TriangleSplittingData() = default;
+
+        friend bool operator==(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) {
+            return lhs.triangles_to_split == rhs.triangles_to_split
+                && lhs.bitstream          == rhs.bitstream
+                && lhs.used_states        == rhs.used_states;
+        }
+
+        friend bool operator!=(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) { return !(lhs == rhs); }
+
+        // Reset all used states before they are recomputed based on the bitstream.
+        void reset_used_states() {
+            used_states.resize(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false);
+            std::fill(used_states.begin(), used_states.end(), false);
+        }
+
+        // Update used states based on the bitstream. It just iterated over the bitstream from the bitstream_start_idx till the end.
+        void update_used_states(size_t bitstream_start_idx);
+
+    private:
+        friend class cereal::access;
+        template<class Archive> void serialize(Archive &ar) { ar(triangles_to_split, bitstream, used_states); }
+    };
+
+    std::pair<std::vector<Vec3i32>, std::vector<Vec3i32>> precompute_all_neighbors() const;
+    void precompute_all_neighbors_recursive(int facet_idx, const Vec3i32 &neighbors, const Vec3i32 &neighbors_propagated, std::vector<Vec3i32> &neighbors_out, std::vector<Vec3i32> &neighbors_normal_out) const;
 
     // Set a limit to the edge length, below which the edge will not be split by select_patch().
     // Called by select_patch() internally. Made public for debugging purposes, see TriangleSelectorGUI::render_debug().
@@ -221,7 +295,7 @@ public:
 
     // Returns the facet_idx of the unsplit triangle containing the "hit". Returns -1 if the triangle isn't found.
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx) const;
-    [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i &neighbors) const;
+    [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i32 &neighbors) const;
 
     // Select all triangles fully inside the circle, subdivide where needed.
     void select_patch(int                       facet_start,                   // facet of the original mesh (unsplit) that the hit point belongs to
@@ -247,14 +321,14 @@ public:
                                       bool                 force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 
     bool                 has_facets(EnforcerBlockerType state) const;
-    static bool          has_facets(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, EnforcerBlockerType test_state);
+    static bool          has_facets(const TriangleSplittingData &data, EnforcerBlockerType test_state);
     int                  num_facets(EnforcerBlockerType state) const;
     // Get facets at a given state. Don't triangulate T-joints.
     indexed_triangle_set get_facets(EnforcerBlockerType state) const;
     // Get facets at a given state. Triangulate T-joints.
     indexed_triangle_set get_facets_strict(EnforcerBlockerType state) const;
     // Get edges around the selected area by seed fill.
-    std::vector<Vec2i> get_seed_fill_contour() const;
+    std::vector<Vec2i32> get_seed_fill_contour() const;
 
     // BBS
     void get_facets(std::vector<indexed_triangle_set>& facets_per_type) const;
@@ -270,10 +344,15 @@ public:
 
     // Store the division trees in compact form (a long stream of bits for each triangle of the original mesh).
     // First vector contains pairs of (triangle index, first bit in the second vector).
-    std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
+    TriangleSplittingData serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = EnforcerBlockerType::ExtruderMax);
+    void deserialize(const TriangleSplittingData& data,
+                     bool                         needs_reset = true,
+                     EnforcerBlockerType          max_ebt     = EnforcerBlockerType::ExtruderMax);
+
+    // Extract all used facet states from the given TriangleSplittingData.
+    static std::vector<EnforcerBlockerType> extract_used_facet_states(const TriangleSplittingData &data);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
@@ -351,14 +430,14 @@ protected:
     };
 
     void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int>& touching_subtriangles_out) const;
-    bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
+    bool verify_triangle_neighbors(const Triangle& tr, const Vec3i32& neighbors) const;
 
 
     // Lists of vertices and triangles, both original and new
     std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
     const TriangleMesh &m_mesh;
-    const std::vector<Vec3i> m_neighbors;
+    const std::vector<Vec3i32> m_neighbors;
     const std::vector<Vec3f> m_face_normals;
 
     // BBS
@@ -381,15 +460,15 @@ protected:
     // Private functions:
 private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting);
-    bool select_triangle_recursive(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType type, bool triangle_splitting);
+    bool select_triangle_recursive(int facet_idx, const Vec3i32 &neighbors, EnforcerBlockerType type, bool triangle_splitting);
     void undivide_triangle(int facet_idx);
-    void split_triangle(int facet_idx, const Vec3i &neighbors);
+    void split_triangle(int facet_idx, const Vec3i32 &neighbors);
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_facet_clipped(int facet_idx, const ClippingPlane &clp) const;
     int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});
-    void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
-    Vec3i child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
-    Vec3i child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors_propagated, int child_idx, const Vec3i &child_neighbors) const;
+    void perform_split(int facet_idx, const Vec3i32 &neighbors, EnforcerBlockerType old_state);
+    Vec3i32 child_neighbors(const Triangle &tr, const Vec3i32 &neighbors, int child_idx) const;
+    Vec3i32 child_neighbors_propagated(const Triangle &tr, const Vec3i32 &neighbors_propagated, int child_idx, const Vec3i32 &child_neighbors) const;
     // Return child of itriangle at a CCW oriented side (vertexi, vertexj), either first or 2nd part.
     // If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
     enum class Partition {
@@ -406,21 +485,21 @@ private:
     std::pair<int, int>        triangle_subtriangles(int itriangle, int vertexi, int vertexj) const;
 
     //void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int> &touching_subtriangles_out) const;
-    void append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i> &touching_edges_out) const;
+    void append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i32> &touching_edges_out) const;
 
 #ifndef NDEBUG
-    //bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
+    //bool verify_triangle_neighbors(const Triangle& tr, const Vec3i32& neighbors) const;
     bool verify_triangle_midpoints(const Triangle& tr) const;
 #endif // NDEBUG
 
     void get_facets_strict_recursive(
         const Triangle                              &tr,
-        const Vec3i                                 &neighbors,
+        const Vec3i32                                 &neighbors,
         EnforcerBlockerType                          state,
         std::vector<stl_triangle_vertex_indices>    &out_triangles) const;
-    void get_facets_split_by_tjoints(const Vec3i &vertices, const Vec3i &neighbors, std::vector<stl_triangle_vertex_indices> &out_triangles) const;
+    void get_facets_split_by_tjoints(const Vec3i32 &vertices, const Vec3i32 &neighbors, std::vector<stl_triangle_vertex_indices> &out_triangles) const;
 
-    void get_seed_fill_contour_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec2i> &edges_out) const;
+    void get_seed_fill_contour_recursive(int facet_idx, const Vec3i32 &neighbors, const Vec3i32 &neighbors_propagated, std::vector<Vec2i32> &edges_out) const;
 
     int m_free_triangles_head { -1 };
     int m_free_vertices_head { -1 };

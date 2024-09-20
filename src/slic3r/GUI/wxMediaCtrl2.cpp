@@ -21,6 +21,8 @@ public:
 };
 #endif
 
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 {
 #ifdef __WIN32__
@@ -56,8 +58,10 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
+    InvalidateBestSize();
     if (m_imp == nullptr) {
-        CallAfter([] {
+        static bool notified = false;
+        if (!notified) CallAfter([] {
             auto res = wxMessageBox(_L("Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"), _L("Error"), wxOK | wxCANCEL);
             if (res == wxOK) {
                 wxString url = IsWindows10OrGreater() 
@@ -74,19 +78,20 @@ void wxMediaCtrl2::Load(wxURI url)
         return;
     }
     {
-        wxRegKey key1(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
-        wxString path = key1.Exists() ? key1.QueryDefaultValue() : wxString{};
+        wxRegKey key11(wxRegKey::HKCU, L"SOFTWARE\\Classes\\CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxRegKey key12(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxString path = key11.Exists() ? key11.QueryDefaultValue() 
+                                       : key12.Exists() ? key12.QueryDefaultValue() : wxString{};
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         if (key2.Exists())
             key2.QueryRawValue("Source Filter", clsid);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": clsid %1% path %2%") % clsid % path;
 
+        std::string             data_dir_str = Slic3r::data_dir();
+        boost::filesystem::path data_dir_path(data_dir_str);
+        auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
         if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {
-            std::string             data_dir_str = Slic3r::data_dir();
-            boost::filesystem::path data_dir_path(data_dir_str);
-            auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
-
             if (boost::filesystem::exists(dll_path)) {
                 CallAfter(
                     [dll_path] {
@@ -118,7 +123,7 @@ void wxMediaCtrl2::Load(wxURI url)
                 });
             } else {
                 CallAfter([] {
-                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"), wxOK);
+                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStudio or seek after-sales help."), _L("Error"), wxOK);
                 });
             }
             m_error = clsid != CLSID_BAMBU_SOURCE ? 101 : path.empty() ? 102 : 103;
@@ -127,6 +132,20 @@ void wxMediaCtrl2::Load(wxURI url)
             event.SetEventObject(this);
             wxPostEvent(this, event);
             return;
+        }
+        if (path != dll_path) {
+            static bool notified = false;
+            if (!notified) CallAfter([dll_path] {
+                int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."), _L("Warning"), wxYES_NO | wxICON_WARNING);
+                if (res == wxYES) {
+                    auto path = dll_path.wstring();
+                    if (path.find(L' ') != std::wstring::npos)
+                        path = L"\"" + path + L"\"";
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE};
+                    ::ShellExecuteEx(&info);
+                }
+            });
+            notified = true;
         }
         wxRegKey keyWmp(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\MediaPlayer\\Player\\Extensions\\.");
         keyWmp.Create();
@@ -218,7 +237,10 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // "Loading...".  Fake it out for now.
     return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
-    return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    wxSize size = m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    if (size.GetWidth() > 0)
+        const_cast<wxSize&>(m_video_size) = size;
+    return size;
 #endif
 }
 
@@ -243,6 +265,11 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                     if (msg.SubString(n + 1, msg.Length() - 2).ToLong(&val))
                         m_error = (int) val;
                 }
+            } else if (msg.Contains("stat_log")) {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_STAT);
+                evt.SetEventObject(this);
+                evt.SetString(msg.Mid(msg.Find(' ') + 1));
+                wxPostEvent(this, evt);
             }
         }
         BOOST_LOG_TRIVIAL(trace) << msg.ToUTF8().data();

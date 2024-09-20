@@ -238,12 +238,18 @@ void BackgroundSlicingProcess::process_fff()
 		//BBS: add plate index into render params
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+		if(m_fff_print->is_BBL_printer())
+			run_post_process_scripts(m_temp_output_path, false, "File", m_temp_output_path, m_fff_print->full_print_config());
+
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 	}
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
-			finalize_gcode();
+			if(!m_fff_print->is_BBL_printer())
+				finalize_gcode();
+			else
+				export_gcode();
 	    } else if (! m_upload_job.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			prepare_upload();
@@ -772,16 +778,14 @@ bool BackgroundSlicingProcess::invalidate_all_steps()
 // Copy the final G-code to target location (possibly a SD card, if it is a removable media, then verify that the file was written without an error).
 void BackgroundSlicingProcess::finalize_gcode()
 {
-	//BBS: don't support running user-defined post-processing scripts
-	//m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+	m_print->set_status(95, _u8L("Running post-processing scripts"));
 
 	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 	std::string output_path = m_temp_output_path;
-
 	// Both output_path and export_path ar in-out parameters.
 	// If post processed, output_path will differ from m_temp_output_path as run_post_process_scripts() will make a copy of the G-code to not
-	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result
+	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result 
 	// is calculated for the unprocessed G-code and it references lines in the memory mapped G-code file by line numbers.
 	// export_path may be changed by the post-processing script as well if the post processing script decides so, see GH #6042.
 	bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
@@ -793,6 +797,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 				BOOST_LOG_TRIVIAL(error) << "Failed to remove temp file " << output_path << ": " << ex.what();
 			}
 	};
+    m_print->set_status(99, _utf8(L("Successfully executed post-processing script")));
 
 	//FIXME localize the messages
 	std::string error_message;
@@ -805,6 +810,52 @@ void BackgroundSlicingProcess::finalize_gcode()
 	catch (...)
 	{
 		remove_post_processed_temp_file();
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
+	}
+	switch (copy_ret_val) {
+	case CopyFileResult::SUCCESS: break; // no error
+	case CopyFileResult::FAIL_COPY_FILE:
+		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\nError message: %1%"), error_message));
+		break;
+	case CopyFileResult::FAIL_FILES_DIFFERENT:
+		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code to the output G-code failed. There might be problem with target device, please try exporting again or using different device. The corrupted output G-code is at %1%.tmp."), export_path));
+		break;
+	case CopyFileResult::FAIL_RENAMING:
+		throw Slic3r::ExportError(GUI::format(_L("Renaming of the G-code after copying to the selected destination folder has failed. Current path is %1%.tmp. Please try exporting again."), export_path));
+		break;
+	case CopyFileResult::FAIL_CHECK_ORIGIN_NOT_OPENED:
+		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code has finished but the original code at %1% couldn't be opened during copy check. The output G-code is at %2%.tmp."), output_path, export_path));
+		break;
+	case CopyFileResult::FAIL_CHECK_TARGET_NOT_OPENED:
+		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."), export_path));
+		break;
+	default:
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
+		BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
+		break;
+	}
+
+	m_print->set_status(100, GUI::format(_L("G-code file exported to %1%"), export_path));
+}
+
+// G-code is generated in m_temp_output_path.
+// Optionally run a post-processing script on a copy of m_temp_output_path.
+// Copy the final G-code to target location (possibly a SD card, if it is a removable media, then verify that the file was written without an error).
+void BackgroundSlicingProcess::export_gcode()
+{
+	// Perform the final post-processing of the export path by applying the print statistics over the file name.
+	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
+	std::string output_path = m_temp_output_path;
+
+	//FIXME localize the messages
+	std::string error_message;
+	int copy_ret_val = CopyFileResult::SUCCESS;
+	try
+	{
+		copy_ret_val = copy_file(output_path, export_path, error_message, m_export_path_on_removable_media);
+	}
+	catch (...)
+	{
 		throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
 	}
 	switch (copy_ret_val) {
@@ -840,7 +891,6 @@ void BackgroundSlicingProcess::finalize_gcode()
 	// BBS: to be checked. Whether use export_path or output_path.
 	gcode_add_line_number(export_path, m_fff_print->full_print_config());
 
-	m_print->set_status(100, (boost::format(_utf8(L("Succeed to export G-code to %1%"))) % export_path).str());
 }
 
 // A print host upload job has been scheduled, enqueue it to the printhost job queue
@@ -851,17 +901,27 @@ void BackgroundSlicingProcess::prepare_upload()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
-		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		std::string error_message;
-		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
-			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
-        m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
-        // (not here, but when the final target is a file). 
-        std::string source_path_str = source_path.string();
-        std::string output_name_str = m_upload_job.upload_data.upload_path.string();
-		if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))
-			m_upload_job.upload_data.upload_path = output_name_str;
+        if (m_upload_job.upload_data.use_3mf) {
+            source_path = m_upload_job.upload_data.source_path;
+        } else {
+		    m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+		    std::string error_message;
+		    if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
+		    	throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+            m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+		    // Orca: skip post-processing scripts for BBL printers as we have run them already in finalize_gcode()
+		    // todo: do we need to copy the file?
+		
+            // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+            // (not here, but when the final target is a file). 
+            if (!m_fff_print->is_BBL_printer()) {
+                std::string source_path_str = source_path.string();
+                std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+                if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str,
+                                             m_fff_print->full_print_config()))
+			    m_upload_job.upload_data.upload_path = output_name_str;
+			}
+		}
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         

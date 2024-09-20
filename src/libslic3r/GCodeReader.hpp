@@ -26,6 +26,7 @@ public:
         const std::string_view  comment() const
             { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? std::string_view() : std::string_view(m_raw).substr(pos + 1); }
 
+        void  clear() { m_raw.clear(); }
         bool  has(Axis axis) const { return (m_mask & (1 << int(axis))) != 0; }
         float value(Axis axis) const { return m_axis[axis]; }
         bool  has(char axis) const;
@@ -49,7 +50,7 @@ public:
         bool extruding(const GCodeReader &reader)  const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) > 0; }
         bool retracting(const GCodeReader &reader) const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) < 0; }
         bool travel()     const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && ! this->has(E); }
-        void set(const GCodeReader &reader, const Axis axis, const float new_value, const int decimal_digits = 3);
+        void set(const Axis axis, const float new_value, const int decimal_digits = 3);
 
         bool  has_x() const { return this->has(X); }
         bool  has_y() const { return this->has(Y); }
@@ -78,6 +79,16 @@ public:
             return strncmp(cmd, cmd_test, len) == 0 && GCodeReader::is_end_of_word(cmd[len]);
         }
 
+        static bool cmd_starts_with(const std::string& gcode_line, const char* cmd_test) {
+            return strncmp(GCodeReader::skip_whitespaces(gcode_line.c_str()), cmd_test, strlen(cmd_test)) == 0;
+        }
+
+        static std::string extract_cmd(const std::string& gcode_line) {
+            GCodeLine temp;
+            temp.m_raw = gcode_line;
+            const std::string_view cmd = temp.cmd();
+            return { cmd.begin(), cmd.end() };
+        }
     private:
         std::string      m_raw;
         float            m_axis[NUM_AXES];
@@ -92,6 +103,7 @@ public:
     void reset() { memset(m_position, 0, sizeof(m_position)); }
     void apply_config(const GCodeConfig &config);
     void apply_config(const DynamicPrintConfig &config);
+    const GCodeConfig& config() { return m_config; };
 
     template<typename Callback>
     void parse_buffer(const std::string &buffer, Callback callback)
