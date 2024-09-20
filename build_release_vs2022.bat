@@ -7,6 +7,8 @@ set build_dir=build
 set debug=OFF
 set debuginfo=OFF
 set generator="Visual Studio 17 2022"
+
+@REM Credit to this StackOverflow answer: https://stackoverflow.com/a/3661082
 :GETOPTS
  if /I "%1" == "deps" set deps=ON
  if /I "%1" == "slicer" set slicer=ON
