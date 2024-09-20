@@ -186,7 +186,7 @@ function build_slicer() {
 
     echo "Fix macOS app package..."
     (
-        cd "$PROJECT_BUILD_DIR"
+        cd "$BUILD_DIR_NAME"
         mkdir -p OrcaSlicer
         cd OrcaSlicer
         # remove previously built app
