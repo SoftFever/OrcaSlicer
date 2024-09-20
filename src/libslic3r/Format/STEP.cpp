@@ -33,6 +33,8 @@
 #include "TopExp_Explorer.hxx"
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
+#include "BRepTools.hxx"
+#include <IMeshTools_Parameters.hxx>
 
 
 namespace Slic3r {
@@ -163,13 +165,6 @@ int StepPreProcessor::preNum(const unsigned char byte) {
     return num;
 }
 
-struct NamedSolid {
-    NamedSolid(const TopoDS_Shape& s,
-               const std::string& n) : solid{s}, name{n} {}
-    const TopoDS_Shape solid;
-    const std::string  name;
-};
-
 static void getNamedSolids(const TopLoc_Location& location, const std::string& prefix,
                            unsigned int& id, const Handle(XCAFDoc_ShapeTool) shapeTool,
                            const TDF_Label label, std::vector<NamedSolid>& namedSolids) {
@@ -206,7 +201,7 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
                 i++;
                 const TopoDS_Shape& currentShape = explorer.Current();
                 namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i));
-            }            
+            }
             break;
         case TopAbs_SOLID:
             namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
@@ -324,7 +319,7 @@ bool load_step(const char *path, Model *model, bool& is_cancel,
                 }
                 // BBS: copy triangles
                 const TopAbs_Orientation anOrientation = anExpSF.Current().Orientation();
-                Standard_Integer anId[3];
+                Standard_Integer anId[3] = {};
                 for (Standard_Integer aTriIter = 1; aTriIter <= aTriangulation->NbTriangles(); ++aTriIter) {
                     Poly_Triangle aTri = aTriangulation->Triangle(aTriIter);
 
@@ -401,6 +396,106 @@ bool load_step(const char *path, Model *model, bool& is_cancel,
     }
 
     return true;
+}
+
+Step::Step(fs::path path, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn):
+    m_stepFn(stepFn),
+    m_utf8Fn(isUtf8Fn)
+{
+    m_path = path.string();
+    m_app->NewDocument(TCollection_ExtendedString("BinXCAF"), m_doc);
+}
+
+Step::Step(std::string path, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn) :
+    m_path(path),
+    m_stepFn(stepFn),
+    m_utf8Fn(isUtf8Fn)
+{
+    m_app->NewDocument(TCollection_ExtendedString("BinXCAF"), m_doc);
+}
+
+bool Step::load()
+{
+    if (!StepPreProcessor::isUtf8File(m_path.c_str()) && m_utf8Fn) {
+        m_utf8Fn(false);
+        return false;
+    }
+
+    STEPCAFControl_Reader reader;
+    reader.SetNameMode(true);
+    IFSelect_ReturnStatus stat = reader.ReadFile(m_path.c_str());
+    if (stat != IFSelect_RetDone || !reader.Transfer(m_doc)) {
+        m_app->Close(m_doc);
+        return false;
+    }
+    m_shape_tool = XCAFDoc_DocumentTool::ShapeTool(m_doc->Main());
+    TDF_LabelSequence topLevelShapes;
+    m_shape_tool->GetFreeShapes(topLevelShapes);
+    unsigned int id{ 1 };
+    Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
+    for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
+        getNamedSolids(TopLoc_Location{}, "", id, m_shape_tool, topLevelShapes.Value(iLabel), m_name_solids);
+    }
+
+    return true;
+}
+
+void Step::clean_mesh_data()
+{
+    for (const auto& name_solid : m_name_solids) {
+        BRepTools::Clean(name_solid.solid);
+    }
+}
+
+unsigned int Step::get_triangle_num(double linear_defletion, double angle_defletion)
+{
+    unsigned int tri_num = 0;
+    Handle(StepProgressIncdicator) progress = new StepProgressIncdicator(m_stop_mesh);
+    clean_mesh_data();
+    IMeshTools_Parameters param;
+    param.Deflection = linear_defletion;
+    param.Angle = angle_defletion;
+    param.InParallel = true;
+    for (int i = 0; i < m_name_solids.size(); ++i) {
+        BRepMesh_IncrementalMesh mesh(m_name_solids[i].solid, param, progress->Start());
+        for (TopExp_Explorer anExpSF(m_name_solids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+            TopLoc_Location aLoc;
+            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
+            if (!aTriangulation.IsNull()) {
+                tri_num += aTriangulation->NbTriangles();
+            }
+        }
+        if (m_stop_mesh.load()) {
+            return 0;
+        }
+    }
+    return tri_num;
+}
+
+unsigned int Step::get_triangle_num_tbb(double linear_defletion, double angle_defletion)
+{
+    unsigned int tri_num = 0;
+    clean_mesh_data();
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_name_solids.size()),
+    [&](const tbb::blocked_range<size_t>& range) {
+        for (size_t i = range.begin(); i < range.end(); i++) {
+            unsigned int solids_tri_num = 0;
+            BRepMesh_IncrementalMesh mesh(m_name_solids[i].solid, linear_defletion, false, angle_defletion, true);
+            for (TopExp_Explorer anExpSF(m_name_solids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+                TopLoc_Location aLoc;
+                Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
+                if (!aTriangulation.IsNull()) {
+                    solids_tri_num += aTriangulation->NbTriangles();
+                }
+            }
+            m_name_solids[i].tri_face_cout = solids_tri_num;
+        }
+
+    });
+    for (int i = 0; i < m_name_solids.size(); ++i) {
+        tri_num += m_name_solids[i].tri_face_cout;
+    }
+    return tri_num;
 }
 
 }; // namespace Slic3r

@@ -4156,17 +4156,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         filament_ids.clear();
                     }
                 };
-                auto step_mesh = [this, &path, &is_user_cancel](double& linear_value, double& angle_value)-> int {
+                auto step_mesh = [this, &path, &is_user_cancel](Slic3r::Step& file, double& linear_value, double& angle_value)-> int {
                     if (boost::iends_with(path.string(), ".step") ||
                     boost::iends_with(path.string(), ".stp")){
-                        StepMeshDialog mesh_dlg(nullptr, path);
+                        StepMeshDialog mesh_dlg(nullptr, file);
                         if (mesh_dlg.ShowModal() == wxID_OK) {
                             linear_value = mesh_dlg.get_linear_defletion();
                             angle_value = mesh_dlg.get_angle_defletion();
                             return 1;
                         }
                     }
-                    is_user_cancel = false;
+                    is_user_cancel = true;
                     return -1;
                 };
                 model = Slic3r::Model:: read_from_file(
