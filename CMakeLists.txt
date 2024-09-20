@@ -83,13 +83,6 @@ if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
         set(BBL_RELEASE_TO_PUBLIC 0)
     endif ()
 endif()
-if(NOT DEFINED BBL_INTERNAL_TESTING)
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-        set(BBL_INTERNAL_TESTING 0)
-    else ()
-        set(BBL_INTERNAL_TESTING 1)
-    endif ()
-endif()
 
 # Set compiler flags
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
