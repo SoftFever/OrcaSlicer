@@ -90,11 +90,6 @@ if (CMAKE_TOOLCHAIN_FILE)
     list(APPEND _configure_args "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
 endif ()
 
-set(_release_to_public "0")
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(_release_to_public "1")
-endif ()
-
 # Generic args
 list(APPEND _configure_args "-DDESTDIR=${DEP_DESTDIR}" "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
@@ -126,9 +121,7 @@ execute_process(
         RESULT_VARIABLE _deps_configure_result
 )
 
-if (NOT _deps_configure_result EQUAL 0)
-    message(FATAL_ERROR "Dependency configure failed with output:\n${_deps_configure_output}")
-else ()
+if (_deps_configure_result EQUAL 0)
     message(STATUS "Building dependencies with the following command: ${CMAKE_COMMAND} --build . --target deps --config ${CMAKE_BUILD_TYPE} -- ${_compiler_args}")
     execute_process(
             COMMAND ${CMAKE_COMMAND} --build . --target deps --config ${CMAKE_BUILD_TYPE} -- ${_compiler_args}
@@ -142,6 +135,8 @@ else ()
     else ()
         message(STATUS "Dependencies built successfully")
     endif ()
+else ()
+    message(FATAL_ERROR "Dependency configure failed with output:\n${_deps_configure_output}")
 endif ()
 
 # write current commit info to file
