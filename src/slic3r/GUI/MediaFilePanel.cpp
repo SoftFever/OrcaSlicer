@@ -486,7 +486,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                 url += "&device=" + m;
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
-                url += "&refresh_url=" + boost::lexical_cast<std::string>(refresh_agora_url);
+                url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
