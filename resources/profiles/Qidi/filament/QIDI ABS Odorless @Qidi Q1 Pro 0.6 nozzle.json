@@ -4,7 +4,7 @@
     "setting_id": "GFSA04",
     "instantiation": "true",
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"
@@ -38,10 +38,10 @@
         "250"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "pressure_advance": [
-        "0.014"
+        "0.016"
     ],
     "slow_down_min_speed": [
         "20"
