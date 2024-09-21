@@ -5513,6 +5513,7 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
+	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
@@ -5527,6 +5528,8 @@ void PartPlateList::init_bed_type_info()
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
+	bed_texture_info[btPCT].parts.push_back(pct_part_left);
+	bed_texture_info[btPCT].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
 	bed_texture_info[btEP].parts.push_back(ep_part2);
 	bed_texture_info[btPEI].parts.push_back(pei_part1);
