@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 message(STATUS "CMake version: ${CMAKE_VERSION}")
+message(STATUS "CMake generator: ${CMAKE_GENERATOR}")
 
 # Setting CMAKE_OSX_ARCHITECTURES needs to be done before calling project()
 if (APPLE AND NOT DEFINED CMAKE_OSX_ARCHITECTURES)
