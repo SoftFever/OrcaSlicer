@@ -2616,7 +2616,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
             throw Slic3r::RuntimeError(std::string("invalid configuration file: ") + name_or_path);
         }
-        if (extruder_count != extruder_variant_count) {
+        if (num_filaments != extruder_variant_count) {
             process_multi_extruder = true;
             filament_variant_index.resize(num_filaments, 0);
 
@@ -2751,6 +2751,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 else if (key != "compatible_printers" && key != "compatible_prints") {
                     for (size_t i = 0; i < configs.size(); ++i) {
                         if (process_multi_extruder && (filament_options_with_variant.find(key) != filament_options_with_variant.end())) {
+                            const ConfigOptionVectorBase* other_opt_vec = static_cast<const ConfigOptionVectorBase*>(other_opt);
+                            if (other_opt_vec->size() != extruder_variant_count) {
+                                throw Slic3r::RuntimeError(std::string("Invalid values of \"") + key + std::string("\" found in ") + name_or_path);
+                            }
                             size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count - 1;
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set(other_opt, filament_variant_index[i], next_index - filament_variant_index[i]);
                         }
