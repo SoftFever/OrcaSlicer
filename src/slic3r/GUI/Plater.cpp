@@ -1299,7 +1299,7 @@ void Sidebar::update_all_preset_comboboxes()
             m_bed_type_list->SelectAndNotify((int) bed_type - 1);
         }
     } else {
-        m_bed_type_list->SelectAndNotify(btPEI - 1);
+        m_bed_type_list->SelectAndNotify(btPEI);
         m_bed_type_list->Disable();
     }
 

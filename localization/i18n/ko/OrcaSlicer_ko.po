@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "PO-Revision-Date: 2024-05-31 23:33+0900\n"
 "Last-Translator: ElectricalBoy <15651807+ElectricalBoy@users.noreply.github."
 "com>\n"
@@ -7650,6 +7650,14 @@ msgstr ""
 "쿨 플레이트 설치 시 베드 온도. 값 0은 필라멘트가 쿨 플레이트에 출력하는 것을 "
 "지원하지 않음을 의미합니다"
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "엔지니어링 플레이트"
 
@@ -9463,6 +9471,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "초기 레이어를 제외한 레이어의 베드 온도. 값 0은 필라멘트가 엔지니어링 플레이"
@@ -9497,6 +9510,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "초기 레이어의 베드 온도. 값 0은 필라멘트가 쿨 플레이트 출력을 지원하지 않음"
@@ -9519,11 +9537,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "프린터가 지원하는 베드 유형"
 
-msgid "Cool Plate"
-msgstr "쿨 플레이트"
+msgid "Smooth Cool Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "엔지니어링 플레이트"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "첫 레이어 출력 순서"
@@ -10502,6 +10526,7 @@ msgstr "프레셔 어드밴스(Klipper)/리니어 어드밴스(Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10526,6 +10551,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -16531,6 +16557,9 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
 "높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Cool Plate"
+#~ msgstr "쿨 플레이트"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "홀수에 반전"

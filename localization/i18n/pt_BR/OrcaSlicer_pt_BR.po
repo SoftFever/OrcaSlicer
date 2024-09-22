@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "PO-Revision-Date: 2024-06-01 21:51-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -7878,6 +7878,14 @@ msgstr ""
 "Temperatura da mesa quando a cool plate (mesa fria) está instalada. Valor 0 "
 "significa que o filamento não suporta impressão na cool plate"
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "Mesa de engenharia"
 
@@ -9741,6 +9749,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Temperatura da mesa para camadas exceto a inicial. O valor 0 significa que o "
@@ -9775,6 +9788,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Temperatura da mesa na primeira camada. O valor 0 significa que o filamento "
@@ -9797,11 +9815,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Tipos de mesa suportadas pela impressora"
 
-msgid "Cool Plate"
-msgstr "Mesa Fria"
+msgid "Smooth Cool Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engenharia Plate"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Sequência de impressão da primeira camada"
@@ -10832,6 +10856,7 @@ msgstr ""
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10856,6 +10881,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -17115,6 +17141,9 @@ msgstr ""
 "Você sabia que ao imprimir materiais propensos ao empenamento, como ABS, "
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
+
+#~ msgid "Cool Plate"
+#~ msgstr "Mesa Fria"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Inverter em ímpares"

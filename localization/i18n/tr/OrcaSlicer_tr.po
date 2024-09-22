@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "PO-Revision-Date: 2024-09-09 02:58+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -7808,6 +7808,14 @@ msgstr ""
 "Soğutma plakası takıldığında yatak sıcaklığı. 0 değeri, filamentin Cool "
 "Plate üzerine yazdırmayı desteklemediği anlamına gelir"
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "Mühendislik plakası"
 
@@ -9690,6 +9698,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. Değer 0, filamentin "
@@ -9724,6 +9737,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "İlk katmanın yatak sıcaklığı. Değer 0, filamentin Mühendislik Plakasına "
@@ -9746,11 +9764,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Yazıcının desteklediği yatak türleri"
 
-msgid "Cool Plate"
-msgstr "Soğuk Plaka"
+msgid "Smooth Cool Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Mühendislik Plakası"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "İlk katman yazdırma sırası"
@@ -10868,6 +10892,7 @@ msgstr "Basınç avansı (Klipper) Doğrusal ilerleme faktörü (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Uyarlanabilir basınç ilerlemesini etkinleştir (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10909,6 +10934,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Uyarlanabilir basınç ilerleme ölçümleri (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -17305,6 +17331,9 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid "Cool Plate"
+#~ msgstr "Soğuk Plaka"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Tersine çevir"
