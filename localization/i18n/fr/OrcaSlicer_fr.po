@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -7990,6 +7990,14 @@ msgstr ""
 "plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
 "être imprimé sur le plateau froid."
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "Plaque Engineering"
 
@@ -9937,6 +9945,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau pour toutes les couches à l'exception "
@@ -9974,6 +9987,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau pour la première couche. Une valeur à "
@@ -9998,11 +10016,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Types de plateaux pris en charge par l'imprimante"
 
-msgid "Cool Plate"
-msgstr "Cool Plate/Plaque PLA"
+msgid "Smooth Cool Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Plaque Engineering"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Séquence d’impression de la première couche"
@@ -11207,6 +11231,7 @@ msgstr "Pressure Advance (Klipper) AKA Linear Advance (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Activer l’avance de pression adaptative (beta)"
 
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -11252,6 +11277,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Mesures adaptatives de l’avance de pression (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -17866,6 +17892,9 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid "Cool Plate"
+#~ msgstr "Cool Plate/Plaque PLA"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Parois inversées sur couches impaires"
