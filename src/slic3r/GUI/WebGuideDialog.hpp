@@ -109,6 +109,7 @@ private:
 
     // User Config
     bool PrivacyUse;
+    bool StealthMode;
     std::string m_Region;
 
     bool InstallNetplugin;

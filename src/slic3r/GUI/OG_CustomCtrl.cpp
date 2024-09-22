@@ -492,13 +492,16 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
     wxCoord    h_pos2 = get_title_width() * m_em_unit;
     wxCoord    v_pos = 0;
 
-    size_t invisible_lines = 0;
+    bool has_visible_lines = false;
     for (CtrlLine& line : ctrl_lines) {
         line.update_visibility(mode);
-        if (line.is_visible)
+        if (line.is_visible) {
             v_pos += (wxCoord)line.height;
-        else
-            invisible_lines++;
+
+            if (!line.is_separator()) { // Ignore separators
+                has_visible_lines = true;
+            }
+        }
     }
     // BBS: multi-line title
     SetFont(Label::Head_16);
@@ -513,7 +516,7 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 
     this->SetMinSize(wxSize(h_pos, v_pos));
 
-    return invisible_lines != ctrl_lines.size();
+    return has_visible_lines;
 }
 
 // BBS: call by Tab/Page
