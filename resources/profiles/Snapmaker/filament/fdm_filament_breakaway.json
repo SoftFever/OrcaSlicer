@@ -4,6 +4,9 @@
   "instantiation": "false",
   "name": "fdm_filament_breakaway",
   "inherits": "fdm_filament_common",
+  "filament_is_support": [
+    "1"
+  ],
   "hot_plate_temp": [
     "65"
   ],
