@@ -173,22 +173,16 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
 	assert(region.config().solid_infill_filament.value > 0);
 	// 1 based extruder ID.
     unsigned int extruder = 1;
-
     if (this->extruder_override == 0) {
         if (extrusions.has_infill()) {
-            if (extrusions.has_solid_infill()) {
+            if (extrusions.has_solid_infill())
                 extruder = region.config().solid_infill_filament;
-            } else {
+            else
                 extruder = region.config().sparse_infill_filament;
-            }
-        } else if (extrusions.has_perimeters()) {
+        } else
             extruder = region.config().wall_filament.value;
-        } else {
-            extruder = this->extruder_override;
-        }
-    } else {
+    } else
         extruder = this->extruder_override;
-    }
 
     return (extruder == 0) ? 0 : extruder - 1;
 }
@@ -893,7 +887,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return false;
     };
 
-    std::optional<unsigned int>current_extruder_id(-1);
+    std::optional<unsigned int>current_extruder_id;
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())

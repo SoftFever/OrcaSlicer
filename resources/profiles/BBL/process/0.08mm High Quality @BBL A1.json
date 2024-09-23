@@ -13,7 +13,7 @@
     "internal_solid_infill_speed": "150",
     "outer_wall_acceleration": "2000",
     "outer_wall_speed": "60",
-    "sparse_infill_pattern": "crosshatch",
+    "sparse_infill_pattern": "gyroid",
     "sparse_infill_speed": "150",
     "top_surface_speed": "150",
     "travel_speed": "700",

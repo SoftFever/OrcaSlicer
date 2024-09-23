@@ -2716,7 +2716,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
 			// calc vertex for plate name
-            generate_plate_name_texture();
+			generate_plate_name_texture();
 		}
 	}
 
@@ -3653,6 +3653,38 @@ int PartPlateList::create_plate(bool adjust_position)
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
 }
+
+
+int PartPlateList::duplicate_plate(int index)
+{
+    // create a new plate
+    int new_plate_index = create_plate(true);
+    PartPlate* old_plate = NULL;
+    PartPlate* new_plate = NULL;
+    old_plate = get_plate(index);
+    new_plate = get_plate(new_plate_index);
+
+    // get the offset between plate centers
+    Vec3d plate_to_plate_offset = new_plate->m_origin - old_plate->m_origin;
+
+    // iterate over all the objects in this plate
+    ModelObjectPtrs obj_ptrs = old_plate->get_objects_on_this_plate();
+    for (ModelObject* object : obj_ptrs){
+        // copy and move the object to the same relative position in the new plate
+        ModelObject* object_copy = m_model->add_object(*object);
+        int new_obj_id = new_plate->m_model->objects.size() - 1;
+        // go over the instances and pair with the object
+        for (size_t new_instance_id = 0; new_instance_id < object_copy->instances.size(); new_instance_id++){
+            new_plate->obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % object_copy->id().id;
+        }
+    }
+    new_plate->translate_all_instance(plate_to_plate_offset);
+    // update the plates
+    wxGetApp().obj_list()->reload_all_plates();
+    return new_plate_index;
+}
+
 
 //destroy print's objects and results
 int PartPlateList::destroy_print(int print_index)
@@ -4781,7 +4813,7 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 	if (m_is_dark != last_dark_mode_status) {
 		last_dark_mode_status = m_is_dark;
 		generate_icon_textures();
-	}else if(m_del_texture.get_id() == 0)
+	} else if(m_del_texture.get_id() == 0)
 		generate_icon_textures();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
@@ -5481,6 +5513,7 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
+	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
@@ -5495,6 +5528,8 @@ void PartPlateList::init_bed_type_info()
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
+	bed_texture_info[btPCT].parts.push_back(pct_part_left);
+	bed_texture_info[btPCT].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
 	bed_texture_info[btEP].parts.push_back(ep_part2);
 	bed_texture_info[btPEI].parts.push_back(pei_part1);
