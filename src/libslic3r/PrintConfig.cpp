@@ -3084,6 +3084,24 @@ void PrintConfigDef::init_fff_params()
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+    
+    def = this->add("initial_layer_travel_acceleration", coFloatOrPercent);
+    def->label = L("Initial layer travel acceleration");
+    def->tooltip = L("Travel acceleration of initial layer.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "travel_acceleration";
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+    
+    def = this->add("initial_layer_travel_jerk", coFloatOrPercent);
+    def->label = L("Initial layer travel jerk");
+    def->tooltip = L("Travel jerk of initial layer.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "travel_jerk";
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def = this->add("slow_down_layers", coInt);
     def->label = L("Number of slow layers");

@@ -14478,6 +14478,18 @@ msgstr "Bewegung"
 msgid "Travel speed of initial layer."
 msgstr "Bewegungsgeschwindigkeit der ersten Schicht"
 
+msgid "Initial layer travel acceleration"
+msgstr "Eilgang Beschleunigung"
+
+msgid "Travel acceleration of initial layer"
+msgstr "Eilgang Beschleuinigung der ersten Schicht"
+
+msgid "Initial layer travel jerk"
+msgstr "Eilgang Ruck"
+
+msgid "Travel jerk of initial layer"
+msgstr "Eilgang Ruck der ersten Schicht"
+
 msgid "Number of slow layers"
 msgstr "Anzahl der lansamen Schichten"
 
