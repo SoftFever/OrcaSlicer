@@ -1279,7 +1279,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     // split the polygons with top/not_top
     // get the offset from solid surface anchor
     coord_t offset_top_surface =
-        scale_(1.5 * (config->wall_loops.value == 0
+        scale_(0.9 * (config->wall_loops.value == 0
                           ? 0.
                           : unscaled(double(ext_perimeter_width +
                                             perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
@@ -2889,77 +2889,89 @@ void PerimeterGenerator::process_arachne()
         if (apply_precise_outer_wall)
            wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
 
-        std::vector<Arachne::VariableWidthLines> out_shell;
-        ExPolygons top_fills;
-        ExPolygons fill_clip;
+        //PS: One wall top surface for Arachne
+        ExPolygons top_expolygons;
+        // Calculate how many inner loops remain when TopSurfaces is selected.
+        const int inner_loop_number = (config->only_one_wall_top && upper_slices != nullptr) ? loop_number - 1 : -1;
 
-        // Check if we're on a top surface, and make adjustments where needed
-        if (!surface.is_bridge() && !is_topmost_layer) {
-            ExPolygons non_top_polygons;
-            // Temporary storage, in the event all we need to do is set is_top_or_bottom_layer
-            ExPolygons top_fills_tmp;
-            ExPolygons fill_clip_tmp;
-            // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
-            this->split_top_surfaces(last, top_fills_tmp, non_top_polygons, fill_clip_tmp);
+        // Set one perimeter when TopSurfaces is selected.
+        if (config->only_one_wall_top)
+            loop_number = 0;
 
-            if (top_fills_tmp.empty()) {
-                // No top surfaces, no special handling needed
-            } else {
-                // Use single-wall on top-surfaces if configured
-                if (loop_number > 0 && config->only_one_wall_top) {
-                    // Adjust arachne input params to prevent removal of larger short walls, which could lead to gaps
-                    Arachne::WallToolPathsParams input_params_tmp = input_params;
-                    input_params_tmp.is_top_or_bottom_layer = true;
-                
-                    // Swap in the temporary storage
-                    top_fills.swap(top_fills_tmp);
-                    fill_clip.swap(fill_clip_tmp);
-                    
-                    // First we slice the outer shell
-                    Polygons last_p = to_polygons(last);
-                    Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
-                                                        wall_0_inset, layer_height, input_params_tmp);
-                    out_shell = wallToolPaths.getToolPaths();
-                    // Make sure infill not overlap with wall
-                    top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
-
-                    if (!top_fills.empty()) {
-                        // Then get the inner part that needs more walls
-                        last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
-                        loop_number--;
-                    } else {
-                        // Give up the outer shell because we don't have any meaningful top surface
-                        out_shell.clear();
-                    }
-                }
-            }
-        }
-
-        Polygons last_p = to_polygons(last);
-
+        Arachne::WallToolPathsParams input_params_tmp = input_params;
+        
+        Polygons   last_p = to_polygons(last);
         Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(loop_number + 1),
-                                             wall_0_inset, layer_height, input_params);
+                                               wall_0_inset, layer_height, input_params_tmp);
+        std::vector<Arachne::VariableWidthLines>   perimeters = wallToolPaths.getToolPaths();
+        ExPolygons  infill_contour = union_ex(wallToolPaths.getInnerContour());
 
-        std::vector<Arachne::VariableWidthLines> perimeters = wallToolPaths.getToolPaths();
+        // Check if there are some remaining perimeters to generate (the number of perimeters
+        // is greater than one together with enabled the single perimeter on top surface feature).
+        if (inner_loop_number >= 0) {
+            assert(upper_slices != nullptr);
 
-        if (!out_shell.empty()) {
-            // Combine outer shells
-            size_t inset_offset = 0;
-            for (auto &p : out_shell) {
-                for (auto &l : p) {
-                    if (l.inset_idx + 1 > inset_offset) {
-                        inset_offset = l.inset_idx + 1;
+            // Infill contour bounding box.
+            BoundingBox infill_contour_bbox = get_extents(infill_contour);
+            infill_contour_bbox.offset(SCALED_EPSILON);
+            
+            coord_t perimeter_width = this->perimeter_flow.scaled_width();
+
+            // Get top ExPolygons from current infill contour.
+            Polygons upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, infill_contour_bbox);
+            top_expolygons = diff_ex(infill_contour, upper_slices_clipped);
+
+            if (!top_expolygons.empty()) {
+                if (lower_slices != nullptr) {
+                    const float      bridge_offset          = float(std::max<coord_t>(ext_perimeter_spacing, perimeter_width));
+                    const Polygons   lower_slices_clipped   = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, infill_contour_bbox);
+                    const ExPolygons current_slices_bridges = offset_ex(diff_ex(top_expolygons, lower_slices_clipped), bridge_offset);
+
+                    // Remove bridges from top surface polygons.
+                    top_expolygons = diff_ex(top_expolygons, current_slices_bridges);
+                }
+
+                // Filter out areas that are too thin and expand top surface polygons a bit to hide the wall line.
+                // ORCA: skip if the top surface area is smaller than "min_width_top_surface"
+                const float top_surface_min_width = std::max<float>(float(ext_perimeter_spacing) / 4.f + scaled<float>(0.00001), float(scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width)))) / 4.f);
+                // Shrink the polygon to remove the small areas, then expand it back out plus a maragin to hide the wall line a little.
+                // ORCA: Expand the polygon with half the perimeter width in addition to the contracted amount,
+                // not the full perimeter width as PS does, to enable thin lettering to print on the top surface without nozzle collisions
+                // due to thin lines being generated
+                top_expolygons = offset2_ex(top_expolygons, -top_surface_min_width, top_surface_min_width + float(perimeter_width * 0.85));
+
+                // Get the not-top ExPolygons (including bridges) from current slices and expanded real top ExPolygons (without bridges).
+                const ExPolygons not_top_expolygons = diff_ex(infill_contour, top_expolygons);
+
+                // Get final top ExPolygons.
+                top_expolygons = intersection_ex(top_expolygons, infill_contour);
+
+                const Polygons not_top_polygons = to_polygons(not_top_expolygons);
+                Arachne::WallToolPaths inner_wall_tool_paths(not_top_polygons, perimeter_spacing, perimeter_spacing, coord_t(inner_loop_number + 1), 0, layer_height, input_params_tmp);
+                std::vector<Arachne::VariableWidthLines> inner_perimeters = inner_wall_tool_paths.getToolPaths();
+
+                // Recalculate indexes of inner perimeters before merging them.
+                if (!perimeters.empty()) {
+                    for (Arachne::VariableWidthLines &inner_perimeter : inner_perimeters) {
+                        if (inner_perimeter.empty())
+                            continue;
+                        for (Arachne::ExtrusionLine &el : inner_perimeter)
+                            ++el.inset_idx;
                     }
                 }
-            }
-             for (auto &p : perimeters) {
-                 for (auto &l : p) {
-                     l.inset_idx += inset_offset;
-                 }
-             }
 
-            perimeters.insert(perimeters.begin(), out_shell.begin(), out_shell.end());
+                perimeters.insert(perimeters.end(), inner_perimeters.begin(), inner_perimeters.end());
+                infill_contour = union_ex(top_expolygons, inner_wall_tool_paths.getInnerContour());
+            } else {
+                // There is no top surface ExPolygon, so we call Arachne again with parameters
+                // like when the single perimeter feature is disabled.
+                Arachne::WallToolPaths no_single_perimeter_tool_paths(last_p, bead_width_0, perimeter_spacing, coord_t(inner_loop_number + 2), wall_0_inset, layer_height, input_params_tmp);
+                perimeters     = no_single_perimeter_tool_paths.getToolPaths();
+                infill_contour = union_ex(no_single_perimeter_tool_paths.getInnerContour());
+            }
         }
+        //PS
+
         loop_number = int(perimeters.size()) - 1;
 
         #ifdef ARACHNE_DEBUG
@@ -3183,7 +3195,6 @@ void PerimeterGenerator::process_arachne()
             this->loops->append(extrusion_coll);
         }
 
-ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
         const coord_t spacing = (perimeters.size() == 1) ? ext_perimeter_spacing2 : perimeter_spacing;
 
         if (offset_ex(infill_contour, -float(spacing / 2.)).empty())
@@ -3221,8 +3232,8 @@ ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
             float(-min_perimeter_infill_spacing / 2.),
             float(inset + min_perimeter_infill_spacing / 2.));
         // append infill areas to fill_surfaces
-        if (!top_fills.empty()) {
-            infill_exp = union_ex(infill_exp, offset_ex(top_fills, double(top_inset)));
+        if (!top_expolygons.empty()) {
+            infill_exp = union_ex(infill_exp, offset_ex(top_expolygons, double(top_inset)));
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
@@ -3235,8 +3246,8 @@ ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
                 not_filled_exp,
                 float(-min_perimeter_infill_spacing / 2.),
                 float(+min_perimeter_infill_spacing / 2.));
-            if (!top_fills.empty())
-                polyWithoutOverlap = union_ex(polyWithoutOverlap, top_fills);
+            if (!top_expolygons.empty())
+                polyWithoutOverlap = union_ex(polyWithoutOverlap, top_expolygons);
             this->fill_no_overlap->insert(this->fill_no_overlap->end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
         }
     }
