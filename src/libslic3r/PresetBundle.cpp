@@ -2274,6 +2274,10 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
         }
 
         different_settings.emplace_back(different_filament_settings);
+
+        std::vector<int>& filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
+        int index_size = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+        filament_self_indice.resize(index_size, 1);
     } else {
         // Retrieve filament presets and build a single config object for them.
         // First collect the filament configurations based on the user selection of this->filament_presets.
