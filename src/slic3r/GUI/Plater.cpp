@@ -1299,7 +1299,7 @@ void Sidebar::update_all_preset_comboboxes()
             m_bed_type_list->SelectAndNotify((int) bed_type - 1);
         }
     } else {
-        m_bed_type_list->SelectAndNotify(btPEI - 1);
+        m_bed_type_list->SelectAndNotify(btPEI);
         m_bed_type_list->Disable();
     }
 
@@ -2951,19 +2951,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->orient(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->orient(); });
         //BBS
@@ -3002,11 +3002,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD_PLATE, &priv::on_action_add_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DEL_PLATE, &priv::on_action_del_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->orient(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange();
             });
@@ -4765,7 +4765,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
 #ifdef __WXMSW__
-    if (path.extension() != output_file.extension()) {
+    if (boost::iequals(path.extension().string(), output_file.extension().string()) == false) {
         out_path += output_file.extension().string();
         boost::system::error_code ec;
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
@@ -8300,7 +8300,7 @@ void Plater::priv::on_create_filament(SimpleEvent &)
 
 void Plater::priv::on_modify_filament(SimpleEvent &evt)
 {
-    FilamentInfomation *filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
+    Filamentinformation *filament_info = static_cast<Filamentinformation *>(evt.GetEventObject());
     int                 res;
     std::shared_ptr<Preset> need_edit_preset;
     {
@@ -8826,7 +8826,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     auto check = [&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
-                _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
+                _L("You can keep the modified presets to the new project, discard or save changes as new presets."));
         int act_buttons = ActionButtons::KEEP | ActionButtons::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ActionButtons::SAVE;
@@ -9722,7 +9722,17 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         obj_name = obj_name.substr(9);
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
-        auto modifier = stof(obj_name);
+        // Orca: force set locale to C to avoid parsing error
+        const std::string _loc = std::setlocale(LC_NUMERIC, nullptr);
+        std::setlocale(LC_NUMERIC,"C");
+        auto              modifier  = 1.0f;
+        try {
+            modifier = stof(obj_name);
+        } catch (...) {
+        }
+        // restore locale
+        std::setlocale(LC_NUMERIC, _loc.c_str());
+
         if(linear)
             _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
         else
@@ -10848,7 +10858,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")){
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -10928,7 +10938,9 @@ int Plater::get_3mf_file_count(std::vector<fs::path> paths)
 {
     auto count = 0;
     for (const auto &path : paths) {
-        if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) count++;
+        if (boost::iends_with(path.filename().string(), ".3mf")) {
+            count++;
+        }
     }
     return count;
 }
@@ -11007,7 +11019,7 @@ void Plater::add_file()
     }
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")) {
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -13994,6 +14006,19 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
+    return ret;
+}
+
+int Plater::duplicate_plate(int plate_index)
+{
+    int index = plate_index, ret;
+    if (plate_index == -1)
+        index = p->partplate_list.get_curr_plate_index();
+
+    ret = p->partplate_list.duplicate_plate(index);
+
+    //need to call update
+    update();
     return ret;
 }
 

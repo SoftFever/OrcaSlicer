@@ -1439,7 +1439,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -2164,7 +2164,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_speed");
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
-        optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
+        // Orca: DEPRECATED
+        // optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
         line.label_path = "slow-down-for-overhang";
@@ -3314,6 +3315,11 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
 
+        line = { L("Textured Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Textured Cool Plate") };
+        line.append_option(optgroup->get_option("textured_cool_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("textured_cool_plate_temp"));
+        optgroup->append_line(line);
+
         line = { L("Engineering plate"), L("Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate") };
         line.append_option(optgroup->get_option("eng_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("eng_plate_temp"));
@@ -3577,6 +3583,7 @@ void TabFilament::toggle_options()
         toggle_option("pressure_advance", pa);
         auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
+        toggle_line("textured_cool_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
         
@@ -4117,7 +4124,7 @@ if (is_marlin_flavor)
     if (from_initial_build) {
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
         auto page     = add_options_page(L("Multimaterial"), "custom-gcode_multi_material", true); // ORCA: icon only visible on placeholders
-        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"), "param_multi_material");
+        auto optgroup = page->new_optgroup(L("Single extruder multi-material setup"), "param_multi_material");
         optgroup->append_single_option_line("single_extruder_multi_material", "semm");
         ConfigOptionDef def;
         def.type    = coInt, def.set_default_value(new ConfigOptionInt((int) m_extruders_count));
@@ -4206,7 +4213,7 @@ if (is_marlin_flavor)
         optgroup->append_single_option_line("enable_filament_ramming", "semm");
 
 
-        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"), "param_settings");
+        optgroup = page->new_optgroup(L("Single extruder multi-material parameters"), "param_settings");
         optgroup->append_single_option_line("cooling_tube_retraction", "semm");
         optgroup->append_single_option_line("cooling_tube_length", "semm");
         optgroup->append_single_option_line("parking_pos_retraction", "semm");
@@ -4254,7 +4261,7 @@ if (is_marlin_flavor)
                         // if value was changed
                         if (fabs(nozzle_diameters[extruder_idx == 0 ? 1 : 0] - new_nd) > EPSILON)
                         {
-                            const wxString msg_text = _(L("This is a single extruder multimaterial printer, diameters of all extruders "
+                            const wxString msg_text = _(L("This is a single extruder multi-material printer, diameters of all extruders "
                                 "will be set to the new value. Do you want to proceed?"));
                             //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
                             MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);

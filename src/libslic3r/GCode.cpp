@@ -1720,6 +1720,7 @@ namespace DoExport {
                 filament_stats_string_out += "\n" + out_filament_used_g.first;
             if (out_filament_cost.second)
                filament_stats_string_out += "\n" + out_filament_cost.first;
+            filament_stats_string_out += "\n";
         }
         return filament_stats_string_out;
     }
@@ -1802,6 +1803,8 @@ static BambuBedType to_bambu_bed_type(BedType type)
         bambu_bed_type = bbtHighTemperaturePlate;
     else if (type == btPTE)
         bambu_bed_type = bbtTexturedPEIPlate;
+    else if (type == btPCT)
+        bambu_bed_type = bbtCoolPlate;
 
     return bambu_bed_type;
 }
