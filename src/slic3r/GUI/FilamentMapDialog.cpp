@@ -1,9 +1,22 @@
 #include "FilamentMapDialog.hpp"
 #include "DragDropPanel.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/SwitchButton.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
+
+const wxString manual_tips = _L("You can drag the filaments to change which extruder they are assigned to,\n"
+                                "and we will slice according to this grouping method.\n"
+                                "But your filament arrangement may not be the most filament-efficient.");
+
+const wxString auto_tips = _L("Automatic filament grouping will be performed to reduce flushing consumption\n"
+                              "and filament changes during the slicing process.\n"
+                              "The recommended results will be displayed below after slicing:");
+
+const wxString auto_tips_with_result = _L("Automatic filament grouping will be performed to reduce flushing consumption\n"
+                                          "and filament changes during the slicing process.\n"
+                                          "The recommended results are shown below:");
 
 wxColour hex_to_color(const std::string &hex)
 {
@@ -53,25 +66,20 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     , m_filament_map(filament_map)
     , m_has_auto_result(has_auto_result)
 {
+    SetMinSize(wxSize(500, 100));
+    SetMaxSize(wxSize(500, 1500));
+
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticBoxSizer *mode_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _L("Mode"));
-    m_auto_radio             = new wxRadioButton(this, wxID_ANY, _L("Auto"));
-    m_manual_radio               = new wxRadioButton(this, wxID_ANY, _L("Customize"));
-    m_auto_radio->Bind(wxEVT_RADIOBUTTON, &FilamentMapDialog::on_auto_radio, this);
-    m_manual_radio->Bind(wxEVT_RADIOBUTTON, &FilamentMapDialog::on_manual_radio, this);
+    m_mode_switch_btn = new SwitchButton(this);
+    m_mode_switch_btn->SetMaxSize({em_unit(this) * 12, -1});
+    m_mode_switch_btn->SetLabels(_L("Customize"), _L("Auto"));
+    m_mode_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &FilamentMapDialog::on_switch_mode, this);
+    m_mode_switch_btn->SetValue(is_auto);
+    main_sizer->Add(m_mode_switch_btn, 0, wxCENTER | wxALL, 10);
 
-    if (is_auto)
-        m_auto_radio->SetValue(true);
-    else
-        m_manual_radio->SetValue(true);
-
-    mode_sizer->Add(m_auto_radio, 1, wxALL, 5);
-    mode_sizer->Add(m_manual_radio, 1, wxALL, 5);
-    main_sizer->Add(mode_sizer, 0, wxEXPAND | wxALL, 10);
-
-    wxStaticText *tip_text = new wxStaticText(this, wxID_ANY, _L("You could arrange your filament like this, this is the best solution we calculated"));
-    main_sizer->Add(tip_text, 0, wxALIGN_CENTER | wxALL, 5);
+    m_tip_text = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    main_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxALL, 5);
 
     m_extruder_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -95,7 +103,12 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
         }
     }
 
+    m_switch_filament_btn = new Button(this, "", "switch_filament_maps", 12, 12);
+    m_switch_filament_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_filaments, this);
+    m_switch_filament_btn->SetCanFocus(false);
+
     m_extruder_panel_sizer->Add(m_manual_left_panel, 1, wxEXPAND | wxALL, 5);
+    m_extruder_panel_sizer->Add(m_switch_filament_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, 1);
     m_extruder_panel_sizer->Add(m_manual_right_panel, 1, wxEXPAND | wxALL, 5);
     m_manual_left_panel->Layout();
     m_manual_left_panel->Fit();
@@ -130,14 +143,20 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     if (is_auto) {
         m_manual_left_panel->Hide();
         m_manual_right_panel->Hide();
-        if (!m_has_auto_result) {
+        m_switch_filament_btn->Hide();
+        if (m_has_auto_result) {
+            m_tip_text->SetLabel(auto_tips_with_result);
+        }
+        else {
             m_auto_left_panel->Hide();
             m_auto_right_panel->Hide();
+            m_tip_text->SetLabel(auto_tips);
         }
     }
     else {
         m_auto_left_panel->Hide();
         m_auto_right_panel->Hide();
+        m_tip_text->SetLabel(manual_tips);
     }
 
     wxBoxSizer *button_sizer  = new wxBoxSizer(wxHORIZONTAL);
@@ -159,7 +178,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
 
 bool FilamentMapDialog::is_auto() const
 {
-    if (m_auto_radio->GetValue()) {
+    if (m_mode_switch_btn->GetValue()) {
         return true;
     }
     return false;
@@ -188,38 +207,51 @@ void FilamentMapDialog::on_cancle(wxCommandEvent &event)
     EndModal(wxID_CANCEL);
 }
 
-void FilamentMapDialog::on_auto_radio(wxCommandEvent& event)
+void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
 {
-    if (!m_has_auto_result) {
+    bool value = dynamic_cast<SwitchButton *>(event.GetEventObject())->GetValue();
+    if (value) { // auto
         m_manual_left_panel->Hide();
         m_manual_right_panel->Hide();
+        m_switch_filament_btn->Hide();
+        if (m_has_auto_result) {
+            m_auto_left_panel->Show();
+            m_auto_right_panel->Show();
+            m_tip_text->SetLabel(auto_tips_with_result);
+        }
+        else {
+            m_auto_left_panel->Hide();
+            m_auto_right_panel->Hide();
+            m_tip_text->SetLabel(auto_tips);
+        }
+    } else { // manual
+        m_manual_left_panel->Show();
+        m_manual_right_panel->Show();
+        m_switch_filament_btn->Show();
 
         m_auto_left_panel->Hide();
         m_auto_right_panel->Hide();
 
-        Layout();
-        Fit();
+        m_tip_text->SetLabel(manual_tips);
     }
-    else {
-        m_auto_left_panel->Show();
-        m_auto_right_panel->Show();
-
-        m_manual_left_panel->Hide();
-        m_manual_right_panel->Hide();
-
-        Layout();
-        Fit();
-    }
+    Layout();
+    Fit();
+    event.Skip();
 }
 
-void FilamentMapDialog::on_manual_radio(wxCommandEvent& event)
+void FilamentMapDialog::on_switch_filaments(wxCommandEvent &event)
 {
-    m_manual_left_panel->Show();
-    m_manual_right_panel->Show();
+    std::vector<ColorPanel *> left_blocks  = m_manual_left_panel->get_filament_blocks();
+    std::vector<ColorPanel *> right_blocks = m_manual_right_panel->get_filament_blocks();
 
-    m_auto_left_panel->Hide();
-    m_auto_right_panel->Hide();
-
+    for (ColorPanel* block : left_blocks) {
+        m_manual_right_panel->AddColorBlock(block->GetColor(), block->GetFilamentId());
+        m_manual_left_panel->RemoveColorBlock(block);
+    }
+    for (auto block : right_blocks) {
+        m_manual_left_panel->AddColorBlock(block->GetColor(), block->GetFilamentId());
+        m_manual_right_panel->RemoveColorBlock(block);
+    }
     Layout();
     Fit();
 }

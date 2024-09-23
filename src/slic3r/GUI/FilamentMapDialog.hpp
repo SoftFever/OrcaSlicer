@@ -7,6 +7,10 @@
 #include <wx/timer.h>
 #include <vector>
 
+class SwitchButton;
+class Button;
+class wxStaticText;
+
 namespace Slic3r {
 class DynamicPrintConfig;
 
@@ -29,17 +33,18 @@ public:
 private:
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
-    void on_auto_radio(wxCommandEvent &event);
-    void on_manual_radio(wxCommandEvent &event);
+    void on_switch_mode(wxCommandEvent &event);
+    void on_switch_filaments(wxCommandEvent &event);
 
 private:
-    wxRadioButton* m_auto_radio;
-    wxRadioButton* m_manual_radio;
+    wxStaticText * m_tip_text;
+    SwitchButton * m_mode_switch_btn;
     wxBoxSizer *   m_extruder_panel_sizer;
     DragDropPanel* m_manual_left_panel;
     DragDropPanel* m_manual_right_panel;
     DragDropPanel* m_auto_left_panel;
     DragDropPanel* m_auto_right_panel;
+    Button       * m_switch_filament_btn;
 
 private:
     const DynamicPrintConfig* m_config;

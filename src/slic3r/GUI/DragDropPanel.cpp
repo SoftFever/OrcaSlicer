@@ -64,33 +64,14 @@ private:
 
 ///////////////   ColorPanel  start ////////////////////////
 // The UI panel of drag item
-class ColorPanel : public wxPanel
+ColorPanel::ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(50, 50), wxBORDER_SIMPLE), m_parent(parent), m_color(color), m_filament_id(filament_id)
 {
-public:
-    ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id)
-        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(50, 50), wxBORDER_SIMPLE)
-        , m_parent(parent)
-        , m_color(color)
-        , m_filament_id(filament_id)
-    {
-        SetBackgroundColour(color);
-        Bind(wxEVT_LEFT_DOWN, &ColorPanel::OnLeftDown, this);
-        Bind(wxEVT_LEFT_UP, &ColorPanel::OnLeftUp, this);
-        Bind(wxEVT_PAINT, &ColorPanel::OnPaint, this);
-    }
-
-    wxColour GetColor() const { return GetBackgroundColour(); }
-    int      GetFilamentId() const { return m_filament_id; }
-
-private:
-    void OnLeftDown(wxMouseEvent &event);
-    void OnLeftUp(wxMouseEvent &event);
-    void OnPaint(wxPaintEvent &event);
-
-    DragDropPanel *m_parent;
-    wxColor        m_color;
-    int            m_filament_id;
-};
+    SetBackgroundColour(color);
+    Bind(wxEVT_LEFT_DOWN, &ColorPanel::OnLeftDown, this);
+    Bind(wxEVT_LEFT_UP, &ColorPanel::OnLeftUp, this);
+    Bind(wxEVT_PAINT, &ColorPanel::OnPaint, this);
+}
 
 void ColorPanel::OnLeftDown(wxMouseEvent &event)
 {
@@ -198,6 +179,7 @@ void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id)
     ColorPanel *panel = new ColorPanel(this, color, filament_id);
     panel->SetMinSize(wxSize(50, 50));
     m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxALL, 5);
+    m_filament_blocks.push_back(panel);
     Layout();
 }
 
@@ -205,6 +187,7 @@ void DragDropPanel::RemoveColorBlock(ColorPanel *panel)
 {
     m_sizer->Detach(panel);
     panel->Destroy();
+    m_filament_blocks.erase(std::remove(m_filament_blocks.begin(), m_filament_blocks.end(), panel), m_filament_blocks.end());
     Layout();
 }
 
