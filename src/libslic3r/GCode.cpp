@@ -1606,7 +1606,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
                 std::string filament_name = print->config().filament_settings_id.get_at(item);
                 std::string msg = boost::str(boost::format(_("Filament %1% does not have enough material for the print. Used: %2$.2f m, %3$.2f g, Remaining: %4$.2f m, %5$.2f g")) %
                                              filament_name % (est_used_length * 0.001) % est_used_weight % (remaining_length * 0.001) % remaining_weight);
-                print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, msg);
+                print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, msg, PrintStateBase::SlicingNotificationType::SlicingNotEnoughFilament);
             }
         }
     }
