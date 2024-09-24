@@ -359,7 +359,7 @@ void Button::render(wxDC& dc)
         dc.DrawRectangle(pt, textSize.GetSize());
 #endif
 #ifdef __WXOSX__
-        pt.y -= textSize.x / 2;
+        pt.y -= this->textSize.x / 2;
 #endif
 #ifdef __APPLE__
         if (Slic3r::is_mac_version_15()) {
