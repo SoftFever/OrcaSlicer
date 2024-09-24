@@ -3482,7 +3482,7 @@ void TabFilament::build()
                     show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
                     return;
                 }
-                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
+                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), true, stats_only);
 
                 if (res.has_failed())
                     return;
