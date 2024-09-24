@@ -781,6 +781,8 @@ public:
     };
     std::atomic<bool> m_arrange_running{false};
 
+    bool is_loading_project() const { return m_loading_project; }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
