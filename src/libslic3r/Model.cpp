@@ -2481,12 +2481,12 @@ void ModelVolume::update_extruder_count(size_t extruder_count)
     }
 }
 
-void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id)
+void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id)
 {
     std::vector<int> used_extruders = get_extruders();
     for (int extruder_id : used_extruders) {
         if (extruder_id == filament_id) {
-            mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count + 1), (EnforcerBlockerType)(filament_id + 1));
+            mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count + 1), (EnforcerBlockerType)(filament_id + 1), (EnforcerBlockerType)(replace_filament_id + 1));
             break;
         }
     }
@@ -3401,10 +3401,13 @@ void FacetsAnnotation::get_facets(const ModelVolume& mv, std::vector<indexed_tri
     selector.get_facets(facets_per_type);
 }
 
-void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume &mv, EnforcerBlockerType max_type, EnforcerBlockerType to_delete_filament)
+void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume  &mv,
+                                                     EnforcerBlockerType max_type,
+                                                     EnforcerBlockerType to_delete_filament,
+                                                     EnforcerBlockerType replace_filament)
 {
     TriangleSelector selector(mv.mesh());
-    selector.deserialize(m_data, false, max_type, to_delete_filament);
+    selector.deserialize(m_data, false, max_type, to_delete_filament, replace_filament);
     this->set(selector);
 }
 

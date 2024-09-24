@@ -153,7 +153,8 @@ public:
     void on_filaments_delete(size_t filament_id);
 
     void add_filament();
-    void delete_filament(size_t filament_id = size_t(-1));
+    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base
+    void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
     void add_custom_filament(wxColour new_col);
     // BBS
@@ -483,7 +484,7 @@ public:
     bool leave_gizmos_stack();
 
     void on_filaments_change(size_t extruders_count);
-    void on_filaments_delete(size_t extruders_count, size_t filament_id);
+    void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1);
     // BBS
     void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();

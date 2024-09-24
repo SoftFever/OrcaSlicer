@@ -1903,7 +1903,7 @@ void Sidebar::add_filament() {
     add_custom_filament(new_col);
 }
 
-void Sidebar::delete_filament(size_t filament_id) {
+void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     if (p->combos_filament.size() <= 1) return;
 
     size_t filament_count = p->combos_filament.size() - 1;
@@ -1927,9 +1927,14 @@ void Sidebar::delete_filament(size_t filament_id) {
 
     wxGetApp().preset_bundle->update_num_filaments(filament_id);
     wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
-    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id);
+    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+}
+
+void Sidebar::change_filament(size_t from_id, size_t to_id)
+{
+    delete_filament(from_id, int(to_id));
 }
 
 void Sidebar::edit_filament()
@@ -13376,7 +13381,7 @@ void Plater::on_filaments_change(size_t num_filaments)
     }
 }
 
-void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
+void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int replace_filament_id)
 {
     // only update elements in plater
     update_filament_colors_in_full_config();
@@ -13392,7 +13397,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     // update mmu info
     for (ModelObject *mo : wxGetApp().model().objects) {
         for (ModelVolume *mv : mo->volumes) {
-            mv->update_extruder_count_when_delete_filament(num_filaments, filament_id);
+            mv->update_extruder_count_when_delete_filament(num_filaments, filament_id, replace_filament_id);
         }
     }
 
@@ -13402,18 +13407,26 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     // update global support filament
     static const char *keys[] = {"support_filament", "support_interface_filament"};
     for (auto key : keys)
-        if (p->config->has(key) && p->config->opt_int(key) == filament_id + 1)
-            (*(p->config)).erase(key);
+        if (p->config->has(key) && p->config->opt_int(key) == filament_id + 1) {
+            if (replace_filament_id == -1)
+                (*(p->config)).erase(key);
+            else
+                (*(p->config)).set_key_value(key, new ConfigOptionInt(replace_filament_id + 1));
+        }
 
     // update object/volume/support(object and volume) filament id
-    sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments);
+    sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments, replace_filament_id);
 
     // update customize gcode
     for (auto item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
         auto iter = std::remove_if(item->second.gcodes.begin(), item->second.gcodes.end(), [filament_id](const Item& gcode_item) {
             return (gcode_item.type == CustomGCode::Type::ToolChange && gcode_item.extruder == filament_id + 1);
         });
-        item->second.gcodes.erase(iter, item->second.gcodes.end());
+        if (replace_filament_id == -1)
+            item->second.gcodes.erase(iter, item->second.gcodes.end());
+        else if(iter != item->second.gcodes.end()) {
+            iter->extruder = replace_filament_id + 1;
+        }
 
         for (auto& item : item->second.gcodes) {
             if (item.type == CustomGCode::Type::ToolChange && item.extruder > filament_id)
