@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -7443,7 +7443,7 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "该材料的建议喷嘴温度范围。0表示未设置"
 
 msgid "Flow ratio and Pressure Advance"
-msgstr ""
+msgstr "流量和压力提前"
 
 msgid "Print chamber temperature"
 msgstr "打印仓温度"
@@ -7464,6 +7464,15 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr "安装低温打印热床时的热床温度。0值表示这个耗材丝不支持低温打印热床"
+
+msgid "Textured Cool plate"
+msgstr "纹理低温打印热床"
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+"安装纹理低温打印热床时的热床温度。0值表示这个耗材丝不支持纹理低温打印热床"
 
 msgid "Engineering plate"
 msgstr "工程材料热床"
@@ -9198,6 +9207,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr "非首层热床温度。0值表示这个耗材丝不支持纹理低温打印热床"
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr "非首层热床温度。0值表示这个耗材丝不支持工程材料热床"
 
@@ -9224,6 +9238,11 @@ msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热�
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr "首层热床温度。0值表示这个耗材丝不支持纹理低温打印热床"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr "首层热床温度。0值表示这个耗材丝不支持工程材料热床"
 
@@ -9240,11 +9259,17 @@ msgstr "首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
 
-msgid "Cool Plate"
-msgstr "低温打印热床"
+msgid "Smooth Cool Plate"
+msgstr "光滑低温打印热床"
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "工程材料热床"
+
+msgid "Smooth High Temp Plate"
+msgstr "光滑高温打印热床"
 
 msgid "First layer print sequence"
 msgstr "第一层打印顺序"
@@ -9552,8 +9577,9 @@ msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
 "Value 0 enables reversal on every even layers regardless."
-msgstr "判定悬垂反转需要的值（毫米），可以是线宽的百分比。"
-"0值表示在每个偶数层上都启用反转。"
+msgstr ""
+"判定悬垂反转需要的值（毫米），可以是线宽的百分比。0值表示在每个偶数层上都启用"
+"反转。"
 
 msgid "Classic mode"
 msgstr "经典模式"
@@ -9797,7 +9823,8 @@ msgstr ""
 "虑关闭它。"
 
 msgid "Filter out small internal bridges (beta)"
-msgstr ""
+msgstr "过滤细微内部桥接（试验）"
+
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -10187,8 +10214,9 @@ msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "压力提前(Klipper)或者线性提前(Marlin)"
 
 msgid "Enable adaptive pressure advance (beta)"
-msgstr ""
+msgstr "启用自适应压力提前（试验）"
 
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10211,8 +10239,9 @@ msgid ""
 msgstr ""
 
 msgid "Adaptive pressure advance measurements (beta)"
-msgstr ""
+msgstr "自适应压力提前参数（试验）"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -10244,7 +10273,7 @@ msgid ""
 msgstr ""
 
 msgid "Enable adaptive pressure advance for overhangs (beta)"
-msgstr ""
+msgstr "为悬垂启用自适应压力提前（试验）"
 
 msgid ""
 "Enable adaptive PA for overhangs as well as when flow changes within the "
@@ -10254,7 +10283,7 @@ msgid ""
 msgstr ""
 
 msgid "Pressure advance for bridges"
-msgstr ""
+msgstr "为搭桥启用压力提前"
 
 msgid ""
 "Pressure advance value for bridges. Set to 0 to disable. \n"
@@ -10364,7 +10393,7 @@ msgid ""
 msgstr ""
 
 msgid "Tool change time"
-msgstr ""
+msgstr "换工具头所需时间"
 
 msgid ""
 "Time taken to switch tools. It's usually applicable for tool changers or "
@@ -10391,7 +10420,7 @@ msgid ""
 msgstr ""
 
 msgid "Shrinkage (XY)"
-msgstr ""
+msgstr "收缩率（XY）"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -10407,7 +10436,7 @@ msgstr ""
 "请确保物体之间有足够的间距，因为补偿是在边界检查之后进行"
 
 msgid "Shrinkage (Z)"
-msgstr ""
+msgstr "收缩率（Z）"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -11217,7 +11246,7 @@ msgid ""
 msgstr ""
 
 msgid "Use beam interlocking"
-msgstr ""
+msgstr "启用互锁梁"
 
 msgid ""
 "Generate interlocking beam structure at the locations where different "
@@ -11226,19 +11255,19 @@ msgid ""
 msgstr ""
 
 msgid "Interlocking beam width"
-msgstr ""
+msgstr "互锁梁宽度"
 
 msgid "The width of the interlocking structure beams."
-msgstr ""
+msgstr "互锁梁的宽度"
 
 msgid "Interlocking direction"
-msgstr ""
+msgstr "互锁方向"
 
 msgid "Orientation of interlock beams."
-msgstr ""
+msgstr "互锁梁的方向"
 
 msgid "Interlocking beam layers"
-msgstr ""
+msgstr "互锁梁层数"
 
 msgid ""
 "The height of the beams of the interlocking structure, measured in number of "
@@ -11254,12 +11283,13 @@ msgid ""
 msgstr ""
 
 msgid "Interlocking boundary avoidance"
-msgstr ""
+msgstr "互锁与边界的留白量"
 
 msgid ""
 "The distance from the outside of a model where interlocking structures will "
 "not be generated, measured in cells."
 msgstr ""
+"模型边框与互锁结构的距离，以单元格为单位。"
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -11910,7 +11940,7 @@ msgid "Spiral"
 msgstr "螺旋"
 
 msgid "Traveling angle"
-msgstr ""
+msgstr "空驶抬高角度"
 
 msgid ""
 "Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
@@ -13106,7 +13136,7 @@ msgid ""
 msgstr ""
 
 msgid "Idle temperature"
-msgstr ""
+msgstr "待机温度"
 
 msgid ""
 "Nozzle temperature when the tool is currently not used in multi-tool setups."
@@ -15861,6 +15891,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Cool Plate"
+#~ msgstr "低温打印热床"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "反转奇数层悬垂方向"

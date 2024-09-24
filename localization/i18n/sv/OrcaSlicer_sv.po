@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-23 00:25+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7676,6 +7676,14 @@ msgstr ""
 "Detta är byggplattans temperatur när Cool Plate är installerad. Värdet 0 "
 "betyder att filamentet inte stöder utskrift på Cool Plate."
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "Engineering plate"
 
@@ -9451,6 +9459,11 @@ msgstr "° C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Detta är byggplattans temperatur för lager förutom det första. Ett värde på "
@@ -9485,6 +9498,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Detta är byggplattans temperatur för första lager. Värdet 0 betyder att "
@@ -9507,11 +9525,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Byggplattans typ stöds av skrivaren"
 
-msgid "Cool Plate"
-msgstr "Cool Plate"
+msgid "Smooth Cool Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Första lagrets utskrifts ordning"
@@ -10421,6 +10445,7 @@ msgstr ""
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10445,6 +10470,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -16143,6 +16169,9 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid "Cool Plate"
+#~ msgstr "Cool Plate"
 
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
