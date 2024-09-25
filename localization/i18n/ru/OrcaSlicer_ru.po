@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: 2024-09-15 13:34+0300\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -5951,6 +5951,9 @@ msgstr "Заблокировать текущую печатную пласти�
 msgid "Edit current plate name"
 msgstr "Изменить имя текущей пластины"
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Настроить текущую печатную пластину"
 
@@ -9942,13 +9945,13 @@ msgstr "Типы столов, поддерживаемые принтером"
 msgid "Smooth Cool Plate"
 msgstr ""
 
-msgid "Textured Cool Plate"
-msgstr ""
-
 msgid "Engineering Plate"
 msgstr "Инженерная пластина"
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
 msgstr ""
 
 msgid "First layer print sequence"

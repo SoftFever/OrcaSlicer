@@ -676,9 +676,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
                     "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
                     "wipe_tower_bridging", "wipe_tower_extra_flow",
-                    "wipe_tower_no_sparse_layers",
-                    "single_extruder_multi_material_priming"})
+                    "wipe_tower_no_sparse_layers"})
       toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && !is_BBL_Printer);
 
     toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
