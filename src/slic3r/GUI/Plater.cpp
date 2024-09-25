@@ -14001,7 +14001,18 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }
+    } else if ((action == 7) && (!right_click)) {
+        // move plate to the front
+        take_snapshot("move plate to the front");
+        ret = p->partplate_list.move_plate_to_index(plate_index,0);
+        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->sidebar->obj_list()->reload_all_plates();
+        p->partplate_list.update_plates();
+        update();
+        p->partplate_list.select_plate(0);
     }
+
     else
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid action %1%, with right_click=%2%" << action << right_click;
