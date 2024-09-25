@@ -252,6 +252,15 @@ PrinterArch get_printer_arch_by_str(std::string arch_str)
     return PrinterArch::ARCH_CORE_XY;
 }
 
+void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
+{
+    if (tag_type == "TPU" && ams_id != VIRTUAL_TRAY_MAIN_ID) {
+        ac           = "prohibition";
+        info         = wxString(_L("TPU is not supported by deputy extruder.")).ToUTF8().data();
+        in_blacklist = true;
+    }
+}
+
 void AmsTray::update_color_from_str(std::string color)
 {
     if (color.empty()) return;
@@ -6896,8 +6905,20 @@ bool DeviceManager::load_filaments_blacklist_config()
     return true;
 }
 
-void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info)
+bool DeviceManager::is_virtual_slot(int ams_id)
 {
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)
+        return true;
+    return false;
+}
+
+void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, bool& in_blacklist, std::string& ac, std::string& info)
+{
+    if (DeviceManager::is_virtual_slot(ams_id)) {
+        check_filaments_for_vt_slot(tag_vendor, tag_type, ams_id, in_blacklist, ac, info);
+        return;
+    }
+
     std::unordered_map<std::string, wxString> blacklist_prompt =
     {
         {"TPU: not supported", _L("TPU is not supported by AMS.")},

@@ -563,19 +563,18 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
 
                 //check is it in the filament blacklist
-                if (!is_virtual_tray() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+                if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
                     bool in_blacklist = false;
                     std::string action;
                     std::string info;
                     std::string filamnt_type;
                     it->get_filament_type(filamnt_type);
 
-                    auto vendor = dynamic_cast<ConfigOptionStrings*> (it->config.option("filament_vendor"));
+                    auto vendor = dynamic_cast<ConfigOptionStrings *>(it->config.option("filament_vendor"));
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, in_blacklist, action, info);
+                        DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, ams_id, in_blacklist, action, info);
                     }
-
 
                     if (in_blacklist) {
                         if (action == "prohibition") {

@@ -1217,8 +1217,10 @@ public:
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
+    static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info);
     static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();
     static std::string load_gcode(std::string type_str, std::string gcode_file);
+    static bool is_virtual_slot(int ams_id);
 
     static void update_local_machine(const MachineObject& m);
 };

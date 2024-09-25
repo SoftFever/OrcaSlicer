@@ -1206,11 +1206,11 @@ void CalibrationPresetPage::check_filament_compatible()
     std::string error_tips;
     int bed_temp = 0;
 
-    std::vector<Preset*> selected_filaments_list;
-    for (auto& item: selected_filaments)
+    std::vector<Preset *> selected_filaments_list;
+    for (auto &item : selected_filaments)
         selected_filaments_list.push_back(item.second);
 
-    if (!is_filaments_compatiable(selected_filaments_list, bed_temp, incompatiable_filament_name, error_tips)) {
+    if (!is_filaments_compatiable(selected_filaments, bed_temp, incompatiable_filament_name, error_tips)) {
         m_tips_panel->set_params(0, 0, 0.0f);
         if (!error_tips.empty()) {
             wxString tips = from_u8(error_tips);
@@ -1231,7 +1231,7 @@ void CalibrationPresetPage::check_filament_compatible()
     Layout();
 }
 
-bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*>& prests)
+bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*>& prests)
 {
     std::string incompatiable_filament_name;
     std::string error_tips;
@@ -1239,9 +1239,9 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*>&
     return is_filaments_compatiable(prests, bed_temp, incompatiable_filament_name, error_tips);
 }
 
-bool CalibrationPresetPage::is_filament_in_blacklist(Preset* preset, std::string& error_tips)
+bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips)
 {
-    if (m_ams_radiobox->GetValue() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+    if (!m_ext_spool_radiobox->GetValue() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
         std::string info;
@@ -1251,7 +1251,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(Preset* preset, std::string
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             std::string vendor_name = vendor->values[0];
-            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, in_blacklist, action, info);
+            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, tray_id, in_blacklist, action, info);
         }
 
         if (in_blacklist) {
@@ -1281,7 +1281,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(Preset* preset, std::string
     return true;
 }
 
-bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> &prests,
+bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*> &prests,
     int& bed_temp,
     std::string& incompatiable_filament_name,
     std::string& error_tips)
@@ -1291,22 +1291,23 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
     bed_temp = 0;
     std::vector<std::string> filament_types;
     for (auto &item : prests) {
-        if (!item)
+        const auto& item_preset = item.second;
+        if (!item_preset)
             continue;
 
         // update bed temperature
         BedType curr_bed_type = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
-        const ConfigOptionInts *opt_bed_temp_ints = item->config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
+        const ConfigOptionInts *opt_bed_temp_ints = item_preset->config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
         int bed_temp_int = 0;
         if (opt_bed_temp_ints) {
             bed_temp_int = opt_bed_temp_ints->get_at(0);
         }
 
         if (bed_temp_int <= 0) {
-            if (!item->alias.empty())
-                incompatiable_filament_name = item->alias;
+            if (!item_preset->alias.empty())
+                incompatiable_filament_name = item_preset->alias;
             else
-                incompatiable_filament_name = item->name;
+                incompatiable_filament_name = item_preset->name;
 
             return false;
         } else {
@@ -1315,10 +1316,10 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
                 bed_temp = bed_temp_int;
         }
         std::string display_filament_type;
-        filament_types.push_back(item->config.get_filament_type(display_filament_type, 0));
+        filament_types.push_back(item_preset->config.get_filament_type(display_filament_type, 0));
 
         // check is it in the filament blacklist
-        if (!is_filament_in_blacklist(item, error_tips))
+        if (!is_filament_in_blacklist(item.first, item_preset, error_tips))
             return false;
     }
 
@@ -2052,14 +2053,16 @@ void CalibrationPresetPage::select_default_compatible_filament()
         return;
 
     if (m_ams_radiobox->GetValue()) {
-        std::vector<Preset*> multi_select_filaments;
+        std::map<int, Preset *> selected_filament;
         for (auto &fcb : m_filament_comboBox_list) {
             if (!fcb->GetRadioBox()->IsEnabled())
                 continue;
-
+            int tray_id = fcb->get_tray_id();
             Preset* preset = const_cast<Preset *>(fcb->GetComboBox()->get_selected_preset());
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
-                if (preset && is_filaments_compatiable({preset})) {
+                selected_filament.clear();
+                selected_filament[tray_id] = preset;
+                if (preset && is_filaments_compatiable(selected_filament)) {
                     fcb->GetRadioBox()->SetValue(true);
                     wxCommandEvent event(wxEVT_RADIOBUTTON);
                     event.SetEventObject(this);
@@ -2073,9 +2076,9 @@ void CalibrationPresetPage::select_default_compatible_filament()
                     fcb->GetCheckBox()->SetValue(false);
                     continue;
                 }
-                multi_select_filaments.push_back(preset);
-                if (!is_filaments_compatiable(multi_select_filaments)) {
-                    multi_select_filaments.pop_back();
+                selected_filament.insert(std::make_pair(tray_id, preset));
+                if (!is_filaments_compatiable(selected_filament)) {
+                    selected_filament.erase(tray_id);
                     fcb->GetCheckBox()->SetValue(false);
                 }
                 else
@@ -2089,8 +2092,10 @@ void CalibrationPresetPage::select_default_compatible_filament()
         }
     }
     else if (m_ext_spool_radiobox->GetValue()){
+        std::map<int, Preset *> selected_filament;
         Preset *preset = const_cast<Preset *>(m_virtual_tray_comboBox->GetComboBox()->get_selected_preset());
-        if (preset && is_filaments_compatiable({preset})) {
+        selected_filament[m_virtual_tray_comboBox->get_tray_id()] = preset;
+        if (preset && is_filaments_compatiable(selected_filament)) {
             m_virtual_tray_comboBox->GetRadioBox()->SetValue(true);
         } else
             m_virtual_tray_comboBox->GetRadioBox()->SetValue(false);
