@@ -1284,21 +1284,24 @@ void Sidebar::update_all_preset_comboboxes()
 
     //p->m_staticText_filament_settings->Update();
 
-
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
         m_bed_type_list->Enable();
-        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
-                                                                       "curr_bed_type");
-        if (!str_bed_type.empty()) {
-            int bed_type_value = atoi(str_bed_type.c_str());
-            if (bed_type_value == 0)
-                bed_type_value = 1;
-            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
-        } else {
-            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-            m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+        // Orca: don't update bed type if loading project
+        if (!p->plater->is_loading_project()) {
+            auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                                           "curr_bed_type");
+            if (!str_bed_type.empty()) {
+                int bed_type_value = atoi(str_bed_type.c_str());
+                if (bed_type_value == 0)
+                    bed_type_value = 1;
+                m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+            } else {
+                BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+                m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+            }
         }
     } else {
+        // Orca: combobox don't have the btDefault option, so we need to -1
         m_bed_type_list->SelectAndNotify(btPEI - 1);
         m_bed_type_list->Disable();
     }
@@ -4765,7 +4768,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
 #ifdef __WXMSW__
-    if (path.extension() != output_file.extension()) {
+    if (boost::iequals(path.extension().string(), output_file.extension().string()) == false) {
         out_path += output_file.extension().string();
         boost::system::error_code ec;
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
@@ -9722,7 +9725,17 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         obj_name = obj_name.substr(9);
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
-        auto modifier = stof(obj_name);
+        // Orca: force set locale to C to avoid parsing error
+        const std::string _loc = std::setlocale(LC_NUMERIC, nullptr);
+        std::setlocale(LC_NUMERIC,"C");
+        auto              modifier  = 1.0f;
+        try {
+            modifier = stof(obj_name);
+        } catch (...) {
+        }
+        // restore locale
+        std::setlocale(LC_NUMERIC, _loc.c_str());
+
         if(linear)
             _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
         else
@@ -10848,7 +10861,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")){
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -10928,7 +10941,9 @@ int Plater::get_3mf_file_count(std::vector<fs::path> paths)
 {
     auto count = 0;
     for (const auto &path : paths) {
-        if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) count++;
+        if (boost::iends_with(path.filename().string(), ".3mf")) {
+            count++;
+        }
     }
     return count;
 }
@@ -11007,7 +11022,7 @@ void Plater::add_file()
     }
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")) {
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -13382,8 +13397,10 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
-    if (wxGetApp().app_config->get("auto_arrange") == "true")
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
         this->arrange();
+    }
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
@@ -13986,7 +14003,18 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }
+    } else if ((action == 7) && (!right_click)) {
+        // move plate to the front
+        take_snapshot("move plate to the front");
+        ret = p->partplate_list.move_plate_to_index(plate_index,0);
+        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->sidebar->obj_list()->reload_all_plates();
+        p->partplate_list.update_plates();
+        update();
+        p->partplate_list.select_plate(0);
     }
+
     else
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid action %1%, with right_click=%2%" << action << right_click;

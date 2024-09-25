@@ -3315,6 +3315,11 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
 
+        line = { L("Textured Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Textured Cool Plate") };
+        line.append_option(optgroup->get_option("textured_cool_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("textured_cool_plate_temp"));
+        optgroup->append_line(line);
+
         line = { L("Engineering plate"), L("Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate") };
         line.append_option(optgroup->get_option("eng_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("eng_plate_temp"));
@@ -3578,6 +3583,7 @@ void TabFilament::toggle_options()
         toggle_option("pressure_advance", pa);
         auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
+        toggle_line("textured_cool_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
         
