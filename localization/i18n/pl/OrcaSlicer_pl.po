@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -5916,6 +5916,9 @@ msgstr "Zablokuj bieżący stół"
 msgid "Edit current plate name"
 msgstr "Edytuj aktualną nazwę płyty"
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Dostosuj bieżący stół"
 
@@ -9854,13 +9857,13 @@ msgstr "Rodzaje płyt roboczych obsługiwanych przez drukarkę"
 msgid "Smooth Cool Plate"
 msgstr ""
 
-msgid "Textured Cool Plate"
-msgstr ""
-
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
 msgstr ""
 
 msgid "First layer print sequence"

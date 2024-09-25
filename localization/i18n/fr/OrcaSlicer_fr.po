@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -5963,6 +5963,9 @@ msgstr "Verrouiller le plateau actuel"
 msgid "Edit current plate name"
 msgstr "Modifier le nom du plateau actuel"
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Personnaliser le plateau actuel"
 
@@ -10027,14 +10030,14 @@ msgstr "Types de plateaux pris en charge par l'imprimante"
 msgid "Smooth Cool Plate"
 msgstr "Plaque Cool plate lisse"
 
-msgid "Textured Cool Plate"
-msgstr "Plaque Cool plate texturée"
-
 msgid "Engineering Plate"
 msgstr "Plaque Engineering"
 
 msgid "Smooth High Temp Plate"
 msgstr "Plaque lisse haute température"
+
+msgid "Textured Cool Plate"
+msgstr "Plaque Cool plate texturée"
 
 msgid "First layer print sequence"
 msgstr "Séquence d’impression de la première couche"

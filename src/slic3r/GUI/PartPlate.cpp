@@ -1037,7 +1037,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
 			if (hover_id == 7) {
                 render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_hovered_texture);
-                show_tooltip("Move plate to the front");
+                show_tooltip(_u8L("Move plate to the front"));
             } else
                 render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_texture);
 
