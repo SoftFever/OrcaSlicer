@@ -3168,6 +3168,7 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     static ImTextureID transparent;
     ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
     // BBS image sizing based on text width (DPI scaling)
+    float         four_word_width    = ImGui::CalcTextSize("ABCD").x;
     float         img_width    = ImGui::CalcTextSize("ABC").x;
     ImVec2        img_size     = {img_width, img_width * 1.5f};
     ImVec2        id_text_size = this->calc_text_size(id);
@@ -3186,8 +3187,13 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
     ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
     this->text_colored(text_color, id.c_str());
-        ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_size.x) * 0.5f, current_cursor.y + img_size.y});
+    float text_width_max = four_word_width;
+    if (filament_type.size() < 4) text_width_max = text_size.x;
+    current_cursor = ImGui::GetCursorPos();
+    ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_width_max) * 0.5f + 2, current_cursor.y + 4});
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + four_word_width);
     this->text(filament_type);
+    ImGui::PopTextWrapPos();
     ImGui::EndGroup();
     }
     //ImGui::PopStyleVar(1);

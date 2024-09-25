@@ -4408,42 +4408,52 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                 Plater *plater = wxGetApp().plater();
                 wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
                 evt.SetEventObject(plater);
+                evt.SetInt(0);
                 wxPostEvent(plater, evt);
             }
         }
     };
 
     ////BBS Color Arrangement Recommendation
-    ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ window_padding, window_padding });
-    ImGui::SameLine();
-    imgui.title(_u8L("Color Arrangement Recommendation"));
 
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
     auto filament_map_mode = config.filament_map_mode.value;
-
+    auto is_auto           = filament_map_mode == FilamentMapMode::fmmAuto;
     // BBS AMS containers
     float line_height          = ImGui::GetFrameHeight();
     int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
     float three_words_width    = imgui.calc_text_size("ABC"sv).x;
     float ams_item_height = std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.6f + line_height) + line_height * 2;
-    float AMS_container_height = ams_item_height + line_height * (filament_map_mode == FilamentMapMode::fmmAuto ? 3 : 4);
+    float AMS_container_height = ams_item_height + line_height * (is_auto ? 6 : 7);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
-    ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+    ImGui::Dummy({window_padding, window_padding});
+    ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
         float available_width   = ImGui::GetContentRegionAvail().x;
         float available_height = ImGui::GetContentRegionAvail().y;
-        float half_width       = available_width * 0.5f;
+        float half_width       = available_width * 0.49f;
         float spacing           = 18.0f * m_scale;
 
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.3f));
+        ImGui::Dummy({window_padding, window_padding});
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(.8f, .8f, .8f, 1.0f));
+        if (is_auto)
+            imgui.title(_u8L("Color Arrangement Recommendation"));
+        else
+            imgui.title(_u8L("Color Arrangement"));
+        ImGui::PopStyleColor();
+        ImGui::Dummy({window_padding, window_padding});
+
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.1f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
         ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 64));
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
-            imgui.bold_text(_u8L("Left"));
+            imgui.text(_u8L("Left"));
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_left_extruder_filament) {
@@ -4455,10 +4465,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
         ImGui::SameLine();
         cursor_pos = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 64));
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
-            imgui.bold_text(_u8L("Right"));
+            imgui.text(_u8L("Right"));
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_right_extruder_filament) {
@@ -4470,6 +4480,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar(1);
+        ImGui::Dummy({window_padding, window_padding});
         link_text(_u8L("Customize Arrangement"));
 
         auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
@@ -4512,6 +4523,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 
         ImGui::EndChild();
     }
+    ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(1);
 }
 
@@ -4534,6 +4546,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    //ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Border, {1, 0, 0, 0});
     ImGui::SetNextWindowBgAlpha(0.8f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
@@ -4846,7 +4860,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     if (m_fold) {
         legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5;
         imgui.end();
-        ImGui::PopStyleColor(6);
+        ImGui::PopStyleColor(7);
         ImGui::PopStyleVar(2);
         return;
     }
@@ -5901,9 +5915,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         render_legend_color_arr_recommen(window_padding);
 
     legend_height = ImGui::GetCurrentWindow()->Size.y;
-    ImGui::Dummy({ window_padding, window_padding});
     imgui.end();
-    ImGui::PopStyleColor(6);
+    ImGui::PopStyleColor(7);
     ImGui::PopStyleVar(2);
 }
 

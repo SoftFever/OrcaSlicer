@@ -14537,8 +14537,14 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 {
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-    FilamentMapDialog filament_dlg(this, config(), curr_plate->get_filament_maps(), curr_plate->get_extruders(true),
-        curr_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto, curr_plate->has_auto_filament_map_reslut());
+    int is_auto = evt.GetInt();
+    FilamentMapDialog filament_dlg(this,
+        config(),
+        curr_plate->get_filament_maps(),
+        curr_plate->get_extruders(true),
+        is_auto==1,
+        curr_plate->has_auto_filament_map_reslut()
+    );
     if (filament_dlg.ShowModal() == wxID_OK) {
         std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
         std::vector<int> old_filament_maps = curr_plate->get_filament_maps();
@@ -14728,8 +14734,9 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     else if ((action == PartPlate::PLATE_FILAMENT_MAP_ID) && (!right_click)) {
         ret = select_plate(plate_index);
         if (!ret) {
+            PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
             wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
-            evt.SetInt(plate_index);
+            evt.SetInt(curr_plate->get_filament_map_mode()==FilamentMapMode::fmmAuto);
             evt.SetEventObject(this);
             wxPostEvent(this, evt);
         } else {
