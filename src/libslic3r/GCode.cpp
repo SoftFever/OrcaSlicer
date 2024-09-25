@@ -2472,9 +2472,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (!machine_start_gcode.empty() && this->m_fan_mover.get() != nullptr)
         file.write(this->m_fan_mover.get()->process_gcode("", true));
 
-    // init extrude
-    m_writer.init_extruder(initial_non_support_extruder_id);
-
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
         // Wipe tower will control the extruder switching, it will call the filament_start_gcode.
