@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -5961,6 +5961,9 @@ msgstr "Bloquear bandeja actual"
 msgid "Edit current plate name"
 msgstr "Editar el nombre de la bandeja actual"
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Personalizar bandeja actual"
 
@@ -9934,13 +9937,13 @@ msgstr "Tipos de cama que admite la impresora"
 msgid "Smooth Cool Plate"
 msgstr ""
 
-msgid "Textured Cool Plate"
-msgstr ""
-
 msgid "Engineering Plate"
 msgstr "Bandeja de Ingeniería"
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
 msgstr ""
 
 msgid "First layer print sequence"

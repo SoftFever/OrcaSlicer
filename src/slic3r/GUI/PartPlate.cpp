@@ -1035,6 +1035,13 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			else
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
+			if (hover_id == 7) {
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_hovered_texture);
+                show_tooltip(_u8L("Move plate to the front"));
+            } else
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_texture);
+
+
 			if (m_partplate_list->render_plate_settings) {
 				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
@@ -1336,6 +1343,7 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 
     canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
     register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(6));
+    register_model_for_picking(canvas, m_move_front_icon, picking_id_component(7));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -2712,6 +2720,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(2, m_arrange_icon);
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
+        calc_vertex_for_icons(5, m_move_front_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
@@ -3284,6 +3293,23 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	
+	// if (m_move_front_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_dark.svg" : "plate_move_front.svg");
+        if (!m_move_front_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    // if (m_move_front_hovered_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_hover_dark.svg" : "plate_move_front_hover.svg");
+        if (!m_move_front_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -3419,6 +3445,8 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+    m_move_front_hovered_texture.reset();
+    m_move_front_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
@@ -3580,6 +3608,13 @@ void PartPlateList::reinit()
 /*basic plate operations*/
 //create an empty plate, and return its index
 //these model instances which are not in any plates should not be affected also
+
+void PartPlateList::update_plates()
+{
+    update_all_plates_pos_and_size(true, false);
+    set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+}
+
 int PartPlateList::create_plate(bool adjust_position)
 {
 	PartPlate* plate = NULL;

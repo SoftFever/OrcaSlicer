@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -5652,6 +5652,9 @@ msgstr "锁定当前板"
 msgid "Edit current plate name"
 msgstr "编辑当前盘名"
 
+msgid "Move plate to the front"
+msgstr "将当前板移到最前面"
+
 msgid "Customize current plate"
 msgstr "自定义当前板"
 
@@ -9260,16 +9263,16 @@ msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
 
 msgid "Smooth Cool Plate"
-msgstr "光滑低温打印热床"
-
-msgid "Textured Cool Plate"
-msgstr ""
+msgstr "光滑的低温打印床"
 
 msgid "Engineering Plate"
 msgstr "工程材料热床"
 
 msgid "Smooth High Temp Plate"
 msgstr "光滑高温打印热床"
+
+msgid "Textured Cool Plate"
+msgstr "纹理的低温打印床"
 
 msgid "First layer print sequence"
 msgstr "第一层打印顺序"
@@ -9824,7 +9827,6 @@ msgstr ""
 
 msgid "Filter out small internal bridges (beta)"
 msgstr "过滤细微内部桥接（试验）"
-
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -11288,8 +11290,7 @@ msgstr "互锁与边界的留白量"
 msgid ""
 "The distance from the outside of a model where interlocking structures will "
 "not be generated, measured in cells."
-msgstr ""
-"模型边框与互锁结构的距离，以单元格为单位。"
+msgstr "模型边框与互锁结构的距离，以单元格为单位。"
 
 msgid "Ironing Type"
 msgstr "熨烫类型"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -5801,6 +5801,9 @@ msgstr "Zamknout aktuální podložku"
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Přizpůsobit aktuální podložku"
 
@@ -9561,13 +9564,13 @@ msgstr "Typy podložek podporované tiskárnou"
 msgid "Smooth Cool Plate"
 msgstr ""
 
-msgid "Textured Cool Plate"
-msgstr ""
-
 msgid "Engineering Plate"
 msgstr "Engineering Podložka"
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
 msgstr ""
 
 msgid "First layer print sequence"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-23 00:25+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -5835,6 +5835,9 @@ msgstr "鎖定列印板"
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 #, fuzzy
 msgid "Customize current plate"
 msgstr "自訂列印板參數"
@@ -9605,14 +9608,14 @@ msgstr "列印設備所支援的列印板類型"
 msgid "Smooth Cool Plate"
 msgstr ""
 
-msgid "Textured Cool Plate"
-msgstr ""
-
 #, fuzzy
 msgid "Engineering Plate"
 msgstr "工程高溫列印板"
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
 msgstr ""
 
 msgid "First layer print sequence"
