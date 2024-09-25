@@ -470,7 +470,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	int count = 0;
 	int step  = 10;
 	// Orca: use 500 x 500 bed size as baseline.
-    auto      grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
+    const Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
     // if the grid is too dense, we increase the step
     if (grid_counts.minCoeff() > 1) {
         step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
@@ -1367,6 +1367,9 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
+	int glb_wall_extr = glb_config.opt_int("wall_filament");
+	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
+	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
     glb_support |= glb_config.opt_int("raft_layers") > 0;
 
@@ -1400,26 +1403,53 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 		else
 			obj_support = glb_support;
 
-		if (!obj_support)
-			continue;
+        if (obj_support) {
+            int                 obj_support_intf_extr = 0;
+            const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
+            if (support_intf_extr_opt != nullptr)
+                obj_support_intf_extr = support_intf_extr_opt->getInt();
+            if (obj_support_intf_extr != 0)
+                plate_extruders.push_back(obj_support_intf_extr);
+            else if (glb_support_intf_extr != 0)
+                plate_extruders.push_back(glb_support_intf_extr);
 
-		int obj_support_intf_extr = 0;
-		const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
-		if (support_intf_extr_opt != nullptr)
-			obj_support_intf_extr = support_intf_extr_opt->getInt();
-		if (obj_support_intf_extr != 0)
-			plate_extruders.push_back(obj_support_intf_extr);
-		else if (glb_support_intf_extr != 0)
-			plate_extruders.push_back(glb_support_intf_extr);
+            int                 obj_support_extr = 0;
+            const ConfigOption* support_extr_opt = mo->config.option("support_filament");
+            if (support_extr_opt != nullptr)
+                obj_support_extr = support_extr_opt->getInt();
+            if (obj_support_extr != 0)
+                plate_extruders.push_back(obj_support_extr);
+            else if (glb_support_extr != 0)
+                plate_extruders.push_back(glb_support_extr);
+        }
 
-		int obj_support_extr = 0;
-		const ConfigOption* support_extr_opt = mo->config.option("support_filament");
-		if (support_extr_opt != nullptr)
-			obj_support_extr = support_extr_opt->getInt();
-		if (obj_support_extr != 0)
-			plate_extruders.push_back(obj_support_extr);
-		else if (glb_support_extr != 0)
-			plate_extruders.push_back(glb_support_extr);
+        int obj_wall_extr = 1;
+		const ConfigOption* wall_opt = mo->config.option("wall_filament");
+		if (wall_opt != nullptr)
+			obj_wall_extr = wall_opt->getInt();
+		if (obj_wall_extr != 1)
+			plate_extruders.push_back(obj_wall_extr);
+		else if (glb_wall_extr != 1)
+			plate_extruders.push_back(glb_wall_extr);
+
+		int obj_sparse_infill_extr = 1;
+		const ConfigOption* sparse_infill_opt = mo->config.option("sparse_infill_filament");
+		if (sparse_infill_opt != nullptr)
+			obj_sparse_infill_extr = sparse_infill_opt->getInt();
+		if (obj_sparse_infill_extr != 1)
+			plate_extruders.push_back(obj_sparse_infill_extr);
+		else if (glb_sparse_infill_extr != 1)
+			plate_extruders.push_back(glb_sparse_infill_extr);
+
+		int obj_solid_infill_extr = 1;
+		const ConfigOption* solid_infill_opt = mo->config.option("solid_infill_filament");
+		if (solid_infill_opt != nullptr)
+			obj_solid_infill_extr = solid_infill_opt->getInt();
+		if (obj_solid_infill_extr != 1)
+			plate_extruders.push_back(obj_solid_infill_extr);
+		else if (glb_solid_infill_extr != 1)
+			plate_extruders.push_back(glb_solid_infill_extr);
+
 	}
 
 	if (conside_custom_gcode) {
@@ -1449,6 +1479,10 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     // if 3mf file
     int glb_support_intf_extr = full_config.opt_int("support_interface_filament");
     int glb_support_extr = full_config.opt_int("support_filament");
+	int glb_wall_extr = full_config.opt_int("wall_filament");
+	int glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
+	int glb_solid_infill_extr = full_config.opt_int("solid_infill_filament");
+
     bool glb_support = full_config.opt_bool("enable_support");
     glb_support |= full_config.opt_int("raft_layers") > 0;
 
@@ -1510,6 +1544,33 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
                 plate_extruders.push_back(obj_support_extr);
             else if (glb_support_extr != 0)
                 plate_extruders.push_back(glb_support_extr);
+
+			int obj_wall_extr = 1;
+			const ConfigOption* wall_opt = object->config.option("wall_filament");
+			if (wall_opt != nullptr)
+				obj_wall_extr = wall_opt->getInt();
+			if (obj_wall_extr != 1)
+				plate_extruders.push_back(obj_wall_extr);
+			else if (glb_wall_extr != 1)
+				plate_extruders.push_back(glb_wall_extr);
+
+			int obj_sparse_infill_extr = 1;
+			const ConfigOption* sparse_infill_opt = object->config.option("sparse_infill_filament");
+			if (sparse_infill_opt != nullptr)
+				obj_sparse_infill_extr = sparse_infill_opt->getInt();
+			if (obj_sparse_infill_extr != 1)
+				plate_extruders.push_back(obj_sparse_infill_extr);
+			else if (glb_sparse_infill_extr != 1)
+				plate_extruders.push_back(glb_sparse_infill_extr);
+
+			int obj_solid_infill_extr = 1;
+			const ConfigOption* solid_infill_opt = object->config.option("solid_infill_filament");
+			if (solid_infill_opt != nullptr)
+				obj_solid_infill_extr = solid_infill_opt->getInt();
+			if (obj_solid_infill_extr != 1)
+				plate_extruders.push_back(obj_solid_infill_extr);
+			else if (glb_solid_infill_extr != 1)
+				plate_extruders.push_back(glb_solid_infill_extr);
         }
     }
 
@@ -2469,7 +2530,7 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 {
 	auto compute_points = [&print_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
+		double angle_steps;
 		angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
@@ -2488,7 +2549,7 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 			{
 				const Vec2d& p = m_shape[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius_x, radius_y, radius;
 				switch (i) {
 					case 0:
 						radius = 5.f;
@@ -2539,7 +2600,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
+		double angle_steps;
 		angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
@@ -2558,7 +2619,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 			{
 				const Vec2d& p = m_exclude_area[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
 						radius = 5.f;
@@ -2664,7 +2725,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
 			// calc vertex for plate name
-            generate_plate_name_texture();
+			generate_plate_name_texture();
 		}
 	}
 
@@ -3627,6 +3688,38 @@ int PartPlateList::create_plate(bool adjust_position)
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
 }
+
+
+int PartPlateList::duplicate_plate(int index)
+{
+    // create a new plate
+    int new_plate_index = create_plate(true);
+    PartPlate* old_plate = NULL;
+    PartPlate* new_plate = NULL;
+    old_plate = get_plate(index);
+    new_plate = get_plate(new_plate_index);
+
+    // get the offset between plate centers
+    Vec3d plate_to_plate_offset = new_plate->m_origin - old_plate->m_origin;
+
+    // iterate over all the objects in this plate
+    ModelObjectPtrs obj_ptrs = old_plate->get_objects_on_this_plate();
+    for (ModelObject* object : obj_ptrs){
+        // copy and move the object to the same relative position in the new plate
+        ModelObject* object_copy = m_model->add_object(*object);
+        int new_obj_id = new_plate->m_model->objects.size() - 1;
+        // go over the instances and pair with the object
+        for (size_t new_instance_id = 0; new_instance_id < object_copy->instances.size(); new_instance_id++){
+            new_plate->obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % object_copy->id().id;
+        }
+    }
+    new_plate->translate_all_instance(plate_to_plate_offset);
+    // update the plates
+    wxGetApp().obj_list()->reload_all_plates();
+    return new_plate_index;
+}
+
 
 //destroy print's objects and results
 int PartPlateList::destroy_print(int print_index)
@@ -4755,7 +4848,7 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 	if (m_is_dark != last_dark_mode_status) {
 		last_dark_mode_status = m_is_dark;
 		generate_icon_textures();
-	}else if(m_del_texture.get_id() == 0)
+	} else if(m_del_texture.get_id() == 0)
 		generate_icon_textures();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
@@ -5455,6 +5548,7 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
+	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
@@ -5469,6 +5563,8 @@ void PartPlateList::init_bed_type_info()
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
+	bed_texture_info[btPCT].parts.push_back(pct_part_left);
+	bed_texture_info[btPCT].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
 	bed_texture_info[btEP].parts.push_back(ep_part2);
 	bed_texture_info[btPEI].parts.push_back(pei_part1);

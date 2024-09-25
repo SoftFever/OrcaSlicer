@@ -103,9 +103,6 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
                 if (!j["message"].is_null())
                     message = j["message"].get<std::string>();
             }
-            switch (status) {
-                ;
-            }
         }
         catch (...) {
             ;
@@ -150,7 +147,6 @@ void PrintJob::process(Ctl &ctl)
     ctl.call_on_main_thread([this] { prepare(); }).wait();
 
     int result = -1;
-    unsigned int http_code;
     std::string http_body;
 
     int total_plate_num = plate_data.plate_count;
@@ -312,7 +308,7 @@ void PrintJob::process(Ctl &ctl)
             try {
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
-            catch (const std::exception& e) {
+            catch (const std::exception&) {
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
@@ -447,7 +443,7 @@ void PrintJob::process(Ctl &ctl)
             std::string curr_job_id;
             json job_info_j;
             try {
-                job_info_j.parse(job_info);
+                std::ignore = job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
                     curr_job_id = job_info_j["job_id"].get<std::string>();
                 }

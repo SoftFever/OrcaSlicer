@@ -2006,7 +2006,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         try {
             model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
         }
-        catch (std::exception& e) {
+        catch (std::exception&) {
             // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
             auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
             show_error(parent, msg);
@@ -2434,7 +2434,7 @@ bool ObjectList::del_from_cut_object(bool is_cut_connector, bool is_model_part/*
                       (_L("This action will break a cut correspondence.\n"
                          "After that model consistency can't be guaranteed .\n"
                          "\n"
-                         "To manipulate with solid parts or negative volumes you have to invalidate cut infornation first.") + msg_end ),
+                         "To manipulate with solid parts or negative volumes you have to invalidate cut information first.") + msg_end ),
                       false, buttons_style | wxCANCEL_DEFAULT | wxICON_WARNING);
 
     dialog.SetButtonLabel(wxID_YES, _L("Invalidate cut info"));
@@ -2543,7 +2543,7 @@ void ObjectList::split()
     const ConfigOptionStrings* filament_colors = config.option<ConfigOptionStrings>("filament_colour", false);
     const auto filament_cnt = (filament_colors == nullptr) ? size_t(1) : filament_colors->size();
     if (!volume->is_splittable()) {
-        wxMessageBox(_(L("The target object contains only one part and can not be splited.")));
+        wxMessageBox(_(L("The target object contains only one part and can not be split.")));
         return;
     }
 

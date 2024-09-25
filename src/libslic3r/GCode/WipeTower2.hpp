@@ -1,6 +1,5 @@
-// Orca: This file is ported from latest PrusaSlicer
+// Orca: WipeTower2 for all non bbl printers, support all MMU device and toolchanger
 
-// Original PrusaSlicer Copyright:
 #ifndef WipeTower2_
 #define WipeTower2_
 
@@ -128,6 +127,7 @@ public:
 	}
 
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
+    std::vector<std::pair<float, std::vector<float>>> get_used_filament_until_layer() const { return m_used_filament_length_until_layer; }
     int get_number_of_toolchanges() const { return m_num_tool_changes; }
 
     struct FilamentParameters {
@@ -140,6 +140,10 @@ public:
         float               unloading_speed = 0.f;
         float               unloading_speed_start = 0.f;
         float               delay = 0.f ;
+
+		float               filament_stamping_loading_speed = 0.f;
+		float               filament_stamping_distance = 0.f;
+
         int                 cooling_moves = 0;
         float               cooling_initial_speed = 0.f;
         float               cooling_final_speed = 0.f;
@@ -151,6 +155,7 @@ public:
         float               filament_area;
 		bool			    multitool_ramming;
 		float               multitool_ramming_time = 0.f;
+		float               filament_minimal_purge_on_wipe_tower = 0.f;
     };
 
 private:
@@ -169,6 +174,7 @@ private:
 
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
 	bool   m_enable_filament_ramming = true;
+	bool   m_is_mk4mmu3         = false;
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
@@ -219,8 +225,7 @@ private:
 	// State of the wipe tower generator.
 	unsigned int m_num_layer_changes = 0; // Layer change counter for the output statistics.
 	unsigned int m_num_tool_changes  = 0; // Tool change change counter for the output statistics.
-	///unsigned int 	m_idx_tool_change_in_layer = 0; // Layer change counter in this layer. Counting up to m_max_color_changes.
-	bool m_print_brim = true;
+
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
     size_t 	m_current_tool  = 0;
@@ -229,7 +234,9 @@ private:
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
     bool            m_current_layer_finished = false;
 	bool 			m_left_to_right   = true;
-	float			m_extra_spacing   = 1.f;
+	float			m_extra_flow      = 1.f;
+	float			m_extra_spacing_wipe    = 1.f;
+	float			m_extra_spacing_ramming = 1.f;
 
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
@@ -241,20 +248,12 @@ private:
 		return layer_height * ( m_perimeter_width - layer_height * (1.f-float(M_PI)/4.f)) / filament_area();
 	}
 
-	// Calculates length of extrusion line to extrude given volume
-	float volume_to_length(float volume, float line_width, float layer_height) const {
-		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
-	}
 
 	// Calculates depth for all layers and propagates them downwards
 	void plan_tower();
 
-	// Goes through m_plan and recalculates depths and width of the WT to make it exactly square - experimental
-	void make_wipe_tower_square();
-
     // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
     void save_on_last_wipe();
-
 
     // to store information about tool changes for a given layer
 	struct WipeTowerInfo{
@@ -265,19 +264,19 @@ private:
             float ramming_depth;
             float first_wipe_line;
             float wipe_volume;
+			float wipe_volume_total;
             ToolChange(size_t old, size_t newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f)
-            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth}, first_wipe_line{fwl}, wipe_volume{wv} {}
+            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth}, first_wipe_line{fwl}, wipe_volume{wv}, wipe_volume_total{wv} {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height
 		float depth;	// depth of the layer based on all layers above
-		float extra_spacing;
 		float toolchanges_depth() const { float sum = 0.f; for (const auto &a : tool_changes) sum += a.required_depth; return sum; }
 
 		std::vector<ToolChange> tool_changes;
 
 		WipeTowerInfo(float z_par, float layer_height_par)
-			: z{z_par}, height{layer_height_par}, depth{0}, extra_spacing{1.f} {}
+			: z{z_par}, height{layer_height_par}, depth{0} {}
 	};
 
 	std::vector<WipeTowerInfo> m_plan; 	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
@@ -289,6 +288,7 @@ private:
 
     // Stores information about used filament length per extruder:
     std::vector<float> m_used_filament_length;
+	std::vector<std::pair<float, std::vector<float>>> m_used_filament_length_until_layer;
 
     // Return index of first toolchange that switches to non-soluble extruder
     // ot -1 if there is no such toolchange.
@@ -299,6 +299,7 @@ private:
 		WipeTowerWriter2 &writer,
 		const WipeTower::box_coordinates  &cleaning_box, 
 		const std::string&	 	current_material,
+		const int 				old_temperature,
 		const int 				new_temperature);
 
 	void toolchange_Change(
@@ -316,6 +317,9 @@ private:
 		float wipe_volume);
 };
 
+
+
+
 } // namespace Slic3r
 
-#endif // WipeTowerPrusaMM_hpp_ 
+#endif // slic3r_GCode_WipeTower_hpp_ 

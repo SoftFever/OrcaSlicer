@@ -30,6 +30,8 @@ set(lisbslic3r_sources
     AABBTreeLines.hpp
     AABBMesh.hpp
     AABBMesh.cpp
+    Algorithm/LineSplit.hpp
+    Algorithm/LineSplit.cpp
     Algorithm/PathSorting.hpp
     Algorithm/RegionExpansion.hpp
     Algorithm/RegionExpansion.cpp
@@ -156,6 +158,12 @@ set(lisbslic3r_sources
     GCode/RetractWhenCrossingPerimeters.hpp
     GCode/SmallAreaInfillFlowCompensator.cpp
     GCode/SmallAreaInfillFlowCompensator.hpp
+    GCode/PchipInterpolatorHelper.cpp
+    GCode/PchipInterpolatorHelper.hpp
+    GCode/AdaptivePAInterpolator.cpp
+    GCode/AdaptivePAInterpolator.hpp
+    GCode/AdaptivePAProcessor.cpp
+    GCode/AdaptivePAProcessor.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp

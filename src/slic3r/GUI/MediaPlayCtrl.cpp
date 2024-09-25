@@ -292,7 +292,7 @@ void MediaPlayCtrl::Play()
 
     if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support)) {
         Stop(m_lan_proto == MachineObject::LVL_None 
-            ? _L("Problem occured. Please update the printer firmware and try again.")
+            ? _L("Problem occurred. Please update the printer firmware and try again.")
             : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
     }

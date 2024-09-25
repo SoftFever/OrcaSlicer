@@ -15,6 +15,7 @@
 #include "../PrintConfig.hpp"
 
 #include "SmallAreaInfillFlowCompensator.hpp"
+#include "spline/spline.h"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {
@@ -79,6 +80,9 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
         BOOST_LOG_TRIVIAL(error) << "Error parsing small area infill compensation model: " << e.what();
     }
 }
+
+SmallAreaInfillFlowCompensator::~SmallAreaInfillFlowCompensator() = default;
+
 double SmallAreaInfillFlowCompensator::flow_comp_model(const double line_length)
 {
     if(flowModel == nullptr)
