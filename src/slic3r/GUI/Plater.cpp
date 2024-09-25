@@ -756,6 +756,18 @@ void Sidebar::priv::sync_extruder_list()
         dlg.ShowModal();
         return;
     }
+
+    std::string machine_print_name = obj->printer_type;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    std::string target_model_id  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    if (machine_print_name != target_model_id) {
+        MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
+                                            "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);
+        if (dlg.ShowModal() == wxID_NO) {
+            return;
+        }
+    }
+
     int left_4 = 0, right_4 = 0, left_1 = 0, right_1 = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
@@ -2008,8 +2020,16 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     return filament_ams_list;
 }
 
+void Sidebar::sync_extruder_list()
+{
+    p->sync_extruder_list();
+}
+
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
+    if (obj && obj->is_connected() && obj->is_multi_extruders() && wxGetApp().plater()->is_multi_extruder_ams_empty())
+        sync_extruder_list();
+
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 
     p->ams_list_device = device;
@@ -12788,6 +12808,19 @@ void Plater::export_toolpaths_to_obj() const
 
     wxBusyCursor wait;
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
+}
+
+bool Plater::is_multi_extruder_ams_empty()
+{
+    std::vector<std::string>        extruder_ams_count_str = p->config->option<ConfigOptionStrings>("extruder_ams_count", true)->values;
+    std::vector<std::map<int, int>> extruder_ams_counts    = get_extruder_ams_count(extruder_ams_count_str);
+    for (auto extruder_ams_count : extruder_ams_counts) {
+        for (auto iter = extruder_ams_count.begin(); iter != extruder_ams_count.end(); ++iter) {
+            if (iter->second != 0)
+                return false;
+        }
+    }
+    return true;
 }
 
 //BBS: add multiple plate reslice logic
