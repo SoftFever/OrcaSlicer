@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -5963,6 +5963,9 @@ msgstr "Verrouiller le plateau actuel"
 msgid "Edit current plate name"
 msgstr "Modifier le nom du plateau actuel"
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Personnaliser le plateau actuel"
 
@@ -7990,6 +7993,17 @@ msgstr ""
 "plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
 "être imprimé sur le plateau froid."
 
+msgid "Textured Cool plate"
+msgstr "Plaque Cool plate texturée"
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+"Température du plateau lorsque la plaque Cool plate est installée. La valeur "
+"0 signifie que le filament ne peut pas être imprimé sur la plaque Cool plate "
+"texturée."
+
 msgid "Engineering plate"
 msgstr "Plaque Engineering"
 
@@ -9937,6 +9951,14 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+"Température du plateau pour les couches à l’exception de la couche initiale. "
+"La valeur 0 signifie que le filament ne peut pas être imprimé sur la plaque "
+"Cool plate texturée."
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau pour toutes les couches à l'exception "
@@ -9974,6 +9996,13 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+"Température du plateau de la couche initiale. La valeur 0 signifie que le "
+"filament ne peut pas être imprimé sur la plaque Cool plate texturée."
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau pour la première couche. Une valeur à "
@@ -9998,11 +10027,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Types de plateaux pris en charge par l'imprimante"
 
-msgid "Cool Plate"
-msgstr "Cool Plate/Plaque PLA"
+msgid "Smooth Cool Plate"
+msgstr "Plaque Cool plate lisse"
 
 msgid "Engineering Plate"
 msgstr "Plaque Engineering"
+
+msgid "Smooth High Temp Plate"
+msgstr "Plaque lisse haute température"
+
+msgid "Textured Cool Plate"
+msgstr "Plaque Cool plate texturée"
 
 msgid "First layer print sequence"
 msgstr "Séquence d’impression de la première couche"
@@ -11207,6 +11242,7 @@ msgstr "Pressure Advance (Klipper) AKA Linear Advance (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Activer l’avance de pression adaptative (beta)"
 
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -11252,6 +11288,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Mesures adaptatives de l’avance de pression (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -17866,6 +17903,9 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid "Cool Plate"
+#~ msgstr "Cool Plate/Plaque PLA"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Parois inversées sur couches impaires"
