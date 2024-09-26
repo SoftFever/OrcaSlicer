@@ -2136,7 +2136,7 @@ void TreeSupport::draw_circles()
                         base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
                     }
                 }
-                if (bottom_gap_layers > 0 && layer_nr > bottom_gap_layers) {
+                if (bottom_gap_layers > 0 && m_ts_data->layer_heights[layer_nr].obj_layer_nr > bottom_gap_layers) {
                     const Layer* below_layer = m_object->get_layer(m_ts_data->layer_heights[layer_nr].obj_layer_nr - bottom_gap_layers);
                     ExPolygons bottom_gap_area = intersection_ex(floor_areas, below_layer->lslices);
                     if (!bottom_gap_area.empty()) {
