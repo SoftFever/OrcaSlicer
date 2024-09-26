@@ -307,9 +307,11 @@ void TempInput::SetMinTemp(int temp) { min_temp = temp; }
 
 void TempInput::SetLabel(const wxString &label)
 {
-    wxWindow::SetLabel(label);
-    messureSize();
-    Refresh();
+    if (label != wxWindow::GetLabel()) {
+        wxWindow::SetLabel(label);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTextColor(StateColor const &color)

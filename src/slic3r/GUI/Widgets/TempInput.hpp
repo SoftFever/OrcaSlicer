@@ -77,6 +77,7 @@ public:
     wxPopupTransientWindow *wdialog{nullptr};
     int  temp_type;
     bool actice = false;
+    wxString                currentTemp;
 
 
     wxString erasePending(wxString &str);

@@ -262,14 +262,6 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
-void MonitorPanel::on_update_all(wxMouseEvent &event)
-{
-    if (update_flag) {
-        update_all();
-        Layout();
-        Refresh();
-    }
-}
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
@@ -306,7 +298,6 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     }
 
     Layout();
-    Refresh();
 }
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)

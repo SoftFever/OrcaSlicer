@@ -77,15 +77,19 @@ bool Button::SetFont(const wxFont& font)
 
 void Button::SetIcon(const wxString& icon)
 {
+    auto tmpBitmap = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        this->active_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
+        if (!tmpBitmap.bmp().IsSameAs(tmpBitmap.bmp())) { 
+            this->active_icon = tmpBitmap;
+            Refresh();
+        }
     }
     else
     {
         this->active_icon = ScalableBitmap();
+        Refresh();
     }
-    Refresh();
 }
 
 void Button::SetInactiveIcon(const wxString &icon)
