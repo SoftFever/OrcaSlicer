@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "QIDI PLA Rapido",
+    "name": "QIDI PLA Rapido Metal",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -19,7 +19,7 @@
         "1"
     ],
     "pressure_advance": [
-        "0.031"
+        "0.038"
     ],
     "additional_cooling_fan_speed": [
         "100"

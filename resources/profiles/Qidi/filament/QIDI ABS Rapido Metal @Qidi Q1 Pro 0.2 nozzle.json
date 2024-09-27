@@ -10,7 +10,7 @@
          "0"
     ],
     "filament_flow_ratio": [
-        "0.92"
+        "0.95"
     ],
     "enable_pressure_advance": [
         "1"
@@ -19,34 +19,34 @@
         "0"
     ],
     "chamber_temperature": [
-        "55"
+        "0"
     ],
     "fan_max_speed": [
         "80"
     ],
     "filament_max_volumetric_speed": [
-        "24.5"
+        "2"
     ],
     "from": "system",
     "hot_plate_temp_initial_layer": [
         "90"
     ],
-    "inherits": "QIDI ABS Odorless",
+    "inherits": "QIDI ABS Rapido Metal",
     "is_custom_defined": "0",
-    "name": "QIDI ABS Odorless @Qidi Q1 Pro 0.8 nozzle",
+    "name": "QIDI ABS Rapido Metal @Qidi Q1 Pro 0.2 nozzle",
     "nozzle_temperature": [
-        "250"
+        "260"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "pressure_advance": [
-        "0.008"
+        "0.021"
     ],
     "slow_down_min_speed": [
-        "10"
+        "20"
     ],
     "compatible_printers": [
-"Qidi Q1 Pro 0.8 nozzle"
+"Qidi Q1 Pro 0.2 nozzle"
 	]
 }
