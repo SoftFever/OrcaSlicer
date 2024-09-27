@@ -164,6 +164,8 @@ public:
     enum MENU_ICON_NAME {
         IC_TOOLBAR_RESET            = 0,
         IC_TOOLBAR_RESET_HOVER,
+        IC_TOOLBAR_RESET_ZERO,
+        IC_TOOLBAR_RESET_ZERO_HOVER,
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_NAME_COUNT,

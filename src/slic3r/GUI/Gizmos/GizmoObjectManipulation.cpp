@@ -264,6 +264,7 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
             min_z = get_volume_min_z(volume);
         }
         m_show_clear_rotation = !rotation.isApprox(m_init_rotation);
+        m_show_reset_0_rotation = !rotation.isApprox(Vec3d::Zero());
         m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
         m_show_drop_to_bed = (std::abs(min_z) > EPSILON);
     }
@@ -501,28 +502,36 @@ void GizmoObjectManipulation::reset_position_value()
     UpdateAndShow(true);
 }
 
-void GizmoObjectManipulation::reset_rotation_value()
+void GizmoObjectManipulation::reset_rotation_value(bool reset_relative)
 {
     Selection &selection = m_glcanvas.get_selection();
     selection.setup_cache();
     if (selection.is_single_volume_or_modifier()) {
-        GLVolume *               vol   = const_cast<GLVolume *>(selection.get_first_volume());
-        Geometry::Transformation trafo = vol->get_volume_transformation();
-        auto offset = trafo.get_offset();
-        trafo.set_matrix(m_init_rotation_scale_tran);
-        trafo.set_offset(offset);
+        GLVolume *               vol    = const_cast<GLVolume *>(selection.get_first_volume());
+        Geometry::Transformation trafo  = vol->get_volume_transformation();
+        if (reset_relative) {
+            auto offset = trafo.get_offset();
+            trafo.set_matrix(m_init_rotation_scale_tran);
+            trafo.set_offset(offset);
+        }
+        else {
+            trafo.reset_rotation();
+        }
         vol->set_volume_transformation(trafo);
     } else if (selection.is_single_full_instance()) {
-        Geometry::Transformation trafo = selection.get_first_volume()->get_instance_transformation();
-        auto                     offset = trafo.get_offset();
-        trafo.set_matrix(m_init_rotation_scale_tran);
-        trafo.set_offset(offset);
+        Geometry::Transformation trafo  = selection.get_first_volume()->get_instance_transformation();
+        if (reset_relative) {
+            auto offset = trafo.get_offset();
+            trafo.set_matrix(m_init_rotation_scale_tran);
+            trafo.set_offset(offset);
+        } else {
+            trafo.reset_rotation();
+        }
         for (unsigned int idx : selection.get_volume_idxs()) {
             const_cast<GLVolume *>(selection.get_volume(idx))->set_instance_transformation(trafo);
         }
     } else
         return;
-
     // Synchronize instances/volumes.
 
     selection.synchronize_unselected_instances(Selection::SyncRotationType::RESET);
@@ -586,6 +595,23 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
     ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET_HOVER);
 
     float font_size = ImGui::GetFontSize();
+    ImVec2 button_size = ImVec2(font_size, font_size);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
+    pressed = ImGui::ImageButton3(normal_id, hover_id, button_size);
+
+    ImGui::PopStyleVar(1);
+    return pressed;
+}
+
+bool GizmoObjectManipulation::reset_zero_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size)
+{
+    bool        pressed   = false;
+    ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET_ZERO);
+    ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET_ZERO_HOVER);
+
+    float  font_size   = ImGui::GetFontSize() * 1.1;
     ImVec2 button_size = ImVec2(font_size, font_size);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -941,7 +967,14 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
-
+    if (m_show_reset_0_rotation) {
+        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
+        if (reset_zero_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(false); }
+        if (ImGui::IsItemHovered()) {
+            float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to real zeros.")).x + 3 * space_size;
+            imgui_wrapper->tooltip(_u8L("Reset current rotation to real zeros."), tooltip_size);
+        }
+    }
     index      = 1;
     index_unit = 1;
 
@@ -964,7 +997,13 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
     if (m_show_clear_rotation) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
-        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(); }
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) {
+            reset_rotation_value(true);
+        }
+        if (ImGui::IsItemHovered()) {
+            float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to the value when open the rotation tool.")).x + 3 * space_size;
+            imgui_wrapper->tooltip(_u8L("Reset current rotation to the value when open the rotation tool."), tooltip_size);
+        }
     } else {
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
         ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));

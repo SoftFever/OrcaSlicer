@@ -89,6 +89,7 @@ public:
     // Does the object manipulation panel work in World or Local coordinates?
     ECoordinatesType m_coordinates_type{ECoordinatesType::World};
 
+    bool            m_show_reset_0_rotation{false};
     bool            m_show_clear_rotation { false };
     bool            m_show_clear_scale { false };
     bool            m_show_drop_to_bed { false };
@@ -132,6 +133,7 @@ public:
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     float max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str);
     bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
+    bool reset_zero_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
     bool bbl_checkbox(const wxString &label, bool &value);
 
     void show_move_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y);
@@ -156,7 +158,7 @@ private:
     void change_size_value(int axis, double value);
     void do_scale(int axis, const Vec3d &scale) const;
     void reset_position_value();
-    void reset_rotation_value();
+    void reset_rotation_value(bool reset_relative);
     void reset_scale_value();
 
     GLCanvas3D& m_glcanvas;
