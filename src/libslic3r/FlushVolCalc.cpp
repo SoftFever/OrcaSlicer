@@ -49,7 +49,9 @@ int FlushVolCalculator::calc_flush_vol_rgb(unsigned char src_r, unsigned char sr
 {
     auto& pd = FlushVolPredictor::get_instance();
     float ret_flush_volume = 0;
-    bool success = pd.predict(src_r, src_g, src_b, dst_r, dst_g, dst_b, ret_flush_volume);
+    FlushPredict::RGBColor src(src_r, src_g, src_b);
+    FlushPredict::RGBColor dst(dst_r, dst_g, dst_b);
+    bool success = pd.predict(src, dst, ret_flush_volume);
     // if we could find the color pair from dataset, we need to recalculate
     if (!success) {
         float src_r_f, src_g_f, src_b_f, dst_r_f, dst_g_f, dst_b_f;
