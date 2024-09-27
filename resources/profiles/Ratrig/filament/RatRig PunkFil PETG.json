@@ -63,6 +63,9 @@
     "filament_cost": [
         "24.5"
     ],
+    "filament_vendor": [
+        "RatRig"
+    ],
     "compatible_printers": [
       "RatRig V-Core 3 200 0.4 nozzle",
       "RatRig V-Core 3 300 0.4 nozzle",

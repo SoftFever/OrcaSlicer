@@ -2124,6 +2124,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("PETG-CF");
+    def->enum_values.push_back("PETG-CF10");
     def->enum_values.push_back("PHA");
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("PLA-AERO");
