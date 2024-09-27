@@ -2185,14 +2185,13 @@ int GCodeProcessor::get_gcode_last_filament(const std::string& gcode_str)
     return out_filament;
 }
 
-//BBS: get last position from gcode for specified axis
-//axis index is the same as Vec3d (X=0, Y=1, Z=2)
-bool GCodeProcessor::get_last_pos_from_gcode(const std::string& gcode_str, int axis, double& pos)
+//BBS: get last z position from gcode
+bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double& z)
 {
     int str_size = gcode_str.size();
     int start_index = 0;
     int end_index = 0;
-    bool is_axis_changed = false;
+    bool is_z_changed = false;
     while (end_index < str_size) {
         //find a full line
         if (gcode_str[end_index] != '\n') {
@@ -2212,32 +2211,24 @@ bool GCodeProcessor::get_last_pos_from_gcode(const std::string& gcode_str, int a
                                        || line_str.find("G2 ") == 0
                                        || line_str.find("G3 ") == 0))
             {
-                std::string axis_str;
-                if (axis == 0) {
-                    axis_str = "X";
-                } else if (axis == 1) {
-                    axis_str = "Y";
-                } else if (axis == 2) {
-                    axis_str = "Z";
-                }
-                auto axis_pos = line_str.find(" " + axis_str);
-                double temp_axis_pos = 0;
-                if (axis_pos != line_str.npos
-                    && axis_pos + 2 < line_str.size()) {
+                auto z_pos = line_str.find(" Z");
+                double temp_z = 0;
+                if (z_pos != line_str.npos
+                    && z_pos + 2 < line_str.size()) {
                     // Try to parse the numeric value.
-                    std::string axis_substr = line_str.substr(axis_pos + 2);
-                    char* start_ptr = &axis_substr[0];
-                    char* end_ptr = start_ptr + sizeof(axis_substr.c_str());
+                    std::string z_sub = line_str.substr(z_pos + 2);
+                    char* c = &z_sub[0];
+                    char* end = c + sizeof(z_sub.c_str());
 
                     auto is_end_of_word = [](char c) {
                         return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0 || c == ';';
                     };
 
-                    auto [parsed_ptr, error_code] = fast_float::from_chars(start_ptr, end_ptr, temp_axis_pos);
-                    if (parsed_ptr != start_ptr && is_end_of_word(*parsed_ptr)) {
+                    auto [pend, ec] = fast_float::from_chars(c, end, temp_z);
+                    if (pend != c && is_end_of_word(*pend)) {
                         // The axis value has been parsed correctly.
-                        pos = temp_axis_pos;
-                        is_axis_changed = true;
+                        z = temp_z;
+                        is_z_changed = true;
                     }
                 }
             }
@@ -2246,7 +2237,7 @@ bool GCodeProcessor::get_last_pos_from_gcode(const std::string& gcode_str, int a
         start_index = end_index + 1;
         end_index = start_index;
     }
-    return is_axis_changed;
+    return is_z_changed;
 }
 
 void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)
@@ -5410,4 +5401,4 @@ void GCodeProcessor::update_slice_warnings()
     m_result.warnings.shrink_to_fit();
 }
 
-} /* slic3r_GCodeProcessor_cpp_ */
+} /* namespace Slic3r */
