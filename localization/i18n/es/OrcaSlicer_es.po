@@ -4891,7 +4891,7 @@ msgid "Show object overhang highlight in 3D scene"
 msgstr "Mostrar resalte de voladizos de objeto en escena 3D"
 
 msgid "Show Selected Outline (Experimental)"
-msgstr "Mostrar esquema seleccionado (Experimental)"
+msgstr "Mostrar Contorno Seleccionado (Experimental)"
 
 msgid "Show outline around selected object in 3D scene"
 msgstr "Mostrar el contorno alrededor del objeto seleccionado en la escena 3D"
