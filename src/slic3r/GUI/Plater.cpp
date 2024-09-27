@@ -2025,9 +2025,22 @@ void Sidebar::sync_extruder_list()
     p->sync_extruder_list();
 }
 
+bool Sidebar::should_sync_extruder_list(MachineObject *obj)
+{
+    if (obj && obj->is_connected() && obj->is_multi_extruders() && wxGetApp().plater()->is_multi_extruder_ams_empty()) {
+        std::string   machine_print_name = obj->printer_type;
+        PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
+        std::string   target_model_id    = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        if (machine_print_name == target_model_id) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
-    if (obj && obj->is_connected() && obj->is_multi_extruders() && wxGetApp().plater()->is_multi_extruder_ams_empty())
+    if (should_sync_extruder_list(obj))
         sync_extruder_list();
 
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
