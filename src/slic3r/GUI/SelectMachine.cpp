@@ -1060,8 +1060,8 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     int filament_result = 0;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
-        //get nozzle property, the nozzles are same?
-        if (!can_hybrid_mapping(obj_->m_extder_data)){
+        //get nozzle property, the extders are same?
+        if (true/*!can_hybrid_mapping(obj_->m_extder_data)*/){
             std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
             std::vector<FilamentInfo>           m_filament_left, m_filament_right;
             for (auto it = m_filaments.begin(); it != m_filaments.end(); it++){
@@ -1075,9 +1075,29 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
                 else if (m_filaments_map[it->id] == 2)
                     m_filament_right.push_back(*it);
             }
-            map_opt = {true, false, true, false};   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+
+            bool has_left_ams = false, has_right_ams = false;
+            for (auto ams_item : obj_->amsList) {
+                if (ams_item.second->nozzle == 0) {
+                    if (obj_->is_main_extruder_on_left())
+                        has_left_ams = true;
+                    else
+                        has_right_ams = true;
+                }
+                else if (ams_item.second->nozzle == 1) {
+                    if (obj_->is_main_extruder_on_left())
+                        has_right_ams = true;
+                    else
+                        has_left_ams = true;
+                }
+
+                if (has_left_ams && has_right_ams)
+                    break;
+            }
+
+            map_opt = {true, false, !has_left_ams, false};   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
             int result_first = obj_->ams_filament_mapping(m_filament_left, m_ams_mapping_result_left, map_opt);
-            map_opt = { false, true, false, true };
+            map_opt = { false, true, false, !has_right_ams };
             int result_second = obj_->ams_filament_mapping(m_filament_right, m_ams_mapping_result_right, map_opt);
 
             //m_ams_mapping_result.clear();
