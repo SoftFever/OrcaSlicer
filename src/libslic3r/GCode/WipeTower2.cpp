@@ -893,7 +893,7 @@ void WipeTower2::toolchange_Unload(
 	float remaining = xr - xl ;							// keeps track of distance to the next turnaround
 	float e_done = 0;									// measures E move done from each segment   
 
-    const bool do_ramming = m_enable_filament_ramming && (m_semm || m_filpar[m_current_tool].multitool_ramming);
+    const bool do_ramming = m_semm || m_filpar[m_current_tool].multitool_ramming;
     const bool cold_ramming = m_is_mk4mmu3;
 
     if (do_ramming) {
@@ -945,7 +945,6 @@ void WipeTower2::toolchange_Unload(
     // now the ramming itself:
     while (do_ramming && i < m_filpar[m_current_tool].ramming_speed.size())
     {
-        writer.append("; Ramming\n");
         // The time step is different for SEMM ramming and the MM ramming. See comments in set_extruder() for details.
         const float time_step = m_semm ? 0.25f : m_filpar[m_current_tool].multitool_ramming_time;
 
@@ -971,9 +970,12 @@ void WipeTower2::toolchange_Unload(
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
     // Retraction:
+    if(m_enable_filament_ramming)
+        writer.append("; Ramming start\n");
+
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
-    if (m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
+    if (m_enable_filament_ramming && m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
         writer.append("; Retract(unload)\n");
         float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
         writer.suppress_preview()
@@ -985,7 +987,7 @@ void WipeTower2::toolchange_Unload(
     }
 
     const int& number_of_cooling_moves = m_filpar[m_current_tool].cooling_moves;
-    const bool cooling_will_happen = m_semm && number_of_cooling_moves > 0 && m_cooling_tube_length != 0;
+    const bool cooling_will_happen = m_enable_filament_ramming && m_semm && number_of_cooling_moves > 0 && m_cooling_tube_length != 0;
     bool change_temp_later = false;
 
     // Wipe tower should only change temperature with single extruder MM. Otherwise, all temperatures should
@@ -1054,7 +1056,7 @@ void WipeTower2::toolchange_Unload(
         }
     }
 
-    if (m_semm) {
+    if (m_enable_filament_ramming && m_semm) {
         writer.append("; Cooling park\n");
         // let's wait is necessary:
         writer.wait(m_filpar[m_current_tool].delay);
@@ -1063,6 +1065,10 @@ void WipeTower2::toolchange_Unload(
         if (_e != 0.f)
             writer.retract(_e, 2000);
     }
+
+    if(m_enable_filament_ramming)
+        writer.append("; Ramming end\n");
+
 
     // this is to align ramming and future wiping extrusions, so the future y-steps can be uniform from the start:
     // the perimeter_width will later be subtracted, it is there to not load while moving over just extruded material

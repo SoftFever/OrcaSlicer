@@ -352,7 +352,8 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE }
+    { "Textured PEI Plate", btPTE },
+    { "Textured Cool Plate", btPCT }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -681,6 +682,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
+    def = this->add("textured_cool_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+    def->sidetext = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 300;
+    def->set_default_value(new ConfigOptionInts{ 40 });
+
     def = this->add("eng_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
@@ -721,6 +732,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
+    def = this->add("textured_cool_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 40 });
+
     def = this->add("eng_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -755,14 +776,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
+    // Orca: make sure the order of the values is the same as the BedType enum 
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
-    def->enum_labels.emplace_back(L("Cool Plate"));
+    def->enum_values.emplace_back("Textured Cool Plate");
+    def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
-    def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
+    def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
+    def->enum_labels.emplace_back(L("Textured Cool Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -1734,6 +1758,7 @@ void PrintConfigDef::init_fff_params()
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance", coBools);
     def->label = L("Enable adaptive pressure advance (beta)");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("With increasing print speeds (and hence increasing volumetric flow through the nozzle) and increasing accelerations, "
                      "it has been observed that the effective PA value typically decreases. "
                      "This means that a single PA value is not always 100% optimal for all features and a compromise value is usually used "
@@ -1749,6 +1774,7 @@ void PrintConfigDef::init_fff_params()
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance_model", coStrings);
     def->label = L("Adaptive pressure advance measurements (beta)");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a comma. "
                      "One set of values per line. For example\n"
                      "0.04,3.96,3000\n0.033,3.96,10000\n0.029,7.91,3000\n0.026,7.91,10000\n\n"
@@ -1770,6 +1796,7 @@ void PrintConfigDef::init_fff_params()
     def->height = 15;
     def->set_default_value(new ConfigOptionStrings{"0,0,0\n0,0,0"});
     
+    // xgettext:no-c-format, no-boost-format
     def = this->add("adaptive_pressure_advance_overhangs", coBools);
     def->label = L("Enable adaptive pressure advance for overhangs (beta)");
     def->tooltip = L("Enable adaptive PA for overhangs as well as when flow changes within the same feature. This is an experimental option, "
