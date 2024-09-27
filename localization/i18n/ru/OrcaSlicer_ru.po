@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: OrcaSlicer V2.1.1 Official Release\n"
+"Project-Id-Version: OrcaSlicer V2.2.0-beta2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-09-25 19:57+0800\n"
-"PO-Revision-Date: 2024-09-27 23:03+0700\n"
+"PO-Revision-Date: 2024-09-25 22:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "Language: ru_RU\n"
@@ -415,6 +415,7 @@ msgstr "Удалить соединение из выбранного"
 msgid "Select all connectors"
 msgstr "Выбрать все соединения"
 
+# Разный перевод одного слова -Одно название действия Разрезать в другой в Правке -> Вырезать
 msgid "Cut"
 msgstr "Разрезать"
 
@@ -6663,7 +6664,7 @@ msgid "Choose Download Directory"
 msgstr "Выбор папки загрузки"
 
 msgid "Associate"
-msgstr "Ассоциировать"
+msgstr "Ассоциация"
 
 msgid "with OrcaSlicer so that Orca can open models from"
 msgstr "с OrcaSlicer, чтобы она могла открывать модели сразу с"
@@ -15141,8 +15142,8 @@ msgstr "Используется ли экструдер?"
 msgid ""
 "Vector of booleans stating whether a given extruder is used in the print."
 msgstr ""
-"Вектор логического значения, указывающий, используется ли данный экструдер "
-"при печати."
+"Вектор логического значения, указывающий, используется ли данный "
+"экструдер при печати."
 
 msgid "Has single extruder MM priming"
 msgstr "Имеется предзарядка для одноэкструдерного ММ принтера"
