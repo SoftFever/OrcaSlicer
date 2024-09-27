@@ -58,7 +58,7 @@ CrealityPrint::CrealityPrint(DynamicPrintConfig* config) :
     m_ssl_revoke_best_effort(config->opt_bool("printhost_ssl_ignore_revoke"))
 {}
 
-const char* CrealityPrint::get_name() const { return "CrealityPrint"; }
+const char* CrealityPrint::get_name() const { return "Creality Print"; }
 
 std::string CrealityPrint::get_host() const {
     return m_host;
@@ -126,7 +126,7 @@ bool CrealityPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, 
     }
 
     bool res = true;
-    auto url = make_url("upload/" + upload_filename.string());
+    auto url = make_url("upload/" + safe_filename(upload_filename.string()));
 
     auto  http = Http::post(url); // std::move(url));
     set_auth(http);
@@ -137,7 +137,7 @@ bool CrealityPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, 
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: File uploaded: HTTP %2%: %3%") % name % status % body;
 
             if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
-                start_print(upload_filename.string());
+                start_print(safe_filename(upload_filename.string()));
             }
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
@@ -174,7 +174,15 @@ std::string CrealityPrint::make_url(const std::string &path) const
     }
 }
 
-std::string CrealityPrint::start_print(const std::string &filename) const
+std::string CrealityPrint::safe_filename(const std::string &filename) const
+{
+    std::string safe_filename = filename;
+    std::replace(safe_filename.begin(), safe_filename.end(), ' ', '_');
+
+    return safe_filename;
+}
+
+void CrealityPrint::start_print(const std::string &filename) const
 {
     try {
         std::string host = m_host;
@@ -219,10 +227,8 @@ std::string CrealityPrint::start_print(const std::string &filename) const
         ws.close(websocket::close_code::normal);
     } catch(std::exception const& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        return "false";
     }
     
-    return "true";
 }
 
 }
