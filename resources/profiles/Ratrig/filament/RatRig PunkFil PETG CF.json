@@ -63,6 +63,9 @@
     "filament_cost": [
         "48"
     ],
+    "filament_type": [
+        "PETG-CF"
+    ],
     "compatible_printers": [      
       "RatRig V-Core 3 200 0.4 nozzle",
       "RatRig V-Core 3 300 0.4 nozzle",
