@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFB99",
     "setting_id": "GFSA04",
-    "name": "QIDI ABS Rapido @0.2 nozzle",
+    "name": "QIDI ABS Rapido 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ABS Rapido",
