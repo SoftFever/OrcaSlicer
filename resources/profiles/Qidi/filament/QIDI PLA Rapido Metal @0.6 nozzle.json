@@ -2,10 +2,10 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "QIDI PLA Rapido 0.2 nozzle",
+    "name": "QIDI PLA Rapido Metal @0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI PLA Rapido",
+    "inherits": "QIDI PLA Rapido Metal",
 	"filament_flow_ratio": [
         "0.98"
     ],
@@ -15,15 +15,18 @@
     "enable_pressure_advance": [
         "1"
     ],
+    "pressure_advance": [
+        "0.02"
+    ],
     "filament_max_volumetric_speed": [
-        "2"
+        "20"
     ],
 	"compatible_printers": [
-        "Qidi X-Plus 0.2 nozzle",
-        "Qidi X-Max 0.2 nozzle",
-        "Qidi X-CF Pro 0.2 nozzle",
-		"Qidi X-Smart 3 0.2 nozzle",
-		"Qidi X-Plus 3 0.2 nozzle",
-		"Qidi X-Max 3 0.2 nozzle"
+        "Qidi X-Plus 0.6 nozzle",
+        "Qidi X-Max 0.6 nozzle",
+        "Qidi X-CF Pro 0.6 nozzle",
+		"Qidi X-Smart 3 0.6 nozzle",
+		"Qidi X-Plus 3 0.6 nozzle",
+		"Qidi X-Max 3 0.6 nozzle"
 	]
 }
