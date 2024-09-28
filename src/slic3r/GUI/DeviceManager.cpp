@@ -3173,7 +3173,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (!key_field_only) {
                         if (jj.contains("flag3")) {
                             int flag3 = jj["flag3"].get<int>();
-                            //is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
+                            is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
                         }
                     }
                     if (!key_field_only) {
@@ -5201,6 +5201,26 @@ void MachineObject::update_filament_list()
     }
 
     m_filament_list = filament_list;
+}
+
+int MachineObject::get_flag_bits(std::string str, int start, int count)
+{
+    int decimal_value = std::stoi(str, nullptr, 16);
+    int mask          = 0;
+    for (int i = 0; i < count; i++) { mask += 1 << (start + i); }
+
+    int flag = (decimal_value & (mask)) >> start;
+    return flag;
+}
+
+int MachineObject::get_flag_bits(int num, int start, int count)
+{
+    int decimal_value = num;
+    int mask          = 0;
+    for (int i = 0; i < count; i++) { mask += 1 << (start + i); }
+
+    int flag = (decimal_value & (mask)) >> start;
+    return flag;
 }
 
 void MachineObject::update_printer_preset_name(const std::string &nozzle_diameter_str)

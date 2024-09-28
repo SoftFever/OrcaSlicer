@@ -980,6 +980,8 @@ public:
     std::string m_printer_preset_name;
     std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
     void update_filament_list();
+    int get_flag_bits(std::string str, int start, int count);
+    int get_flag_bits(int num, int start, int count);
     void update_printer_preset_name(const std::string &nozzle_diameter_str);
 };
 
