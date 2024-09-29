@@ -3474,7 +3474,10 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     const auto &radius = key.radius;
     const auto &layer_nr = key.layer_nr;
     if (layer_nr == 0) {
-        m_avoidance_cache[key] = get_collision(radius, 0);
+        // avoid ExPolygons:~ExPolygons() in multi-threading case, as it's not thread-safe and may
+        // cause crash in some cases. See STUDIO-8313.
+        if (m_avoidance_cache.find(key) == m_avoidance_cache.end())
+            m_avoidance_cache[key] = get_collision(radius, 0);
         return m_avoidance_cache[key];
     }
 
