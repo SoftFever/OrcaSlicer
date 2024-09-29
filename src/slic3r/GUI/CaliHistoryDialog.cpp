@@ -17,6 +17,26 @@ namespace GUI {
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         5
 
+enum CaliColumnType : int {
+    Cali_Name = 0,
+    Cali_Filament,
+    Cali_Nozzle,
+    Cali_K_Value,
+    Cali_Delete,
+    Cali_Edit,
+    Cali_Type_Count
+};
+
+int get_colume_idx(CaliColumnType type, MachineObject* obj)
+{
+    if ((!obj || !obj->is_multi_extruders())
+        && (type > CaliColumnType::Cali_Nozzle)) {
+        return type - 1;
+    }
+
+    return type;
+}
+
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
     auto preset_bundle = wxGetApp().preset_bundle;
@@ -86,6 +106,16 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     scroll_sizer->Add(mew_btn, 0, wxLEFT, FromDIP(20));
     scroll_sizer->AddSpacer(FromDIP(15));
+
+    m_extruder_switch_btn = new SwitchButton(scroll_window);
+    m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
+    m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
+    m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
+    m_extruder_switch_btn->SetLabels(_L("Left"), _L("Right"));
+    m_extruder_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &HistoryWindow::on_switch_extruder, this);
+    m_extruder_switch_btn->SetValue(false);
+    scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
+    scroll_sizer->AddSpacer(10);
 
     wxPanel* comboBox_panel = new wxPanel(scroll_window);
     comboBox_panel->SetBackgroundColour(wxColour(238, 238, 238));
@@ -186,6 +216,11 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     }
     m_comboBox_nozzle_dia->SetSelection(selection);
 
+    if (obj->is_multi_extruders())
+        m_extruder_switch_btn->Show();
+    else
+        m_extruder_switch_btn->Hide();
+
     // trigger on_select nozzle
     wxCommandEvent evt(wxEVT_COMBOBOX);
     evt.SetEventObject(m_comboBox_nozzle_dia);
@@ -216,7 +251,12 @@ void HistoryWindow::update(MachineObject* obj)
 void HistoryWindow::on_select_nozzle(wxCommandEvent& evt)
 {
     reqeust_history_result(curr_obj);
+}
 
+void HistoryWindow::on_switch_extruder(wxCommandEvent &evt)
+{
+    evt.Skip();
+    reqeust_history_result(curr_obj);
 }
 
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
@@ -228,9 +268,11 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
         sync_history_data();
 
         float nozzle_value = get_nozzle_value();
+        int extruder_id = get_extruder_id();
         if (nozzle_value > 0) {
             PACalibExtruderInfo cali_info;
             cali_info.nozzle_diameter = nozzle_value;
+            cali_info.extruder_id     = extruder_id;
             cali_info.use_nozzle_volume_type = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
@@ -262,15 +304,21 @@ void HistoryWindow::sync_history_data() {
 
     auto title_name = new Label(m_history_data_panel, _L("Name"));
     title_name->SetFont(Label::Head_14);
-    gbSizer->Add(title_name, { 0, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_name, {0, get_colume_idx(CaliColumnType::Cali_Name, curr_obj) }, {1, 1}, wxBOTTOM, FromDIP(15));
 
     auto title_preset_name = new Label(m_history_data_panel, _L("Filament"));
     title_preset_name->SetFont(Label::Head_14);
-    gbSizer->Add(title_preset_name, { 0, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_preset_name, { 0, get_colume_idx(CaliColumnType::Cali_Filament, curr_obj) }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+
+    if (curr_obj && curr_obj->is_multi_extruders()) {
+        auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle"));
+        nozzle_name->SetFont(Label::Head_14);
+        gbSizer->Add(nozzle_name, {0, get_colume_idx(CaliColumnType::Cali_Nozzle, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+    }
 
     auto title_k = new Label(m_history_data_panel, _L("Factor K"));
     title_k->SetFont(Label::Head_14);
-    gbSizer->Add(title_k, { 0, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_k, { 0, get_colume_idx(CaliColumnType::Cali_K_Value,curr_obj) }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
     // Hide
     //auto title_n = new Label(m_history_data_panel, wxID_ANY, _L("N"));
@@ -279,7 +327,7 @@ void HistoryWindow::sync_history_data() {
 
     auto title_action = new Label(m_history_data_panel, _L("Action"));
     title_action->SetFont(Label::Head_14);
-    gbSizer->Add(title_action, { 0, 3 }, { 1, 1 });
+    gbSizer->Add(title_action, {0, get_colume_idx(CaliColumnType::Cali_Delete, curr_obj)}, {1, 1});
 
     int i = 1;
     for (auto& result : m_calib_results_history) {
@@ -287,6 +335,9 @@ void HistoryWindow::sync_history_data() {
 
         wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
         auto preset_name_value = new Label(m_history_data_panel, preset_name);
+
+        wxString nozzle_name = get_nozzle_volume_type_name(result.nozzle_volume_type);
+        auto     nozzle_name_label = new Label(m_history_data_panel, nozzle_name);
 
         auto k_str = wxString::Format("%.3f", result.k_value);
         auto n_str = wxString::Format("%.3f", result.n_coef);
@@ -342,12 +393,14 @@ void HistoryWindow::sync_history_data() {
             }
             });
 
-        gbSizer->Add(name_value, { i, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(preset_name_value, { i, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(k_value, { i, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(name_value, {i, get_colume_idx(CaliColumnType::Cali_Name, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(preset_name_value, {i, get_colume_idx(CaliColumnType::Cali_Filament, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        if (curr_obj && curr_obj->is_multi_extruders())
+            gbSizer->Add(nozzle_name_label, {i, get_colume_idx(CaliColumnType::Cali_Nozzle, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(k_value, {i, get_colume_idx(CaliColumnType::Cali_K_Value, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
         //gbSizer->Add(n_value, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(delete_button, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(edit_button, { i, 4 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(delete_button, {i, get_colume_idx(CaliColumnType::Cali_Delete, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(edit_button, {i, get_colume_idx(CaliColumnType::Cali_Edit, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
         i++;
     }
 
@@ -370,6 +423,25 @@ float HistoryWindow::get_nozzle_value()
     }
 
     return nozzle_value;
+}
+
+int HistoryWindow::get_extruder_id()
+{
+    if (!curr_obj) {
+        assert(false);
+        return 0;
+    }
+    if (!curr_obj->is_multi_extruders() || !m_extruder_switch_btn)
+        return -1;
+
+    bool is_left = !m_extruder_switch_btn->GetValue();
+    bool main_on_left = curr_obj->is_main_extruder_on_left();
+
+    if (is_left == main_on_left) {
+        return 0;
+    }
+
+    return 1;
 }
 
 void HistoryWindow::on_click_new_button(wxCommandEvent& event)

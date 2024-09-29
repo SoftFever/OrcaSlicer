@@ -6,7 +6,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "DeviceManager.hpp"
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 class HistoryWindow : public DPIDialog {
@@ -15,6 +15,7 @@ public:
     ~HistoryWindow();
     void on_dpi_changed(const wxRect& suggested_rect) {}
     void on_select_nozzle(wxCommandEvent& evt);
+    void on_switch_extruder(wxCommandEvent &evt);
     void reqeust_history_result(MachineObject* obj);
     void sync_history_result(MachineObject* obj);
     void on_device_connected(MachineObject* obj);
@@ -24,11 +25,13 @@ protected:
     void sync_history_data();
     void enbale_action_buttons(bool enable);
     float get_nozzle_value();
+    int get_extruder_id();
 
     void on_click_new_button(wxCommandEvent &event);
 
     wxPanel*                   m_history_data_panel;
     ComboBox*                  m_comboBox_nozzle_dia;
+    SwitchButton*              m_extruder_switch_btn;
     Label*              m_tips;
 
     wxTimer*                   m_refresh_timer { nullptr };

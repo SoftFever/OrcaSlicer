@@ -26,7 +26,7 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
- MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname) 
+ MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
     m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", 12);
@@ -113,17 +113,17 @@ void MaterialItem::on_normal()
 }
 
 
-void MaterialItem::paintEvent(wxPaintEvent &evt) 
-{  
+void MaterialItem::paintEvent(wxPaintEvent &evt)
+{
     wxPaintDC dc(this);
     render(dc);
 
     //PrepareDC(buffdc);
     //PrepareDC(dc);
-    
+
 }
 
-void MaterialItem::render(wxDC &dc) 
+void MaterialItem::render(wxDC &dc)
 {
 #ifdef __WXMSW__
     wxSize     size = GetSize();
@@ -309,7 +309,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      title_panel->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
      title_panel->SetSize(wxSize(-1, FromDIP(30)));
      title_panel->SetMinSize(wxSize(-1, FromDIP(30)));
-     
+
 
      wxBoxSizer *title_sizer_h= new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *title_sizer_v = new wxBoxSizer(wxVERTICAL);
@@ -435,13 +435,13 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      return out_txt;
  }
 
-void AmsMapingPopup::update_materials_list(std::vector<std::string> list) 
-{ 
+void AmsMapingPopup::update_materials_list(std::vector<std::string> list)
+{
     m_materials_list = list;
 }
 
-void AmsMapingPopup::set_tag_texture(std::string texture) 
-{ 
+void AmsMapingPopup::set_tag_texture(std::string texture)
+{
     m_tag_material = texture;
 }
 
@@ -624,7 +624,7 @@ void AmsMapingPopup::update(MachineObject* obj)
             auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0? m_right_marea_panel:m_left_marea_panel);
             ams_mapping_item_container->SetSizer(sizer_mapping_list);
             ams_mapping_item_container->Layout();
-            
+
             m_has_unmatch_filament = false;
 
             BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
@@ -728,9 +728,9 @@ std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Am
 }
 
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer)
-{ 
+{
     sizer->Add(0,0,0,wxLEFT,FromDIP(6));
-    
+
     for (auto i = 0; i < tray_data.size(); i++) {
 
         // set button
@@ -760,7 +760,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
                 Dismiss();
             });
         }
-        
+
 
         // temp
         if (tray_data[i].type == EMPTY) {
@@ -832,12 +832,12 @@ void AmsMapingPopup::OnDismiss()
 
 }
 
-bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event) 
+bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event)
 {
     return PopupWindow::ProcessLeftDown(event);
 }
 
-void AmsMapingPopup::paintEvent(wxPaintEvent &evt) 
+void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
@@ -845,7 +845,7 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
 
- MappingItem::MappingItem(wxWindow *parent) 
+ MappingItem::MappingItem(wxWindow *parent)
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
 #ifdef __WINDOWS__
@@ -857,27 +857,27 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
 
- MappingItem::~MappingItem() 
+ MappingItem::~MappingItem()
 {
 }
 
 
-void MappingItem::send_event(int fliament_id) 
+void MappingItem::send_event(int fliament_id)
 {
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
 
-    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d|%d|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), m_tray_index, fliament_id, 
+    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d|%d|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), m_tray_index, fliament_id,
        m_tray_data.ams_id, m_tray_data.slot_id);
     event.SetString(param);
-   
+
     if (send_win) {
          event.SetEventObject(send_win);
         wxPostEvent(send_win, event);
     }
 }
 
- void MappingItem::msw_rescale() 
+ void MappingItem::msw_rescale()
 {
 }
 
@@ -993,7 +993,7 @@ void MappingItem::doRender(wxDC &dc)
 }
 
 
-AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent) 
+AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     :PopupWindow(parent, wxBORDER_NONE)
 {
     SetBackgroundColour(*wxWHITE);
@@ -1093,7 +1093,7 @@ void AmsMapingTipPopup::paintEvent(wxPaintEvent &evt)
 
 void AmsMapingTipPopup::OnDismiss() {}
 
-bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
+bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) {
     return PopupWindow::ProcessLeftDown(event); }
 
 
@@ -1118,7 +1118,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
     m_staticText_note->SetMaxSize(wxSize(FromDIP(680), -1));
     m_staticText_note->Wrap(FromDIP(680));
-   
+
 
     Bind(wxEVT_LEFT_UP, [this](auto& e) {
 
@@ -1130,7 +1130,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
         auto close_bottom   = close_top + close_img.GetBmpHeight();
 
         auto mouse_pos = ClientToScreen(e.GetPosition());
-        if (mouse_pos.x > close_left 
+        if (mouse_pos.x > close_left
             && mouse_pos.y > close_top
             && mouse_pos.x < close_right
             && mouse_pos.y < close_bottom
@@ -1248,7 +1248,7 @@ AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
 
     tip_top = new wxStaticText(this, wxID_ANY, _L("Filament used in this print job"), wxDefaultPosition, wxDefaultSize, 0);
     tip_top->SetForegroundColour(wxColour("#686868"));
-    
+
     sizer_tip_top->Add(tip_top, 0, wxALL, 0);
 
 
@@ -1274,7 +1274,7 @@ AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
     sizer_top->Add(sizer_top_tips, 0, wxALIGN_CENTER, 0);
 
 
-    
+
 
     wxBoxSizer* sizer_middle = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1366,7 +1366,7 @@ AmsIntroducePopup::AmsIntroducePopup(wxWindow* parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-void AmsIntroducePopup::set_mode(bool enable_ams) 
+void AmsIntroducePopup::set_mode(bool enable_ams)
 {
     if (enable_ams) {
         m_staticText_top->SetLabelText(_L("Enable AMS"));
@@ -1499,7 +1499,7 @@ void AmsReplaceMaterialDialog::create()
     m_scrollview_sizer->Add( m_groups_sizer, 0, wxALIGN_CENTER, 0 );
     m_scrollview_groups->SetSizer(m_scrollview_sizer);
     m_scrollview_groups->Layout();
-    
+
 
 
     auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1527,7 +1527,7 @@ void AmsReplaceMaterialDialog::create()
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
     m_main_sizer->Add(m_button_sizer,0,wxALIGN_CENTER, FromDIP(16));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
-    
+
 
     CenterOnParent();
     SetSizer(m_main_sizer);
@@ -1610,7 +1610,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
          if (is_in_tray || m_tray_used.size() <= 0) {
              m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
              group_index++;
-         } 
+         }
     }
 
     if (group_index > 0) {
@@ -1633,14 +1633,14 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
         else {
             label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled.\n"
                                        "(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
-        } 
+        }
 
         label_txt->SetMinSize(wxSize(FromDIP(380), -1));
         label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
         label_txt->Wrap(FromDIP(380));
 
     }
-   
+
     m_scrollview_groups->Layout();
     Layout();
     Fit();
@@ -1735,7 +1735,7 @@ void AmsRMGroup::on_mouse_move(wxMouseEvent& evt)
             Refresh();
             return;
         }
-      
+
         startAngle += ev_angle;
     }
 
@@ -1779,7 +1779,7 @@ wxPoint AmsRMGroup::CalculateEndpoint(const wxPoint& startPoint, int angle, int 
 void AmsRMGroup::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
-    
+
     float center_mask_radius = FromDIP(52);
     float selected_radius = FromDIP(53);
 
@@ -1807,7 +1807,7 @@ void AmsRMGroup::doRender(wxDC& dc)
             radius = size.x / 2;
         endAngle += ev_angle;
 
- 
+
         //draw body
         if (tray_color.Alpha() != 0) {
             dc.DrawEllipticArc(x - radius, y - radius, radius * 2, radius * 2, startAngle, endAngle);
@@ -1959,7 +1959,7 @@ void AmsHumidityLevelList::doRender(wxDC& dc)
 
 
     //level list
-    
+
     for (int i = 0; i < hum_level_img_light.size(); i++) {
         if (wxGetApp().dark_mode()) {
             dc.DrawBitmap(hum_level_img_dark[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
@@ -1967,7 +1967,7 @@ void AmsHumidityLevelList::doRender(wxDC& dc)
         else {
              dc.DrawBitmap(hum_level_img_light[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
         }
-        
+
         left += FromDIP(46) + FromDIP(54);
     }
 }
