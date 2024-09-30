@@ -9,7 +9,37 @@ namespace Slic3r {
 
 using FlushMatrix = std::vector<std::vector<float>>;
 
-class MCMF
+class MaxFlow
+{
+private:
+    const int INF = std::numeric_limits<int>::max();
+    struct Edge {
+        int from, to, capacity, flow;
+        Edge(int u, int v, int cap) :from(u), to(v), capacity(cap), flow(0) {}
+    };
+public:
+    MaxFlow(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
+        const std::vector<int>& u_capacity = {},
+        const std::vector<int>& v_capacity = {}
+    );
+    std::vector<int> solve();
+
+private:
+    void add_edge(int from, int to, int capacity);
+
+
+    int total_nodes;
+    int source_id;
+    int sink_id;
+    std::vector<Edge>edges;
+    std::vector<int>l_nodes;
+    std::vector<int>r_nodes;
+    std::vector<std::vector<int>>adj;
+};
+
+class MinCostMaxFlow
 {
     const int INF = std::numeric_limits<int>::max();
     struct Edge
@@ -19,7 +49,12 @@ class MCMF
     };
 
 public:
-    MCMF(const FlushMatrix &matrix_, const std::vector<int> &u_nodes, const std::vector<int> &v_nodes);
+    MinCostMaxFlow(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
+        const std::vector<int>& u_capacity = {},
+        const std::vector<int>& v_capacity = {}
+    );
     std::vector<int> solve();
 
 private:
@@ -28,16 +63,15 @@ private:
     int get_distance(int idx_in_left, int idx_in_right);
 
 private:
-    FlushMatrix matrix;
+    std::vector<std::vector<float>> matrix;
     std::vector<int> l_nodes;
     std::vector<int> r_nodes;
+    std::vector<Edge> edges;
+    std::vector<std::vector<int>> adj;
 
     int total_nodes;
     int source_id;
     int sink_id;
-
-    std::vector<Edge> edges;
-    std::vector<std::vector<int>> adj;
 };
 
 std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,

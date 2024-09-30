@@ -33,8 +33,6 @@ namespace Slic3r
         Color(const std::string& hexstr);
     };
 
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors, const std::vector<std::vector<std::string>>& ams_filament_colros);
-
     namespace FilamentGroupUtils
     {
         struct FlushTimeMachine
@@ -57,12 +55,15 @@ namespace Slic3r
         };
 
         struct MemoryedGroup {
-            int cost{ 0 };
-            int prefer_level{ 0 };
-            std::vector<int>group;
+            MemoryedGroup() = default;
+            MemoryedGroup(const std::vector<int>& group_, const int cost_, const int prefer_level_) :group(group_), cost(cost_), prefer_level(prefer_level_) {}
             bool operator>(const MemoryedGroup& other) const {
                 return prefer_level < other.prefer_level || (prefer_level == other.prefer_level && cost > other.cost);
             }
+
+            int cost{ 0 };
+            int prefer_level{ 0 };
+            std::vector<int>group;
         };
         using MemoryedGroupHeap = std::priority_queue<MemoryedGroup, std::vector<MemoryedGroup>, std::greater<MemoryedGroup>>;
 
@@ -76,8 +77,14 @@ namespace Slic3r
         std::vector<std::set<int>>geometric_unprintables;
         std::vector<int>max_group_size;
         int total_filament_num;
+        int master_extruder_id;
     };
 
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors, const std::vector<std::vector<std::string>>& ams_filament_colros);
+
+    bool optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, std::vector<int>& filament_map);
+
+    bool can_swap_groups(const int extruder_id_0, const std::set<int>& group_0, const int extruder_id_1, const std::set<int>& group_1, const FilamentGroupContext& ctx);
 
     class FlushDistanceEvaluator
     {
@@ -123,9 +130,10 @@ namespace Slic3r
             Farthest
         };
     public:
-        KMediods2(const int elem_count, const std::shared_ptr<FlushDistanceEvaluator>& evaluator) :
+        KMediods2(const int elem_count, const std::shared_ptr<FlushDistanceEvaluator>& evaluator, int default_group_id = 0) :
             m_evaluator{ evaluator },
-            m_elem_count{ elem_count }
+            m_elem_count{ elem_count },
+            m_default_group_id{ default_group_id }
         {
             m_max_cluster_size = std::vector<int>(m_k, DEFAULT_CLUSTER_SIZE);
         }
@@ -138,7 +146,7 @@ namespace Slic3r
 
         void do_clustering(const FGStrategy& g_strategy,int timeout_ms = 100);
 
-        void set_memory_threshold(double threshold) { memory_threshold; }
+        void set_memory_threshold(double threshold) { memory_threshold = threshold; }
         MemoryedGroupHeap get_memoryed_groups()const { return memoryed_groups; }
 
         std::vector<int>get_cluster_labels()const { return m_cluster_labels; }
@@ -147,17 +155,17 @@ namespace Slic3r
         std::vector<int>cluster_small_data(const std::map<int, int>& unplaceable_limits, const std::vector<int>& group_size);
         std::vector<int>assign_cluster_label(const std::vector<int>& center, const std::map<int, int>& unplaceable_limits, const std::vector<int>& group_size, const FGStrategy& strategy);
         int calc_cost(const std::vector<int>& labels, const std::vector<int>& medoids);
-    private:
+    protected:
+        FilamentGroupUtils::MemoryedGroupHeap memoryed_groups;
         std::shared_ptr<FlushDistanceEvaluator> m_evaluator;
         std::map<int, int>m_unplaceable_limits;
-        std::vector<int>m_max_cluster_size;
-        int m_elem_count;
-        const int m_k = 2;
-
-        double memory_threshold{ 0 };
-        FilamentGroupUtils::MemoryedGroupHeap memoryed_groups;
-
         std::vector<int>m_cluster_labels;
+        std::vector<int>m_max_cluster_size;
+
+        const int m_k = 2;
+        int m_elem_count;
+        int m_default_group_id{ 0 };
+        double memory_threshold{ 0 };
     };
 }
 #endif // !FILAMENT_GROUP_HPP

@@ -8,8 +8,123 @@
 namespace Slic3r
 {
 
-    MCMF::MCMF(const FlushMatrix& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes)
+    MaxFlow::MaxFlow(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits,
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
+        const std::vector<int>& u_capacity,
+        const std::vector<int>& v_capacity)
     {
+        assert(u_capacity.empty() || u_capacity.size() == u_nodes.size());
+        assert(v_capacity.empty() || v_capacity.size() == v_nodes.size());
+        l_nodes = u_nodes;
+        r_nodes = v_nodes;
+        total_nodes = u_nodes.size() + v_nodes.size() + 2;
+        source_id = total_nodes - 2;
+        sink_id = total_nodes - 1;
+
+        adj.resize(total_nodes);
+
+        // add edge from source to left nodes
+        for (int idx = 0; idx < l_nodes.size(); ++idx) {
+            int capacity = u_capacity.empty() ? 1 : u_capacity[idx];
+            add_edge(source_id, idx, capacity);
+        }
+        // add edge from right nodes to sink node
+        for (int idx = 0; idx < r_nodes.size(); ++idx) {
+            int capacity = v_capacity.empty() ? 1 : v_capacity[idx];
+            add_edge(l_nodes.size() + idx, sink_id, capacity);
+        }
+
+        // add edge from left nodes to right nodes
+        for (int i = 0; i < l_nodes.size(); ++i) {
+            int from_idx = i;
+            // process link limits , i can only link to uv_link_limits
+            if (auto iter = uv_link_limits.find(i); iter != uv_link_limits.end()) {
+                for (auto r_id : iter->second)
+                    add_edge(from_idx, l_nodes.size() + r_id, 1);
+                continue;
+            }
+            // process unlink limits
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto iter = uv_unlink_limits.find(i); iter != uv_unlink_limits.end())
+                unlink_limits = iter->second;
+
+            for (int j = 0; j < r_nodes.size(); ++j) {
+                // check whether i can link to j
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
+                add_edge(from_idx, l_nodes.size() + j, 1);
+            }
+        }
+    }
+
+    void MaxFlow::add_edge(int from, int to, int capacity)
+    {
+        adj[from].emplace_back(edges.size());
+        edges.emplace_back(from, to, capacity);
+        //also add reverse edge ,set capacity to zero
+        adj[to].emplace_back(edges.size());
+        edges.emplace_back(to, from, 0);
+    }
+
+    std::vector<int> MaxFlow::solve() {
+        std::vector<int> augment;
+        std::vector<int> previous(total_nodes, 0);
+        while (1) {
+            std::vector<int>(total_nodes, 0).swap(augment);
+            std::queue<int> travel;
+            travel.push(source_id);
+            augment[source_id] = INF;
+            while (!travel.empty()) {
+                int from = travel.front();
+                travel.pop();
+
+                // traverse all linked edges
+                for (int i = 0; i < adj[from].size(); ++i) {
+                    int eid = adj[from][i];
+                    Edge& tmp = edges[eid];
+                    if (augment[tmp.to] == 0 && tmp.capacity > tmp.flow) {
+                        previous[tmp.to] = eid;
+                        augment[tmp.to] = std::min(augment[from], tmp.capacity - tmp.flow);
+                        travel.push(tmp.to);
+                    }
+                }
+
+                // already find an extend path, stop and do update
+                if (augment[sink_id] != 0)
+                    break;
+            }
+            // no longer have extend path
+            if (augment[sink_id] == 0)
+                break;
+
+            for (int i = sink_id; i != source_id; i = edges[previous[i]].from) {
+                edges[previous[i]].flow += augment[sink_id];
+                edges[previous[i] ^ 1].flow -= augment[sink_id];
+            }
+        }
+
+        std::vector<int> matching(l_nodes.size(), -1);
+        // to get the match info, just traverse the left nodes and
+        // check the edge with flow > 0 and linked to right nodes
+        for (int u = 0; u < l_nodes.size(); ++u) {
+            for (int eid : adj[u]) {
+                Edge& e = edges[eid];
+                if (e.flow > 0 && e.to >= l_nodes.size() && e.to < l_nodes.size() + r_nodes.size())
+                    matching[e.from] = r_nodes[e.to - l_nodes.size()];
+            }
+        }
+        return matching;
+    }
+
+    MinCostMaxFlow::MinCostMaxFlow(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits,
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
+        const std::vector<int>& u_capacity,
+        const std::vector<int>& v_capacity)
+    {
+        assert(u_capacity.empty() || u_capacity.size() == u_nodes.size());
+        assert(v_capacity.empty() || v_capacity.size() == v_nodes.size());
         matrix = matrix_;
         l_nodes = u_nodes;
         r_nodes = v_nodes;
@@ -21,24 +136,39 @@ namespace Slic3r
 
         adj.resize(total_nodes);
 
-        //add edge from source to left nodes,set capacity to 1, cost to 0
-        for (int i = 0; i < l_nodes.size(); ++i)
-            add_edge(source_id, i, 1, 0);
-
-        //add edge from right nodes to sink,set capacity to 1, cost to 0
-        for (int i = 0; i < r_nodes.size(); ++i)
-            add_edge(l_nodes.size() + i, sink_id, 1, 0);
-
+        // add edge from source to left nodes,cost to 0
+        for (int i = 0; i < l_nodes.size(); ++i) {
+            int capacity = u_capacity.empty() ? 1 : u_capacity[i];
+            add_edge(source_id, i, capacity, 0);
+        }
+        // add edge from right nodes to sink,cost to 0
+        for (int i = 0; i < r_nodes.size(); ++i) {
+            int capacity = v_capacity.empty() ? 1 : v_capacity[i];
+            add_edge(l_nodes.size() + i, sink_id, capacity, 0);
+        }
+        // add edge from left node to right nodes
         for (int i = 0; i < l_nodes.size(); ++i) {
             int from_idx = i;
+            // process link limits, i can only link to link_limits
+            if (auto iter = uv_link_limits.find(i); iter != uv_link_limits.end()) {
+                for (auto r_id : iter->second)
+                    add_edge(from_idx, l_nodes.size() + r_id, 1, get_distance(i, r_id));
+                continue;
+            }
+
+            // process unlink limits, check whether i can link to j
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto iter = uv_unlink_limits.find(i); iter != uv_unlink_limits.end())
+                unlink_limits = iter->second;
             for (int j = 0; j < r_nodes.size(); ++j) {
-                int to_idx = l_nodes.size() + j;
-                add_edge(from_idx, to_idx, 1, get_distance(i, j));
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
+                add_edge(from_idx, l_nodes.size() + j, 1, get_distance(i, j));
             }
         }
     }
 
-    std::vector<int> MCMF::solve()
+    std::vector<int> MinCostMaxFlow::solve()
     {
         while (spfa(source_id, sink_id));
 
@@ -56,7 +186,7 @@ namespace Slic3r
         return matching;
     }
 
-    void MCMF::add_edge(int from, int to, int capacity, int cost)
+    void MinCostMaxFlow::add_edge(int from, int to, int capacity, int cost)
     {
         adj[from].emplace_back(edges.size());
         edges.emplace_back(from, to, capacity, cost);
@@ -65,7 +195,7 @@ namespace Slic3r
         edges.emplace_back(to, from, 0, -cost);
     }
 
-    bool MCMF::spfa(int source, int sink)
+    bool MinCostMaxFlow::spfa(int source, int sink)
     {
         std::vector<int>dist(total_nodes, INF);
         std::vector<bool>in_queue(total_nodes, false);
@@ -111,7 +241,7 @@ namespace Slic3r
         return true;
     }
 
-    int MCMF::get_distance(int idx_in_left, int idx_in_right)
+    int MinCostMaxFlow::get_distance(int idx_in_left, int idx_in_right)
     {
         if (l_nodes[idx_in_left] == -1) {
             return 0;

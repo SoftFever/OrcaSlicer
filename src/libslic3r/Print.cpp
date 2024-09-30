@@ -2138,8 +2138,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
                 // check map valid both in auto and mannual mode
                 std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
-                // TODO: load master extruder id from config
-                if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config, 1)) {
+                if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config)) {
                     if (map_mode == FilamentMapMode::fmmManual) {
                         throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
                     }

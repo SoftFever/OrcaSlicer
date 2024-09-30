@@ -36,8 +36,10 @@ static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_f
     return target_filaments;
 }
 
-std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::vector<unsigned int>& used_filaments, const PrintConfig* config, int master_extruder_id)
+std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::vector<unsigned int>& used_filaments, const PrintConfig* config)
 {
+    // master saved in config is 1 based,so we should transfer to 0 based here
+    int master_extruder_id = config->master_extruder_id.value - 1;
     auto tpu_filaments = get_filament_by_type(used_filaments, config, "TPU");
     if (tpu_filaments.size() > 1) {
         throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
@@ -540,9 +542,10 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     }
 }
 
-bool ToolOrdering::check_tpu_group(const std::vector<unsigned int>&used_filaments,const std::vector<int>& filament_maps,const PrintConfig* config,int master_extruder_id)
+bool ToolOrdering::check_tpu_group(const std::vector<unsigned int>&used_filaments,const std::vector<int>& filament_maps,const PrintConfig* config)
 {
     int check_extruder_id = -1;
+    int master_extruder_id = config->master_extruder_id.value - 1; // transfer to 0 based idx
     std::map<int, std::vector<int>> extruder_filament_nums;
     for (unsigned int filament_id : used_filaments) {
         int extruder_id = filament_maps[filament_id];
@@ -559,7 +562,7 @@ bool ToolOrdering::check_tpu_group(const std::vector<unsigned int>&used_filament
     }
 
     // TPU can only place in master extruder, and it should have no other filaments in the same extruder
-    if (check_extruder_id != -1 && (check_extruder_id!=master_extruder_id || extruder_filament_nums[check_extruder_id].size() > 1)) {
+    if (check_extruder_id != -1 && (check_extruder_id != master_extruder_id || extruder_filament_nums[check_extruder_id].size() > 1)) {
         return false;
     }
 
@@ -943,17 +946,21 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
                 const auto &ams_count = extruder_ams_counts[i];
                 for (auto iter = ams_count.begin(); iter != ams_count.end(); ++iter) { group_size[i] += iter->first * iter->second; }
             }
+            // When the AMS count is 0, only external filament can be used, so set the capacity to 1.
+            for(auto& size: group_size)
+                if(size == 0)
+                    size = 1;
         }
 
         FilamentGroupContext context;
-        context.flush_matrix = std::move(nozzle_flush_mtx);
-        context.geometric_unprintables = geometric_unprintables;
-        context.physical_unprintables = physical_unprintables;
-        context.max_group_size = std::move(group_size);
-        context.total_filament_num = (int)filament_nums;
-
-        // TODO: load master extruder id from config
-        int master_extruder_id = 1;
+        {
+            context.flush_matrix = std::move(nozzle_flush_mtx);
+            context.geometric_unprintables = geometric_unprintables;
+            context.physical_unprintables = physical_unprintables;
+            context.max_group_size = std::move(group_size);
+            context.total_filament_num = (int)filament_nums;
+            context.master_extruder_id = print_config->master_extruder_id.value - 1; // transfer to 0 based idx
+        }
         // speacially handle tpu filaments
         auto used_filaments = collect_sorted_used_filaments(layer_filaments);
         auto tpu_filaments = get_filament_by_type(used_filaments, print_config, "TPU");
@@ -961,9 +968,9 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         if (!tpu_filaments.empty()) {
             for (size_t fidx = 0; fidx < filament_nums; ++fidx) {
                 if (tpu_filaments.count(fidx))
-                    ret[fidx] = master_extruder_id;
+                    ret[fidx] = context.master_extruder_id;
                 else
-                    ret[fidx] = 1 - master_extruder_id;
+                    ret[fidx] = 1 - context.master_extruder_id;
             }
         }
         else {
@@ -972,7 +979,16 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             fg.get_custom_seq = get_custom_seq;
 
             ret = fg.calc_filament_group(layer_filaments, FGStrategy::BestFit);
-            auto memoryed_maps = fg.get_memoryed_groups();
+
+            // optimize for master extruder id
+            optimize_group_for_master_extruder(used_filaments, context, ret);
+
+            // optimize according to AMS filaments
+            std::vector<std::vector<int>>memoryed_maps{ ret };
+            {
+                auto tmp_maps = fg.get_memoryed_groups();
+                memoryed_maps.insert(memoryed_maps.end(), std::make_move_iterator(tmp_maps.begin()), std::make_move_iterator(tmp_maps.end()));
+            }
 
             std::vector<std::string>used_colors;
             for (size_t idx = 0; idx < used_filaments.size(); ++idx)
@@ -1073,8 +1089,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             }
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
-            // TODO: load the master extruder_id from config
-            if (!check_tpu_group(used_filaments, filament_maps, print_config, 1)) {
+            if (!check_tpu_group(used_filaments, filament_maps, print_config)) {
                 if (map_mode == FilamentMapMode::fmmManual) {
                     throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
                 }

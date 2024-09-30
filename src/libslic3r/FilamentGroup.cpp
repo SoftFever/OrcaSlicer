@@ -99,6 +99,84 @@ namespace Slic3r
             a = hexToByte(hexstr.substr(7, 2));
     }
 
+    bool can_swap_groups(const int extruder_id_0, const std::set<int>& group_0, const int extruder_id_1, const std::set<int>& group_1, const FilamentGroupContext& ctx)
+    {
+        std::vector<std::set<int>>extruder_unprintables(2);
+        {
+            std::vector<std::set<int>> physical_unprintables = ctx.physical_unprintables;
+            std::vector<std::set<int>> geometric_unprintables = ctx.geometric_unprintables;
+            remove_intersection(physical_unprintables[0], physical_unprintables[1]);
+            remove_intersection(geometric_unprintables[0], geometric_unprintables[1]);
+            std::map<int, std::vector<int>>unplaceable_limts;
+            for (auto& unprintables : { physical_unprintables,geometric_unprintables }) {
+                for (auto& group_id : { extruder_id_0,extruder_id_1 }) {
+                    for (auto f : unprintables[group_id]) {
+                        // TODO: xcr: check whether group_id has been inside the vector ?
+                        if (unplaceable_limts.count(f) == 0)
+                            unplaceable_limts[f].emplace_back(group_id);
+                    }
+                }
+            }
+
+            for (auto& elem : unplaceable_limts) {
+                sort_remove_duplicates(elem.second);
+            }
+
+            for (auto& elem : unplaceable_limts) {
+                for (auto& eid : elem.second) {
+                    if (eid == extruder_id_0) {
+                        extruder_unprintables[0].insert(elem.first);
+                    }
+                    if (eid == extruder_id_1) {
+                        extruder_unprintables[1].insert(elem.first);
+                    }
+                }
+            }
+        }
+
+        // check printable limits
+        for (auto fid : group_0) {
+            if (extruder_unprintables[1].count(fid) > 0)
+                return false;
+        }
+
+        for (auto fid : group_1) {
+            if (extruder_unprintables[0].count(fid) > 0)
+                return false;
+        }
+
+        // check extruder capacity ,if result before exchange meets the constraints and the result after exchange does not meet the constraints, return false
+        if (ctx.max_group_size[extruder_id_0] >= group_0.size() && ctx.max_group_size[extruder_id_1] >= group_1.size() && (ctx.max_group_size[extruder_id_0] < group_1.size() || ctx.max_group_size[extruder_id_1] < group_0.size()))
+            return false;
+
+        return true;
+    }
+
+
+    // only support extruder nums with 2, try to swap the master extruder id with the other extruder id
+    bool optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments,const FilamentGroupContext& ctx, std::vector<int>& filament_map)
+    {
+        std::unordered_map<int, std::set<int>> groups;
+        for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
+            int filament_id = used_filaments[idx];
+            int group_id = filament_map[filament_id];
+            groups[group_id].insert(filament_id);
+        }
+
+        int none_master_extruder_id = 1 - ctx.master_extruder_id;
+        assert(0 <= none_master_extruder_id && none_master_extruder_id <= 1);
+
+        if (can_swap_groups(none_master_extruder_id, groups[none_master_extruder_id], ctx.master_extruder_id, groups[ctx.master_extruder_id], ctx)
+            && groups[none_master_extruder_id].size()>groups[ctx.master_extruder_id].size()) {
+            for (auto fid : groups[none_master_extruder_id])
+                filament_map[fid] = ctx.master_extruder_id;
+            for (auto fid : groups[ctx.master_extruder_id])
+                filament_map[fid] = none_master_extruder_id;
+            return true;
+        }
+        return false;
+    }
+
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors_str, const std::vector<std::vector<std::string>>& ams_filament_colors_str)
     {
         // change the color str to real colors
@@ -142,7 +220,7 @@ namespace Slic3r
                 std::vector<int>l_nodes(group_colors[i].size()), r_nodes(ams_filament_colors[i].size());
                 std::iota(l_nodes.begin(), l_nodes.end(), 0);
                 std::iota(r_nodes.begin(), r_nodes.end(), 0);
-                MCMF mcmf(distance_matrix, l_nodes, r_nodes);
+                MinCostMaxFlow mcmf(distance_matrix, l_nodes, r_nodes);
                 auto ams_map = mcmf.solve();
 
                 for (size_t idx = 0; idx < ams_map.size(); ++idx) {
@@ -290,7 +368,7 @@ namespace Slic3r
                     new_group_size[gid] -= 1;
                 }
                 else {
-                    label = 0;
+                    label = m_default_group_id;
                 }
             }
         }
@@ -377,6 +455,15 @@ namespace Slic3r
 
         if (m_elem_count < m_k) {
             m_cluster_labels = cluster_small_data(m_unplaceable_limits, m_max_cluster_size);
+            {
+                std::vector<int>cluster_center(m_k, -1);
+                for (size_t idx = 0; idx < m_cluster_labels.size(); ++idx) {
+                    if (cluster_center[m_cluster_labels[idx]] == -1)
+                        cluster_center[m_cluster_labels[idx]] = idx;
+                }
+                MemoryedGroup g(m_cluster_labels, calc_cost(m_cluster_labels, cluster_center), 1);
+                update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            }
             return;
         }
 
@@ -402,10 +489,7 @@ namespace Slic3r
                 }
 
                 {
-                    MemoryedGroup g;
-                    g.prefer_level = 1; // in non enum mode, we use the same prefer level
-                    g.cost = new_cost;
-                    g.group = new_labels;
+                    MemoryedGroup g(new_labels,new_cost,1);
                     update_memoryed_groups(g, memory_threshold, memoryed_groups);
                 }
 
@@ -433,10 +517,11 @@ namespace Slic3r
         std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(layer_filaments);
 
         int used_filament_num = used_filaments.size();
+
         if (used_filament_num < 10)
             return calc_filament_group_by_enum(layer_filaments, used_filaments, g_strategy, cost);
         else
-            return calc_filament_group_by_pam2(layer_filaments, used_filaments, g_strategy, cost, 100);
+            return calc_filament_group_by_pam2(layer_filaments, used_filaments, g_strategy, cost, 300);
     }
 
     // sorted used_filaments
@@ -529,10 +614,7 @@ namespace Slic3r
             }
 
             {
-                MemoryedGroup mg;
-                mg.prefer_level = prefer_level;
-                mg.cost = total_cost;
-                mg.group = std::move(filament_maps);
+                MemoryedGroup mg(filament_maps,total_cost,prefer_level);
                 update_memoryed_groups(mg, memory_threshold, memoryed_groups);
             }
         }
@@ -553,9 +635,7 @@ namespace Slic3r
     // sorted used_filaments
     std::vector<int> FilamentGroup::calc_filament_group_by_pam2(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int*cost,int timeout_ms)
     {
-        std::vector<int>filament_labels_ret(m_context.total_filament_num, 0);
-        if (used_filaments.size() == 1)
-            return filament_labels_ret;
+        std::vector<int>filament_labels_ret(m_context.total_filament_num, m_context.master_extruder_id);
 
         std::map<int, int>unplaceable_limits;
         {
@@ -575,13 +655,13 @@ namespace Slic3r
         }
 
         auto distance_evaluator = std::make_shared<FlushDistanceEvaluator>(m_context.flush_matrix[0], used_filaments, layer_filaments);
-        KMediods2 PAM((int)used_filaments.size(),distance_evaluator);
+        KMediods2 PAM((int)used_filaments.size(),distance_evaluator,m_context.master_extruder_id);
         PAM.set_max_cluster_size(m_context.max_group_size);
         PAM.set_unplaceable_limits(unplaceable_limits);
         PAM.set_memory_threshold(memory_threshold);
         PAM.do_clustering(g_strategy, timeout_ms);
-        std::vector<int>filament_labels = PAM.get_cluster_labels();
 
+        std::vector<int>filament_labels = PAM.get_cluster_labels();
 
         {
             auto memoryed_groups = PAM.get_memoryed_groups();

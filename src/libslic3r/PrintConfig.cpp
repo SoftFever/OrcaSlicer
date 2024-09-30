@@ -4506,6 +4506,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("master_extruder_id", coInt);
+    def->label = "Master extruder id";
+    def->tooltip = "Default extruder id to place filament";
+    def->set_default_value(new ConfigOptionInt{ 1 });
+
     def = this->add("print_extruder_id", coInts);
     def->label = "Print extruder id";
     def->tooltip = "Print extruder id";
