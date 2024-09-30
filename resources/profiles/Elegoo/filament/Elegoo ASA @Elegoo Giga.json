@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Elegoo ASA @Elegoo Giga",
-    "inherits": "Elegoo ASA @base",
+    "inherits": "Elegoo Generic ASA",
     "from": "system",
     "setting_id": "EASAEOSG00",
     "instantiation": "true",

@@ -1,7 +1,7 @@
 {
   "type": "filament",
   "name": "Elegoo PLA @Elegoo Giga",
-  "inherits": "Elegoo PLA @base",
+  "inherits": "Elegoo Generic PLA",
   "from": "system",
   "setting_id": "EPLAEOSG00",
   "instantiation": "true",
