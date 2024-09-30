@@ -1325,9 +1325,8 @@ msgstr "Esc"
 msgid "Unselect"
 msgstr "Отменить выбор"
 
-# ??? Размеры
 msgid "Measure"
-msgstr "Измерение"
+msgstr "Измерения"
 
 msgid "Edit to scale"
 msgstr "Редактировать масштаб"
