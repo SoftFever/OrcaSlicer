@@ -401,6 +401,8 @@ public:
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
+
+    std::function<void()> throw_on_cancel;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes

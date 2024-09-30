@@ -11,6 +11,7 @@
 #include "ShortestPath.hpp"
 #include "I18N.hpp"
 #include <libnest2d/backends/libslic3r/geometries.hpp>
+#include "TreeSupport3D.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <tbb/blocked_range.h>
@@ -672,14 +673,15 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
     if (support_style == smsDefault)
-        support_style = smsTreeHybrid;
+        // Orca: use organic as default
+        support_style = smsOrganic;
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
-    m_support_params.base_fill_pattern      = 
+    if (support_style == smsTreeHybrid && support_pattern == smpDefault)
+        support_pattern = smpRectilinear;
+    m_support_params.base_fill_pattern =
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
-                                              m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
-                                                                                                                        ipSupportBase;
+        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
 
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     if (m_object_config->support_interface_pattern == smipGrid)
@@ -1879,9 +1881,10 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 
 void TreeSupport::generate()
 {
-    bool tree_support_enable = m_object_config->enable_support.value && is_tree(m_object_config->support_type.value);
-    if (!tree_support_enable)
+    if (support_style == smsOrganic) {
+        generate_tree_support_3D(*m_object, this->throw_on_cancel);
         return;
+    }
 
     std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size());
 
