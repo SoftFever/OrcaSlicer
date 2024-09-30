@@ -630,6 +630,7 @@ public:
     bool is_main_extruder_on_left() const;
     bool is_multi_extruders() const;
     bool need_SD_card() const;
+    int  get_extruder_id_by_ams_id(const std::string &ams_id);
 
     /*online*/
     bool   online_rfid;

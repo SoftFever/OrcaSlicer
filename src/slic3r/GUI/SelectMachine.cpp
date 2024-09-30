@@ -1697,6 +1697,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
+    else if (status == PrintStatusMixAmsAndVtSlotWarning) {
+        wxString msg_text = _L("You selected external and AMS filament at the same time in an extruder, you will need manually change external filament.");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
+    }
 
     // m_panel_warn m_simplebook
     if (status == PrintDialogStatus::PrintStatusSending) {
@@ -3023,6 +3029,29 @@ void SelectMachineDialog::update_show_status()
             if (useAms && useExt)
             {
                 show_status(PrintDialogStatus::PrintStatusAmsMappingMixInvalid);
+                return;
+            }
+        }
+    }
+
+    // check ams and vt_slot mix use status
+    {
+        struct ExtruderStatus
+        {
+            bool has_ams{false};
+            bool has_vt_slot{false};
+        };
+        std::vector<ExtruderStatus> extruder_status(nozzle_nums);
+        for (const FilamentInfo &item : m_ams_mapping_result) {
+            int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
+            if (DeviceManager::is_virtual_slot(stoi(item.ams_id)))
+                extruder_status[extruder_id].has_vt_slot = true;
+            else
+                extruder_status[extruder_id].has_ams = true;
+        }
+        for (auto extruder : extruder_status) {
+            if (extruder.has_ams && extruder.has_vt_slot) {
+                show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
                 return;
             }
         }

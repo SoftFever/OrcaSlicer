@@ -1161,6 +1161,23 @@ bool MachineObject::need_SD_card() const
     return !is_multi_extruders();
 }
 
+int MachineObject::get_extruder_id_by_ams_id(const std::string &ams_id)
+{
+    if (ams_id.empty())
+        return 0;
+
+    auto it = amsList.find(ams_id);
+    if (it != amsList.end())
+        return it->second->nozzle;
+    else if (stoi(ams_id) == VIRTUAL_TRAY_MAIN_ID)
+        return 0;
+    else if (stoi(ams_id) == VIRTUAL_TRAY_DEPUTY_ID)
+        return 1;
+
+    assert(false);
+    return 0;
+}
+
 bool MachineObject::is_bbl_filament(std::string tag_uid)
 {
     if (tag_uid.empty())
