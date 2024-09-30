@@ -7,7 +7,7 @@
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
     "filament_max_volumetric_speed": [
-        "1.35"
+        "1.8"
     ],
     "filament_flow_ratio": [
       "1.15"
