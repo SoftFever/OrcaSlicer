@@ -17,8 +17,8 @@ class DragDropPanel : public wxPanel
 public:
     DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto);
 
-    void AddColorBlock(const wxColour &color, int filament_id);
-    void RemoveColorBlock(ColorPanel *panel);
+    void AddColorBlock(const wxColour &color, int filament_id, bool update_ui = true);
+    void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
     void DoDragDrop(ColorPanel *panel, const wxColour &color, int filament_id);
 
     std::vector<int> GetAllFilaments() const;

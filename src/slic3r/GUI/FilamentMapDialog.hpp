@@ -45,6 +45,7 @@ private:
     DragDropPanel* m_auto_left_panel;
     DragDropPanel* m_auto_right_panel;
     Button       * m_switch_filament_btn;
+    Button       * m_switch_filament_btn_auto; // for placeholder
 
 private:
     const DynamicPrintConfig* m_config;

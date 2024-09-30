@@ -174,21 +174,31 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
     Fit();
 }
 
-void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id)
+void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool update_ui)
 {
     ColorPanel *panel = new ColorPanel(this, color, filament_id);
     panel->SetMinSize(wxSize(50, 50));
     m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxALL, 5);
     m_filament_blocks.push_back(panel);
-    Layout();
+    if (update_ui) {
+        Layout();
+        Fit();
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
 }
 
-void DragDropPanel::RemoveColorBlock(ColorPanel *panel)
+void DragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
 {
     m_sizer->Detach(panel);
     panel->Destroy();
     m_filament_blocks.erase(std::remove(m_filament_blocks.begin(), m_filament_blocks.end(), panel), m_filament_blocks.end());
-    Layout();
+    if (update_ui) {
+        Layout();
+        Fit();
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
 }
 
 void DragDropPanel::DoDragDrop(ColorPanel *panel, const wxColour &color, int filament_id)

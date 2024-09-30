@@ -66,6 +66,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     , m_filament_map(filament_map)
     , m_has_auto_result(has_auto_result)
 {
+    SetBackgroundColour(*wxWHITE);
+
     SetMinSize(wxSize(500, 100));
     SetMaxSize(wxSize(500, 1500));
 
@@ -106,6 +108,9 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     m_switch_filament_btn = new Button(this, "", "switch_filament_maps", 12, 12);
     m_switch_filament_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_filaments, this);
     m_switch_filament_btn->SetCanFocus(false);
+    // just for placeholder for auto
+    m_switch_filament_btn_auto = new Button(this, "", "switch_filament_maps", 12, 12);
+    m_switch_filament_btn_auto->Enable(false);
 
     m_extruder_panel_sizer->Add(m_manual_left_panel, 1, wxEXPAND | wxALL, 5);
     m_extruder_panel_sizer->Add(m_switch_filament_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, 1);
@@ -132,6 +137,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     }
 
     m_extruder_panel_sizer->Add(m_auto_left_panel, 1, wxEXPAND | wxALL, 5);
+    m_extruder_panel_sizer->Add(m_switch_filament_btn_auto, 0, wxALIGN_CENTER_VERTICAL | wxALL, 1);
     m_extruder_panel_sizer->Add(m_auto_right_panel, 1, wxEXPAND | wxALL, 5);
     m_auto_left_panel->Layout();
     m_auto_left_panel->Fit();
@@ -150,12 +156,14 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
         else {
             m_auto_left_panel->Hide();
             m_auto_right_panel->Hide();
+            m_switch_filament_btn_auto->Hide();
             m_tip_text->SetLabel(auto_tips);
         }
     }
     else {
         m_auto_left_panel->Hide();
         m_auto_right_panel->Hide();
+        m_switch_filament_btn_auto->Hide();
         m_tip_text->SetLabel(manual_tips);
     }
 
@@ -217,11 +225,13 @@ void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
         if (m_has_auto_result) {
             m_auto_left_panel->Show();
             m_auto_right_panel->Show();
+            m_switch_filament_btn_auto->Show();
             m_tip_text->SetLabel(auto_tips_with_result);
         }
         else {
             m_auto_left_panel->Hide();
             m_auto_right_panel->Hide();
+            m_switch_filament_btn_auto->Hide();
             m_tip_text->SetLabel(auto_tips);
         }
     } else { // manual
@@ -231,6 +241,7 @@ void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
 
         m_auto_left_panel->Hide();
         m_auto_right_panel->Hide();
+        m_switch_filament_btn_auto->Hide();
 
         m_tip_text->SetLabel(manual_tips);
     }
@@ -245,12 +256,12 @@ void FilamentMapDialog::on_switch_filaments(wxCommandEvent &event)
     std::vector<ColorPanel *> right_blocks = m_manual_right_panel->get_filament_blocks();
 
     for (ColorPanel* block : left_blocks) {
-        m_manual_right_panel->AddColorBlock(block->GetColor(), block->GetFilamentId());
-        m_manual_left_panel->RemoveColorBlock(block);
+        m_manual_right_panel->AddColorBlock(block->GetColor(), block->GetFilamentId(), false);
+        m_manual_left_panel->RemoveColorBlock(block, false);
     }
     for (auto block : right_blocks) {
-        m_manual_left_panel->AddColorBlock(block->GetColor(), block->GetFilamentId());
-        m_manual_right_panel->RemoveColorBlock(block);
+        m_manual_left_panel->AddColorBlock(block->GetColor(), block->GetFilamentId(), false);
+        m_manual_right_panel->RemoveColorBlock(block, false);
     }
     Layout();
     Fit();
