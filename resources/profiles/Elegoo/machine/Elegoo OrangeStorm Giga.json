@@ -8,5 +8,5 @@
     "machine_tech": "FFF",
     "family": "Elegoo",    
     "hotend_model": "",
-    "default_materials": "Elegoo PLA @EOS Giga;Elegoo PETG PRO @EOS Giga;Elegoo ABS @EOS Giga;Elegoo PLA Silk"
+    "default_materials": "Elegoo PLA @Elegoo Giga;Elegoo PETG PRO @Elegoo Giga;Elegoo ABS @Elegoo Giga;Elegoo PLA Silk"
 }

@@ -809,6 +809,10 @@
 			"sub_path": "filament/Elegoo Generic PLA.json"
 		},
 		{
+			"name": "Elegoo Generic PLA Silk",
+			"sub_path": "filament/Elegoo Generic PLA Silk.json"
+		},
+		{
 			"name": "Elegoo Generic PLA Matte",
 			"sub_path": "filament/Elegoo Generic PLA Matte.json"
 		},
