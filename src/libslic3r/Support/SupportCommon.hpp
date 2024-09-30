@@ -12,8 +12,6 @@ namespace Slic3r {
 class PrintObject;
 class SupportLayer;
 
-namespace FFFSupport {
-
 // Remove bridges from support contact areas.
 // To be called if PrintObjectConfig::dont_support_bridges.
 void remove_bridges_from_contacts(
@@ -149,8 +147,6 @@ int idx_lower_or_equal(const std::vector<T*> &vec, int idx, FN_LOWER_EQUAL fn_lo
 {
     return idx_lower_or_equal(vec.begin(), vec.end(), idx, fn_lower_equal);
 }
-
-} // namespace FFFSupport
 
 } // namespace Slic3r
 

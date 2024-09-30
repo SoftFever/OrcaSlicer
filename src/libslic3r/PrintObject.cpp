@@ -8,9 +8,10 @@
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
 #include "PrintConfig.hpp"
-#include "SupportMaterial.hpp"
-#include "SupportSpotsGenerator.hpp"
+#include "Support/SupportMaterial.hpp"
+#include "Support/SupportSpotsGenerator.hpp"
 #include "Support/TreeSupport.hpp"
+#include "Support/TreeSupport3D.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
@@ -19,7 +20,6 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
-#include "TreeSupport.hpp"
 #include "format.hpp"
 
 #include <float.h>
@@ -3528,7 +3528,7 @@ void PrintObject::_generate_support_material()
         if (this->config().support_style.value == smsOrganic ||
             // Orca: use organic as default
             this->config().support_style.value == smsDefault) {
-            fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
+            generate_tree_support_3D(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
         } else {
             TreeSupport tree_support(*this, m_slicing_params);
             tree_support.generate();
