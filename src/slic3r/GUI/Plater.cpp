@@ -2808,6 +2808,7 @@ struct Plater::priv
         return false;
 #endif
     }
+    std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info();
     void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
@@ -5500,6 +5501,24 @@ void Plater::priv::schedule_background_process()
     this->view3D->get_canvas3d()->set_config(this->config);
 }
 
+std::vector<std::vector<DynamicPrintConfig>> Plater::priv::get_extruder_filament_info()
+{
+    std::vector<std::vector<DynamicPrintConfig>> filament_infos;
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return filament_infos;
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr)
+        return filament_infos;
+
+    if (!obj_->is_multi_extruders())
+        return filament_infos;
+
+    filament_infos = wxGetApp().preset_bundle->get_extruder_filament_info();
+    return filament_infos;
+}
+
 void Plater::priv::update_print_volume_state()
 {
     //BBS: use the plate's bounding box instead of the bed's
@@ -5589,7 +5608,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_filament_maps();
         invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false, f_maps));
-        background_process.fff_print()->set_extruder_filament_info(wxGetApp().preset_bundle->get_extruder_filament_info());
+        background_process.fff_print()->set_extruder_filament_info(get_extruder_filament_info());
     }
     else
         invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false));

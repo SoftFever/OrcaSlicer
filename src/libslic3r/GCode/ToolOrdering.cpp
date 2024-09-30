@@ -979,8 +979,9 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
                 used_colors.emplace_back(print_config->filament_colour.get_at(used_filaments[idx]));
 
             auto ams_filament_info = print->get_extruder_filament_info();
-            std::vector<std::vector<std::string>> ams_colors;
-            for (auto& arr : ams_filament_info) {
+            std::vector<std::vector<std::string>> ams_colors(extruder_nums);
+            for (size_t i = 0; i < ams_filament_info.size(); ++i) {
+                auto& arr = ams_filament_info[i];
                 std::vector<std::string>colors;
                 for (auto& item : arr)
                     colors.emplace_back(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
