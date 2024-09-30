@@ -3929,9 +3929,6 @@ static void organic_smooth_branches_avoid_collisions(
 }
 #endif // TREE_SUPPORT_ORGANIC_NUDGE_NEW
 
-extern bool g_showed_critical_error;
-extern bool g_showed_performance_warning;
-
 /*!
  * \brief Create the areas that need support.
  *
@@ -3941,9 +3938,6 @@ extern bool g_showed_performance_warning;
  */
 static void generate_support_areas(Print &print, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
 {
-    g_showed_critical_error = false;
-    g_showed_performance_warning = false;
-
     // Settings with the indexes of meshes that use these settings.
     std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> grouped_meshes = group_meshes(print, print_object_ids);
     if (grouped_meshes.empty())
