@@ -1,9 +1,10 @@
 {
   "type": "filament",
+  "filament_id": "GFL99",
+	"setting_id": "GFSL99",
   "name": "Elegoo PLA @Elegoo Giga",
   "inherits": "Elegoo Generic PLA",
   "from": "system",
-  "setting_id": "EPLAEOSG00",
   "instantiation": "true",
   "filament_max_volumetric_speed": [
     "30"

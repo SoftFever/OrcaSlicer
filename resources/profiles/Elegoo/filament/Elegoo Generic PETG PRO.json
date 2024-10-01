@@ -1,10 +1,11 @@
 {
     "type": "filament",
+    "filament_id": "GFG99",
+	  "setting_id": "GFSG99",
     "name": "Elegoo Generic PETG PRO",
     "inherits": "fdm_filament_pet",
     "from": "system",
-    "filament_id": "EPETGPROB00",
-    "instantiation": "false",
+    "instantiation": "true",
     "cool_plate_temp": [
       "0"
     ],

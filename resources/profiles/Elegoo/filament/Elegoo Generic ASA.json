@@ -1,10 +1,11 @@
 {
     "type": "filament",
+    "filament_id": "GFB98",
+    "setting_id": "GFSA04",
     "name": "Elegoo Generic ASA",
     "inherits": "fdm_filament_asa",
     "from": "system",
-    "filament_id": "EASAB00",
-    "instantiation": "false",
+    "instantiation": "true",
     "filament_vendor": [
         "Elegoo"
     ],
