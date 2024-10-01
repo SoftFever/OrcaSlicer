@@ -3057,7 +3057,7 @@ bool GLGizmoEmboss::choose_font_by_wxdialog()
 }
 #endif // ALLOW_ADD_FONT_BY_OS_SELECTOR
 
-#if defined ALLOW_ADD_FONT_BY_FILE or defined ALLOW_DEBUG_MODE
+#if defined ALLOW_ADD_FONT_BY_FILE || defined ALLOW_DEBUG_MODE
 namespace priv {
 static std::string get_file_name(const std::string &file_path)
 {
@@ -3117,7 +3117,7 @@ void GLGizmoEmboss::create_notification_not_valid_font(
     const std::string &face_name = face_name_opt.value_or(face_name_by_wx.value_or(es.path));
     std::string text =
         GUI::format(_L("Can't load exactly same font(\"%1%\"). "
-                       "Aplication selected a similar one(\"%2%\"). "
+                       "Application selected a similar one(\"%2%\"). "
                        "You have to specify font for enable edit text."),
                     face_name_3mf, face_name);
     create_notification_not_valid_font(text);

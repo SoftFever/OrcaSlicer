@@ -33,8 +33,8 @@
         "20000"
     ],
     "machine_max_acceleration_retracting": [
-        "5000",
-        "5000"
+        "6000",
+        "6000"
     ],
     "machine_max_acceleration_travel": [
         "20000",
@@ -45,57 +45,57 @@
         "20000"
     ],
     "machine_max_acceleration_y": [
-        "20000",
-        "20000"
+        "5000",
+        "5000"
     ],
     "machine_max_acceleration_z": [
-        "500",
-        "500"
+        "20000",
+        "20000"
     ],
     "machine_max_speed_e": [
         "100",
         "100"
     ],
     "machine_max_speed_x": [
-        "800",
-        "800"
+        "600",
+        "600"
     ],
     "machine_max_speed_y": [
-        "800",
-        "800"
+        "600",
+        "600"
     ],
     "machine_max_speed_z": [
-        "30",
-        "30"
+        "500",
+        "500"
     ],
     "machine_max_jerk_e": [
-        "2.5",
-        "2.5"
+        "10",
+        "10"
     ],
     "machine_max_jerk_x": [
-        "12",
-        "12"
+        "20",
+        "20"
     ],
     "machine_max_jerk_y": [
-        "12",
-        "12"
+        "10",
+        "10"
     ],
     "machine_max_jerk_z": [
-        "2",
-        "2"
+        "20",
+        "20"
     ],
     "max_layer_height": [
-        "0.3"
+        "0.35"
     ],
     "min_layer_height": [
-        "0.08"
+        "0.1"
     ],
     "printer_settings_id": "Creality",
     "retraction_minimum_travel": [
-        "2"
+        "1"
     ],
     "retract_before_wipe": [
-        "0%"
+        "70%"
     ],
     "retraction_length": [
         "0.6"
@@ -109,11 +109,14 @@
     "deretraction_speed": [
         "40"
     ],
-    "extruder_clearance_height_to_lid": "101",
-    "extruder_clearance_height_to_rod": "45",
-    "extruder_clearance_radius": "45",
+    "extruder_clearance_height_to_lid": "250",
+    "extruder_clearance_height_to_rod": "14",
+    "extruder_clearance_radius": "70",
     "z_hop": [
-        "0.12"
+        "0.2"
+    ],
+    "z_hop_types": [
+        "Auto Lift"
     ],
     "wipe_distance": [
         "2"
@@ -129,6 +132,6 @@
     "machine_end_gcode": "END_PRINT",
     "scan_first_layer": "0",
     "thumbnails": [
-        "320x320"
+        "96x96/PNG, 300x300/PNG"
     ]
 }

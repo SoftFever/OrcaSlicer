@@ -28,11 +28,13 @@ struct SlicingParameters
 {
 	SlicingParameters() = default;
 
+    // Orca: XYZ filament compensation introduced object_shrinkage_compensation
     static SlicingParameters create_from_config(
-        const PrintConfig       &print_config, 
-        const PrintObjectConfig &object_config,
-        coordf_t                 object_height,
-        const std::vector<unsigned int> &object_extruders);
+         const PrintConfig               &print_config,
+         const PrintObjectConfig         &object_config,
+         coordf_t                         object_height,
+         const std::vector<unsigned int> &object_extruders,
+         const Vec3d                     &object_shrinkage_compensation);
 
     // Has any raft layers?
     bool        has_raft() const { return raft_layers() > 0; }
@@ -43,6 +45,10 @@ struct SlicingParameters
 
     // Height of the object to be printed. This value does not contain the raft height.
     coordf_t    object_print_z_height() const { return object_print_z_max - object_print_z_min; }
+    
+    // Height of the object to be printed. This value does not contain the raft height.
+     // This value isn't scaled by shrinkage compensation in the Z-axis.
+     coordf_t    object_print_z_uncompensated_height() const { return object_print_z_uncompensated_max - object_print_z_min; }
 
     bool        valid { false };
 
@@ -95,7 +101,14 @@ struct SlicingParameters
     coordf_t    raft_contact_top_z { 0 };
     // In case of a soluble interface, object_print_z_min == raft_contact_top_z, otherwise there is a gap between the raft and the 1st object layer.
     coordf_t 	object_print_z_min { 0 };
+    // This value of maximum print Z is scaled by shrinkage compensation in the Z-axis.
     coordf_t 	object_print_z_max { 0 };
+    
+    // Orca: XYZ shrinkage compensation
+    // This value of maximum print Z isn't scaled by shrinkage compensation.
+     coordf_t     object_print_z_uncompensated_max { 0 };
+     // Scaling factor for compensating shrinkage in Z-axis.
+     coordf_t    object_shrinkage_compensation_z { 0 };
 };
 static_assert(IsTriviallyCopyable<SlicingParameters>::value, "SlicingParameters class is not POD (and it should be - see constructor).");
 

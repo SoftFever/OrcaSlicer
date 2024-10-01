@@ -1104,7 +1104,9 @@ void MainFrame::show_device(bool bBBLPrinter) {
             m_calibration->SetBackgroundColour(*wxWHITE);
         }
         m_calibration->Show(false);
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_calibration_active"),
+        // Calibration is always the last page, so don't use InsertPage here. Otherwise, if multi_machine page is not enabled,
+        // the calibration tab won't be properly added as well, due to the TabPosition::tpCalibration no longer matches the real tab position.
+        m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"),
                                std::string("tab_calibration_active"), false);
 
 #ifdef _MSW_DARK_MODE
@@ -1615,7 +1617,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->use_bbl_network()) {
+                && !wxGetApp().preset_bundle->is_bbl_vendor()) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1715,10 +1717,32 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                bool support_send = true;
+                bool support_print_all = true;
+
+                const auto preset_bundle = wxGetApp().preset_bundle;
+                if (preset_bundle) {
+                    if (preset_bundle->use_bbl_network()) {
+                        // BBL network support everything
+                    } else {
+                        support_send = false; // All 3rd print hosts do not have the send options
+
+                        auto cfg = preset_bundle->printers.get_edited_preset().config;
+                        const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+
+                        // Only simply print support uploading all plates
+                        support_print_all = host_type == PrintHostType::htSimplyPrint;
+                    }
+                }
+
                 p->append_button(print_plate_btn);
-                p->append_button(print_all_btn);
-                p->append_button(send_to_printer_btn);
-                p->append_button(send_to_printer_all_btn);
+                if (support_print_all) {
+                    p->append_button(print_all_btn);
+                }
+                if (support_send) {
+                    p->append_button(send_to_printer_btn);
+                    p->append_button(send_to_printer_all_btn);
+                }
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
@@ -1977,6 +2001,9 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_btn->Enable(enable_slice);
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
+
+    if (wxGetApp().mainframe)
+        wxGetApp().plater()->update_title_dirty_status();
 }
 
 
@@ -2406,6 +2433,12 @@ void MainFrame::init_menubar_as_editor()
             },
             "menu_remove", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "menu_remove", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
 #else
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
@@ -2503,6 +2536,13 @@ void MainFrame::init_menubar_as_editor()
             },
             "", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this, handle_key_event](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
+
 #endif
 
         // BBS Select All
@@ -2580,7 +2620,7 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
 
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Previce scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Preview scene"),
             [this](wxCommandEvent &) {
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
@@ -2617,6 +2657,16 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
+
+        append_menu_check_item(
+            viewMenu, wxID_ANY, _L("Show Selected Outline (Experimental)"), _L("Show outline around selected object in 3D scene"),
+            [this](wxCommandEvent&) {
+                wxGetApp().toggle_show_outline();
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor; },
+            [this]() { return wxGetApp().show_outline(); }, this);
+
         /*viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Wireframe") + "\tCtrl+Shift+Enter", _L("Show wireframes in 3D scene"),
             [this](wxCommandEvent&) { m_plater->toggle_show_wireframe(); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
@@ -2797,10 +2847,17 @@ void MainFrame::init_menubar_as_editor()
     auto flowrate_menu = new wxMenu();
     append_menu_item(
         flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
@@ -2884,13 +2941,20 @@ void MainFrame::init_menubar_as_editor()
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
+    flowrate_menu->AppendSeparator();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // PA
     append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
@@ -3636,14 +3700,14 @@ void MainFrame::load_printer_url(wxString url, wxString apikey)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.use_bbl_network())
+    if (preset_bundle.use_bbl_device_tab())
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
     wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
     wxString apikey;
-    if (cfg.has("printhost_apikey") && (cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink ||
-                                        cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaConnect))
+    const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+    if (cfg.has("printhost_apikey") && (host_type == htPrusaLink || host_type == htPrusaConnect))
         apikey = cfg.opt_string("printhost_apikey");
     if (!url.empty()) {
         if (!url.Lower().starts_with("http"))

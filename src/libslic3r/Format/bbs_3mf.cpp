@@ -878,7 +878,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             bool extract_object_model()
             {
                 mz_zip_archive archive;
-                mz_zip_archive_file_stat stat;
                 mz_zip_zero_struct(&archive);
 
                 if (!open_zip_reader(&archive, zip_path)) {
@@ -4622,7 +4621,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
 
                 // BBS
-                for (const std::string prop_str : sub_object->geometry.face_properties) {
+                for (const std::string& prop_str : sub_object->geometry.face_properties) {
                     FaceProperty face_prop;
                     face_prop.from_string(prop_str);
                     its.properties.push_back(face_prop);
@@ -6449,6 +6448,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (!model.mk_version.empty()) {
                 metadata_item_map[BBL_MAKERLAB_VERSION_TAG] = xml_escape(model.mk_version);
                 BOOST_LOG_TRIVIAL(info) << "saved mk_version " << model.mk_version;
+            }
+            if (!model.md_name.empty()) {
+                for (unsigned int i = 0; i < model.md_name.size(); i++)
+                {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("saved metadata_name %1%, metadata_value %2%") %model.md_name[i] %model.md_value[i];
+                    metadata_item_map[model.md_name[i]] = xml_escape(model.md_value[i]);
+                }
             }
 
             // store metadata info

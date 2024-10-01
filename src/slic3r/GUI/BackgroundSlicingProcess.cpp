@@ -810,7 +810,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 	catch (...)
 	{
 		remove_post_processed_temp_file();
-		throw Slic3r::ExportError(_u8L("Unknown error occured during exporting G-code."));
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
 	}
 	switch (copy_ret_val) {
 	case CopyFileResult::SUCCESS: break; // no error
@@ -830,7 +830,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 		throw Slic3r::ExportError(GUI::format(_L("Copying of the temporary G-code has finished but the exported code couldn't be opened during copy check. The output G-code is at %1%.tmp."), export_path));
 		break;
 	default:
-		throw Slic3r::ExportError(_u8L("Unknown error occured during exporting G-code."));
+		throw Slic3r::ExportError(_u8L("Unknown error occurred during exporting G-code."));
 		BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 		break;
 	}
@@ -901,23 +901,27 @@ void BackgroundSlicingProcess::prepare_upload()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
-		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-		std::string error_message;
-		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
-			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
-        m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-		// Orca: skip post-processing scripts for BBL printers as we have run them already in finalize_gcode()
-		// todo: do we need to copy the file?
+        if (m_upload_job.upload_data.use_3mf) {
+            source_path = m_upload_job.upload_data.source_path;
+        } else {
+		    m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+		    std::string error_message;
+		    if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
+		    	throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+            m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+		    // Orca: skip post-processing scripts for BBL printers as we have run them already in finalize_gcode()
+		    // todo: do we need to copy the file?
 		
-        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
-        // (not here, but when the final target is a file).
-        if (!m_fff_print->is_BBL_printer()) {
-            std::string source_path_str = source_path.string();
-            std::string output_name_str = m_upload_job.upload_data.upload_path.string();
-            if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str,
-                                         m_fff_print->full_print_config()))
-                m_upload_job.upload_data.upload_path = output_name_str;
-        }
+            // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+            // (not here, but when the final target is a file). 
+            if (!m_fff_print->is_BBL_printer()) {
+                std::string source_path_str = source_path.string();
+                std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+                if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str,
+                                             m_fff_print->full_print_config()))
+			    m_upload_job.upload_data.upload_path = output_name_str;
+			}
+		}
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         

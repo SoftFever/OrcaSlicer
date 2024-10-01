@@ -80,7 +80,7 @@ fi
 
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
 # treat ubuntu as debian
-if [ "${DISTRIBUTION}" == "ubuntu" ]
+if [ "${DISTRIBUTION}" == "ubuntu" ] || [ "${DISTRIBUTION}" == "linuxmint" ]
 then
     DISTRIBUTION="debian"
 fi
@@ -127,8 +127,11 @@ then
     if [[ -n "${BUILD_DEBUG}" ]]
     then
         # have to build deps with debug & release or the cmake won't find everything it needs
-        mkdir deps/build/release
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
+        if [ ! -d "deps/build/release" ]
+        then
+            mkdir deps/build/release
+        fi
+        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="${PWD}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${PWD}/deps/DL_CACHE" ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi

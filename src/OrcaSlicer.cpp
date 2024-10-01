@@ -1190,7 +1190,6 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
-    int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
@@ -1203,6 +1202,15 @@ int CLI::run(int argc, char **argv)
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
+    const std::vector<std::string>              &metadata_name               = m_config.option<ConfigOptionStrings>("metadata_name", true)->values;
+    const std::vector<std::string>              &metadata_value              = m_config.option<ConfigOptionStrings>("metadata_value", true)->values;
+
+    if (metadata_name.size() != metadata_value.size())
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("metadata_name should be the same size with metadata_value");
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -3020,7 +3028,7 @@ int CLI::run(int argc, char **argv)
     double print_height = m_print_config.opt_float("printable_height");
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
-    double cleareance_radius = m_print_config.opt_float("extruder_clearance_radius");
+    double clearance_radius = m_print_config.opt_float("extruder_clearance_radius");
     //double plate_stride;
     std::string bed_texture;
 
@@ -3740,12 +3748,12 @@ int CLI::run(int argc, char **argv)
     {
         if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
-            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)))
+            || ((old_max_radius != 0.f) && (old_max_radius != clearance_radius)))
         {
             if (is_seq_print_for_curr_plate) {
                 need_arrange = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, cleareance_radius %6%, need arrange!")
-                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %cleareance_radius;
+                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, clearance_radius %6%, need arrange!")
+                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %clearance_radius;
             }
         }
     }
@@ -3889,7 +3897,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.avoid_extrusion_cali_region = avoid_extrusion_cali_region;
                 arrange_cfg.clearance_height_to_rod = height_to_rod;
                 arrange_cfg.clearance_height_to_lid = height_to_lid;
-                arrange_cfg.cleareance_radius = cleareance_radius;
+                arrange_cfg.clearance_radius = clearance_radius;
                 arrange_cfg.printable_height = print_height;
                 arrange_cfg.min_obj_distance = 0;
                 if (arrange_cfg.is_seq_print) {
@@ -4292,7 +4300,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
                 arrange_cfg.clearance_height_to_rod             = height_to_rod;
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
-                arrange_cfg.cleareance_radius                   = cleareance_radius;
+                arrange_cfg.clearance_radius                   = clearance_radius;
                 arrange_cfg.printable_height                    = print_height;
                 arrange_cfg.min_obj_distance = 0;
                 if (arrange_cfg.is_seq_print) {
@@ -5852,6 +5860,18 @@ int CLI::run(int argc, char **argv)
             model.mk_version = makerlab_version;
             BOOST_LOG_TRIVIAL(info) << boost::format("mk_name %1%, mk_version %2%")%makerlab_name %makerlab_version;
         }
+
+        if (!metadata_name.empty()) {
+            Model &model = m_models[0];
+
+            model.md_value = metadata_value;
+            model.md_name = metadata_name;
+            for (unsigned int i = 0; i < metadata_name.size(); i++)
+            {
+                BOOST_LOG_TRIVIAL(info) << boost::format("index %1% metadata_name %2%, metadata_value %3%")%i %metadata_name[i] %metadata_value[i];
+            }
+        }
+
         if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {

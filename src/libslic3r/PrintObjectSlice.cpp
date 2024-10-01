@@ -4,6 +4,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
+#include "Interlocking/InterlockingGenerator.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -446,22 +447,6 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     throw_on_cancel_callback();
                 }
             });
-    }
-
-    // SoftFever: ported from SuperSlicer
-    // filament shrink
-    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
-        if (pr.get()) {
-            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
-            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
-            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygons& polys : region_polys)
-                    for (ExPolygon& poly : polys)
-                        poly.scale(scale);
-            }
-        }
     }
 
     return slices_by_region;
@@ -1070,6 +1055,9 @@ void PrintObject::slice_volumes()
     }
 
     this->apply_conical_overhang();
+    m_print->throw_if_canceled();
+
+    InterlockingGenerator::generate_interlocking_structure(this);
     m_print->throw_if_canceled();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";

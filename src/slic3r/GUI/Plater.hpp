@@ -148,6 +148,9 @@ public:
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
+    // Orca
+    void show_SEMM_buttons(bool bshow);
+    void update_dynamic_filament_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -256,7 +259,7 @@ public:
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
-    void calib_flowrate(int pass);
+    void calib_flowrate(bool is_linear, int pass);
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);
     void calib_retraction(const Calib_Params& params);
@@ -431,7 +434,7 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_3mf = false);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
@@ -527,6 +530,7 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
+    void drop_selection();
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
@@ -595,6 +599,7 @@ public:
     int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
+    int duplicate_plate(int plate_index = -1);
     //BBS: select the sliced plate by index
     int select_sliced_plate(int plate_index);
     //BBS: set bed positions
@@ -654,6 +659,7 @@ public:
 
     bool need_update() const;
     void set_need_update(bool need_update);
+    void update_title_dirty_status();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots

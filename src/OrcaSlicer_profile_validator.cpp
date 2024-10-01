@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
         preset_bundle->remove_user_presets_directory("default");
 
     try {
-        auto preset_substitutions = preset_bundle->load_presets(app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+        auto preset_substitutions = preset_bundle->load_presets(app_config, ForwardCompatibilitySubstitutionRule::Disable);
     } catch (const std::exception& ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what();
         std::cout << "Validation failed" << std::endl;

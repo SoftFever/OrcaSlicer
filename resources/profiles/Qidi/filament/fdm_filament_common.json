@@ -43,7 +43,7 @@
         "1"
     ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "fan_cooling_layer_time": [
         "60"
@@ -145,6 +145,12 @@
         "0"
     ],
     "enable_pressure_advance": [
+        "1"
+    ],
+    "complete_print_exhaust_fan_speed": [
+        "0"
+    ],
+    "dont_slow_down_outer_wall": [
         "1"
     ],
     "compatible_printers": []

@@ -1,16 +1,24 @@
 name: Check profiles
 on: 
-    pull_request:
-      branches: 
-       - main 
-      paths:
-       - 'resources/profiles/**'
-       - ".github/workflows/check_profiles.yml"
+  pull_request:
+    branches: 
+    - main 
+    paths:
+    - 'resources/profiles/**'
+    - ".github/workflows/check_profiles.yml"
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+
 
 jobs:
   check_translation:
     name: Check profiles
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:  
       - name: Checkout repository
         uses: actions/checkout@v4

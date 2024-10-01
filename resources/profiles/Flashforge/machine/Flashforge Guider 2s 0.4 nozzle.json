@@ -12,15 +12,15 @@
 	"printer_variant": "0.4",
 	"printable_area": [
 		"-140x-125",
-        	"140x-125",
-        	"140x125",
-        	"-140x125"
+        "140x-125",
+        "140x125",
+        "-140x125"
 	],
 	"printable_height": "300",
 	"extruder_offset": [ "-20", "10" ],
 	"extruder_clearance_height_to_lid": "70",
-    	"extruder_clearance_height_to_rod": "23",
-    	"extruder_clearance_radius": "40",
+    "extruder_clearance_height_to_rod": "23",
+    "extruder_clearance_radius": "40",
 	"use_relative_e_distances": "0",
 	"auxiliary_fan": "1",
 	"machine_max_acceleration_e": [ "200", "200" ],
@@ -56,5 +56,5 @@
 	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]",
 	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
 	"wipe_distance": "2",
-	"nozzle_type": "undefined"
+	"nozzle_type": "undefine"
 }

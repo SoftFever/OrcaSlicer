@@ -16,6 +16,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
+#include <wx/display.h>
 #include <map>
 
 #ifdef __WINDOWS__
@@ -862,6 +863,85 @@ wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *par
     return item;
 }
 
+#ifdef WIN32
+wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wxString url_prefix, wxString website_name)
+{
+    wxString title = _L("Associate") + (boost::format(" %1%://") % url_prefix.c_str()).str();
+    wxString tooltip = _L("Associate") + " " + url_prefix + ":// " + _L("with OrcaSlicer so that Orca can open models from") + " " + website_name;
+
+    std::wstring registered_bin; // not used, just here to provide a ref to check fn
+    bool reg_to_current_instance = wxGetApp().check_url_association(url_prefix.ToStdWstring(), registered_bin);
+
+    auto* h_sizer = new wxBoxSizer(wxHORIZONTAL); // contains checkbox and other elements on the first line
+    h_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    // build checkbox
+    auto checkbox = new ::CheckBox(parent);
+    checkbox->SetToolTip(tooltip);
+    checkbox->SetValue(reg_to_current_instance); // If registered to the current instance, checkbox should be checked
+    checkbox->Enable(!reg_to_current_instance); // Since unregistering isn't supported, checkbox is disabled when checked
+
+    h_sizer->Add(checkbox, 0, wxALIGN_CENTER, 0);
+    h_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
+
+    // build text next to checkbox
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title);
+    checkbox_title->SetToolTip(tooltip);
+    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetFont(::Label::Body_13);
+    auto size = checkbox_title->GetTextExtent(title);
+    checkbox_title->SetMinSize({ size.x + FromDIP(5), -1 });
+    checkbox_title->Wrap(-1);
+    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
+
+    auto* v_sizer = new wxBoxSizer(wxVERTICAL);
+    v_sizer->Add(h_sizer);
+
+    // build text below checkbox that indicates the instance currently registered to handle the link type
+    auto* registered_instance_title = new wxStaticText(parent, wxID_ANY, "");
+    registered_instance_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    registered_instance_title->SetFont(::Label::Body_13);
+    registered_instance_title->Wrap(-1);
+
+    // update the text below checkbox
+    auto update_current_association_str = [=, &reg_to_current_instance](){
+        // get registered binary for given link type
+        std::wstring registered_bin;
+        reg_to_current_instance = wxGetApp().check_url_association(url_prefix.wc_str(), registered_bin);
+
+        // format registered binary to get only the path and remove excess chars
+        if (!registered_bin.empty())
+            // skip idx 0 because it is the first quotation mark
+            registered_bin = registered_bin.substr(1, registered_bin.find(L'\"', 1) - 1);
+
+        wxString current_association_str = _L("Current Association: ");
+        if (reg_to_current_instance) {
+            current_association_str += _L("Current Instance");
+            registered_instance_title->SetToolTip(_L("Current Instance Path: ") + registered_bin);
+        } else if (registered_bin.empty())
+            current_association_str += _L("None");
+        else
+            current_association_str += registered_bin;
+
+        registered_instance_title->SetLabel(current_association_str);
+        auto size = registered_instance_title->GetTextExtent(current_association_str);
+        registered_instance_title->SetMinSize({ size.x + FromDIP(5), -1 });
+    };
+    update_current_association_str();
+
+    v_sizer->Add(registered_instance_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 60);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent& e) {
+        wxGetApp().associate_url(url_prefix.ToStdWstring());
+        checkbox->Disable();
+        update_current_association_str();
+        e.Skip();
+    });
+
+    return v_sizer;
+}
+#endif // WIN32
+
 PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style)
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
@@ -925,7 +1005,7 @@ void PreferencesDialog::create()
     SetSizer(main_sizer);
     Layout();
     Fit();
-    int screen_height = wxGetDisplaySize().GetY();
+    int screen_height = wxDisplay(m_parent).GetClientArea().GetHeight();
     if (this->GetSize().GetY() > screen_height)
         this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
 
@@ -1050,10 +1130,11 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
 
-    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
+    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time the color changed."), page, _L("If enabled, auto-calculate every time the color changed."), 50, "auto_calculate");
     auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Orca)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, _L("Auto arrange plate after object cloning"), 50, "auto_arrange");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto title_network = create_item_title(_L("Network"), page, _L("Network"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
@@ -1072,28 +1153,13 @@ wxWindow* PreferencesDialog::create_general_page()
                                                         _L("If enabled, sets OrcaSlicer as default application to open .stl files"), 50, "associate_stl");
     auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page,
                                                          _L("If enabled, sets OrcaSlicer as default application to open .step files"), 50, "associate_step");
-#endif // _WIN32
-#if !defined(__APPLE__)
 
     auto title_associate_url = create_item_title(_L("Associate web links to OrcaSlicer"), page, _L("Associate URLs to OrcaSlicer"));
-    std::wstring reg_bin;
-    wxGetApp().check_url_association(L"prusaslicer", reg_bin);
-    auto associate_url_prusaslicer = create_item_button(_L("Current association: ") + reg_bin, _L("Associate prusaslicer://"), page,
-                                                       reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
-                                                       _L("Associate OrcaSlicer with prusaslicer:// links so that Orca can open models from Printable.com"),
-                                                       []() { wxGetApp().associate_url(L"prusaslicer"); }, false);
-    wxGetApp().check_url_association(L"bambustudio", reg_bin);
-    auto associate_url_bambustudio = create_item_button(_L("Current association: ") + reg_bin, _L("Associate bambustudio://"), page,
-                                                       reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
-                                                       _L("Associate OrcaSlicer with bambustudio:// links so that Orca can open models from makerworld.com"),
-                                                       []() { wxGetApp().associate_url(L"bambustudio"); }, false);
 
-    wxGetApp().check_url_association(L"cura", reg_bin);
-    auto associate_url_cura = create_item_button(_L("Current association: ") + reg_bin, _L("Associate cura://"), page,
-                                                       reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
-                                                       _L("Associate OrcaSlicer with cura:// links so that Orca can open models from thingiverse.com"),
-                                                       []() { wxGetApp().associate_url(L"cura"); }, false);
-#endif
+    auto associate_url_prusaslicer = create_item_link_association(page, L"prusaslicer", "Printables.com");
+    auto associate_url_bambustudio = create_item_link_association(page, L"bambustudio", "Makerworld.com");
+    auto associate_url_cura        = create_item_link_association(page, L"cura", "Thingiverse.com");
+#endif // _WIN32
 
     // auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
@@ -1111,7 +1177,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), page,_L("No warnings when loading 3MF with modified G-codes"), 50, "no_warn_when_modified_gcodes");
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
-    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
+    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
 
     //downloads
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
@@ -1141,6 +1207,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_auto_arrange, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
@@ -1156,13 +1223,11 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
-#endif // _WIN32
-#if !defined(__APPLE__)
     sizer_page->Add(title_associate_url, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(associate_url_prusaslicer, 0, wxTOP, FromDIP(3));
     sizer_page->Add(associate_url_bambustudio, 0, wxTOP, FromDIP(3));
     sizer_page->Add(associate_url_cura, 0, wxTOP, FromDIP(3));
-#endif
+#endif // _WIN32
     // auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     // auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
     // auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
