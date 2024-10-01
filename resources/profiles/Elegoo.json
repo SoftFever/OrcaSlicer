@@ -699,16 +699,16 @@
 			"sub_path": "process/0.20mm Standard @Elegoo Giga 0.4 nozzle.json"
 		},
 		{
+			"name": "0.50mm Standard @Elegoo Giga 1.0 nozzle",
+			"sub_path": "process/0.50mm Standard @Elegoo Giga 1.0 nozzle.json"
+		},
+		{
 			"name": "0.60mm Draft @Elegoo Giga 1.0 nozzle",
 			"sub_path": "process/0.60mm Draft @Elegoo Giga 1.0 nozzle.json"
 		},
 		{
 			"name": "0.56mm Extra Draft @Elegoo Giga 0.8 nozzle",
 			"sub_path": "process/0.56mm Extra Draft @Elegoo Giga 0.8 nozzle.json"
-		},
-		{
-			"name": "0.50mm Standard @Elegoo Giga 1.0 nozzle",
-			"sub_path": "process/0.50mm Standard @Elegoo Giga 1.0 nozzle.json"
 		},
 		{
 			"name": "0.48mm Draft @Elegoo Giga 0.8 nozzle",
