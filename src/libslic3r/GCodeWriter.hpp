@@ -81,7 +81,8 @@ public:
     std::string unretract();
     std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
-    Vec3d       get_position() const { return m_pos; }
+    const Vec3d& get_position() const { return m_pos; }
+    Vec3d&       get_position() { return m_pos; }
     void        set_position(const Vec3d& in) { m_pos = in; }
     double      get_zhop() const { return m_lifted; }
 
