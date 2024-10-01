@@ -855,6 +855,10 @@
 			"sub_path": "machine/fdm_neptune_4_common.json"
 		},
 		{
+			"name": "fdm_elegoo_3dp_001_common",
+			"sub_path": "machine/fdm_elegoo_3dp_001_common.json"
+		},
+		{
 			"name": "Elegoo Neptune 0.4 nozzle",
 			"sub_path": "machine/Elegoo Neptune 0.4 nozzle.json"
 		},
