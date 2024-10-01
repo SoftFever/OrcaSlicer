@@ -767,10 +767,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             toolchange_gcode_str = gcodegen.set_extruder(new_extruder_id, tcr.print_z); // TODO: toolchange_z vs print_z
             if (gcodegen.config().enable_prime_tower) {
             deretraction_str += gcodegen.writer().travel_to_z(z, "restore layer Z");
-            Vec3d position{gcodegen.writer().get_position()};
-            position.z() = z;
-            gcodegen.writer().set_position(position);
-            deretraction_str += gcodegen.unretract();
+                Vec3d position{gcodegen.writer().get_position()};
+                position.z() = z;
+                gcodegen.writer().set_position(position);
+                deretraction_str += gcodegen.unretract();
             }
         }
 
@@ -4521,7 +4521,7 @@ std::string GCode::change_layer(coordf_t print_z)
         m_need_change_layer_lift_z = true;
     }
 
-    m_nominal_z = z;
+    m_writer.get_position().z() = z;
 
     // forget last wiping path as wiping after raising Z is pointless
     // BBS. Dont forget wiping path to reduce stringing.
@@ -5095,7 +5095,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const auto get_sloped_z = [&sloped, this](double z_ratio) {
         const auto height = sloped->height;
-        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
+        return lerp(m_writer.get_position().z() - height, m_writer.get_position().z(), z_ratio);
     };
 
     // go to first point of extrusion path
@@ -6011,7 +6011,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto& dest2d = this->point_to_gcode(travel.points.back());
-                Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
+                Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_writer.get_position().z() : z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
@@ -6020,7 +6020,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
                     if (i == 1) {
                         // Lift to normal z at beginning
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
-                        Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
+                        Vec3d dest3d(dest2d(0), dest2d(1), m_writer.get_position().z());
                         gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
                     } else if (z != DBL_MAX && i == travel.size() - 1) {
                         // Apply z_ratio for the very last point
