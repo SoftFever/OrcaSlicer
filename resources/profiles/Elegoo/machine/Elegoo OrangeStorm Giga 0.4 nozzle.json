@@ -1,10 +1,10 @@
 {
     "type": "machine",
+    "setting_id": "GM001",
     "name": "Elegoo OrangeStorm Giga 0.4 nozzle",
-    "inherits": "fdm_elegoo_3dp_001_common",
     "from": "system",
-    "setting_id": "EOSG04",
     "instantiation": "true",
+    "inherits": "fdm_elegoo_3dp_001_common",
     "printer_model": "Elegoo OrangeStorm Giga",
     "default_print_profile": "0.20mm Standard @Elegoo Giga 0.4 nozzle",
     "nozzle_diameter": [
