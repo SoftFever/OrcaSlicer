@@ -5200,7 +5200,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->min = 0.1;
-    def->set_default_value(new ConfigOptionFloat(3.));
+    def->set_default_value(new ConfigOptionFloat(4.));
 
     def = this->add("wipe_tower_retraction_speed", coFloat);
     def->label = L("Retraction speed");
@@ -5209,7 +5209,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->min = 10;
-    def->set_default_value(new ConfigOptionFloat(40.));
+    def->set_default_value(new ConfigOptionFloat(60.));
     // Orca: Pulsatile purging
 
     def = this->add("xy_hole_compensation", coFloat);

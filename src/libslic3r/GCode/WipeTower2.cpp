@@ -1211,8 +1211,14 @@ void WipeTower2::toolchange_Wipe(
             if (m_left_to_right){
                 if(i % 3 == 0 && i != 0){ // print every third left to right extrusion slowly, followed by a retraction and de-retraction to dislodge stuck filament in the nozzle walls
                     writer.extrude(xr - (i % 4 == 0 ? line_width : 1.5f*line_width), writer.y(), m_wipe_tower_pulse_low_speed * 60.); // print slowly with low filament flow to allow for any "stuck" filament to the nozzle walls to move
-                    writer.retract(m_wipe_tower_retraction_distance,m_wipe_tower_retraction_speed*60.); // retract fast to create turbulence in the nozzle and disrupt the filament laminar flow
-                    deretract = true;
+                    // Check wipe tower ending before applying retraction
+                    bool will_break_due_to_y = (writer.y() + float(EPSILON) > cleaning_box.lu.y() - 0.5f * line_width);
+                    bool will_break_due_to_x = (x_to_wipe - std::abs(traversed_x - writer.x()) < WT_EPSILON);
+                    if (!(will_break_due_to_y || will_break_due_to_x)) {
+                        // Perform retraction only if wipe tower will continue to a next X line
+                        writer.retract(m_wipe_tower_retraction_distance, m_wipe_tower_retraction_speed * 60.);
+                        deretract = true;
+                    }
                 } else {
                     writer.extrude(xr - (i % 4 == 0 ? 0.25*line_width : 1.5f*line_width), writer.y(), m_wipe_tower_pulse_high_speed * 60.); // change ancorning point to reduce collisions
                 }
