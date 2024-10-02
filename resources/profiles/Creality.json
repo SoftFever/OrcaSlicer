@@ -107,6 +107,10 @@
         {
             "name": "Creality K1 Max",
             "sub_path": "machine/Creality K1 Max.json"
+        },
+        {
+            "name": "Creality K1 SE",
+            "sub_path": "machine/Creality K1 SE.json"
         }
     ],
     "process_list": [
@@ -697,6 +701,10 @@
         {
             "name": "0.20mm Standard @Creality K1Max (0.4 nozzle)",
             "sub_path": "process/0.20mm Standard @Creality K1Max (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Fast @Creality K1 SE 0.4",
+            "sub_path": "process/0.20mm Fast @Creality K1 SE 0.4.json"
         },
         {
             "name": "0.24mm Draft @Creality Ender3 0.2",
@@ -1437,6 +1445,10 @@
         {
             "name": "Creality K1 Max (0.8 nozzle)",
             "sub_path": "machine/Creality K1 Max (0.8 nozzle).json"
+        },
+        {
+            "name": "Creality K1 SE 0.4 nozzle",
+            "sub_path": "machine/Creality K1 SE 0.4 nozzle.json"
         }
     ]
 }
