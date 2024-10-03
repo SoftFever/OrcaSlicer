@@ -111,6 +111,10 @@
         {
             "name": "Creality K1 SE",
             "sub_path": "machine/Creality K1 SE.json"
+        },
+        {
+            "name": "Creality K2 Plus",
+            "sub_path": "machine/Creality K2 Plus.json"
         }
     ],
     "process_list": [
@@ -251,6 +255,14 @@
             "sub_path": "process/0.08mm SuperDetail @Creality Ender5Pro (2019) 0.3.json"
         },
         {
+            "name": "0.08mm SuperDetail @Creality K2 Plus 0.2 nozzle",
+            "sub_path": "process/0.08mm SuperDetail @Creality K2 Plus 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm SuperDetail @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.08mm SuperDetail @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
             "name": "0.10mm HighDetail @Creality CR-6 0.4.json",
             "sub_path": "process/0.10mm HighDetail @Creality CR-6 0.4.json"
         },
@@ -265,6 +277,10 @@
         {
             "name": "0.10mm HighDetail @Creality Ender5Pro (2019) 0.3",
             "sub_path": "process/0.10mm HighDetail @Creality Ender5Pro (2019) 0.3.json"
+        },
+        {
+            "name": "0.10mm HighDetail @Creality K2 Plus 0.2 nozzle",
+            "sub_path": "process/0.10mm HighDetail @Creality K2 Plus 0.2 nozzle.json"
         },
         {
             "name": "0.12mm Detail @Creality Ender3 0.2",
@@ -373,6 +389,22 @@
         {
             "name": "0.12mm Fine @Creality K1Max (0.4 nozzle)",
             "sub_path": "process/0.12mm Fine @Creality K1Max (0.4 nozzle).json"
+        },
+        {
+            "name": "0.12mm Detail @Creality K2 Plus 0.2 nozzle",
+            "sub_path": "process/0.12mm Detail @Creality K2 Plus 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Detail @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.12mm Detail @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.18mm Detail @Creality K2 Plus 0.6 nozzle",
+            "sub_path": "process/0.18mm Detail @Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.24mm Detail @Creality K2 Plus 0.8 nozzle",
+            "sub_path": "process/0.24mm Detail @Creality K2 Plus 0.8 nozzle.json"
         },
         {
             "name": "0.12mm Detail @Creality Ender5Pro (2019) 0.5",
@@ -533,6 +565,22 @@
         {
             "name": "0.16mm Optimal @Creality K1Max (0.4 nozzle)",
             "sub_path": "process/0.16mm Optimal @Creality K1Max (0.4 nozzle).json"
+        },
+        {
+            "name": "0.14mm Optimal @Creality K2 Plus 0.2 nozzle",
+            "sub_path": "process/0.14mm Optimal @Creality K2 Plus 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.16mm Optimal @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Creality K2 Plus 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Creality K2 Plus 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Creality K2 Plus 0.8 nozzle.json"
         },
         {
             "name": "0.20mm Standard @Creality CR10V2",
@@ -703,6 +751,18 @@
             "sub_path": "process/0.20mm Standard @Creality K1Max (0.4 nozzle).json"
         },
         {
+            "name": "0.20mm Standard @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @Creality K2 Plus 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Creality K2 Plus 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Creality K2 Plus 0.8 nozzle.json"
+        },
+        {
             "name": "0.20mm Fast @Creality K1 SE 0.4",
             "sub_path": "process/0.20mm Fast @Creality K1 SE 0.4.json"
         },
@@ -835,6 +895,18 @@
             "sub_path": "process/0.24mm Draft @Creality Ender5Pro (2019) 0.8.json"
         },
         {
+            "name": "0.24mm Draft @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.24mm Draft @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Creality K2 Plus 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Creality K2 Plus 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Creality K2 Plus 0.8 nozzle.json"
+        },
+        {
             "name": "0.28mm SuperDraft @Creality Ender3 0.2",
             "sub_path": "process/0.28mm SuperDraft @Creality Ender3 0.2.json"
         },
@@ -889,6 +961,18 @@
         {
             "name": "0.28mm SuperDraft @Creality Ender5Pro (2019) 1.0",
             "sub_path": "process/0.28mm SuperDraft @Creality Ender5Pro (2019) 1.0.json"
+        },
+        {
+            "name": "0.28mm SuperDraft @Creality K2 Plus 0.4 nozzle",
+            "sub_path": "process/0.28mm SuperDraft @Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "0.42mm SuperDraft @Creality K2 Plus 0.6 nozzle",
+            "sub_path": "process/0.42mm SuperDraft @Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "0.56mm SuperDraft @Creality K2 Plus 0.8 nozzle",
+            "sub_path": "process/0.56mm SuperDraft @Creality K2 Plus 0.8 nozzle.json"
         },
         {
             "name": "0.32mm Chunky @Creality CR-6 0.6",
@@ -1187,6 +1271,46 @@
         {
             "name": "Creality Generic TPU @K1-all",
             "sub_path": "filament/Creality Generic TPU @K1-all.json"
+        },
+        {
+            "name": "Creality Generic ABS @K2-all",
+            "sub_path": "filament/Creality Generic ABS @K2-all.json"
+        },
+        {
+            "name": "Creality Generic ASA @K2-all",
+            "sub_path": "filament/Creality Generic ASA @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PETG @K2-all",
+            "sub_path": "filament/Creality Generic PETG @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PLA @K2-all",
+            "sub_path": "filament/Creality Generic PLA @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PLA High Speed @K2-all",
+            "sub_path": "filament/Creality Generic PLA High Speed @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PLA Matte @K2-all",
+            "sub_path": "filament/Creality Generic PLA Matte @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PLA Silk @K2-all",
+            "sub_path": "filament/Creality Generic PLA Silk @K2-all.json"
+        },
+        {
+            "name": "Creality Generic TPU @K2-all",
+            "sub_path": "filament/Creality Generic TPU @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PLA-CF @K2-all",
+            "sub_path": "filament/Creality Generic PLA-CF @K2-all.json"
+        },
+        {
+            "name": "Creality Generic PA-CF @K2-all",
+            "sub_path": "filament/Creality Generic PA-CF @K2-all.json"
         }
     ],
     "machine_list": [
@@ -1435,6 +1559,10 @@
             "sub_path": "machine/Creality K1C 0.8 nozzle.json"
         },
         {
+            "name": "Creality K1 SE 0.4 nozzle",
+            "sub_path": "machine/Creality K1 SE 0.4 nozzle.json"
+        },
+        {
             "name": "Creality K1 Max (0.4 nozzle)",
             "sub_path": "machine/Creality K1 Max (0.4 nozzle).json"
         },
@@ -1447,8 +1575,20 @@
             "sub_path": "machine/Creality K1 Max (0.8 nozzle).json"
         },
         {
-            "name": "Creality K1 SE 0.4 nozzle",
-            "sub_path": "machine/Creality K1 SE 0.4 nozzle.json"
+            "name": "Creality K2 Plus 0.2 nozzle",
+            "sub_path": "machine/Creality K2 Plus 0.2 nozzle.json"
+        },
+        {
+            "name": "Creality K2 Plus 0.4 nozzle",
+            "sub_path": "machine/Creality K2 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality K2 Plus 0.6 nozzle",
+            "sub_path": "mahcine/Creality K2 Plus 0.6 nozzle.json"
+        },
+        {
+            "name": "Creality K2 Plus 0.8 nozzle",
+            "sub_path": "machine/Creality K2 Plus 0.8 nozzle.json"
         }
     ]
 }
