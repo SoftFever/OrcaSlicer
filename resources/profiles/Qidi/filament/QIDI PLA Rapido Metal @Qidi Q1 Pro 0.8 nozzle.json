@@ -18,7 +18,7 @@
         "24.5"
     ],
     "filament_settings_id": [
-        "QIDI PLA Rapido @Qidi Q1 Pro 0.8 nozzle"
+        "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.8 nozzle"
     ],
     "from": "system",
     "full_fan_speed_layer": [
@@ -30,9 +30,9 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
-    "inherits": "QIDI PLA Rapido",
+    "inherits": "QIDI PLA Rapido Metal",
     "is_custom_defined": "0",
-    "name": "QIDI PLA Rapido @Qidi Q1 Pro 0.8 nozzle",
+    "name": "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.8 nozzle",
     "nozzle_temperature": [
         "210"
     ],

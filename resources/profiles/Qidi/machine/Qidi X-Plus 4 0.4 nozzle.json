@@ -19,17 +19,17 @@
 	],
     "bed_exclude_area": [
         "0x305",
-        "0x300",
-        "50x300",
-        "50x305",
+        "0x302",
+        "35x302",
+        "35x305",
         "305x305",
         "305x305",
         "305x305",
-        "305x10",
-		"293x10",
+        "305x20",
+		"293x20",
 		"293x0",
 		"305x0",
-		"305x10",
+		"305x20",
 		"305x305"
     ],
 	"printable_height": "280",
@@ -88,7 +88,7 @@
     "extruder_clearance_height_to_lid": "135",
 	"layer_change_gcode": "G92 E0\nSET_PRINT_STATS_INFO CURRENT_LAYER={layer_num + 1}",
 	"machine_end_gcode": "M141 S0\nM104 S0\nM140 S0\nG1 E-3 F1800\nG0 Z{min(max_print_height, max_layer_z + 3)} F600\nG0 X0 Y0 F12000\n{if max_layer_z < max_print_height / 2}G1 Z{max_print_height / 2 + 10} F600{else}G1 Z{min(max_print_height, max_layer_z + 3)}{endif}",
-    "machine_start_gcode": "PRINT_START BED=[hot_plate_temp_initial_layer] HOTEND=[nozzle_temperature_initial_layer] CHAMBER=[chamber_temperature]\nSET_PRINT_STATS_INFO TOTAL_LAYER=[total_layer_count]\nM83\nM140 S[hot_plate_temp_initial_layer]\nM104 S[nozzle_temperature_initial_layer]\nG4 P3000\nG0 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0)} Y{max((min(print_bed_max[1] - 5, first_layer_print_min[1] + 80) - 85), 0)} Z5 F6000\nG0 Z[initial_layer_print_height] F600\nG1 E3 F1800\nG1 X{(min(print_bed_max[0] - 12, first_layer_print_min[0] + 80))} E{85 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 5, first_layer_print_min[1] + 80) - 85), 0) + 2} E{2 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0)} E{85 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 5, first_layer_print_min[1] + 80) - 85), 0) + 85} E{83 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 2} E{2 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 5, first_layer_print_min[1] + 80) - 85), 0) + 3} E{82 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 3} Z0\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 6}\nG1 Z1 F600\nSET_PRINT_STATS_INFO CURRENT_LAYER=1\n",
+    "machine_start_gcode": "PRINT_START BED=[hot_plate_temp_initial_layer] HOTEND=[nozzle_temperature_initial_layer] CHAMBER=[chamber_temperature]\nSET_PRINT_STATS_INFO TOTAL_LAYER=[total_layer_count]\nM83\nM140 S[hot_plate_temp_initial_layer]\nM104 S[nozzle_temperature_initial_layer]\nM141 S[chamber_temperature]\nG4 P3000\nG0 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0)} Y{max((min(print_bed_max[1] - 3, first_layer_print_min[1] + 80) - 85), 0)} Z5 F6000\nG0 Z[initial_layer_print_height] F600\nG1 E3 F1800\nG1 X{(min(print_bed_max[0] - 12, first_layer_print_min[0] + 80))} E{85 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 3, first_layer_print_min[1] + 80) - 85), 0) + 2} E{2 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0)} E{85 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 3, first_layer_print_min[1] + 80) - 85), 0) + 85} E{83 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 2} E{2 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1] - 3, first_layer_print_min[1] + 80) - 85), 0) + 3} E{82 * 0.5 * initial_layer_print_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 3} Z0\nG1 X{max((min(print_bed_max[0] - 12, first_layer_print_min[0] + 80) - 85), 0) + 6}\nG1 Z1 F600\nSET_PRINT_STATS_INFO CURRENT_LAYER=1\n",
     "thumbnails_format": "PNG",
 	"default_filament_profile": [
 		"Qidi Generic PLA @Qidi X-Plus 4 0.4 nozzle"

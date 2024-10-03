@@ -18,7 +18,7 @@
         "24.5"
     ],
     "filament_settings_id": [
-        "QIDI PLA Rapido @Qidi Q1 Pro 0.8 nozzle"
+        "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.6 nozzle"
     ],
     "from": "system",
     "full_fan_speed_layer": [
@@ -30,19 +30,19 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
-    "inherits": "QIDI PLA Rapido",
+    "inherits": "QIDI PLA Rapido Metal",
     "is_custom_defined": "0",
-    "name": "QIDI PLA Rapido @Qidi Q1 Pro 0.8 nozzle",
+    "name": "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.6 nozzle",
     "nozzle_temperature": [
         "210"
     ],
     "pressure_advance": [
-        "0.008"
+        "0.02"
     ],
     "slow_down_min_speed": [
         "20"
     ],
     "compatible_printers": [
-    "Qidi Q1 Pro 0.8 nozzle"
+    "Qidi X-Plus 4 0.6 nozzle"
         ]
 }
