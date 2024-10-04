@@ -5,8 +5,6 @@
     "from": "system",
     "inherits": "fdm_process_common_klipper",
     "instantiation": "true",
-    "adaptive_layer_height": "0",
-    "reduce_crossing_wall": "0",
     "max_travel_detour_distance": "0",
     "bottom_surface_pattern": "monotonic",
     "bottom_shell_layers": "3",
@@ -19,7 +17,6 @@
     "compatible_printers": [
         "Creality K2 Plus 0.6 nozzle"
     ],
-    "print_sequence": "by layer",
     "default_acceleration": "12000",
     "bridge_no_support": "0",
     "draft_shield": "disabled",
@@ -68,7 +65,6 @@
     "minimum_sparse_infill_area": "15",
     "internal_solid_infill_line_width": "0.62",
     "internal_solid_infill_speed": "150",
-    "spiral_mode": "0",
     "initial_layer_infill_speed": "60",
     "standby_temperature_delta": "-5",
     "enable_support": "0",
