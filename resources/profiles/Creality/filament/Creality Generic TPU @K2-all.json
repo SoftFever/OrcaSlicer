@@ -30,7 +30,7 @@
         "8"
     ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "compatible_printers": [
 		"Creality K2 Plus 0.2 nozzle",
