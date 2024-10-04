@@ -7,7 +7,7 @@
     "inherits": "fdm_creality_common",
     "printer_model": "Creality K2 Plus",
     "gcode_flavor": "klipper",
-    "default_print_profile": "Creality Generic PLA @K2-all",
+    "default_print_profile": "0.32mm Optimal @Creality K2 Plus 0.8 nozzle",
     "nozzle_diameter": [
         "0.8"
     ],
