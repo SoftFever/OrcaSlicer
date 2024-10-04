@@ -126,9 +126,9 @@
     "machine_end_gcode": "END_PRINT",
     "machine_pause_gcode": "PAUSE",
     "scan_first_layer": "0",
-    "thumbnails_format":"PNG",
+    "thumbnails_format": "PNG",
     "thumbnails": [
-        "96x96", 
-        "300x300"
+        "300x300",
+        "96x96"
     ]
 }
