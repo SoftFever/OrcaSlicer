@@ -25,7 +25,6 @@
         "1010"
     ],
     "auxiliary_fan": "0",
-    "bed_exclude_area": [],
     "default_filament_profile": [
         "Elegoo PLA @Elegoo Giga"
     ],
@@ -73,12 +72,12 @@
     "extruder_clearance_height_to_rod": "65",
     "extruder_clearance_radius": "65",
     "fan_speedup_time": "0.5",
+    "thumbnails_format": "COLPIC",
     "thumbnails": [
         "400x400/COLPIC", 
         "114x114/COLPIC", 
         "160x160/PNG"
     ],
-    "thumbnails_format": "COLPIC",
     "machine_unload_filament_time": "29",
     "nozzle_height": "4.76",
     "nozzle_volume": "125",
