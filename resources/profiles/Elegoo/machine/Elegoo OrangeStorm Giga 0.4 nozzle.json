@@ -79,8 +79,6 @@
         "160x160/PNG"
     ],
     "machine_unload_filament_time": "29",
-    "nozzle_height": "4.76",
-    "nozzle_volume": "125",
     "scan_first_layer": "0",
     "time_lapse_gcode": "",
     "gcode_flavor": "klipper",
