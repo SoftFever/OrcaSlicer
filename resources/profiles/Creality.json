@@ -25,6 +25,10 @@
             "sub_path": "machine/Creality CR-6 Max.json"
         },
         {
+            "name": "Creality CR-M4",
+            "sub_path": "machine/Creality CR-M4.json"
+        },
+        {
             "name": "Creality Ender-3 V2",
             "sub_path": "machine/Creality Ender-3 V2.json"
         },
@@ -279,6 +283,10 @@
             "sub_path": "process/0.10mm HighDetail @Creality Ender5Pro (2019) 0.3.json"
         },
         {
+            "name": "0.10mm HighDetail @Creality CR-M4",
+            "sub_path": "process/0.10mm HighDetail @Creality CR-M4.json"
+        },
+        {
             "name": "0.10mm HighDetail @Creality K2 Plus 0.2 nozzle",
             "sub_path": "process/0.10mm HighDetail @Creality K2 Plus 0.2 nozzle.json"
         },
@@ -391,6 +399,14 @@
             "sub_path": "process/0.12mm Fine @Creality K1Max (0.4 nozzle).json"
         },
         {
+            "name": "0.12mm Detail @Creality Ender5Pro (2019) 0.5",
+            "sub_path": "process/0.12mm Detail @Creality Ender5Pro (2019) 0.5.json"
+        },
+        {
+            "name": "0.15mm Detail @Creality CR-M4",
+            "sub_path": "process/0.15mm Detail @Creality CR-M4.json"
+        },
+        {
             "name": "0.12mm Detail @Creality K2 Plus 0.2 nozzle",
             "sub_path": "process/0.12mm Detail @Creality K2 Plus 0.2 nozzle.json"
         },
@@ -405,10 +421,6 @@
         {
             "name": "0.24mm Detail @Creality K2 Plus 0.8 nozzle",
             "sub_path": "process/0.24mm Detail @Creality K2 Plus 0.8 nozzle.json"
-        },
-        {
-            "name": "0.12mm Detail @Creality Ender5Pro (2019) 0.5",
-            "sub_path": "process/0.12mm Detail @Creality Ender5Pro (2019) 0.5.json"
         },
         {
             "name": "0.16mm Optimal @Creality CR10V2",
@@ -737,6 +749,10 @@
         {
             "name": "0.20mm Standard @Creality Ender6",
             "sub_path": "process/0.20mm Standard @Creality Ender6.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality CR-M4",
+            "sub_path": "process/0.20mm Standard @Creality CR-M4.json"
         },
         {
             "name": "0.20mm Standard @Creality K1 (0.4 nozzle)",
@@ -1381,6 +1397,10 @@
         {
             "name": "Creality CR-6 Max 0.8 nozzle",
             "sub_path": "machine/Creality CR-6 Max 0.8 nozzle.json"
+        },
+        {
+            "name": "Creality CR-M4 0.4 nozzle",
+            "sub_path": "process/Creality CR-M4 0.4 nozzle.json"
         },
         {
             "name": "Creality Ender-3 V2 0.4 nozzle",
