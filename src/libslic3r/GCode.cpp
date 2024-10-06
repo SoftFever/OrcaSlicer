@@ -743,7 +743,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                                              || !needs_toolchange // this is just finishing the tower with no toolchange
                                                              || is_ramming);
 
-        if (should_travel_to_tower) {
+        if (should_travel_to_tower || gcodegen.m_need_change_layer_lift_z) {
             // FIXME: It would be better if the wipe tower set the force_travel flag for all toolchanges,
             // then we could simplify the condition and make it more readable.
             gcode += gcodegen.retract();
