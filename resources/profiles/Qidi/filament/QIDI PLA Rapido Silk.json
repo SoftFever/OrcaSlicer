@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "QIDI PLA Rapido",
+    "name": "QIDI PLA Rapido Silk",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -10,7 +10,7 @@
         "0.98"
     ],
     "filament_max_volumetric_speed": [
-        "20"
+        "7.5"
     ],
     "slow_down_layer_time": [
         "8"
@@ -21,8 +21,11 @@
     "pressure_advance": [
         "0.031"
     ],
-    "additional_cooling_fan_speed": [
-        "100"
+    "nozzle_temperature_initial_layer": [
+        "220"
+    ],
+    "nozzle_temperature": [
+        "220"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
