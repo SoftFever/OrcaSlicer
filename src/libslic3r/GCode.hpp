@@ -184,7 +184,8 @@ public:
         m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
         // BBS
-        m_toolchange_count(0)
+        m_toolchange_count(0),
+        m_nominal_z(0.)
         {}
     ~GCode() = default;
 
@@ -590,6 +591,7 @@ private:
     // BBS
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
+    coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
 
