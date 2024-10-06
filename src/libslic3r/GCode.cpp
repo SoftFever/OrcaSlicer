@@ -729,6 +729,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         gcode += gcodegen.writer().unlift(); // Make sure there is no z-hop (in most cases, there isn't).
 
         double current_z = gcodegen.writer().get_position().z();
+        gcode += gcodegen.writer().travel_to_z(current_z);
+
+
         if (z == -1.) // in case no specific z was provided, print at current_z pos
             z = current_z;
 
@@ -4516,10 +4519,8 @@ std::string GCode::change_layer(coordf_t print_z)
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
     }
-    else {
-        //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
-        m_need_change_layer_lift_z = true;
-    }
+
+    m_need_change_layer_lift_z = true;
 
     m_writer.get_position().z() = z;
 
@@ -6036,6 +6037,11 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
         }
         this->set_last_pos(travel.points.back());
     }
+    if (m_need_change_layer_lift_z) {
+        gcode += m_writer._travel_to_z(m_writer.get_position().z(), comment + " travel_to_z");
+        m_need_change_layer_lift_z = false;
+    }
+
     return gcode;
 }
 
