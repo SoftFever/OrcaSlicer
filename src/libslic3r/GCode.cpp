@@ -4521,6 +4521,7 @@ std::string GCode::change_layer(coordf_t print_z)
 
     m_need_change_layer_lift_z = true;
 
+    m_nominal_z = z;
     m_writer.get_position().z() = z;
 
     // forget last wiping path as wiping after raising Z is pointless
@@ -5095,7 +5096,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const auto get_sloped_z = [&sloped, this](double z_ratio) {
         const auto height = sloped->height;
-        return lerp(m_writer.get_position().z() - height, m_writer.get_position().z(), z_ratio);
+        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
     };
 
     // go to first point of extrusion path
@@ -6011,7 +6012,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto& dest2d = this->point_to_gcode(travel.points.back());
-                Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_writer.get_position().z() : z);
+                Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment, m_need_change_layer_lift_z);
                 m_need_change_layer_lift_z = false;
             } else {
@@ -6021,7 +6022,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
                     if (i == 1) {
                         // Lift to normal z at beginning
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
-                        Vec3d dest3d(dest2d(0), dest2d(1), m_writer.get_position().z());
+                        Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
                         gcode += m_writer.travel_to_xyz(dest3d, comment, m_need_change_layer_lift_z);
                         m_need_change_layer_lift_z = false;
                     } else if (z != DBL_MAX && i == travel.size() - 1) {
