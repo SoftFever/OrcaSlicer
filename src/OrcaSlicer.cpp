@@ -3584,7 +3584,7 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models)
                 for (auto &o : model.objects)
                     // this affects volumes:
-                    o->scale(ratio));
+                    o->scale(ratio);
         } else if (opt_key == "scale_to_fit") {
             const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
             if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
