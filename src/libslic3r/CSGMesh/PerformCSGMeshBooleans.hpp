@@ -257,7 +257,7 @@ void perform_csgmesh_booleans_mcut(MeshBoolean::mcut::McutMeshPtr& mcutm,
 
 
 template<class It, class Visitor>
-std::tuple<BooleanFailReason,std::string> check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
+std::tuple<BooleanFailReason,std::string, It> check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
 {
     using namespace detail_cgal;
     BooleanFailReason fail_reason = BooleanFailReason::OK;
@@ -304,23 +304,23 @@ std::tuple<BooleanFailReason,std::string> check_csgmesh_booleans(const Range<It>
     };
     execution::for_each(ex_tbb, size_t(0), csgrange.size(), check_part);
 
-    //It ret = csgrange.end();
-    //for (size_t i = 0; i < csgrange.size(); ++i) {
-    //    if (!cgalmeshes[i]) {
-    //        auto it = csgrange.begin();
-    //        std::advance(it, i);
-    //        vfn(it);
+    It ret = csgrange.end();
+    for (size_t i = 0; i < csgrange.size(); ++i) {
+        if (!cgalmeshes[i]) {
+            auto it = csgrange.begin();
+            std::advance(it, i);
+            vfn(it);
 
-    //        if (ret == csgrange.end())
-    //            ret = it;
-    //    }
-    //}
+            if (ret == csgrange.end())
+                ret = it;
+        }
+    }
 
-    return { fail_reason,fail_part_name };
+    return { fail_reason,fail_part_name, ret};
 }
 
 template<class It>
-std::tuple<BooleanFailReason, std::string> check_csgmesh_booleans(const Range<It> &csgrange, bool use_mcut=false)
+std::tuple<BooleanFailReason, std::string, It> check_csgmesh_booleans(const Range<It> &csgrange, bool use_mcut=false)
 {
     if(!use_mcut)
         return check_csgmesh_booleans(csgrange, [](auto &) {});
@@ -354,7 +354,7 @@ std::tuple<BooleanFailReason, std::string> check_csgmesh_booleans(const Range<It
             McutMeshes[i] = std::move(m);
         };
         execution::for_each(ex_tbb, size_t(0), csgrange.size(), check_part);
-        return { fail_reason,fail_part_name };
+        return { fail_reason,fail_part_name, csgrange.end() };
     }
 }
 
