@@ -1,23 +1,26 @@
 {
     "type": "filament",
     "setting_id": "GFSA04_CREALITY_00",
-    "name": "Creality Generic ABS @K1-all",
+    "name": "Creality Generic ABS @K2-all",
     "from": "system",
     "instantiation": "true",
     "inherits": "Creality Generic ABS",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "filament_max_volumetric_speed": [
-        "14"
+        "18"
     ],
     "slow_down_layer_time": [
-        "5"
+        "12"
     ],
     "slow_down_min_speed": [
         "20"
     ],
     "compatible_printers": [
-        "Creality K1C 0.4 nozzle",
-        "Creality K1C 0.6 nozzle",
-        "Creality K1C 0.8 nozzle",
-        "Creality K1 SE 0.4 nozzle"
+        "Creality K2 Plus 0.2 nozzle",
+        "Creality K2 Plus 0.4 nozzle",
+        "Creality K2 Plus 0.6 nozzle",
+        "Creality K2 Plus 0.8 nozzle"
     ]
 }

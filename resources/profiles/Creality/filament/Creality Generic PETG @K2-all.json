@@ -1,15 +1,15 @@
 {
     "type": "filament",
     "setting_id": "GFSG99_00",
-    "name": "Creality Generic PETG @K1-all",
+    "name": "Creality Generic PETG @K2-all",
     "from": "system",
     "instantiation": "true",
     "inherits": "Creality Generic PETG",
     "filament_max_volumetric_speed": [
-        "9"
+        "18"
     ],
     "slow_down_layer_time": [
-        "12"
+        "8"
     ],
     "slow_down_min_speed": [
         "20"
@@ -18,7 +18,7 @@
         "70"
     ],
     "eng_plate_temp": [
-        "70"
+        "50"
     ],
     "hot_plate_temp": [
         "70"
@@ -30,7 +30,7 @@
         "70"
     ],
     "eng_plate_temp_initial_layer": [
-        "70"
+        "0"
     ],
     "hot_plate_temp_initial_layer": [
         "70"
@@ -44,13 +44,16 @@
     "nozzle_temperature": [
         "250"
     ],
+    "fan_max_speed": [
+        "80"
+    ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "compatible_printers": [
-        "Creality K1C 0.4 nozzle",
-        "Creality K1C 0.6 nozzle",
-        "Creality K1C 0.8 nozzle",
-        "Creality K1 SE 0.4 nozzle"
+        "Creality K2 Plus 0.2 nozzle",
+        "Creality K2 Plus 0.4 nozzle",
+        "Creality K2 Plus 0.6 nozzle",
+        "Creality K2 Plus 0.8 nozzle"
     ]
 }

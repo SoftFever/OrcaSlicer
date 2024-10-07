@@ -1,23 +1,26 @@
 {
     "type": "filament",
     "setting_id": "GFSA04_00",
-    "name": "Creality Generic ASA @K1-all",
+    "name": "Creality Generic ASA @K2-all",
     "from": "system",
     "instantiation": "true",
     "inherits": "Creality Generic ASA",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "filament_max_volumetric_speed": [
-        "12"
+        "14"
     ],
     "slow_down_layer_time": [
-        "3"
+        "10"
     ],
     "slow_down_min_speed": [
         "20"
     ],
     "compatible_printers": [
-        "Creality K1C 0.4 nozzle",
-        "Creality K1C 0.6 nozzle",
-        "Creality K1C 0.8 nozzle",
-        "Creality K1 SE 0.4 nozzle"
+        "Creality K2 Plus 0.2 nozzle",
+        "Creality K2 Plus 0.4 nozzle",
+        "Creality K2 Plus 0.6 nozzle",
+        "Creality K2 Plus 0.8 nozzle"
     ]
 }
