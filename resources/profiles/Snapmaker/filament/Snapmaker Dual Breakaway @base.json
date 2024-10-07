@@ -2,9 +2,9 @@
   "type": "filament",
   "from": "system",
   "instantiation": "false",
-  "name": "Snapmaker Dual TPU @base",
-  "filament_id": "2971656290",
-  "inherits": "fdm_filament_tpu",
+  "name": "Snapmaker Dual Breakaway @base",
+  "filament_id": "1207881278",
+  "inherits": "fdm_filament_breakaway",
   "filament_loading_speed_start": [
     "35"
   ],
@@ -31,11 +31,5 @@
   ],
   "filament_cooling_final_speed": [
     "60"
-  ],
-  "nozzle_temperature_initial_layer": [
-    "240"
-  ],
-  "nozzle_temperature": [
-    "240"
   ]
 }
