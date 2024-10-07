@@ -2779,6 +2779,24 @@ void ModelVolume::convert_from_meters()
     this->source.is_converted_from_meters = true;
 }
 
+// Orca: Implement prusa's filament shrink compensation approach
+// Returns 0-based indices of extruders painted by multi-material painting gizmo.
+std::vector<size_t> ModelVolume::get_extruders_from_multi_material_painting() const {
+     if (!this->is_mm_painted())
+         return {};
+
+     assert(static_cast<size_t>(TriangleStateType::Extruder1) - 1 == 0);
+     const TriangleSelector::TriangleSplittingData &data = this->mmu_segmentation_facets.get_data();
+
+     std::vector<size_t> extruders;
+     for (size_t state_idx = static_cast<size_t>(EnforcerBlockerType::Extruder1); state_idx < data.used_states.size(); ++state_idx) {
+         if (data.used_states[state_idx])
+             extruders.emplace_back(state_idx - 1);
+     }
+
+     return extruders;
+ }
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(dont_translate ? get_matrix_no_offset() : get_matrix());
