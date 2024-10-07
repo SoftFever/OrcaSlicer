@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "02.02.00.01",
+    "version": "02.02.00.03",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -1469,6 +1469,14 @@
             "sub_path": "filament/QIDI PPS-CF.json"
         },
         {
+            "name": "QIDI PPS-CF @0.6 nozzle",
+            "sub_path": "filament/QIDI PPS-CF @0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PPS-CF @0.8 nozzle",
+            "sub_path": "filament/QIDI PPS-CF @0.8 nozzle.json"
+        },
+        {
             "name": "QIDI PPS-CF @Qidi X-Plus 4 0.4 nozzle",
             "sub_path": "filament/QIDI PPS-CF @Qidi X-Plus 4 0.4 nozzle.json"
         },
@@ -1491,6 +1499,126 @@
         {
             "name": "QIDI PPS-CF @Qidi Q1 Pro 0.8 nozzle",
             "sub_path": "filament/QIDI PPS-CF @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal",
+            "sub_path": "filament/QIDI ABS Rapido Metal.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @0.2 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @0.6 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @0.8 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI ABS Rapido Metal @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI ABS Rapido Metal @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal",
+            "sub_path": "filament/QIDI PLA Rapido Metal.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.2 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi Q1 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @Qidi Q1 Pro 0.8 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @Qidi Q1 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @0.2 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @0.2 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Metal @0.8 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Metal @0.8 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk",
+            "sub_path": "filament/QIDI PLA Rapido Silk.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk @0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Silk @0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Silk @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk @Qidi Q1 Pro 0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Silk @Qidi Q1 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Silk @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "QIDI PLA Rapido Silk @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/QIDI PLA Rapido Silk @Qidi X-Plus 4 0.6 nozzle.json"
         }
     ],
     "machine_list": [
