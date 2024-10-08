@@ -71,7 +71,7 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
     http.header("Connection", "keep-alive")
         .form_add_file("file", upload_data.source_path, short_name)
         .on_complete([&](std::string body, unsigned status) {
-            // check  for OK
+            // check for OK
             if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
                 wxString errormsg;
                 res = start_print(errormsg, short_name);
