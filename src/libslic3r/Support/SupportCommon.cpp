@@ -1474,7 +1474,7 @@ void generate_support_toolpaths(
     loop_interface_processor.n_contact_loops = config.support_interface_loop_pattern.value ? 1 : 0;
 
     std::vector<float>      angles { support_params.base_angle };
-    if (config.support_base_pattern == smpRectilinearGrid)
+    if (config.support_base_pattern == smpRectilinear)
         angles.push_back(support_params.interface_angle);
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
