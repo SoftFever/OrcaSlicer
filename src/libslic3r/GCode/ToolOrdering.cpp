@@ -985,7 +985,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
                 std::vector<std::string>colors;
                 for (auto& item : arr)
                     colors.emplace_back(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
-                ams_colors.emplace_back(std::move(colors));
+                ams_colors[i] = std::move(colors);
             }
             ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors);
         }
