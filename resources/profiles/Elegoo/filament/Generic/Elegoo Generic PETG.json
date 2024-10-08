@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PETG",
+    "inherits": "Elegoo Generic PETG @base",
+    "from": "system",
+    "setting_id": "EGPETG00",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo Centauri Carbon 0.8 nozzle"
+    ]
+}

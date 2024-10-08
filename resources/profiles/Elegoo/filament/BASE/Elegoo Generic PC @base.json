@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PC @base",
+    "inherits": "fdm_filament_pc",
+    "from": "system",
+    "filament_id": "EGPCB00",
+    "instantiation": "false",
+    "filament_max_volumetric_speed": [
+        "16"
+    ]
+}
