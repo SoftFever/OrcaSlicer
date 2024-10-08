@@ -91,7 +91,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
             m_linear_last = value;
             update_mesh_number_text();
         } else {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.001 < angle deflection < 0.1)"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.001 < linear deflection < 0.1)"), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             linear_input->GetTextCtrl()->SetValue(m_linear_last);
         }
@@ -281,6 +281,8 @@ void StepMeshDialog::update_mesh_number_text()
             wxCommandEvent event(wxEVT_THREAD_DONE);
             event.SetString(number_text);
             wxPostEvent(this, event);
+            m_last_linear = get_linear_defletion();
+            m_last_angle  = get_angle_defletion();
         }
         return number;
     });
