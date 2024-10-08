@@ -50,7 +50,7 @@
 #include "BedShapeDialog.hpp"
 #include "libslic3r/GCode/Thumbnails.hpp"
 
-#include "BedShapeDialog.hpp"
+#include "Spoolman.hpp"
 // #include "BonjourDialog.hpp"
 #ifdef WIN32
 	#include <commctrl.h>
@@ -2321,7 +2321,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
-        
+
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
@@ -3251,6 +3251,21 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
     }
 }
 
+void TabFilament::update_spoolman_statistics() {
+    Preset* selected_preset = &m_presets->get_selected_preset();
+
+    if (!selected_preset->spoolman_enabled())
+        return;
+
+    auto spoolman_stats = selected_preset->spoolman_statistics;
+
+    m_active_page->get_field("spoolman_remaining_weight")->set_value(double_to_string(spoolman_stats->remaining_weight, 2), false);
+    m_active_page->get_field("spoolman_used_weight")->set_value(double_to_string(spoolman_stats->used_weight, 2), false);
+    m_active_page->get_field("spoolman_remaining_length")->set_value(double_to_string(spoolman_stats->remaining_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_used_length")->set_value(double_to_string(spoolman_stats->used_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_archived")->set_value(spoolman_stats->archived, false);
+}
+
 void TabFilament::build()
 {
     m_presets = &m_preset_bundle->filaments;
@@ -3472,6 +3487,72 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
+    page = add_options_page(L("Spoolman"), "advanced");
+        optgroup = page->new_optgroup("Basic information");
+        optgroup->append_single_option_line("spoolman_spool_id");
+
+        line = {"Spoolman Update", ""};
+        line.append_option(Option(ConfigOptionDef(), "spoolman_update"));
+        line.widget = [&](wxWindow* parent){
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+            auto on_click = [&](bool stats_only) {
+                if (m_presets->current_is_dirty() && m_active_page->get_field("spoolman_spool_id")->m_is_modified_value) {
+                    show_error(this, "This profile cannot be updated with an unsaved Spool ID value. Please save the profile, then try updating again.");
+                    return;
+                }
+                if (!Spoolman::is_server_valid()) {
+                    show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
+                    return;
+                }
+                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), true, stats_only);
+
+                if (res.has_failed())
+                    return;
+
+                update_spoolman_statistics();
+            };
+
+            auto refresh_all_btn = new wxButton(parent, wxID_ANY, _L("Update Filament"));
+            refresh_all_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(false); });
+            wxGetApp().UpdateDarkUI(refresh_all_btn);
+            sizer->Add(refresh_all_btn);
+
+            auto refresh_stats_btn = new wxButton(parent, wxID_ANY, _L("Update Stats"));
+            refresh_stats_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(true); });
+            wxGetApp().UpdateDarkUI(refresh_stats_btn);
+            sizer->Add(refresh_stats_btn);
+            return sizer;
+        };
+        optgroup->append_line(line);
+
+        optgroup = page->new_optgroup(_L("Spool Statistics"));
+
+        auto build_statistics_line = [&](const std::string& key, const std::string& label,
+                                         const std::string& sidetext, const ConfigOptionType& type = coFloat) {
+            auto def = ConfigOptionDef();
+            def.opt_key = key;
+            def.label = label;
+            def.type = type;
+            def.sidetext = sidetext;
+            def.readonly = true;
+            if (type == coFloat)
+                def.set_default_value(new ConfigOptionFloat());
+            else if (type == coBool)
+                def.set_default_value(new ConfigOptionBool());
+            return optgroup->append_single_option_line(Option(def, key));
+        };
+
+        build_statistics_line("spoolman_remaining_weight", "Remaining Weight", "g");
+        build_statistics_line("spoolman_used_weight", "Used Weight", "g");
+        build_statistics_line("spoolman_remaining_length", "Remaining Length", "m");
+        build_statistics_line("spoolman_used_length", "Used Length", "m");
+        build_statistics_line("spoolman_archived", "Archived", "", coBool);
+
+    page->m_should_show_fn = [&](bool current_value) {
+        return m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled");
+    };
+
     page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
@@ -3628,6 +3709,11 @@ void TabFilament::toggle_options()
                         "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
                         "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
+    }
+
+    if (m_active_page->title() == L("Spoolman")) {
+        toggle_line("spoolman_update", m_config->opt_int("spoolman_spool_id") > 0);
+        update_spoolman_statistics();
     }
 }
 
@@ -6075,7 +6161,7 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 #endif
     }
 
-    m_show = ret_val;
+    m_show = m_should_show_fn ? m_should_show_fn(ret_val) : ret_val;
 #ifdef __WXMSW__
     if (!m_show) return;
     // BBS: fix field control position
