@@ -69,9 +69,10 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
             { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
-            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
+            { InfoItemType::MmSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
             { InfoItemType::CutConnectors,       {L("Cut connectors"),          "cut_connectors" },    },
+            { InfoItemType::FuzzySkin,           {L("Paint-on fuzzy skin"),     "fuzzy_skin_painting" }, },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,

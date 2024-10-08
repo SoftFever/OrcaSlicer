@@ -869,7 +869,7 @@ void GLGizmoMmuSegmentation::tool_changed(wchar_t old_tool, wchar_t new_tool)
 
 PainterGizmoType GLGizmoMmuSegmentation::get_painter_type() const
 {
-    return PainterGizmoType::MMU_SEGMENTATION;
+    return PainterGizmoType::MM_SEGMENTATION;
 }
 
 // BBS
