@@ -2755,7 +2755,7 @@ void ImGuiWrapper::init_font(bool compress)
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    if (compress && GLEW_EXT_texture_compression_s3tc)
+    if (compress && OpenGLManager::are_compressed_textures_supported())
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
@@ -2941,22 +2941,37 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 
     shader->start_using();
 
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
-    GLint last_texture;          glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GLint last_polygon_mode[2];  glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
-    GLint last_viewport[4];      glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
-    GLint last_scissor_box[4];   glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
-    GLint last_texture_env_mode; glsafe(::glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &last_texture_env_mode));
-    glsafe(::glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT));
+    // Backup GL state
+    GLenum last_active_texture;       glsafe(::glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture));
+    GLuint last_program;              glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&last_program));
+    GLuint last_texture;              glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture));
+    GLuint last_array_buffer;         glsafe(::glGetIntegerv(GL_ARRAY_BUFFER_BINDING, (GLint*)&last_array_buffer));
+    GLuint last_vertex_array_object = 0;
+    if (OpenGLManager::get_gl_info().is_version_greater_or_equal_to(3, 0))
+        glsafe(::glGetIntegerv(GL_VERTEX_ARRAY_BINDING, (GLint*)&last_vertex_array_object));
+    GLint last_viewport[4];           glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
+    GLint last_scissor_box[4];        glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
+    GLenum last_blend_src_rgb;        glsafe(::glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&last_blend_src_rgb));
+    GLenum last_blend_dst_rgb;        glsafe(::glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&last_blend_dst_rgb));
+    GLenum last_blend_src_alpha;      glsafe(::glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&last_blend_src_alpha));
+    GLenum last_blend_dst_alpha;      glsafe(::glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&last_blend_dst_alpha));
+    GLenum last_blend_equation_rgb;   glsafe(::glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&last_blend_equation_rgb));
+    GLenum last_blend_equation_alpha; glsafe(::glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&last_blend_equation_alpha));
+    GLboolean last_enable_blend        = ::glIsEnabled(GL_BLEND);
+    GLboolean last_enable_cull_face    = ::glIsEnabled(GL_CULL_FACE);
+    GLboolean last_enable_depth_test   = ::glIsEnabled(GL_DEPTH_TEST);
+    GLboolean last_enable_stencil_test = ::glIsEnabled(GL_STENCIL_TEST);
+    GLboolean last_enable_scissor_test = ::glIsEnabled(GL_SCISSOR_TEST);
+
+    // set new GL state
+    glsafe(::glActiveTexture(GL_TEXTURE0));
     glsafe(::glEnable(GL_BLEND));
-    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glBlendEquation(GL_FUNC_ADD));
+    glsafe(::glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_STENCIL_TEST));
     glsafe(::glEnable(GL_SCISSOR_TEST));
-    glsafe(::glEnable(GL_TEXTURE_2D));
-    glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
 
     // Setup viewport, orthographic projection matrix
     // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
@@ -2988,15 +3003,16 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
         const GLsizeiptr vtx_buffer_size = (GLsizeiptr)cmd_list->VtxBuffer.Size * (int)sizeof(ImDrawVert);
         const GLsizeiptr idx_buffer_size = (GLsizeiptr)cmd_list->IdxBuffer.Size * (int)sizeof(ImDrawIdx);
 
+        GLuint vao_id = 0;
+        if (OpenGLManager::get_gl_info().is_version_greater_or_equal_to(3, 0)) {
+            glsafe(::glGenVertexArrays(1, &vao_id));
+            glsafe(::glBindVertexArray(vao_id));
+        }
+
         GLuint vbo_id;
         glsafe(::glGenBuffers(1, &vbo_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
         glsafe(::glBufferData(GL_ARRAY_BUFFER, vtx_buffer_size, vtx_buffer, GL_STATIC_DRAW));
-
-        GLuint ibo_id;
-        glsafe(::glGenBuffers(1, &ibo_id));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id));
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer_size, idx_buffer, GL_STATIC_DRAW));
 
         const int position_id = shader->get_attrib_location("Position");
         if (position_id != -1) {
@@ -3013,6 +3029,11 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
             glsafe(::glVertexAttribPointer(color_id, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, col)));
             glsafe(::glEnableVertexAttribArray(color_id));
         }
+
+        GLuint ibo_id;
+        glsafe(::glGenBuffers(1, &ibo_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer_size, idx_buffer, GL_STATIC_DRAW));
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -3035,26 +3056,36 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
             }
         }
 
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
-        if (uv_id != -1)
-            glsafe(::glDisableVertexAttribArray(uv_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
         if (color_id != -1)
             glsafe(::glDisableVertexAttribArray(color_id));
+        if (uv_id != -1)
+            glsafe(::glDisableVertexAttribArray(uv_id));
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
 
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
         glsafe(::glDeleteBuffers(1, &ibo_id));
         glsafe(::glDeleteBuffers(1, &vbo_id));
+        if (vao_id > 0)
+        glsafe(::glDeleteVertexArrays(1, &vao_id));
     }
 
-    // Restore modified state
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, last_texture_env_mode));
-    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture));
-    glsafe(::glPopAttrib());
-    glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]);
-    glsafe(::glPolygonMode(GL_BACK,  (GLenum)last_polygon_mode[1])));
+    // Restore modified GL state
+    glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+    glsafe(::glActiveTexture(last_active_texture));
+    if (OpenGLManager::get_gl_info().is_version_greater_or_equal_to(3, 0))
+        glsafe(::glBindVertexArray(last_vertex_array_object));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer));
+    glsafe(::glBlendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha));
+    glsafe(::glBlendFuncSeparate(last_blend_src_rgb, last_blend_dst_rgb, last_blend_src_alpha, last_blend_dst_alpha));
+    if (last_enable_blend) glsafe(::glEnable(GL_BLEND)); else glsafe(::glDisable(GL_BLEND));
+    if (last_enable_cull_face) glsafe(::glEnable(GL_CULL_FACE)); else glsafe(::glDisable(GL_CULL_FACE));
+    if (last_enable_depth_test) glsafe(::glEnable(GL_DEPTH_TEST)); else glsafe(::glDisable(GL_DEPTH_TEST));
+    if (last_enable_stencil_test) glsafe(::glEnable(GL_STENCIL_TEST)); else glsafe(::glDisable(GL_STENCIL_TEST));
+    if (last_enable_scissor_test) glsafe(::glEnable(GL_SCISSOR_TEST)); else glsafe(::glDisable(GL_SCISSOR_TEST));
     glsafe(::glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]));
     glsafe(::glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]));
 
