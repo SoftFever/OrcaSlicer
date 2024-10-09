@@ -1134,7 +1134,7 @@ void WipeTower2::toolchange_Load(
 	WipeTowerWriter2 &writer,
 	const WipeTower::box_coordinates  &cleaning_box)
 {
-    if (m_semm && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
+    if (m_semm && m_enable_filament_ramming && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
         float xl = cleaning_box.ld.x() + m_perimeter_width * 0.75f;
         float xr = cleaning_box.rd.x() - m_perimeter_width * 0.75f;
         float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
