@@ -9,7 +9,6 @@
 #include "Geometry/ConvexHull.hpp"
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
-#include "Support/SupportMaterial.hpp"
 #include "Thread.hpp"
 #include "Time.hpp"
 #include "GCode.hpp"

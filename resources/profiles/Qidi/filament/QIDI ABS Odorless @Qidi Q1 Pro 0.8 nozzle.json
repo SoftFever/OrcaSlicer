@@ -4,7 +4,7 @@
     "setting_id": "GFSA04",
     "instantiation": "true",
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"
