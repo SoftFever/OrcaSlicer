@@ -476,7 +476,7 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
-find_package(OpenCV REQUIRED core)
+find_package(OpenCV REQUIRED core imgproc)
 cmake_policy(POP)
 
 add_library(libslic3r_cgal STATIC 
@@ -515,6 +515,7 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
@@ -577,7 +578,7 @@ target_link_libraries(libslic3r
     mcut
     JPEG::JPEG
     qoi
-    opencv_world
+    ${OpenCV_LIBS}
     )
 
 if(NOT SLIC3R_STATIC)
