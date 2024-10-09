@@ -735,6 +735,12 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             if(paths.empty()) continue;
             chain_and_reorder_extrusion_paths(paths, &paths.front().first_point());
         } else {
+            if (overhangs_reverse && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+                // Always reverse if detect overhang wall is not enabled
+                steep_overhang_contour = true;
+                steep_overhang_hole    = true;
+            }
+
             ExtrusionPath path(role);
             //BBS.
             path.polyline = polygon.split_at_first_point();
@@ -1219,6 +1225,12 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             }
         }
         else {
+            if (overhangs_reverse && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+                // Always reverse if detect overhang wall is not enabled
+                steep_overhang_contour = true;
+                steep_overhang_hole    = true;
+            }
+
             extrusion_paths_append(paths, *extrusion, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
         }
 

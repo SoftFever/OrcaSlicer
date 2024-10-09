@@ -26,7 +26,7 @@
 #include <tbb/parallel_for.h>
 #include <tbb/task_group.h>
 
-namespace Slic3r::FFFTreeSupport
+namespace Slic3r::TreeSupport3D
 {
 
 using namespace std::literals;
@@ -871,4 +871,4 @@ std::vector<std::pair<TreeModelVolumes::RadiusLayerPair, std::reference_wrapper<
     return out;
 }
 
-} // namespace Slic3r::FFFTreeSupport
+} // namespace Slic3r::TreeSupport3D
