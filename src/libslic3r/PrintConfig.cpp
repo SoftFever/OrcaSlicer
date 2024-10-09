@@ -2443,6 +2443,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("ABS-GF");
     def->enum_values.push_back("ASA");
     def->enum_values.push_back("ASA-AERO");
+    def->enum_values.push_back("ASA-CF");
     def->enum_values.push_back("BVOH");
     def->enum_values.push_back("PCTG");
     def->enum_values.push_back("EVA");
