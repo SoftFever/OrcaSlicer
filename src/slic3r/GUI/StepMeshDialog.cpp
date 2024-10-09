@@ -71,7 +71,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     //linear_sizer->SetMinSize(wxSize(MIN_DIALOG_WIDTH, -1));
     wxStaticText* linear_title = new wxStaticText(this,
                                                   wxID_ANY,
-                                                  _L("Linear Deflection:"));
+                                                  _L("Linear Deflection"));
     linear_sizer->Add(linear_title, 0, wxALIGN_LEFT);
     linear_sizer->AddStretchSpacer(1);
     wxSlider* linear_slider = new wxSlider(this, wxID_ANY,
@@ -124,7 +124,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     wxBoxSizer* angle_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* angle_title = new wxStaticText(this,
                                                   wxID_ANY,
-                                                  _L("Angle Deflection:"));
+                                                  _L("Angle Deflection"));
     angle_sizer->Add(angle_title, 0, wxALIGN_LEFT);
     angle_sizer->AddStretchSpacer(1);
     wxSlider* angle_slider = new wxSlider(this, wxID_ANY,
@@ -176,7 +176,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     bSizer->Add(angle_sizer, 1, wxEXPAND | wxLEFT | wxRIGHT, LEFT_RIGHT_PADING);
 
     wxBoxSizer* mesh_face_number_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticText* mesh_face_number_title = new wxStaticText(this, wxID_ANY, _L("Number of triangular facets: "));
+    wxStaticText* mesh_face_number_title = new wxStaticText(this, wxID_ANY, _L("Number of triangular facets"));
     mesh_face_number_text = new wxStaticText(this, wxID_ANY, _L("0"));
     mesh_face_number_text->SetMinSize(wxSize(FromDIP(150), -1));
     mesh_face_number_sizer->Add(mesh_face_number_title, 0, wxALIGN_LEFT);
