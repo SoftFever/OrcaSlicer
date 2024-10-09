@@ -5981,7 +5981,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             m_wipe.reset_path();*/
 
         Point last_post_before_retract = this->last_pos();
-        gcode += this->retract(false, false, lift_type);
+        gcode += this->retract(false, false, lift_type, role);
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
@@ -6183,7 +6183,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     return true;
 }
 
-std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type)
+std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type, ExtrusionRole role)
 {
     std::string gcode;
 
@@ -6201,7 +6201,8 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
         (the extruder might be already retracted fully or partially). We call these
         methods even if we performed wipe, since this will ensure the entire retraction
         length is honored in case wipe path was too short.  */
-    gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
+    if (role != erTopSolidInfill || EXTRUDER_CONFIG(retract_on_top_layer))
+        gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
     // Orca: check if should + can lift (roughly from SuperSlicer)
