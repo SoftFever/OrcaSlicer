@@ -80,7 +80,7 @@ void Button::SetIcon(const wxString& icon)
     auto tmpBitmap = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        if (!tmpBitmap.bmp().IsSameAs(tmpBitmap.bmp())) { 
+        if (!tmpBitmap.bmp().IsSameAs(this->active_icon.bmp())) {
             this->active_icon = tmpBitmap;
             Refresh();
         }
