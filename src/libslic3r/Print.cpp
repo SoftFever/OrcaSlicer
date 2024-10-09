@@ -9,7 +9,6 @@
 #include "Geometry/ConvexHull.hpp"
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
-#include "Support/SupportMaterial.hpp"
 #include "Thread.hpp"
 #include "Time.hpp"
 #include "GCode.hpp"
@@ -128,9 +127,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bridge_acceleration",
         "travel_acceleration",
         "sparse_infill_acceleration",
-        "internal_solid_infill_acceleration"
+        "internal_solid_infill_acceleration",
         // BBS
         "cool_plate_temp_initial_layer",
+        "textured_cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
         "textured_plate_temp_initial_layer",
@@ -270,6 +270,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
             || opt_key == "cool_plate_temp"
+            || opt_key == "textured_cool_plate_temp"
             || opt_key == "eng_plate_temp"
             || opt_key == "hot_plate_temp"
             || opt_key == "textured_plate_temp"

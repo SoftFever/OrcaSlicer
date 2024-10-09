@@ -60,5 +60,11 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
+	"enable_pressure_advance": [
+        "1"
+    ],
+	"pressure_advance": [
+        "0.046"
+    ],
     "version": "2.0.2.0"
 }

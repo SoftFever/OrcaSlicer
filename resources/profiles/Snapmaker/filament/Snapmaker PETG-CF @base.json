@@ -53,6 +53,9 @@
   "enable_pressure_advance": [
     "0"
   ],
+  "pressure_advance": [
+    "0.04"
+  ],
   "filament_type": [
     "PETG-CF"
   ],

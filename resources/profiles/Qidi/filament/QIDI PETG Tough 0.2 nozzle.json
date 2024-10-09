@@ -16,10 +16,10 @@
         "30"
     ],
     "overhang_fan_speed": [
-        "100"
+        "90"
     ],
     "overhang_fan_threshold": [
-        "25%"
+        "10%"
     ],
     "fan_max_speed": [
         "40"
@@ -43,7 +43,7 @@
         "0.04"
     ],
     "filament_max_volumetric_speed": [
-        "16"
+        "1"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

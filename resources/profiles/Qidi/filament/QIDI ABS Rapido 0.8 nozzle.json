@@ -13,13 +13,13 @@
         "1"
     ],
     "pressure_advance": [
-        "0.021"
+        "0.011"
     ],
     "filament_max_volumetric_speed": [
         "22"
     ],
     "nozzle_temperature": [
-        "270"
+        "260"
     ],
     "slow_down_min_speed": [
         "10"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-08 22:32+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -4362,7 +4362,7 @@ msgstr "體積："
 msgid "Size:"
 msgstr "尺寸："
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4751,6 +4751,12 @@ msgstr "複製所選項目"
 
 msgid "Clone copies of selections"
 msgstr "複製多份所選項目"
+
+msgid "Duplicate Current Plate"
+msgstr ""
+
+msgid "Duplicate the current plate"
+msgstr ""
 
 msgid "Select all"
 msgstr "選取所有"
@@ -5827,6 +5833,9 @@ msgid "Lock current plate"
 msgstr "鎖定列印板"
 
 msgid "Edit current plate name"
+msgstr ""
+
+msgid "Move plate to the front"
 msgstr ""
 
 #, fuzzy
@@ -7560,8 +7569,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在錄製無工具頭縮時錄影影片時，建議增加“縮時錄影擦拭塔”\n"
 "右鍵單擊列印板的空白位置，選擇“新增標準模型”->“縮時錄影擦拭塔”。"
@@ -7727,6 +7736,14 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr "使用低溫列印板時的熱床溫度。0 值表示這個線材不支援低溫列印板"
+
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
 
 #, fuzzy
 msgid "Engineering plate"
@@ -9526,6 +9543,11 @@ msgstr "除首層外的床溫。0 值表示這個線材不支援低溫列印板"
 msgid "°C"
 msgstr "°C"
 
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -9556,6 +9578,11 @@ msgid ""
 "support to print on the Cool Plate"
 msgstr "首層熱床溫度。0 值表示這個線材不支援低溫列印板"
 
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -9578,13 +9605,18 @@ msgstr "首層熱床溫度。0 值表示這個線材不支援金屬紋理 PEI �
 msgid "Bed types supported by the printer"
 msgstr "列印設備所支援的列印板類型"
 
-#, fuzzy
-msgid "Cool Plate"
-msgstr "低溫列印板"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 #, fuzzy
 msgid "Engineering Plate"
 msgstr "工程高溫列印板"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "首層列印順序"
@@ -9822,9 +9854,8 @@ msgid ""
 "bridges cannot be anchored. "
 msgstr "在陡峭的懸空和無法固定橋接的區域中增加額外的周長路徑。"
 
-#, fuzzy
-msgid "Reverse on odd"
-msgstr "反轉奇數層懸空方向"
+msgid "Reverse on even"
+msgstr ""
 
 #, fuzzy
 msgid "Overhang reversal"
@@ -9832,7 +9863,7 @@ msgstr "懸空反轉"
 
 msgid ""
 "Extrude perimeters that have a part over an overhang in the reverse "
-"direction on odd layers. This alternating pattern can drastically improve "
+"direction on even layers. This alternating pattern can drastically improve "
 "steep overhangs.\n"
 "\n"
 "This setting can also help reduce part warping due to the reduction of "
@@ -9854,7 +9885,7 @@ msgid ""
 "\n"
 "For this setting to be the most effective, it is recommended to set the "
 "Reverse Threshold to 0 so that all internal walls print in alternating "
-"directions on odd layers irrespective of their overhang degree."
+"directions on even layers irrespective of their overhang degree."
 msgstr ""
 
 msgid "Bridge counterbore holes"
@@ -9884,10 +9915,8 @@ msgstr "懸空反轉臨界值"
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every odd layers regardless."
+"Value 0 enables reversal on every even layers regardless."
 msgstr ""
-"判定懸空反轉需要的值（mm），可以是線寬的百分比。\n"
-" 0 值則會在每個奇數層上啟用反向。"
 
 msgid "Classic mode"
 msgstr "經典模式"
@@ -9906,7 +9935,7 @@ msgstr "打開這個選項將降低不同懸垂程度的走線的列印速度"
 msgid "Slow down for curled perimeters"
 msgstr "翹邊降速"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have "
 "curled upwards.For example, additional slowdown will be applied when "
@@ -9922,9 +9951,9 @@ msgid ""
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like "
 "overhangs, meaning the overhang speed is applied even if the overhanging "
-"perimeter is part of a bridge. For example, when the perimeters are "
-"100% overhanging, with no wall supporting them from underneath, the "
-"100% overhang speed will be applied."
+"perimeter is part of a bridge. For example, when the perimeters are 100% "
+"overhanging, with no wall supporting them from underneath, the 100% overhang "
+"speed will be applied."
 msgstr ""
 
 msgid "mm/s or %"
@@ -10385,8 +10414,8 @@ msgid ""
 "top.\n"
 "\n"
 "By default all walls are extruded in counter-clockwise, unless Reverse on "
-"odd is enabled. Set this to any option other than Auto will force the wall "
-"direction regardless of the Reverse on odd.\n"
+"even is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on even.\n"
 "\n"
 "This option will be disabled if spiral vase mode is enabled."
 msgstr ""
@@ -10519,7 +10548,7 @@ msgstr "壓力提前（Klipper）或者線性提前（Marlin）"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10544,6 +10573,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -11178,10 +11208,10 @@ msgstr "滿速風扇在"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "風扇速度將從“禁用第一層”的零線性上升到“全風扇速度層”的最大。如果低於“禁用風扇"
 "第一層”，則“全風扇速度第一層”將被忽略，在這種情況下，風扇將在“禁用風扇第一"
@@ -13175,8 +13205,8 @@ msgstr "啟動溫度控制"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -15018,8 +15048,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -16115,6 +16145,23 @@ msgid ""
 msgstr ""
 
 #, fuzzy
+#~ msgid "Cool Plate"
+#~ msgstr "低溫列印板"
+
+#, fuzzy
+#~ msgid "Reverse on odd"
+#~ msgstr "反轉奇數層懸空方向"
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Number of mm the overhang need to be for the reversal to be considered "
+#~ "useful. Can be a % of the perimeter width.\n"
+#~ "Value 0 enables reversal on every odd layers regardless."
+#~ msgstr ""
+#~ "判定懸空反轉需要的值（mm），可以是線寬的百分比。\n"
+#~ " 0 值則會在每個奇數層上啟用反向。"
+
+#, fuzzy
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
 #~ "Thus, reset the skirt layer to 1 to avoid that."
@@ -16414,7 +16461,7 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "無法從列印設備獲取模型資訊。"
 
-#~ msgid "Failed to parse model infomations."
+#~ msgid "Failed to parse model informations."
 #~ msgstr "解析模型資訊失敗。"
 
 #, fuzzy

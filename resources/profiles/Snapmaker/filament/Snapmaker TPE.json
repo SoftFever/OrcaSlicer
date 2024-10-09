@@ -34,9 +34,6 @@
   "hot_plate_temp": [
     "45"
   ],
-  "hot_plate_temp_initial_layer": [
-    "45"
-  ],
   "overhang_fan_speed": [
     "100"
   ],
@@ -45,6 +42,12 @@
   ],
   "filament_max_volumetric_speed": [
     "7.2"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "240"
+  ],
+  "nozzle_temperature": [
+    "240"
   ],
   "fan_max_speed": [
     "100"

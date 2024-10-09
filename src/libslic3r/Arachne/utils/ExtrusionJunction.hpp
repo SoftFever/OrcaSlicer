@@ -40,6 +40,10 @@ struct ExtrusionJunction
     ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index);
 
     bool operator==(const ExtrusionJunction& other) const;
+
+    coord_t x() const { return p.x(); }
+    coord_t y() const { return p.y(); }
+    coord_t z() const { return w; }
 };
 
 inline Point operator-(const ExtrusionJunction& a, const ExtrusionJunction& b)

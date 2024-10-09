@@ -31,14 +31,13 @@ void NotificationManager::SlicingProgressNotification::init()
 			m_endlines.push_back(0);
 		}
 		if (m_lines_count >= 2) {
-			m_lines_count = 3;
+			m_lines_count = std::min((size_t)3, m_lines_count);
 			m_multiline = true;
-			while (m_endlines.size() < 3)
+            while (m_endlines.size() < m_lines_count)
 				m_endlines.push_back(m_endlines.back());
 		}
 		else {
-			m_lines_count = 2;
-			m_endlines.push_back(m_endlines.back());
+			m_lines_count = 1;
 			m_multiline = false;
 		}
 		if (m_state == EState::Shown)
@@ -222,7 +221,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	const ImVec2 dailytips_child_window_padding = m_dailytips_panel->is_expanded() ? ImVec2(15.f, 10.f) * scale : ImVec2(15.f, 0.f) * scale;
 	const ImVec2 bottom_padding = ImVec2(0.f, 0.f) * scale;
 	const float  progress_panel_width = (m_window_width - 2 * progress_child_window_padding.x);
-	const float  progress_panel_height = (58.0f * scale);
+	const float  progress_panel_height = (58.0f * scale) + (m_lines_count - 1) * m_line_height;
 	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
 	const float  gcodeviewer_height = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_legend_height();
 	//const float  dailytips_panel_height = std::min(380.0f * scale, std::max(90.0f, (cnv_size.get_height() - gcodeviewer_height - progress_panel_height - dailytips_child_window_padding.y - initial_y - m_line_height * 4)));
@@ -272,11 +271,12 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 			if (ImGui::BeginChild(child_name.c_str(), ImVec2(progress_panel_width, progress_panel_height), false, child_window_flags)) {
 				ImVec2 child_window_pos = ImGui::GetWindowPos();
 				ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
-				ImVec2 button_pos = child_window_pos + ImVec2(progress_panel_width - button_size.x, (progress_panel_height - button_size.y) / 2.0f);
 				float  margin_x = 8.0f * scale;
-				ImVec2 progress_bar_pos = child_window_pos + ImVec2(0, progress_panel_height / 2.0f);
 				ImVec2 progress_bar_size = ImVec2(progress_panel_width - button_size.x - margin_x, 4.0f * scale);
-				ImVec2 text_pos = ImVec2(progress_bar_pos.x, progress_bar_pos.y - m_line_height * 1.2f);
+                float  text_bottom = progress_bar_size.y + m_line_height * 1.2f + 7.f * scale;
+                ImVec2 progress_bar_pos = child_window_pos + ImVec2(0, progress_panel_height - text_bottom);
+				ImVec2 button_pos = child_window_pos + ImVec2(progress_panel_width - button_size.x, progress_panel_height - text_bottom - button_size.y / 2.0f);
+				ImVec2 text_pos = ImVec2(progress_bar_pos.x, progress_bar_pos.y - m_line_height * (1.2f + m_lines_count - 1));
 
 				render_text(text_pos);
 				render_close_button(button_pos, button_size);
@@ -353,9 +353,13 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 		imgui.pop_bold_font();
 	}
 	if(m_sp_state == SlicingProgressState::SP_PROGRESS)	{
-		//one line text
-		ImGui::SetCursorScreenPos(pos);
-		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+		// multi-line text
+        int last_end = 0;
+        for (auto i = 0; i < m_lines_count; i++) {
+            ImGui::SetCursorScreenPos(pos + ImVec2(0, i * m_line_height));
+            imgui.text(m_text1.substr(last_end, m_endlines[i] - last_end).c_str());
+            last_end = m_endlines[i];
+        }
 	}
 }
 

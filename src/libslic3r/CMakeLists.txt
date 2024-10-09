@@ -30,6 +30,8 @@ set(lisbslic3r_sources
     AABBTreeLines.hpp
     AABBMesh.hpp
     AABBMesh.cpp
+    Algorithm/LineSplit.hpp
+    Algorithm/LineSplit.cpp
     Algorithm/PathSorting.hpp
     Algorithm/RegionExpansion.hpp
     Algorithm/RegionExpansion.cpp
@@ -305,29 +307,21 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     Support/SupportCommon.cpp
     Support/SupportCommon.hpp
-    Support/SupportDebug.cpp
-    Support/SupportDebug.hpp
     Support/SupportLayer.hpp
-    # Support/SupportMaterial.cpp
-    # Support/SupportMaterial.hpp
-    Support/SupportParameters.cpp
+    Support/SupportMaterial.cpp
+    Support/SupportMaterial.hpp
     Support/SupportParameters.hpp
-    Support/OrganicSupport.cpp
-    Support/OrganicSupport.hpp
-    Support/TreeSupport.cpp
+    Support/SupportSpotsGenerator.cpp
+    Support/SupportSpotsGenerator.hpp
     Support/TreeSupport.hpp
-    Support/TreeSupportCommon.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+    Support/TreeSupport3D.hpp
     Support/TreeSupportCommon.hpp
     Support/TreeModelVolumes.cpp
     Support/TreeModelVolumes.hpp
-    SupportMaterial.cpp
-    SupportMaterial.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
-    SupportSpotsGenerator.cpp
-    SupportSpotsGenerator.hpp
-    TreeSupport.hpp 
-    TreeSupport.cpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp

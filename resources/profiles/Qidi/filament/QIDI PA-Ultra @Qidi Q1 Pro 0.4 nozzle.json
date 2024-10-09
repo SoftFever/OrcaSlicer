@@ -25,7 +25,7 @@
     "is_custom_defined": "0",
     "name": "QIDI PA-Ultra @Qidi Q1 Pro 0.4 nozzle",
     "overhang_fan_speed": [
-        "50"
+        "100"
     ],
     "slow_down_min_speed": [
         "20"

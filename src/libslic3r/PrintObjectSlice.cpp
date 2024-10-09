@@ -1035,6 +1035,8 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    this->apply_conical_overhang();
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1054,7 +1056,6 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    this->apply_conical_overhang();
     m_print->throw_if_canceled();
 
     InterlockingGenerator::generate_interlocking_structure(this);

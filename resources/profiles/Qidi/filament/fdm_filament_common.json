@@ -150,5 +150,8 @@
     "complete_print_exhaust_fan_speed": [
         "0"
     ],
+    "dont_slow_down_outer_wall": [
+        "1"
+    ],
     "compatible_printers": []
 }

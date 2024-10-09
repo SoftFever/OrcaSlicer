@@ -68,7 +68,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRegionPtrs &compatible_regions, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -85,6 +85,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     PerimeterGenerator g(
         // input:
         &slices,
+        &compatible_regions,
         this->layer()->height,
         this->flow(frPerimeter),
         &region_config,
@@ -523,24 +524,6 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 #endif
     }
 
-    // turn too small internal regions into solid regions according to the user setting
-    if (!this->layer()->object()->print()->config().spiral_mode && this->region().config().sparse_infill_density.value > 0) {
-        // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
-        ExPolygons small_regions{};
-        sparse.erase(std::remove_if(sparse.begin(), sparse.end(), [min_area, &small_regions](ExPolygon& ex_polygon) {
-            if (ex_polygon.area() <= min_area) {
-                small_regions.push_back(ex_polygon);
-                return true;
-            }
-            return false;
-        }), sparse.end());
-
-        if (!small_regions.empty()) {
-            expansion_zones[0].expolygons = union_ex(expansion_zones[0].expolygons, small_regions);
-        }
-    }
-
     this->fill_surfaces.remove_types({stTop});
     {
         Surface top_templ(stTop, {});
@@ -555,6 +538,24 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 
     expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_top, expansion_step, max_nr_expansion_steps);
     Surfaces tops = expand_merge_surfaces(this->fill_surfaces.surfaces, stTop, expansion_zones, closing_radius);
+
+    // turn too small internal regions into solid regions according to the user setting
+    if (!this->layer()->object()->print()->config().spiral_mode && this->region().config().sparse_infill_density.value > 0) {
+        // scaling an area requires two calls!
+        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
+        ExPolygons small_regions{};
+        expansion_zones[1].expolygons.erase(std::remove_if(expansion_zones[1].expolygons.begin(), expansion_zones[1].expolygons.end(), [min_area, &small_regions](ExPolygon& ex_polygon) {
+            if (ex_polygon.area() <= min_area) {
+                small_regions.push_back(ex_polygon);
+                return true;
+            }
+            return false;
+        }), expansion_zones[1].expolygons.end());
+
+        if (!small_regions.empty()) {
+            expansion_zones[0].expolygons = union_ex(expansion_zones[0].expolygons, small_regions);
+        }
+    }
 
 //    this->fill_surfaces.remove_types({ stBottomBridge, stBottom, stTop, stInternal, stInternalSolid });
     this->fill_surfaces.clear();

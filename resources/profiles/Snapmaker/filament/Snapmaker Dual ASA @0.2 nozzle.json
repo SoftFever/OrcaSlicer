@@ -16,9 +16,6 @@
     "Snapmaker A350 Dual QSKit (0.2 nozzle)",
     "Snapmaker Artisan (0.2 nozzle)"
   ],
-  "filament_end_gcode": [
-    ""
-  ],
   "hot_plate_temp": [
     "90"
   ],

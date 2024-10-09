@@ -137,7 +137,7 @@
         "0.08"
     ],
     "nozzle_hrc": "0",
-    "nozzle_type": "hardened_steel",
+    "nozzle_type": "brass",
     "nozzle_volume": "0",
     "parking_pos_retraction": "92",
     "preferred_orientation": "0",

@@ -2433,6 +2433,12 @@ void MainFrame::init_menubar_as_editor()
             },
             "menu_remove", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "menu_remove", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
 #else
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
@@ -2530,6 +2536,13 @@ void MainFrame::init_menubar_as_editor()
             },
             "", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
+        append_menu_item(editMenu, wxID_ANY, _L("Duplicate Current Plate"),
+            _L("Duplicate the current plate"),[this, handle_key_event](wxCommandEvent&) {
+                m_plater->duplicate_plate();
+            },
+            "", nullptr, [this](){return true;}, this);
+        editMenu->AppendSeparator();
+
 #endif
 
         // BBS Select All

@@ -19,7 +19,7 @@
         "0.04"
     ],
     "overhang_fan_speed": [
-        "60"
+        "90"
     ],
     "fan_max_speed":[
         "40"
@@ -41,6 +41,12 @@
     ],
     "chamber_temperature": [
         "55"
+    ],
+    "overhang_fan_threshold": [
+        "75%"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

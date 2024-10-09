@@ -8,7 +8,7 @@
 #include "../ClipperUtils.hpp"
 #include "../Polygon.hpp"
 
-namespace Slic3r::FFFSupport {
+namespace Slic3r {
 
 // Support layer type to be used by SupportGeneratorLayer. This type carries a much more detailed information
 // about the support layer type than the final support layers stored in a PrintObject.

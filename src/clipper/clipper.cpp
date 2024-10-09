@@ -2290,7 +2290,11 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
 
     if (horzEdge->OutIdx >= 0 && !IsOpen)  //note: may be done multiple times
 		{
-            op1 = AddOutPt(horzEdge, e->Curr);
+#ifdef CLIPPERLIB_USE_XYZ
+			if (dir == dLeftToRight) SetZ(e->Curr, *horzEdge, *e);
+			else SetZ(e->Curr, *e, *horzEdge);
+#endif      
+			op1 = AddOutPt(horzEdge, e->Curr);
 			TEdge* eNextHorz = m_SortedEdges;
 			while (eNextHorz)
 			{
@@ -2614,7 +2618,10 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
       {
         e->Curr.x() = TopX( *e, topY );
         e->Curr.y() = topY;
-      }
+#ifdef CLIPPERLIB_USE_XYZ
+        e->Curr.z() = topY == e->Top.y() ? e->Top.z() : (topY == e->Bot.y() ? e->Bot.z() : 0);
+#endif
+	  }
 
       //When StrictlySimple and 'e' is being touched by another edge, then
       //make sure both edges have a vertex here ...

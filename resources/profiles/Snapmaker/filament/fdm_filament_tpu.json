@@ -8,7 +8,7 @@
     "40"
   ],
   "hot_plate_temp_initial_layer": [
-    "40"
+    "45"
   ],
   "overhang_fan_speed": [
     "70"
@@ -53,10 +53,10 @@
     "25"
   ],
   "nozzle_temperature_initial_layer": [
-    "240"
+    "230"
   ],
   "nozzle_temperature": [
-    "240"
+    "225"
   ],
   "temperature_vitrification": [
     "138"
@@ -66,6 +66,9 @@
   ],
   "fan_min_speed": [
     "70"
+  ],
+  "pressure_advance": [
+    "0.01"
   ],
   "default_filament_colour": [
     "#302730"

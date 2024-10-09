@@ -31,6 +31,9 @@
   "filament_retraction_length": [
     "1.2"
   ],
+  "filament_retraction_speed": [
+    "60"
+  ],
   "nozzle_temperature_initial_layer": [
     "220"
   ],
@@ -48,6 +51,9 @@
   ],
   "enable_pressure_advance": [
     "1"
+  ],
+  "pressure_advance": [
+    "0.02"
   ],
   "default_filament_colour": [
     "#F8C827"

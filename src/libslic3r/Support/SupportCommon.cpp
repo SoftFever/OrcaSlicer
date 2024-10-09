@@ -32,7 +32,7 @@
 
 #include <cassert>
 
-namespace Slic3r::FFFSupport {
+namespace Slic3r {
 
 // how much we extend support around the actual contact area
 //FIXME this should be dependent on the nozzle diameter!

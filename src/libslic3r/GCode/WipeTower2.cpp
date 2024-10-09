@@ -893,7 +893,8 @@ void WipeTower2::toolchange_Unload(
 	float remaining = xr - xl ;							// keeps track of distance to the next turnaround
 	float e_done = 0;									// measures E move done from each segment   
 
-    const bool do_ramming = m_enable_filament_ramming && (m_semm || m_filpar[m_current_tool].multitool_ramming);
+    // Orca: Do ramming when SEMM and ramming is enabled or when multi tool head when ramming is enabled on the multi tool.
+    const bool do_ramming = (m_semm && m_enable_filament_ramming) || m_filpar[m_current_tool].multitool_ramming;
     const bool cold_ramming = m_is_mk4mmu3;
 
     if (do_ramming) {
@@ -945,7 +946,6 @@ void WipeTower2::toolchange_Unload(
     // now the ramming itself:
     while (do_ramming && i < m_filpar[m_current_tool].ramming_speed.size())
     {
-        writer.append("; Ramming\n");
         // The time step is different for SEMM ramming and the MM ramming. See comments in set_extruder() for details.
         const float time_step = m_semm ? 0.25f : m_filpar[m_current_tool].multitool_ramming_time;
 
@@ -971,9 +971,12 @@ void WipeTower2::toolchange_Unload(
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
     // Retraction:
+    if(m_enable_filament_ramming)
+        writer.append("; Ramming start\n");
+
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
-    if (m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
+    if (m_enable_filament_ramming && m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
         writer.append("; Retract(unload)\n");
         float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
         writer.suppress_preview()
@@ -985,7 +988,7 @@ void WipeTower2::toolchange_Unload(
     }
 
     const int& number_of_cooling_moves = m_filpar[m_current_tool].cooling_moves;
-    const bool cooling_will_happen = m_semm && number_of_cooling_moves > 0 && m_cooling_tube_length != 0;
+    const bool cooling_will_happen = m_enable_filament_ramming && m_semm && number_of_cooling_moves > 0 && m_cooling_tube_length != 0;
     bool change_temp_later = false;
 
     // Wipe tower should only change temperature with single extruder MM. Otherwise, all temperatures should
@@ -1054,7 +1057,7 @@ void WipeTower2::toolchange_Unload(
         }
     }
 
-    if (m_semm) {
+    if (m_enable_filament_ramming && m_semm) {
         writer.append("; Cooling park\n");
         // let's wait is necessary:
         writer.wait(m_filpar[m_current_tool].delay);
@@ -1063,6 +1066,10 @@ void WipeTower2::toolchange_Unload(
         if (_e != 0.f)
             writer.retract(_e, 2000);
     }
+
+    if(m_enable_filament_ramming)
+        writer.append("; Ramming end\n");
+
 
     // this is to align ramming and future wiping extrusions, so the future y-steps can be uniform from the start:
     // the perimeter_width will later be subtracted, it is there to not load while moving over just extruded material
@@ -1120,7 +1127,7 @@ void WipeTower2::toolchange_Load(
 	WipeTowerWriter2 &writer,
 	const WipeTower::box_coordinates  &cleaning_box)
 {
-    if (m_semm && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
+    if (m_semm && m_enable_filament_ramming && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
         float xl = cleaning_box.ld.x() + m_perimeter_width * 0.75f;
         float xr = cleaning_box.rd.x() - m_perimeter_width * 0.75f;
         float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
@@ -1538,7 +1545,8 @@ void WipeTower2::plan_toolchange(float z_par, float layer_height_par, unsigned i
 	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_filpar[old_tool].ramming_speed.begin(), m_filpar[old_tool].ramming_speed.end(), 0.f),
 										m_perimeter_width * m_filpar[old_tool].ramming_line_width_multiplicator,
 										layer_height_par);
-	float ramming_depth = (int(length_to_extrude / width) + 1) * (m_perimeter_width * m_filpar[old_tool].ramming_line_width_multiplicator * m_filpar[old_tool].ramming_step_multiplicator) * m_extra_spacing_ramming;
+    // Orca: Set ramming depth to 0 if ramming is disabled.
+    float ramming_depth = m_enable_filament_ramming ? ((int(length_to_extrude / width) + 1) * (m_perimeter_width * m_filpar[old_tool].ramming_line_width_multiplicator * m_filpar[old_tool].ramming_step_multiplicator) * m_extra_spacing_ramming) : 0;
     float first_wipe_line = - (width*((length_to_extrude / width)-int(length_to_extrude / width)) - width);
 
     float first_wipe_volume = length_to_volume(first_wipe_line, m_perimeter_width * m_extra_flow, layer_height_par);

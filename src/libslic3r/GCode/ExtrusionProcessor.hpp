@@ -70,6 +70,12 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
     };
 
     using P = typename POINTS::value_type;
+    // ORCA:
+    // minimum spacing threshold for any newly generated points
+    // Setting the minimum spacing to be 25% of the flow width ensures the points are spaced far enough apart
+    // to avoid micro stutters while the movement of the print head is still fine-grained enough to maintain
+    // print quality.
+    double min_spacing = flow_width*0.25;
 
     using AABBScalar = typename AABBTreeLines::LinesDistancer<L>::Scalar;
     if (input_points.empty())
@@ -93,6 +99,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
               x] = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(next_point.position.cast<AABBScalar>());
         next_point.distance = distance + boundary_offset;
 
+        // Intersection handling
         if (ADD_INTERSECTIONS &&
             ((points.back().distance > boundary_offset + EPSILON) != (next_point.distance > boundary_offset + EPSILON))) {
             const ExtendedPoint &prev_point    = points.back();
@@ -102,12 +109,17 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                 ExtendedPoint p{};
                 p.position = intersection.first.template cast<double>();
                 p.distance = boundary_offset;
-                points.push_back(p);
+                // ORCA: Filter out points that are introduced at intersections if their distance from the previous or next point is not meaningful
+                if ((p.position - prev_point.position).norm() > min_spacing &&
+                    (next_point.position - p.position).norm() > min_spacing) {
+                    points.push_back(p);
+                }
             }
         }
         points.push_back(next_point);
     }
 
+    // Segmentation handling
     if (PREV_LAYER_BOUNDARY_OFFSET && ADD_INTERSECTIONS) {
         std::vector<ExtendedPoint> new_points;
         new_points.reserve(points.size() * 2);
@@ -138,10 +150,14 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                         ExtendedPoint new_p{};
                         new_p.position = p0;
                         new_p.distance = float(p0_dist + boundary_offset);
+                        // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
+                        // or if this option is disabled (min_distance<=0)
                         if( (std::abs(p0_dist) > min_distance) || (min_distance<=0)){
-                            // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
-                            // or if this option is disabled (min_distance<=0)
-                            new_points.push_back(new_p);
+                            // ORCA: also filter out points that are introduced to the start of the path when their distance from the start point is
+                            // not meaningful
+                            if ((p0 - curr.position).norm() > min_spacing && (next.position - p0).norm() > min_spacing) {
+                                new_points.push_back(new_p);
+                            }
                         }
                     }
                     if (t1 > 0.0) {
@@ -151,10 +167,14 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                         ExtendedPoint new_p{};
                         new_p.position = p1;
                         new_p.distance = float(p1_dist + boundary_offset);
-                        if( (std::abs(p1_dist) > min_distance) || (min_distance<=0)){ 
-                            // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
-                            // or if this option is disabled (min_distance<=0)
-                            new_points.push_back(new_p);
+                        // ORCA: only create a new point in the path if the new point overhang distance will be used to generate a speed change
+                        // or if this option is disabled (min_distance<=0)
+                        if( (std::abs(p1_dist) > min_distance) || (min_distance<=0)){
+                            // ORCA: filter out points that are introduced to the end of the path when their distance from the end point is
+                            // not meaningful
+                            if ((p1 - curr.position).norm() > min_spacing && (next.position - p1).norm() > min_spacing) {
+                                new_points.push_back(new_p);
+                            }
                         }
                     }
                 }
@@ -164,6 +184,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
         points = std::move(new_points);
     }
 
+    // Maximum line length handling
     if (max_line_length > 0) {
         std::vector<ExtendedPoint> new_points;
         new_points.reserve(points.size() * 2);
@@ -182,7 +203,11 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                     ExtendedPoint new_p{};
                     new_p.position = pos;
                     new_p.distance = float(p_dist + boundary_offset);
-                    new_points.push_back(new_p);
+                    
+                    // ORCA: Filter out points that are introduced if their distance from the previous or next point is not meaningful
+                    if ((pos - curr.position).norm() > min_spacing && (next.position - pos).norm() > min_spacing) {
+                        new_points.push_back(new_p);
+                    }
                 }
             }
             new_points.push_back(points.back());
@@ -190,6 +215,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
         points = std::move(new_points);
     }
 
+    // Curvature calculation
     float accumulated_distance = 0;
     std::vector<float> distances_for_curvature(points.size());
     for (size_t point_idx = 0; point_idx < points.size(); ++point_idx) {

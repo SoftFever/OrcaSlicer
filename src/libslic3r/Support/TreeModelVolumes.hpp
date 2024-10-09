@@ -26,7 +26,7 @@ namespace Slic3r
 class BuildVolume;
 class PrintObject;
 
-namespace FFFTreeSupport
+namespace TreeSupport3D
 {
 
 static constexpr const double  SUPPORT_TREE_EXPONENTIAL_FACTOR = 1.5;
@@ -548,7 +548,7 @@ private:
 #endif // SLIC3R_TREESUPPORTS_PROGRESS
 };
 
-} // namespace FFFTreeSupport
+} // namespace TreeSupport3D
 } // namespace Slic3r
 
 #endif //slic3r_TreeModelVolumes_hpp

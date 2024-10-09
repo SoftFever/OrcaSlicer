@@ -5,9 +5,6 @@
   "name": "Snapmaker Dual PLA Metal @base",
   "filament_id": "2029994346",
   "inherits": "fdm_filament_pla",
-  "filament_end_gcode": [
-    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
-  ],
   "filament_cost": [
     "90"
   ],

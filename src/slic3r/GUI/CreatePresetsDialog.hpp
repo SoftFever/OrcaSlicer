@@ -352,7 +352,7 @@ private:
 class EditFilamentPresetDialog : public DPIDialog
 {
 public:
-    EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
+    EditFilamentPresetDialog(wxWindow *parent, Filamentinformation *filament_info);
     ~EditFilamentPresetDialog();
     
     wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }

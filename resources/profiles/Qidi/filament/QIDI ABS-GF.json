@@ -40,16 +40,25 @@
         "100"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "filament_density":[
         "1.15"
     ],
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "fan_cooling_layer_time": [
+        "60"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

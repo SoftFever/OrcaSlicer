@@ -351,7 +351,8 @@ static const t_config_enum_values s_keys_map_BedType = {
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE }
+    { "Textured PEI Plate", btPTE },
+    { "Textured Cool Plate", btPCT }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -664,6 +665,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
+    def = this->add("textured_cool_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+    def->sidetext = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 300;
+    def->set_default_value(new ConfigOptionInts{ 40 });
+
     def = this->add("eng_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
@@ -704,6 +715,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
+    def = this->add("textured_cool_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 40 });
+
     def = this->add("eng_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -738,14 +759,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
+    // Orca: make sure the order of the values is the same as the BedType enum 
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
-    def->enum_labels.emplace_back(L("Cool Plate"));
+    def->enum_values.emplace_back("Textured Cool Plate");
+    def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
-    def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
+    def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
+    def->enum_labels.emplace_back(L("Textured Cool Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -992,10 +1016,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("overhang_reverse", coBool);
-    def->label = L("Reverse on odd");
+    def->label = L("Reverse on even");
     def->full_label = L("Overhang reversal");
     def->category = L("Quality");
-    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.");
+    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on even layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     
@@ -1003,7 +1027,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse only internal perimeters");
     def->full_label = L("Reverse only internal perimeters");
     def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recommended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
+    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recommended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on even layers irrespective of their overhang degree.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -1031,7 +1055,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a % of the perimeter width."
-                     "\nValue 0 enables reversal on every odd layers regardless.");
+                     "\nValue 0 enables reversal on every even layers regardless."
+                     "\nWhen Detect overhang wall is not enabled, this option is ignored and reversal happens on every even layers regardless.");
     def->sidetext = L("mm or %");
     def->ratio_over = "line_width";
     def->min = 0;
@@ -1057,6 +1082,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("slowdown_for_curled_perimeters", coBool);
     def->label = L("Slow down for curled perimeters");
     def->category = L("Speed");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Enable this option to slow down printing in areas where perimeters may have curled upwards."
                      "For example, additional slowdown will be applied when printing overhangs on sharp corners like the "
                      "front of the Benchy hull, reducing curling which compounds over multiple layers.\n\n "
@@ -1560,7 +1586,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_direction", coEnum);
     def->label = L("Wall loop direction");
     def->category = L("Quality");
-    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if spiral vase mode is enabled.");
+    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on even is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.\n\nThis option will be disabled if spiral vase mode is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
     def->enum_values.push_back("ccw");
     def->enum_values.push_back("cw");
@@ -1714,6 +1740,7 @@ void PrintConfigDef::init_fff_params()
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance", coBools);
     def->label = L("Enable adaptive pressure advance (beta)");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("With increasing print speeds (and hence increasing volumetric flow through the nozzle) and increasing accelerations, "
                      "it has been observed that the effective PA value typically decreases. "
                      "This means that a single PA value is not always 100% optimal for all features and a compromise value is usually used "
@@ -1729,6 +1756,7 @@ void PrintConfigDef::init_fff_params()
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance_model", coStrings);
     def->label = L("Adaptive pressure advance measurements (beta)");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a comma. "
                      "One set of values per line. For example\n"
                      "0.04,3.96,3000\n0.033,3.96,10000\n0.029,7.91,3000\n0.026,7.91,10000\n\n"
@@ -1750,6 +1778,7 @@ void PrintConfigDef::init_fff_params()
     def->height = 15;
     def->set_default_value(new ConfigOptionStrings{"0,0,0\n0,0,0"});
     
+    // xgettext:no-c-format, no-boost-format
     def = this->add("adaptive_pressure_advance_overhangs", coBools);
     def->label = L("Enable adaptive pressure advance for overhangs (beta)");
     def->tooltip = L("Enable adaptive PA for overhangs as well as when flow changes within the same feature. This is an experimental option, "
@@ -2093,6 +2122,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("PETG-CF");
+    def->enum_values.push_back("PETG-CF10");
     def->enum_values.push_back("PHA");
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("PLA-AERO");

@@ -5,9 +5,6 @@
   "name": "Snapmaker Dual PETG-CF @base",
   "filament_id": "1042511226",
   "inherits": "fdm_filament_petg",
-  "filament_end_gcode": [
-    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
-  ],
   "required_nozzle_HRC": [
     "40"
   ],
@@ -82,6 +79,9 @@
   ],
   "enable_pressure_advance": [
     "0"
+  ],
+  "pressure_advance": [
+    "0.04"
   ],
   "filament_type": [
     "PETG-CF"

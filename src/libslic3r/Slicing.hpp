@@ -11,6 +11,7 @@
 
 #include "libslic3r.h"
 #include "Utils.hpp"
+#include "Point.hpp"
 
 namespace Slic3r
 {

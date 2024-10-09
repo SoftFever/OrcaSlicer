@@ -406,8 +406,8 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
         params.swap_yz = swap_yz;
         params.invert_x = invert_x;
-        params.invert_y = invert_x;
-        params.invert_z = invert_x;
+        params.invert_y = invert_y;
+        params.invert_z = invert_z;
         params.invert_yaw = invert_yaw;
         params.invert_pitch = invert_pitch;
         params.invert_roll = invert_roll;

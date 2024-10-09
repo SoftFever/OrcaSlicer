@@ -69,7 +69,7 @@ public:
     // SoftFever NOTE: the returned speed is mm/minute
     double      get_current_speed() const { return m_current_speed;}
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
-    std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
+    std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string(), bool force_z = false);
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
@@ -81,7 +81,8 @@ public:
     std::string unretract();
     std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
-    Vec3d       get_position() const { return m_pos; }
+    const Vec3d& get_position() const { return m_pos; }
+    Vec3d&       get_position() { return m_pos; }
     void        set_position(const Vec3d& in) { m_pos = in; }
     double      get_zhop() const { return m_lifted; }
 

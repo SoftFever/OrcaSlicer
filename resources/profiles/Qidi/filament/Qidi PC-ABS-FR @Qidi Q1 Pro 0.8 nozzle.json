@@ -31,7 +31,7 @@
         "250"
     ],
     "pressure_advance": [
-        "0.04"
+        "0.012"
     ],
     "slow_down_layer_time": [
         "4"
@@ -43,7 +43,7 @@
         "8"
     ],
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"

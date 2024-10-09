@@ -11,9 +11,6 @@
 "fan_cooling_layer_time": [
     "30"
 ],
-"overhang_fan_threshold": [
-    "25%"
-],
     "fan_max_speed": [
         "40"
     ],
@@ -31,7 +28,7 @@
     "is_custom_defined": "0",
     "name": "Qidi Generic PETG @Qidi Q1 Pro 0.4 nozzle",
     "overhang_fan_speed": [
-        "100"
+        "90"
     ],
     "slow_down_min_speed": [
         "20"

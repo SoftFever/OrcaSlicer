@@ -1908,23 +1908,40 @@ void GUI_App::init_app_config()
 	// Mac : "~/Library/Application Support/Slic3r"
 
     if (data_dir().empty()) {
-        boost::filesystem::path data_dir_path;
-        #ifndef __linux__
-            std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-            //BBS create folder if not exists
-            data_dir_path = boost::filesystem::path(data_dir);
-            set_data_dir(data_dir);
-        #else
-            // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
-            // https://github.com/prusa3d/PrusaSlicer/issues/2911
-            wxString dir;
-            if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
-                dir = wxFileName::GetHomeDir() + wxS("/.config");
-            set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
-            data_dir_path = boost::filesystem::path(data_dir());
-        #endif
-        if (!boost::filesystem::exists(data_dir_path)){
-            boost::filesystem::create_directory(data_dir_path);
+        // Orca: check if data_dir folder exists in application folder use it if it exists
+        // Note:wxStandardPaths::Get().GetExecutablePath() return following paths
+        // Unix: /usr/local/bin/exename
+        // Windows: "C:\Programs\AppFolder\exename.exe"
+        // Mac: /Applications/exename.app/Contents/MacOS/exename
+        // TODO: have no idea what to do with Linux bundles
+        auto _app_folder = boost::filesystem::path(wxStandardPaths::Get().GetExecutablePath().ToUTF8().data()).parent_path();
+#ifdef __APPLE__
+        // On macOS, the executable is inside the .app bundle.
+        _app_folder = _app_folder.parent_path().parent_path().parent_path();
+#endif
+        boost::filesystem::path app_data_dir_path = _app_folder / "data_dir";
+        if (boost::filesystem::exists(app_data_dir_path)) {
+            set_data_dir(app_data_dir_path.string());
+        }
+        else{
+            boost::filesystem::path data_dir_path;
+            #ifndef __linux__
+                std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+                //BBS create folder if not exists
+                data_dir_path = boost::filesystem::path(data_dir);
+                set_data_dir(data_dir);
+            #else
+                // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
+                // https://github.com/prusa3d/PrusaSlicer/issues/2911
+                wxString dir;
+                if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
+                    dir = wxFileName::GetHomeDir() + wxS("/.config");
+                set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
+                data_dir_path = boost::filesystem::path(data_dir());
+            #endif
+            if (!boost::filesystem::exists(data_dir_path)){
+                boost::filesystem::create_directory(data_dir_path);
+            }
         }
 
         // Change current dirtory of application

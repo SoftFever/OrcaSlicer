@@ -32,7 +32,7 @@
         "260"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "pressure_advance": [
         "0.021"
@@ -41,7 +41,7 @@
         "20"
     ],
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"

@@ -25,13 +25,13 @@
         "280"
     ],
     "overhang_fan_speed": [
-        "50"
+        "40"
     ],
     "pressure_advance": [
         "0.025"
     ],
     "slow_down_layer_time": [
-        "5"
+        "8"
     ],
     "slow_down_min_speed": [
         "20"
