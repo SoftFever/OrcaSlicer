@@ -1035,6 +1035,13 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			else
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
+			if (hover_id == 7) {
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_hovered_texture);
+                show_tooltip(_u8L("Move plate to the front"));
+            } else
+                render_icon_texture(m_move_front_icon.model, m_partplate_list->m_move_front_texture);
+
+
 			if (m_partplate_list->render_plate_settings) {
 				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
@@ -1336,6 +1343,7 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 
     canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
     register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(6));
+    register_model_for_picking(canvas, m_move_front_icon, picking_id_component(7));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -2533,59 +2541,9 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 		}
 	};
 
-	int points_count = 8;
-	if (m_shape.size() == 4)
-	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_shape[i];
-				Vec2d center;
-				double start_angle, stop_angle, radius_x, radius_y, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius_x = (int)(p(0)) % 10;
-                        radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-                        radius_x = (int)(p(0)) % 10;
-						radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) - radius;
-						start_angle = 0.5 * PI;
-						stop_angle = PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-				}
-			}
-	}
-	else {
-		for (const Vec2d& p : m_shape) {
-			print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+	for (const Vec2d& p : m_shape) {
+			print_polygon.contour.append({scale_(p(0)), scale_(p(1))});
 		}
-	}
 }
 
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
@@ -2712,6 +2670,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(2, m_arrange_icon);
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
+        calc_vertex_for_icons(5, m_move_front_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
@@ -3284,6 +3243,23 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	
+	// if (m_move_front_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_dark.svg" : "plate_move_front.svg");
+        if (!m_move_front_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    // if (m_move_front_hovered_texture.get_id() == 0)
+    {
+        file_name = path + (m_is_dark ? "plate_move_front_hover_dark.svg" : "plate_move_front_hover.svg");
+        if (!m_move_front_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -3419,6 +3395,8 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+    m_move_front_hovered_texture.reset();
+    m_move_front_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
@@ -3580,6 +3558,13 @@ void PartPlateList::reinit()
 /*basic plate operations*/
 //create an empty plate, and return its index
 //these model instances which are not in any plates should not be affected also
+
+void PartPlateList::update_plates()
+{
+    update_all_plates_pos_and_size(true, false);
+    set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+}
+
 int PartPlateList::create_plate(bool adjust_position)
 {
 	PartPlate* plate = NULL;
@@ -5513,6 +5498,7 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
+	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
@@ -5527,6 +5513,8 @@ void PartPlateList::init_bed_type_info()
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
+	bed_texture_info[btPCT].parts.push_back(pct_part_left);
+	bed_texture_info[btPCT].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
 	bed_texture_info[btEP].parts.push_back(ep_part2);
 	bed_texture_info[btPEI].parts.push_back(pei_part1);
