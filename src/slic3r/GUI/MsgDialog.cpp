@@ -710,7 +710,6 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     m_text_wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
     sizer_help->Add(m_text_proposal, 0, wxEXPAND, 0);
-    sizer_main->Add(0, 0, 0, wxTOP, 6);
     sizer_help->Add(m_text_wiki, 0, wxALL, 0);
 
     wxBoxSizer* sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -735,7 +734,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     sizer_main->Add(sizer_bacis_text, 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
     sizer_main->Add(0, 0, 0, wxTOP, 6);
     sizer_main->Add(sizer_link, 0, wxLEFT | wxRIGHT, 15);
-    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 8);
+    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
     sizer_main->Add(sizer_help, 1, wxLEFT | wxRIGHT, 15);
     sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 8);
     sizer_main->Add(sizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT, 15);
