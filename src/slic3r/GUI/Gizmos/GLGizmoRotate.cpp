@@ -561,6 +561,10 @@ void GLGizmoRotate3D::on_set_state()
 void GLGizmoRotate3D::data_changed(bool is_serializing) {
     const Selection &selection = m_parent.get_selection();
     const GLVolume * volume    = selection.get_first_volume();
+    if (volume == nullptr) {
+        m_last_volume = nullptr;
+        return;
+    }
     if (m_last_volume != volume) {
         m_last_volume = volume;
         Geometry::Transformation tran;
