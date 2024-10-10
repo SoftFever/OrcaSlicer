@@ -929,11 +929,11 @@ bool NetworkAgent::is_user_login()
     return ret;
 }
 
-int  NetworkAgent::user_logout()
+int  NetworkAgent::user_logout(bool request)
 {
     int ret = 0;
     if (network_agent && user_logout_ptr) {
-        ret = user_logout_ptr(network_agent);
+        ret = user_logout_ptr(network_agent, request);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
     }

@@ -45,7 +45,7 @@ typedef int (*func_send_message_to_printer)(void *agent, std::string dev_id, std
 typedef bool (*func_start_discovery)(void *agent, bool start, bool sending);
 typedef int (*func_change_user)(void *agent, std::string user_info);
 typedef bool (*func_is_user_login)(void *agent);
-typedef int (*func_user_logout)(void *agent);
+typedef int (*func_user_logout)(void *agent, bool request);
 typedef std::string (*func_get_user_id)(void *agent);
 typedef std::string (*func_get_user_name)(void *agent);
 typedef std::string (*func_get_user_avatar)(void *agent);
@@ -164,7 +164,7 @@ public:
     bool start_discovery(bool start, bool sending);
     int change_user(std::string user_info);
     bool is_user_login();
-    int user_logout();
+    int  user_logout(bool request = false);
     std::string get_user_id();
     std::string get_user_name();
     std::string get_user_avatar();
