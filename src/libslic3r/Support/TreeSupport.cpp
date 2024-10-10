@@ -824,7 +824,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         bool  is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's floating and non-ignorable
-                        if (!overlaps(offset_ex(expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
+                        if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys)) {
                             is_sharp_tail = !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
                         }
 
