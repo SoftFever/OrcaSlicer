@@ -111,6 +111,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     PrivacyUse    = false;
     StealthMode   = false;
     InstallNetplugin = false;
+    SyncOnStart   = false;
 
     m_MainPtr = pGUI;
 
@@ -496,6 +497,15 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                 StealthMode = false;
             }
         }
+        else if (strCmd == "save_sync_on_start") {
+            wxString strAction = j["data"]["action"];
+
+            if (strAction == "yes") {
+                SyncOnStart = true;
+            } else {
+                SyncOnStart = false;
+            }
+        }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
@@ -627,6 +637,7 @@ int GuideFrame::SaveProfile()
 
     m_MainPtr->app_config->set("region", m_Region);
     m_MainPtr->app_config->set_bool("stealth_mode", StealthMode);
+    m_MainPtr->app_config->set_bool("sync_on_start", SyncOnStart);
 
     //finish
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");

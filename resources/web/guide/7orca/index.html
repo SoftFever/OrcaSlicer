@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="max-age=7200" />
+<title>引导_P1</title>
+<link rel="stylesheet" type="text/css" href="../css/common.css" />	
+<link rel="stylesheet" type="text/css" href="../css/dark.css" />		
+<link rel="stylesheet" type="text/css" href="7orca.css" />
+<script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../js/json2.js"></script>	
+<script type="text/javascript" src="../../data/text.js"></script>	
+<script type="text/javascript" src="../js/globalapi.js"></script>	
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="7orca.js"></script>	
+</head>
+<body onLoad="OnInit()">
+<div id="Title">
+	<div class="trans" tid="orca6">Sync on start</div>
+</div>
+<div id="Content">
+
+	<div id="FeatureText">
+		<div tid="orca7" class="trans">OrcaSlicer will check for the latest Bambu Network plug-in version and latest Bambu printer configuration on application start. Uncheck the following option if you do not want this. Users who don't use BBL machines can safely turn this off</div>
+	</div>
+
+	<label id="CheckArea"><input id="SyncCheck" onClick="SendSyncOnStartCheck()" type="checkbox" checked><a tid="orca8" class="trans TextS1">Sync latest Bambu Network plug-in and printer configuration on application start</a></label>
+	<div id="RestartText" tid="t70" class="trans" ></div>
+	
+</div>
+<div id="AcceptArea">
+	<div class="GrayBtn trans" tid="t8" id="PreBtn"  onclick="window.history.back()">Back</div>
+	<div class="NormalBtn trans" tid="t25" id="AcceptBtn"  onclick="FinishGuide()">Finish</div>	
+</div>	
+</body>
+</html>
