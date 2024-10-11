@@ -423,7 +423,10 @@ private:
     wxHyperlinkCtrl* m_link_server_state;
     Label* m_text_proposal;
     wxHyperlinkCtrl* m_text_wiki;
-    Button* m_button_confirm;
+    Button *         m_button_confirm;
+
+public:
+    bool m_show_again{false};
 };
 
 }

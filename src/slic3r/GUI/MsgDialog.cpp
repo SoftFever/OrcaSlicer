@@ -676,9 +676,9 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
 
     m_text_basic = new Label(this, _L("The server is unable to respond. Please click the link below to check the server status."));
     m_text_basic->SetForegroundColour(0x323A3C);
-    m_text_basic->SetMinSize(wxSize(FromDIP(450), -1));
-    m_text_basic->SetMaxSize(wxSize(FromDIP(450), -1));
-    m_text_basic->Wrap(FromDIP(450));
+    m_text_basic->SetMinSize(wxSize(FromDIP(470), -1));
+    m_text_basic->SetMaxSize(wxSize(FromDIP(470), -1));
+    m_text_basic->Wrap(FromDIP(470));
     m_text_basic->SetFont(::Label::Body_14);
     sizer_bacis_text->Add(m_text_basic, 0, wxALL, 0);
 
@@ -697,9 +697,9 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     wxBoxSizer* sizer_help = new wxBoxSizer(wxVERTICAL);
 
     m_text_proposal = new Label(this, _L("If the server is in a fault state, you can temporarily use offline printing or local network printing."));
-    m_text_proposal->SetMinSize(wxSize(FromDIP(450), -1));
-    m_text_proposal->SetMaxSize(wxSize(FromDIP(450), -1));
-    m_text_proposal->Wrap(FromDIP(450));
+    m_text_proposal->SetMinSize(wxSize(FromDIP(470), -1));
+    m_text_proposal->SetMaxSize(wxSize(FromDIP(470), -1));
+    m_text_proposal->Wrap(FromDIP(470));
     m_text_proposal->SetFont(::Label::Body_14);
     m_text_proposal->SetForegroundColour(0x323A3C);
     
@@ -713,7 +713,21 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     sizer_help->Add(m_text_wiki, 0, wxALL, 0);
 
     wxBoxSizer* sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    sizer_button->Add(0, 0, 1, wxEXPAND, 5);
+
+    /*dont show again*/
+    auto checkbox = new ::CheckBox(this);
+    checkbox->SetValue(false);
+
+
+    auto checkbox_title = new Label(this, _L("Dont't show this dialog again"));
+    checkbox_title->SetForegroundColour(0x323A3C);
+    checkbox_title->SetFont(::Label::Body_14);
+    checkbox_title->Wrap(-1);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
+        m_show_again = checkbox->GetValue();
+        e.Skip();
+    });
 
     auto bt_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
@@ -727,6 +741,9 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     m_button_confirm->SetCornerRadius(12);
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {EndModal(wxCLOSE);});
 
+    sizer_button->Add(checkbox, 0, wxALL, 5);
+    sizer_button->Add(checkbox_title, 0, wxALL, 5);
+    sizer_button->Add(0, 0, 1, wxEXPAND, 5);
     sizer_button->Add(m_button_confirm, 0, wxALL, 5);
 
     sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
@@ -736,7 +753,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     sizer_main->Add(sizer_link, 0, wxLEFT | wxRIGHT, 15);
     sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
     sizer_main->Add(sizer_help, 1, wxLEFT | wxRIGHT, 15);
-    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 8);
+    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
     sizer_main->Add(sizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT, 15);
     sizer_main->Add(0, 0, 0, wxTOP, 18);
 
