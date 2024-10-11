@@ -124,7 +124,7 @@ private:
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
 
-    void        create_filament_action_menu();
+    void        create_filament_action_menu(bool init);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     // Orca: add submenu for adding handy models

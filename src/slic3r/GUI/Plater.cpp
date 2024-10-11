@@ -657,17 +657,20 @@ class AMSCountPopupWindow : public PopupWindow
 {
 public:
     AMSCountPopupWindow(wxWindow * parent, wxStaticText *text, int index)
-        : PopupWindow(parent, wxBORDER_SIMPLE)
+        : PopupWindow(parent, wxBORDER_NONE)
     {
         auto msg  = new wxStaticText(this, wxID_ANY, _L("Please set the number of ams installed on the this extrusion head."));
         msg->SetFont(Label::Body_14);
+        msg->SetForegroundColour(0x6B6B6B);
         msg->Wrap(FromDIP(240));
         auto img4 = new ScalableButton(this, wxID_ANY, "ams_4_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
         auto img1 = new ScalableButton(this, wxID_ANY, "ams_1_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
         auto txt4 = new wxStaticText(this, wxID_ANY, _L("AMS(4 colors)"));
         txt4->SetFont(Label::Body_14);
+        txt4->SetForegroundColour(0x6B6B6B);
         auto txt1 = new wxStaticText(this, wxID_ANY, _L("AMS(single color)"));
         txt1->SetFont(Label::Body_14);
+        txt1->SetForegroundColour(0x6B6B6B);
         int ams4 = 0, ams1 = 0;
         GetAMSCount(index, ams4, ams1);
         auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
@@ -697,6 +700,13 @@ public:
 
         Layout();
         Fit();
+
+        Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
+                wxPaintDC dc(this);
+                dc.SetPen(wxColour(0xEEEEEE));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+            });
 
         SetBackgroundColour(*wxWHITE);
         wxGetApp().UpdateDarkUIWin(this);
@@ -1014,10 +1024,10 @@ Sidebar::Sidebar(Plater *parent)
                 window->Popup();
             });
             ams_count_edit->SetBackgroundColour(*wxWHITE);
-            ams_count_sizer->Add(ams_count_title, 2, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-            ams_count_sizer->Add(ams_count_text, 1, wxLEFT | wxEXPAND, FromDIP(10));
-            ams_count_sizer->Add(ams_count_edit, 2, wxLEFT | wxEXPAND, FromDIP(10));
-            static_box_sizer->Add(ams_count_sizer, 0, wxTOP | wxBOTTOM | wxEXPAND, FromDIP(5));
+            ams_count_sizer->Add(ams_count_title, 2, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(8));
+            ams_count_sizer->Add(ams_count_text, 1, wxLEFT | wxEXPAND);
+            ams_count_sizer->Add(ams_count_edit, 2, wxLEFT | wxEXPAND);
+            static_box_sizer->Add(ams_count_sizer, 0, wxTOP | wxEXPAND, FromDIP(8));
             p->m_dual_extruder_sizer->Add(static_box_sizer, 1, wxEXPAND);
             return ams_count_text;
         };
@@ -1033,16 +1043,22 @@ Sidebar::Sidebar(Plater *parent)
         extruder_btn->SetFont(Label::Body_8);
         extruder_btn->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         extruder_btn->SetCornerRadius(0);
-        extruder_btn->SetBorderColor(0xE4E4E4);
+        StateColor extruder_btn_bg_col(std::pair<wxColour, int>(wxColour(0xCECECE), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Hovered),
+            std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Normal));
+        StateColor extruder_btn_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
+            std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+        extruder_btn->SetBackgroundColor(extruder_btn_bg_col);
+        extruder_btn->SetBorderColor(extruder_btn_bd_col);
         extruder_btn->SetPaddingSize({FromDIP(6), FromDIP(12)});
         extruder_btn->SetMinSize({FromDIP(48), FromDIP(68)});
-        extruder_btn->SetMinSize({FromDIP(48), FromDIP(68)});
-        extruder_btn->SetMaxSize({FromDIP(48), FromDIP(82)});
+        extruder_btn->SetMaxSize({FromDIP(48), FromDIP(68)});
         extruder_btn->SetVertical();
         extruder_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { p->sync_extruder_list(); });
         p->m_extruder_sync = extruder_btn;
         p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
-        p->m_dual_extruder_sizer->Add(extruder_btn, 0, wxEXPAND);
+        p->m_dual_extruder_sizer->Add(extruder_btn, 0, wxTOP | wxEXPAND, FromDIP(6));
         p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
 
         vsizer_printer->Add(p->m_dual_extruder_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -1667,8 +1683,7 @@ void Sidebar::msw_rescale()
 
     p->m_extruder_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
     p->m_extruder_sync->SetMinSize({FromDIP(48), FromDIP(68)});
-    p->m_extruder_sync->SetMinSize({FromDIP(48), FromDIP(68)});
-    p->m_extruder_sync->SetMaxSize({FromDIP(48), FromDIP(82)});
+    p->m_extruder_sync->SetMaxSize({FromDIP(48), FromDIP(68)});
     p->m_extruder_sync->Rescale();
 #if 0
     if (p->mode_sizer)
