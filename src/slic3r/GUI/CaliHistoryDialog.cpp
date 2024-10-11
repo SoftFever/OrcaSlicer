@@ -378,7 +378,7 @@ void HistoryWindow::sync_history_data() {
             PACalibResult result_buffer = result;
             result_buffer.k_value = stof(k_value->GetLabel().ToStdString());
             result_buffer.name = name_value->GetLabel().ToUTF8().data();
-            EditCalibrationHistoryDialog dlg(this, result_buffer);
+            EditCalibrationHistoryDialog dlg(this, result_buffer, curr_obj);
             if (dlg.ShowModal() == wxID_OK) {
                 auto new_result = dlg.get_result();
 
@@ -456,7 +456,7 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result)
+EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow *parent, const PACalibResult &result, const MachineObject *obj)
     : DPIDialog(parent, wxID_ANY, _L("Edit Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_new_result(result)
 {
@@ -483,6 +483,31 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     Label* preset_name_value = new Label(top_panel, preset_name);
     flex_sizer->Add(preset_name_title);
     flex_sizer->Add(preset_name_value);
+
+    if (obj && obj->is_multi_extruders()) {
+
+        Label   *extruder_name_title = new Label(top_panel, _L("Extruder"));
+        int    extruder_index      = obj->is_main_extruder_on_left() ? result.extruder_id : 1 - result.extruder_id;
+        wxString extruder_name       = extruder_index == 0 ? _L("Left") : _L("Right");
+        Label   *extruder_name_value   = new Label(top_panel, extruder_name);
+        flex_sizer->Add(extruder_name_title);
+        flex_sizer->Add(extruder_name_value);
+
+        Label *nozzle_name_title = new Label(top_panel, _L("Nozzle"));
+        wxString  nozzle_name;
+        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
+        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
+            for (auto iter = nozzle_volume_type_def->enum_keys_map->begin(); iter != nozzle_volume_type_def->enum_keys_map->end(); ++iter) {
+                if (iter->second == result.nozzle_volume_type) {
+                    nozzle_name = _L(iter->first);
+                    break;
+                }
+            }
+        }
+        Label *nozzle_name_value = new Label(top_panel, nozzle_name);
+        flex_sizer->Add(nozzle_name_title);
+        flex_sizer->Add(nozzle_name_value);
+    }
 
     Label* k_title = new Label(top_panel, _L("Factor K"));
     auto k_str = wxString::Format("%.3f", m_new_result.k_value);
@@ -690,6 +715,33 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     flex_sizer->Add(preset_name_title);
     flex_sizer->Add(m_comboBox_filament);
 
+    if (curr_obj->is_multi_extruders())
+    {
+        Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
+        m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+        wxArrayString extruder_items;
+        extruder_items.push_back("Left");
+        extruder_items.push_back("Right");
+        m_comboBox_extruder->Set(extruder_items);
+        m_comboBox_extruder->SetSelection(-1);
+        flex_sizer->Add(extruder_name_title);
+        flex_sizer->Add(m_comboBox_extruder);
+
+        Label *nozzle_name_title = new Label(top_panel, _L("Nozzle"));
+        m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+        wxArrayString nozzle_items;
+        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
+        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                nozzle_items.push_back(_L(item));
+            }
+        }
+        m_comboBox_nozzle_type->Set(nozzle_items);
+        m_comboBox_nozzle_type->SetSelection(-1);
+        flex_sizer->Add(nozzle_name_title);
+        flex_sizer->Add(m_comboBox_nozzle_type);
+    }
+
     Label *nozzle_diameter_title = new Label(top_panel, _L("Nozzle Diameter"));
     m_comboBox_nozzle_diameter = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
     static std::array<float, 4> nozzle_diameter_list = {0.2f, 0.4f, 0.6f, 0.8f};
@@ -748,6 +800,14 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
+{
+    if ((extruder_index != -1) && curr_obj->is_multi_extruders()) {
+        return curr_obj->is_main_extruder_on_left() ? extruder_index : (1 - extruder_index);
+    }
+    return 0;
+}
+
 void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 {
     wxString name = m_name_value->GetTextCtrl()->GetValue();
@@ -772,6 +832,24 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         MessageDialog msg_dlg(nullptr, _L("The filament must be selected."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
+    }
+
+    if (curr_obj->is_multi_extruders()) {
+        std::string extruder_name = m_comboBox_extruder->GetValue().ToStdString();
+        if (extruder_name.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("The extruder must be selected."), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+        std::string nozzle_name = m_comboBox_nozzle_type->GetValue().ToStdString();
+        if (nozzle_name.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("The nozzle must be selected."), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+
+        m_new_result.extruder_id        = get_extruder_id(m_comboBox_extruder->GetSelection());
+        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_extruder->GetSelection());
     }
 
     auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
