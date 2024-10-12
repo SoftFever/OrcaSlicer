@@ -17,8 +17,8 @@ using namespace Slic3r::GUI;
 static int _scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
 static int _ITEM_WIDTH() { return _scale(30); }
 #define MIN_DIALOG_WIDTH        FromDIP(400)
-#define SLIDER_WIDTH            FromDIP(150)
-#define TEXT_CTRL_WIDTH         FromDIP(50)
+#define SLIDER_WIDTH            FromDIP(200)
+#define TEXT_CTRL_WIDTH         FromDIP(70)
 #define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
 #define BUTTON_BORDER           FromDIP(int(400 - 58 * 2) / 8)
 #define SLIDER_SCALE(val)       ((val) / 0.001)
@@ -70,8 +70,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     wxBoxSizer* linear_sizer = new wxBoxSizer(wxHORIZONTAL);
     //linear_sizer->SetMinSize(wxSize(MIN_DIALOG_WIDTH, -1));
     wxStaticText* linear_title = new wxStaticText(this,
-                                                  wxID_ANY,
-                                                  _L("Linear Deflection"));
+                                                  wxID_ANY, _L("Linear Deflection") + ": ");
     linear_sizer->Add(linear_title, 0, wxALIGN_LEFT);
     linear_sizer->AddStretchSpacer(1);
     wxSlider* linear_slider = new wxSlider(this, wxID_ANY,
@@ -81,7 +80,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
                                            wxSL_HORIZONTAL);
     linear_sizer->Add(linear_slider, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
 
-    auto linear_input = new ::TextInput(this, m_linear_last, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(TEXT_CTRL_WIDTH, -1));
+    auto linear_input = new ::TextInput(this, m_linear_last, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(TEXT_CTRL_WIDTH, -1), wxTE_CENTER);
     linear_input->GetTextCtrl()->SetFont(Label::Body_12);
     linear_input->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     linear_sizer->Add(linear_input, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
@@ -123,8 +122,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
 
     wxBoxSizer* angle_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* angle_title = new wxStaticText(this,
-                                                  wxID_ANY,
-                                                  _L("Angle Deflection"));
+                                                  wxID_ANY, _L("Angle Deflection") + ": ");
     angle_sizer->Add(angle_title, 0, wxALIGN_LEFT);
     angle_sizer->AddStretchSpacer(1);
     wxSlider* angle_slider = new wxSlider(this, wxID_ANY,
@@ -134,7 +132,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
                                            wxSL_HORIZONTAL);
     angle_sizer->Add(angle_slider, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
 
-    auto angle_input = new::TextInput(this, m_angle_last, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(TEXT_CTRL_WIDTH, -1));
+    auto angle_input = new ::TextInput(this, m_angle_last, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(TEXT_CTRL_WIDTH, -1), wxTE_CENTER);
     angle_input->GetTextCtrl()->SetFont(Label::Body_12);
     angle_input->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     angle_sizer->Add(angle_input, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
@@ -176,7 +174,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     bSizer->Add(angle_sizer, 1, wxEXPAND | wxLEFT | wxRIGHT, LEFT_RIGHT_PADING);
 
     wxBoxSizer* mesh_face_number_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticText* mesh_face_number_title = new wxStaticText(this, wxID_ANY, _L("Number of triangular facets"));
+    wxStaticText *mesh_face_number_title = new wxStaticText(this, wxID_ANY, _L("Number of triangular facets") + ": ");
     mesh_face_number_text = new wxStaticText(this, wxID_ANY, _L("0"));
     mesh_face_number_text->SetMinSize(wxSize(FromDIP(150), -1));
     mesh_face_number_sizer->Add(mesh_face_number_title, 0, wxALIGN_LEFT);
