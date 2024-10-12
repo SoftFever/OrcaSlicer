@@ -1886,7 +1886,7 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
     closeCount = 1;
 
     update_test_msg(wxEmptyString, true);
-    update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close later"), closeCount), true);
+    update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
   
     closeTimer->Start(1000);
 
