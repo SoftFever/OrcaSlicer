@@ -1954,7 +1954,7 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
     wxGetApp().preset_bundle->update_num_filaments(filament_id);
     wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
-    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id);
+    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id > filament_id ? (replace_filament_id - 1) : replace_filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
