@@ -789,7 +789,7 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
-    wxMenu* filament_action_menu();
+    wxMenu* filament_action_menu(int active_filament_menu_id);
     int     GetPlateIndexByRightMenuInLeftUI();
     void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);

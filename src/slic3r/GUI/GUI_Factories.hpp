@@ -78,7 +78,7 @@ public:
     wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
 
-    wxMenu *filament_action_menu();
+    wxMenu *filament_action_menu(int active_filament_menu_id);
 
 private:
     enum MenuType {
@@ -124,7 +124,7 @@ private:
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
 
-    void        create_filament_action_menu(bool init);
+    void        create_filament_action_menu(bool init, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     // Orca: add submenu for adding handy models

@@ -1384,7 +1384,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     PlaterPresetComboBox* combobox = (*combo);
     edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, filament_idx](wxCommandEvent) {
-        auto menu = p->plater->filament_action_menu();
+        auto menu = p->plater->filament_action_menu(filament_idx);
         wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
         pt = edit_btn->ClientToScreen(pt);
         pt = wxGetApp().mainframe->ScreenToClient(pt);
@@ -15306,7 +15306,7 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
-wxMenu *Plater::filament_action_menu() { return p->menus.filament_action_menu(); }
+wxMenu *Plater::filament_action_menu(int active_filament_menu_id) { return p->menus.filament_action_menu(active_filament_menu_id); }
 int     Plater::GetPlateIndexByRightMenuInLeftUI() { return p->m_is_RightClickInLeftUI; }
 void    Plater::SetPlateIndexByRightMenuInLeftUI(int index) { p->m_is_RightClickInLeftUI = index; }
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :

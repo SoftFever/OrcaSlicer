@@ -1467,7 +1467,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
     menu->AppendSeparator();
 }
 
-void MenuFactory::create_filament_action_menu(bool init)
+void MenuFactory::create_filament_action_menu(bool init, int active_filament_menu_id)
 {
     wxMenu *menu = &m_filament_action_menu;
 
@@ -1486,6 +1486,9 @@ void MenuFactory::create_filament_action_menu(bool init)
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     int filaments_cnt = icons.size();
     for (int i = 0; i < filaments_cnt; i++) {
+        if (i == active_filament_menu_id)
+            continue;
+
         auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
         wxString item_name = preset ? from_u8(preset->label(false)) : wxString::Format(_L("Filament %d"), i + 1);
 
@@ -1623,7 +1626,7 @@ void MenuFactory::init(wxWindow* parent)
     //BBS: add part plate related logic
     create_plate_menu();
 
-    create_filament_action_menu(true);
+    create_filament_action_menu(true, -1);
 
     // create "Instance to Object" menu item
     append_menu_item_instance_to_object(&m_instance_menu);
@@ -1782,8 +1785,8 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     return menu;
 }
 
-wxMenu *MenuFactory::filament_action_menu() {
-    create_filament_action_menu(false);
+wxMenu *MenuFactory::filament_action_menu(int active_filament_menu_id) {
+    create_filament_action_menu(false, active_filament_menu_id);
     return &m_filament_action_menu;
 }
 
