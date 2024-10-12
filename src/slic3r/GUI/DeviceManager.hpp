@@ -724,16 +724,12 @@ public:
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;
-    PACalibTabInfo             pa_calib_tab_info;
     bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
     bool                       get_flow_calib_result { false };
     std::vector<FlowRatioCalibResult> flow_ratio_results;
     void reset_pa_cali_history_result()
     {
-        pa_calib_tab_info.pa_calib_tab_nozzle_dia = 0.4f;
-        pa_calib_tab_info.extruder_id             = -1;
-        pa_calib_tab_info.nozzle_volume_type      = NozzleVolumeType::nvtNormal;
         has_get_pa_calib_tab = false;
         pa_calib_tab.clear();
     }

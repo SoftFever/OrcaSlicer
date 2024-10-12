@@ -2298,6 +2298,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
     std::string filament_ids;
     for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
         j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
+        j["print"]["filaments"][i]["extruder_id"]          = pa_data.calib_datas[i].extruder_id;
         j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
         j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
         j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
@@ -4702,37 +4703,25 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         has_get_pa_calib_tab = true;
                     }
 
-                    if (jj.contains("nozzle_diameter")) {
-                        if (jj["nozzle_diameter"].is_number_float()) {
-                            pa_calib_tab_info.pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
-                        }
-                        else if (jj["nozzle_diameter"].is_string()) {
-                            pa_calib_tab_info.pa_calib_tab_nozzle_dia = string_to_float(jj["nozzle_diameter"].get<std::string>());
-                        }
-                        else {
-                            assert(false);
-                        }
-                    }
-                    else {
-                        assert(false);
-                    }
-
-                    if (jj.contains("extruder_id")) {
-                        pa_calib_tab_info.extruder_id = jj["extruder_id"].get<int>();
-                    }
-
-                    if (jj.contains("nozzle_volume_type")) {
-                        pa_calib_tab_info.nozzle_volume_type = NozzleVolumeType(jj["nozzle_volume_type"].get<int>());
-                    }
-
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
-                                pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
                                 pa_calib_result.name        = (*it)["name"].get<std::string>();
                                 pa_calib_result.cali_idx    = (*it)["cali_idx"].get<int>();
+
+                                if ((*it).contains("setting_id")) {
+                                    pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                }
+
+                                if ((*it).contains("extruder_id")) {
+                                    pa_calib_result.extruder_id = (*it)["extruder_id"].get<int>();
+                                }
+
+                                if ((*it).contains("nozzle_id")) {
+                                    pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
+                                }
 
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
@@ -4788,7 +4777,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
-                                pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+
+                                if ((*it).contains("setting_id")) {
+                                    pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                }
 
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
