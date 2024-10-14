@@ -502,6 +502,7 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 	std::vector<boost::filesystem::path> paths;
 	std::vector<std::string> downloads;
 	boost::regex re(R"(^(orcaslicer|prusaslicer|cura|bambustudio):\/\/open[\/]?\?file=)", boost::regbase::icase);
+	boost::regex re2(R"(^(bambustudioopen):\/\/)", boost::regex::icase);
 	boost::smatch results;
 
 	// Skip the first argument, it is the path to the slicer executable.
@@ -510,7 +511,7 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 		boost::filesystem::path p = MessageHandlerInternal::get_path(*it);
 		if (! p.string().empty())
 			paths.emplace_back(p);
-		else if (boost::regex_search(*it, results, re))
+		else if (boost::regex_search(*it, results, re) || boost::regex_search(*it, results, re2))
 			downloads.emplace_back(*it);
 	}
 	if (! paths.empty()) {

@@ -182,10 +182,6 @@ void Layer::make_perimeters()
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
                         && config.top_bottom_infill_wall_overlap              == other_config.top_bottom_infill_wall_overlap
-                        && config.fuzzy_skin                  == other_config.fuzzy_skin
-                        && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
-                        && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
-                        && config.fuzzy_skin_first_layer          == other_config.fuzzy_skin_first_layer
                         && config.seam_slope_type         == other_config.seam_slope_type
                         && config.seam_slope_conditional == other_config.seam_slope_conditional
                         && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
@@ -208,7 +204,7 @@ void Layer::make_perimeters()
 	        
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
+                (*layerm)->make_perimeters((*layerm)->slices, {*layerm}, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
@@ -232,7 +228,7 @@ void Layer::make_perimeters()
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-	            layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap);
+	            layerm_config->make_perimeters(new_slices, layerms, &fill_surfaces, &fill_no_overlap);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) { 

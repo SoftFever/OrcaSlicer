@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-09-11 22:56+0800\n"
-"PO-Revision-Date: 2024-09-26 14:37+0800\n"
+"PO-Revision-Date: 2024-10-14 22:14+0800\n"
 "Last-Translator: lin-ycv <victorlin@gapps.ntust.edu.tw>\n"
 "Language-Team: \n"
 "Language: zh_TW\n"
@@ -5673,6 +5673,9 @@ msgstr "鎖定列印板"
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 #, fuzzy
 msgid "Customize current plate"
 msgstr "自訂列印板參數"
@@ -7509,6 +7512,15 @@ msgid ""
 "does not support to print on the Cool Plate"
 msgstr "使用低溫列印板時的熱床溫度。0 值表示這個線材不支援低溫列印板"
 
+msgid "Textured Cool plate"
+msgstr "紋理低溫列印板"
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
+#, fuzzy
 msgid "Engineering plate"
 msgstr "工程高溫列印板"
 
@@ -9292,6 +9304,11 @@ msgstr "除首層外的床溫。0 值表示這個線材不支援低溫列印板"
 msgid "°C"
 msgstr "°C"
 
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
@@ -9322,6 +9339,11 @@ msgid ""
 "support to print on the Cool Plate"
 msgstr "首層熱床溫度。0 值表示這個線材不支援低溫列印板"
 
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -9344,13 +9366,18 @@ msgstr "首層熱床溫度。0 值表示這個線材不支援紋理 PEI 列印�
 msgid "Bed types supported by the printer"
 msgstr "列印設備所支援的列印板類型"
 
-#, fuzzy
-msgid "Cool Plate"
-msgstr "低溫列印板"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 #, fuzzy
 msgid "Engineering Plate"
 msgstr "工程高溫列印板"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "首層列印順序"
@@ -10282,7 +10309,7 @@ msgstr "壓力提前（Klipper）或者線性提前（Marlin）"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10307,6 +10334,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -15876,6 +15904,10 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#, fuzzy
+#~ msgid "Cool Plate"
+#~ msgstr "低溫列印板"
 
 #, fuzzy
 #~ msgid "Reverse on odd"

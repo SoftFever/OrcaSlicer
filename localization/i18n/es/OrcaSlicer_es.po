@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2024-09-25 19:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -4891,7 +4891,7 @@ msgid "Show object overhang highlight in 3D scene"
 msgstr "Mostrar resalte de voladizos de objeto en escena 3D"
 
 msgid "Show Selected Outline (Experimental)"
-msgstr "Mostrar esquema seleccionado (Experimental)"
+msgstr "Mostrar Contorno Seleccionado (Experimental)"
 
 msgid "Show outline around selected object in 3D scene"
 msgstr "Mostrar el contorno alrededor del objeto seleccionado en la escena 3D"
@@ -5960,6 +5960,9 @@ msgstr "Bloquear bandeja actual"
 
 msgid "Edit current plate name"
 msgstr "Editar el nombre de la bandeja actual"
+
+msgid "Move plate to the front"
+msgstr ""
 
 msgid "Customize current plate"
 msgstr "Personalizar bandeja actual"
@@ -7946,6 +7949,14 @@ msgstr ""
 "Un valor de 0 significa que el filamento no admite la impresión en la "
 "Bandeja Fría"
 
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+
 msgid "Engineering plate"
 msgstr "Bandeja de Ingeniería"
 
@@ -7976,7 +7987,7 @@ msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
 msgstr ""
-"Temperatura del lecho cuando la Bandeja PEI Texturizada está instalada. El "
+"Temperatura de la cama cuando la Bandeja PEI Texturizada está instalada. El "
 "valor 0 significa que el filamento no es compatible para imprimir en la "
 "Bandeja PEI Texturizada"
 
@@ -9853,6 +9864,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Esta es la temperatura de la cama para las capas excepto la inicial. Un "
@@ -9889,6 +9905,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Esta es la temperatura de la cama de la primera capa. Un valor de 0 "
@@ -9913,11 +9934,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Tipos de cama que admite la impresora"
 
-msgid "Cool Plate"
-msgstr "Bandeja Fría"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Bandeja de Ingeniería"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Secuencia de impresión de primera capa"
@@ -11108,7 +11135,7 @@ msgstr "Pressure Advance(Klipper) AKA Factor de avance lineal(Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Activar Avance de Presión Lineal Adaptativo (beta)"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -11152,6 +11179,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Medidas de avance lineal de presión adaptativo (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -15152,13 +15180,14 @@ msgstr "Tamaño del cuadro delimitador de la primera capa"
 
 msgid "Bottom-left corner of print bed bounding box"
 msgstr ""
-"Esquina inferior izquierda del cuadro delimitador del lecho de impresión"
+"Esquina inferior izquierda del cuadro delimitador de la cama de impresión"
 
 msgid "Top-right corner of print bed bounding box"
-msgstr "Esquina superior derecha del cuadro delimitador del lecho de impresión"
+msgstr ""
+"Esquina superior derecha del cuadro delimitador de la cama de impresión"
 
 msgid "Size of the print bed bounding box"
-msgstr "Tamaño del cuadro delimitador del lecho de impresión"
+msgstr "Tamaño del cuadro delimitador de la cama de impresión"
 
 msgid "Timestamp"
 msgstr "Marca de tiempo"
@@ -17701,8 +17730,11 @@ msgid ""
 msgstr ""
 "Evite la deformación\n"
 "Sabías que al imprimir materiales propensos a la deformación como el ABS, "
-"aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
+"aumentar adecuadamente la temperatura de la cama térmica puede reducir la "
 "probabilidad de deformaciones."
+
+#~ msgid "Cool Plate"
+#~ msgstr "Bandeja Fría"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Invertir en impar"
