@@ -9708,6 +9708,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::MultiExtruderPrintableError: {
         text.clear();
+        int master_extruder_id = 0;  // main extruder is left or right
+        if (m_config->has("master_extruder_id"))
+            master_extruder_id = m_config->opt_int("master_extruder_id") - 1;
         for (auto error_iter = m_gcode_viewer.m_gcode_check_result.error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.end(); ++error_iter) {
             if (error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.begin()) {
                 text += "\n";
@@ -9720,8 +9723,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 }
                 filaments += std::to_string(error_iter->second[i] + 1);
             }
-            text += (boost::format(_u8L("Extruder %d conflicts with filaments: %s.")) %extruder_id %filaments).str();
+            std::string extruder_name = extruder_id == master_extruder_id ? "Left extruder" : "Right extruder";
+            if (error_iter->second.size() == 1) {
+                text += (boost::format(_u8L("Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
+            }
+            else {
+                text += (boost::format(_u8L("Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
+            }
         }
+        text += "\n";
+        text += _u8L("Open wiki for more information.");
         error = ErrorType::SLICING_ERROR;
         break;
     }
