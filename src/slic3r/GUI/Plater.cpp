@@ -1140,11 +1140,9 @@ Sidebar::Sidebar(Plater *parent)
             ConfigOptionFloats *flush_multi_opt = project_config.option<ConfigOptionFloats>("flush_multiplier");
             if (flush_multi_opt)
                 flush_multiplier = cast<float>(flush_multi_opt->values);
-            else {
-                for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                    flush_multiplier.push_back(1.f);
-                }
-            }
+
+            flush_multiplier.resize(nozzle_nums, 1.0f);
+
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier, nozzle_nums);
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();

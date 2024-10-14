@@ -3373,9 +3373,14 @@ void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filam
 
     // Now verify if flush_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
-
+    size_t old_nozzle_nums = this->project_config.option<ConfigOptionFloats>("flush_multiplier")->values.size();
+    size_t old_number_of_filaments = size_t(sqrt(old_matrix.size() / old_nozzle_nums) + EPSILON);
     size_t nozzle_nums = get_printer_extruder_count();
-    size_t old_number_of_filaments = size_t(sqrt(old_matrix.size() / nozzle_nums) + EPSILON);
+    if (old_nozzle_nums != nozzle_nums) {
+        std::vector<double>& f_multiplier = this->project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+        f_multiplier.resize(nozzle_nums, 1.f);
+    }
+
     if (num_filaments != old_number_of_filaments) {
         // First verify if purging volumes presets for each extruder matches number of extruders
         std::vector<double>& filaments = this->project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values;
