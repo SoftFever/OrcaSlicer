@@ -2038,8 +2038,14 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     
                     try
                     {
-                        mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
-                        mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                        if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
+                            mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_ID;
+                            mapping_item_v1["slot_id"] = VIRTUAL_TRAY_ID;
+                        }
+                        else {
+                            mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
+                            mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                        }
                     }
                     catch (...)
                     {
