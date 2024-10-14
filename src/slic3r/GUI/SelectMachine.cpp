@@ -3043,6 +3043,9 @@ void SelectMachineDialog::update_show_status()
         };
         std::vector<ExtruderStatus> extruder_status(nozzle_nums);
         for (const FilamentInfo &item : m_ams_mapping_result) {
+            if (item.ams_id.empty())
+                continue;
+
             int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
             if (DeviceManager::is_virtual_slot(stoi(item.ams_id)))
                 extruder_status[extruder_id].has_vt_slot = true;
