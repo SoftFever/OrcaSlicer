@@ -3122,6 +3122,20 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
+            // update printing stage
+            m_project_task_panel->update_left_time(obj->mc_left_time);
+            if (obj->subtask_) {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
+                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+
+            } else {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
+                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            }
+
             if (obj->is_printing_finished()) {
                 obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
@@ -3166,19 +3180,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
-            // update printing stage
-            
-            m_project_task_panel->update_left_time(obj->mc_left_time);
-            if (obj->subtask_) {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
-                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
-
-            } else {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
-                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
-            }
         }
 
         m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
@@ -3202,7 +3203,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     }
 
-    this->Layout();
+    Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)

@@ -413,6 +413,8 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
+    m_tip_readonly->SetLabelText(wxEmptyString);
+
     if (!en) {
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
     }
