@@ -258,7 +258,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(parent, _L("Setting AMS slot information while printing is not supported"));
+    m_tip_readonly = new Label(parent, _L(""));
     m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->SetBackgroundColour(*wxWHITE);
     m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
@@ -424,15 +424,14 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
         m_tip_readonly->Hide(); 
     }
     else {
-        //m_comboBox_filament->Show(en);
-        //m_readonly_filament->Show(!en);
+        if (!obj->is_support_filament_setting_inprinting) {
+            if (!is_virtual_tray()) {
+                m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
+            } else {
+                m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
+            }
+        }
 
-        if ( !is_virtual_tray() ) {
-            m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
-        }
-        else {
-            m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
-        }
         m_tip_readonly->Wrap(FromDIP(380));
         m_tip_readonly->Show(!en);
     }
