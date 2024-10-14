@@ -1,5 +1,6 @@
 #include "FilamentGroup.hpp"
 #include "GCode/ToolOrderUtils.hpp"
+#include "FlushVolPredictor.hpp"
 #include <queue>
 #include <random>
 #include <cassert>
@@ -51,16 +52,6 @@ namespace Slic3r
             }
         }
         return true;
-    }
-
-    static int calc_color_distance(const Color &src, const Color &dst)
-    {
-        double rmean = (src.r + dst.r) / 2.f;
-        double dr = src.r - dst.r;
-        double dg = src.g - dst.g;
-        double db = src.b - dst.b;
-
-        return sqrt((512 + rmean) / 256.f * dr * dr + 4 * dg * dg + (767 - rmean) / 256 * db * db);
     }
 
     // clear the array and heap,save the groups in heap to the array
@@ -177,14 +168,30 @@ namespace Slic3r
         return false;
     }
 
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors_str, const std::vector<std::vector<std::string>>& ams_filament_colors_str)
+    /**
+     * @brief Select the group that best fit the filaments in AMS
+     *
+     * Calculate the total color distance between the grouping results and the AMS filaments through
+     * minimum cost maximum flow. Only those with a distance difference within the threshold are
+     * considered valid.
+     *
+     * @param map_lists Group list with similar flush count
+     * @param used_filaments Idx of used filaments
+     * @param used_filament_colors_str Colors of used filaments
+     * @param ams_filament_colors_str Colors of filaments in AMS,should have same size with extruder
+     * @param color_threshold Threshold for considering colors to be similar
+     * @return The group that best fits the filament distribution in AMS
+     */
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors_str, const std::vector<std::vector<std::string>>& ams_filament_colors_str,const double color_threshold)
     {
+        using namespace FlushPredict;
         // change the color str to real colors
         std::vector<Color>used_filament_colors;
         std::vector<std::vector<Color>>ams_filament_colors(2);
         for (auto& item : used_filament_colors_str)
             used_filament_colors.emplace_back(Color(item));
 
+        const double ams_color_dist_threshold = used_filaments.size() * color_threshold;
 
         for (size_t idx = 0; idx < ams_filament_colors_str.size(); ++idx) {
             std::vector<Color> tmp;
@@ -212,8 +219,12 @@ namespace Slic3r
 
                 // calculate color distance matrix
                 for (size_t src = 0; src < group_colors[i].size(); ++src) {
-                    for (size_t dst = 0; dst < ams_filament_colors[i].size(); ++dst)
-                        distance_matrix[src][dst] = calc_color_distance(group_colors[i][src], ams_filament_colors[i][dst]);
+                    for (size_t dst = 0; dst < ams_filament_colors[i].size(); ++dst) {
+                        distance_matrix[src][dst] = calc_color_distance(
+                            RGBColor(group_colors[i][src].r, group_colors[i][src].g, group_colors[i][src].b),
+                            RGBColor(ams_filament_colors[i][dst].r, ams_filament_colors[i][dst].g, ams_filament_colors[i][dst].b)
+                        );
+                    }
                 }
 
                 // get min cost by min cost max flow
@@ -230,7 +241,7 @@ namespace Slic3r
                 }
             }
 
-            if (tmp_cost < best_cost) {
+            if (tmp_cost < ams_color_dist_threshold && tmp_cost < best_cost) {
                 best_cost = tmp_cost;
                 best_map = map;
             }
