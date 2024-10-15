@@ -5964,7 +5964,7 @@ msgid "Edit current plate name"
 msgstr "Modifier le nom du plateau actuel"
 
 msgid "Move plate to the front"
-msgstr ""
+msgstr "Déplacer le plateau vers l’avant"
 
 msgid "Customize current plate"
 msgstr "Personnaliser le plateau actuel"
