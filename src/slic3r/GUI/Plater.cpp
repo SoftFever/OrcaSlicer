@@ -13661,34 +13661,36 @@ void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzl
     // Verify whether it is the first time start Studio
     size_t filament_nums = project_config->option<ConfigOptionStrings>("filament_colour")->values.size();
     size_t flush_volume_size = project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values.size();
-    if (filament_nums * filament_nums * new_nozzle_size == flush_volume_size)
-        return;
 
     assert(nozzle_nums == new_nozzle_size);
     if (old_nozzle_size < new_nozzle_size) {
         std::vector<double>        flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, -1, old_nozzle_size);
         std::vector<double>  first_flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, 0, old_nozzle_size);
+        first_flush_volume_mtx.resize(filament_nums * filament_nums);
 
         std::vector<double> flush_multipliers = project_config->option<ConfigOptionFloats>("flush_multiplier")->values;
         double first_flush_multiplier = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(0);
 
-        for (size_t i = old_nozzle_size; i < new_nozzle_size; ++i) {
+        flush_volume_mtx.clear();
+        for (size_t i = 0; i < new_nozzle_size; ++i) {
             flush_volume_mtx.insert(flush_volume_mtx.end(), first_flush_volume_mtx.begin(), first_flush_volume_mtx.end());
-            flush_multipliers.push_back(first_flush_multiplier);
         }
+
+        flush_multipliers.resize(nozzle_nums, 1.f);
+
         set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, flush_volume_mtx, -1, new_nozzle_size);
         project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
     }
     else if (old_nozzle_size > new_nozzle_size) {
         std::vector<double> new_flush_volume_mtx;
-        std::vector<double> flush_multipliers;
         for (size_t i = 0; i < new_nozzle_size; ++i) {
             std::vector<double> flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, i, old_nozzle_size);
+            flush_volume_mtx.resize(filament_nums * filament_nums);
             new_flush_volume_mtx.insert(new_flush_volume_mtx.end(), flush_volume_mtx.begin(), flush_volume_mtx.end());
-
-            double multiplier_val = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(i);
-            flush_multipliers.push_back(multiplier_val);
         }
+
+        std::vector<double> flush_multipliers = project_config->option<ConfigOptionFloats>("flush_multiplier")->values;
+        flush_multipliers.resize(nozzle_nums);
         set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, new_flush_volume_mtx, -1, new_nozzle_size);
         project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
     }
