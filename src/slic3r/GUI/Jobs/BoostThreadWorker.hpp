@@ -21,11 +21,11 @@ namespace Slic3r { namespace GUI {
 // finishing operation and arbitrary functiors that need to be performed
 // on the main thread during the jobs execution, like displaying intermediate
 // results.
-class BoostThreadWorker : public Worker, private Job::Ctl
+class BoostThreadWorker : public Worker, private JobNew::Ctl
 {
     struct JobEntry // Goes into worker and also out of worker as a finalize msg
     {
-        std::unique_ptr<Job> job;
+        std::unique_ptr<JobNew> job;
         bool                 canceled = false;
         std::exception_ptr   eptr     = nullptr;
     };
@@ -110,7 +110,7 @@ public:
     BoostThreadWorker &operator=(const BoostThreadWorker &) = delete;
     BoostThreadWorker &operator=(BoostThreadWorker &&) = delete;
 
-    bool push(std::unique_ptr<Job> job) override;
+    bool push(std::unique_ptr<JobNew> job) override;
 
     bool is_idle() const override
     {

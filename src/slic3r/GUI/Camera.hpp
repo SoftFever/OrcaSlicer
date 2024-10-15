@@ -2,6 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Frustum.hpp"
 #include "3DScene.hpp"
 #include <array>
 
@@ -55,6 +56,9 @@ private:
     std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
+    Frustum       m_frustum;
+    Vec3f         m_last_eye, m_last_center, m_last_up;
+    float         m_last_near, m_last_far, m_last_aspect, m_last_fov,m_last_zoom;
 
 public:
     Camera() { set_default_orientation(); }
@@ -69,7 +73,7 @@ public:
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
     void translate(const Vec3d& displacement);
-    const Vec3d& get_target()  { 
+    const Vec3d& get_target()  {
         update_target();
         return m_target; }
     void set_target(const Vec3d& target);
@@ -100,35 +104,26 @@ public:
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
     Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
 
-
     Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
-
+    const Frustum &                  getFrustum() const { return m_frustum; }
+    void                             update_frustum();
     double get_near_z() const { return m_frustrum_zs.first; }
     double get_far_z() const { return m_frustrum_zs.second; }
     const std::pair<double, double>& get_z_range() const { return m_frustrum_zs; }
 
-    double get_near_left() const;
-    double get_near_right() const;
-    double get_near_top() const;
-    double get_near_bottom() const;
-    double get_near_width() const;
-    double get_near_height() const;
-
     double get_fov() const;
 
-    void set_viewport(int x, int y, unsigned int w, unsigned int h);
-    void apply_viewport() const;
+    void apply_viewport(int x, int y, unsigned int w, unsigned int h);
+    void apply_view_matrix();
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);
 
-    void apply_projection(double left, double right, double bottom, double top, double near_z, double far_z);
-
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
-
+    void debug_frustum();
 #if ENABLE_CAMERA_STATISTICS
-    void debug_render() const;
+    void debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
     // translate the camera in world space
@@ -137,7 +132,7 @@ public:
     // BBS rotate the camera on a sphere having center == target
     void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target);
     void rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target);
-
+    void calc_horizontal_rotate_rad(float &rotation_rad);
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
     // if apply_limits == true the camera stops rotating when its forward vector is parallel to the world Z axis
@@ -145,8 +140,6 @@ public:
 
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
-
-    void set_rotation(const Transform3d& rotation);
 
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
@@ -171,9 +164,9 @@ private:
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box);
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
-    void set_distance(double distance);
 
     void set_default_orientation();
+    void set_iso_orientation();
     Vec3d validate_target(const Vec3d& target) const;
     void update_zenit();
     void update_target();

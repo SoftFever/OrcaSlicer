@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "GLTexture.hpp"
 #include "Event.hpp"
@@ -57,7 +58,6 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_ASSEMBLE, SimpleEvent);
-
 
 
 class GLToolbarItem
@@ -138,6 +138,7 @@ public:
         // mouse right click
         Option right;
         bool visible;
+        bool continuous_click{false};
         VisibilityCallback visibility_callback;
         EnablingCallback enabling_callback;
 
@@ -155,6 +156,7 @@ public:
             left = data.left;
             right = data.right;
             visible = data.visible;
+            continuous_click    = data.continuous_click;
             visibility_callback = data.visibility_callback;
             enabling_callback = data.enabling_callback;
             image_data = data.image_data;
@@ -174,14 +176,19 @@ private:
     Data m_data;
     EActionType m_last_action_type;
     EHighlightState m_highlight_state;
+    std::chrono::system_clock::time_point start;
+
 public:
+
     // remember left position for rendering menu
     mutable float render_left_pos;
+
+    std::chrono::system_clock::time_point get_start_time_point() const { return start; }
 
     GLToolbarItem(EType type, const Data& data);
 
     EState get_state() const { return m_state; }
-    void set_state(EState state) { m_state = state; }
+    void set_state(EState state);
 
     EHighlightState get_highlight() const { return m_highlight_state; }
     void set_highlight(EHighlightState state) { m_highlight_state = state; }
@@ -219,6 +226,7 @@ public:
     bool update_enabled_state();
 
     //BBS: GUI refactor: GLToolbar
+    bool get_continuous_click_flag() const { return m_data.continuous_click; }
     bool is_action() const { return m_type == Action; }
     bool is_action_with_text() const { return m_type == ActionWithText; }
     bool is_action_with_text_image() const { return m_type == ActionWithTextImage; }
@@ -329,7 +337,7 @@ private:
     mutable GLTexture m_images_texture;
     mutable bool m_images_texture_dirty;
     BackgroundTexture m_background_texture;
-    GLTexture m_arrow_texture;
+    BackgroundTexture m_arrow_texture;
     Layout m_layout;
 
     ItemsList m_items;
@@ -356,7 +364,7 @@ public:
 
     bool init(const BackgroundTexture::Metadata& background_texture);
 
-    bool init_arrow(const std::string& filename);
+    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
@@ -438,8 +446,8 @@ private:
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
-    void render_background(float left, float top, float right, float bottom, float border_w, float border_h) const;
-    void render_horizontal(const GLCanvas3D &parent, GLToolbarItem::EType type);
+    void render_background(float left, float top, float right, float bottom, float border) const;
+    void render_horizontal(const GLCanvas3D& parent,GLToolbarItem::EType type);
     void render_vertical(const GLCanvas3D& parent);
 
     bool generate_icons_texture();

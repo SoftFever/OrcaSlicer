@@ -24,7 +24,6 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "libslic3r/Color.hpp"
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -374,7 +373,7 @@ void PresetComboBox::update_from_bundle()
 
 void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
-    bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
+    bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
         set_label_marker(Append(separator(L("AMS filaments")), wxNullBitmap));
         m_first_ams_filament = GetCount();
@@ -799,10 +798,8 @@ bool PlaterPresetComboBox::switch_to_tab()
     //BBS  Select NoteBook Tab params
     if (tab->GetParent() == wxGetApp().params_panel())
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-    else {
+    else
         wxGetApp().params_dialog()->Popup();
-        tab->OnActivate();
-    }
     tab->restore_last_select_item();
 
     const Preset* selected_filament_preset = nullptr;
@@ -962,6 +959,7 @@ void PlaterPresetComboBox::update()
     std::map<wxString, wxBitmap*>  project_embedded_presets;
     std::map<wxString, wxBitmap *> system_presets;
     std::map<wxString, wxString>   preset_descriptions;
+    std::map<wxString, std::string>   preset_filament_types;
 
     //BBS:  move system to the end
     wxString selected_system_preset;
@@ -986,6 +984,7 @@ void PlaterPresetComboBox::update()
             continue;
 
         bool single_bar = false;
+        const wxString name = get_preset_name(preset);
         if (m_type == Preset::TYPE_FILAMENT)
         {
 #if 0
@@ -997,13 +996,13 @@ void PlaterPresetComboBox::update()
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
+            preset_filament_types[name] = preset.config.option<ConfigOptionStrings>("filament_type")->values.at(0);
         }
 
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
-        const wxString name = get_preset_name(preset);
-        preset_descriptions.emplace(name, from_u8(preset.description));
+        preset_descriptions.emplace(name, _L(preset.description));
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -1040,35 +1039,43 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor())
-        add_ams_filaments(into_u8(selected_user_preset), true);
+
+    if (m_type == Preset::TYPE_FILAMENT)
+        add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
+
+    std::vector<std::string> first_types = { "PLA", "PETG" };
+    auto add_presets = [this, &preset_descriptions, &preset_filament_types, &first_types]
+            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
+        if (!presets.empty()) {
+            set_label_marker(Append(separator(group), wxNullBitmap));
+            if (m_type == Preset::TYPE_FILAMENT) {
+                std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
+                std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
+                std::sort(list.begin(), list.end(), [&preset_filament_types, &first_types](auto *l, auto *r) {
+                    auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
+                    auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
+                    if (iter1 == iter2)
+                        return l->first < r->first;
+                    return iter1 < iter2;
+                });
+                for (auto it : list) {
+                    SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
+                    validate_selection(it->first == selected);
+                }
+            } else {
+                for (std::map<wxString, wxBitmap *>::const_iterator it = presets.begin(); it != presets.end(); ++it) {
+                    SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
+                    validate_selection(it->first == selected);
+                }
+            }
+        }
+    };
 
     //BBS: add project embedded preset logic
-    if (!project_embedded_presets.empty())
-    {
-        set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
-            validate_selection(it->first == selected_user_preset);
-        }
-    }
-    if (!nonsys_presets.empty())
-    {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
-            validate_selection(it->first == selected_user_preset);
-        }
-    }
-    //BBS: move system to the end
-    if (!system_presets.empty())
-    {
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
-            SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
-            validate_selection(it->first == selected_system_preset);
-        }
-    }
+    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"));
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"));
+    // BBS: move system to the end
+    add_presets(system_presets, selected_system_preset, L("System presets"));
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)
@@ -1242,7 +1249,7 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
-        preset_descriptions.emplace(name, from_u8(preset.description));
+        preset_descriptions.emplace(name, _L(preset.description));
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -1274,7 +1281,7 @@ void TabPresetComboBox::update()
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
 
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor())
+    if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected));
 
     //BBS: add project embedded preset logic

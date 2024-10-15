@@ -4,8 +4,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <wx/app.h>
 #include <wx/button.h>
 #include <wx/scrolwin.h>
@@ -22,6 +20,8 @@
 #include <wx/tokenzr.h>
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
+
+#include <boost/log/trivial.hpp>
 
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
@@ -64,11 +64,6 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     Bind(EVT_PROJECT_RELOAD, &ProjectPanel::on_reload, this);
 
-    m_auxiliary = new AuxiliaryPanel(this);
-    m_auxiliary->Hide();
-    main_sizer->Add(m_auxiliary, wxSizerFlags().Expand().Proportion(1));
-    Bind(EVT_AUXILIARY_DONE, [this](wxCommandEvent& e) { update_model_data();});
-
     SetSizer(main_sizer);
     Layout();
     Fit();
@@ -98,38 +93,51 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         std::string model_author;
         std::string cover_file;
         std::string description;
+        std::map<std::string, std::vector<json>> files;
+
         std::string p_name;
         std::string p_author;
         std::string p_description;
         std::string p_cover_file;
-
-        std::map<std::string, std::vector<json>> files;
+        std::string model_id;
 
         Model model = wxGetApp().plater()->model();
 
-        auto model_info = model.model_info;
-        if (model_info != nullptr) {
-            license     = model_info->license;
-            model_name  = model_info->model_name;
-            cover_file  = model_info->cover_file;
-            description = model_info->description;
-            update_type = model_info->origin;
+        license = model.model_info->license;
+        model_name = model.model_info->model_name;
+        cover_file = model.model_info->cover_file;
+        description = model.model_info->description;
+        update_type = model.model_info->origin;
 
-            try {
-                if (!model_info->copyright.empty()) {
-                    json copy_right = json::parse(model_info->copyright);
 
-                    if (copy_right.is_array()) {
-                        for (auto it = copy_right.begin(); it != copy_right.end(); it++) {
-                            if ((*it).contains("author")) {
-                                model_author = (*it)["author"].get<std::string>();
-                            }
+
+        if (model.design_info && !model.design_info->DesignerId.empty()) {
+
+            if (m_model_id_map.count(model.design_info->DesignerId) > 0) {
+                model_id = m_model_id_map[model.design_info->DesignerId];
+            }
+            else {
+                model_id = get_model_id(model.design_info->DesignerId);
+                m_model_id_map[model.design_info->DesignerId] = model_id;
+            }
+        }
+        
+
+        try {
+            if (!model.model_info->copyright.empty()) {
+                json copy_right = json::parse(model.model_info->copyright);
+
+                if (copy_right.is_array()) {
+                    for (auto it = copy_right.begin(); it != copy_right.end(); it++) {
+                        if ((*it).contains("author")) {
+                            model_author = (*it)["author"].get<std::string>();
                         }
                     }
                 }
-            } catch (...) {
-                ;
             }
+        }
+        catch (...) {
+            ;
         }
 
         if (model_author.empty() && model.design_info != nullptr)
@@ -142,44 +150,12 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
             p_author = model.profile_info->ProfileUserName;
         }
 
-        // file info
+        //file info
         std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
         if (!file_path.empty()) {
             files = Reload(file_path);
-            wxGetApp().CallAfter([this, file_path, files] { m_auxiliary->Reload(file_path, files); });
-        } else {
-            clear_model_info();
-            return;
         }
-
-        bool has_content = false;
-        for (const string& v : {
-                 update_type,
-                 license,
-                 model_name,
-                 model_author,
-                 cover_file,
-                 description,
-                 p_name,
-                 p_author,
-                 p_description,
-                 p_cover_file,
-             }) {
-            if (!v.empty()) {
-                has_content = true;
-                break;
-            }
-        }
-        if (!has_content) {
-            for (const auto & file : files) {
-                if (!file.second.empty()) {
-                    has_content = true;
-                    break;
-                }
-            }
-        }
-        if (!has_content) {
-            // Nothing to show, just return
+        else {
             clear_model_info();
             return;
         }
@@ -192,6 +168,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         j["model"]["description"] = wxGetApp().url_encode(description);
         j["model"]["preview_img"] = files["Model Pictures"];
         j["model"]["upload_type"] = update_type;
+        j["model"]["model_id"] = model_id;
 
         j["file"]["BOM"] = files["Bill of Materials"];
         j["file"]["Assembly"] = files["Assembly Guide"];
@@ -218,9 +195,36 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
     });
 }
 
+std::string ProjectPanel::get_model_id(std::string desgin_id)
+{
+    std::string model_id;
+    auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/model/" + desgin_id);
+    Http http = Http::get(host);
+    http.header("accept", "application/json")
+        //.header("Authorization")
+        .on_complete([this, &model_id](std::string body, unsigned status) {
+        try {
+            json j = json::parse(body);
+            if (j.contains("id")) {
+                int mid = j["id"].get<int>();
+                if (mid > 0) {
+                    model_id = std::to_string(mid);
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
+            })
+        .on_error([this](std::string body, std::string error, unsigned status) {
+            })
+        .perform_sync();
+
+    return model_id;
+}
+
 void ProjectPanel::msw_rescale() 
 {
-    m_auxiliary->msw_rescale();
 }
 
 void ProjectPanel::on_size(wxSizeEvent &event)
@@ -256,8 +260,25 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         else if (strCmd == "request_3mf_info") {
             m_web_init_completed = true;
         }
-        else if (strCmd == "edit_project_info") {
-            show_info_editor(true);
+        else if (strCmd == "modelmall_model_open") {
+            if (j.contains("data")) {
+                json data = j["data"];
+
+                if (data.contains("id")) {
+                    wxString model_id =  j["data"]["id"];
+
+                    if (!model_id.empty()) {
+                        std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+                        auto l = wxGetApp().current_language_code_safe();
+                        if (auto n = l.find('_'); n != std::string::npos)
+                            l = l.substr(0, n);
+                        auto url = (boost::format("%1%%2%/models/%3%") % h % l % model_id).str();
+                        wxLaunchDefaultBrowser(url);
+                    }
+                }
+            }
+            
+            
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];
@@ -266,29 +287,19 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         }
 
     }
-    catch (std::exception&) {
+    catch (std::exception& e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
-}
-
-void ProjectPanel::show_info_editor(bool show)
-{
-    m_browser->Show(!show);
-    m_auxiliary->Show(show);
-    Layout();
 }
 
 void ProjectPanel::update_model_data()
 {
     Model model = wxGetApp().plater()->model();
-    show_info_editor(false);
     clear_model_info();
 
-    m_auxiliary->init_auxiliary();
-
     //basics info
-    //if (model.model_info == nullptr)
-    //    return;
+    if (model.model_info == nullptr)
+        return;
     
     auto event = wxCommandEvent(EVT_PROJECT_RELOAD);
     event.SetEventObject(this);
@@ -312,6 +323,7 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
 {
     std::vector<fs::path>                           dir_cache;
     fs::directory_iterator                          iter_end;
+    wxString                                        m_root_dir;
     std::map<std::string, std::vector<json>> m_paths_list;
 
     const static std::array<wxString, 5> s_default_folders = {
@@ -329,16 +341,24 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
 
     fs::path new_aux_path(aux_path.ToStdWstring());
 
+    try {
+        fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory" << m_root_dir.c_str();
+    }
+
+    m_root_dir = aux_path;
     // Check new path. If not exist, create a new one.
     if (!fs::exists(new_aux_path)) {
         fs::create_directory(new_aux_path);
-    }
-
-    // Create default folders if they are not loaded
-    for (auto folder : s_default_folders) {
-        wxString folder_path = aux_path + "/" + folder;
-        if (fs::exists(folder_path.ToStdWstring())) continue;
-        fs::create_directory(folder_path.ToStdWstring());
+        // Create default folders if they are not loaded
+        for (auto folder : s_default_folders) {
+            wxString folder_path = aux_path + "/" + folder;
+            if (fs::exists(folder_path.ToStdWstring())) continue;
+            fs::create_directory(folder_path.ToStdWstring());
+        }
+        return m_paths_list;
     }
 
     // Load from new path
@@ -365,8 +385,7 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                     wxString file_name = encode_path(file_path.c_str());
                     wxStat(file_name, &strucStat);
                     wxFileOffset filelen = strucStat.st_size;
-
-                    pfile_obj["_filepath"] = file_path;
+     
                     pfile_obj["filename"] = wxGetApp().url_encode(file_path_obj.filename().string().c_str());
                     pfile_obj["size"] = formatBytes((unsigned long)filelen);
 

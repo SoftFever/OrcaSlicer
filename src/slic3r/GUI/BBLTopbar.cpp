@@ -134,19 +134,19 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     {
         if (item.GetState() & wxAUI_BUTTON_STATE_PRESSED)
         {
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(20)));
             dc.DrawRectangle(rect);
         }
         else if ((item.GetState() & wxAUI_BUTTON_STATE_HOVER) || item.IsSticky())
         {
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
 
             // draw an even lighter background for checked item hovers (since
             // the hover background is the same color as the check background)
             if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
-                dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+                dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(50)));
 
             dc.DrawRectangle(rect);
         }
@@ -154,8 +154,8 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
         {
             // it's important to put this code in an else statement after the
             // hover, otherwise hovers won't draw properly for checked items
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
             dc.DrawRectangle(rect);
         }
     }
@@ -406,6 +406,12 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
         return;
     }
 
+    // record
+    json j;
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (agent)
+        agent->track_event("enter_model_mall", j.dump());
+
     //no more check
     //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 
@@ -536,6 +542,15 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_frame->Restore();
     }
     else {
+        wxDisplay display(this);
+        auto      size = display.GetClientArea().GetSize();
+#ifdef __WXMSW__
+        HWND hWnd = m_frame->GetHandle();
+        RECT      borderThickness;
+        SetRectEmpty(&borderThickness);
+        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        m_frame->SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
+#endif //  __WXMSW__
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }

@@ -2,7 +2,7 @@
 #define _OBJ_COLOR_DIALOG_H_
 
 #include "GUI_Utils.hpp"
-#include "libslic3r/Color.hpp"
+#include "GuiColor.hpp"
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -12,11 +12,7 @@
 class Button;
 class Label;
 class ComboBox;
-struct ColorDistValue
-{
-    int   id;
-    float distance;
-};
+
 class ObjColorPanel : public wxPanel
 {
 public:
@@ -45,6 +41,7 @@ private:
     void update_color_icon_and_rgba_sizer(int id, const wxColour &color);
     ComboBox* CreateEditorCtrl(wxWindow *parent,int id);
     void draw_table();
+    void update_new_add_final_colors();
     void show_sizer(wxSizer *sizer, bool show);
     void redraw_part_table();
     void deal_approximate_match_btn();
@@ -82,9 +79,11 @@ private:
     int m_input_colors_size{0};
     std::vector<wxColour> m_colours;//from project and show right
     std::vector<int>      m_cluster_map_filaments;//show middle
+    int                   m_max_filament_index = 0;
     std::vector<wxColour> m_cluster_colours;//from_algo and show left
     bool                  m_can_add_filament{true};
     std::vector<wxColour> m_new_add_colors;
+    std::vector<wxColour> m_new_add_final_colors;
     //algo result
     std::vector<Slic3r::RGBA> m_cluster_colors_from_algo;
     std::vector<int>          m_cluster_labels_from_algo;

@@ -78,8 +78,6 @@ static std::string get_view_type_string(GCodeViewer::EViewType view_type)
         return _u8L("Filament");
     else if (view_type == GCodeViewer::EViewType::LayerTime)
         return _u8L("Layer Time");
-else if (view_type == GCodeViewer::EViewType::LayerTimeLog)
-        return _u8L("Layer Time (log)");
     return "";
 }
 
@@ -89,6 +87,42 @@ static unsigned char buffer_id(EMoveType type) {
 
 static EMoveType buffer_type(unsigned char id) {
     return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
+}
+
+static std::array<float, 4> decode_color(const std::string& color) {
+    static const float INV_255 = 1.0f / 255.0f;
+
+    std::array<float, 4> ret = { 0.0f, 0.0f, 0.0f, 1.0f };
+    const char* c = color.data() + 1;
+    if (color.size() == 7 && color.front() == '#') {
+        for (size_t j = 0; j < 3; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1)
+                break;
+
+            ret[j] = float(digit1 * 16 + digit2) * INV_255;
+        }
+    }
+    else if (color.size() == 9 && color.front() == '#') {
+        for (size_t j = 0; j < 4; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1)
+                break;
+
+            ret[j] = float(digit1 * 16 + digit2) * INV_255;
+        }
+    }
+    return ret;
+}
+
+static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::string>& colors) {
+    std::vector<std::array<float, 4>> output(colors.size(), { 0.0f, 0.0f, 0.0f, 1.0f });
+    for (size_t i = 0; i < colors.size(); ++i) {
+        output[i] = decode_color(colors[i]);
+    }
+    return output;
 }
 
 // Round to a bin with minimum two digits resolution.
@@ -228,44 +262,60 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move
         move.volumetric_rate(), move.layer_duration, move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
 
-ColorRGBA GCodeViewer::Extrusions::Range::get_color_at(float value) const
+GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value, EType type) const
 {
-    // Input value scaled to the colors range
-    const float step = step_size();
-    float _min = min;
-    if(log_scale) {
-        value = std::log(value);
-        _min = std::log(min);
+    float       global_t = 0.0f;
+    const float step     = step_size(type);
+    if (step > 0.0f) {
+        switch (type) {
+        default:
+        case EType::Linear: {
+            global_t = (value > min) ? (value - min) / step : 0.0f;
+            break;
+        }
+        case EType::Logarithmic: {
+            global_t = (value > min && min > 0.0f) ? ::log(value / min) / step : 0.0f;
+            break;
+        }
+        }
     }
-    const float global_t = (step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f; // lower limit of 0.0f
-
     const size_t color_max_idx = Range_Colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
-    const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
+    const size_t color_low_idx  = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
+    // Compute how far the value is between the low and high colors so that they can be interpolated
+    const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    return lerp(Range_Colors[color_low_idx], Range_Colors[color_high_idx], global_t - static_cast<float>(color_low_idx));
+    auto color = lerp(ColorRGBA(Range_Colors[color_low_idx]), ColorRGBA(Range_Colors[color_high_idx]), local_t);
+    return color.get_data();
 }
 
-float GCodeViewer::Extrusions::Range::step_size() const {
-if (log_scale)
-    {
-        float min_range = min;
-        if (min_range == 0)
-            min_range = 0.001f;
-        return (std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f));
-    } else
-    return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+float GCodeViewer::Extrusions::Range::step_size(EType type) const {
+    switch (type) {
+    default:
+    case EType::Linear: {
+        return (max > min) ? (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
+    }
+    case EType::Logarithmic: {
+        return (max > min && min > 0.0f) ? ::log(max / min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
+    }
+    }
 }
 
 float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
     if (!log_scale)
         return min + static_cast<float>(step) * step_size();
     else
-    return std::exp(std::log(min) + static_cast<float>(step) * step_size());
-    
+    // calculate log-average
+    {
+        float min_range = min;
+        if (min_range == 0)
+            min_range = 0.0001f;
+        float step_size = std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+        return std::exp(std::log(min) + static_cast<float>(step) * step_size);
+    }
 }
 GCodeViewer::SequentialRangeCap::~SequentialRangeCap() {
     if (ibo > 0)
@@ -289,7 +339,7 @@ void GCodeViewer::SequentialView::Marker::init(std::string filename)
     } else {
         m_model.init_from_file(filename);
     }
-    m_model.set_color({ 1.0f, 1.0f, 1.0f, 0.5f });
+    m_model.set_color(-1, {1.0f, 1.0f, 1.0f, 0.5f});
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -303,7 +353,7 @@ void GCodeViewer::SequentialView::Marker::update_curr_move(const GCodeProcessorR
 }
 
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type)
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type) const
 {
     if (!m_visible)
         return;
@@ -318,15 +368,12 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     shader->start_using();
     shader->set_uniform("emission_factor", 0.0f);
 
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d& view_matrix = camera.get_view_matrix();
-    const Transform3d model_matrix = m_world_transform.cast<double>();
-    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
-    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixf(m_world_transform.data()));
 
     m_model.render();
+
+    glsafe(::glPopMatrix());
 
     shader->stop_using();
 
@@ -360,81 +407,81 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
-    std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
+    std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
-    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
+    const float item_size = imgui.calc_text_size("X: 000.000  ").x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
     char buf[1024];
-     if (true)
+    // extra text depends on whether current move is extrude type
+    bool show_extra_text = m_curr_move.type == EMoveType::Extrude;
+    // FeatureType and ColorPrint shall only show x,y,z
+    if (view_type == EViewType::FeatureType || view_type == EViewType::ColorPrint)
+        show_extra_text = false;
+    // Feedrate and LayerTime shall always show extra text
+    else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime)
+        show_extra_text = true;
+    if (show_extra_text)
     {
-        float startx2 = window_padding + item_size + item_spacing;
-        float startx3 = window_padding + 2*(item_size + item_spacing);
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        ImGui::SameLine(startx2);
+        ImGui::SameLine(window_padding + item_size + item_spacing);
         sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        ImGui::SameLine(startx3);
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
-        ImGui::PushItemWidth(item_size);
-        imgui.text(buf);
-
-        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
         switch (view_type) {
         case EViewType::Height: {
-            ImGui::SameLine(startx2);
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.2f", height.c_str(), m_curr_move.height);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Width: {
-            ImGui::SameLine(startx2);
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.2f", width.c_str(), m_curr_move.width);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
-        // case EViewType::Feedrate: {
-        //     ImGui::SameLine(startx2);
-        //     sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-        //     ImGui::PushItemWidth(item_size);
-        //     imgui.text(buf);
-        //     break;
-        // }
+        case EViewType::Feedrate: {
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            break;
+        }
         case EViewType::VolumetricRate: {
-            ImGui::SameLine(startx2);
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::FanSpeed: {
-            ImGui::SameLine(startx2);
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Temperature: {
-            ImGui::SameLine(startx2);
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
-        case EViewType::LayerTime:
-        case EViewType::LayerTimeLog: {
-            ImGui::SameLine(startx2);
+        case EViewType::LayerTime:{
+            ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
@@ -445,20 +492,20 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         }
         text_line = 2;
     }
-    // else {
-    //     sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-    //     imgui.text(buf);
+    else {
+        sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+        imgui.text(buf);
 
-    //     ImGui::SameLine();
-    //     sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-    //     imgui.text(buf);
+        ImGui::SameLine();
+        sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+        imgui.text(buf);
 
-    //     ImGui::SameLine();
-    //     sprintf(buf, "%s%.3f", z.c_str(), position.z());
-    //     imgui.text(buf);
+        ImGui::SameLine();
+        sprintf(buf, "%s%.3f", z.c_str(), position.z());
+        imgui.text(buf);
 
-    //     text_line = 1;
-    // }
+        text_line = 1;
+    }
 
     // force extra frame to automatically update window size
     float window_width = ImGui::GetWindowWidth();
@@ -507,22 +554,19 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, float right, uint64_t curr_line_id) const
 //void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
 {
-    // Orca: truncate long lines(>55 characters), add "..." at the end
     auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
-            const size_t start        = id == 1 ? 0 : m_lines_ends[id - 2];
-            const size_t original_len = m_lines_ends[id - 1] - start;
-            const size_t len          = std::min(original_len, (size_t) 55);
-            std::string  gline(m_file.data() + start, len);
+            const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
+            const size_t len   = m_lines_ends[id - 1] - start;
+            std::string gline(m_file.data() + start, len);
 
-            // If original line is longer than 55 characters, truncate and append "..."
-            if (original_len > 55)
-                gline = gline.substr(0, 52) + "...";
+            std::string command;
+            std::string parameters;
+            std::string comment;
 
-            std::string command, parameters, comment;
             // extract comment
             std::vector<std::string> tokens;
             boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
@@ -540,18 +584,18 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
                     }
                 }
             }
-            ret.push_back({command, parameters, comment});
+            ret.push_back({ command, parameters, comment });
         }
         return ret;
     };
 
-    static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
-    static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
-    static const ImVec4 COMMAND_COLOR        = {0.8f, 0.8f, 0.0f, 1.0f};
-    static const ImVec4 PARAMETERS_COLOR     = { 1.0f, 1.0f, 1.0f, 1.0f };
-    static const ImVec4 COMMENT_COLOR        = { 0.7f, 0.7f, 0.7f, 1.0f };
+    static const ImVec4 LINE_NUMBER_COLOR = { 0, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f };
+    static const ImVec4 SELECTION_RECT_COLOR = { 0, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f };
+    static const ImVec4 COMMAND_COLOR = m_is_dark ? ImVec4( 240.0f / 255.0f, 240.0f / 255.0f, 240.0f / 255.0f, 1.0f ) : ImVec4( 1.0f, 1.0f, 1.0f, 1.0f );
+    static const ImVec4 PARAMETERS_COLOR = m_is_dark ? ImVec4( 179.0f / 255.0f, 179.0f / 255.0f, 179.0f / 255.0f, 1.0f ) : ImVec4( 206.0f / 255.0f, 206.0f / 255.0f, 206.0f / 255.0f, 1.0f );
+    static const ImVec4 COMMENT_COLOR = m_is_dark ? ImVec4(129.0f / 255.0f, 129.0f / 255.0f, 129.0f / 255.0f, 1.0f) : ImVec4( 172.0f / 255.0f, 172.0f / 255.0f, 172.0f / 255.0f, 1.0f );
 
-    if (!wxGetApp().show_gcode_window() || m_filename.empty() || m_lines_ends.empty() || curr_line_id == 0)
+    if (!m_visible || m_filename.empty() || m_lines_ends.empty() || curr_line_id == 0)
         return;
 
     // window height
@@ -674,14 +718,10 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type)
+//BBS: GUI refactor: move to the right
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
 {
-    if (has_render_path && m_show_marker) {
-        marker.set_world_position(current_position);
-        marker.set_world_offset(current_offset);
-
-        marker.render(canvas_width, canvas_height, view_type);
-    }
+    marker.render(canvas_width, canvas_height, view_type);
 
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
@@ -689,11 +729,11 @@ void GCodeViewer::SequentialView::render(const bool has_render_path, float legen
     if (wxGetApp().is_editor())
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
-    if (has_render_path)
-        gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
+    //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
+    gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
-const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
+const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.90f, 0.70f, 0.70f, 1.0f },   // erNone
     { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
     { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
@@ -703,8 +743,7 @@ const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.94f, 0.25f, 0.25f, 1.0f },   // erTopSolidInfill
     { 0.40f, 0.36f, 0.78f, 1.0f },   // erBottomSurface
     { 1.00f, 0.55f, 0.41f, 1.0f },   // erIroning
-    { 0.30f, 0.40f, 0.63f, 1.0f },   // erBridgeInfill
-    { 0.30f, 0.50f, 0.73f, 1.0f },   // erInternalBridgeInfill
+    { 0.30f, 0.50f, 0.73f, 1.0f },   // erBridgeInfill
     { 1.00f, 1.00f, 1.00f, 1.0f },   // erGapFill
     { 0.00f, 0.53f, 0.43f, 1.0f },   // erSkirt
     { 0.00f, 0.23f, 0.43f, 1.0f },   // erBrim
@@ -715,7 +754,7 @@ const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
 }};
 
-const std::vector<ColorRGBA> GCodeViewer::Options_Colors{ {
+const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
     { 0.803f, 0.135f, 0.839f, 1.0f },   // Retractions
     { 0.287f, 0.679f, 0.810f, 1.0f },   // Unretractions
     { 0.900f, 0.900f, 0.900f, 1.0f },   // Seams
@@ -725,7 +764,7 @@ const std::vector<ColorRGBA> GCodeViewer::Options_Colors{ {
     { 0.886f, 0.825f, 0.262f, 1.0f }    // CustomGCodes
 }};
 
-const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
+const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
     { 0.219f, 0.282f, 0.609f, 1.0f }, // Move
     { 0.112f, 0.422f, 0.103f, 1.0f }, // Extrude
     { 0.505f, 0.064f, 0.028f, 1.0f }  // Retract
@@ -733,27 +772,42 @@ const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
 
 // Normal ranges
 // blue to red
-const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
-    decode_color_to_float_array("#0b2c7a"),  // bluish
-    decode_color_to_float_array("#135985"),
-    decode_color_to_float_array("#1c8891"),
-    decode_color_to_float_array("#04d60f"),
-    decode_color_to_float_array("#aaf200"),
-    decode_color_to_float_array("#fcf903"),
-    decode_color_to_float_array("#f5ce0a"),
-    //decode_color_to_float_array("#e38820"),
-    decode_color_to_float_array("#d16830"),
-    decode_color_to_float_array("#c2523c"),
-    decode_color_to_float_array("#942616")    // reddish
+const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
+    decode_color_to_float_array("#FF00FF"),  // bluish
+    decode_color_to_float_array("#FF55A9"),
+    decode_color_to_float_array("#FE8778"),
+    decode_color_to_float_array("#FFB847"),
+    decode_color_to_float_array("#FFD925"),
+    decode_color_to_float_array("#FFFF00"),
+    decode_color_to_float_array("#D8FF00"),
+    decode_color_to_float_array("#ADFF04"),
+    decode_color_to_float_array("#76FF01"),
+    decode_color_to_float_array("#00FF00")    // reddish
 }};
 
-const ColorRGBA GCodeViewer::Wipe_Color    = ColorRGBA::YELLOW();
-const ColorRGBA GCodeViewer::Neutral_Color = ColorRGBA::DARK_GRAY();
+//const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
+//    {0.043f, 0.173f, 0.478f, 1.0f}, // bluish
+//    {0.075f, 0.349f, 0.522f, 1.0f},
+//    {0.110f, 0.533f, 0.569f, 1.0f},
+//    {0.016f, 0.839f, 0.059f, 1.0f},
+//    {0.667f, 0.949f, 0.000f, 1.0f},
+//    {0.988f, 0.975f, 0.012f, 1.0f},
+//    {0.961f, 0.808f, 0.039f, 1.0f},
+//    //{0.890f, 0.533f, 0.125f, 1.0f},
+//    {0.820f, 0.408f, 0.188f, 1.0f},
+//    {0.761f, 0.322f, 0.235f, 1.0f},
+//    {0.581f, 0.149f, 0.087f, 1.0f} // reddish
+//}};
+
+
+const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
+const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 GCodeViewer::GCodeViewer()
 {
     m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
+
     m_extrusions.reset_role_visibility_flags();
 
 //    m_sequential_view.skip_invisible_moves = true;
@@ -823,8 +877,8 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         }
         case EMoveType::Travel: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::Position;
-            buffer.shader = "flat";
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
+            buffer.shader = "toolpaths_lines";
             break;
         }
         }
@@ -896,7 +950,6 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::Width);
     view_type_items.push_back(EViewType::VolumetricRate);
     view_type_items.push_back(EViewType::LayerTime);
-view_type_items.push_back(EViewType::LayerTimeLog);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
     //if (mode == ConfigOptionMode::comDevelop) {
@@ -928,7 +981,7 @@ std::vector<int> GCodeViewer::get_plater_extruder()
 
 //BBS: always load shell at preview
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
-                const std::vector<BoundingBoxf3>& exclude_bounding_box, ConfigOptionMode mode, bool only_gcode)
+                const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
@@ -978,12 +1031,11 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_settings_ids = gcode_result.settings_ids;
     m_filament_diameters = gcode_result.filament_diameters;
     m_filament_densities = gcode_result.filament_densities;
-    m_sequential_view.m_show_marker = false;
 
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
     {
-        load_shells(print);
+        //load_shells(print, initialized);
     }
     else {*/
     //BBS: add only gcode mode
@@ -1105,13 +1157,13 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 
     if (m_view_type == EViewType::Tool && !gcode_result.extruder_colors.empty()) {
         // update tool colors from config stored in the gcode
-        decode_colors(gcode_result.extruder_colors, m_tools.m_tool_colors);
+        m_tools.m_tool_colors = decode_colors(gcode_result.extruder_colors);
         m_tools.m_tool_visibles = std::vector<bool>(m_tools.m_tool_colors.size());
         for (auto item: m_tools.m_tool_visibles) item = true;
     }
     else {
         // update tool colors
-        decode_colors(str_tool_colors, m_tools.m_tool_colors);
+        m_tools.m_tool_colors = decode_colors(str_tool_colors);
         m_tools.m_tool_visibles = std::vector<bool>(m_tools.m_tool_colors.size());
         for (auto item : m_tools.m_tool_visibles) item = true;
     }
@@ -1119,11 +1171,9 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     for (int i = 0; i < m_tools.m_tool_colors.size(); i++) {
         m_tools.m_tool_colors[i] = adjust_color_for_rendering(m_tools.m_tool_colors[i]);
     }
-    ColorRGBA default_color;
-    decode_color("#FF8000", default_color);
-	// ensure there are enough colors defined
+    // ensure there are enough colors defined
     while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count)) {
-        m_tools.m_tool_colors.push_back(default_color);
+        m_tools.m_tool_colors.push_back(decode_color("#FF8000"));
         m_tools.m_tool_visibles.push_back(true);
     }
 
@@ -1149,7 +1199,6 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 
             if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);
-m_extrusions.ranges.layer_duration_log.update_from(curr.layer_duration);
             }
             [[fallthrough]];
         }
@@ -1181,13 +1230,11 @@ void GCodeViewer::refresh_render_paths()
     refresh_render_paths(false, false);
 }
 
-void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig *config)
+void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* config)
 {
     if (config != nullptr)
-        m_shells.volumes.update_colors_by_extruder(config, false);
+        m_shells.volumes.update_colors_by_extruder(config,false);
 }
-
-void GCodeViewer::set_shell_transparency(float alpha) { m_shells.volumes.set_transparency(alpha); }
 
 //BBS: always load shell at preview
 void GCodeViewer::reset_shell()
@@ -1214,7 +1261,7 @@ void GCodeViewer::reset()
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
-    m_tools.m_tool_colors = std::vector<ColorRGBA>();
+    m_tools.m_tool_colors = std::vector<Color>();
     m_tools.m_tool_visibles = std::vector<bool>();
     m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
@@ -1243,15 +1290,17 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    //BBS: always render shells in preview window
     glsafe(::glEnable(GL_DEPTH_TEST));
-    render_shells(canvas_width, canvas_height);
+    render_shells();
 
+    m_legend_height = 0.0f;
     if (m_roles.empty())
         return;
 
     render_toolpaths();
-    float legend_height = 0.0f;
-    render_legend(legend_height, canvas_width, canvas_height, right_margin);
+    //render_shells();
+    render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
 
     if (m_user_mode != wxGetApp().get_mode()) {
         update_by_mode(wxGetApp().get_mode());
@@ -1259,10 +1308,14 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     }
 
     //BBS fixed bottom_margin for space to render horiz slider
-    int bottom_margin = SLIDER_BOTTOM_MARGIN * GCODE_VIEWER_SLIDER_SCALE;
-    m_sequential_view.m_show_marker = m_sequential_view.m_show_marker || (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);
-    // BBS fixed buttom margin. m_moves_slider.pos_y
-    m_sequential_view.render(!m_no_render_path, legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
+    int bottom_margin = 64;
+
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+        m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
+        //BBS fixed buttom margin. m_moves_slider.pos_y
+        m_sequential_view.render(m_legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
+    }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1305,12 +1358,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 
 #if 1
     Camera camera;
-    camera.set_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-    camera.apply_viewport();
+    camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
     camera.set_scene_box(plate_box);
     camera.set_type(Camera::EType::Ortho);
     camera.set_target(center);
     camera.select_view("top");
+    camera.apply_view_matrix();
     camera.zoom_to_box(plate_box, 1.0f);
     camera.apply_projection(plate_box);
 
@@ -1324,7 +1377,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(!path.sizes.empty());
             assert(!path.offsets.empty());
-            shader.set_uniform(uniform_color, path.color);
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_triangles_calls_count;
@@ -1346,7 +1399,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(range.color);
+                buffer.model.model.set_color(-1, range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
@@ -1359,7 +1412,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader) {
 #else
-    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
+    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader) {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         struct Range
@@ -1375,16 +1428,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             const IBuffer& i_buffer = buffer.indices[j];
             buffer_range.last = buffer_range.first + i_buffer.count / indices_per_instance;
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-            if (position_id != -1) {
-                glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                glsafe(::glEnableVertexAttribArray(position_id));
-            }
+            glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
             bool has_normals = buffer.vertices.normal_size_floats() > 0;
             if (has_normals) {
-                if (normal_id != -1) {
-                    glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                    glsafe(::glEnableVertexAttribArray(normal_id));
-                }
+                glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
@@ -1407,11 +1456,11 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-            
-            if (normal_id != -1)
-                glsafe(::glDisableVertexAttribArray(normal_id));
-            if (position_id != -1)
-                glsafe(::glDisableVertexAttribArray(position_id));
+
+            if (has_normals)
+                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             buffer_range.first = buffer_range.last;
@@ -1427,14 +1476,9 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
         if (!buffer.visible || !buffer.has_data())
             continue;
 
-        GLShaderProgram* shader = opengl_manager.get_shader("flat");
+        GLShaderProgram* shader = opengl_manager.get_shader("cali");
         if (shader != nullptr) {
             shader->start_using();
-
-            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
-            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-            int position_id = shader->get_attrib_location("v_position");
-            int normal_id   = shader->get_attrib_location("v_normal");
 
             if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
                 //shader->set_uniform("emission_factor", 0.25f);
@@ -1443,10 +1487,13 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
             else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
                 //shader->set_uniform("emission_factor", 0.25f);
-                render_as_batched_model(buffer, *shader, position_id, normal_id);
+                render_as_batched_model(buffer, *shader);
                 //shader->set_uniform("emission_factor", 0.0f);
             }
             else {
+                switch (buffer.render_primitive_type) {
+                default: break;
+                }
                 int uniform_color = shader->get_uniform_location("uniform_color");
                 auto it_path = buffer.render_paths.begin();
                 for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
@@ -1458,16 +1505,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                         continue;
 
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                    if (position_id != -1) {
-                        glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                        glsafe(::glEnableVertexAttribArray(position_id));
-                    }
+                    glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
                     bool has_normals = false;// buffer.vertices.normal_size_floats() > 0;
                     if (has_normals) {
-                        if (normal_id != -1) {
-                            glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                            glsafe(::glEnableVertexAttribArray(normal_id));
-                        }
+                        glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
                     }
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
@@ -1483,12 +1526,11 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                     }
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-                    
-                    if (normal_id != -1)
-                        glsafe(::glDisableVertexAttribArray(normal_id));
-                    if (position_id != -1)
-                        glsafe(::glDisableVertexAttribArray(position_id));
 
+                    if (has_normals)
+                        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+                    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
                 }
             }
@@ -1729,14 +1771,12 @@ void GCodeViewer::update_moves_slider(bool set_to_max)
         ++count;
     }
 
-    bool keep_min = m_moves_slider->GetActiveValue() == m_moves_slider->GetMinValue();
-
     m_moves_slider->SetSliderValues(values);
     m_moves_slider->SetSliderAlternateValues(alternate_values);
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
     if (set_to_max)
-        m_moves_slider->SetHigherValue(keep_min ? m_moves_slider->GetMinValue() : m_moves_slider->GetMaxValue());
+        m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
 }
 
 void GCodeViewer::update_layers_slider_mode()
@@ -1876,7 +1916,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         return;
 
     // collect color information to generate materials
-    std::vector<ColorRGBA> colors;
+    std::vector<Color> colors;
     for (const RenderPath& path : t_buffer.render_paths) {
         colors.push_back(path.color);
     }
@@ -1895,13 +1935,13 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fprintf(fp, "# G-Code Toolpaths Materials\n");
-    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SoftFever_VERSION);
+    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SLIC3R_VERSION);
 
     unsigned int colors_count = 1;
-    for (const ColorRGBA& color : colors) {
+    for (const Color& color : colors) {
         fprintf(fp, "\nnewmtl material_%d\n", colors_count++);
         fprintf(fp, "Ka 1 1 1\n");
-        fprintf(fp, "Kd %g %g %g\n", color.r(), color.g(), color.b());
+        fprintf(fp, "Kd %g %g %g\n", color[0], color[1], color[2]);
         fprintf(fp, "Ks 0 0 0\n");
     }
 
@@ -1915,7 +1955,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     fprintf(fp, "# G-Code Toolpaths\n");
-    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SoftFever_VERSION);
+    fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SLIC3R_VERSION);
     fprintf(fp, "\nmtllib ./%s\n", mat_filename.filename().string().c_str());
 
     const size_t floats_per_vertex = t_buffer.vertices.vertex_size_floats();
@@ -1962,7 +2002,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     size_t i = 0;
-    for (const ColorRGBA& color : colors) {
+    for (const Color& color : colors) {
         // save material triangles to file
         fprintf(fp, "\nusemtl material_%zu\n", i + 1);
         fprintf(fp, "# triangles material %zu\n", i + 1);
@@ -2031,13 +2071,29 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         log_memory_used(label, vertices_size + indices_size);
     };
 
+    // format data into the buffers to be rendered as points
+    auto add_vertices_as_point = [](const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
+        vertices.push_back(curr.position.x());
+        vertices.push_back(curr.position.y());
+        vertices.push_back(curr.position.z());
+    };
+    auto add_indices_as_point = [](const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer,
+        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+            buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
+            indices.push_back(static_cast<IBufferType>(indices.size()));
+    };
+
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
-        auto add_vertex = [&vertices](const Vec3f& position) {
+        auto add_vertex = [&vertices](const Vec3f& position, const Vec3f& normal) {
             // add position
             vertices.push_back(position.x());
             vertices.push_back(position.y());
             vertices.push_back(position.z());
+            // add normal
+            vertices.push_back(normal.x());
+            vertices.push_back(normal.y());
+            vertices.push_back(normal.z());
         };
         // x component of the normal to the current segment (the normal is parallel to the XY plane)
         //BBS: Has modified a lot for this function to support arc move
@@ -2045,10 +2101,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         for (size_t i = 0; i < loop_num + 1; i++) {
             const Vec3f &previous = (i == 0? prev.position : curr.interpolation_points[i-1]);
             const Vec3f &current = (i == loop_num? curr.position : curr.interpolation_points[i]);
+            const Vec3f dir = (current - previous).normalized();
+            Vec3f normal(dir.y(), -dir.x(), 0.0);
+            normal.normalize();
             // add previous vertex
-            add_vertex(previous);
+            add_vertex(previous, normal);
             // add current vertex
-            add_vertex(current);
+            add_vertex(current, normal);
         }
     };
     //BBS: modify a lot to support arc travel
@@ -2285,27 +2344,28 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     };
 
     // format data into the buffers to be rendered as batched model
-    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::Geometry& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
+    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::InitializationData& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
         const double width = static_cast<double>(1.5f * curr.width);
         const double height = static_cast<double>(1.5f * curr.height);
 
         const Transform3d trafo = Geometry::assemble_transform((curr.position - 0.5f * curr.height * Vec3f::UnitZ()).cast<double>(), Vec3d::Zero(), { width, width, height });
         const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> normal_matrix = trafo.matrix().template block<3, 3>(0, 0).inverse().transpose();
 
-        // append vertices
-        const size_t vertices_count = data.vertices_count();
-        for (size_t i = 0; i < vertices_count; ++i) {
-            // append position
-            const Vec3d position = trafo * data.extract_position_3(i).cast<double>();
-            vertices.push_back(float(position.x()));
-            vertices.push_back(float(position.y()));
-            vertices.push_back(float(position.z()));
+        for (const auto& entity : data.entities) {
+            // append vertices
+            for (size_t i = 0; i < entity.positions.size(); ++i) {
+                // append position
+                const Vec3d position = trafo * entity.positions[i].cast<double>();
+                vertices.push_back(static_cast<float>(position.x()));
+                vertices.push_back(static_cast<float>(position.y()));
+                vertices.push_back(static_cast<float>(position.z()));
 
-            // append normal
-            const Vec3d normal = normal_matrix * data.extract_normal_3(i).cast<double>();
-            vertices.push_back(float(normal.x()));
-            vertices.push_back(float(normal.y()));
-            vertices.push_back(float(normal.z()));
+                // append normal
+                const Vec3d normal = normal_matrix * entity.normals[i].cast<double>();
+                vertices.push_back(static_cast<float>(normal.x()));
+                vertices.push_back(static_cast<float>(normal.y()));
+                vertices.push_back(static_cast<float>(normal.z()));
+            }
         }
 
         // append instance position
@@ -2316,10 +2376,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         instances_ids.push_back(move_id);
     };
 
-    auto add_indices_as_model_batch = [](const GLModel::Geometry& data, IndexBuffer& indices, IBufferType base_index) {
-        const size_t indices_count = data.indices_count();
-        for (size_t i = 0; i < indices_count; ++i) {
-            indices.push_back(static_cast<IBufferType>(data.extract_index(i) + base_index));
+    auto add_indices_as_model_batch = [](const GLModel::InitializationData& data, IndexBuffer& indices, IBufferType base_index) {
+        for (const auto& entity : data.entities) {
+            for (size_t i = 0; i < entity.indices.size(); ++i) {
+                indices.push_back(static_cast<IBufferType>(entity.indices[i] + base_index));
+            }
         }
     };
 
@@ -2494,6 +2555,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 
         switch (t_buffer.render_primitive_type)
         {
+        case TBuffer::ERenderPrimitiveType::Point:    { add_vertices_as_point(curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, move_id); break; }
         case TBuffer::ERenderPrimitiveType::InstancedModel:
@@ -2881,7 +2943,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         if (i_multibuffer.back().size() * sizeof(IBufferType) >= IBUFFER_THRESHOLD_BYTES - indiced_size_to_add) {
             i_multibuffer.push_back(IndexBuffer());
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
-            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point &&
+                t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
                 Path& last_path = t_buffer.paths.back();
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, move_id - 1);
             }
@@ -2898,7 +2961,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
             curr_vertex_buffer.second = 0;
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
 
-            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point &&
+                t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
                 Path& last_path = t_buffer.paths.back();
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, move_id - 1);
             }
@@ -2908,6 +2972,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 
         switch (t_buffer.render_primitive_type)
         {
+        case TBuffer::ERenderPrimitiveType::Point: {
+            add_indices_as_point(curr, t_buffer, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
+            curr_vertex_buffer.second += t_buffer.max_vertices_per_segment();
+            break;
+        }
         case TBuffer::ERenderPrimitiveType::Line: {
             add_indices_as_line(prev, curr, t_buffer, curr_vertex_buffer.second, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
             break;
@@ -3073,6 +3142,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         progress_dialog->Destroy();
 }
 
+//BBS: always load shell when preview
 void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%")%initialized %force_previewing;
@@ -3097,6 +3167,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
     int object_count = 0;
     const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
+    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
     for (const PrintObject* obj : print.objects()) {
         const ModelObject* model_obj = obj->model_object();
 
@@ -3123,7 +3194,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized, enable_lod);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
@@ -3138,32 +3209,32 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         object_count++;
     }
 
-    // Orca: disable wipe tower shell
-    // if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
-        //     // BBS: adds wipe tower's volume
-        //     std::vector<unsigned int> print_extruders = print.extruders(true);
-        //     int extruders_count = print_extruders.size();
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
+        // BBS: adds wipe tower's volume
+        std::vector<unsigned int> print_extruders = print.extruders(true);
+        int extruders_count = print_extruders.size();
 
-        //     const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
-        //     const PrintConfig& config = print.config();
-        //     if (config.enable_prime_tower &&
-            //         (print.enable_timelapse_print() || (extruders_count > 1 && (config.print_sequence == PrintSequence::ByLayer)))) {
-            //         const float depth = print.wipe_tower_data(extruders_count).depth;
-            //         const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
+        const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
+        const PrintConfig& config = print.config();
+        if (config.enable_prime_tower &&
+            (print.enable_timelapse_print() || (extruders_count > 1 && (config.print_sequence == PrintSequence::ByLayer)))) {
+            const float depth = print.wipe_tower_data(extruders_count).depth;
+            const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 
-            //         int plate_idx = print.get_plate_index();
-            //         Vec3d plate_origin = print.get_plate_origin();
-            //         double wipe_tower_x = config.wipe_tower_x.get_at(plate_idx) + plate_origin(0);
-            //         double wipe_tower_y = config.wipe_tower_y.get_at(plate_idx) + plate_origin(1);
-            //         m_shells.volumes.load_wipe_tower_preview(1000, wipe_tower_x, wipe_tower_y, config.prime_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                //             !print.is_step_done(psWipeTower), brim_width, initialized);
-        //     }
-    // }
+            int plate_idx = print.get_plate_index();
+            Vec3d plate_origin = print.get_plate_origin();
+            double wipe_tower_x = config.wipe_tower_x.get_at(plate_idx) + plate_origin(0);
+            double wipe_tower_y = config.wipe_tower_y.get_at(plate_idx) + plate_origin(1);
+            m_shells.volumes.load_wipe_tower_preview(1000, wipe_tower_x, wipe_tower_y, config.prime_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
+                !print.is_step_done(psWipeTower), brim_width, initialized);
+        }
+    }
 
     // remove modifiers
     while (true) {
         GLVolumePtrs::iterator it = std::find_if(m_shells.volumes.volumes.begin(), m_shells.volumes.volumes.end(), [](GLVolume* volume) { return volume->is_modifier; });
         if (it != m_shells.volumes.volumes.end()) {
+            m_shells.volumes.release_volume(*it);
             delete (*it);
             m_shells.volumes.volumes.erase(it);
         }
@@ -3173,7 +3244,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
     for (GLVolume* volume : m_shells.volumes.volumes) {
         volume->zoom_to_volumes = false;
-        volume->color.a(0.5f);
+        volume->color[3] = 0.5f;
         volume->force_native_color = true;
         volume->set_render_color();
         //BBS: add shell bounding box logic
@@ -3196,7 +3267,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_buffers size %1%!")%m_buffers.size();
     auto extrusion_color = [this](const Path& path) {
-        ColorRGBA color;
+        Color color;
         switch (m_view_type)
         {
         case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
@@ -3205,13 +3276,12 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::Temperature:    { color = m_extrusions.ranges.temperature.get_color_at(path.temperature); break; }
-        case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time); break; }
-        case EViewType::LayerTimeLog:   { color = m_extrusions.ranges.layer_duration_log.get_color_at(path.layer_time); break; }
+        case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time, Extrusions::Range::EType::Logarithmic); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tools.m_tool_colors.size()))
-                color = ColorRGBA::GRAY();
+                color = { 0.5f, 0.5f, 0.5f, 1.0f };
             else {
                 color = m_tools.m_tool_colors[path.cp_color_id];
                 color = adjust_color_for_rendering(color);
@@ -3224,7 +3294,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             color      = {id, role, id, 1.0f};
             break;
         }
-        default: { color = ColorRGBA::WHITE(); break; }
+        default: { color = { 1.0f, 1.0f, 1.0f, 1.0f }; break; }
         }
 
         return color;
@@ -3364,10 +3434,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // update current sequential position
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     if (global_endpoints.last == 0) {
-m_no_render_path = true;
         sequential_view->current.last = global_endpoints.last;
     } else {
-m_no_render_path = false;
         sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
     }
 
@@ -3457,7 +3525,7 @@ m_no_render_path = false;
         if (m_sequential_view.current.last < sub_path.first.s_id || sub_path.last.s_id < m_sequential_view.current.first)
             continue;
 
-        ColorRGBA color;
+        Color color;
         switch (path.type)
         {
         case EMoveType::Tool_change:
@@ -3502,6 +3570,10 @@ m_no_render_path = false;
         unsigned int size_in_indices = 0;
         switch (buffer.render_primitive_type)
         {
+        case TBuffer::ERenderPrimitiveType::Point: {
+            size_in_indices = buffer.indices_per_segment();
+            break;
+        }
         case TBuffer::ERenderPrimitiveType::Line:
         case TBuffer::ERenderPrimitiveType::Triangle: {
             // BBS: modify to support moves which has internal point
@@ -3745,20 +3817,69 @@ m_no_render_path = false;
 
 void GCodeViewer::render_toolpaths()
 {
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+    float point_size = 20.0f;
+#else
+    float point_size = 0.8f;
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+    std::array<float, 4> light_intensity = { 0.25f, 0.70f, 0.75f, 0.75f };
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const double zoom = camera.get_zoom();
+    double zoom = camera.get_zoom();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
+        static_cast<float>(viewport[3]) * 0.0005;
 
-    auto render_as_lines = [
+    auto shader_init_as_points = [zoom, point_size, near_plane_height](GLShaderProgram& shader) {
+#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+        shader.set_uniform("use_fixed_screen_size", 1);
+#else
+        shader.set_uniform("use_fixed_screen_size", 0);
+#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
+        shader.set_uniform("zoom", zoom);
+        shader.set_uniform("percent_outline_radius", 0.0f);
+        shader.set_uniform("percent_center_radius", 0.33f);
+        shader.set_uniform("point_size", point_size);
+        shader.set_uniform("near_plane_height", near_plane_height);
+    };
+
+    auto render_as_points = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+        glsafe(::glEnable(GL_POINT_SPRITE));
+
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(! path.sizes.empty());
             assert(! path.offsets.empty());
-            shader.set_uniform(uniform_color, path.color);
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            ++m_statistics.gl_multi_points_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+        }
+
+        glsafe(::glDisable(GL_POINT_SPRITE));
+        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    };
+
+    auto shader_init_as_lines = [light_intensity](GLShaderProgram &shader) {
+        shader.set_uniform("light_intensity", light_intensity);
+    };
+    auto render_as_lines = [
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        this
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
+            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
+            assert(! path.sizes.empty());
+            assert(! path.offsets.empty());
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_lines_calls_count;
@@ -3770,13 +3891,13 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(! path.sizes.empty());
             assert(! path.offsets.empty());
-            shader.set_uniform(uniform_color, path.color);
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_triangles_calls_count;
@@ -3798,7 +3919,7 @@ void GCodeViewer::render_toolpaths()
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(range.color);
+                buffer.model.model.set_color(-1, range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
@@ -3809,9 +3930,9 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-        auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
+    auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader) {
 #else
-        auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
+    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader) {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         struct Range
@@ -3821,34 +3942,30 @@ void GCodeViewer::render_toolpaths()
             bool intersects(const Range& other) const { return (other.last < first || other.first > last) ? false : true; }
         };
         Range buffer_range = { 0, 0 };
-        const size_t indices_per_instance = buffer.model.data.indices_count();
+        size_t indices_per_instance = buffer.model.data.indices_count();
 
         for (size_t j = 0; j < buffer.indices.size(); ++j) {
             const IBuffer& i_buffer = buffer.indices[j];
             buffer_range.last = buffer_range.first + i_buffer.count / indices_per_instance;
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-            if (position_id != -1) {
-                glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                glsafe(::glEnableVertexAttribArray(position_id));
-            }
-            const bool has_normals = buffer.vertices.normal_size_floats() > 0;
+            glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+            bool has_normals = buffer.vertices.normal_size_floats() > 0;
             if (has_normals) {
-                if (normal_id != -1) {
-                    glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                    glsafe(::glEnableVertexAttribArray(normal_id));
-                }
+                glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
 
             for (auto& range : buffer.model.instances.render_ranges.ranges) {
-                const Range range_range = { range.offset, range.offset + range.count };
+                Range range_range = { range.offset, range.offset + range.count };
                 if (range_range.intersects(buffer_range)) {
                     shader.set_uniform("uniform_color", range.color);
-                    const unsigned int offset = (range_range.first > buffer_range.first) ? range_range.first - buffer_range.first : 0;
-                    const size_t offset_bytes = static_cast<size_t>(offset) * indices_per_instance * sizeof(IBufferType);
-                    const Range render_range = { std::max(range_range.first, buffer_range.first), std::min(range_range.last, buffer_range.last) };
-                    const size_t count = static_cast<size_t>(render_range.last - render_range.first) * indices_per_instance;
+                    unsigned int offset = (range_range.first > buffer_range.first) ? range_range.first - buffer_range.first : 0;
+                    size_t offset_bytes = static_cast<size_t>(offset) * indices_per_instance * sizeof(IBufferType);
+                    Range render_range = { std::max(range_range.first, buffer_range.first), std::min(range_range.last, buffer_range.last) };
+                    size_t count = static_cast<size_t>(render_range.last - render_range.first) * indices_per_instance;
                     if (count > 0) {
                         glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)count, GL_UNSIGNED_SHORT, (const void*)offset_bytes));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3860,10 +3977,10 @@ void GCodeViewer::render_toolpaths()
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-            if (normal_id != -1)
-                glsafe(::glDisableVertexAttribArray(normal_id));
-            if (position_id != -1)
-                glsafe(::glDisableVertexAttribArray(position_id));
+            if (has_normals)
+                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             buffer_range.first = buffer_range.last;
@@ -3874,8 +3991,9 @@ void GCodeViewer::render_toolpaths()
         return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));
     };
 
-    const unsigned char begin_id = buffer_id(EMoveType::Retract);
-    const unsigned char end_id   = buffer_id(EMoveType::Count);
+    unsigned char begin_id = buffer_id(EMoveType::Retract);
+    unsigned char end_id = buffer_id(EMoveType::Count);
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":begin_id %1%, end_id %2% ")%(int)begin_id %(int)end_id;
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         TBuffer& buffer = m_buffers[i];
@@ -3883,135 +4001,119 @@ void GCodeViewer::render_toolpaths()
             continue;
 
         GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
-        if (shader == nullptr)
-            continue;
+        if (shader != nullptr) {
+            shader->start_using();
 
-        shader->start_using();
-
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
-
-        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
-            shader->set_uniform("emission_factor", 0.25f);
-            render_as_instanced_model(buffer, *shader);
-            shader->set_uniform("emission_factor", 0.0f);
-        }
-        else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
-            shader->set_uniform("emission_factor", 0.25f);
-            const int position_id = shader->get_attrib_location("v_position");
-            const int normal_id   = shader->get_attrib_location("v_normal");
-            render_as_batched_model(buffer, *shader, position_id, normal_id);
-            shader->set_uniform("emission_factor", 0.0f);
-        }
-        else {
-            const int position_id = shader->get_attrib_location("v_position");
-            const int normal_id   = shader->get_attrib_location("v_normal");
-            const int uniform_color = shader->get_uniform_location("uniform_color");
-
-            auto it_path = buffer.render_paths.begin();
-            for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
-                const IBuffer& i_buffer = buffer.indices[ibuffer_id];
-                // Skip all paths with ibuffer_id < ibuffer_id.
-                for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++it_path);
-                if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
-                    // Not found. This shall not happen.
-                    continue;
-
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                if (position_id != -1) {
-                    glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                    glsafe(::glEnableVertexAttribArray(position_id));
-                }
-                const bool has_normals = buffer.vertices.normal_size_floats() > 0;
-                if (has_normals) {
-                    if (normal_id != -1) {
-                        glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                        glsafe(::glEnableVertexAttribArray(normal_id));
-                    }
-                }
-
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-
-                // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
-                switch (buffer.render_primitive_type)
-                {
-                case TBuffer::ERenderPrimitiveType::Line: {
-                    glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                    render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
-                    break;
-                }
-                case TBuffer::ERenderPrimitiveType::Triangle: {
-                    render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
-                    break;
-                }
-                default: { break; }
-                }
-
-                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-                if (normal_id != -1)
-                    glsafe(::glDisableVertexAttribArray(normal_id));
-                if (position_id != -1)
-                    glsafe(::glDisableVertexAttribArray(position_id));
-                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
+                shader->set_uniform("emission_factor", 0.25f);
+                render_as_instanced_model(buffer, *shader);
+                shader->set_uniform("emission_factor", 0.0f);
             }
-        }
+            else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
+                shader->set_uniform("emission_factor", 0.25f);
+                render_as_batched_model(buffer, *shader);
+                shader->set_uniform("emission_factor", 0.0f);
+            }
+            else {
+                switch (buffer.render_primitive_type) {
+                case TBuffer::ERenderPrimitiveType::Point: shader_init_as_points(*shader); break;
+                case TBuffer::ERenderPrimitiveType::Line:  shader_init_as_lines(*shader); break;
+                default: break;
+                }
+                int uniform_color = shader->get_uniform_location("uniform_color");
+                auto it_path = buffer.render_paths.rbegin();
+                //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":buffer indices size %1%, render_path size %2% ")%buffer.indices.size() %buffer.render_paths.size();
+                unsigned int indices_count = static_cast<unsigned int>(buffer.indices.size());
+                for (unsigned int index = 0; index < indices_count; ++index) {
+                    unsigned int ibuffer_id = indices_count - index - 1;
+                    const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                    // Skip all paths with ibuffer_id < ibuffer_id.
+                    for (; it_path != buffer.render_paths.rend() && it_path->ibuffer_id > ibuffer_id; ++ it_path) ;
+                    if (it_path == buffer.render_paths.rend() || it_path->ibuffer_id < ibuffer_id)
+                        // Not found. This shall not happen.
+                        continue;
 
-        shader->stop_using();
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                    glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+                    bool has_normals = buffer.vertices.normal_size_floats() > 0;
+                    if (has_normals) {
+                        glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                    }
+
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+
+                    // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
+                    switch (buffer.render_primitive_type)
+                    {
+                    case TBuffer::ERenderPrimitiveType::Point: {
+                        render_as_points(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        break;
+                    }
+                    case TBuffer::ERenderPrimitiveType::Line: {
+                        glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
+                        render_as_lines(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        break;
+                    }
+                    case TBuffer::ERenderPrimitiveType::Triangle: {
+                        render_as_triangles(it_path, buffer.render_paths.rend(), *shader, uniform_color);
+                        break;
+                    }
+                    default: { break; }
+                    }
+
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                    if (has_normals)
+                        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+                    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                }
+            }
+
+            shader->stop_using();
+        }
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_sequential_range_cap = [this, &camera]
+    auto render_sequential_range_cap = [this]
 #else
-    auto render_sequential_range_cap = [&camera]
+    auto render_sequential_range_cap = []
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     (const SequentialRangeCap& cap) {
-        const TBuffer* buffer = cap.buffer;
-        GLShaderProgram* shader = wxGetApp().get_shader(buffer->shader.c_str());
-        if (shader == nullptr)
-            return;
+        GLShaderProgram* shader = wxGetApp().get_shader(cap.buffer->shader.c_str());
+        if (shader != nullptr) {
+            shader->start_using();
 
-        shader->start_using();
-
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
-
-        const int position_id = shader->get_attrib_location("v_position");
-        const int normal_id   = shader->get_attrib_location("v_normal");
-
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, cap.vbo));
-        if (position_id != -1) {
-            glsafe(::glVertexAttribPointer(position_id, buffer->vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer->vertices.vertex_size_bytes(), (const void*)buffer->vertices.position_offset_bytes()));
-            glsafe(::glEnableVertexAttribArray(position_id));
-        }
-        const bool has_normals = buffer->vertices.normal_size_floats() > 0;
-        if (has_normals) {
-            if (normal_id != -1) {
-                glsafe(::glVertexAttribPointer(normal_id, buffer->vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer->vertices.vertex_size_bytes(), (const void*)buffer->vertices.normal_offset_bytes()));
-                glsafe(::glEnableVertexAttribArray(normal_id));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, cap.vbo));
+            glsafe(::glVertexPointer(cap.buffer->vertices.position_size_floats(), GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.position_offset_bytes()));
+            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+            bool has_normals = cap.buffer->vertices.normal_size_floats() > 0;
+            if (has_normals) {
+                glsafe(::glNormalPointer(GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.normal_offset_bytes()));
+                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
             }
-        }
 
-        shader->set_uniform("uniform_color", cap.color);
+            shader->set_uniform("uniform_color", cap.color);
 
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cap.ibo));
-        glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)cap.indices_count(), GL_UNSIGNED_SHORT, nullptr));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cap.ibo));
+            glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)cap.indices_count(), GL_UNSIGNED_SHORT, nullptr));
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-        if (normal_id != -1)
-            glsafe(::glDisableVertexAttribArray(normal_id));
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
+            if (has_normals)
+                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
 
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-        shader->stop_using();
+            shader->stop_using();
+        }
     };
 
     for (unsigned int i = 0; i < 2; ++i) {
@@ -4020,7 +4122,7 @@ void GCodeViewer::render_toolpaths()
     }
 }
 
-void GCodeViewer::render_shells(int canvas_width, int canvas_height)
+void GCodeViewer::render_shells()
 {
     //BBS: add shell previewing logic
     if ((!m_shells.previewing && !m_shells.visible) || m_shells.volumes.empty())
@@ -4031,15 +4133,18 @@ void GCodeViewer::render_shells(int canvas_width, int canvas_height)
     if (shader == nullptr)
         return;
 
+    // when the background processing is enabled, it may happen that the shells data have been loaded
+    // before opengl has been initialized for the preview canvas.
+    // when this happens, the volumes' data have not been sent to gpu yet.
+    for (GLVolume* v : m_shells.volumes.volumes) {
+        if (!v->indexed_vertex_array->has_VBOs())
+            v->finalize_geometry(true);
+    }
     glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.1f);
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    shader->set_uniform("z_far", camera.get_far_z());
-    shader->set_uniform("z_near", camera.get_near_z());
-    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, camera.get_view_matrix(), camera.get_projection_matrix(), {canvas_width, canvas_height});
-    shader->set_uniform("emission_factor", 0.0f);
+    //BBS: reopen cul faces
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
     glsafe(::glDepthMask(GL_TRUE));
@@ -4071,10 +4176,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
     std::vector<float> filament_diameters = gcode_result_list.front()->filament_diameters;
     std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
-    std::vector<ColorRGBA> filament_colors;
-    decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()), filament_colors);
+    std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
 
-    for (int i = 0; i < filament_colors.size(); i++) { 
+    for (int i = 0; i < filament_colors.size(); i++) {
         filament_colors[i] = adjust_color_for_rendering(filament_colors[i]);
     }
 
@@ -4086,6 +4190,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::map<int, double> flushed_volume_of_extruders_all_plates; // map<extruder_idx, flushed volume>
     std::map<int, double> wipe_tower_volume_of_extruders_all_plates; // map<extruder_idx, flushed volume>
     std::map<int, double> support_volume_of_extruders_all_plates; // map<extruder_idx, flushed volume>
+    std::map<int, double> plate_time; // map<plate_idx, time>
     std::vector<double> model_used_filaments_m_all_plates;
     std::vector<double> model_used_filaments_g_all_plates;
     std::vector<double> flushed_filaments_m_all_plates;
@@ -4096,7 +4201,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<double> support_used_filaments_g_all_plates;
     float total_time_all_plates = 0.0f;
     float total_cost_all_plates = 0.0f;
-    bool show_detailed_statistics_page = false;
+    double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1.0;
     struct ColumnData {
         enum {
             Model = 1,
@@ -4106,6 +4211,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         };
     };
     int displayed_columns = 0;
+
     auto max_width = [](const std::vector<std::string>& items, const std::string& title, float extra_size = 0.0f) {
         float ret = ImGui::CalcTextSize(title.c_str()).x;
         for (const std::string& item : items) {
@@ -4131,13 +4237,14 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
         return ret;
     };
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](const ColorRGBA& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](bool draw_icon, const Color& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
     {
         // render icon
         ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
 
-        draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-            ImGuiWrapper::to_ImU32(color));
+        if (draw_icon)
+            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20.0 * m_scale, 6.0 * m_scale));
 
@@ -4147,7 +4254,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
         // render column item
         {
-            float dummy_size = ImGui::GetStyle().ItemSpacing.x + icon_size;
+            float dummy_size = draw_icon ? ImGui::GetStyle().ItemSpacing.x + icon_size : window_padding * 3;
             ImGui::SameLine(dummy_size);
             imgui.text(columns_offsets[0].first);
 
@@ -4210,13 +4317,14 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 }
             }
             const PrintEstimatedStatistics::Mode& plate_time_mode = plate_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+            plate_time.insert_or_assign(plate->get_index(), plate_time_mode.time);
             total_time_all_plates += plate_time_mode.time;
-            
-            Print     *print;
-            plate->get_print((PrintBase **) &print, nullptr, nullptr);
+
+            Print* print;
+            plate->get_print((PrintBase**)&print, nullptr, nullptr);
             total_cost_all_plates += print->print_statistics().total_cost;
         }
-       
+
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
             auto [model_used_filament_m, model_used_filament_g] = get_used_filament_from_volume(it->second, it->first);
             if (model_used_filament_m != 0.0 || model_used_filament_g != 0.0)
@@ -4249,10 +4357,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         char buff[64];
         double longest_str = 0.0;
         for (auto i : model_used_filaments_g_all_plates) {
-            if (i > longest_str)
-                longest_str = i;
+            longest_str += i;
         }
-        ::sprintf(buff, "%.2f", longest_str);
+        ::sprintf(buff, imperial_units ? "%.2f oz" : "%.2f g", longest_str / unit_conver);
 
         std::vector<std::pair<std::string, std::vector<::string>>> title_columns;
         if (displayed_columns & ColumnData::Model) {
@@ -4289,7 +4396,6 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({ std::to_string(it->first + 1), offsets[_u8L("Filament")]});
 
                 char buf[64];
-                double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1.0;
 
                 float column_sum_m = 0.0f;
                 float column_sum_g = 0.0f;
@@ -4325,29 +4431,116 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                     columns_offsets.push_back({ buf, offsets[_u8L("Total")] });
                 }
 
-                append_item(filament_colors[it->first], columns_offsets);
+                append_item(true, filament_colors[it->first], columns_offsets);
             }
             i++;
         }
 
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.title(_u8L("Total Estimation"));
+        // Sum of all rows
+        char buf[64];
+        if (model_volume_of_extruders_all_plates.size() > 1) {
+            // Separator
+            ImGuiWindow *window = ImGui::GetCurrentWindow();
+            const ImRect separator(ImVec2(window->Pos.x + window_padding * 3, window->DC.CursorPos.y),
+                                   ImVec2(window->Pos.x + window->Size.x - window_padding * 3, window->DC.CursorPos.y + 1.0f));
+            ImGui::ItemSize(ImVec2(0.0f, 0.0f));
+            const bool item_visible = ImGui::ItemAdd(separator, 0);
+            window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
 
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Total time") + ":");
-        ImGui::SameLine();
-        imgui.text(short_time(get_time_dhms(total_time_all_plates)));
+            std::vector<std::pair<std::string, float>> columns_offsets;
+            columns_offsets.push_back({_u8L("Total"), offsets[_u8L("Filament")]});
+            double total_model_used_filament_m = 0;
+            double total_model_used_filament_g = 0;
+            double total_support_used_filament_m = 0;
+            double total_support_used_filament_g = 0;
+            double total_flushed_filament_m = 0;
+            double total_flushed_filament_g = 0;
+            double total_wipe_tower_used_filament_m = 0;
+            double total_wipe_tower_used_filament_g = 0;
+            if (displayed_columns & ColumnData::Model) {
+                std::for_each(model_used_filaments_m_all_plates.begin(), model_used_filaments_m_all_plates.end(), [&total_model_used_filament_m](double value) {
+                    total_model_used_filament_m += value;
+                    });
+                std::for_each(model_used_filaments_g_all_plates.begin(), model_used_filaments_g_all_plates.end(), [&total_model_used_filament_g](double value) {
+                    total_model_used_filament_g += value;
+                    });
+                if ((displayed_columns & ~ColumnData::Model) > 0)
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
+                else
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
+                columns_offsets.push_back({buf, offsets[_u8L("Model")]});
+            }
+            if (displayed_columns & ColumnData::Support) {
+                std::for_each(support_used_filaments_m_all_plates.begin(), support_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
+                    total_support_used_filament_m += value;
+                    });
+                std::for_each(support_used_filaments_g_all_plates.begin(), support_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
+                    total_support_used_filament_g += value;
+                    });
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_support_used_filament_m, total_support_used_filament_g / unit_conver);
+                columns_offsets.push_back({buf, offsets[_u8L("Support")]});
+            }
+            if (displayed_columns & ColumnData::Flushed) {
+                std::for_each(flushed_filaments_m_all_plates.begin(), flushed_filaments_m_all_plates.end(), [&total_flushed_filament_m](double value) {
+                    total_flushed_filament_m += value;
+                    });
+                std::for_each(flushed_filaments_g_all_plates.begin(), flushed_filaments_g_all_plates.end(), [&total_flushed_filament_g](double value) {
+                    total_flushed_filament_g += value;
+                    });
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g / unit_conver);
+                columns_offsets.push_back({buf, offsets[_u8L("Flushed")]});
+            }
+            if (displayed_columns & ColumnData::WipeTower) {
+                std::for_each(wipe_tower_used_filaments_m_all_plates.begin(), wipe_tower_used_filaments_m_all_plates.end(), [&total_wipe_tower_used_filament_m](double value) {
+                    total_wipe_tower_used_filament_m += value;
+                    });
+                std::for_each(wipe_tower_used_filaments_g_all_plates.begin(), wipe_tower_used_filaments_g_all_plates.end(), [&total_wipe_tower_used_filament_g](double value) {
+                    total_wipe_tower_used_filament_g += value;
+                    });
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_wipe_tower_used_filament_m, total_wipe_tower_used_filament_g / unit_conver);
+                columns_offsets.push_back({buf, offsets[_u8L("Tower")]});
+            }
+            if ((displayed_columns & ~ColumnData::Model) > 0) {
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g",
+                          total_model_used_filament_m + total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m,
+                          (total_model_used_filament_g + total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g) / unit_conver);
+                columns_offsets.push_back({buf, offsets[_u8L("Total")]});
+            }
+            append_item(false, m_tools.m_tool_colors[0], columns_offsets);
+        }
 
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(_u8L("Total cost") + ":");
         ImGui::SameLine();
-        char buf[64];
         ::sprintf(buf, "%.2f", total_cost_all_plates);
         imgui.text(buf);
+
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.title(_u8L("Time Estimation"));
+
+        for (auto it = plate_time.begin(); it != plate_time.end(); it++) {
+            std::vector<std::pair<std::string, float>> columns_offsets;
+            columns_offsets.push_back({ _u8L("Plate") + " " + std::to_string(it->first + 1), offsets[_u8L("Filament")]});
+            columns_offsets.push_back({ short_time(get_time_dhms(it->second)), offsets[_u8L("Model")] });
+            append_item(false, m_tools.m_tool_colors[0], columns_offsets);
+        }
+
+        if (plate_time.size() > 1) {
+            // Separator
+            ImGuiWindow* window = ImGui::GetCurrentWindow();
+            const ImRect separator(ImVec2(window->Pos.x + window_padding * 3, window->DC.CursorPos.y),
+                ImVec2(window->Pos.x + window->Size.x - window_padding * 3, window->DC.CursorPos.y + 1.0f));
+            ImGui::ItemSize(ImVec2(0.0f, 0.0f));
+            const bool item_visible = ImGui::ItemAdd(separator, 0);
+            window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
+            std::vector<std::pair<std::string, float>> columns_offsets;
+            columns_offsets.push_back({ _u8L("Total"), offsets[_u8L("Filament")] });
+            columns_offsets.push_back({ short_time(get_time_dhms(total_time_all_plates)), offsets[_u8L("Model")] });
+            append_item(false, m_tools.m_tool_colors[0], columns_offsets);
+        }
     }
     ImGui::End();
     ImGui::PopStyleColor(6);
@@ -4369,8 +4562,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
@@ -4404,14 +4597,15 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 pos_rect = ImGui::GetCursorScreenPos();
     float window_padding = 4.0f * m_scale;
+    float checkbox_offset = 0.0f;
 
     draw_list->AddRectFilled(ImVec2(pos_rect.x,pos_rect.y - ImGui::GetStyle().WindowPadding.y),
         ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
         ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
 
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset, this](
         EItemType type,
-        const ColorRGBA& color,
+        const Color& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
         bool checkbox = true,
         bool visible = true,
@@ -4423,21 +4617,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         default:
         case EItemType::Rect: {
             draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-                                     ImGuiWrapper::to_ImU32(color));
+                                     ImGui::GetColorU32({color[0], color[1], color[2], color[3]}));
             break;
         }
         case EItemType::Circle: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGuiWrapper::to_ImU32(color), 16);
+            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 16);
             break;
         }
         case EItemType::Hexagon: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGuiWrapper::to_ImU32(color), 6);
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 6);
             break;
         }
         case EItemType::Line: {
-            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGuiWrapper::to_ImU32(color), 3.0f);
+            draw_list->AddLine({pos.x + 1, pos.y + icon_size + 2}, {pos.x + icon_size - 1, pos.y + 4}, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 3.0f);
             break;
         case EItemType::None:
             break;
@@ -4454,7 +4648,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0 * m_scale, 0.0));
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
             ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
-            ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
             float max_height = 0.f;
             for (auto column_offset : columns_offsets) {
                 if (ImGui::CalcTextSize(column_offset.first.c_str()).y > max_height)
@@ -4466,9 +4660,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
+                ImGui::SameLine(checkbox_offset);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
-                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
                 ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
@@ -4517,14 +4711,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
     };
 
-    auto append_headers = [&imgui, window_padding](const std::vector<std::pair<std::string, float>>& title_offsets) {
+    auto append_headers = [&imgui, &window_padding](const std::vector<std::pair<std::string, float>>& title_offsets) {
         for (size_t i = 0; i < title_offsets.size(); i++) {
             ImGui::SameLine(title_offsets[i].second);
             imgui.bold_text(title_offsets[i].first);
         }
-        // Ensure right padding
         ImGui::SameLine();
-        ImGui::Dummy({window_padding, 1});
+        ImGui::Dummy({ window_padding, 0 });
         ImGui::Separator();
     };
 
@@ -4536,16 +4729,25 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    auto calculate_offsets = [&imgui, max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
+    auto calculate_offsets = [max_width, window_padding, &checkbox_offset](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
             offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
-            for (size_t i = 1; i < title_columns.size() - 1; i++)
-                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("Display")) {
-                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                if (preferred_offset > offsets.back()) {
-                    offsets.back() = preferred_offset;
+            for (size_t i = 2; i < title_columns.size(); i++) {
+                if (title_columns[i].first == "") {
+                    offsets.push_back(offsets.back() + max_width(title_columns[i - 1].second, "") + style.ItemSpacing.x);
+                }
+                else if (title_columns[i].first == _u8L("Display")) {
+                    float length = ImGui::CalcTextSize(title_columns[i - 2].first.c_str()).x;
+                    float offset = offsets.back() + max_width(title_columns[i - 1].second, title_columns[i - 1].first);
+                    size_t index = offsets.size() - 2;
+                    if (index >= 0) {
+                        offset = std::max(offset, length + offsets[index]);
+                    }
+                    offsets.push_back(offset + 2.0f * style.ItemSpacing.x);
+                }
+                else {
+                    offsets.push_back(offsets.back() + max_width(title_columns[i - 1].second, title_columns[i - 1].first) + 2.0f * style.ItemSpacing.x);
                 }
             }
 
@@ -4556,39 +4758,40 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 ret.push_back(std::max(offsets[i - 1], i * average_col_width));
             }
 
+            if (title_columns.back().first == _u8L("Display")) {
+                checkbox_offset = ret.back() + window_padding;
+            }
+
             return ret;
     };
 
-    auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
-        std::vector<std::pair<ColorRGBA, std::pair<double, double>>> ret;
-        ret.reserve(custom_gcode_per_print_z.size());
+    // BBS: no ColorChange type, use ToolChange
+    //auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
+    //    std::vector<std::pair<Color, std::pair<double, double>>> ret;
+    //    ret.reserve(custom_gcode_per_print_z.size());
 
-        for (const auto& item : custom_gcode_per_print_z) {
-            if (extruder_id + 1 != static_cast<unsigned char>(item.extruder))
-                continue;
+    //    for (const auto& item : custom_gcode_per_print_z) {
+    //        if (extruder_id + 1 != static_cast<unsigned char>(item.extruder))
+    //            continue;
 
-            if (item.type != ColorChange)
-                continue;
+    //        if (item.type != ColorChange)
+    //            continue;
 
-            const std::vector<double> zs = m_layers.get_zs();
-            auto lower_b = std::lower_bound(zs.begin(), zs.end(), item.print_z - epsilon());
-            if (lower_b == zs.end())
-                continue;
+    //        const std::vector<double> zs = m_layers.get_zs();
+    //        auto lower_b = std::lower_bound(zs.begin(), zs.end(), item.print_z - epsilon());
+    //        if (lower_b == zs.end())
+    //            continue;
 
-            const double current_z = *lower_b;
-            const double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
+    //        const double current_z = *lower_b;
+    //        const double previous_z = (lower_b == zs.begin()) ? 0.0 : *(--lower_b);
 
-            // to avoid duplicate values, check adding values
-            if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
-            {
-                ColorRGBA color;
-                decode_color(item.color, color);
-                ret.push_back({ color, { previous_z, current_z } });
-            }
-        }
+    //        // to avoid duplicate values, check adding values
+    //        if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
+    //            ret.push_back({ decode_color(item.color), { previous_z, current_z } });
+    //    }
 
-        return ret;
-    };
+    //    return ret;
+    //};
 
     auto upto_label = [](double z) {
         char buf[64];
@@ -4625,9 +4828,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (it == m_print_statistics.used_filaments_per_role.end())
             return std::make_pair(0.0, 0.0);
 
-        double koef        = imperial_units ? GizmoObjectManipulation::in_to_mm / 1000.0 : 1.0;
-        double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1;
-        return std::make_pair(it->second.first / koef, it->second.second / unit_conver);
+        double koef = imperial_units ? 1000.0 / GizmoObjectManipulation::in_to_mm : 1.0;
+        return std::make_pair(it->second.first * koef, it->second.second);
     };
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
@@ -4648,8 +4850,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     else
         btn_name = ImGui::FoldButtonIcon + boost::nowide::widen(std::string(""));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.59f, 0.53f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.59f, 0.53f, 0.78f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     //ImGui::PushItemWidth(
     float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
@@ -4704,11 +4906,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<std::string> times;
     std::string travel_time;
     std::vector<std::string> percents;
-    std::vector<std::string> used_filaments_length;
-    std::vector<std::string> used_filaments_weight;
     std::string travel_percent;
     std::vector<double> model_used_filaments_m;
     std::vector<double> model_used_filaments_g;
+    std::vector<std::string> used_filaments_m;
+    std::vector<std::string> used_filaments_g;
     double total_model_used_filament_m = 0, total_model_used_filament_g = 0;
     std::vector<double> flushed_filaments_m;
     std::vector<double> flushed_filaments_g;
@@ -4820,12 +5022,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 else
                     percent > 0.001 ? ::sprintf(buffer, "%.1f%%", percent * 100) : ::sprintf(buffer, "<0.1%%");
                 percents.push_back(buffer);
-
                 auto [model_used_filament_m, model_used_filament_g] = used_filament_per_role(role);
+                //model_used_filaments_m.push_back(model_used_filament_m);
+                //model_used_filaments_g.push_back(model_used_filament_g);
+                memset(&buffer, 0, sizeof(buffer));
                 ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", model_used_filament_m);
-                used_filaments_length.push_back(buffer);
-                ::sprintf(buffer, imperial_units ? "%.2f oz" : "%.2f g", model_used_filament_g);
-                used_filaments_weight.push_back(buffer);
+                used_filaments_m.push_back(buffer);
+
+                memset(&buffer, 0, sizeof(buffer));
+                ::sprintf(buffer, "%.2f g", model_used_filament_g);
+                used_filaments_g.push_back(buffer);
             }
         }
 
@@ -4840,8 +5046,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             travel_percent = buffer;
         }
 
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
-        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Used filament"), offsets[3]}, {_u8L("Display"), offsets[5]}});
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {_u8L("Used filament"), used_filaments_m}, {"", used_filaments_g}, {_u8L("Display"), {""}}}, icon_size);
+        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Used filament"), offsets[3]}, {"", offsets[4]}, {_u8L("Display"), offsets[5]}});
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
@@ -4855,8 +5061,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time")); break; }
-    case EViewType::LayerTimeLog:   { imgui.title(_u8L("Layer Time (log)")); break; }
+    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time (s)")); break; }
 
     case EViewType::Tool:
     {
@@ -4914,7 +5119,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
 
     auto append_option_item = [this, append_item](EMoveType type, std::vector<float> offsets) {
-        auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const ColorRGBA& color, const std::string& label, bool visible) {
+        auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const Color& color, const std::string& label, bool visible) {
             append_item(EItemType::Rect, color, {{ label , offsets[0] }}, true, visible, [this, type, visible]() {
                 m_buffers[buffer_id(type)].visible = !m_buffers[buffer_id(type)].visible;
                 // update buffers' render paths
@@ -4953,9 +5158,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             std::vector<std::pair<std::string, float>> columns_offsets;
             columns_offsets.push_back({ labels[i], offsets[0] });
             columns_offsets.push_back({ times[i], offsets[1] });
-            columns_offsets.push_back({percents[i], offsets[2]});
-            columns_offsets.push_back({used_filaments_length[i], offsets[3]});
-            columns_offsets.push_back({used_filaments_weight[i], offsets[4]});
+            columns_offsets.push_back({ percents[i], offsets[2] });
+            columns_offsets.push_back({ used_filaments_m[i], offsets[3] });
+            columns_offsets.push_back({ used_filaments_g[i], offsets[4] });
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], columns_offsets,
                 true, visible, [this, role, visible]() {
                     m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
@@ -5010,8 +5215,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::Temperature:    { append_range(m_extrusions.ranges.temperature, 0); break; }
-    case EViewType::LayerTime:      { append_range(m_extrusions.ranges.layer_duration, true); break; }
-    case EViewType::LayerTimeLog:   { append_range(m_extrusions.ranges.layer_duration_log, true); break; }
+    case EViewType::LayerTime:      { append_range(m_extrusions.ranges.layer_duration, 1); break; }
     case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 2); break; }
     case EViewType::Tool:
     {
@@ -5094,7 +5298,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
             i++;
         }
-        
+
         if (need_scrollable)
             ImGui::EndChild();
 
@@ -5174,8 +5378,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             };
             EType type;
             int extruder_id;
-            ColorRGBA color1;
-            ColorRGBA color2;
+            Color color1;
+            Color color2;
             Times times;
             std::pair<double, double> used_filament {0.0f, 0.0f};
         };
@@ -5186,7 +5390,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
             //BBS: replace model custom gcode with current plate custom gcode
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes : m_custom_gcode_per_print_z;
-            std::vector<ColorRGBA> last_color(m_extruders_count);
+            std::vector<Color> last_color(m_extruders_count);
             for (size_t i = 0; i < m_extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];
             }
@@ -5198,8 +5402,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 case CustomGCode::PausePrint: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], ColorRGBA::BLACK(), time_rec.second });
-                        items.push_back({ PartialTime::EType::Pause, it->extruder, ColorRGBA::BLACK(), ColorRGBA::BLACK(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
                         custom_gcode_per_print_z.erase(it);
                     }
                     break;
@@ -5207,16 +5411,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 case CustomGCode::ColorChange: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], ColorRGBA::BLACK(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder - 1) });
-                        ColorRGBA color;
-                        decode_color(it->color, color);
-                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], color, time_rec.second });
-                        last_color[it->extruder - 1] = color;
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder-1) });
+                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
+                        last_color[it->extruder - 1] = decode_color(it->color);
                         last_extruder_id = it->extruder;
                         custom_gcode_per_print_z.erase(it);
                     }
                     else
-                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], ColorRGBA::BLACK(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], last_extruder_id - 1) });
+                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], last_extruder_id -1) });
 
                     break;
                 }
@@ -5227,7 +5429,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             return items;
         };
 
-        auto append_color_change = [&imgui](const ColorRGBA& color1, const ColorRGBA& color2, const std::array<float, 4>& offsets, const Times& times) {
+        auto append_color_change = [&imgui](const Color& color1, const Color& color2, const std::array<float, 4>& offsets, const Times& times) {
             imgui.text(_u8L("Color change"));
             ImGui::SameLine();
 
@@ -5237,16 +5439,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color1));
+                ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }));
             pos.x += icon_size;
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color2));
+                ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
 
-        auto append_print = [&imgui, imperial_units](const ColorRGBA& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
+        auto append_print = [&imgui, imperial_units](const Color& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
             imgui.text(_u8L("Print"));
             ImGui::SameLine();
 
@@ -5256,7 +5458,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGuiWrapper::to_ImU32(color));
+                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second)));
@@ -5476,74 +5678,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
         }
     }
-    // Custom g-code overview
-    std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ?
-                                                                  wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
-                                                                  m_custom_gcode_per_print_z;
-    if (custom_gcode_per_print_z.size() != 0) {
-        float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
-        ImGui::Spacing();
-        // Title Line
-        std::string cgcode_title_str       = _u8L("Custom g-code");
-        std::string cgcode_layer_str       = _u8L("Layer");
-        std::string cgcode_time_str        =  _u8L("Time");
-        // Types of custom gcode
-        std::string cgcode_pause_str = _u8L("Pause");
-        std::string cgcode_template_str= _u8L("Template");
-        std::string cgcode_toolchange_str = _u8L("ToolChange");
-        std::string cgcode_custom_str = _u8L("Custom");
-        std::string cgcode_unknown_str = _u8L("Unknown");
-
-        // Get longest String
-        max_len += std::max(ImGui::CalcTextSize(cgcode_title_str.c_str()).x,
-                                              std::max(ImGui::CalcTextSize(cgcode_pause_str.c_str()).x,
-                                                       std::max(ImGui::CalcTextSize(cgcode_template_str.c_str()).x,
-                                                                std::max(ImGui::CalcTextSize(cgcode_toolchange_str.c_str()).x,
-                                                                         std::max(ImGui::CalcTextSize(cgcode_custom_str.c_str()).x,
-                                                                                  ImGui::CalcTextSize(cgcode_unknown_str.c_str()).x))))
-
-        );
-       
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
-        ImGui::Dummy({window_padding, window_padding});
-        ImGui::SameLine();
-        imgui.title(cgcode_title_str,true);
-        ImGui::SameLine(max_len);
-        imgui.title(cgcode_layer_str, true);
-        ImGui::SameLine(max_len*1.5);
-        imgui.title(cgcode_time_str, false);
-
-        for (Slic3r::CustomGCode::Item custom_gcode : custom_gcode_per_print_z) {
-            ImGui::Dummy({window_padding, window_padding});
-            ImGui::SameLine();
-
-            switch (custom_gcode.type) {
-            case PausePrint: imgui.text(cgcode_pause_str); break;
-            case Template: imgui.text(cgcode_template_str); break;
-            case ToolChange: imgui.text(cgcode_toolchange_str); break;
-            case Custom: imgui.text(cgcode_custom_str); break;
-            default: imgui.text(cgcode_unknown_str); break;
-            }
-            ImGui::SameLine(max_len);
-            char buf[64];
-            int  layer = m_layers.get_l_at(custom_gcode.print_z);
-            ::sprintf(buf, "%d",layer );
-            imgui.text(buf);
-            ImGui::SameLine(max_len * 1.5);
-            
-            std::vector<float> layer_times = m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
-            float custom_gcode_time = 0;
-            if (layer > 0)
-            {
-                for (int i = 0; i < layer-1; i++) {
-                    custom_gcode_time += layer_times[i];
-                }
-            }
-            imgui.text(short_time(get_time_dhms(custom_gcode_time)));
-
-        }
-    }
-
 
     // total estimated printing time section
     if (show_estimated) {
@@ -5632,10 +5766,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             imgui.text(buf);
         }
 
-            auto role_time = [time_mode](ExtrusionRole role) {
+        auto role_time = [time_mode](ExtrusionRole role) {
             auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
-                return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
-            };
+            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
+        };
         //BBS: start gcode is mostly same with prepeare time
         if (time_mode.prepare_time != 0.0f) {
             ImGui::Dummy({ window_padding, window_padding });
@@ -5709,9 +5843,9 @@ void GCodeViewer::push_combo_style()
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
 }
 void GCodeViewer::pop_combo_style()
 {
@@ -5731,13 +5865,13 @@ void GCodeViewer::render_statistics()
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    auto add_time = [&imgui](const std::string& label, int64_t time) {
+    auto add_time = [this, &imgui](const std::string& label, int64_t time) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(time) + " ms (" + get_time_dhms(static_cast<float>(time) * 0.001f) + ")");
     };
 
-    auto add_memory = [&imgui](const std::string& label, int64_t memory) {
+    auto add_memory = [this, &imgui](const std::string& label, int64_t memory) {
         auto format_string = [memory](const std::string& units, float value) {
             return std::to_string(memory) + " bytes (" +
                    Slic3r::float_to_string_decimal_point(float(memory) * value, 3)
@@ -5760,7 +5894,7 @@ void GCodeViewer::render_statistics()
             imgui.text(format_string("GB", inv_gb));
     };
 
-    auto add_counter = [&imgui](const std::string& label, int64_t counter) {
+    auto add_counter = [this, &imgui](const std::string& label, int64_t counter) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(counter));
@@ -5784,6 +5918,7 @@ void GCodeViewer::render_statistics()
     }
 
     if (ImGui::CollapsingHeader("OpenGL calls")) {
+        add_counter(std::string("Multi GL_POINTS:"), m_statistics.gl_multi_points_calls_count);
         add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
         add_counter(std::string("GL_TRIANGLES:"), m_statistics.gl_triangles_calls_count);
@@ -5848,7 +5983,7 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
     }
 }
 
-ColorRGBA GCodeViewer::option_color(EMoveType move_type) const
+GCodeViewer::Color GCodeViewer::option_color(EMoveType move_type) const
 {
     switch (move_type)
     {

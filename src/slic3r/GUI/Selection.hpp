@@ -2,7 +2,6 @@
 #define slic3r_GUI_Selection_hpp_
 
 #include "libslic3r/Geometry.hpp"
-#include "GUI_Geometry.hpp"
 #include "GLModel.hpp"
 
 #include <set>
@@ -14,6 +13,7 @@ class Shader;
 class Model;
 class ModelObject;
 class ModelVolume;
+class ModelInstance;
 class ObjectID;
 class GLVolume;
 class GLArrow;
@@ -29,6 +29,88 @@ using ModelObjectPtrs = std::vector<ModelObject*>;
 
 
 namespace GUI {
+enum ECoordinatesType : unsigned char {
+    World = 0,
+    Instance,
+    Local
+};
+
+class TransformationType
+{
+public:
+    enum Enum {
+        // Transforming in a world coordinate system
+        World = 0,
+        // Transforming in a instance coordinate system
+        Instance = 1,
+        // Transforming in a local coordinate system
+        Local = 2,
+        // Absolute transformations, allowed in local coordinate system only.
+        Absolute = 0,
+        // Relative transformations, allowed in both local and world coordinate system.
+        Relative = 4,
+        // For group selection, the transformation is performed as if the group made a single solid body.
+        Joint = 0,
+        // For group selection, the transformation is performed on each object independently.
+        Independent = 8,
+
+        World_Relative_Joint          = World | Relative | Joint,
+        World_Relative_Independent    = World | Relative | Independent,
+        Instance_Absolute_Joint       = Instance | Absolute | Joint,
+        Instance_Absolute_Independent = Instance | Absolute | Independent,
+        Instance_Relative_Joint       = Instance | Relative | Joint,
+        Instance_Relative_Independent = Instance | Relative | Independent,
+        Local_Absolute_Joint          = Local | Absolute | Joint,
+        Local_Absolute_Independent    = Local | Absolute | Independent,
+        Local_Relative_Joint          = Local | Relative | Joint,
+        Local_Relative_Independent    = Local | Relative | Independent,
+    };
+
+    TransformationType() : m_value(World) {}
+    TransformationType(Enum value) : m_value(value) {}
+    TransformationType &operator=(Enum value)
+    {
+        m_value = value;
+        return *this;
+    }
+
+    Enum operator()() const { return m_value; }
+    bool has(Enum v) const { return ((unsigned int) m_value & (unsigned int) v) != 0; }
+
+    void set_world()
+    {
+        this->remove(Instance);
+        this->remove(Local);
+    }
+    void set_instance()
+    {
+        this->remove(Local);
+        this->add(Instance);
+    }
+    void set_local()
+    {
+        this->remove(Instance);
+        this->add(Local);
+    }
+    void set_absolute() { this->remove(Relative); }
+    void set_relative() { this->add(Relative); }
+    void set_joint() { this->remove(Independent); }
+    void set_independent() { this->add(Independent); }
+
+    bool world() const { return !this->has(Instance) && !this->has(Local); }
+    bool instance() const { return this->has(Instance); }
+    bool local() const { return this->has(Local); }
+    bool absolute() const { return !this->has(Relative); }
+    bool relative() const { return this->has(Relative); }
+    bool joint() const { return !this->has(Independent); }
+    bool independent() const { return this->has(Independent); }
+
+private:
+    void add(Enum v) { m_value = Enum((unsigned int)m_value | (unsigned int)v); }
+    void remove(Enum v) { m_value = Enum((unsigned int)m_value & (~(unsigned int)v)); }
+
+    Enum    m_value;
+};
 
 class Selection
 {
@@ -64,11 +146,13 @@ private:
         struct TransformCache
         {
             Vec3d position;
+            Vec3d rotation;
+            Vec3d scaling_factor;
+            Vec3d mirror;
             Transform3d rotation_matrix;
             Transform3d scale_matrix;
             Transform3d mirror_matrix;
-
-            Geometry::Transformation transform;
+            Geometry::Transformation full_tran;
 
             TransformCache();
             explicit TransformCache(const Geometry::Transformation& transform);
@@ -82,14 +166,25 @@ private:
         VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform);
 
         const Vec3d& get_volume_position() const { return m_volume.position; }
+        const Vec3d& get_volume_rotation() const { return m_volume.rotation; }
+        const Vec3d& get_volume_scaling_factor() const { return m_volume.scaling_factor; }
+        const Vec3d& get_volume_mirror() const { return m_volume.mirror; }
+        const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
         const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
-        const Geometry::Transformation& get_volume_transform() const { return m_volume.transform; }
+        const Transform3d& get_volume_mirror_matrix() const { return m_volume.mirror_matrix; }
+        const Transform3d &get_volume_full_matrix() const { return m_volume.full_tran.get_matrix(); }
 
         const Vec3d& get_instance_position() const { return m_instance.position; }
+        const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
+        const Vec3d& get_instance_scaling_factor() const { return m_instance.scaling_factor; }
+        const Vec3d& get_instance_mirror() const { return m_instance.mirror; }
         const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
         const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
         const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
-        const Geometry::Transformation &get_instance_transform() const { return m_instance.transform; }
+        const Transform3d &get_instance_full_matrix() const { return m_instance.full_tran.get_matrix(); }
+
+        const Geometry::Transformation &get_volume_transform() const { return m_volume.full_tran; }
+        const Geometry::Transformation &get_instance_transform() const { return m_instance.full_tran; }
     };
 
 public:
@@ -134,7 +229,7 @@ private:
         ObjectIdxsToInstanceIdxsMap content;
         // List of ids of the volumes which are sinking when starting dragging
         std::vector<unsigned int> sinking_volumes;
-        Vec3d rotation_pivot;
+        Vec3d                     rotation_pivot;
     };
 
     // Volumes owned by GLCanvas3D.
@@ -151,12 +246,9 @@ private:
     Cache m_cache;
     Clipboard m_clipboard;
     std::optional<BoundingBoxf3> m_bounding_box;
-    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
-    // This bounding box is useful for absolute scaling of tilted objects in world coordinate space.
-    // Modifiers are NOT taken in account
+    // Bounding box of a selection, with no instance scaling applied. This bounding box
+    // is useful for absolute scaling of tilted objects in world coordinate space.
     std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
-    // Bounding box of a single full instance selection, in world coordinates.
-    // Modifiers are NOT taken in account
     std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
     // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
     // Modifiers are taken in account
@@ -172,26 +264,20 @@ private:
     std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
 
     std::optional<std::pair<Vec3d, double>> m_bounding_sphere;
-
 #if ENABLE_RENDER_SELECTION_CENTER
     GLModel m_vbo_sphere;
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
     GLModel m_arrow;
     GLModel m_curved_arrow;
-    GLModel m_box;
-    struct Planes
-    {
-        std::array<Vec3f, 2> check_points{ Vec3f::Zero(), Vec3f::Zero() };
-        std::array<GLModel, 2> models;
-    };
-    Planes m_planes;
 
     float m_scale_factor;
+    bool m_dragging;
 
     // BBS
     EMode m_volume_selection_mode{ Instance };
     bool m_volume_selection_locked { false };
+    std::vector<Transform3d> m_trafo_matrices;
 
 public:
     Selection();
@@ -206,7 +292,7 @@ public:
     void set_model(Model* model);
 
     EMode get_mode() const { return m_mode; }
-    void set_mode(EMode mode) { m_mode = mode; }
+    void  set_mode(EMode mode);
 
     int query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx);
     void add(unsigned int volume_idx, bool as_single_selection = true, bool check_for_already_contained = false);
@@ -225,12 +311,15 @@ public:
     void remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs);
 
     //BBS
+    ModelVolume *                   get_selected_single_volume(int &out_object_idx, int &out_volume_idx);
+    ModelObject *                   get_selected_single_object(int &out_object_idx);
+    const ModelInstance *           get_selected_single_intance();
+    const std::vector<Transform3d> &get_all_tran_of_selected_volumes();
     void add_curr_plate();
     void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
     void clone(int numbers = 1);
     void center();
-    void drop();
     void center_plate(const int plate_idx);
     void set_printable(bool printable);
 
@@ -259,6 +348,7 @@ public:
     bool is_single_volume() const { return m_type == SingleVolume; }
     bool is_multiple_volume() const { return m_type == MultipleVolume; }
     bool is_any_volume() const { return is_single_volume() || is_multiple_volume(); }
+    bool is_single_volume_or_modifier() const { return is_single_volume() || is_single_modifier(); }
     bool is_any_connector() const;
     bool is_any_cut_volume() const;
     bool is_mixed() const { return m_type == Mixed; }
@@ -266,17 +356,12 @@ public:
     bool is_from_single_object() const;
     bool is_sla_compliant() const;
     bool is_instance_mode() const { return m_mode == Instance; }
-    bool is_single_volume_or_modifier() const { return is_single_volume() || is_single_modifier(); }
-    bool is_single_volume_instance() const { return is_single_full_instance() && m_list.size() == 1; }
-    bool is_single_text() const;
 
     bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     // returns true if the selection contains all the given indices
     bool contains_all_volumes(const std::vector<unsigned int>& volume_idxs) const;
     // returns true if the selection contains at least one of the given indices
     bool contains_any_volume(const std::vector<unsigned int>& volume_idxs) const;
-    // returns true if the selection contains any sinking volume
-    bool contains_sinking_volumes(bool ignore_modifiers = true) const;
     // returns true if the selection contains all and only the given indices
     bool matches(const std::vector<unsigned int>& volume_idxs) const;
 
@@ -292,79 +377,80 @@ public:
 
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
+    GLVolume*      get_volume(unsigned int volume_idx);
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
-    GLVolume* get_volume(unsigned int volume_idx);
-
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
     unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
     const BoundingBoxf3& get_bounding_box() const;
-    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
-    // This bounding box is useful for absolute scaling of tilted objects in world coordinate space.
-    // Modifiers are NOT taken in account
+    // Bounding box of a selection, with no instance scaling applied. This bounding box
+    // is useful for absolute scaling of tilted objects in world coordinate space.
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
-    // Bounding box of a single full instance selection, in world coordinates.
-    // Modifiers are NOT taken in account
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
     // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
     // Modifiers are taken in account
-    const BoundingBoxf3& get_full_unscaled_instance_bounding_box() const;
+    const BoundingBoxf3 &get_full_unscaled_instance_bounding_box() const;
     // Bounding box of a single full instance selection, in world coordinates.
     // Modifiers are taken in account
-    const BoundingBoxf3& get_full_scaled_instance_bounding_box() const;
+    const BoundingBoxf3 &get_full_scaled_instance_bounding_box() const;
     // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
     // Modifiers are taken in account
-    const BoundingBoxf3& get_full_unscaled_instance_local_bounding_box() const;
+    const BoundingBoxf3 &get_full_unscaled_instance_local_bounding_box() const;
     // Returns the bounding box aligned to the axes of the currently selected reference system (World/Object/Part)
     // and the transform to place and orient it in world coordinates
-    const std::pair<BoundingBoxf3, Transform3d>& get_bounding_box_in_current_reference_system() const;
+    const std::pair<BoundingBoxf3, Transform3d> &get_bounding_box_in_current_reference_system() const;
     // Returns the bounding box aligned to the axes of the given reference system
     // and the transform to place and orient it in world coordinates
     std::pair<BoundingBoxf3, Transform3d> get_bounding_box_in_reference_system(ECoordinatesType type) const;
 
+    void start_dragging();
+    void stop_dragging() { m_dragging = false; }
+    bool is_dragging() const { return m_dragging; }
     // Returns the bounding sphere: first = center, second = radius
     const std::pair<Vec3d, double> get_bounding_sphere() const;
 
     void setup_cache();
-
-    void translate(const Vec3d& displacement, TransformationType transformation_type);
+    void translate(const Vec3d &displacement, TransformationType transformation_type);//new
     void move_to_center(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
-    [[deprecated("Only used by GizmoObjectManipulation")]]
-    void scale_legacy(const Vec3d& scale, TransformationType transformation_type);
     void scale(const Vec3d& scale, TransformationType transformation_type);
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
     void scale_to_fit_print_volume(const BuildVolume& volume);
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    void scale_and_translate(const Vec3d& scale, const Vec3d& world_translation, TransformationType transformation_type);
+    void scale_and_translate(const Vec3d &scale, const Vec3d &world_translation, TransformationType transformation_type);
     void mirror(Axis axis, TransformationType transformation_type);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
+    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement);
+
+    void rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran);
+    void rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran);
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS
+    EMode get_volume_selection_mode(){ return m_volume_selection_mode;}
     void set_volume_selection_mode(EMode mode) { if (!m_volume_selection_locked) m_volume_selection_mode = mode; }
     void lock_volume_selection_mode() { m_volume_selection_locked = true; }
     void unlock_volume_selection_mode() { m_volume_selection_locked = false; }
 
     void erase();
 
-    void render(float scale_factor = 1.0);
-    //BBS: GUI refactor: add uniform scale from gizmo
-    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale);
+    void render(float scale_factor = 1.0) const;
 #if ENABLE_RENDER_SELECTION_CENTER
-    void render_center(bool gizmo_is_dragging);
+    void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    //BBS: GUI refactor: add uniform scale from gizmo
+    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const;
 
     bool requires_local_axes() const;
 
-    void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color, float scale) {
+    void render_bounding_box(const BoundingBoxf3& box, float* color, float scale) {
         m_scale_factor = scale;
-        render_bounding_box(box, Transform3d::Identity(), color);
+        render_bounding_box(box, color);
     }
 
     //BBS
@@ -401,18 +487,20 @@ private:
     void set_bounding_boxes_dirty() {
         m_bounding_box.reset();
         m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset();
-        m_full_unscaled_instance_bounding_box.reset(); m_full_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_bounding_box.reset();
+        m_full_scaled_instance_bounding_box.reset();
         m_full_unscaled_instance_local_bounding_box.reset();
         m_bounding_box_in_current_reference_system.reset();
         m_bounding_sphere.reset();
     }
-    void render_synchronized_volumes();
-    void render_bounding_box(const BoundingBoxf3& box, const Transform3d& trafo, const ColorRGB& color);
-    void render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
-    void render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
+    void render_selected_volumes() const;
+    void render_synchronized_volumes() const;
+    void render_bounding_box(const BoundingBoxf3& box, float* color) const;
+    void render_sidebar_position_hints(const std::string& sidebar_field) const;
+    void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     //BBS: GUI refactor: add uniform_scale from gizmo
-    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale, GLShaderProgram& shader, const Transform3d& matrix);
-    void render_sidebar_layers_hints(const std::string& sidebar_field, GLShaderProgram& shader);
+    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const;
+    void render_sidebar_layers_hints(const std::string& sidebar_field) const;
 
 public:
     enum class SyncRotationType {
@@ -434,18 +522,16 @@ private:
     void paste_volumes_from_clipboard();
     void paste_objects_from_clipboard();
 
-    void transform_instance_relative(GLVolume& volume, const VolumeCache& volume_data, TransformationType transformation_type,
-        const Transform3d& transform, const Vec3d& world_pivot);
-    void transform_volume_relative(GLVolume& volume, const VolumeCache& volume_data, TransformationType transformation_type,
-        const Transform3d& transform, const Vec3d& world_pivot);
+    void transform_instance_relative(
+        GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot);
+    void transform_volume_relative(
+        GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot);
 };
-
-ModelVolume    *get_selected_volume   (const Selection &selection);
+ModelVolume *   get_selected_volume(const Selection &selection);
 const GLVolume *get_selected_gl_volume(const Selection &selection);
 
-ModelVolume    *get_selected_volume   (const ObjectID &volume_id, const Selection &selection);
-ModelVolume    *get_volume            (const ObjectID &volume_id, const Selection &selection);
-
+ModelVolume *get_selected_volume(const ObjectID &volume_id, const Selection &selection);
+ModelVolume *get_volume(const ObjectID &volume_id, const Selection &selection);
 } // namespace GUI
 } // namespace Slic3r
 

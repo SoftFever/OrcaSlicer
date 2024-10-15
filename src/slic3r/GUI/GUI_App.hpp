@@ -1,13 +1,6 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
-#include <wx/app.h>
-#include <wx/colour.h>
-#include <wx/font.h>
-#include <wx/string.h>
-#include <wx/snglinst.h>
-#include <wx/msgdlg.h>
-
 #include <memory>
 #include <string>
 #include "ImGuiWrapper.hpp"
@@ -15,6 +8,7 @@
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Color.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/UserNotification.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -25,6 +19,13 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+
+#include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/font.h>
+#include <wx/string.h>
+#include <wx/snglinst.h>
+#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>
@@ -75,12 +76,12 @@ class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
-class Downloader;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
+class NetworkErrorDialog;
 
 
 enum FileType
@@ -90,9 +91,9 @@ enum FileType
     FT_OBJ,
     FT_AMF,
     FT_3MF,
+    FT_GCODE_3MF,
     FT_GCODE,
     FT_MODEL,
-    FT_ZIP,
     FT_PROJECT,
     FT_GALLERY,
 
@@ -123,15 +124,21 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
-enum OrcaSlicerMenuIDs {
-  OrcaSlicerMenuAbout,
-  OrcaSlicerMenuPreferences,
+enum BambuStudioMenuIDs {
+  BambuStudioMenuAbout,
+  BambuStudioMenuPreferences,
 };
 
 enum CameraMenuIDs {
     wxID_CAMERA_PERSPECTIVE,
     wxID_CAMERA_ORTHOGONAL,
     wxID_CAMERA_COUNT,
+};
+
+enum VersionUpdateType
+{
+    ReleaseVersionUpdate,
+    BetaVersionUpdate
 };
 
 
@@ -237,7 +244,9 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-   
+//import model from mall
+    wxString       m_download_file_url;
+
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -274,9 +283,7 @@ private:
 	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
-	    size_t m_instance_hash_int;
-
-    std::unique_ptr<Downloader> m_downloader;
+	size_t m_instance_hash_int;
 
     //BBS
     bool m_is_closing {false};
@@ -307,10 +314,10 @@ private:
     bool             m_show_http_errpr_msgdlg{false};
     wxString         m_info_dialog_content;
     HttpServer       m_http_server;
-    bool             m_show_gcode_window{true};
+
     boost::thread    m_check_network_thread;
-  public:
-      //try again when subscription fails
+public:
+    //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
@@ -326,6 +333,7 @@ private:
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
+    bool get_app_conf_exists() { return m_app_conf_exists; }
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
@@ -335,18 +343,7 @@ private:
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-    std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "OrcaSlicer-gcodeviewer"; }
-    
-    // SoftFever
-    bool show_gcode_window() const { return m_show_gcode_window; }
-    void toggle_show_gcode_window();
-
-    bool show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
-    void toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
-
-    bool show_outline() const { return app_config->get_bool("show_outline"); }
-    void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
-
+    std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);
@@ -362,9 +359,6 @@ private:
     bool            init_opengl();
 
     void            init_download_path();
-#if wxUSE_WEBVIEW_EDGE
-    void            init_webview_runtime();
-#endif
     static unsigned get_colour_approx_luma(const wxColour& colour);
     static bool     dark_mode();
     const wxColour  get_label_default_clr_system();
@@ -393,9 +387,9 @@ private:
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
     void            link_to_network_check();
-        
+    void            link_to_lan_only_wiki();
 
-    const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
+    const wxColour& get_label_clr_modified() { return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
     const wxColour& get_label_clr_default() { return m_color_label_default; }
     const wxColour& get_window_default_clr(){ return m_color_window_default; }
@@ -429,12 +423,11 @@ private:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
-    void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
-    void            ShowDownNetPluginDlg();
+    void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS
@@ -469,9 +462,9 @@ private:
     bool            m_studio_active = true;
     std::chrono::system_clock::time_point  last_active_point;
 
-    void            check_update(bool show_tips, int by_user);
+    void            check_update(bool show_tips, int by_user, VersionUpdateType = ReleaseVersionUpdate);
     void            check_new_version(bool show_tips = false, int by_user = 0);
-    void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+    void            check_beta_version(bool show_tips = false, int by_user = 0);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -556,7 +549,7 @@ private:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
-    GizmoObjectManipulation*  obj_manipul();
+    GizmoObjectManipulation *obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();
@@ -566,13 +559,14 @@ private:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
-    Downloader*          downloader();
 
 
     std::string         m_mall_model_download_url;
     std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
     PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
+
+    NetworkErrorDialog* m_server_error_dialog { nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
@@ -584,6 +578,7 @@ private:
     void            open_publish_page_dialog();
     void            remove_mall_system_dialog();
     void            run_script(wxString js);
+    void            run_script_left(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
 
@@ -648,16 +643,11 @@ private:
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
-    // extend is stl/3mf/gcode/step etc 
+#ifdef __WXMSW__
+    // extend is stl/3mf/gcode/step etc
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
-    bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
-    void            associate_url(std::wstring url_prefix);
-    void            disassociate_url(std::wstring url_prefix);
-
-    // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
-    void            start_download(std::string url);
-
+#endif // __WXMSW__
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
@@ -667,7 +657,8 @@ private:
     bool            check_networking_version();
     void            cancel_networking_install();
     void            restart_networking();
-    void            check_config_updates_from_updater() { check_updates(false); }
+    void            check_config_updates_from_updater();
+    void            check_config_updates_from_menu();
 
 private:
     int             updating_bambu_networking();
@@ -696,7 +687,6 @@ private:
     bool                    m_datadir_redefined { false };
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
-    bool                    m_config_corrupted { false };
     std::string             m_open_method;
 };
 

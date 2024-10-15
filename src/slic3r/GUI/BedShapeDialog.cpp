@@ -13,8 +13,8 @@
 #include "libslic3r/Polygon.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
-
+#include "FileHelp.hpp"
+#include <wx/dcgraph.h>
 #include <algorithm>
 
 namespace Slic3r {
@@ -35,7 +35,7 @@ static std::string get_option_label(BedShape::Parameter param)
     }
 }
 
-void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter param)
+void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter param, bool can_edit)
 {
     ConfigOptionDef def;
     t_config_option_key key;
@@ -44,20 +44,20 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.type = coPoints;
         def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
         def.min = 0;
-        def.max = 214700;
-        def.width   = 7;
+        def.max = 1200;
         def.label = get_option_label(param);
         def.tooltip = L("Size in X and Y of the rectangular plate.");
+        def.readonly = !can_edit;
         key = "rect_size";
         break;
     case Parameter::RectOrigin:
         def.type = coPoints;
         def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
-        def.min = -107350;
-        def.max = 107350;
-        def.width = 7;
+        def.min = -600;
+        def.max = 600;
         def.label = get_option_label(param);
         def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+        def.readonly = !can_edit;
         key = "rect_origin";
         break;
     case Parameter::Diameter:
@@ -66,6 +66,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.sidetext = L("mm");
         def.label = get_option_label(param);
         def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
+        def.readonly = !can_edit;
         key = "diameter";
         break;
     default:
@@ -90,11 +91,11 @@ wxString BedShape::get_name(PageType type)
 BedShape::PageType BedShape::get_page_type()
 {
     switch (m_build_volume.type()) {
-    case BuildVolume_Type::Rectangle:
-    case BuildVolume_Type::Invalid:    return PageType::Rectangle;
-    case BuildVolume_Type::Circle:     return PageType::Circle;
-    case BuildVolume_Type::Convex:
-    case BuildVolume_Type::Custom:     return PageType::Custom;
+    case BuildVolume::Type::Rectangle:
+    case BuildVolume::Type::Invalid:    return PageType::Rectangle;
+    case BuildVolume::Type::Circle:     return PageType::Circle;
+    case BuildVolume::Type::Convex:
+    case BuildVolume::Type::Custom:     return PageType::Custom;
     }
     // make visual studio happy
     assert(false);
@@ -105,7 +106,7 @@ wxString BedShape::get_full_name_with_params()
 {
     wxString out = _L("Shape") + ": " + get_name(this->get_page_type());
     switch (m_build_volume.type()) {
-    case BuildVolume_Type::Circle:
+    case BuildVolume::Type::Circle:
         out += "\n" + _L(get_option_label(Parameter::Diameter)) + ": [" + double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)) + "]";
         break;
     default:
@@ -120,7 +121,7 @@ wxString BedShape::get_full_name_with_params()
 void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
 {
     switch (m_build_volume.type()) {
-    case BuildVolume_Type::Circle:
+    case BuildVolume::Type::Circle:
         optgroup->set_value("diameter", double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)));
         break;
     default:
@@ -130,23 +131,23 @@ void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
     }
 }
 
-void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
+void BedShapeDialog::build_dialog(const ConfigOptionPoints &default_pt, const ConfigOptionString &custom_texture, const ConfigOptionString &custom_model, bool can_edit)
 {
     SetFont(wxGetApp().normal_font());
-
-    SetBackgroundColour(*wxWHITE);
-	m_panel = new BedShapePanel(this);
+    this->SetBackgroundColour(*wxWHITE);
+    m_panel = new BedShapePanel(this);
+    m_panel->set_edit_state(can_edit);
     m_panel->build_panel(default_pt, custom_texture, custom_model);
 
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->Add(m_panel, 1, wxEXPAND);
-	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_panel, 1, wxEXPAND);
+    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
-	SetSizer(main_sizer);
-	SetMinSize(GetSize());
-	main_sizer->SetSizeHints(this);
+    SetSizer(main_sizer);
+    SetMinSize(GetSize());
+    main_sizer->SetSizeHints(this);
 
     this->Bind(wxEVT_CLOSE_WINDOW, ([this](wxCloseEvent& evt) {
         EndModal(wxID_CANCEL);
@@ -172,15 +173,16 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 const std::string BedShapePanel::NONE = "None";
 const std::string BedShapePanel::EMPTY_STRING = "";
 
-void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std::string& custom_texture, const std::string& custom_model)
+void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     wxGetApp().UpdateDarkUI(this);
     m_shape = default_pt.values;
-    m_custom_texture = custom_texture.empty() ? NONE : custom_texture;
-    m_custom_model = custom_model.empty() ? NONE : custom_model;
+    m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
+    m_custom_model = custom_model.value.empty() ? NONE : custom_model.value;
 
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Shape"));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
+    sbsizer->GetStaticBox()->Enable(m_can_edit);
     wxGetApp().UpdateDarkUI(sbsizer->GetStaticBox());
 
 	// shape options
@@ -190,16 +192,16 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
     sbsizer->Add(m_shape_options_book);
 
     auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Rectangle));
-    BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
-    BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
+    BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize,m_can_edit);
+    // BBS hide
+    BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin, m_can_edit);
+    activate_options_page(optgroup);
+    // BBS hide
+   /* optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
+    BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
     activate_options_page(optgroup);
 
-     optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
-     BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
-     activate_options_page(optgroup);
-
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Custom));
-
 	Line line{ "", "" };
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
@@ -217,7 +219,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
 		return sizer;
 	};
 	optgroup->append_line(line);
-    activate_options_page(optgroup);
+    activate_options_page(optgroup);*/
 
     wxPanel* texture_panel = init_texture_panel();
     wxPanel* model_panel = init_model_panel();
@@ -226,6 +228,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);
+    m_canvas->SetMinSize({ FromDIP(320), FromDIP(320) });
     m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent& e) { m_canvas->repaint(m_shape); });
     m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
 
@@ -270,21 +273,18 @@ void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
     options_group->parent()->SetSizerAndFit(options_group->sizer);
 }
 
-wxPanel* BedShapePanel::init_texture_panel()
+wxPanel *BedShapePanel::init_texture_panel()
 {
-    wxPanel* panel = new wxPanel(this);
-    panel->SetBackgroundColour(*wxWHITE);
+    wxPanel *panel = new wxPanel(this);
+    wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Texture"));
 
     optgroup->label_width = 10;
-    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        update_shape();
-    };
+    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) { update_shape(); };
 
-    Line line{ "", "" };
+    Line line{"", ""};
     line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
-
+    line.widget     = [this](wxWindow *parent) {
         StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
             std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
@@ -295,60 +295,56 @@ wxPanel* BedShapePanel::init_texture_panel()
         load_btn->SetBackgroundColor(btn_bg_white);
         load_btn->SetBorderColor(btn_bd_white);
         load_btn->SetBackgroundColour(*wxWHITE);
-        wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
+        load_btn->Enable(true);
+        wxSizer * load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
-        wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
+        wxStaticText *filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
 
-        wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxSizer *filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
         remove_btn->SetBackgroundColor(btn_bg_white);
         remove_btn->SetBorderColor(btn_bd_white);
         remove_btn->SetBackgroundColour(*wxWHITE);
-        wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxSizer * remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
-        wxGetApp().UpdateDarkUI(load_btn);
-        wxGetApp().UpdateDarkUI(remove_btn);
-
-        wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+        wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
         sizer->Add(load_sizer, 1, wxEXPAND);
         sizer->Add(remove_sizer, 1, wxEXPAND | wxTOP, 2);
 
-        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { load_texture(); }));
-        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) {
-                m_custom_texture = NONE;
-                update_shape();
-            }));
+        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
+        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
+                             m_custom_texture = NONE;
+                             update_shape();
+                         }));
 
-        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) {
-                e.SetText(_(boost::filesystem::path(m_custom_texture).filename().string()));
-                wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
-                if (lbl != nullptr) {
-                    bool exists = (m_custom_texture == NONE) || boost::filesystem::exists(m_custom_texture);
-                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
+        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
+                               wxGCDC dc;
+                               auto   text = wxControl::Ellipsize(_L(boost::filesystem::path(m_custom_texture).filename().string()), dc, wxELLIPSIZE_END, FromDIP(150));
+                               e.SetText(text);
+                               wxStaticText *lbl = dynamic_cast<wxStaticText *>(e.GetEventObject());
+                               if (lbl != nullptr) {
+                                   bool exists = (m_custom_texture == NONE) || boost::filesystem::exists(m_custom_texture);
+                                   lbl->SetForegroundColour(exists ? wxGetApp().get_label_clr_default() : wxColor(*wxRED));
 
-                    wxString tooltip_text = "";
-                    if (m_custom_texture != NONE) {
-                        if (!exists)
-                            tooltip_text += _L("Not found:") + " ";
+                                   wxString tooltip_text = "";
+                                   if (m_custom_texture != NONE) {
+                                       if (!exists) tooltip_text += _L("Not found:") + " ";
 
-                        tooltip_text += _(m_custom_texture);
-                    }
+                                       tooltip_text += _(m_custom_texture);
+                                   }
 
-                    wxToolTip* tooltip = lbl->GetToolTip();
-                    if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
-                        lbl->SetToolTip(tooltip_text);
-                }
-            }));
+                                   wxToolTip *tooltip = lbl->GetToolTip();
+                                   if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text)) lbl->SetToolTip(tooltip_text);
+                               }
+                           }));
 
-        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) { e.Enable(m_custom_texture != NONE); }));
-
+        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) { e.Enable(m_custom_texture != NONE); }));
         parent->SetBackgroundColour(*wxWHITE);
-
         return sizer;
     };
     optgroup->append_line(line);
@@ -359,86 +355,78 @@ wxPanel* BedShapePanel::init_texture_panel()
     return panel;
 }
 
-wxPanel* BedShapePanel::init_model_panel()
+wxPanel *BedShapePanel::init_model_panel()
 {
-    wxPanel* panel = new wxPanel(this);
-    panel->SetBackgroundColour(*wxWHITE);
+    wxPanel *panel = new wxPanel(this);
+    wxGetApp().UpdateDarkUI(panel, true);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Model"));
 
     optgroup->label_width = 10;
-    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        update_shape();
-    };
+    optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) { update_shape(); };
 
-
-    Line line{ "", "" };
+    Line line{"", ""};
     line.full_width = 1;
-    line.widget = [this](wxWindow* parent) {
+    line.widget     = [this](wxWindow *parent) {
         StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
             std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
         StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-
         Button* load_btn = new Button(parent, _L("Load..."));
         load_btn->SetBackgroundColor(btn_bg_white);
         load_btn->SetBorderColor(btn_bd_white);
         load_btn->SetBackgroundColour(*wxWHITE);
-        wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
+        load_btn->Enable(m_can_edit);
+        wxSizer * load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
-        wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
-        wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText *filename_lbl   = new wxStaticText(parent, wxID_ANY, _(NONE));
+        wxSizer *     filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
         remove_btn->SetBackgroundColor(btn_bg_white);
         remove_btn->SetBorderColor(btn_bd_white);
         remove_btn->SetBackgroundColour(*wxWHITE);
-        wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxSizer * remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
-        wxGetApp().UpdateDarkUI(load_btn);
-        wxGetApp().UpdateDarkUI(remove_btn);
-
-        wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+        wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
         sizer->Add(load_sizer, 1, wxEXPAND);
         sizer->Add(remove_sizer, 1, wxEXPAND | wxTOP, 2);
 
-        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { load_model(); }));
+        load_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model(); }));
 
-        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) {
-                m_custom_model = NONE;
-                update_shape();
-            }));
+        remove_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
+                             m_custom_model = NONE;
+                             update_shape();
+                         }));
 
-        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) {
-                e.SetText(_(boost::filesystem::path(m_custom_model).filename().string()));
-                wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
-                if (lbl != nullptr) {
-                    bool exists = (m_custom_model == NONE) || boost::filesystem::exists(m_custom_model);
-                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
+        filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
+                               wxGCDC dc;
+                               auto text = wxControl::Ellipsize(_L(boost::filesystem::path(m_custom_model).filename().string()), dc, wxELLIPSIZE_END, FromDIP(150));
+                               e.SetText(text);
+                               wxStaticText *lbl = dynamic_cast<wxStaticText *>(e.GetEventObject());
+                               if (lbl != nullptr) {
+                                   bool exists = (m_custom_model == NONE) || boost::filesystem::exists(m_custom_model);
+                                   lbl->SetForegroundColour(exists ? wxGetApp().get_label_clr_default() : wxColor(*wxRED));
 
-                    wxString tooltip_text = "";
-                    if (m_custom_model != NONE) {
-                        if (!exists)
-                            tooltip_text += _L("Not found:") + " ";
+                                   wxString tooltip_text = "";
+                                   if (m_custom_model != NONE) {
+                                       if (!exists) tooltip_text += _L("Not found:") + " ";
 
-                        tooltip_text += _(m_custom_model);
-                    }
+                                       tooltip_text += _(m_custom_model);
+                                   }
 
-                    wxToolTip* tooltip = lbl->GetToolTip();
-                    if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text))
-                        lbl->SetToolTip(tooltip_text);
-                }
-            }));
+                                   wxToolTip *tooltip = lbl->GetToolTip();
+                                   if ((tooltip == nullptr) || (tooltip->GetTip() != tooltip_text)) lbl->SetToolTip(tooltip_text);
+                               }
+                           }));
 
-        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) { e.Enable(m_custom_model != NONE); }));
-
+        remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) { e.Enable(m_custom_model != NONE); }));
         parent->SetBackgroundColour(*wxWHITE);
-
         return sizer;
     };
     optgroup->append_line(line);
@@ -483,33 +471,46 @@ void BedShapePanel::update_shape()
     auto opt_group = m_optgroups[page_idx];
 
     switch (static_cast<BedShape::PageType>(page_idx)) {
-    case BedShape::PageType::Rectangle:
-    {
+    case BedShape::PageType::Rectangle: {
+        m_is_valid = true;
         Vec2d rect_size(Vec2d::Zero());
-		Vec2d rect_origin(Vec2d::Zero());
+        Vec2d rect_origin(Vec2d::Zero());
 
-		try { rect_size = boost::any_cast<Vec2d>(opt_group->get_value("rect_size")); }
-        catch (const std::exception& /* e */) { return; }
+        try {
+            rect_size = boost::any_cast<Vec2d>(opt_group->get_value("rect_size"));
+        } catch (const std::exception & /* e */) {
+            return;
+        }
 
-        try { rect_origin = boost::any_cast<Vec2d>(opt_group->get_value("rect_origin")); }
-		catch (const std::exception & /* e */)  { return; }
- 		
-		auto x = rect_size(0);
-		auto y = rect_size(1);
-		// empty strings or '-' or other things
-		if (x == 0 || y == 0)	return;
-		double x0 = 0.0;
-		double y0 = 0.0;
-		double x1 = x;
-		double y1 = y;
+        // BBS
+        try {
+            rect_origin = boost::any_cast<Vec2d>(opt_group->get_value("rect_origin"));
+        } catch (const std::exception & /* e */) {
+            return;
+        }
 
-		auto dx = rect_origin(0);
-		auto dy = rect_origin(1);
+        auto x = rect_size(0);
+        auto y = rect_size(1);
+        // empty strings or '-' or other things
+        if (x == 0 || y == 0) {
+            m_is_valid = false;
+            return;
+        }
+        double x0 = 0.0;
+        double y0 = 0.0;
+        double x1 = x;
+        double y1 = y;
 
-		x0 -= dx;
-		x1 -= dx;
-		y0 -= dy;
-		y1 -= dy;
+        auto dx = rect_origin(0);
+        auto dy = rect_origin(1);
+        if (dx >= x || dy >= y) { 
+            m_is_valid = false;
+            return;
+        }
+        x0 -= dx;
+        x1 -= dx;
+        y0 -= dy;
+        y1 -= dy;
         m_shape = { Vec2d(x0, y0),
                     Vec2d(x1, y0),
                     Vec2d(x1, y1),
@@ -603,10 +604,19 @@ void BedShapePanel::load_texture()
         show_error(this, _L("Invalid file format."));
         return;
     }
-
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            wxMessageBox(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB), "Error", wxOK | wxICON_ERROR);
+        } else {
+            wxMessageBox(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     wxBusyCursor wait;
 
     m_custom_texture = file_name;
+    Utils::slash_to_back_slash(m_custom_texture);
     update_shape();
 }
 
@@ -625,10 +635,19 @@ void BedShapePanel::load_model()
         show_error(this, _L("Invalid file format."));
         return;
     }
-
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            wxMessageBox(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB), "Error", wxOK | wxICON_ERROR);
+        } else {
+            wxMessageBox(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     wxBusyCursor wait;
 
     m_custom_model = file_name;
+    Utils::slash_to_back_slash(m_custom_model);
     update_shape();
 }
 

@@ -54,9 +54,9 @@ public:
 	static wxFont Body_9;
 	static wxFont Body_8;
 	
-	static void initSysFont();
+	static void initSysFont(std::string lang_code = "", bool load_font_resource = true);
 
-    static wxFont sysFont(int size, bool bold = false);
+    static wxFont sysFont(int size, bool bold = false, std::string lang_code = "");
 
     static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text);
 };

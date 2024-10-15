@@ -10,9 +10,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/statbmp.h>
 #include <wx/popupwin.h>
+#include <wx/scrolwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
-#include <wx/scrolwin.h>
 
 #include <vector>
 #include <functional>

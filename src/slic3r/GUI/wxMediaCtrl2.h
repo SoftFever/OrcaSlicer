@@ -13,13 +13,15 @@
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
+void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height);
+
 #ifdef __WXMAC__
 
 class wxMediaCtrl2 : public wxWindow
 {
 public:
     wxMediaCtrl2(wxWindow * parent);
-    
+
     ~wxMediaCtrl2();
 
     void Load(wxURI url);
@@ -41,8 +43,8 @@ public:
 protected:
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
 
-    static void bambu_log(void const * ctx, int level, char const * msg);
-    
+    static void bambu_log(void const *ctx, int level, char const *msg);
+
     void NotifyStopped();
 
 private:

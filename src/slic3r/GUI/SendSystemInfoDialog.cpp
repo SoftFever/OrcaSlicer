@@ -8,7 +8,6 @@
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/Color.hpp"
 
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -211,7 +210,7 @@ static bool should_dialog_be_shown()
 
 
 
-// Following function saves current OrcaSlicer version into app config.
+// Following function saves current BambuStudio version into app config.
 // It will be later used to decide whether to open the dialog or not.
 static void save_version()
 {
@@ -403,7 +402,7 @@ static std::string generate_system_info_json()
     namespace pt = boost::property_tree;
 
     pt::ptree data_node;
-    data_node.put("OrcaSlicerVersion", SLIC3R_VERSION);
+    data_node.put("BambuStudioVersion", SLIC3R_VERSION);
     data_node.put("BuildID", SLIC3R_BUILD_ID);
     data_node.put("UniqueID", unique_id);
     data_node.put("Platform", platform_to_string(platform()));
@@ -592,8 +591,9 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     wxColour bgr_clr = wxGetApp().get_window_default_clr();
     SetBackgroundColour(bgr_clr);
     const auto text_clr = wxGetApp().get_label_clr_default();
-    auto text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
-    auto bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
+    auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+
 
     auto *topSizer = new wxBoxSizer(wxVERTICAL);
     auto *vsizer = new wxBoxSizer(wxVERTICAL);
@@ -608,7 +608,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     wxString html = GUI::format_wxstr(
             "<html><body bgcolor=%1%><font color=%2%>"
             "<table><tr><td>"
-            "<img src = \"" + resources_dir() + "/images/OrcaSlicer_192px.png\" />"
+            "<img src = \"" + resources_dir() + "/images/BambuStudio_192px.png\" />"
             "</td><td align=\"left\">"
             + text0 + "<br / ><br / >"
             + text1 + "<br /><br />"

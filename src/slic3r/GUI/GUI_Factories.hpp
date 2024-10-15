@@ -47,9 +47,9 @@ struct SettingsFactory
 class MenuFactory
 {
 public:
-	static std::vector<wxBitmap>    get_volume_bitmaps();
-	static std::vector<wxBitmap> get_text_volume_bitmaps();
-	static std::vector<wxBitmap> get_svg_volume_bitmaps();
+    static std::vector<wxBitmap>    get_volume_bitmaps();
+    static std::vector<wxBitmap>    get_text_volume_bitmaps();
+    static std::vector<wxBitmap>    get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
@@ -67,8 +67,9 @@ public:
     wxMenu* object_menu();
     wxMenu* sla_object_menu();
     wxMenu* part_menu();
-    wxMenu* text_part_menu();
-    wxMenu* svg_part_menu();
+    wxMenu *text_part_menu();
+    wxMenu *svg_part_menu();
+    wxMenu* cut_connector_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
@@ -91,6 +92,7 @@ private:
     MenuWithSeparators m_part_menu;
     MenuWithSeparators m_text_part_menu;
     MenuWithSeparators m_svg_part_menu;
+    MenuWithSeparators m_cut_cutter_menu;
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
@@ -98,7 +100,14 @@ private:
     MenuWithSeparators m_plate_menu;
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
-   
+
+    int object_menu_count{ 0 };
+    int part_menu_count{ 0 };
+    int default_menu_count{ 0 };
+    int plate_menu_count{ 0 };
+    int multi_selection_menu_count{ 0 };
+    int assemble_object_menu_ocunt{ 0 };
+    int assemble_multi_selection_menu_count{ 0 };
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;
@@ -115,16 +124,14 @@ private:
     //BBS: add part plate related logic
     void        create_plate_menu();
     //BBS: add bbl object menu
-    void        create_extra_object_menu();
+    void        create_bbl_object_menu();
     void        create_bbl_part_menu();
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
+    void        create_cut_cutter_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
-    // Orca: add submenu for adding handy models
-    wxMenu*     append_submenu_add_handy_model(wxMenu* menu, ModelVolumeType type);
-    void        append_menu_item_add_text(wxMenu* menu, ModelVolumeType type, bool is_submenu_item = true);
-    void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);    
+    void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);
     void        append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem* append_menu_item_layers_editing(wxMenu* menu);
     wxMenuItem* append_menu_item_settings(wxMenu* menu);
@@ -140,6 +147,7 @@ private:
     void        append_menu_item_change_extruder(wxMenu* menu);
     void        append_menu_item_set_visible(wxMenu* menu);
     void        append_menu_item_delete(wxMenu* menu);
+    void        append_menu_item_delete_all_cutter(wxMenu *menu);
     void        append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void        append_menu_items_convert_unit(wxMenu* menu); // Add "Conver/Revert..." menu items (from/to inches/meters) after "Reload From Disk"
     void        append_menu_items_flush_options(wxMenu* menu);
@@ -157,7 +165,6 @@ private:
     void        append_menu_item_clone(wxMenu* menu);
     void        append_menu_item_simplify(wxMenu* menu);
     void        append_menu_item_center(wxMenu* menu);
-    void        append_menu_item_drop(wxMenu* menu);
     void        append_menu_item_per_object_process(wxMenu* menu);
     void        append_menu_item_per_object_settings(wxMenu* menu);
     void        append_menu_item_change_filament(wxMenu* menu);

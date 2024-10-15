@@ -1,7 +1,7 @@
 #ifndef BUSYCURSORJOB_HPP
 #define BUSYCURSORJOB_HPP
 
-#include "Job.hpp"
+#include "JobNew.hpp"
 
 #include <wx/utils.h>
 #include <boost/log/trivial.hpp>
@@ -10,8 +10,8 @@ namespace Slic3r { namespace GUI {
 
 struct CursorSetterRAII
 {
-    Job::Ctl &ctl;
-    CursorSetterRAII(Job::Ctl &c) : ctl{c}
+    JobNew::Ctl &ctl;
+    CursorSetterRAII(JobNew::Ctl &c) : ctl{c}
     {
         ctl.call_on_main_thread([] { wxBeginBusyCursor(); });
     }
@@ -26,7 +26,8 @@ struct CursorSetterRAII
 };
 
 template<class JobSubclass>
-class BusyCursored: public Job {
+class BusyCursored : public JobNew
+{
     JobSubclass m_job;
 
 public:

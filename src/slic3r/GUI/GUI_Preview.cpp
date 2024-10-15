@@ -2,6 +2,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Layer.hpp"
 #include "IMSlider.hpp"
+#include "IMSlider_Utils.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -65,7 +66,6 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
     m_canvas->enable_picking(true);
-    m_canvas->get_selection().set_mode(Selection::Instance);
     m_canvas->enable_moving(true);
     // XXX: more config from 3D.pm
     m_canvas->set_model(model);
@@ -75,6 +75,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
+    m_canvas->enable_return_toolbar(true);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_select_plate_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(true);
@@ -164,12 +165,6 @@ void View3D::center_selected()
 {
     if (m_canvas != nullptr)
         m_canvas->do_center();
-}
-
-void View3D::drop_selected()
-{
-    if (m_canvas != nullptr)
-        m_canvas->do_drop();
 }
 
 void View3D::center_selected_plate(const int plate_idx) {
@@ -608,7 +603,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     auto curr_print_seq = curr_plate->get_real_print_seq();
     bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
-    
+
     m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
@@ -730,7 +725,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     if (IsShown()) {
         m_canvas->set_selected_extruder(0);
         bool is_slice_result_valid = wxGetApp().plater()->get_partplate_list().get_curr_plate()->is_slice_result_valid();
-        if (gcode_preview_data_valid && (is_slice_result_valid || only_gcode)) {
+        if (gcode_preview_data_valid && (is_slice_result_valid || m_only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
@@ -739,9 +734,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             //BBS show sliders
             show_moves_sliders();
 
-            //Orca: keep shell preview on but make it more transparent
-            m_canvas->set_shells_on_previewing(true);
-            m_canvas->set_shell_transparence();
+            //BBS: keep shell preview on or not by app_config
+            m_canvas->set_shells_on_previewing(wxGetApp().app_config->get_bool("show_shells_in_preview"));
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
             //BBS: add m_loaded_print logic
@@ -823,10 +817,10 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
     m_canvas->enable_separator_toolbar(false);
-
+    //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
-    m_canvas->get_selection().set_volume_selection_mode(Selection::Volume);
-    m_canvas->get_selection().lock_volume_selection_mode();
+    //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);
+    //m_canvas->get_selection().lock_volume_selection_mode();
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

@@ -3,14 +3,14 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include "Job.hpp"
+#include "PlaterJob.hpp"
 
 namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
 
-class BindJob : public Job
+class BindJob : public PlaterJob
 {
     wxWindow *           m_event_handle{nullptr};
     std::function<void()> m_success_fun{nullptr};
@@ -22,10 +22,13 @@ class BindJob : public Job
     int                 m_print_job_completed_id = 0;
     bool                m_improved{false};
 
+protected:
+    void on_exception(const std::exception_ptr &) override;
 public:
-    BindJob(std::string dev_id, std::string dev_ip, std::string sec_link, std::string ssdp_version);
+    BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip,
+        std::string sec_link, std::string ssdp_version);
 
-    int  status_range() const
+    int  status_range() const override
     {
         return 100;
     }
@@ -33,9 +36,9 @@ public:
     bool is_finished() { return m_job_finished;  }
 
     void on_success(std::function<void()> success);
-    void update_status(Ctl &ctl, int st, const std::string &msg);
-    void process(Ctl &ctl) override;
-    void finalize(bool canceled, std::exception_ptr &eptr) override;
+    void update_status(int st, const wxString &msg);
+    void process() override;
+    void finalize() override;
     void set_event_handle(wxWindow* hanle);
     void post_fail_event(int code, std::string info);
     void set_improved(bool improved){m_improved = improved;};

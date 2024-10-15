@@ -2,7 +2,7 @@
 #define slic3r_GUI_TickCode_hpp_
 
 #include "libslic3r/CustomGCode.hpp"
-#include "libslic3r/Color.hpp"
+#include "IMSlider_Utils.hpp"
 #include <set>
 
 namespace Slic3r {
@@ -29,6 +29,7 @@ class TickCodeInfo
     bool        m_use_default_colors = false;
 
     std::vector<std::string>* m_colors{ nullptr };// reference to IMSlider::m_extruder_colors
+    ColorGenerator color_generator;
 
     std::string get_color_for_tick(TickCode tick, Type type, const int extruder);
 

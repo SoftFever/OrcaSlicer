@@ -2,8 +2,8 @@
 #define slic3r_GUI_TempInput_hpp_
 
 #include "../wxExtensions.hpp"
-#include <wx/textctrl.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 #include "StaticBox.hpp"
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
@@ -64,6 +64,7 @@ public:
     wxPopupTransientWindow *wdialog{nullptr};
     int  temp_type;
     bool actice = false;
+    wxString                currentTemp;
 
     
     wxString erasePending(wxString &str);

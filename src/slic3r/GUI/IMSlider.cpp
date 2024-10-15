@@ -11,14 +11,12 @@ namespace Slic3r {
 
 namespace GUI {
 
-// equal to 25 mm2
-inline double min_delta_area() { return scale_(scale_(25)); }
-// equal to 1 mm2
-inline double miscalculation() { return scale_(scale_(1)); }
+constexpr double min_delta_area = scale_(scale_(25));  // equal to 25 mm2
+constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 
 static const float  LEFT_MARGIN       = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float  HORIZONTAL_SLIDER_WINDOW_HEIGHT  = 64.0f;
-static const float  VERTICAL_SLIDER_WINDOW_WIDTH     = 160.0f;
+static const float  VERTICAL_SLIDER_WINDOW_WIDTH     = 124.0f;
 static const float  GROOVE_WIDTH      = 12.0f;
 static const ImVec2 ONE_LAYER_MARGIN  = ImVec2(20.0f, 20.0f);
 static const ImVec2 ONE_LAYER_BUTTON_SIZE  = ImVec2(28.0f, 28.0f);
@@ -27,7 +25,7 @@ static const ImU32 BACKGROUND_COLOR_DARK  = IM_COL32(65, 65, 71, 255);
 static const ImU32 BACKGROUND_COLOR_LIGHT = IM_COL32(255, 255, 255, 255);
 static const ImU32 GROOVE_COLOR_DARK      = IM_COL32(45, 45, 49, 255);
 static const ImU32 GROOVE_COLOR_LIGHT     = IM_COL32(206, 206, 206, 255);
-static const ImU32 BRAND_COLOR            = IM_COL32(0, 150, 136, 255);
+static const ImU32 BRAND_COLOR            = IM_COL32(0, 174, 66, 255);
 
 
 static int m_tick_value = -1;
@@ -35,7 +33,7 @@ static ImVec4 m_tick_rect;
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
 {
-    return fabs(bottom_area - top_area) <= miscalculation();
+    return fabs(bottom_area - top_area) <= miscalculation;
 }
 
 bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers_cnt, bool check_overhangs, std::function<bool(Layer *)> break_condition)
@@ -52,7 +50,7 @@ bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers
 
         // Check percent of the area decrease.
         // This value have to be more than min_delta_area and more then 10%
-        if ((prev_area - cur_area > min_delta_area()) && (cur_area / prev_area < 0.9)) {
+        if ((prev_area - cur_area > min_delta_area) && (cur_area / prev_area < 0.9)) {
             detected = true;
             if (break_condition(layer)) break;
         }
@@ -240,6 +238,10 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
 
+    if (!was_empty && m_ticks.empty())
+        // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
+        ;// post_ticks_changed_event();
+
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
         {
@@ -402,9 +404,8 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 }
 
 void IMSlider::delete_tick(const TickCode& tick) {
-    Type t = tick.type; // Avoid Use-After-Free issue, which resets the tick.type to 0
     m_ticks.ticks.erase(tick);
-    post_ticks_changed_event(t);
+    post_ticks_changed_event(tick.type);
 }
 
 bool IMSlider::check_ticks_changed_event(Type type)
@@ -477,7 +478,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     ImGui::ItemSize(draw_region);
 
     const float  handle_dummy_width  = 10.0f * m_scale;
-    const float  text_right_dummy    = 70.0f * scale * m_scale;
+    const float  text_right_dummy    = 50.0f * scale * m_scale;
 
     const float  handle_radius       = 12.0f * m_scale;
     const float  handle_border       = 2.0f * m_scale;
@@ -584,8 +585,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     };
     //draw main colored band
     const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
-    ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
-    ImU32     band_clr          = ImGuiWrapper::to_ImU32(rgba);
+    std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
+    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
     draw_main_band(band_clr);
 
     static float tick_pos;
@@ -603,8 +604,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
                 const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
 
                 if (!clr_str.empty()) {
-                    ColorRGBA rgba = decode_color_to_float_array(clr_str);
-                    ImU32     band_clr = ImGuiWrapper::to_ImU32(rgba);
+                    std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
+                    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
                     if (tick_it->tick == 0)
                         draw_main_band(band_clr);
                     else
@@ -754,6 +755,30 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     }
 }
 
+void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
+    int v_min = GetMinValue();
+    int v_max = GetMaxValue();
+    ImGuiContext& context = *GImGui;
+
+    int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
+
+    //draw tick
+    ImVec2 tick_offset = ImVec2(22.0f, 14.0f) * m_scale;
+    float  tick_width = 1.0f * m_scale;
+
+    const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
+
+    float tick_pos = get_pos_from_value(v_min, v_max, tick, slideable_region);
+    ImRect tick_left = ImRect(slideable_region.GetCenter().x - tick_offset.x, tick_pos - tick_width, slideable_region.GetCenter().x - tick_offset.y, tick_pos);
+    ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
+    ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
+    ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
+
+    // draw layer time
+    std::string label = get_label(tick, ltEstimatedTime);
+    show_tooltip(label);
+}
+
 void IMSlider::show_tooltip(const std::string tooltip) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 6 * m_scale, 3 * m_scale });
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, { 3 * m_scale });
@@ -771,73 +796,32 @@ void IMSlider::show_tooltip(const TickCode& tick){
     // Use previous layer's complete time as current layer's tick time,
     // since ticks are added at the beginning of current layer
     std::string time_str = "";
-    // TODO: support first layer
     if (tick.tick > 0) {
         time_str = get_label(tick.tick - 1, ltEstimatedTime);
     }
     if (!time_str.empty()) {
-        time_str += "\n";
+        time_str.insert(0, "\n");
     }
-    
+
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        show_tooltip(time_str + _u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
+        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"" + time_str);
         break;
     case CustomGCode::ToolChange:
-        show_tooltip(time_str + _u8L("Change Filament"));
+        show_tooltip(_u8L("Change Filament") + time_str);
         break;
     case CustomGCode::Template:
-        show_tooltip(time_str + _u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
+        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"" + time_str);
         break;
     case CustomGCode::Custom:
-        show_tooltip(time_str + _u8L("Custom G-code:") + " \"" + tick.extra + "\"");
+        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"" + time_str);
         break;
     default:
         break;
     }
-}
-
-int IMSlider::get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect) {
-    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
-    
-    const ImGuiAxis axis = is_horizontal() ? ImGuiAxis_X : ImGuiAxis_Y;
-    const float region_usable_sz = (rect.Max[axis] - rect.Min[axis]);
-    const float region_usable_pos_min = rect.Min[axis];
-    
-    const float abs_pos = pt[axis];
-    
-    float pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
-    if (axis == ImGuiAxis_Y)
-        pos_ratio = 1.0f - pos_ratio;
-    
-    return v_min + (ImS32)(v_range * pos_ratio + 0.5f);
-}
-
-void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
-    int v_min = GetMinValue();
-    int v_max = GetMaxValue();
-    ImGuiContext& context = *GImGui;
-    
-    int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
-    
-    //draw tick
-    ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
-    float  tick_width    = 1.0f * m_scale;
-
-    const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
-
-    float tick_pos = get_pos_from_value(v_min, v_max, tick, slideable_region);
-    ImRect tick_left  = ImRect(slideable_region.GetCenter().x - tick_offset.x, tick_pos - tick_width, slideable_region.GetCenter().x - tick_offset.y, tick_pos);
-    ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
-    ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
-    ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
-    
-    // draw layer time
-    std::string label = get_label(tick, ltEstimatedTime);
-    show_tooltip(label);
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
@@ -853,7 +837,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    const float  text_dummy_height   = 60.0f * scale * m_scale;
+    const float  text_dummy_height   = 30.0f * scale * m_scale;
 
     const float  handle_radius       = 12.0f * m_scale;
     const float  handle_border       = 2.0f * m_scale;
@@ -1008,8 +992,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         pos_3 = pos_1 + triangle_offsets[2];
         window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
-        
-        // draw mouse position
+
         if (hovered) {
             draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
         }
@@ -1052,8 +1035,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImRect text_rect = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, text_frame_rounding);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
-        
-        // draw mouse position
+
         if (hovered) {
             draw_tick_on_mouse_position(one_slideable_region);
         }
@@ -1071,7 +1053,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImGuiWrapper::COL_ORCA); // ORCA: Use orca color for slider value text
+    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImVec4(0, 0.682f, 0.259f, 1.0f));
 
     int windows_flag = ImGuiWindowFlags_NoTitleBar
                        | ImGuiWindowFlags_NoCollapse
@@ -1214,7 +1196,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 }
 
 void IMSlider::do_go_to_layer(size_t layer_number) {
-    layer_number = clamp((int)layer_number, m_min_value, m_max_value);
+    clamp((int)layer_number, m_min_value, m_max_value);
     GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
 }
 
@@ -1241,7 +1223,7 @@ void IMSlider::render_go_to_layer_dialog()
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
-    if (ImGui::BeginPopupModal((_u8L("Jump to Layer")).c_str(), NULL, windows_flag))
+    if (ImGui::BeginPopupModal((_u8L("Jump to layer")).c_str(), NULL, windows_flag))
     {
         imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
         if (ImGui::IsMouseClicked(0)) {
@@ -1365,9 +1347,9 @@ void IMSlider::render_add_menu()
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
-                    ColorRGBA rgba     = decode_color_to_float_array(m_extruder_colors[i]);
-                    ImU32                icon_clr = ImGuiWrapper::to_ImU32(rgba);
-                    if (rgba.a() == 0)
+                    std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
+                    ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    if (rgba[3] == 0)
                         icon_clr = 0;
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
                     if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
@@ -1415,8 +1397,8 @@ void IMSlider::render_edit_menu(const TickCode& tick)
                 }
                 else if (begin_menu(_u8L("Change Filament").c_str())) {
                     for (int i = 0; i < extruder_num; i++) {
-                        ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[i]);
-                        ImU32     icon_clr = ImGuiWrapper::to_ImU32(rgba);
+                        std::array<float, 4> rgba = decode_color_to_float_array(m_extruder_colors[i]);
+                        ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
                         if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
                     }
                     end_menu();
@@ -1533,7 +1515,7 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
     const size_t value = tick;
 
     if (m_label_koef == 1.0 && m_values.empty()) {
-        return std::to_string(value);
+        std::to_string(value);
     }
     if (value >= m_values.size()) return "error";
 
@@ -1609,6 +1591,22 @@ float IMSlider::get_pos_from_value(int v_min, int v_max, int value, const ImRect
         handle_pos = rect.Min.y + (rect.Max.y - rect.Min.y) * pos_ratio;
     }
     return handle_pos;
+}
+
+int IMSlider::get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect) {
+    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+
+    const ImGuiAxis axis = is_horizontal() ? ImGuiAxis_X : ImGuiAxis_Y;
+    const float region_usable_sz = (rect.Max[axis] - rect.Min[axis]);
+    const float region_usable_pos_min = rect.Min[axis];
+
+    const float abs_pos = pt[axis];
+
+    float pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+    if (axis == ImGuiAxis_Y)
+        pos_ratio = 1.0f - pos_ratio;
+
+    return v_min + (ImS32)(v_range * pos_ratio + 0.5f);
 }
 
 std::string IMSlider::get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const

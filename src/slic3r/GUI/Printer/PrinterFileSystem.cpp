@@ -26,9 +26,9 @@
 std::string last_system_error() {
     return Slic3r::decode_path(std::error_code(
 #ifdef _WIN32
-        GetLastError(), 
+        GetLastError(),
 #else
-        errno, 
+        errno,
 #endif
         std::system_category()).message().c_str());
 }
@@ -50,22 +50,29 @@ static std::map<int, std::string> error_messages = {
     {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
-    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
+    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card.")}
 };
 
 struct StaticBambuLib : BambuLib {
-    static StaticBambuLib & get();
+    static StaticBambuLib &get(BambuLib * copy = nullptr);
     static int Fake_Bambu_Create(Bambu_Tunnel*, char const*) { return -2; }
+    static void reset();
+private:
+    std::vector<BambuLib *> copies_;
 };
 
 PrinterFileSystem::PrinterFileSystem()
-    : BambuLib(StaticBambuLib::get())
+    : BambuLib(StaticBambuLib::get(this))
 {
     if (!default_thumbnail.IsOk()) {
-        default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
+        Slic3r::GUI::BitmapCache c;
+        auto thumbnail = c.load_svg("printer_file", 0, 0);
+        if (thumbnail && thumbnail->IsOk()) {
+            default_thumbnail = *thumbnail;
 #ifdef __APPLE__
-        default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
+            default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
 #endif
+        }
     }
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
@@ -360,7 +367,7 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::st
             m_task_flags &= ~FF_FETCH_MODEL;
             if (result != 0) {
                 auto iter = error_messages.find(result);
-                if (iter != error_messages.end())     
+                if (iter != error_messages.end())
                     *file_data = _u8L(iter->second.c_str());
                 else
                     file_data->clear();
@@ -754,7 +761,7 @@ void PrinterFileSystem::UpdateFocusThumbnail()
     if (names.empty() && paths.empty())
         return;
     m_task_flags |= FF_THUMNAIL;
-    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths.empty() ? names : paths), 
+    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths.empty() ? names : paths),
         paths.empty() ? OldThumbnail : m_file_type == F_MODEL ? ModelMetadata : VideoThumbnail);
 }
 
@@ -838,7 +845,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     if (!thumbnail.empty()) {
                         arr.push_back(file.path + "#" + thumbnail);
                         file.flags &= ~FF_THUMNAIL;
-                        file.local_path.clear();    
+                        file.local_path.clear();
                     }
                 }
             }
@@ -944,7 +951,7 @@ std::pair<PrinterFileSystem::FileList &, size_t> PrinterFileSystem::FindFile(std
                                m_file_list :
                                m_file_list_cache[type];
     if (index >= file_list.size() || (by_path ? file_list[index].path : file_list[index].name) != name) {
-        auto iter = std::find_if(m_file_list.begin(), file_list.end(), 
+        auto iter = std::find_if(m_file_list.begin(), file_list.end(),
                 [name, by_path](File &f) { return (by_path ? f.path : f.name) == name; });
         if (iter == m_file_list.end()) return {file_list, -1};
         index = std::distance(m_file_list.begin(), iter);
@@ -1013,7 +1020,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     event.SetInt(index);
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
-    else if (auto iter = error_messages.find(extra); iter != error_messages.end())     
+    else if (auto iter = error_messages.find(extra); iter != error_messages.end())
         event.SetString(_L(iter->second.c_str()));
     else if (extra > CONTINUE && extra != ERROR_CANCEL)
         event.SetString(wxString::Format(_L("Error code: %d"), int(extra)));
@@ -1239,6 +1246,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (c) c(result, r, nullptr);
     }
     m_messages.clear();
+    if (result)
+        m_cond.timed_wait(l, boost::posix_time::seconds(10));
     while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
@@ -1274,7 +1283,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             }
             if (ret == 0)
                 do {
-                    ret = Bambu_StartStreamEx 
+                    ret = Bambu_StartStreamEx
                         ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
                         : Bambu_StartStream(tunnel, false);
                 } while (ret == Bambu_would_block);
@@ -1342,12 +1351,12 @@ static void* get_function(const char* name)
 
 #define GET_FUNC(x) lib.x = reinterpret_cast<decltype(lib.x)>(get_function(#x))
 
-StaticBambuLib &StaticBambuLib::get()
+StaticBambuLib &StaticBambuLib::get(BambuLib *copy)
 {
     static StaticBambuLib lib;
     // first load the library
 
-    if (lib.Bambu_Open)
+    if (lib.Bambu_Create)
         return lib;
 
     if (!module) {
@@ -1371,9 +1380,20 @@ StaticBambuLib &StaticBambuLib::get()
     GET_FUNC(Bambu_SetLogger);
     GET_FUNC(Bambu_FreeLogMsg);
 
-    if (!lib.Bambu_Open)
+    if (!lib.Bambu_Create) {
         lib.Bambu_Create = Fake_Bambu_Create;
+        if (copy)
+            lib.copies_.push_back(copy);
+    }
     return lib;
+}
+
+void StaticBambuLib::reset()
+{
+    get().Bambu_Create = nullptr;
+    auto &lib = get();
+    for (auto c : lib.copies_)
+        *c = lib;
 }
 
 extern "C" BambuLib *bambulib_get() {

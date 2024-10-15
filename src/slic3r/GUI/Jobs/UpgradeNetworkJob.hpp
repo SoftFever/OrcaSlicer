@@ -5,7 +5,6 @@
 #include <boost/log/trivial.hpp>
 #include <functional>
 #include "Job.hpp"
-#include <wx/window.h>
 
 namespace fs = boost::filesystem;
 
@@ -35,10 +34,11 @@ protected:
     std::string name;
     std::string package_name;
 
+    void on_exception(const std::exception_ptr &) override;
 public:
-    UpgradeNetworkJob();
+    UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri);
 
-    int  status_range() const
+    int  status_range() const override
     {
         return 100;
     }
@@ -46,9 +46,9 @@ public:
     bool is_finished() { return m_job_finished;  }
 
     void on_success(std::function<void()> success);
-    void update_status(Ctl &ctl, int st, const std::string &msg);
-    void process(Ctl &ctl) override;
-    void finalize(bool canceled, std::exception_ptr &e) override;
+    void update_status(int st, const wxString &msg);
+    void process() override;
+    void finalize() override;
     void set_event_handle(wxWindow* hanle);
 };
 

@@ -48,8 +48,7 @@ struct Option {
 using t_option = std::unique_ptr<Option>;	//!
 
 /// Represents option lines
-class Line : public UndoValueUIManager
-{
+class Line {
 	bool		m_is_separator{ false };
 public:
     wxString	label;
@@ -59,6 +58,8 @@ public:
     bool        toggle_visible{true}; // BBS: hide some line
 
     size_t		full_width {0}; 
+	wxColour*	full_Label_color {nullptr};
+	bool		blink	{false};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
@@ -82,10 +83,10 @@ public:
 	Line() : m_is_separator(true) {}
 
 	bool is_separator() const { return m_is_separator; }
-	bool has_only_option(const std::string& opt_key) const { return m_options.size() == 1 && m_options[0].opt_id == opt_key; }
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
+	bool*							get_blink_ptr() { return &blink; }
 
 private:
 	std::vector<Option>		m_options;//! {std::vector<Option>()};
@@ -121,8 +122,6 @@ public:
 
     std::function<void(wxWindow* win)> rescale_extra_column_item { nullptr };
     std::function<void(wxWindow* win)> rescale_near_label_widget { nullptr };
-
-    std::function<void(const t_config_option_key& opt_key)> edit_custom_gcode { nullptr };
     
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
@@ -156,7 +155,6 @@ public:
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
 							return m_fields.at(id).get();
     }
-
 	bool			set_value(const t_config_option_key& id, const boost::any& value, bool change_event = false) {
 							if (m_fields.find(id) == m_fields.end()) return false;
 							m_fields.at(id)->set_value(value, change_event);
@@ -172,9 +170,6 @@ public:
 
 	void			show_field(const t_config_option_key& opt_key, bool show = true);
 	void			hide_field(const t_config_option_key& opt_key) {  show_field(opt_key, false);  }
-
-	void enable_field(const t_config_option_key& opt_key, bool enable = true);
-    void disable_field(const t_config_option_key& opt_key) { enable_field(opt_key, false); }
 
 	void			set_name(const wxString& new_name);
 
@@ -324,9 +319,9 @@ protected:
 // It is designed for single extruder multiple material machine.
 class ExtruderOptionsGroup : public ConfigOptionsGroup {
 public:
-	ExtruderOptionsGroup(wxWindow* parent, const wxString& title, const wxString& icon, DynamicPrintConfig* config = nullptr, // ORCA: add support for icons
+	ExtruderOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* config = nullptr,
 		bool is_tab_opt = false, column_t extra_clmn = nullptr) :
-		ConfigOptionsGroup(parent, title, icon, config, is_tab_opt, extra_clmn) {}
+		ConfigOptionsGroup(parent, title, wxEmptyString, config, is_tab_opt, extra_clmn) {}
 
 	void on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
 };

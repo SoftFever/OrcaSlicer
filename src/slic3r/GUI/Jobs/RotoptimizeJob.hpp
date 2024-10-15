@@ -1,19 +1,16 @@
 #ifndef ROTOPTIMIZEJOB_HPP
 #define ROTOPTIMIZEJOB_HPP
 
-#include "Job.hpp"
+#include "PlaterJob.hpp"
 
 #include "libslic3r/SLA/Rotfinder.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#include "slic3r/GUI/I18N.hpp"
 
 namespace Slic3r {
 
 namespace GUI {
 
-class Plater;
-
-class RotoptimizeJob : public Job
+class RotoptimizeJob : public PlaterJob
 {
     using FindFn = std::function<Vec2d(const ModelObject &           mo,
                                        const sla::RotOptimizeParams &params)>;
@@ -47,16 +44,19 @@ class RotoptimizeJob : public Job
     };
 
     std::vector<ObjRot> m_selected_object_ids;
-    Plater *m_plater;
+
+protected:
+
+    void prepare() override;
+    void process() override;
 
 public:
 
-    void prepare();
-    void process(Ctl &ctl) override;
+    RotoptimizeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+        : PlaterJob{std::move(pri), plater}
+    {}
 
-    RotoptimizeJob();
-
-    void finalize(bool canceled, std::exception_ptr &) override;
+    void finalize() override;
 
     static constexpr size_t get_methods_count() { return std::size(Methods); }
 

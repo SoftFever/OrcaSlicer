@@ -12,6 +12,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "miniz.h"
 #include "ParamsDialog.hpp"
+#include "json_diff.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -263,6 +264,7 @@ private:
     void        on_dpi_changed(const wxRect &suggested_rect) override;
     void        show_export_result(const ExportCase &export_case);
     bool        has_check_box_selected();
+    bool        preset_is_not_compatible_bbl_printer(Preset *preset);
     bool        earse_preset_fields_for_safe(Preset *preset);
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
@@ -270,6 +272,7 @@ private:
     wxBoxSizer *create_button_item(wxWindow *parent);
     wxBoxSizer *create_select_printer(wxWindow *parent);
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
+    std::string create_structure_file(json &structure);
     int         initial_zip_archive(mz_zip_archive &zip_archive, const std::string &file_path);
     ExportCase  save_zip_archive_to_file(mz_zip_archive &zip_archive);
     ExportCase  save_presets_to_zip(const std::string &export_file, const std::vector<std::pair<std::string, std::string>> &config_paths);
@@ -352,7 +355,7 @@ private:
 class EditFilamentPresetDialog : public DPIDialog
 {
 public:
-    EditFilamentPresetDialog(wxWindow *parent, Filamentinformation *filament_info);
+    EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
     ~EditFilamentPresetDialog();
     
     wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }

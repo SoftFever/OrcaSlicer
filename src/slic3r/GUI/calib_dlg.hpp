@@ -13,7 +13,7 @@
 #include "GUI_App.hpp"
 #include "wx/hyperlink.h"
 #include <wx/radiobox.h>
-#include "libslic3r/calib.hpp"
+#include "libslic3r/Calib.hpp"
 
 namespace Slic3r { namespace GUI {
 

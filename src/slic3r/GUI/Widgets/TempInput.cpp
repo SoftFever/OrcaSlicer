@@ -25,7 +25,7 @@ TempInput::TempInput()
 {
     hover  = false;
     radius = 0;
-    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Focused), std::make_pair(0x009688, (int) StateColor::Hovered),
+    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Focused), std::make_pair(0x00AE42, (int) StateColor::Hovered),
                  std::make_pair(*wxWHITE, (int) StateColor::Normal));
     background_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
@@ -162,26 +162,38 @@ wxString TempInput::erasePending(wxString &str)
 
 void TempInput::SetTagTemp(int temp)
 {
-    text_ctrl->SetValue(wxString::Format("%d", temp));
-    messureSize();
-    Refresh();
+    auto tp = wxString::Format("%d", temp);
+    if ((text_ctrl->GetValue() != wxString("_")) && (text_ctrl->GetValue() != tp) ) {
+        text_ctrl->SetValue(tp);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTagTemp(wxString temp) 
 { 
-    text_ctrl->SetValue(temp);
-    messureSize();
-    Refresh();
+    if (text_ctrl->GetValue() != temp) {
+        text_ctrl->SetValue(temp);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetCurrTemp(int temp) 
 { 
-    SetLabel(wxString::Format("%d", temp)); 
+    auto tp = wxString::Format("%d", temp);
+    if (currentTemp != tp) {
+        currentTemp = tp;
+        SetLabel(tp);
+    }
 }
 
 void TempInput::SetCurrTemp(wxString temp) 
 {
-    SetLabel(temp);
+    if (currentTemp != temp) {
+        currentTemp = temp;
+        SetLabel(temp);
+    }
 }
 
 void TempInput::Warning(bool warn, WarningType type)
@@ -245,14 +257,18 @@ void TempInput::Warning(bool warn, WarningType type)
 
 void TempInput::SetIconActive()
 {
-    actice = true;
-    Refresh();
+    if (!actice) {
+        actice = true;
+        Refresh();
+    }
 }
 
 void TempInput::SetIconNormal()
 {
-    actice = false;
-    Refresh();
+    if (actice) {
+        actice = false;
+        Refresh();
+    }
 }
 
 void TempInput::SetMaxTemp(int temp) { max_temp = temp; }
@@ -261,9 +277,11 @@ void TempInput::SetMinTemp(int temp) { min_temp = temp; }
 
 void TempInput::SetLabel(const wxString &label)
 {
-    wxWindow::SetLabel(label);
-    messureSize();
-    Refresh();
+    if (label != wxWindow::GetLabel()) {
+        wxWindow::SetLabel(label);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTextColor(StateColor const &color)
@@ -371,8 +389,8 @@ void TempInput::render(wxDC &dc)
     if (warning_mode) {
         border_color = wxColour(255, 111, 0);
     } else {
-        border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Focused),
-                                  std::make_pair(0x009688, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+        border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Focused),
+                                  std::make_pair(0x00AE42, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     }
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);

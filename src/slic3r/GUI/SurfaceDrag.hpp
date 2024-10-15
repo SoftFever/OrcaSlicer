@@ -89,7 +89,7 @@ std::optional<Vec3d> calc_surface_offset(const Selection &selection, RaycastMana
 /// <param name="canvas">Contain model</param>
 /// <returns>Calculated distance from surface</returns>
 std::optional<float> calc_distance(const GLVolume &gl_volume, RaycastManager &raycaster, GLCanvas3D &canvas);
-std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster, 
+std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster,
     const RaycastManager::ISkip *condition, const std::optional<Slic3r::Transform3d>& fix);
 
 /// <summary>

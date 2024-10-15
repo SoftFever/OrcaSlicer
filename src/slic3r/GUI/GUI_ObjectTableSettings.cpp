@@ -220,7 +220,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         optgroup->sidetext_width = 5;
         optgroup->set_config_category_and_type(GUI::from_u8(group_category), Preset::TYPE_PRINT);
 
-        std::weak_ptr<ConfigOptionsGroup> weak_optgroup(optgroup);
+        std::weak_ptr weak_optgroup(optgroup);
         optgroup->m_on_change = [this, is_object, object, config, group_category](const t_config_option_key &opt_id, const boost::any &value) {
                                     this->m_parent->Freeze();
                                     this->update_config_values(is_object, object, config, group_category);
@@ -296,8 +296,9 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             if (line) line->toggle_visible = toggle;
         };
         ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
-
-        bool is_BBL_printer = wxGetApp().preset_bundle->is_bbl_vendor();
+        // BBS: whether the preset is Bambu Lab printer
+        PresetBundle &preset_bundle  = *wxGetApp().preset_bundle;
+        bool is_BBL_printer = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
         config_manipulation.set_is_BBL_Printer(is_BBL_printer);
 
         printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&m_current_config) :
@@ -400,8 +401,10 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
     };
 
     ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
-
-    config_manipulation.set_is_BBL_Printer(wxGetApp().preset_bundle->is_bbl_vendor());
+    // BBS: whether the preset is Bambu Lab printer
+    PresetBundle &preset_bundle  = *wxGetApp().preset_bundle;
+    bool is_BBL_printer = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    config_manipulation.set_is_BBL_Printer(is_BBL_printer);
 
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;

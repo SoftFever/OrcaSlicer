@@ -1,13 +1,14 @@
 #include "libslic3r/Utils.hpp"
 #include "Label.hpp"
 #include "StaticBox.hpp"
-#include <wx/intl.h> // For wxLocale
+
+#include "../GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
+
 #include <wx/dcclient.h>
 #include <wx/settings.h>
-#include <boost/log/trivial.hpp>
 
-
-wxFont Label::sysFont(int size, bool bold)
+wxFont Label::sysFont(int size, bool bold, std::string lang_code)
 {
 //#ifdef __linux__
 //    return wxFont{};
@@ -16,23 +17,24 @@ wxFont Label::sysFont(int size, bool bold)
     size = size * 4 / 5;
 #endif
 
-    wxString face = "HarmonyOS Sans SC";
-
-    // Check if the current locale is Korean
-    if (wxLocale::GetSystemLanguage() == wxLANGUAGE_KOREAN) {
-        face = "NanumGothic";
+    wxString face;
+    if (lang_code == "ja") {
+        face = wxString::FromUTF8("Source Han Sans JP Normal");
+    } else if (lang_code == "ko") {
+        face = wxString::FromUTF8("NanumGothic");
+    }
+    else {
+        face = wxString::FromUTF8("HarmonyOS Sans SC");
     }
 
     wxFont font{size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL, false, face};
     font.SetFaceName(face);
     if (!font.IsOk()) {
-      BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find %1% font") % face;
-      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-      BOOST_LOG_TRIVIAL(warning) << boost::format("Use system font instead: %1%") % font.GetFaceName();
-      if (bold)
-        font.MakeBold();
-      font.SetPointSize(size);
+        font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        if (bold) font.MakeBold();
+        font.SetPointSize(size);
     }
+
     return font;
 }
 wxFont Label::Head_48;
@@ -58,50 +60,43 @@ wxFont Label::Body_10;
 wxFont Label::Body_9;
 wxFont Label::Body_8;
 
-void Label::initSysFont()
+void Label::initSysFont(std::string lang_code, bool load_font_resource)
 {
-#if defined(__linux__) || defined(_WIN32)
-    const std::string &resource_path = Slic3r::resources_dir();
-    wxString font_path = wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Bold.ttf");
-    bool result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
-    printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
-    font_path = wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Regular.ttf");
-    result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
-    printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
-    // Adding NanumGothic Regular and Bold
-    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf");
-    result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Regular returns %1%")%result;
-    printf("add font of NanumGothic-Regular returns %d\n", result);
-    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf");
-    result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
-    printf("add font of NanumGothic-Bold returns %d\n", result);
+#ifdef __linux__
+    if (load_font_resource) {
+        const std::string& resource_path = Slic3r::resources_dir();
+        wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
+        bool result = wxFont::AddPrivateFont(font_path);
+        //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
+        printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
+        font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
+        result = wxFont::AddPrivateFont(font_path);
+        //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
+        printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
+    }
 #endif
-    Head_48 = Label::sysFont(48, true);
-    Head_32 = Label::sysFont(32, true);
-    Head_24 = Label::sysFont(24, true);
-    Head_20 = Label::sysFont(20, true);
-    Head_18 = Label::sysFont(18, true);
-    Head_16 = Label::sysFont(16, true);
-    Head_15 = Label::sysFont(15, true);
-    Head_14 = Label::sysFont(14, true);
-    Head_13 = Label::sysFont(13, true);
-    Head_12 = Label::sysFont(12, true);
-    Head_11 = Label::sysFont(11, true);
-    Head_10 = Label::sysFont(10, true);
+    Head_48 = Label::sysFont(48, true, lang_code);
+    Head_32 = Label::sysFont(32, true, lang_code);
+    Head_24 = Label::sysFont(24, true, lang_code);
+    Head_20 = Label::sysFont(20, true, lang_code);
+    Head_18 = Label::sysFont(18, true, lang_code);
+    Head_16 = Label::sysFont(16, true, lang_code);
+    Head_15 = Label::sysFont(15, true, lang_code);
+    Head_14 = Label::sysFont(14, true, lang_code);
+    Head_13 = Label::sysFont(13, true, lang_code);
+    Head_12 = Label::sysFont(12, true, lang_code);
+    Head_11 = Label::sysFont(11, true, lang_code);
+    Head_10 = Label::sysFont(10, true, lang_code);
 
-    Body_16 = Label::sysFont(16, false);
-    Body_15 = Label::sysFont(15, false);
-    Body_14 = Label::sysFont(14, false);
-    Body_13 = Label::sysFont(13, false);
-    Body_12 = Label::sysFont(12, false);
-    Body_11 = Label::sysFont(11, false);
-    Body_10 = Label::sysFont(10, false);
-    Body_9  = Label::sysFont(9, false);
-    Body_8  = Label::sysFont(8, false);
+    Body_16 = Label::sysFont(16, false, lang_code);
+    Body_15 = Label::sysFont(15, false, lang_code);
+    Body_14 = Label::sysFont(14, false, lang_code);
+    Body_13 = Label::sysFont(13, false, lang_code);
+    Body_12 = Label::sysFont(12, false, lang_code);
+    Body_11 = Label::sysFont(11, false, lang_code);
+    Body_10 = Label::sysFont(10, false, lang_code);
+    Body_9  = Label::sysFont(9, false, lang_code);
+    Body_8  = Label::sysFont(8, false, lang_code);
 }
 
 class WXDLLIMPEXP_CORE wxTextWrapper2
@@ -300,7 +295,7 @@ void Label::SetWindowStyleFlag(long style)
     wxStaticText::SetWindowStyleFlag(style);
     if (style & LB_HYPERLINK) {
         this->m_color = GetForegroundColour();
-        static wxColor clr_url("#009688");
+        static wxColor clr_url("#00AE42");
         SetFont(this->m_font.Underlined());
         SetForegroundColour(clr_url);
         SetCursor(wxCURSOR_HAND);

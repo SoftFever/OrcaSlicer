@@ -75,8 +75,9 @@ private:
     bool on_init() override;
     void on_update(const UpdateData& data) override;
     void on_render() override;
+    void on_render_for_picking() override;
 
-    void render_points(const Selection& selection, bool picking = false);
+    void render_points(const Selection& selection, bool picking = false) const;
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;
@@ -89,10 +90,6 @@ private:
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
     ObjectID m_old_mo_id;
-
-    GLModel m_cone;
-    GLModel m_cylinder;
-    GLModel m_sphere;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
@@ -139,6 +136,7 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "SLA Support Points"; }
     bool on_is_activable() const override;
     bool on_is_selectable() const override;
     virtual CommonGizmosDataID on_get_requirements() const override;

@@ -125,7 +125,7 @@ void FillBedJob::prepare()
     plate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
     plate_list.preprocess_exclude_areas(m_unselected);
 
-    m_bedpts = get_bed_shape(*m_plater->config());
+    m_bedpts = get_bed_shape(global_config);
 
     auto &objects = m_plater->model().objects;
     /*BoundingBox bedbb = get_extents(m_bedpts);
@@ -197,43 +197,36 @@ void FillBedJob::prepare()
             p.translation(X) -= p.bed_idx * stride;*/
 }
 
-void FillBedJob::process(Ctl &ctl)
+void FillBedJob::process()
 {
-    auto statustxt = _u8L("Filling");
-    ctl.call_on_main_thread([this] { prepare(); }).wait();
-    ctl.update_status(0, statustxt);
-
     if (m_object_idx == -1 || m_selected.empty()) return;
+    const Slic3r::DynamicPrintConfig &global_config = wxGetApp().preset_bundle->full_config();
 
-    update_arrange_params(params, m_plater->config(), m_selected);
-    m_bedpts = get_shrink_bedpts(m_plater->config(), params);
+    update_arrange_params(params, global_config, m_selected);
+    m_bedpts = get_shrink_bedpts(global_config, params);
 
     auto &partplate_list               = m_plater->get_partplate_list();
-    auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor();
-    if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
+    if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
     
-    update_selected_items_inflation(m_selected, m_plater->config(), params);
-    update_unselected_items_inflation(m_unselected, m_plater->config(), params);
+    update_selected_items_inflation(m_selected, global_config, params);
+    update_unselected_items_inflation(m_unselected, global_config, params);
 
     bool do_stop = false;
-    params.stopcondition = [&ctl, &do_stop]() {
-        return ctl.was_canceled() || do_stop;
+    params.stopcondition = [this, &do_stop]() {
+        return was_canceled() || do_stop;
     };
 
-    params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
+    params.progressind = [this](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt + " " + str);
+             update_status(st, _L("Filling") + " " + wxString::FromUTF8(str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
         do_stop = ap.bed_idx > 0 && ap.priority == 0;
     };
     // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
-    params.do_final_align = !is_bbl;
+    params.do_final_align = false;
 
     if (m_selected.size() > 100){
         // too many items, just find grid empty cells to put them
@@ -252,18 +245,15 @@ void FillBedJob::process(Ctl &ctl)
         arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
     // finalize just here.
-    ctl.update_status(100, ctl.was_canceled() ?
-                                       _u8L("Bed filling canceled.") :
-                                       _u8L("Bed filling done."));
+    update_status(m_status_range, was_canceled() ?
+                                       _L("Bed filling canceled.") :
+                                       _L("Bed filling done."));
 }
 
-FillBedJob::FillBedJob() : m_plater{wxGetApp().plater()} {}
-
-void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
+void FillBedJob::finalize()
 {
     // Ignore the arrange result if aborted.
-    if (canceled || eptr)
-        return;
+    if (was_canceled()) return;
 
     if (m_object_idx == -1) return;
 
@@ -326,6 +316,8 @@ void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
 
         m_plater->update();
     }
+
+    Job::finalize();
 }
 
 }} // namespace Slic3r::GUI

@@ -26,7 +26,7 @@ EVT_PAINT(FanSwitchButton::paintEvent)
 
 END_EVENT_TABLE()
 
-static const wxColour DEFAULT_HOVER_COL = wxColour(0, 150, 136);
+static const wxColour DEFAULT_HOVER_COL = wxColour(0, 174, 66);
 static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
 ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style)
@@ -52,10 +52,11 @@ void ImageSwitchButton::SetLabels(wxString const &lbl_on, wxString const &lbl_of
 	labels[0] = lbl_on;
 	labels[1] = lbl_off;
     auto fina_txt = GetValue() ? labels[0] : labels[1];
-    if (GetToolTipText() != fina_txt)
+    if (GetToolTipText() != fina_txt) {
         SetToolTip(fina_txt);
-    messureSize();
-    Refresh();
+        messureSize();
+        Refresh();
+    }
 }
 
 void ImageSwitchButton::SetImages(ScalableBitmap &img_on, ScalableBitmap &img_off)
@@ -76,9 +77,11 @@ void ImageSwitchButton::SetTextColor(StateColor const &color)
 
 void ImageSwitchButton::SetValue(bool value)
 {
-    m_on_off = value;
-    messureSize();
-    Refresh();
+    if (m_on_off != value) {
+        m_on_off = value;
+        messureSize();
+        Refresh();
+    }
 }
 
 void ImageSwitchButton::SetPadding(int padding)
@@ -236,16 +239,20 @@ void FanSwitchButton::SetTextColor(StateColor const& color)
 
 void FanSwitchButton::SetValue(bool value)
 {
-    m_on_off = value;
-    messureSize();
-    Refresh();
+    if (m_on_off != value) {
+        m_on_off = value;
+        messureSize();
+        Refresh();
+    }
 }
 
 void FanSwitchButton::SetPadding(int padding)
 {
-    m_padding = padding;
-    messureSize();
-    Refresh();
+    if (m_padding != padding) {
+        m_padding = padding;
+        messureSize();
+        Refresh();
+    }
 }
 
 void FanSwitchButton::messureSize()
@@ -325,8 +332,10 @@ void FanSwitchButton::Rescale()
 
 void FanSwitchButton::setFanValue(int val)
 {
-    m_speed = val;
-    Refresh();
+    if (m_speed != val) {
+        m_speed = val;
+        Refresh();
+    }
 }
 
 void FanSwitchButton::mouseDown(wxMouseEvent& event)

@@ -2,7 +2,6 @@
 #define slic3r_GUI_Colors_hpp_
 
 #include "imgui/imgui.h"
-#include "libslic3r/Color.hpp"
 #include <array>
 
 enum RenderCol_ {
@@ -40,6 +39,13 @@ public:
     static ImVec4      colors[RenderCol_Count];
 };
 const char* GetRenderColName(RenderCol idx);
+inline std::array<float, 4> GLColor(ImVec4 color) {
+    return {color.x, color.y, color.z, color.w };
+}
+
+inline ImVec4 IMColor(std::array<float, 4> color) {
+    return ImVec4(color[0], color[1], color[2], color[3]);
+}
 
 }
 

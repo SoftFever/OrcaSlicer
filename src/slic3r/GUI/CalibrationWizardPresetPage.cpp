@@ -1421,13 +1421,24 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 wxArrayString titles;
                 titles.push_back(_L("From k Value"));
                 titles.push_back(_L("To k Value"));
-                titles.push_back(_L("Step value"));
+                titles.push_back(_L("Value step"));
                 m_custom_range_panel->set_titles(titles);
 
                 wxArrayString values;
-                values.push_back(wxString::Format(wxT("%.0f"), 0));
-                values.push_back(wxString::Format(wxT("%.2f"), 0.05));
-                values.push_back(wxString::Format(wxT("%.3f"), 0.005));
+                ExtruderType extruder_type  = ExtruderType::etDirectDrive;
+                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
+                if (printer_preset) {
+                    extruder_type = ExtruderType(printer_preset->config.opt_enum("extruder_type", 0));
+                }
+                if (extruder_type == ExtruderType::etBowden) {
+                    values.push_back(wxString::Format(wxT("%.0f"), 0));
+                    values.push_back(wxString::Format(wxT("%.1f"), 0.5));
+                    values.push_back(wxString::Format(wxT("%.2f"), 0.05));
+                } else {
+                    values.push_back(wxString::Format(wxT("%.0f"), 0));
+                    values.push_back(wxString::Format(wxT("%.2f"), 0.05));
+                    values.push_back(wxString::Format(wxT("%.3f"), 0.005));
+                }
                 m_custom_range_panel->set_values(values);
 
                 m_custom_range_panel->set_unit("");
@@ -1479,10 +1490,12 @@ void CalibrationPresetPage::on_cali_finished_job()
 void CalibrationPresetPage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-    if (CalibUtils::print_worker) {
+    if (CalibUtils::print_job) {
+        if (CalibUtils::print_job->is_running()) {
             BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-        CalibUtils::print_worker->cancel_all();
-        CalibUtils::print_worker->wait_for_idle();
+            CalibUtils::print_job->cancel();
+        }
+        CalibUtils::print_job->join();
     }
 
     m_sending_panel->reset();

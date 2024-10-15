@@ -12,8 +12,6 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
-#include "Jobs/PlaterWorker.hpp"
 
 #include <wx/regex.h>
 #include <wx/progdlg.h>
@@ -23,7 +21,6 @@
 #include <algorithm>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -45,7 +42,7 @@ wxDEFINE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -59,7 +56,7 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     m_sizer_body->Add(0, 0, 0, wxLEFT, FromDIP(38));
 
-    auto sm = create_scaled_bitmap("OrcaSlicer", nullptr,  70);
+    auto sm = create_scaled_bitmap("BambuStudio", nullptr,  70);
     auto brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
 
     m_sizer_body->Add(brand, 0, wxALL, 0);
@@ -115,7 +112,7 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
 UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Network plug-in update"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -129,7 +126,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
 
 
-    auto sm = create_scaled_bitmap("OrcaSlicer", nullptr, 55);
+    auto sm = create_scaled_bitmap("BambuStudio", nullptr, 55);
     auto brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(55), FromDIP(55)));
 
     wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
@@ -139,7 +136,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
-    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when Orca Slicer launches next time."), LB_AUTO_WRAP);
+    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."), LB_AUTO_WRAP);
     operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
     operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
 
@@ -151,7 +148,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -255,9 +252,9 @@ void UpdatePluginDialog::update_info(std::string json_path)
 }
 
 UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _L("New version of Orca Slicer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _L("New version of Bambu Studio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -271,7 +268,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     
 
-    auto sm    = create_scaled_bitmap("OrcaSlicer", nullptr, 70);
+    auto sm    = create_scaled_bitmap("BambuStudio", nullptr, 70);
     m_brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
 
     
@@ -296,17 +293,6 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     //m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING,[=](wxWebViewEvent& event){
-        static bool load_url_first = false;
-        if(load_url_first){
-            // Orca: not used in Orca Slicer
-            // wxLaunchDefaultBrowser(url_line);
-            event.Veto();
-        }else{
-            load_url_first = true;
-        }
-        
-    });
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/releasenote.html";
@@ -324,10 +310,15 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
 
     
+    m_bitmap_open_in_browser = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("open_in_browser", this, 12), wxDefaultPosition, wxDefaultSize, 0 );
+    m_link_open_in_browser   = new wxHyperlinkCtrl(this, wxID_ANY, "Open in browser", "");
+    m_link_open_in_browser->SetFont(Label::Body_12);
+
+
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -359,17 +350,6 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
         EndModal(wxID_NO);
     });
 
-    m_cb_stable_only = new CheckBox(this);
-    m_cb_stable_only->SetValue(wxGetApp().app_config->get_bool("check_stable_update_only"));
-    m_cb_stable_only->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
-        wxGetApp().app_config->set_bool("check_stable_update_only", m_cb_stable_only->GetValue());
-        e.Skip();
-    });
-
-    auto stable_only_label = new Label(this, _L("Check for stable updates only"));
-    stable_only_label->SetFont(Label::Body_13);
-    stable_only_label->SetForegroundColour(wxColour(38, 46, 48));
-    stable_only_label->SetFont(Label::Body_12);
 
     m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
@@ -385,10 +365,10 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
     
+    sizer_button->Add(m_bitmap_open_in_browser, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
+    sizer_button->Add(m_link_open_in_browser, 0, wxALIGN_CENTER| wxLEFT, FromDIP(3));
     //sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
     sizer_button->AddStretchSpacer();
-    sizer_button->Add(stable_only_label, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
-    sizer_button->Add(m_cb_stable_only, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
     sizer_button->Add(m_button_download, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_skip_version, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
@@ -523,6 +503,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_text_up_info->Hide();
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
+        m_link_open_in_browser->SetURL(url_line);
     }
     else {
         m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
@@ -549,7 +530,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     :DPIFrame(parent, id, title, pos, size, style)
 {
     m_button_style = btn_style;
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -572,7 +553,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     btn_bg_white = StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -867,7 +848,7 @@ void SecondaryCheckDialog::rescale()
 PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
     :DPIFrame(parent, id, title, pos, size, style)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetBackgroundColour(*wxWHITE);
 
@@ -897,7 +878,7 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
 
     bottom_sizer->Add(m_sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
-    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
@@ -953,20 +934,34 @@ void PrintErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
     }
 }
 
-void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
+void PrintErrorDialog::update_text_image(const wxString& text, const wxString& error_code, const wxString& image_url)
 {
     //if (!m_sizer_text_release_note) {
     //    m_sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     //}
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
-    
+    wxString error_code_msg = error_code;
+    if (!error_code.IsEmpty()) {
+        wxDateTime now       = wxDateTime::Now();
+        wxString  show_time = now.Format("%H%M%d");
+        error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
+    }
+
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
         sizer_text_release_note->Add(m_error_prompt_pic_static, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->AddSpacer(10);
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER , FromDIP(5));
-        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
+    if (!m_staticText_error_code) {
+        m_staticText_error_code = new Label(m_vebview_release_note, error_code_msg, LB_AUTO_WRAP);
+        sizer_text_release_note->AddSpacer(5);
+        sizer_text_release_note->Add(m_staticText_error_code, 0, wxALIGN_CENTER, FromDIP(5));
+    }
+
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+
     if (!image_url.empty()) {
         web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
         BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
@@ -983,6 +978,9 @@ void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetLabelText(text);
+    m_staticText_error_code->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetMinSize(wxSize(FromDIP(300), -1));
+    m_staticText_error_code->SetLabelText(error_code_msg);
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
@@ -1049,7 +1047,8 @@ void PrintErrorDialog::update_title_style(wxString title, std::vector<int> butto
 
 }
 
-void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
+void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
+{
     Button* print_error_button = new Button(this, buton_text);
     print_error_button->SetBackgroundColor(btn_bg_white);
     print_error_button->SetBorderColor(wxColour(38, 46, 48));
@@ -1063,8 +1062,8 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
 
 }
 
-void PrintErrorDialog::init_button_list() {
-    
+void PrintErrorDialog::init_button_list()
+{
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
@@ -1167,7 +1166,7 @@ void PrintErrorDialog::rescale()
 ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIDialog(parent, id, title, pos, size, style)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -1190,7 +1189,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -1425,7 +1424,7 @@ void ConfirmBeforeSendDialog::disable_button_ok()
 void ConfirmBeforeSendDialog::enable_button_ok()
 {
     m_button_ok->Enable();
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(btn_bg_green);
@@ -1438,9 +1437,9 @@ void ConfirmBeforeSendDialog::rescale()
 }
 
 InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
-    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("LAN Connection Failed (Sending print file)"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Connect the printer using IP and access code"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -1453,7 +1452,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    comfirm_before_enter_text = _L("Step 1, please confirm Orca Slicer and your printer are in the same LAN.");
+    comfirm_before_enter_text = _L("Step 1, please confirm Bambu Studio and your printer are in the same LAN.");
     comfirm_after_enter_text = _L("Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them.");
 
 
@@ -1472,7 +1471,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
 
-    m_tips_ip = new Label(this, _L("IP"));
+    m_tips_ip = new Label(this, "IP");
     m_tips_ip->SetMinSize(wxSize(FromDIP(168), -1));
     m_tips_ip->SetMaxSize(wxSize(FromDIP(168), -1));
 
@@ -1499,7 +1498,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
     m_test_right_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
-    m_test_right_msg->SetForegroundColour(wxColour(38, 166, 154));
+    m_test_right_msg->SetForegroundColour(wxColour(61, 203, 115));
     m_test_right_msg->Hide();
 
     
@@ -1522,13 +1521,13 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_ok = new Button(this, _L("Test"));
+    m_button_ok = new Button(this, _L("Connect"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(wxColour(0xFFFFFE));
@@ -1540,7 +1539,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
 
-    auto m_button_cancel = new Button(this, _L("Close"));
+    /*auto m_button_cancel = new Button(this, _L("Close"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
@@ -1550,18 +1549,17 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
          on_cancel();
-    });
+    });*/
 
     m_sizer_button->AddStretchSpacer();
-    //m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
-    m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    //m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
 
 
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
 
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
@@ -1633,12 +1631,12 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_input_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
+    //m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_test_right_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(m_test_wrong_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
 
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Layout();
    
@@ -1647,8 +1645,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main->Layout();
 
     m_sizer_body->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_body->Add(m_sizer_main, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_body->Add(m_sizer_main, 0, wxRIGHT, FromDIP(10));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxEXPAND, FromDIP(18));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -1656,6 +1654,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(8));
     m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
     
     SetSizer(m_sizer_body);
@@ -1666,24 +1665,33 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     Move(wxPoint(GetScreenPosition().x, GetScreenPosition().y - FromDIP(50)));
     wxGetApp().UpdateDlgDarkUI(this);
 
+    closeTimer = new wxTimer();
+    closeTimer->SetOwner(this);
+    Bind(wxEVT_TIMER, &InputIpAddressDialog::OnTimer, this);
+
     Bind(EVT_CHECK_IP_ADDRESS_FAILED, &InputIpAddressDialog::on_check_ip_address_failed, this);
 
     Bind(EVT_CLOSE_IPADDRESS_DLG, [this](auto& e) {
         m_status_bar->reset();
         EndModal(wxID_YES);
     });
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {on_cancel();});
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+        on_cancel();
+        closeTimer->Stop();
+    });
 
 }
 
 void InputIpAddressDialog::on_cancel()
 {
-    m_worker->cancel_all();
-    if (m_result == 0){
-        this->EndModal(wxID_YES);
-    }else {
-        this->EndModal(wxID_CANCEL);
+    if (m_thread) {
+        m_thread->interrupt();
+        m_thread->detach();
+        delete m_thread;
+        m_thread = nullptr;
     }
+    
+    EndModal(wxID_CANCEL);
 }
 
 
@@ -1707,7 +1715,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
         m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
         m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
         m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -1740,9 +1748,7 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
-         }
-
-         
+         } 
     }
 
     Layout();
@@ -1772,13 +1778,11 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_img_step3->Hide();
     m_tip4->Hide();
     m_trouble_shoot->Hide();
-    Layout();
-    Fit();
-    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
-    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
 
     //check support function
-    if (!m_obj) return;
+    /*if (!m_obj) return;
     if (!m_obj->is_support_send_to_sdcard) {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
         auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
@@ -1790,58 +1794,99 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         event_close.SetEventObject(this);
         wxPostEvent(this, event_close);
         return;
-    }
+    }*/
 
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
-    m_worker->wait_for_idle();
+    Refresh();
+    Layout();
+    Fit();
 
-    m_status_bar->reset();
-    m_status_bar->set_prog_block();
-    m_status_bar->set_cancel_callback_fina([this]() {
-        BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        m_worker->cancel_all();
-   });
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code));  
+}
+
+void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code)
+{
+    update_test_msg(_L("connecting..."), true);
+    detectResult detectData;
+    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+
+    if (result < 0) {
+        update_test_msg(wxEmptyString, true);
+        if (result == -1) {
+            update_test_msg(_L("Failed to connect to printer."), false);
+        }
+        else if (result == -2) {
+            update_test_msg(_L("Failed to publish login request."), false);
+        }
+        else if (result == -3) {
+            update_test_msg(_L("The device does not support using IP and Access Code for connection."), false);
+        }
+
+        m_button_ok->Enable(true);
+
+        m_button_ok->Enable(true);
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+        m_button_ok->SetBackgroundColor(btn_bg_green);
+        m_button_ok->SetBorderColor(*wxWHITE);
+
+        Layout();
+        Fit();
+        return;
+    }
+
+    if (detectData.bind_state == "occupied") {
+        update_test_msg(wxEmptyString, true);
+        update_test_msg(_L("The printer has already been bound."), false);
+        Layout();
+        Fit();
+        return;
+    }
+
+    if (detectData.connect_type == "cloud") {
+        update_test_msg(wxEmptyString, true);
+        update_test_msg(_L("The printer mode is incorrect, please switch to LAN Only."), false);
+        Layout();
+        Fit();
+        return;
+    }
+
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
 
 
-    auto m_send_job = std::make_unique<SendJob>(m_obj->dev_id);
-    m_send_job->m_dev_ip = ip.ToStdString();
-    m_send_job->m_access_code = str_access_code.ToStdString();
+    if (m_obj) {
+        m_obj->set_user_access_code(str_access_code);
+        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
+    }
 
 
-#if !BBL_RELEASE_TO_PUBLIC
-    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
-    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
-#else
-    m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
-    m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
-#endif
+    closeCount = 1;
 
-    m_send_job->connection_type = m_obj->connection_type();
-    m_send_job->cloud_print_only = true;
-    m_send_job->has_sdcard = m_obj->has_sdcard();
-    m_send_job->set_check_mode();
-    m_send_job->set_project_name("verify_job");
+    update_test_msg(wxEmptyString, true);
+    update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+  
+    closeTimer->Start(1000);
 
-    m_send_job->on_check_ip_address_fail([this](int result) {
-        this->check_ip_address_failed(result);
-    });
+    Layout();
+    Fit();
+    Refresh(true);
+}
 
-    m_send_job->on_check_ip_address_success([this, ip, str_access_code]() {
-        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
-        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
-        event.SetString(input_str);
-        event.SetEventObject(this);
-        wxPostEvent(this, event);
-        m_result = 0;
-        
-        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
-       
-    });
-
-    replace_job(*m_worker, std::move(m_send_job));
+void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
+    if (closeCount > 0) {
+        closeCount--;
+        //update_test_msg(wxString::Format(_L("Printer binding successful. The dialog will close in %d seconds"), closeCount), true);
+        //Refresh();
+    }
+    else {
+        closeTimer->Stop();
+        EndModal(wxID_CLOSE);
+    }
 }
 
 void InputIpAddressDialog::check_ip_address_failed(int result)
@@ -1867,7 +1912,7 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
     }
     
     m_button_ok->Enable(true);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -1877,10 +1922,18 @@ void InputIpAddressDialog::on_text(wxCommandEvent& evt)
 {
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    bool invalid_access_code = true;
 
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+    for (char c : str_access_code) {
+        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+            invalid_access_code = false;
+            return;
+        }
+    }
+
+    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
         m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
         m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
         m_button_ok->SetBackgroundColor(btn_bg_green);

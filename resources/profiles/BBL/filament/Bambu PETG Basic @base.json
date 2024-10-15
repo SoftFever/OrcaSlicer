@@ -5,6 +5,13 @@
     "from": "system",
     "filament_id": "GFG00",
     "instantiation": "false",
+    "description": "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
     "cool_plate_temp": [
         "0"
     ],

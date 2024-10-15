@@ -10,7 +10,7 @@ namespace Slic3r::GUI {
 
 /// <summary>
 /// Keep texture with icons for UI
-/// Manage texture live -> create and destruct texture 
+/// Manage texture live -> create and destruct texture
 /// by live of icon shared pointers.
 /// </summary>
 class IconManager
@@ -26,8 +26,8 @@ public:
     /// Define way to convert svg data to raster
     /// </summary>
     enum class RasterType: int{
-        color           = 1 << 1, 
-        white_only_data = 1 << 2, 
+        color           = 1 << 1,
+        white_only_data = 1 << 2,
         gray_only_data  = 1 << 3,
         color_wite_gray = color | white_only_data | gray_only_data
         // TODO: add type with backgrounds
@@ -60,11 +60,11 @@ public:
         // OpenGL texture id
         unsigned int tex_id = 0;
         bool is_valid() const { return tex_id != 0;}
-        // && size.x > 0 && size.y > 0 && tl.x != br.x && tl.y != br.y;        
+        // && size.x > 0 && size.y > 0 && tl.x != br.x && tl.y != br.y;
     };
     using Icons = std::vector<std::shared_ptr<Icon> >;
     // Vector of icons, each vector contain multiple use of a SVG render
-    using VIcons = std::vector<Icons>; 
+    using VIcons = std::vector<Icons>;
 
     /// <summary>
     /// Initialize raster texture on GPU with given images
@@ -86,14 +86,14 @@ public:
     /// <returns>Rasterized icons stored on GPU,
     /// Same size and order as file_paths, each item of vector is set of texture in order by RasterType</returns>
     VIcons init(const std::vector<std::string> &file_paths, const ImVec2 &size, RasterType type = RasterType::color);
-    
+
     /// <summary>
     /// Release icons which are hold only by this manager
     /// May change texture and position of icons.
     /// </summary>
     void release();
 
-private:        
+private:
     // keep data stored on GPU
     GLTexture m_icons_texture;
 
@@ -122,7 +122,7 @@ void draw(const IconManager::Icon &icon,
 bool clickable(const IconManager::Icon &icon, const IconManager::Icon &icon_hover);
 
 /// <summary>
-/// Use icon as button with 3 states activ hover and disabled 
+/// Use icon as button with 3 states activ hover and disabled
 /// </summary>
 /// <param name="activ">Not disabled not hovered image</param>
 /// <param name="hover">Hovered image</param>

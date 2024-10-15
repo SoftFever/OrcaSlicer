@@ -1,6 +1,7 @@
 #include "Button.hpp"
 #include "Label.hpp"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(Button, StaticBox)
@@ -27,8 +28,8 @@ Button::Button()
 {
     background_color = StateColor(
         std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
-        std::make_pair(0x52c7b8, (int) StateColor::Hovered | StateColor::Checked),
-        std::make_pair(0x009688, (int) StateColor::Checked),
+        std::make_pair(0x37EE7C, (int) StateColor::Hovered | StateColor::Checked),
+        std::make_pair(0x00AE42, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
     text_color       = StateColor(
@@ -75,15 +76,19 @@ bool Button::SetFont(const wxFont& font)
 
 void Button::SetIcon(const wxString& icon)
 {
+    auto tmpBitmap = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        this->active_icon = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
+        if (!tmpBitmap.bmp().IsSameAs(this->active_icon.bmp())) { 
+            this->active_icon = tmpBitmap;
+            Refresh();
+        }
     }
     else
     {
         this->active_icon = ScalableBitmap();
+        Refresh();
     }
-    Refresh();
 }
 
 void Button::SetInactiveIcon(const wxString &icon)

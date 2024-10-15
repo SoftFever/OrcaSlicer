@@ -5,7 +5,6 @@
 //BBS
 #include "libslic3r/Print.hpp"
 #include "libslic3r/ObjectID.hpp"
-#include "slic3r/GUI/3DScene.hpp"
 
 #include <boost/thread.hpp>
 
@@ -16,7 +15,7 @@ class GLGizmoFdmSupports : public GLGizmoPainterBase
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
-    void render_painter_gizmo() override;
+    void render_painter_gizmo() const override;
 
     //BBS: add edit state
     enum EditState {
@@ -31,6 +30,7 @@ public:
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Supports Painting"; }
 
     // BBS
     void render_triangles(const Selection& selection) const override;
@@ -40,7 +40,7 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering Paint-on supports"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving Paint-on supports"; }
-    std::string get_action_snapshot_name() const override { return "Paint-on supports editing"; }
+    std::string get_action_snapshot_name() override { return "Paint-on supports editing"; }
 
     // BBS
     wchar_t                           m_current_tool = 0;

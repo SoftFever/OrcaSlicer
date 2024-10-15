@@ -6,7 +6,7 @@
 #include <boost/nowide/cstdio.hpp>
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
-#include "libslic3r/Utils.hpp" // ScopeGuard   
+#include "libslic3r/Utils.hpp" // ScopeGuard
 
 #include "3DScene.hpp" // glsafe
 #include "GL/glew.h"
@@ -58,14 +58,14 @@ NSVGimage *parse_file(const char * filepath) {
 
 void subdata(unsigned char *data, size_t data_stride, const std::vector<unsigned char> &data2, size_t data2_row) {
     assert(data_stride >= data2_row);
-    for (size_t data2_offset = 0, data_offset = 0; 
+    for (size_t data2_offset = 0, data_offset = 0;
         data2_offset < data2.size();
-        data2_offset += data2_row, data_offset += data_stride)   
+        data2_offset += data2_row, data_offset += data_stride)
         ::memcpy((void *)(data + data_offset), (const void *)(data2.data() + data2_offset), data2_row);
 }
 }
 
-IconManager::Icons IconManager::init(const InitTypes &input) 
+IconManager::Icons IconManager::init(const InitTypes &input)
 {
     assert(!input.empty());
     if (input.empty())
@@ -114,7 +114,7 @@ IconManager::Icons IconManager::init(const InitTypes &input)
         if(x > tex_size.x) tex_size.x = x;
         if(y > tex_size.y) tex_size.y = y;
     }
-    
+
     Icons result(input.size());
     for (int i = 0; i < pack_rects.Size; i++) {
         const stbrp_rect &rect = pack_rects[i];
@@ -130,7 +130,7 @@ IconManager::Icons IconManager::init(const InitTypes &input)
         Icon icon = {input[i].size, tl, br};
         result[i] = std::make_shared<Icon>(std::move(icon));
     }
-        
+
     NSVGrasterizer *rast = nsvgCreateRasterizer();
     assert(rast != nullptr);
     if (rast == nullptr)
@@ -170,14 +170,14 @@ IconManager::Icons IconManager::init(const InitTypes &input)
         float svg_scale = i.size.y / image->height;
         // scale should be same in both directions
         assert(is_approx(svg_scale, i.size.y / image->width));
-                
+
         const stbrp_rect &rect = pack_rects[j];
         int n_pixels = rect.w * rect.h;
         std::vector<unsigned char> icon_data(n_pixels * channels, {0});
         ::nsvgRasterize(rast, image, 0, 0, svg_scale, icon_data.data(), i.size.x, i.size.y, i.size.x * channels);
-        
+
         // makes white or gray only data in icon
-        if (i.type == RasterType::white_only_data || 
+        if (i.type == RasterType::white_only_data ||
             i.type == RasterType::gray_only_data) {
             unsigned char value = (i.type == RasterType::white_only_data) ? 255 : 127;
             for (size_t k = 0; k < icon_data.size(); k += channels)
@@ -193,7 +193,7 @@ IconManager::Icons IconManager::init(const InitTypes &input)
         subdata(data.data() + start_offset, data_stride, icon_data, rect.w * channels);
     }
 
-    if (m_id != 0) 
+    if (m_id != 0)
         glsafe(::glDeleteTextures(1, &m_id));
 
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
@@ -202,7 +202,7 @@ IconManager::Icons IconManager::init(const InitTypes &input)
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei) tex_size.x, (GLsizei) tex_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,  (const void*) data.data()));    
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei) tex_size.x, (GLsizei) tex_size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,  (const void*) data.data()));
 
     // bind no texture
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
@@ -234,7 +234,7 @@ std::vector<IconManager::Icons> IconManager::init(const std::vector<std::string>
 
     // state order has to match the enum IconState
     const auto& states = priv::get_states(type);
-        
+
     bool compress  = false;
     bool is_loaded = m_icons_texture.load_from_svg_files_as_sprites_array(file_paths, states, width, compress);
     if (!is_loaded || (size_t) m_icons_texture.get_width() < (states.size() * width) ||
@@ -298,7 +298,7 @@ void priv::clear(IconManager::Icons &icons) {
 			// in existing icon change texture to non existing one
             icon->tex_id = 0;
 
-            std::string descr = 
+            std::string descr =
 				((count > 2) ? (std::to_string(count - 1) + "x") : "") + // count
 				std::to_string(icon->size.x) + "x" + std::to_string(icon->size.y); // resolution
             if (message.empty())
@@ -387,7 +387,7 @@ bool clickable(const IconManager::Icon &icon, const IconManager::Icon &icon_hove
     // check of hover
     ImGuiWindow *window = ImGui::GetCurrentWindow();
     float cursor_x = ImGui::GetCursorPosX()
-        - window->DC.GroupOffset.x 
+        - window->DC.GroupOffset.x
         - window->DC.ColumnsOffset.x;
     priv::draw_transparent_icon(icon);
     ImGui::SameLine(cursor_x);

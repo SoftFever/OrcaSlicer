@@ -15,7 +15,6 @@
 #include "MainFrame.hpp"
 #include "wxExtensions.hpp"
 #include "../libslic3r/BlacklistedLibraryCheck.hpp"
-#include "../libslic3r/Color.hpp"
 #include "format.hpp"
 
 #ifdef _WIN32
@@ -115,8 +114,8 @@ SysInfoDialog::SysInfoDialog()
     // main_info_text
     wxFont font = get_default_font(this);
     const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-    auto text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
-    auto bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
+    auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 
     const int fs = font.GetPointSize() - 1;
     int size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
@@ -148,7 +147,7 @@ SysInfoDialog::SysInfoDialog()
 #ifdef WIN32
         std::wstring blacklisted_libraries = BlacklistedLibraryCheck::get_instance().get_blacklisted_string().c_str();
         if (! blacklisted_libraries.empty())
-            blacklisted_libraries_message = wxString("<br><b>") + _L("Blacklisted libraries loaded into OrcaSlicer process:") + "</b><br>" + blacklisted_libraries;
+            blacklisted_libraries_message = wxString("<br><b>") + _L("Blacklisted libraries loaded into BambuStudio process:") + "</b><br>" + blacklisted_libraries;
 #endif // WIN32
        const auto text = GUI::format_wxstr(
             "<html>"

@@ -32,7 +32,7 @@ public:
         m_container = is_container;
         m_root = false;
         path = abs_path;
-        boost::filesystem::path path_obj(path.ToStdWstring());
+        fs::path path_obj(path.c_str());
         name = path_obj.filename().generic_wstring();
 
         parent->Append(this);

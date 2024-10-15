@@ -103,7 +103,10 @@ void CalibrationCaliPage::set_cali_img()
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual", 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            if (curr_obj && curr_obj->get_printer_arch() == PrinterArch::ARCH_I3)
+                m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
+            else
+                m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
@@ -142,6 +145,7 @@ void CalibrationCaliPage::clear_last_job_status()
 
 void CalibrationCaliPage::update(MachineObject* obj)
 {
+    curr_obj = obj;
     if (this->IsShown()) {
         if (obj) {
             if (obj->print_status != "RUNNING") {
@@ -251,7 +255,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
                 assert(false);
             }
             m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI_NEXT, enable_cali);
-        } 
+        }
         else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
             if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {
                 enable_cali = true;

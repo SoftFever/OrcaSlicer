@@ -2,7 +2,6 @@
 #define slic3r_Events_hpp_
 
 #include <array>
-#include <wx/debug.h>
 #include <wx/event.h>
 
 
@@ -87,27 +86,6 @@ template<class T> struct Event : public wxEvent
     }
 };
 
-
-class LoadPrinterViewEvent  : public wxCommandEvent
-{
-public:
-    LoadPrinterViewEvent(wxEventType commandType = wxEVT_NULL, int winid = 0)
-        : wxCommandEvent(commandType, winid)
-        {  }
-
-    LoadPrinterViewEvent(const LoadPrinterViewEvent& event)
-        : wxCommandEvent(event)
-        { m_APIkey = event.m_APIkey; }
-
-    const wxString& GetAPIkey() const { return m_APIkey; }
-    void SetAPIkey(const wxString& apikey) { m_APIkey = apikey; }
-
-    virtual wxEvent *Clone() const wxOVERRIDE { return new LoadPrinterViewEvent(*this); }
-
-private:
-    wxString m_APIkey;
-
-};
 }
 }
 

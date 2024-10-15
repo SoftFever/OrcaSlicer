@@ -29,6 +29,7 @@ public:
 
 protected:
     virtual std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Simplify"; }
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
     virtual bool on_is_activable() const override;
     virtual bool on_is_selectable() const override { return false; }
@@ -37,6 +38,7 @@ protected:
     // must implement
     virtual bool on_init() override { return true;};
     virtual void on_render() override;
+    virtual void on_render_for_picking() override{};    
 
     CommonGizmosDataID on_get_requirements() const override;
 

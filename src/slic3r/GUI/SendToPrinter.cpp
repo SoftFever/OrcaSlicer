@@ -12,8 +12,6 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
-#include "Jobs/PlaterWorker.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -188,7 +186,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     SetFont(wxGetApp().normal_font());
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     Freeze();
@@ -251,8 +249,8 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SendToPrinterDialog::on_selection_changed, this);
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
-    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(btn_bg_enable);
@@ -302,8 +300,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
-    
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -318,7 +314,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_finish->Wrap(-1);
-    m_statictext_finish->SetForegroundColour(wxColour(0, 150, 136));
+    m_statictext_finish->SetForegroundColour(wxColour(0, 174, 66));
     m_sizer_finish_h->Add(m_statictext_finish, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer_finish_v->Add(m_sizer_finish_h, 1, wxALIGN_CENTER, 0);
@@ -584,7 +580,9 @@ void SendToPrinterDialog::prepare_mode()
 {
     m_is_in_sending_mode = false;
     m_comboBox_printer->Enable();
-    m_worker->wait_for_idle();
+    if (m_send_job) {
+        m_send_job->join();
+    }
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -672,7 +670,12 @@ void SendToPrinterDialog::init_timer()
 
 void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
 {
-    m_worker->cancel_all();
+    if (m_send_job) {
+        if (m_send_job->is_running()) {
+            m_send_job->cancel();
+            m_send_job->join();
+        }
+    }
     this->EndModal(wxID_CANCEL);
 }
  
@@ -709,7 +712,13 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        m_worker->cancel_all();
+        if (m_send_job) {
+            if (m_send_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "send_job: canceled";
+                m_send_job->cancel();
+            }
+            m_send_job->join();
+        }
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -767,7 +776,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     
 
 
-    auto m_send_job                 = std::make_unique<SendJob>(m_printer_last_select);
+    m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
     m_send_job->m_access_code       = obj_->get_access_code();
 
@@ -796,9 +805,11 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (obj_->is_lan_mode_printer()) {
         m_send_job->set_check_mode();
         m_send_job->check_and_continue();
+        m_send_job->start();
     }
-
-    replace_job(*m_worker, std::move(m_send_job));
+    else {
+        m_send_job->start();
+    }
 
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
 }
@@ -813,7 +824,7 @@ void SendToPrinterDialog::update_user_machine_list()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     if (m_agent && m_agent->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
+        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
             NetworkAgent* agent = wxGetApp().getAgent();
             unsigned int http_code;
             std::string body;
@@ -1206,7 +1217,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
     }
     else if (status == PrintDialogStatus::PrintStatusNotOnTheSameLAN) {
-        wxString msg_text = _L("The printer is required to be in the same LAN as Orca Slicer.");
+        wxString msg_text = _L("The printer is required to be in the same LAN as Bambu Studio.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

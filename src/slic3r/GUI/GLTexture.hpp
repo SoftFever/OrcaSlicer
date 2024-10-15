@@ -67,8 +67,8 @@ namespace GUI {
 
         struct UV
         {
-            float u{ 0.0f };
-            float v{ 0.0f };
+            float u;
+            float v;
         };
 
         struct Quad_UVs
@@ -82,9 +82,9 @@ namespace GUI {
         static Quad_UVs FullTextureUVs;
 
     protected:
-        unsigned int m_id{ 0 };
-        int m_width{ 0 };
-        int m_height{ 0 };
+        unsigned int m_id;
+        int m_width;
+        int m_height;
         std::string m_source;
         Compressor m_compressor;
 

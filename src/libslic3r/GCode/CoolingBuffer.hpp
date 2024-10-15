@@ -54,8 +54,14 @@ private:
     // the PrintConfig slice of FullPrintConfig is constant, thus no thread synchronization is required.
     const PrintConfig          &m_config;
     unsigned int                m_current_extruder;
+
+    // Old logic: proportional.
+    bool                        m_cooling_logic_proportional = false;
     //BBS: current fan speed
     int                         m_current_fan_speed;
+    //BBS:
+    bool                        m_set_fan_changing_layer = false;
+    bool                        m_set_addition_fan_changing_layer = false;
 };
 
 }

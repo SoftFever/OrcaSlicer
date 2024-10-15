@@ -1825,7 +1825,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //first column for plate_index
-    col = new ObjectGridCol(coString, "plate_index", " ", true, false, false, false, wxALIGN_CENTRE); //bool only_object, bool icon, bool edit, bool config
+    col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_CENTRE); //bool only_object, bool icon, bool edit, bool config
     m_col_data.push_back(col);
 
     //second column for module name
@@ -1889,7 +1889,6 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices.Add(_L("Auto"));
-    col->choices.Add(_L("Mouse ear"));
     col->choices.Add(_L("Outer brim only"));
     col->choices.Add(_L("Inner brim only"));
     col->choices.Add(_L("Outer and inner brim"));
@@ -2827,13 +2826,13 @@ int ObjectTablePanel::init_filaments_and_colors()
     }
 
     unsigned int i = 0;
-    ColorRGB rgb;
+    unsigned char rgb[3];
     while (i < m_filaments_count) {
         const std::string& txt_color = global_config->opt_string("filament_colour", i);
         if (i < color_count) {
-            if (decode_color(txt_color, rgb))
+            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
             {
-                m_filaments_colors[i] = wxColour(rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar());
+                m_filaments_colors[i] = wxColour(rgb[0], rgb[1], rgb[2]);
             }
             else
             {
@@ -3312,7 +3311,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     auto m_main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicer.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     //top line

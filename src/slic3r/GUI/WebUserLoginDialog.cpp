@@ -39,13 +39,13 @@ END_EVENT_TABLE()
 
 int ZUserLogin::web_sequence_id = 20000;
 
-ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "OrcaSlicer")
+ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
     SetBackgroundColour(*wxWHITE);
     // Url
     NetworkAgent* agent = wxGetApp().getAgent();
     if (!agent) {
-        std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+        std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
         SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
         SetBackgroundColour(*wxWHITE);

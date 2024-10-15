@@ -5,6 +5,12 @@
     "from": "system",
     "filament_id": "GFG02",
     "instantiation": "false",
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
     "cool_plate_temp": [
         "0"
     ],

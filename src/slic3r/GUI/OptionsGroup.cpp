@@ -17,7 +17,6 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
-#include <locale>
 
 namespace Slic3r { namespace GUI {
 
@@ -58,6 +57,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     default:
         switch (opt.type) {
             case coFloatOrPercent:
+            case coFloatsOrPercents:
             case coFloat:
             case coFloats:
 			case coPercent:
@@ -101,14 +101,6 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				this->on_kill_focus(opt_id);
 	};
     field->m_parent = parent();
-
-    if (edit_custom_gcode && opt.is_code) {
-        field->m_fn_edit_value = [this](std::string opt_id) {
-            if (!m_disabled)
-                this->edit_custom_gcode(opt_id);
-        };
-        field->set_edit_tooltip(_L("Edit Custom G-code"));
-    }
 
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
@@ -194,13 +186,6 @@ void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = 
     }
 }
 
-void OptionsGroup::enable_field(const t_config_option_key& opt_key, bool enable)
-{
-    if (Field* f = get_field(opt_key); f) {
-        f->toggle(enable);
-    }
-}
-
 void OptionsGroup::set_name(const wxString& new_name)
 {
 	stb->SetLabel(new_name);
@@ -228,12 +213,10 @@ void OptionsGroup::append_line(const Line& line)
 //BBS: get line for opt_key
 Line* OptionsGroup::get_line(const std::string& opt_key)
 {
-    for (auto& l : m_lines)
+    for (int index = 0; index < m_lines.size(); index++)
     {
-        if(l.is_separator())
-            continue;
-        if (l.get_first_option_key() == opt_key)
-            return &l;
+        if (m_lines[index].get_first_option_key() == opt_key)
+            return &(m_lines[index]);
     }
 
     return nullptr;
@@ -483,7 +466,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 			// BBS: new layout
 			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title), icon);
             stl->SetFont(Label::Head_14);
-            stl->SetForegroundColour("#363636"); // ORCA Match Parameters title color with tab title color 
+            stl->SetForegroundColour("#262E30");
             sizer = new wxBoxSizer(wxVERTICAL);
             if (title.IsEmpty()) {
                 stl->Hide();
@@ -675,7 +658,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	if (opt_key == "extruders_count") {
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
-        }
+	}
 #if 0
     // BBS
     else if (opt_key == "bed_temperature" || opt_key == "bed_temperature_initial_layer") {
@@ -692,21 +675,21 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
         }
     }
 #endif
-        else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
-                 // This option don't have corresponded field
-                 opt_key == "printable_area" || opt_key == "compatible_printers" || opt_key == "compatible_prints" ||
-                 opt_key == "thumbnails" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
+    else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
+		    // This option don't have corresponded field
+		     opt_key == "printable_area"				||
+		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
-        set_value(opt_key, value);
-        this->change_opt_value(opt_key, get_value(opt_key));
-        OptionsGroup::on_change_OG(opt_key, get_value(opt_key));
+        this->change_opt_value(opt_key, value);
         return;
-        } else {
-        auto opt_id = m_opt_map.find(opt_key)->first;
-        std::string opt_short_key = m_opt_map.at(opt_id).first;
-        int opt_index = m_opt_map.at(opt_id).second;
-        value = get_config_value(config, opt_short_key, opt_index);
-        }
+    }
+	else
+	{
+		auto opt_id = m_opt_map.find(opt_key)->first;
+		std::string opt_short_key = m_opt_map.at(opt_id).first;
+		int opt_index = m_opt_map.at(opt_id).second;
+		value = get_config_value(config, opt_short_key, opt_index);
+	}
 
     // BBS: restore all pages in preset
     if (set_value(opt_key, value))
@@ -1001,9 +984,19 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = text_value;
 		break;
 	}
-	case coPercent:{
+    case coFloatsOrPercents: {
+        const auto &value = config.option<ConfigOptionFloatsOrPercents>(opt_key)->get_at(idx);
+
+        text_value = double_to_string(value.value);
+        if (value.percent) text_value += "%";
+
+        ret = text_value;
+        break;
+    }
+    case coPercent: {
 		double val = config.option<ConfigOptionPercent>(opt_key)->value;
-		ret = double_to_string(val);// += "%";
+		text_value = wxString::Format(_T("%i"), int(val));
+		ret = text_value;// += "%";
 	}
 		break;
 	case coPercents:
@@ -1078,6 +1071,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		if (opt_key == "printable_area")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else if (opt_key == "bed_exclude_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        else if (opt_key == "thumbnail_size")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
@@ -1192,6 +1187,8 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else if (opt_key == "bed_exclude_area")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        else if (opt_key == "thumbnail_size")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else
             ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
         break;
@@ -1283,9 +1280,11 @@ wxString OptionsGroup::get_url(const std::string& path_end)
         anchor.Replace(L" ", "-");
         str = str.Left(pos) + anchor;
     }
-    // Orca: point to sf wiki for seam parameters
-    return wxString::Format(L"https://github.com/SoftFever/OrcaSlicer/wiki/%s", from_u8(path_end));
-
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region    = L"en";
+    if (language.find("zh") == 0)
+        region = L"zh";
+    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", region, str);
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)

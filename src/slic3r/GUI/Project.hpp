@@ -32,14 +32,13 @@
 #include "Event.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "wxExtensions.hpp"
-#include "Auxiliary.hpp"
 
 #define AUFILE_GREY700 wxColour(107, 107, 107)
 #define AUFILE_GREY500 wxColour(158, 158, 158)
 #define AUFILE_GREY300 wxColour(238, 238, 238)
 #define AUFILE_GREY200 wxColour(248, 248, 248)
-#define AUFILE_BRAND wxColour(0, 150, 136)
-#define AUFILE_BRAND_TRANSPARENT wxColour("#E5F0EE") // ORCA color with %10 opacity
+#define AUFILE_BRAND wxColour(0, 174, 66)
+#define AUFILE_BRAND_TRANSPARENT wxColour(215, 232, 222)
 //#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
 //#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
 #define AUFILE_PICTURES_SIZE wxSize(FromDIP(168), FromDIP(168))
@@ -64,12 +63,10 @@ private:
     bool       m_reload_already = {false};
 
     wxWebView* m_browser = {nullptr};
-    AuxiliaryPanel*   m_auxiliary{nullptr};
     wxString   m_project_home_url;
     wxString   m_root_dir;
+    std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
-
-    void show_info_editor(bool show);
     
 
 public:
@@ -79,13 +76,12 @@ public:
     
     void onWebNavigating(wxWebViewEvent& evt);
     void on_reload(wxCommandEvent& evt);
-    void on_size(wxSizeEvent &event);
+    void on_size(wxSizeEvent& event);
     void on_navigated(wxWebViewEvent& event);
    
     void msw_rescale();
     void update_model_data();
     void clear_model_info();
-    void init_auxiliary() { m_auxiliary->init_auxiliary(); }
 
     bool Show(bool show);
     void OnScriptMessage(wxWebViewEvent& evt);
@@ -93,6 +89,7 @@ public:
 
     std::map<std::string, std::vector<json>> Reload(wxString aux_path);
     std::string formatBytes(unsigned long bytes);
+    std::string get_model_id(std::string desgin_id);
     wxString to_base64(std::string path);
 };
 

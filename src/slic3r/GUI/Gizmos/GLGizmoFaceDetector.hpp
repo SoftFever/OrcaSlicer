@@ -19,6 +19,7 @@ protected:
     void on_render_for_picking() override {}
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Face recognition"; }
     void on_set_state() override;
     bool on_is_activable() const override;
     CommonGizmosDataID on_get_requirements() const override;
@@ -28,7 +29,7 @@ private:
     void perform_recognition(const Selection& selection);
     void display_exterior_face();
 
-    GUI::GLModel model;
+    GLIndexedVertexArray m_iva;
     double m_sample_interval = {0.5};
 };
 

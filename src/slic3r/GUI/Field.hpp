@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <functional>
 #include <boost/any.hpp>
-#include "I18N.hpp"
 
 #include <wx/colourdata.h>
 #include <wx/spinctrl.h>
@@ -24,7 +23,6 @@
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/SpinInput.hpp"
-#include "Widgets/TextInput.hpp"
 
 #ifdef __WXMSW__
 #define wxMSW true
@@ -44,120 +42,7 @@ wxString double_to_string(double const value, const int max_precision = 4);
 wxString get_thumbnail_string(const Vec2d& value);
 wxString get_thumbnails_string(const std::vector<Vec2d>& values);
 
-class UndoValueUIManager
-{
-    struct UndoValueUI {
-        // Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
-        const ScalableBitmap* undo_bitmap{ nullptr };
-        const wxString* undo_tooltip{ nullptr };
-        // Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
-        const ScalableBitmap* undo_to_sys_bitmap{ nullptr };
-        const wxString* undo_to_sys_tooltip{ nullptr };
-        // Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
-        const wxColour* label_color{ nullptr };
-        // State of the blinker icon
-        bool					blink{ false };
-
-        bool 	set_undo_bitmap(const ScalableBitmap* bmp) {
-            if (undo_bitmap != bmp) {
-                undo_bitmap = bmp;
-                return true;
-            }
-            return false;
-        }
-
-        bool 	set_undo_to_sys_bitmap(const ScalableBitmap* bmp) {
-            if (undo_to_sys_bitmap != bmp) {
-                undo_to_sys_bitmap = bmp;
-                return true;
-            }
-            return false;
-        }
-
-        bool	set_label_colour(const wxColour* clr) {
-            if (label_color != clr) {
-                label_color = clr;
-            }
-            return false;
-        }
-
-        bool 	set_undo_tooltip(const wxString* tip) {
-            if (undo_tooltip != tip) {
-                undo_tooltip = tip;
-                return true;
-            }
-            return false;
-        }
-
-        bool 	set_undo_to_sys_tooltip(const wxString* tip) {
-            if (undo_to_sys_tooltip != tip) {
-                undo_to_sys_tooltip = tip;
-                return true;
-            }
-            return false;
-        }
-    };
-
-    UndoValueUI m_undo_ui;
-
-    struct EditValueUI {
-        // Bitmap and Tooltip text for m_Edit_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
-        const ScalableBitmap*	bitmap{ nullptr };
-        wxString				tooltip { wxEmptyString };
-
-        bool 	set_bitmap(const ScalableBitmap* bmp) {
-            if (bitmap != bmp) {
-                bitmap = bmp;
-                return true;
-            }
-            return false;
-        }
-
-        bool 	set_tooltip(const wxString& tip) {
-            if (tooltip != tip) {
-                tooltip = tip;
-                return true;
-            }
-            return false;
-        }
-    };
-
-    EditValueUI m_edit_ui;
-
-public:
-    UndoValueUIManager() {}
-    ~UndoValueUIManager() {}
-
-    bool 	set_undo_bitmap(const ScalableBitmap* bmp)			{ return m_undo_ui.set_undo_bitmap(bmp); }
-    bool 	set_undo_to_sys_bitmap(const ScalableBitmap* bmp)	{ return m_undo_ui.set_undo_to_sys_bitmap(bmp); }
-    bool	set_label_colour(const wxColour* clr)				{ return m_undo_ui.set_label_colour(clr); }
-    bool 	set_undo_tooltip(const wxString* tip)				{ return m_undo_ui.set_undo_tooltip(tip); }
-    bool 	set_undo_to_sys_tooltip(const wxString* tip)		{ return m_undo_ui.set_undo_to_sys_tooltip(tip); }
-
-    bool 	set_edit_bitmap(const ScalableBitmap* bmp)			{ return m_edit_ui.set_bitmap(bmp); }
-    bool 	set_edit_tooltip(const wxString& tip)				{ return m_edit_ui.set_tooltip(tip); }
-
-    // ui items used for revert line value
-    bool					has_undo_ui()			const { return m_undo_ui.undo_bitmap != nullptr; }
-    const ScalableBitmap*	undo_bitmap()			const { return m_undo_ui.undo_bitmap; }
-    const wxString*			undo_tooltip()			const { return m_undo_ui.undo_tooltip; }
-    const ScalableBitmap*	undo_to_sys_bitmap()	const { return m_undo_ui.undo_to_sys_bitmap; }
-    const wxString*			undo_to_sys_tooltip()	const { return m_undo_ui.undo_to_sys_tooltip; }
-    const wxColour*			label_color()			const { return m_undo_ui.label_color; }
-
-    // Extentions
-
-    // Search blinker
-    const bool				blink()					const { return m_undo_ui.blink; }
-    bool*					get_blink_ptr()				  { return &m_undo_ui.blink; }
-
-    // Edit field button
-    bool					has_edit_ui()			const { return !m_edit_ui.tooltip.IsEmpty(); }
-    const wxBitmap*	        edit_bitmap()			const { return &m_edit_ui.bitmap->bmp(); }
-    const wxString*			edit_tooltip()			const { return &m_edit_ui.tooltip; }
-};
-
-class Field : public UndoValueUIManager {
+class Field {
 protected:
     // factory function to defer and enforce creation of derived type. 
 	virtual void	PostInitialize();
@@ -186,8 +71,6 @@ public:
 	void			on_back_to_initial_value();
     /// Call the attached m_back_to_sys_value method. 
 	void			on_back_to_sys_value();
-    /// Call the attached m_fn_edit_value method.
-	void			on_edit_value();
 
 public:
     /// parent wx item, opportunity to refactor (probably not necessary - data duplication)
@@ -202,9 +85,6 @@ public:
 	/// Function object to store callback passed in from owning object.
 	t_back_to_init	m_back_to_initial_value{ nullptr };
 	t_back_to_init	m_back_to_sys_value{ nullptr };
-
-	/// Callback function to edit field value
-	t_back_to_init	m_fn_edit_value{ nullptr };
 
 	// This is used to avoid recursive invocation of the field change/update by wxWidgets.
     bool			m_disable_change_event {false};
@@ -225,8 +105,6 @@ public:
     virtual void		set_value(const boost::any& value, bool change_event) = 0;
     virtual void        set_last_meaningful_value() {}
     virtual void        set_na_value() {}
-
-    virtual void        update_na_value(const boost::any& value) {}
 
     /// Gets a boost::any representing this control.
     /// subclasses should overload with a specific version
@@ -262,6 +140,49 @@ public:
 		return std::move(p); //!p;
     }
 
+    bool 	set_undo_bitmap(const ScalableBitmap *bmp) {
+    	if (m_undo_bitmap != bmp) {
+    		m_undo_bitmap = bmp;
+    		return true;
+    	}
+    	return false;
+    }
+
+    bool 	set_undo_to_sys_bitmap(const ScalableBitmap *bmp) {
+    	if (m_undo_to_sys_bitmap != bmp) {
+    		m_undo_to_sys_bitmap = bmp;
+    		return true;
+    	}
+    	return false;
+    }
+
+	bool	set_label_colour(const wxColour *clr) {
+		if (m_label_color != clr) {
+			m_label_color = clr;
+		}
+		return false;
+	}
+
+	bool 	set_undo_tooltip(const wxString *tip) {
+		if (m_undo_tooltip != tip) {
+			m_undo_tooltip = tip;
+			return true;
+		}
+		return false;
+	}
+
+	bool 	set_undo_to_sys_tooltip(const wxString *tip) {
+		if (m_undo_to_sys_tooltip != tip) {
+			m_undo_to_sys_tooltip = tip;
+			return true;
+		}
+		return false;
+	}
+
+	bool*	get_blink_ptr() {
+		return &m_blink;
+    }
+
     virtual void msw_rescale();
     virtual void sys_color_changed();
 
@@ -273,9 +194,27 @@ public:
 	static int def_width_wider()	;
 	static int def_width_thinner()	;
 
+	const ScalableBitmap*	undo_bitmap()			{ return m_undo_bitmap; }
+	const wxString*			undo_tooltip()			{ return m_undo_tooltip; }
+	const ScalableBitmap*	undo_to_sys_bitmap()	{ return m_undo_to_sys_bitmap; }
+	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
+	const wxColour*			label_color()			{ return m_label_color; }
+	const bool				blink()					{ return m_blink; }
 	const bool				combine_side_text()		{ return m_combine_side_text; } // BBS: new param style
 
 protected:
+	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+	const ScalableBitmap*   m_undo_bitmap = nullptr;
+	const wxString*         m_undo_tooltip = nullptr;
+	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
+    const ScalableBitmap*   m_undo_to_sys_bitmap = nullptr;
+	const wxString*		    m_undo_to_sys_tooltip = nullptr;
+
+	bool					m_blink{ false };
+
+	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
+	const wxColour*		m_label_color = nullptr;
+
 	// current value
 	boost::any			m_value;
     // last maeningful value
@@ -286,7 +225,6 @@ protected:
 
     bool    bEnterPressed = false;
 
-    wxString m_na_value = _(L("N/A"));
     
 	friend class OptionsGroup;
 };
@@ -327,8 +265,6 @@ public:
 	void	set_value(const boost::any& value, bool change_event = false) override;
     void    set_last_meaningful_value() override;
     void	set_na_value() override;
-
-    void update_na_value(const boost::any& value) override;
 
 	boost::any&		get_value() override;
 
@@ -509,10 +445,7 @@ public:
 	wxSizer*		sizer{ nullptr };
 	wxTextCtrl*		x_textctrl{ nullptr };
 	wxTextCtrl*		y_textctrl{ nullptr };
-	TextInput*      	x_input{nullptr};
-	TextInput*      	y_input{nullptr};
 
-    wxWindow*       window{nullptr};
 	void			BUILD()  override;
 	bool			value_was_changed(wxTextCtrl* win);
     // Propagate value from field to the OptionGroupe and Config after kill_focus/ENTER
@@ -531,7 +464,7 @@ public:
 		x_textctrl->Disable();
 		y_textctrl->Disable(); }
 	wxSizer*		getSizer() override { return sizer; }
-	wxWindow*		getWindow() override { return window; }
+	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(x_textctrl); }
 };
 
 class StaticText : public Field {

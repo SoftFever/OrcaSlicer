@@ -10,7 +10,7 @@ class GLGizmoSeam : public GLGizmoPainterBase
 public:
     GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
-    void render_painter_gizmo() override;
+    void render_painter_gizmo() const override;
 
     //BBS
     bool on_key_down_select_tool_type(int keyCode);
@@ -22,6 +22,7 @@ protected:
     wchar_t  m_current_tool = 0;
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Seam painting"; }
     PainterGizmoType get_painter_type() const override;
 
     void render_triangles(const Selection &selection) const override;
@@ -32,12 +33,9 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
-    std::string get_gizmo_entering_text() const override { return _u8L("Entering Seam painting"); }
-    std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Seam painting"); }
-    std::string get_action_snapshot_name() const override { return _u8L("Paint-on seam editing"); }
-    static const constexpr float      CursorRadiusMin = 0.05f; // cannot be zero
-
-    const float get_cursor_radius_min() const override { return CursorRadiusMin; }
+    std::string get_gizmo_entering_text() const override { return "Entering Seam painting"; }
+    std::string get_gizmo_leaving_text() const override { return "Leaving Seam painting"; }
+    std::string get_action_snapshot_name() override { return "Paint-on seam editing"; }
 
 private:
     bool on_init() override;

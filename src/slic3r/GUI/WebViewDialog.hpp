@@ -6,7 +6,7 @@
 #include "wx/cmdline.h"
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
-#include <wx/webview.h>
+#include "wx/webview.h"
 
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
@@ -66,6 +66,7 @@ public:
     void OnRedo(wxCommandEvent& evt);
     void OnMode(wxCommandEvent& evt);
     void RunScript(const wxString& javascript);
+    void RunScriptLeft(const wxString &javascript);
     void OnRunScriptString(wxCommandEvent& evt);
     void OnRunScriptInteger(wxCommandEvent& evt);
     void OnRunScriptDouble(wxCommandEvent& evt);
@@ -93,20 +94,55 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
+    void ResetWholePage();
+
+    void SetMakerworldModelID(std::string ModelID);
+    void SwitchWebContent(std::string modelname, int refresh=0);
+    void SwitchLeftMenu(std::string strMenu);
+    void OpenOneMakerlab(std::string url);
+    
+    void CheckMenuNewTag();
+    void ShowMenuNewTag(std::string menuname, std::string show);
+    void SetLeftMenuShow(std::string menuname, int show);
+
     void SendRecentList(int images);
-    void SetLoginPanelVisibility(bool bshow);
     void SendDesignStaffpick(bool on);
+    void SendMakerlabList();
     void OpenModelDetail(std::string id, NetworkAgent *agent);
     void SendLoginInfo();
     void ShowNetpluginTip();
 
+    void SetWebviewShow(wxString name, bool show);
+
     void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
+    void get_user_mw_4u_config(std::function<void(std::string)> callback);
+    void get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback);
+    void get_makerlab_list(std::function<void(std::string)> callback);
     int  get_model_mall_detail_url(std::string *url, std::string id);
+
+    void UpdateMakerworldLoginStatus();
+    void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
+
+    bool GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl);
 
     void update_mode();
 private:
+    std::string m_Region;
 
+    wxBoxSizer *topsizer;
+
+    int         m_loginstatus;
+    wxBoxSizer* m_home_web;
     wxWebView* m_browser;
+    wxWebView* m_browserLeft;
+    wxWebView * m_browserMW;
+    std::string m_contentname;
+    bool        m_leftfirst;          //Left First Loaded
+    bool        m_onlinefirst;        //Online Page First Load
+    //std::string m_online_spec_id;     // Online Page Spec_ID
+    wxString    m_online_type;        //recommend & browse
+    wxString    m_online_LastUrl;     //PageLastError Url
+
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;
     wxButton *  m_button_forward;
@@ -153,6 +189,8 @@ private:
     // Last executed JavaScript snippet, for convenience.
     wxString m_javascript;
     wxString m_response_js;
+
+    bool m_has_pending_staff_pick { false };
 
     DECLARE_EVENT_TABLE()
 };

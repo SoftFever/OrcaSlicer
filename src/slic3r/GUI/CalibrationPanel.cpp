@@ -242,7 +242,7 @@ void SelectMObjectPopup::Popup(wxWindow* WXUNUSED(focus))
 
     if (wxGetApp().is_user_login()) {
         if (!get_print_info_thread) {
-            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 unsigned int http_code;
                 std::string body;
@@ -608,6 +608,23 @@ void CalibrationPanel::show_status(int status)
 {
     if (!m_initialized) return;
     if (last_status == status)return;
+    if (last_status & (int)MonitorStatus::MONITOR_CONNECTING != 0) {
+        NetworkAgent* agent = wxGetApp().getAgent();
+        json j;
+        j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
+        if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
+            j["result"] = "failed";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
+            }
+        }
+        else if (status & (int)MonitorStatus::MONITOR_NORMAL != 0) {
+            j["result"] = "success";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
+            }
+        }
+    }
     last_status = status;
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;

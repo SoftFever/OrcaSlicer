@@ -22,17 +22,15 @@ namespace GUI
 ObjectLayers::ObjectLayers(wxWindow* parent) :
     OG_Settings(parent, true)
 {
-    m_grid_sizer = new wxFlexGridSizer(5, 0, wxGetApp().em_unit()); // Title, Min Z, "to", Max Z, unit & buttons sizer
+    m_grid_sizer = new wxFlexGridSizer(3, 0, 0.5 * wxGetApp().em_unit()); // "Min Z", "Max Z", "Layer height" & buttons sizer
     m_grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    m_grid_sizer->AddGrowableCol(1);
-    m_grid_sizer->AddGrowableCol(3);
 
     m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxOSX ? 0 : 5);
 
-    m_bmp_delete    = ScalableBitmap(parent, "delete");
-    m_bmp_add       = ScalableBitmap(parent, "add");
+    m_bmp_delete    = ScalableBitmap(parent, "delete_filament"/*"cross"*/);
+    m_bmp_add       = ScalableBitmap(parent, "add_filament");
 }
 
 void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_edited_range)
@@ -75,9 +73,10 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
 
     // Add text
     auto head_text = new wxStaticText(m_parent, wxID_ANY, _L("Height Range"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    head_text->SetMaxSize({ 12 * wxGetApp().em_unit(), -1 });
     head_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     head_text->SetFont(wxGetApp().normal_font());
-    m_grid_sizer->Add(head_text, 0, wxALIGN_CENTER_VERTICAL);
+    m_grid_sizer->Add(head_text, 0, wxALIGN_CENTER_VERTICAL, wxGetApp().em_unit());
 
     // Add control for the "Min Z"
 
@@ -103,12 +102,15 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
 
     select_editor(editor, is_last_edited_range);
 
-    m_grid_sizer->Add(editor, 1, wxEXPAND);
-
+    auto sizer1 = new wxBoxSizer(wxHORIZONTAL);
+    sizer1->Add(editor, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0.5 * wxGetApp().em_unit());
     auto middle_text = new wxStaticText(m_parent, wxID_ANY, _L("to"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    middle_text->SetMaxSize({ 4 * wxGetApp().em_unit(), -1 });
     middle_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     middle_text->SetFont(wxGetApp().normal_font());
-    m_grid_sizer->Add(middle_text, 0, wxALIGN_CENTER_VERTICAL);
+    sizer1->Add(middle_text, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0.5 * wxGetApp().em_unit());
+
+    m_grid_sizer->Add(sizer1);
 
     // Add control for the "Max Z"
 
@@ -132,13 +134,13 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     });
 
     //select_editor(editor, is_last_edited_range);
-    m_grid_sizer->Add(editor, 1, wxEXPAND);
 
     auto sizer2 = new wxBoxSizer(wxHORIZONTAL);
+    sizer2->Add(editor);
     auto unit_text = new wxStaticText(m_parent, wxID_ANY, _L("mm"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     unit_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     unit_text->SetFont(wxGetApp().normal_font());
-    sizer2->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
+    sizer2->Add(unit_text, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0.5 * wxGetApp().em_unit());
 
     m_grid_sizer->Add(sizer2);
 
@@ -341,7 +343,7 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
     m_type(type),
     m_set_focus_data(set_focus_data_fn),
     wxTextCtrl(parent->m_parent, wxID_ANY, value, wxDefaultPosition, 
-               wxSize(em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER
+               wxSize(7 * em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER
 #ifdef _WIN32
         | wxBORDER_SIMPLE
 #endif
@@ -450,7 +452,7 @@ coordf_t LayerRangeEditor::get_value()
 
 void LayerRangeEditor::msw_rescale()
 {
-    SetMinSize(wxSize(wxGetApp().em_unit(), wxDefaultCoord));
+    SetMinSize(wxSize(8 * wxGetApp().em_unit(), wxDefaultCoord));
 }
 
 } //namespace GUI

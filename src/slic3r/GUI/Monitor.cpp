@@ -184,6 +184,27 @@ MonitorPanel::~MonitorPanel()
             m_media_file_panel->SwitchStorage(title == _L("SD Card"));
         }
         page->SetFocus();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
+                                << " wxString:" << m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) {
+            std::string name = get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()));
+            if (name != "") {
+                std::string value = "";
+                agent->track_get_property(name, value);
+                int count = 0;
+                if (value != "") {
+                    try {
+                        count = std::stoi(value);
+                    }
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << __LINE__ << " String to integer error!";
+                        count = 0;
+                    }
+                }
+                agent->track_update_property(name, std::to_string(++count));
+            }
+        }
     }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
@@ -263,21 +284,12 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
-void MonitorPanel::on_update_all(wxMouseEvent &event)
-{
-    if (update_flag) {
-        update_all();
-        Layout();
-        Refresh();
-    }
-}
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
      if (update_flag) {
          update_all();
          Layout();
-         Refresh();
      }
 }
 
@@ -293,15 +305,18 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
+    m_status_info_panel->reset_ams_group_show_flag();
+
     set_default();
     update_all();
+
+    m_status_info_panel->last_cali_version.reset();
 
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 
     Layout();
-    Refresh();
 }
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
@@ -327,8 +342,8 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
-    Layout();
-    Refresh();
+    //Layout();
+    //Refresh();
 }
 
 void MonitorPanel::update_all()
@@ -347,6 +362,7 @@ void MonitorPanel::update_all()
         show_status((int)MONITOR_NO_PRINTER);
         return;
     }
+
 
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
@@ -396,7 +412,6 @@ void MonitorPanel::update_all()
     }
 
     show_status(MONITOR_NORMAL);
-
 
     if (m_status_info_panel->IsShown()) {
         m_status_info_panel->update(obj);
@@ -484,15 +499,21 @@ void MonitorPanel::show_status(int status)
 {
     if (!m_initialized) return;
     if (last_status == status)return;
-    if ((last_status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
+    if (last_status & (int)MonitorStatus::MONITOR_CONNECTING != 0) {
         NetworkAgent* agent = wxGetApp().getAgent();
         json j;
         j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
-        if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) {
+        if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
             j["result"] = "failed";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
+            }
         }
-        else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
+        else if (status & (int)MonitorStatus::MONITOR_NORMAL != 0) {
             j["result"] = "success";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
+            }
         }
     }
     last_status = status;

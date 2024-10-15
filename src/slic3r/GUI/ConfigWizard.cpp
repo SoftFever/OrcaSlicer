@@ -36,7 +36,6 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Model.hpp"
-#include "libslic3r/Color.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
@@ -778,9 +777,9 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
 //        wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
 //#endif
 //#endif
-    const auto text_clr = wxGetApp().get_label_clr_default();
-    const auto bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
-    const auto text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
+    const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+    const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     wxString first_line = format_wxstr(_L("%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."), materials->technology == T_FFF ? _L("Filaments") : _L("SLA materials"));
     wxString text;
     if (all_printers) {
@@ -1391,7 +1390,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
         char buf[64]; // locales don't matter here (sprintf/atof)
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
-        config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf),false));
+        config.set_key_value(key, new ConfigOptionFloat(atof(buf)));
     };
 
     set_extrusion_width("support_line_width", 0.35);
@@ -1449,7 +1448,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
     auto *text_extr = new wxStaticText(this, wxID_ANY, _L("Extrusion Temperature:"));
-    auto *unit_extr = new wxStaticText(this, wxID_ANY, _L("°C"));
+    auto *unit_extr = new wxStaticText(this, wxID_ANY, "°C");
     sizer_extr->AddGrowableCol(0, 1);
     sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_extr->Add(spin_extr);
@@ -1463,7 +1462,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
     auto *text_bed = new wxStaticText(this, wxID_ANY, _L("Bed Temperature:"));
-    auto *unit_bed = new wxStaticText(this, wxID_ANY, _L("°C"));
+    auto *unit_bed = new wxStaticText(this, wxID_ANY, "°C");
     sizer_bed->AddGrowableCol(0, 1);
     sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_bed->Add(spin_bed);
@@ -1488,7 +1487,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig& config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    , bg(ScalableBitmap(parent, "OrcaSlicer_192px_transparent.png", 192))
+    , bg(ScalableBitmap(parent, "BambuStudio_192px_transparent.png", 192))
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
     , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
@@ -2405,9 +2404,9 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     bool check_unsaved_preset_changes = false;
     if (check_unsaved_preset_changes)
         header = _L("All user presets will be deleted.");
-    int act_btns = ActionButtons::KEEP;
+    int act_btns = UnsavedChangesDialog::ActionButtons::KEEP;
     if (!check_unsaved_preset_changes)
-        act_btns |= ActionButtons::SAVE;
+        act_btns |= UnsavedChangesDialog::ActionButtons::SAVE;
 
     // Install bundles from resources if needed:
     std::vector<std::string> install_bundles;
@@ -2657,7 +2656,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->load_vendors();
     //BBS: add bed exclude areas
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
-        "gcode_flavor", "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter", "thumbnails"
+        "gcode_flavor", "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter"
         //, "nozzle_temperature", "bed_temperature"
     }));
 

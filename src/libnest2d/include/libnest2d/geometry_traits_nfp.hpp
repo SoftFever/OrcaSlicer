@@ -19,6 +19,14 @@ inline bool _vsort(const TPoint<RawShape>& v1, const TPoint<RawShape>& v2)
     return y1 == y2 ? x1 < x2 : y1 < y2;
 }
 
+template<class RawShape, class Unit = TCompute<RawShape>>
+inline bool _vsort_max_x(const TPoint<RawShape>& v1, const TPoint<RawShape>& v2)
+{
+    Unit x1 = getX(v1), x2 = getX(v2), y1 = getY(v1), y2 = getY(v2);
+    return y1 == y2 ? x1 > x2 : y1 < y2;
+}
+
+
 template<class EdgeList, class RawShape, class Vertex = TPoint<RawShape>>
 inline void buildPolygon(const EdgeList& edgelist,
                          RawShape& rpoly,
@@ -167,6 +175,22 @@ TPoint<RawShape> rightmostUpVertex(const RawShape& sh)
 }
 
 /**
+ * Get the vertex of the polygon that is at the lowest values (bottom) in the Y
+ * axis and if there are more than one vertices on the same Y coordinate then
+ * the result will be the leftmost (with the lowest X coordinate).
+ */
+template<class RawShape>
+TPoint<RawShape> leftmostBottomVertex(const RawShape& sh)
+{
+
+    // find min x and min y vertex
+    auto it = std::min_element(shapelike::cbegin(sh), shapelike::cend(sh),
+        __nfp::_vsort<RawShape>);
+
+    return it == shapelike::cend(sh) ? TPoint<RawShape>() : *it;
+}
+
+/**
  * A method to get a vertex from a polygon that always maintains a relative
  * position to the coordinate system: It is always the rightmost top vertex.
  *
@@ -227,7 +251,7 @@ template<class RawBox, class RawShape, class Ratio = double> inline NfpResult<Ra
  *
  * \tparam RawShape the Polygon data type.
  * \param sh The stationary polygon
- * \param cother The orbiting polygon
+ * \param other The orbiting polygon
  * \return Returns a pair of the NFP and its reference vertex of the two input
  * polygons which have to be strictly convex. The resulting NFP is proven to be
  * convex as well in this case.

@@ -16,22 +16,18 @@
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
-//#include "ConfigWizard.hpp"
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
-#include "Jobs/PlaterWorker.hpp"
 
 #define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
 
 namespace Slic3r {
 namespace GUI {
 
-
-
-DownloadProgressDialog::DownloadProgressDialog(wxString title)
+DownloadProgressDialog::DownloadProgressDialog(wxString title, bool post_login)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    , m_post_login(post_login)
 {
     wxString download_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
     wxString install_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
@@ -40,7 +36,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     wxString install_failed_msg = _L("Failed to install the plug-in. Please check whether it is blocked or deleted by anti-virus software.");
 
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -51,9 +47,9 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
 
 
     m_simplebook_status = new wxSimplebook(this);
-    m_simplebook_status->SetSize(wxSize(FromDIP(400), FromDIP(70)));
-    m_simplebook_status->SetMinSize(wxSize(FromDIP(400), FromDIP(70)));
-    m_simplebook_status->SetMaxSize(wxSize(FromDIP(400), FromDIP(70)));
+    m_simplebook_status->SetSize(wxSize(FromDIP(400), -1));
+    m_simplebook_status->SetMinSize(wxSize(FromDIP(400), -1));
+    m_simplebook_status->SetMaxSize(wxSize(FromDIP(400), -1));
 
     //mode normal
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook_status);
@@ -61,8 +57,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     m_panel_download->SetSize(wxSize(FromDIP(400), FromDIP(70)));
     m_panel_download->SetMinSize(wxSize(FromDIP(400), FromDIP(70)));
     m_panel_download->SetMaxSize(wxSize(FromDIP(400), FromDIP(70)));
-
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "download_worker");
+    
 
     //mode Download Failed 
     auto m_panel_download_failed = new wxPanel(m_simplebook_status, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -147,17 +142,26 @@ bool DownloadProgressDialog::Show(bool show)
 {
     if (show) {
         m_simplebook_status->SetSelection(0);
-        auto m_upgrade_job = make_job();
+        m_upgrade_job = make_job(m_status_bar);
         m_upgrade_job->set_event_handle(this);
         m_status_bar->set_progress(0);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            m_status_bar->change_button_label(_L("Close"));
+            m_status_bar->change_button_label(_L("OK"));
             on_finish();
-            m_status_bar->set_cancel_callback_fina(
-                [this]() {
-                    this->Close();
-                }
-            );
+            if (m_post_login) {
+                m_status_bar->set_cancel_callback_fina(
+                    [this]() {
+                        this->Close();
+                        wxGetApp().request_login();
+                    }
+                );
+            } else {
+                m_status_bar->set_cancel_callback_fina(
+                    [this]() {
+                        this->Close();
+                    }
+                );
+            }
         });
 
         //download failed
@@ -185,17 +189,23 @@ bool DownloadProgressDialog::Show(bool show)
         });
 
         m_status_bar->set_cancel_callback_fina([this]() {
-            m_worker->cancel_all();
+            if (m_upgrade_job) {
+                m_upgrade_job->cancel();
+                //EndModal(wxID_CLOSE);
+            }
+                
         });
-
-        replace_job(*m_worker, std::move(m_upgrade_job));
+        m_upgrade_job->start();
     }
     return DPIDialog::Show(show);
 }
 
 void DownloadProgressDialog::on_close(wxCloseEvent& event)
 {
-    m_worker.get()->cancel_all();
+    if (m_upgrade_job) {
+        m_upgrade_job->cancel();
+        m_upgrade_job->join();
+    }
     event.Skip();
 }
 
@@ -205,7 +215,7 @@ void DownloadProgressDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
 void DownloadProgressDialog::update_release_note(std::string release_note, std::string version) {}
 
-std::unique_ptr<UpgradeNetworkJob> DownloadProgressDialog::make_job() { return std::make_unique<UpgradeNetworkJob>(); }
+std::shared_ptr<UpgradeNetworkJob> DownloadProgressDialog::make_job(std::shared_ptr<ProgressIndicator> pri) { return std::make_shared<UpgradeNetworkJob>(pri); }
 
 void DownloadProgressDialog::on_finish() { wxGetApp().restart_networking(); }
 

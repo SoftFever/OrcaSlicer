@@ -31,7 +31,7 @@ using namespace nlohmann;
 
 namespace Slic3r { namespace GUI {
 
-DownPluginFrame::DownPluginFrame(GUI_App *pGUI) : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "Orca Slicer"), m_appconfig_new()
+DownPluginFrame::DownPluginFrame(GUI_App *pGUI) : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "Bambu Studio"), m_appconfig_new()
 {
     // INI
     m_MainPtr = pGUI;
@@ -227,7 +227,7 @@ void DownPluginFrame::OnScriptMessage(wxWebViewEvent &evt)
             auto plugin_folder = (boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins").make_preferred().string();
             desktop_open_any_folder(plugin_folder);
         }
-    } catch (std::exception &) {
+    } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }

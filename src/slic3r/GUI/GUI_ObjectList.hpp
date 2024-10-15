@@ -27,6 +27,7 @@ class ModelConfig;
 class ModelObject;
 class ModelVolume;
 class TriangleMesh;
+struct TextInfo;
 enum class ModelVolumeType : int;
 
 // FIXME: broken build on mac os because of this is missing:
@@ -166,6 +167,7 @@ private:
     ObjectDataViewModel         *m_objects_model{ nullptr };
     ModelConfig                 *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
+    size_t                      m_variable_layer_obj_num = 0;
 
     BitmapComboBox              *m_extruder_editor { nullptr };
 
@@ -205,7 +207,7 @@ private:
 
 public:
     ObjectList(wxWindow* parent);
-    ~ObjectList() override;
+    ~ObjectList();
 
     void set_min_height();
     void update_min_height();
@@ -223,6 +225,8 @@ public:
     void                update_filament_colors();
     // show/hide "Extruder" column for Objects List
     void                set_filament_column_hidden(const bool hide) const;
+    // show/hide variable height column for Objects List
+    void                set_variable_height_column_hidden(const bool hide) const;
     // BBS
     void                set_color_paint_hidden(const bool hide) const;
     void                set_support_paint_hidden(const bool hide) const;
@@ -286,6 +290,8 @@ public:
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     // BBS
     void                switch_to_object_process();
+    int                 load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp);
+    int                 add_text_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info,const Transform3d& text_in_object_tran, bool is_temp);
     bool                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);
@@ -297,7 +303,7 @@ public:
     void                del_info_item(const int obj_idx, InfoItemType type);
     void                split();
     void                merge(bool to_multipart_object);
-    // void                merge_volumes(); // BBS: merge parts to single part
+    void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
     void                boolean();    // BBS: Boolean Operation of parts
@@ -414,6 +420,7 @@ public:
     void update_settings_item_and_selection(wxDataViewItem item, wxDataViewItemArray& selections);
     void update_object_list_by_printer_technology();
     void update_info_items(size_t obj_idx, wxDataViewItemArray* selections = nullptr, bool added_object = false);
+    void update_variable_layer_obj_num(ObjectDataViewModelNode* obj_node, size_t layer_data_count);
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
     void instances_to_separated_objects(const int obj_idx);
@@ -438,6 +445,7 @@ public:
     //update printable state for item from objects model
     void update_printable_state(int obj_idx, int instance_idx);
     void toggle_printable_state();
+    void enable_layers_editing();
 
     //BBS: remove const qualifier
     void set_extruder_for_selected_items(const int extruder);

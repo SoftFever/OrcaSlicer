@@ -41,8 +41,6 @@
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
-#include "Jobs/Worker.hpp"
-
 namespace Slic3r { namespace GUI {
 
 enum PrinterState {
@@ -195,11 +193,11 @@ protected:
 
 #define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
 #define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(182), FromDIP(35))
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
-#define SELECT_MACHINE_BRAND wxColour(0, 150, 136)
+#define SELECT_MACHINE_BRAND wxColour(0, 174, 66)
 #define SELECT_MACHINE_REMIND wxColour(255,111,0)
 #define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
 
@@ -214,6 +212,7 @@ class PinCodePanel : public wxPanel
 {
 public:
     PinCodePanel(wxWindow* parent,
+        int type,
         wxWindowID      winid = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
@@ -221,6 +220,7 @@ public:
 
     ScalableBitmap       m_bitmap;
     bool           m_hover{false};
+    int            m_type{0};
 
     void OnPaint(wxPaintEvent& event);
     void render(wxDC& dc);
@@ -254,6 +254,7 @@ private:
     int                               m_my_devices_count{0};
     int                               m_other_devices_count{0};
     PinCodePanel*                     m_panel_ping_code{nullptr};
+    PinCodePanel*                     m_panel_direct_connection{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
     wxHyperlinkCtrl*                  m_hyperlink{nullptr};
     Label*                            m_ping_code_text{nullptr};
@@ -367,7 +368,6 @@ private:
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-    std::unique_ptr<Worker>             m_worker;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model; 
@@ -432,6 +432,7 @@ protected:
     wxStaticText*                       m_statictext_finish{nullptr};
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
+    std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};

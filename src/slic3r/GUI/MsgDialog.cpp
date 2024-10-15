@@ -14,7 +14,6 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/Color.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
 //#include "ConfigWizard.hpp"
@@ -145,24 +144,20 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     else if (label.length() >= 5 && label.length() < 8) {
         type = ButtonSizeMiddle;
         btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
-    } 
-    else if (label.length() >= 8 && label.length() < 12) {
-        type = ButtonSizeMiddle;
-        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     } else {
         type = ButtonSizeLong;
-        btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
+        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     }
     
     btn->SetCornerRadius(FromDIP(12));
     StateColor btn_bg_green(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
 
     StateColor btn_bd_green(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
 
     StateColor btn_text_green(
@@ -224,9 +219,9 @@ void MsgDialog::apply_style(long style)
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
-                                          style & wxICON_WARNING        ? "exclamation" : // ORCA "exclamation" used for dialogs "obj_warning" used for 16x16 areas
+                                          style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :
-                                          style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
+                                          style & wxICON_QUESTION       ? "question"    : "BambuStudio", this, 64, style & wxICON_ERROR));
 }
 
 void MsgDialog::finalize()
@@ -264,9 +259,9 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
     wxColour    text_clr = wxGetApp().get_label_clr_default();
-    wxColour    bgr_clr = parent->GetBackgroundColour();
-    auto        text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
-    auto        bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
+    wxColour    bgr_clr = parent->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    auto        text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+    auto        bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const int   font_size = font.GetPointSize();
     int         size[] = { font_size, font_size, font_size, font_size, font_size, font_size, font_size };
     html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
@@ -335,7 +330,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
-	logo->SetBitmap(create_scaled_bitmap("OrcaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+	logo->SetBitmap(create_scaled_bitmap("BambuStudio_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 
@@ -379,26 +374,25 @@ RichMessageDialog::RichMessageDialog(wxWindow* parent,
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
+
+    m_checkBox = new wxCheckBox(this, wxID_ANY, m_checkBoxText);
+    wxGetApp().UpdateDarkUI(m_checkBox);
+    m_checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { m_checkBoxValue = m_checkBox->GetValue(); });
+
+    btn_sizer->Insert(0, m_checkBox, wxALIGN_CENTER_VERTICAL);
+
     finalize();
 }
 
 int RichMessageDialog::ShowModal()
 {
-    if (!m_checkBoxText.IsEmpty()) {
-        show_dsa_button(m_checkBoxText);
-        m_checkbox_dsa->SetValue(m_checkBoxValue);
-    }
+    if (m_checkBoxText.IsEmpty())
+        m_checkBox->Hide();
+    else
+        m_checkBox->SetLabelText(m_checkBoxText);
     Layout();
 
     return wxDialog::ShowModal();
-}
-
-bool RichMessageDialog::IsCheckBoxChecked() const
-{
-    if (m_checkbox_dsa)
-        return m_checkbox_dsa->GetValue();
-
-    return m_checkBoxValue;
 }
 #endif
 
@@ -409,58 +403,6 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& 
 {
     add_msg_content(this, content_sizer, msg, false, is_marked_msg);
     finalize();
-}
-
-wxString get_wraped_wxString(const wxString& in, size_t line_len /*=80*/)
-{
-    wxString out;
-
-    for (size_t i = 0; i < in.size();) {
-        // Overwrite the character (space or newline) starting at ibreak?
-        bool   overwrite = false;
-        // UTF8 representation of wxString.
-        // Where to break the line, index of character at the start of a UTF-8 sequence.
-        size_t ibreak    = size_t(-1);
-        // Overwrite the character at ibreak (it is a whitespace) or not?
-        size_t j = i;
-        for (size_t cnt = 0; j < in.size();) {
-            if (bool newline = in[j] == '\n'; in[j] == ' ' || in[j] == '\t' || newline) {
-                // Overwrite the whitespace.
-                ibreak    = j ++;
-                overwrite = true;
-                if (newline)
-                    break;
-            } else if (in[j] == '/'
-#ifdef _WIN32
-                 || in[j] == '\\'
-#endif // _WIN32
-                 ) {
-                // Insert after the slash.
-                ibreak    = ++ j;
-                overwrite = false;
-            } else
-                j += get_utf8_sequence_length(in.c_str() + j, in.size() - j);
-            if (++ cnt == line_len) {
-                if (ibreak == size_t(-1)) {
-                    ibreak    = j;
-                    overwrite = false;
-                }
-                break;
-            }
-        }
-        if (j == in.size()) {
-            out.append(in.begin() + i, in.end());
-            break;
-        }
-        assert(ibreak != size_t(-1));
-        out.append(in.begin() + i, in.begin() + ibreak);
-        out.append('\n');
-        i = ibreak;
-        if (overwrite)
-            ++ i;
-    }
-
-    return out;
 }
 
 // InfoDialog
@@ -486,7 +428,7 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -547,7 +489,7 @@ Newer3mfVersionDialog::Newer3mfVersionDialog(wxWindow *parent, const Semver *fil
     , m_new_keys(new_keys)
 {
     this->SetBackgroundColour(*wxWHITE);
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -579,15 +521,15 @@ wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
     wxBoxSizer *     horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxString    msg_str;
     if (file_version_newer) { 
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current OrcaSlicer  version."));
-        wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Orca Slicer Beta, you may click to"));
+        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current Bambu Studio version."));
+        wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Bambu Studio Beta, you may click to"));
         wxHyperlinkCtrl *github_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Beta Version"), "https://github.com/bambulab/BambuStudio/releases");
         horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
         horizontal_sizer->Add(github_link, 0, wxEXPAND | wxLEFT, 5);
         
     } else {
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is newer than the current Orca Slicer version."));
-        wxStaticText *text2 = new wxStaticText(this, wxID_ANY, _L("Update your Orca Slicer could enable all functionality in the 3mf file."));
+        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is newer than the current Bambu Studio version."));
+        wxStaticText *text2 = new wxStaticText(this, wxID_ANY, _L("Update your Bambu Studio could enable all functionality in the 3mf file."));
         horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
     }
     Semver        app_version = *(Semver::parse(SLIC3R_VERSION));
@@ -611,8 +553,8 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     bool       file_version_newer = (*m_file_version) > (*m_cloud_version);
@@ -658,6 +600,109 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
         EndModal(wxID_OK);
     });
     return horizontal_sizer;
+}
+
+NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Server Exception"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    this->SetBackgroundColour(*wxWHITE);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer* sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    
+    wxBoxSizer* sizer_bacis_text = new wxBoxSizer(wxVERTICAL);
+
+    m_text_basic = new Label(this, _L("The server is unable to respond. Please click the link below to check the server status."));
+    m_text_basic->SetForegroundColour(0x323A3C);
+    m_text_basic->SetMinSize(wxSize(FromDIP(470), -1));
+    m_text_basic->SetMaxSize(wxSize(FromDIP(470), -1));
+    m_text_basic->Wrap(FromDIP(470));
+    m_text_basic->SetFont(::Label::Body_14);
+    sizer_bacis_text->Add(m_text_basic, 0, wxALL, 0);
+
+
+    wxBoxSizer* sizer_link = new wxBoxSizer(wxVERTICAL);
+
+    m_link_server_state = new wxHyperlinkCtrl(this, wxID_ANY, _L("Check the status of current system services"), "");
+    m_link_server_state->SetFont(::Label::Body_13);
+    m_link_server_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+    m_link_server_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_link_server_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    sizer_link->Add(m_link_server_state, 0, wxALL, 0);
+
+
+    wxBoxSizer* sizer_help = new wxBoxSizer(wxVERTICAL);
+
+    m_text_proposal = new Label(this, _L("If the server is in a fault state, you can temporarily use offline printing or local network printing."));
+    m_text_proposal->SetMinSize(wxSize(FromDIP(470), -1));
+    m_text_proposal->SetMaxSize(wxSize(FromDIP(470), -1));
+    m_text_proposal->Wrap(FromDIP(470));
+    m_text_proposal->SetFont(::Label::Body_14);
+    m_text_proposal->SetForegroundColour(0x323A3C);
+    
+    m_text_wiki = new wxHyperlinkCtrl(this, wxID_ANY, _L("How to use LAN only mode"), "");
+    m_text_wiki->SetFont(::Label::Body_13);
+    m_text_wiki->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_lan_only_wiki(); });
+    m_text_wiki->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_text_wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    sizer_help->Add(m_text_proposal, 0, wxEXPAND, 0);
+    sizer_help->Add(m_text_wiki, 0, wxALL, 0);
+
+    wxBoxSizer* sizer_button = new wxBoxSizer(wxHORIZONTAL);
+
+    /*dont show again*/
+    auto checkbox = new ::CheckBox(this);
+    checkbox->SetValue(false);
+
+
+    auto checkbox_title = new Label(this, _L("Don't show this dialog again"));
+    checkbox_title->SetForegroundColour(0x323A3C);
+    checkbox_title->SetFont(::Label::Body_14);
+    checkbox_title->Wrap(-1);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
+        m_show_again = checkbox->GetValue();
+        e.Skip();
+    });
+
+    auto bt_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+
+    m_button_confirm = new Button(this, _L("Confirm"));
+    m_button_confirm->SetBackgroundColor(bt_enable);
+    m_button_confirm->SetBorderColor(bt_enable);
+    m_button_confirm->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
+    m_button_confirm->SetCornerRadius(12);
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {EndModal(wxCLOSE);});
+
+    sizer_button->Add(checkbox, 0, wxALL, 5);
+    sizer_button->Add(checkbox_title, 0, wxALL, 5);
+    sizer_button->Add(0, 0, 1, wxEXPAND, 5);
+    sizer_button->Add(m_button_confirm, 0, wxALL, 5);
+
+    sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    sizer_main->Add(0, 0, 0, wxTOP, 20);
+    sizer_main->Add(sizer_bacis_text, 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
+    sizer_main->Add(0, 0, 0, wxTOP, 6);
+    sizer_main->Add(sizer_link, 0, wxLEFT | wxRIGHT, 15);
+    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer_main->Add(sizer_help, 1, wxLEFT | wxRIGHT, 15);
+    sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer_main->Add(sizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT, 15);
+    sizer_main->Add(0, 0, 0, wxTOP, 18);
+
+    SetSizer(sizer_main);
+    Layout();
+    sizer_main->Fit(this);
+    Centre(wxBOTH);
 }
 
 } // namespace GUI

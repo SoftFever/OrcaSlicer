@@ -13,7 +13,6 @@
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
-#include "wxMediaCtrl2.h"
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
@@ -91,11 +90,11 @@ public:
     void      set_cloud_bitmap(std::vector<std::string> cloud_bitmaps);
 
 protected:
-    enum StatusCode { 
-        UPLOAD_PROGRESS = 0, 
-        UPLOAD_EXIST_ISSUE, 
+    enum StatusCode {
+        UPLOAD_PROGRESS = 0,
+        UPLOAD_EXIST_ISSUE,
         UPLOAD_IMG_FAILED,
-        CODE_NUMBER 
+        CODE_NUMBER
     };
 
     std::shared_ptr<int>     m_tocken;
@@ -113,7 +112,7 @@ protected:
     {
         wxString          local_image_url; //local image path
         std::string       img_url_paths; // oss url path
-        vector<wxPanel *> image_broad; 
+        vector<wxPanel *> image_broad;
         bool              is_selected;
         bool              is_uploaded; // load
         wxBoxSizer *      image_tb_broad = nullptr;
@@ -148,7 +147,19 @@ protected:
     std::set<std::pair<wxStaticBitmap *, wxString>>        add_need_upload_imgs();
     std::pair<wxStaticBitmap *, ImageMsg>                  create_local_thumbnail(wxString &local_path);
     std::pair<wxStaticBitmap *, ImageMsg>                  create_oss_thumbnail(std::string &oss_path);
-    
+
+};
+
+class RectTextPanel : public wxPanel
+{
+public:
+    RectTextPanel(wxWindow *parent);
+
+    void setText(const wxString text);
+
+    void OnPaint(wxPaintEvent &event);
+private:
+    wxString text;
 };
 
 class PrintingTaskPanel : public wxPanel
@@ -157,7 +168,7 @@ public:
     PrintingTaskPanel(wxWindow* parent, PrintingTaskType type);
     ~PrintingTaskPanel();
     void create_panel(wxWindow* parent);
-    
+
 
 private:
     MachineObject*  m_obj;
@@ -181,8 +192,8 @@ private:
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
-    // Orca: show print end time
-    wxStaticText * m_staticText_progress_end;
+    wxStaticText*   m_staticText_finish_time;
+    RectTextPanel*  m_staticText_finish_day;
     wxStaticText*   m_staticText_layers;
     wxStaticText *  m_has_rated_prompt;
     wxStaticText *  m_request_failed_info;
@@ -223,6 +234,7 @@ public:
     void update_stage_value(wxString stage, int val);
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
+    void update_finish_time(wxString finish_time);
     void update_left_time(int mc_left_time);
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
@@ -231,8 +243,9 @@ public:
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
+    bool is_market_scoring_show();
     void market_scoring_hide();
-    
+
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
     ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
@@ -273,6 +286,7 @@ protected:
     wxBitmap m_bitmap_extruder_filled_load;
     wxBitmap m_bitmap_extruder_empty_unload;
     wxBitmap m_bitmap_extruder_filled_unload;
+    wxBitmap m_bitmap_extruder_now;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
@@ -290,7 +304,6 @@ protected:
     ScalableBitmap m_bitmap_timelapse_off;
     ScalableBitmap m_bitmap_vcamera_on;
     ScalableBitmap m_bitmap_vcamera_off;
-    ScalableBitmap m_bitmap_switch_camera;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -311,10 +324,9 @@ protected:
     wxStaticBitmap *m_bitmap_sdcard_img;
     wxStaticBitmap *m_bitmap_static_use_time;
     wxStaticBitmap *m_bitmap_static_use_weight;
-    wxStaticBitmap* m_camera_switch_button;
 
 
-    wxMediaCtrl2 *  m_media_ctrl;
+    wxMediaCtrl3 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
 
     Label *         m_staticText_printing;
@@ -331,7 +343,6 @@ protected:
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
-    wxWebView *     m_custom_camera_view{nullptr};
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -342,7 +353,7 @@ protected:
 
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
-    StaticBox*      m_fan_panel; 
+    StaticBox*      m_fan_panel;
     StaticLine *    m_line_nozzle;
     TempInput* m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout{ 0 };
@@ -377,6 +388,7 @@ protected:
     wxBoxSizer*     m_ams_list;
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
+    bool            m_show_ams_group_reset{true};
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
@@ -408,7 +420,7 @@ protected:
     virtual void on_bed_temp_kill_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_bed_temp_set_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_nozzle_temp_kill_focus(wxFocusEvent &event) { event.Skip(); }
-    virtual void on_nozzle_temp_set_focus(wxFocusEvent &event) { event.Skip(); }    
+    virtual void on_nozzle_temp_set_focus(wxFocusEvent &event) { event.Skip(); }
     virtual void on_nozzle_fan_switch(wxCommandEvent &event) { event.Skip(); }
     virtual void on_printing_fan_switch(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_z_up_10(wxCommandEvent &event) { event.Skip(); }
@@ -417,13 +429,6 @@ protected:
     virtual void on_axis_ctrl_z_down_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_up_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_down_10(wxCommandEvent &event) { event.Skip(); }
-    void on_camera_source_change(wxCommandEvent& event);
-    void handle_camera_source_change();
-    void remove_controls();
-    void on_webview_navigating(wxWebViewEvent& evt);
-    void on_camera_switch_toggled(wxMouseEvent& event);
-    void toggle_custom_camera();
-    void toggle_builtin_camera();
 
 public:
     StatusBasePanel(wxWindow *      parent,
@@ -452,6 +457,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
+    void reset_ams_group_show_flag() {m_show_ams_group_reset = true;};
     void show_ams_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
@@ -479,6 +485,7 @@ protected:
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+    SecondaryCheckDialog* axis_go_home_dlg = nullptr;
 
     FanControlPopup* m_fan_control_popup{nullptr};
 
@@ -527,7 +534,8 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
+    void show_error_message(
+        MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str = "", wxString image_url = "", std::vector<int> used_button = std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -649,7 +657,7 @@ public:
     long           last_read_done_bits{ -1 };
     long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
-    int            last_cali_version{-1};
+    std::optional<int> last_cali_version;
 
     enum ThumbnailState task_thumbnail_state {ThumbnailState::PLACE_HOLDER};
     std::vector<int> last_stage_list_info;

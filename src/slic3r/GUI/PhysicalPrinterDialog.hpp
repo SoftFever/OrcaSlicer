@@ -8,7 +8,9 @@
 #include "libslic3r/Preset.hpp"
 #include "GUI_Utils.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/Button.hpp"
 
+class wxString;
 class wxTextCtrl;
 class wxStaticText;
 class ScalableButton;
@@ -30,7 +32,6 @@ class PhysicalPrinterDialog : public DPIDialog
 
     ScalableButton*     m_printhost_browse_btn              {nullptr};
     ScalableButton*     m_printhost_test_btn                {nullptr};
-    ScalableButton*     m_printhost_logout_btn              {nullptr};
     ScalableButton*     m_printhost_cafile_browse_btn       {nullptr};
     ScalableButton*     m_printhost_client_cert_browse_btn  {nullptr};
     ScalableButton*     m_printhost_port_browse_btn         {nullptr};
@@ -38,10 +39,11 @@ class PhysicalPrinterDialog : public DPIDialog
     RoundedRectangle*   m_input_area                        {nullptr};
     wxStaticText*       m_valid_label                       {nullptr};
     wxTextCtrl*         m_input_ctrl                        {nullptr};
-    wxButton*           btnOK                               {nullptr};
+    Button*             m_button_ok                         {nullptr};
+    Button*             m_button_cancel                     {nullptr};
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
-    void OnOK(wxEvent& event);
+    void OnOK(wxMouseEvent& event);
 
 public:
     PhysicalPrinterDialog(wxWindow* parent);
@@ -62,8 +64,6 @@ public:
     void        update_preset_input();
     void        update_printhost_buttons();
     void        update_printers();
-    void        update_ports();
-    void        update_webui();
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

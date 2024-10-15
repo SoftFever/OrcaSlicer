@@ -84,6 +84,12 @@ void DailyTipsDataRenderer::open_wiki() const
     if (!m_data.wiki_url.empty())
     {
         wxGetApp().open_browser_with_warning_dialog(m_data.wiki_url);
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent) {
+            json j;
+            j["dayil_tips"] = m_data.wiki_url;
+            agent->track_event("dayil_tips", j.dump());
+        }
     }
 }
 
@@ -98,24 +104,16 @@ void DailyTipsDataRenderer::render(const ImVec2& pos, const ImVec2& size) const
     ImGui::SetNextWindowPos(pos);
     if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
         if (m_layout == DailyTipsLayout::Vertical) {
-            ImVec2 img_size(0, 0);
-            float img_text_gap = 0.0f;
-            if (has_image()) {
-                img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
-                render_img({0, 0}, img_size);
-                img_text_gap = ImGui::CalcTextSize("A").y;
-            }
+            ImVec2 img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
+            render_img({ 0, 0 }, img_size);
+            float img_text_gap = ImGui::CalcTextSize("A").y;
             render_text({ 0, img_size.y + img_text_gap }, size);
         }
         if (m_layout == DailyTipsLayout::Horizontal) {
-            ImVec2 img_size(0, 0);
-            float  img_text_gap = 0.0f;
-            if (has_image()) {
-                img_size = ImVec2(16.0f / 9.0f * size.y, size.y);
-                render_img({0, 0}, img_size);
-                img_text_gap = ImGui::CalcTextSize("A").y;
-            }
-            render_text({img_size.x + img_text_gap, 0}, {size.x - img_size.x - img_text_gap, size.y});
+            ImVec2 img_size = ImVec2(16.0f / 9.0f * size.y, size.y);
+            render_img({ 0, 0 }, img_size);
+            float img_text_gap = ImGui::CalcTextSize("A").y;
+            render_text({ img_size.x + img_text_gap, 0 }, { size.x - img_size.x - img_text_gap, size.y });
         }
     }
     ImGui::EndChild();
@@ -140,9 +138,9 @@ void DailyTipsDataRenderer::render_img(const ImVec2& start_pos, const ImVec2& si
 {
     if (has_image())
         ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
-    // else {
-    //     ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
-    // }
+    else {
+        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
+    }
 }
 
 void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& size) const
@@ -236,7 +234,7 @@ DailyTipsPanel::DailyTipsPanel(bool can_expand, DailyTipsLayout layout)
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     float scale = imgui.get_font_size() / 15.0f;
-    m_footer_height = 30.0f * scale;
+    m_footer_height = 58.0f * scale;
     m_is_expanded = wxGetApp().app_config->get("show_hints") == "true";
 }
 
@@ -406,7 +404,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144, (int)(255 * m_fade_opacity)).Value);
 
                 button_text = ImGui::CollapseArrowIcon;
-                imgui.button((_L("Collapse") + button_text));
+                imgui.button(_L("Collapse") + button_text);
                 ImVec2 collapse_btn_size = ImGui::CalcTextSize((_u8L("Collapse")).c_str());
                 collapse_btn_size.x += button_size.x / 2.0f;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + collapse_btn_size, true))
@@ -433,12 +431,12 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 
                 // for bold font text, split text and icon-font button
                 imgui.push_bold_font();
-                imgui.button((_L("Daily Tips")));
+                imgui.button(_L("Daily Tips"));
                 imgui.pop_bold_font();
                 ImVec2 expand_btn_size = ImGui::CalcTextSize((_u8L("Daily Tips")).c_str());
                 ImGui::SetCursorScreenPos(ImVec2(btn_pos.x + expand_btn_size.x + ImGui::CalcTextSize(" ").x, btn_pos.y));
                 button_text = ImGui::ExpandArrowIcon;
-                imgui.button(button_text.c_str());
+                imgui.button(button_text);
                 expand_btn_size.x += 19.0f * scale;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + expand_btn_size, true))
                 {
@@ -487,12 +485,12 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         button_text = ImGui::PrevArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(prev_button_pos, prev_button_pos + button_size, true))
         {
-            button_text_color = ImColor(0, 150, 136, (int)(255 * m_fade_opacity));
+            button_text_color = ImColor(0, 174, 66, (int)(255 * m_fade_opacity));
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Prev);
         }
         ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
-        imgui.button(button_text.c_str());
+        imgui.button(button_text);
         ImGui::PopStyleColor();
 
         // next button
@@ -502,12 +500,12 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         button_text = ImGui::NextArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(next_button_pos, next_button_pos + button_size, true))
         {
-            button_text_color = ImColor(0, 150, 136, (int)(255 * m_fade_opacity));
+            button_text_color = ImColor(0, 174, 66, (int)(255 * m_fade_opacity));
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Next);
         }
         ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
-        imgui.button(button_text.c_str());
+        imgui.button(button_text);
         ImGui::PopStyleColor();
 
         ImGui::PopStyleColor(4);

@@ -3,7 +3,6 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
-#include "libslic3r/Color.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -13,8 +12,6 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
-#include "Jobs/PlaterWorker.hpp"
 
 
 #include <wx/progdlg.h>
@@ -48,7 +45,6 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 #define WRAP_GAP FromDIP(2)
 
 static wxString task_canceled_text = _L("Task canceled");
-
 
 std::string get_print_status_info(PrintDialogStatus status)
 {
@@ -400,11 +396,13 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_sizer_other_devices = new wxBoxSizer(wxVERTICAL);
 
 
-    m_panel_ping_code = new PinCodePanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_ITEM_SIZE);
+    m_panel_ping_code = new PinCodePanel(m_scrolledWindow, 0, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_ITEM_SIZE);
+    m_panel_direct_connection = new PinCodePanel(m_scrolledWindow, 1, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_ITEM_SIZE);
 
     m_sizxer_scrolledWindow->Add(own_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_my_devices, 0, wxEXPAND, 0);
     m_sizxer_scrolledWindow->Add(m_panel_ping_code, 0, wxEXPAND, 0);
+    m_sizxer_scrolledWindow->Add(m_panel_direct_connection, 0, wxEXPAND, 0);
     m_sizxer_scrolledWindow->Add(other_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_other_devices, 0, wxEXPAND, 0);
 
@@ -438,7 +436,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
     if (wxGetApp().is_user_login()) {
         if (!get_print_info_thread) {
-            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 unsigned int http_code;
                 std::string body;
@@ -879,12 +877,14 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
         //pin code
         auto pc_rect = m_panel_ping_code->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > pc_rect.x && mouse_pos.y > pc_rect.y && mouse_pos.x < (pc_rect.x + m_panel_ping_code->GetSize().x) && mouse_pos.y < (pc_rect.y + m_panel_ping_code->GetSize().y)) {
-            /*wxMouseEvent event(wxEVT_LEFT_UP);
-            auto         tag_pos = m_panel_ping_code->ScreenToClient(mouse_pos);
-            event.SetPosition(tag_pos);
-            event.SetEventObject(m_panel_ping_code);
-            wxPostEvent(m_panel_ping_code, event);*/
             wxGetApp().popup_ping_bind_dialog();
+        }
+
+        //bind with access code
+        auto dc_rect = m_panel_direct_connection->ClientToScreen(wxPoint(0, 0));
+        if (mouse_pos.x > dc_rect.x && mouse_pos.y > dc_rect.y && mouse_pos.x < (dc_rect.x + m_panel_direct_connection->GetSize().x) && mouse_pos.y < (dc_rect.y + m_panel_direct_connection->GetSize().y)) {
+            InputIpAddressDialog dlgo;
+            dlgo.ShowModal();
         }
 
         //hyper link
@@ -897,17 +897,20 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
 
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
+    _L("Bambu Cool Plate SuperTack"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-    _L("Bambu Engineering Plate"),
-    _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bambu Textured PEI Plate")};
+    _L("Bamabu Engineering Plate"),
+    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+    _L("Bamabu Textured PEI Plate")
+};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
+    "suprtack",
     "pc",
     "pe",
     "pei",
-    "pte",
+    "pte"
 };
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
@@ -967,7 +970,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     SetFont(wxGetApp().normal_font());
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     Freeze();
@@ -1142,7 +1145,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
     m_ams_backup_tip = new Label(this, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
-    m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
     img_ams_backup = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_ams_backup->SetBackgroundColour(*wxWHITE);
@@ -1186,8 +1189,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
-    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(m_btn_bg_enable);
@@ -1265,8 +1268,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
-    
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -1281,7 +1282,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_finish->Wrap(-1);
-    m_statictext_finish->SetForegroundColour(wxColour(0, 150, 136));
+    m_statictext_finish->SetForegroundColour(wxColour(0, 174, 66));
     m_sizer_finish_h->Add(m_statictext_finish, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer_finish_v->Add(m_sizer_finish_h, 1, wxALIGN_CENTER, 0);
@@ -1450,30 +1451,6 @@ void SelectMachineDialog::init_bind()
                 m_comboBox_printer->SetValue(obj->dev_name + "(LAN)");
             }
         }
-        /*else if (e.GetInt() == 1 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
-            on_send_print();
-        }
-        else if (e.GetInt() == -2 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
-            show_status(PrintDialogStatus::PrintStatusInit);
-            prepare_mode();
-            MessageDialog msg_wingow(nullptr, _L("Printer local connection failed, please try again."), "", wxAPPLY | wxOK);
-            msg_wingow.ShowModal();
-        }
-        else if (e.GetInt() == 5 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
-            show_status(PrintDialogStatus::PrintStatusInit);
-            prepare_mode();
-
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev) return;
-            ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
-            dlg.go_connect_printer(false);
-            if (dev->get_selected_machine()) {
-                dlg.set_machine_object(dev->get_selected_machine());
-                if (dlg.ShowModal() == wxID_OK) {
-                    this->connect_printer_mqtt();
-                }
-            }
-        }*/
     });
 
     m_bitmap_last_plate->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -1722,7 +1699,9 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
-    m_worker->wait_for_idle();
+    if (m_print_job) {
+        m_print_job->join();
+    }
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -2262,7 +2241,12 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
-    m_worker->cancel_all();
+    if (m_print_job) {
+        if (m_print_job->is_running()) {
+            m_print_job->cancel();
+            m_print_job->join();
+        }
+    }
     this->EndModal(wxID_CANCEL);
 }
 
@@ -2341,7 +2325,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
     }
 
     //nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.2f", preset_nozzle_diameters).ToStdString();
+    nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
 }
@@ -2406,26 +2390,23 @@ bool SelectMachineDialog::is_same_printer_model()
     }
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    if(preset_bundle == nullptr) return result;
-    const auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-    const auto target_model = obj_->printer_type;
-    // Orca: ignore P1P -> P1S
-    if (source_model != target_model) {
-        if ((source_model == "C12" && target_model == "C11") || (source_model == "C11" && target_model == "C12") ||
-            (obj_->is_support_p1s_plus && (source_model == "C12"))) {
+    if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj_->printer_type) {
+
+        if (obj_->is_support_p1s_plus && (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == "C12")) {
             return true;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
-        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << target_model;
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type;
         return false;
     }
 
     if (obj_->is_support_p1s_plus) {
-        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
         return false;
     }
+
     return true;
 }
 
@@ -2579,10 +2560,10 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
-            // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
+            is_printing_block  = true;
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
@@ -2679,7 +2660,7 @@ wxString SelectMachineDialog::format_steel_name(std::string name)
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
 {
     if (enable) {
-        m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
+        m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     }
     else {
         m_ams_backup_tip->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
@@ -2741,7 +2722,13 @@ void SelectMachineDialog::on_send_print()
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        m_worker->cancel_all();
+        if (m_print_job) {
+            if (m_print_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
+                m_print_job->cancel();
+            }
+            m_print_job->join();
+        }
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -2809,7 +2796,7 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    auto m_print_job = std::make_unique<PrintJob>(m_printer_last_select);
+    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
@@ -2897,7 +2884,7 @@ void SelectMachineDialog::on_send_print()
         agent->track_update_property(dev_ota_str, obj_->get_ota_version());
     }
 
-    replace_job(*m_worker, std::move(m_print_job));
+    m_print_job->start();
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 
@@ -2910,7 +2897,7 @@ void SelectMachineDialog::update_user_machine_list()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     if (m_agent && m_agent->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
+        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
             NetworkAgent* agent = wxGetApp().getAgent();
             unsigned int http_code;
             std::string body;
@@ -3621,7 +3608,7 @@ void SelectMachineDialog::update_show_status()
                     show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
                 }
                 return;
-            }       
+            }
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
@@ -4148,7 +4135,7 @@ void SelectMachineDialog::record_edge_pixels_data()
 
 wxColour SelectMachineDialog::adjust_color_for_render(const wxColour &color)
 {
-    ColorRGBA _temp_color_color(color.Red() / 255.0f, color.Green() / 255.0f, color.Blue() / 255.0f, color.Alpha() / 255.0f);
+    std::array<float, 4> _temp_color_color  = {color.Red() / 255.0f, color.Green() / 255.0f, color.Blue() / 255.0f, color.Alpha() / 255.0f};
     auto                 _temp_color_color_ = adjust_color_for_rendering(_temp_color_color);
     wxColour             render_color((int) (_temp_color_color_[0] * 255.0f), (int) (_temp_color_color_[1] * 255.0f), (int) (_temp_color_color_[2] * 255.0f),
                           (int) (_temp_color_color_[3] * 255.0f));
@@ -4684,7 +4671,7 @@ void SelectMachineDialog::update_lan_machine_list()
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -4706,9 +4693,9 @@ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
 
 
     m_button_confirm = new Button(this, _L("Confirm"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_button_confirm->SetTextColor(wxColour(255, 255, 255));
     m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
@@ -4854,7 +4841,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  ThumbnailPanel::~ThumbnailPanel() {}
 
- PinCodePanel::PinCodePanel(wxWindow* parent, wxWindowID winid /*= wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
+ PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
  {
      wxPanel::Create(parent, winid, pos, SELECT_MACHINE_ITEM_SIZE);
      Bind(wxEVT_PAINT, &PinCodePanel::OnPaint, this);
@@ -4862,6 +4849,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetMaxSize(SELECT_MACHINE_ITEM_SIZE);
      SetMinSize(SELECT_MACHINE_ITEM_SIZE);
 
+     m_type = type;
      m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
      
      this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
@@ -4899,12 +4887,15 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  void PinCodePanel::doRender(wxDC& dc)
  {
      auto size = GetSize();
-     dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(20), (size.y - m_bitmap.GetBmpSize().y) / 2));
+     dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(12), (size.y - m_bitmap.GetBmpSize().y) / 2));
      dc.SetFont(::Label::Head_13);
-     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // ORCA fix text not visible on dark theme
-     wxString txt = _L("Bind with Pin Code");
+     dc.SetTextForeground(wxColour(38, 46, 48));
+     wxString txt;
+     if (m_type == 0) { txt = _L("Bind with Pin Code"); }
+     else if (m_type == 1) { txt = _L("Bind with Access Code"); }
+
      auto txt_size = dc.GetTextExtent(txt);
-     dc.DrawText(txt, wxPoint(FromDIP(40), (size.y - txt_size.y) / 2));
+     dc.DrawText(txt, wxPoint(FromDIP(28), (size.y - txt_size.y) / 2));
 
      if (m_hover) {
          dc.SetPen(SELECT_MACHINE_BRAND);
@@ -4927,7 +4918,27 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  void PinCodePanel::on_mouse_left_up(wxMouseEvent& evt)
  {
-     wxGetApp().popup_ping_bind_dialog();
+     if (m_type == 0) {
+        if (wxGetApp().getAgent() && wxGetApp().getAgent()->is_user_login()){
+             wxGetApp().popup_ping_bind_dialog();
+         }
+         else{
+             auto m_confirm_login_dlg = new SecondaryCheckDialog(nullptr, wxID_ANY, _L("Bind with Pin Code"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, wxDefaultPosition);
+             m_confirm_login_dlg->SetSize(wxSize(FromDIP(270), FromDIP(158)));
+             m_confirm_login_dlg->update_text(_L("Please log in before binding your device with a PIN code.\nAlternatively, you can use LAN mode to bind your device. Learn about LAN mode."));
+             m_confirm_login_dlg->update_btn_label(_L("Go to Login"), _L(""));
+             m_confirm_login_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                 //m_confirm_login_dlg->on_hide();
+                 wxGetApp().request_login();
+                 return;
+                 });
+             m_confirm_login_dlg->on_show();
+         }
+     }
+     else if (m_type == 1) {
+         InputIpAddressDialog dlgo;
+         dlgo.ShowModal();
+     }
  }
 
  }} // namespace Slic3r::GUI

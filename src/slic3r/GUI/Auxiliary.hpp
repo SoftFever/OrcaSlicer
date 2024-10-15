@@ -51,8 +51,8 @@
 #define AUFILE_GREY500 wxColour(158, 158, 158)
 #define AUFILE_GREY300 wxColour(238, 238, 238)
 #define AUFILE_GREY200 wxColour(248, 248, 248)
-#define AUFILE_BRAND wxColour(0, 150, 136)
-#define AUFILE_BRAND_TRANSPARENT wxColour("#E5F0EE") // ORCA color with %10 opacity
+#define AUFILE_BRAND wxColour(0, 174, 66)
+#define AUFILE_BRAND_TRANSPARENT wxColour(215, 232, 222)
 //#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
 //#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
 #define AUFILE_PICTURES_SIZE wxSize(FromDIP(168), FromDIP(168))
@@ -181,7 +181,7 @@ public:
 
     ::TextInput*        m_input_designer {nullptr};
     ::TextInput*        m_imput_model_name {nullptr};
-    ComboBox*           m_combo_license {nullptr};
+    //wxComboBox*         m_combo_license {nullptr};
     bool Show(bool show) override;
     void                init_license_list();
     void                on_input_enter_designer(wxCommandEvent &evt);
@@ -232,7 +232,7 @@ public:
     void                                            create_folder(wxString name = wxEmptyString);
     std::string                                     replaceSpace(std::string s, std::string ts, std::string ns);
     void                                            on_import_file(wxCommandEvent &event);
-    void                                            Reload(wxString aux_path, std::map<std::string, std::vector<json>> paths);
+    void                                            Reload(wxString aux_path);
 
     void update_all_panel();
     void update_all_cover();
@@ -242,7 +242,6 @@ wxDECLARE_EVENT(EVT_AUXILIARY_IMPORT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_COVER, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
-wxDECLARE_EVENT(EVT_AUXILIARY_DONE, wxCommandEvent);
 }} // namespace Slic3r::GUI
 
 #endif

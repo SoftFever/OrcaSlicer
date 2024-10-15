@@ -67,9 +67,9 @@ public:
     GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
 
-    void render_painter_gizmo() override;
-
-    void data_changed(bool is_serializing) override;
+    void render_painter_gizmo() const override;
+    void render_non_manifold_edges() const;
+    void set_painter_gizmo_data(const Selection& selection) override;
 
     void render_triangles(const Selection& selection) const override;
 
@@ -87,7 +87,7 @@ public:
 
 protected:
     // BBS
-    ColorRGBA get_cursor_hover_color() const override;
+    std::array<float, 4> get_cursor_hover_color() const override;
     void on_set_state() override;
 
     EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_selected_extruder_idx + 1); }
@@ -95,6 +95,7 @@ protected:
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Color Painting"; }
     void show_tooltip_information(float caption_max, float x, float y);
     bool on_is_selectable() const override;
     bool on_is_activable() const override;
@@ -103,11 +104,11 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
-    std::string get_action_snapshot_name() const override { return "Color painting editing"; }
+    std::string get_action_snapshot_name() override { return "Color painting editing"; }
 
     // BBS
     size_t                            m_selected_extruder_idx = 0;
-    std::vector<ColorRGBA>            m_extruders_colors;
+    std::vector<std::array<float, 4>> m_extruders_colors;
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS
@@ -138,6 +139,7 @@ private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
+    mutable GLModel   m_non_manifold_edges_model;
 };
 
 } // namespace Slic3r

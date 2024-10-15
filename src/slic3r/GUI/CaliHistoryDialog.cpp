@@ -73,11 +73,11 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_window->SetSizer(scroll_sizer);
 
     Button *   mew_btn = new Button(scroll_window, _L("New"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     mew_btn->SetBackgroundColour(*wxWHITE);
     mew_btn->SetBackgroundColor(btn_bg_green);
-    mew_btn->SetBorderColor(wxColour(0, 150, 136));
+    mew_btn->SetBorderColor(wxColour(0, 174, 66));
     mew_btn->SetTextColor(wxColour("#FFFFFE"));
     mew_btn->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
     mew_btn->SetMaxSize(wxSize(FromDIP(100), FromDIP(24)));
@@ -279,6 +279,19 @@ void HistoryWindow::sync_history_data() {
     title_action->SetFont(Label::Head_14);
     gbSizer->Add(title_action, { 0, 3 }, { 1, 1 });
 
+    auto to_lower_case = [](const std::string &str) {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+        return lowerStr;
+    };
+
+    std::sort(m_calib_results_history.begin(), m_calib_results_history.end(), [&to_lower_case](const PACalibResult &left, const PACalibResult &right) {
+        std::string left_str = to_lower_case(left.name);
+        std::string right_str = to_lower_case(right.name);
+        return left_str < right_str ? true : left_str > right_str ? false : (left_str < right_str);
+    });
     int i = 1;
     for (auto& result : m_calib_results_history) {
         auto name_value = new Label(m_history_data_panel, from_u8(result.name));
@@ -307,12 +320,12 @@ void HistoryWindow::sync_history_data() {
             });
 
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
         edit_button->SetBackgroundColour(*wxWHITE);
         edit_button->SetBackgroundColor(btn_bg_green);
-        edit_button->SetBorderColor(wxColour(0, 150, 136));
+        edit_button->SetBorderColor(wxColour(0, 174, 66));
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
@@ -423,12 +436,12 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
 
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     Button* save_btn = new Button(top_panel, _L("Save"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     save_btn->SetBackgroundColour(*wxWHITE);
     save_btn->SetBackgroundColor(btn_bg_green);
-    save_btn->SetBorderColor(wxColour(0, 150, 136));
+    save_btn->SetBorderColor(wxColour(0, 174, 66));
     save_btn->SetTextColor(wxColour("#FFFFFE"));
     save_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     save_btn->SetCornerRadius(FromDIP(12));
@@ -639,11 +652,11 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
 
     auto       btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     Button *   ok_btn  = new Button(top_panel, _L("Ok"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     ok_btn->SetBackgroundColour(*wxWHITE);
     ok_btn->SetBackgroundColor(btn_bg_green);
-    ok_btn->SetBorderColor(wxColour(0, 150, 136));
+    ok_btn->SetBorderColor(wxColour(0, 174, 66));
     ok_btn->SetTextColor(wxColour("#FFFFFE"));
     ok_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     ok_btn->SetCornerRadius(FromDIP(12));
@@ -724,6 +737,17 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
                 return;
         }
     }
+
+    try {
+        json js;
+        js["cali_type"]     = "cali_new_pa";
+        js["nozzle_diameter"]     = m_new_result.nozzle_diameter;
+        js["filament_id"]         = m_new_result.filament_id;
+        js["printer_type"]        = curr_obj->printer_type;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("cali", js.dump());
+    } catch (...) {}
 
     CalibUtils::set_PA_calib_result({m_new_result}, true);
 

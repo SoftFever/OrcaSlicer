@@ -28,7 +28,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     m_app_key(app_key)
 {
     SetBackgroundColour(*wxWHITE);
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
@@ -61,11 +61,11 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
@@ -247,8 +247,6 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
             m_highlighter.blink();
         });
     }
-
-
 
     //m_export_to_file = new Button( this, wxT("Export To File"), "");
     //m_import_from_file = new Button( this, wxT("Import From File") );
@@ -596,17 +594,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     }
     m_left_sizer->Layout();
     if (auto dialog = dynamic_cast<wxDialog*>(GetParent())) {
-        wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Material settings") : _L("Printer settings");
+        wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Filament settings") : _L("Printer settings");
         dialog->SetTitle(title);
-    }
-
-    auto tab_print = dynamic_cast<Tab *>(m_tab_print);
-    if (cur_tab == m_tab_print) {
-        if (tab_print)
-            tab_print->toggle_line("print_flow_ratio", false);
-    } else {
-        if (tab_print)
-            tab_print->toggle_line("print_flow_ratio", false);
     }
 }
 
@@ -651,7 +640,7 @@ void ParamsPanel::msw_rescale()
     if (m_search_btn) m_search_btn->msw_rescale();
     if (m_compare_btn) m_compare_btn->msw_rescale();
     if (m_tips_arrow) m_tips_arrow->msw_rescale();
-    m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
+    if (m_left_sizer) m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     if (m_mode_sizer)
         m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
     if (m_mode_region)

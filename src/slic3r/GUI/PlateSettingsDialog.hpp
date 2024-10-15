@@ -121,9 +121,6 @@ public:
         return choice;
     };
 
-    wxString get_plate_name() const;
-    void set_plate_name(const wxString& name);
-
     int get_first_layer_print_seq_choice() {
         int choice = 0;
         if (m_first_layer_print_seq_choice != nullptr)
@@ -174,7 +171,6 @@ protected:
     OtherLayersSeqPanel* m_other_layers_seq_panel;
     Button* m_button_ok;
     Button* m_button_cancel;
-    TextInput *m_ti_plate_name;
 };
 
 class PlateNameEditDialog : public DPIDialog

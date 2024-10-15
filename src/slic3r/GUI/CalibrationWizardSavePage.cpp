@@ -167,7 +167,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, material, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
@@ -502,7 +502,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, material, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
@@ -852,7 +852,7 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
 }
 
 void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterSeries printer_ser) {
-    if (printer_ser == PrinterSeries::SERIES_X1) {
+    if (printer_ser == PrinterSeries::SERIES_X1 || curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
         if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
             m_manual_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
             m_manual_panel->Show();
@@ -1384,10 +1384,12 @@ void CalibrationFlowCoarseSavePage::on_cali_finished_job()
 void CalibrationFlowCoarseSavePage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-    if (CalibUtils::print_worker) {
-        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-        CalibUtils::print_worker->cancel_all();
-        CalibUtils::print_worker->wait_for_idle();
+    if (CalibUtils::print_job) {
+        if (CalibUtils::print_job->is_running()) {
+            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+            CalibUtils::print_job->cancel();
+        }
+        CalibUtils::print_job->join();
     }
 
     m_sending_panel->reset();

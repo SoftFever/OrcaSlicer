@@ -16,7 +16,7 @@ enum class MeshBooleanSelectingState {
 
 };
 enum class MeshBooleanOperation{
-    Undef,
+    Undef =-1,
     Union,
     Difference,
     Intersection,
@@ -42,39 +42,24 @@ public:
     ~GLGizmoMeshBoolean();
 
     void set_enable(bool enable) { m_enable = enable; }
-    bool get_enable() { return m_enable; }
-    MeshBooleanSelectingState get_selecting_state() { return m_selecting_state; }
-    void set_src_volume(ModelVolume* mv) { 
-        m_src.mv = mv;
-        if (m_src.mv == m_tool.mv)
-            m_tool.reset();
-    }
-    void set_tool_volume(ModelVolume* mv) { 
-        m_tool.mv = mv;
-        if (m_tool.mv == m_src.mv)
-            m_src.reset();
-    }
+    bool get_enable() const { return m_enable; }
+    MeshBooleanSelectingState get_selecting_state() const { return m_selecting_state; }
+    void set_src_volume(ModelVolume* mv);
+    void set_tool_volume(ModelVolume* mv);
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
-
-    /// <summary>
-    /// Implement when want to process mouse events in gizmo
-    /// Click, Right click, move, drag, ...
-    /// </summary>
-    /// <param name="mouse_event">Keep information about mouse click</param>
-    /// <returns>Return True when use the information and don't want to
-    /// propagate it otherwise False.</returns>
-    bool on_mouse(const wxMouseEvent &mouse_event) override;
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Mesh Boolean"; }
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
+    virtual void on_render_for_picking() override {}
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
-
+    virtual void render_input_window_warning(const std::string &text);
     void on_load(cereal::BinaryInputArchive &ar) override;
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
@@ -84,6 +69,7 @@ private:
     MeshBooleanSelectingState m_selecting_state;
     bool m_diff_delete_input = false;
     bool m_inter_delete_input = false;
+    std::array<std::string,3> m_warning_texts;
     VolumeInfo m_src;
     VolumeInfo m_tool;
 

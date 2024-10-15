@@ -34,7 +34,7 @@ protected:
     wxBitmap        m_diagram_bmp;
     wxImage         m_diagram_img;
 
-    MachineObject*  m_obj{ nullptr };
+    MachineObject*  m_obj;
     wxString        m_input_access_code;
 public:
     ConnectPrinterDialog(wxWindow *      parent,

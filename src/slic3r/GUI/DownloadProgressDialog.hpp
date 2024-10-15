@@ -16,7 +16,6 @@
 #include "Widgets/Button.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
-#include "Jobs/Worker.hpp"
 #include "Jobs/UpgradeNetworkJob.hpp"
 
 class wxBoxSizer;
@@ -31,6 +30,7 @@ class wxStaticBitmap;
 namespace Slic3r {
 namespace GUI {
 
+
 class DownloadProgressDialog : public DPIDialog
 {
 protected:
@@ -38,7 +38,7 @@ protected:
     void on_close(wxCloseEvent& event);
 
 public:
-    DownloadProgressDialog(wxString title);
+    DownloadProgressDialog(wxString title, bool post_login = false);
     wxString format_text(wxStaticText* st, wxString str, int warp);
     ~DownloadProgressDialog();
 
@@ -48,12 +48,14 @@ public:
     wxSimplebook* m_simplebook_status{nullptr};
 
 	std::shared_ptr<BBLStatusBarSend> m_status_bar;
-    std::unique_ptr<Worker>           m_worker;
+    std::shared_ptr<UpgradeNetworkJob> m_upgrade_job { nullptr };
     wxPanel *                         m_panel_download;
 
 protected:
-    virtual std::unique_ptr<UpgradeNetworkJob> make_job();
+    virtual std::shared_ptr<UpgradeNetworkJob> make_job(std::shared_ptr<ProgressIndicator> pri);
     virtual void                               on_finish();
+
+    bool m_post_login { false };
 };
 
 

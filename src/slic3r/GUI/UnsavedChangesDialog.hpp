@@ -17,8 +17,6 @@ class wxStaticText;
 namespace Slic3r {
 namespace GUI{
 
-wxDECLARE_EVENT(EVT_DIFF_DIALOG_TRANSFER, SimpleEvent);
-
 // ----------------------------------------------------------------------------
 //                  ModelNode: a node inside DiffModel
 // ----------------------------------------------------------------------------
@@ -103,7 +101,7 @@ public:
     ModelNode*          GetParent()                 { return m_parent; }
     ModelNodePtrArray&  GetChildren()               { return m_children; }
     ModelNode*          GetNthChild(unsigned int n) { return m_children[n].get(); }
-    unsigned int        GetChildCount() const       { return (unsigned int)(m_children.size()); }
+    unsigned int        GetChildCount() const       { return m_children.size(); }
 
     void Append(std::unique_ptr<ModelNode> child)   { m_children.emplace_back(std::move(child)); }
 
@@ -150,7 +148,7 @@ public:
     };
 
     DiffModel(wxWindow* parent);
-    ~DiffModel() override = default;
+    ~DiffModel(){};
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
@@ -230,21 +228,6 @@ public:
     std::vector<std::string> selected_options();
 };
 
-// Discard and Cancel buttons are always but next buttons are optional
-enum ActionButtons {
-    TRANSFER = 1,
-    KEEP = 2,
-    SAVE = 4,
-    DONT_SAVE = 8,
-    REMEMBER_CHOISE = 0x10000
-};
-
-enum class Action {
-    Undef,
-    Transfer,
-    Discard,
-    Save
-};
 
 //------------------------------------------
 //          UnsavedChangesDialog
@@ -292,6 +275,13 @@ protected:
 
     std::string             m_app_config_key;
 
+    enum class Action {
+        Undef,
+        Transfer, // Or KEEP
+        Save,
+        Discard,
+    };
+
     static constexpr char ActTransfer[] = "transfer";
     static constexpr char ActDiscard[]  = "discard";
     static constexpr char ActSave[]     = "save";
@@ -324,12 +314,20 @@ private:
     std::string m_new_selected_preset_name;
 
 public:
+    // Discard and Cancel buttons are always but next buttons are optional
+    enum ActionButtons {
+        TRANSFER  = 1,
+        KEEP      = 2,
+        SAVE      = 4,
+        DONT_SAVE = 8,
+        REMEMBER_CHOISE = 0x10000
+    };
 
     // show unsaved changes when preset is switching
     UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, bool no_transfer = false);
     // show unsaved changes for all another cases
     UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
-    ~UnsavedChangesDialog() override = default;
+    ~UnsavedChangesDialog(){};
 
     int ShowModal();
 
@@ -396,7 +394,7 @@ class FullCompareDialog : public wxDialog
 public:
     FullCompareDialog(const wxString& option_name, const wxString& old_value, const wxString& new_value,
                       const wxString& old_value_header, const wxString& new_value_header);
-    ~FullCompareDialog() override = default;
+    ~FullCompareDialog(){};
 };
 
 
@@ -406,36 +404,19 @@ public:
 class DiffPresetDialog : public DPIDialog
 {
     DiffViewCtrl*           m_tree              { nullptr };
-    wxBoxSizer*             m_presets_sizer     { nullptr };
     wxStaticText*           m_top_info_line     { nullptr };
     wxStaticText*           m_bottom_info_line  { nullptr };
     wxCheckBox*             m_show_all_presets  { nullptr };
-    wxCheckBox*             m_use_for_transfer  { nullptr };
-    Button*                 m_transfer_btn      { nullptr };
-    Button*                 m_cancel_btn        { nullptr };
-    wxBoxSizer*             m_buttons           { nullptr };
-    wxBoxSizer*             m_edit_sizer        { nullptr };
 
     Preset::Type            m_view_type         { Preset::TYPE_INVALID };
     PrinterTechnology       m_pr_technology;
     std::unique_ptr<PresetBundle>   m_preset_bundle_left;
     std::unique_ptr<PresetBundle>   m_preset_bundle_right;
 
-    void create_buttons();
-    void create_edit_sizer();
-    void complete_dialog_creation();
-    void create_presets_sizer();
-    void create_info_lines();
-    void create_tree();
-    void create_show_all_presets_chb();
-
-    void update_bottom_info(wxString bottom_info = "");
-    void update_tree();
-    void update_bundles_from_app();
-    void update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);
-    void update_compatibility(const std::string& preset_name, Preset::Type type, PresetBundle* preset_bundle);
-         
-    void button_event(Action act);
+    void                    update_tree();
+    void                    update_bundles_from_app();
+    void                    update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);
+    void                    update_compatibility(const std::string& preset_name, Preset::Type type, PresetBundle* preset_bundle);
 
     struct DiffPresets
     {
@@ -447,21 +428,11 @@ class DiffPresetDialog : public DPIDialog
     std::vector<DiffPresets> m_preset_combos;
 
 public:
-    DiffPresetDialog(MainFrame*mainframe);
-    ~DiffPresetDialog() override = default;
+    DiffPresetDialog(MainFrame* mainframe);
+    ~DiffPresetDialog(){};
 
-    void show(Preset::Type type = Preset::TYPE_INVALID);
-    void update_presets(Preset::Type type = Preset::TYPE_INVALID);
-
-    Preset::Type        view_type() const           { return m_view_type; }
-    PrinterTechnology   printer_technology() const  { return m_pr_technology; }
-
-    std::string get_left_preset_name(Preset::Type type);
-    std::string get_right_preset_name(Preset::Type type);
-
-    std::vector<std::string> get_selected_options(Preset::Type type) const { return m_tree->options(type, true); }
-
-    std::array<Preset::Type, 3>         types_list() const;
+    void                    show(Preset::Type type = Preset::TYPE_INVALID);
+    void                    update_presets(Preset::Type type = Preset::TYPE_INVALID);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

@@ -13,7 +13,7 @@
 #include <wx/animate.h>
 #include <wx/dynarray.h>
 
-#define AMS_CONTROL_BRAND_COLOUR wxColour(0, 150, 136)
+#define AMS_CONTROL_BRAND_COLOUR wxColour(0, 174, 66)
 #define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
 #define AMS_CONTROL_GRAY800 wxColour(50, 58, 61)
 #define AMS_CONTROL_GRAY500 wxColour(172, 172, 172)
@@ -124,7 +124,7 @@ enum FilamentStepType {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
-#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
+#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(75))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(70))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
@@ -145,6 +145,19 @@ struct Caninfo
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+
+    bool operator==(const Caninfo &other) const
+    {
+        return  can_id == other.can_id && 
+                material_name == other.material_name && 
+                material_colour == other.material_colour && 
+                material_state == other.material_state &&
+                ctype == other.ctype && 
+                material_remain == other.material_remain && 
+                k == other.k && 
+                n == other.n && 
+                material_cols == other.material_cols;
+    }
 };
 
 struct AMSinfo
@@ -157,6 +170,13 @@ public:
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
+
+    bool operator==(const AMSinfo &other) const
+    {
+        return ams_id == other.ams_id && cans == other.cans &&
+               current_can_id == other.current_can_id && current_step == other.current_step && current_action == other.current_action &&
+               curreent_filamentstep == other.curreent_filamentstep && ams_humidity == other.ams_humidity;
+    }
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 };
@@ -597,6 +617,7 @@ protected:
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
+    bool            m_auto_reill_show = {false};
     Label*          m_ams_backup_tip = {nullptr};
     Label*          m_ams_tip       = {nullptr};
 

@@ -15,6 +15,12 @@
     "complete_print_exhaust_fan_speed": [
         "70"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "cool_plate_temp": [
         "60"
     ],
@@ -155,6 +161,18 @@
     ],
     "textured_plate_temp_initial_layer": [
         "60"
+    ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
+    "filament_scarf_height":[
+        "10%"
+    ],
+    "filament_scarf_gap":[
+        "0%"
+    ],
+    "filament_scarf_length":[
+        "10"
     ],
     "compatible_printers": [],
     "filament_start_gcode": [

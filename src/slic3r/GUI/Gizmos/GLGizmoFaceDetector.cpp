@@ -32,9 +32,9 @@ std::string GLGizmoFaceDetector::on_get_name() const
 
 void GLGizmoFaceDetector::on_render()
 {
-    if (model.is_initialized()) {
-        model.set_color({0.f, 0.f, 1.f, 0.4f});
-        model.render();
+    if (m_iva.has_VBOs()) {
+        ::glColor4f(0.f, 0.f, 1.f, 0.4f);
+        m_iva.render();
     }
 }
 
@@ -72,7 +72,7 @@ void GLGizmoFaceDetector::on_render_input_window(float x, float y, float bottom_
 void GLGizmoFaceDetector::on_set_state()
 {
     if (get_state() == On) {
-        model.reset();
+        m_iva.release_geometry();
         display_exterior_face();
     }
 }
@@ -94,10 +94,7 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
 void GLGizmoFaceDetector::display_exterior_face()
 {
     int cnt = 0;
-    model.reset();
-
-    GLModel::Geometry init_data;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+    m_iva.release_geometry();
 
     const ModelObjectPtrs& objects = wxGetApp().model().objects;
     for (ModelObject* mo : objects) {
@@ -113,15 +110,19 @@ void GLGizmoFaceDetector::display_exterior_face()
                     continue;
 
                 for (int i = 0; i < 3; ++i) {
-                    init_data.add_vertex((Vec3f) mv_its.vertices[facet_vert_idxs[i]].cast<float>(), Vec3f{0.0f, 0.0f, 1.0f});
+                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)),
+                        double(mv_its.vertices[facet_vert_idxs[i]](1)),
+                        double(mv_its.vertices[facet_vert_idxs[i]](2)),
+                        0., 0., 1.);
                 }
 
-                init_data.add_uint_triangle(cnt, cnt + 1, cnt + 2);
+                m_iva.push_triangle(cnt, cnt + 1, cnt + 2);
                 cnt += 3;
             }
         }
     }
-    model.init_from(std::move(init_data));
+
+    m_iva.finalize_geometry(true);
 }
 
 CommonGizmosDataID GLGizmoFaceDetector::on_get_requirements() const

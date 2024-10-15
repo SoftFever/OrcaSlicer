@@ -31,7 +31,6 @@ enum ButtonSizeType{
 #define MSG_DIALOG_BUTTON_SIZE wxSize(FromDIP(58), FromDIP(24))
 #define MSG_DIALOG_MIDDLE_BUTTON_SIZE wxSize(FromDIP(76), FromDIP(24))
 #define MSG_DIALOG_LONG_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
-#define MSG_DIALOG_LONGER_BUTTON_SIZE wxSize(FromDIP(120), FromDIP(24))
 
 
 namespace Slic3r {
@@ -129,8 +128,6 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
-wxString get_wraped_wxString(const wxString& text_in, size_t line_len = 80);
-
 #if 1
 // Generic static line, used intead of wxStaticLine
 //class StaticLine: public wxTextCtrl
@@ -193,7 +190,7 @@ public:
 	}
 
 	wxString	GetCheckBoxText()	const { return m_checkBoxText; }
-	bool		IsCheckBoxChecked() const;
+	bool		IsCheckBoxChecked() const { return m_checkBoxValue; }
 
 // This part o fcode isported from the "wx\msgdlg.h"
 	using wxMD = wxMessageDialogBase;
@@ -408,6 +405,25 @@ private:
     Button *      m_update_btn = nullptr;
     Button *      m_later_btn  = nullptr;
     wxStaticText *m_msg_text   = nullptr;
+};
+
+
+class NetworkErrorDialog : public DPIDialog
+{
+public:
+    NetworkErrorDialog(wxWindow* parent);
+    ~NetworkErrorDialog() {};
+    virtual void on_dpi_changed(const wxRect& suggested_rect) {};
+
+private:
+    Label* m_text_basic;
+    wxHyperlinkCtrl* m_link_server_state;
+    Label* m_text_proposal;
+    wxHyperlinkCtrl* m_text_wiki;
+    Button *         m_button_confirm;
+
+public:
+    bool m_show_again{false};
 };
 
 }

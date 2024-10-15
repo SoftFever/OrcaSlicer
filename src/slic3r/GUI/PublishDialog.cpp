@@ -24,14 +24,14 @@ static wxString PUBLISH_STEP_STRING[STEP_COUNT] = {
     _L("Jump to model publish web page")
 };
 
-static wxString NOTE_STRING = _L("Note: The preparation may takes several minutes. Please be patient.");
+static wxString NOTE_STRING = _L("Note: The preparation may take several minutes. Please be patient.");
 
 PublishDialog::PublishDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Publish"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
 {
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSize(wxSize(FromDIP(540),FromDIP(400)));
@@ -87,15 +87,15 @@ PublishDialog::PublishDialog(Plater *plater)
 
     m_btn_cancel = new Button(this, _L("Cancel"));
     m_progress_sizer->Add(m_btn_cancel, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     StateColor text_color(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
                           std::pair<wxColour, int>(TEXT_LIGHT_GRAY, StateColor::Normal));
     m_btn_cancel->SetFont(Label::Body_12);
     m_btn_cancel->SetBackgroundColor(btn_bg_green);
-    m_btn_cancel->SetBorderColor(wxColour(0, 150, 136));
+    m_btn_cancel->SetBorderColor(wxColour(0, 174, 66));
     m_btn_cancel->SetTextColor(text_color);
     m_btn_cancel->SetSize(wxSize(FromDIP(60), FromDIP(20)));
     m_btn_cancel->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));

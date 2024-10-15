@@ -1,12 +1,10 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "PresetComboBoxes.hpp"
-#include "PrinterCloudAuthDialog.hpp"
 
 #include <cstddef>
 #include <vector>
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -25,7 +23,7 @@
 #include "format.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
-#include "PrintHostDialogs.hpp"
+//#include "PrintHostDialogs.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -34,8 +32,6 @@
 #include "BitmapCache.hpp"
 #include "BonjourDialog.hpp"
 #include "MsgDialog.hpp"
-#include "OAuthDialog.hpp"
-#include "SimplyPrint.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -47,7 +43,7 @@ namespace GUI {
 //------------------------------------------
 
 PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
-    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE)
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(*wxWHITE);
@@ -65,18 +61,17 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     label_top->SetFont(::Label::Body_13);
     label_top->SetForegroundColour(wxColour(38,46,48));
 
-    m_input_area = new RoundedRectangle(this, wxColor(172, 172, 172), wxDefaultPosition, wxSize(-1,-1), 3, 1);
+    m_input_area = new RoundedRectangle(this, wxColour(172, 172, 172), wxDefaultPosition, wxSize(-1, -1), 3, 1);
     m_input_area->SetMinSize(wxSize(FromDIP(360), FromDIP(32)));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *input_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(wxSize(FromDIP(360), FromDIP(32)).x, -1), 0 | wxBORDER_NONE);
-    m_input_ctrl->SetBackgroundColour(wxColour(255, 255, 255));
+    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(FromDIP(360), -1), 0 | wxBORDER_NONE);
+    m_input_ctrl->SetBackgroundColour(*wxWHITE);
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
-
-    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 12);
+    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, BORDER_W);
     input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
 
     m_input_area->SetSizer(input_sizer_h);
@@ -94,20 +89,45 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-    btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
-    wxGetApp().UpdateDarkUI(btnOK);
-    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+    auto button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-    (static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    m_button_ok = new Button(this, _L("OK"));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(*wxWHITE);
+    m_button_ok->SetTextColor(*wxWHITE);
+    m_button_ok->SetFont(Label::Body_12);
+    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, &PhysicalPrinterDialog::OnOK, this);
+
+    m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel->SetBackgroundColor(btn_bg_white);
+    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+    m_button_cancel->SetFont(Label::Body_12);
+    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { this->EndModal(wxID_NO);});
+
+    button_sizer->AddStretchSpacer();
+    button_sizer->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    button_sizer->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+
+    wxBoxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
 
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
-    topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(btns                , 0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(input_sizer, 0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
+    topSizer->Add(button_sizer, 0, wxEXPAND | wxALL, BORDER_W);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
 
@@ -128,10 +148,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
-        if (opt_key == "printhost_port")
-            this->update_ports();
-        if (opt_key == "bbl_use_print_host_webui")
-            this->update_webui();
     };
 
     m_optgroup->append_single_option_line("host_type");
@@ -169,66 +185,18 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                 show_error(this, text);
                 return;
             }
-
             wxString msg;
             bool result;
             {
                 // Show a wait cursor during the connection test, as it is blocking UI.
                 wxBusyCursor wait;
                 result = host->test(msg);
-
-                if (!result && host->is_cloud()) {
-                    if (const auto h = dynamic_cast<SimplyPrint*>(host.get()); h) {
-                        OAuthDialog dlg(this, h->get_oauth_params());
-                        dlg.ShowModal();
-
-                        const auto& r = dlg.get_result();
-                        result = r.success;
-                        if (r.success) {
-                            h->save_oauth_credential(r);
-                        } else {
-                            msg = r.error_message;
-                        }
-                    } else {
-                        PrinterCloudAuthDialog dlg(this->GetParent(), host.get());
-                        dlg.ShowModal();
-                        
-                        const auto api_key = dlg.GetApiKey();
-                        m_config->opt_string("printhost_apikey") = api_key;
-                        result       = !api_key.empty();
-                    }
-                }
             }
             if (result)
                 show_info(this, host->get_test_ok_msg(), _L("Success!"));
             else
                 show_error(this, host->get_test_failed_msg(msg));
-
-            update();
             });
-
-        return sizer;
-    };
-
-    auto print_host_logout = [&](wxWindow* parent) {
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_logout_btn, "", _L("Log Out"));
-
-        m_printhost_logout_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-            std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
-            if (!host) {
-                const wxString text = _L("Could not get a valid Printer Host reference");
-                show_error(this, text);
-                return;
-            }
-
-            wxString msg_text = _L("Are you sure to log out?");
-            MessageDialog dialog(this, msg_text, "", wxICON_QUESTION | wxYES_NO);
-
-            if (dialog.ShowModal() == wxID_YES) {
-                host->log_out();
-                update();
-            }
-        });
 
         return sizer;
     };
@@ -246,27 +214,14 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     Option option = m_optgroup->get_option("print_host");
     option.opt.width = Field::def_width_wider();
     Line host_line = m_optgroup->create_single_option_line(option);
+    //do not support now
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
-    host_line.append_widget(print_host_logout);
     m_optgroup->append_line(host_line);
 
     option = m_optgroup->get_option("print_host_webui");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
-
-    {
-        // For bbl printers, we build a fake option to control whether the original device tab should be used
-        ConfigOptionDef def;
-        def.type     = coBool;
-        def.width    = Field::def_width();
-        def.label    = L("View print host webui in Device tab");
-        def.tooltip  = L("Replace the BambuLab's device tab with print host webui");
-        def.set_default_value(new ConfigOptionBool(false));
-
-        auto option = Option(def, "bbl_use_print_host_webui");
-        m_optgroup->append_single_option_line(option);
-    }
 
     m_optgroup->append_single_option_line("printhost_authorization_type");
 
@@ -307,7 +262,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         Line cafile_hint{ "", "" };
         cafile_hint.full_width = 1;
         cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, from_u8(ca_file_hint));
+            auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt);
             return sizer;
@@ -374,71 +329,11 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     // Always fill in the "printhost_port" combo box from the config and select it.
     {
         Choice* choice = dynamic_cast<Choice*>(m_optgroup->get_field("printhost_port"));
-        choice->set_values({ m_config->opt_string("printhost_port") });
+        choice->set_values(std::vector<std::string>({ m_config->opt_string("printhost_port") }));
         choice->set_selection();
     }
 
     update();
-}
-
-void PhysicalPrinterDialog::update_ports() {
-    const PrinterTechnology tech = Preset::printer_technology(*m_config);
-    if (tech == ptFFF) {
-        const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
-        if (opt->value == htObico) {
-            auto build_web_ui = [](DynamicPrintConfig* config) {
-                auto host = config->opt_string("print_host");
-                auto port = config->opt_string("printhost_port");
-                auto api_key = config->opt_string("printhost_apikey");
-                if (host.empty() || port.empty()) {
-                    return std::string();
-                }
-                boost::regex  re("\\[(\\d+)\\]");
-                boost::smatch match;
-                if (!boost::regex_search(port, match, re))
-                    return std::string();
-                if (match.size() <= 1) {
-                    return std::string();
-                }
-                boost::format urlFormat("%1%/printers/%2%/control");
-                urlFormat % host % match[1];
-                return urlFormat.str();
-            };
-            auto url = build_web_ui(m_config);
-            if (Field* print_host_webui_field = m_optgroup->get_field("print_host_webui"); print_host_webui_field) {
-                if (TextInput* temp_input = dynamic_cast<TextInput*>(print_host_webui_field->getWindow()); temp_input) {
-                    if (wxTextCtrl* temp = temp_input->GetTextCtrl()) {
-                        temp->SetValue(wxString(url));
-                        m_config->opt_string("print_host_webui") = url;
-                    }
-                }
-            }
-        }
-    }
-}
-
-void PhysicalPrinterDialog::update_webui()
-{
-    const PrinterTechnology tech = Preset::printer_technology(*m_config);
-    if (tech == ptFFF) {
-        const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
-        if (opt->value == htSimplyPrint) {
-            bool bbl_use_print_host_webui = false;
-            if (Field* printhost_webui_field = m_optgroup->get_field("bbl_use_print_host_webui"); printhost_webui_field) {
-                if (CheckBox* temp = dynamic_cast<CheckBox*>(printhost_webui_field); temp) {
-                    bbl_use_print_host_webui = boost::any_cast<bool>(temp->get_value());
-                }
-            }
-
-            const std::string v = bbl_use_print_host_webui ? "https://simplyprint.io/panel" : "";
-            if (Field* printhost_webui_field = m_optgroup->get_field("print_host_webui"); printhost_webui_field) {
-                if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_webui_field)->text_ctrl(); temp) {
-                    temp->SetValue(v);
-                }
-            }
-            m_config->opt_string("print_host_webui") = v;
-        }
-    }
 }
 
 void PhysicalPrinterDialog::update_printhost_buttons()
@@ -446,9 +341,7 @@ void PhysicalPrinterDialog::update_printhost_buttons()
     std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
     if (host) {
         m_printhost_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
-        m_printhost_browse_btn->Show(host->has_auto_discovery());
-        m_printhost_logout_btn->Show(host->is_logged_in());
-        m_printhost_test_btn->SetLabel(host->is_cloud() ? _L("Login/Test") : _L("Test"));
+        m_printhost_browse_btn->Enable(host->has_auto_discovery());
     }
 }
 
@@ -521,12 +414,12 @@ void PhysicalPrinterDialog::update_preset_input() {
     m_valid_label->Show(!info_line.IsEmpty());
 
     if (m_valid_type == NoValid) {
-        if (btnOK)
-            btnOK->Disable();
+        if (m_button_ok)
+            m_button_ok->Disable();
     }
     else {
-        if (btnOK)
-            btnOK->Enable();
+        if (m_button_ok)
+            m_button_ok->Enable();
     }
 }
 
@@ -541,98 +434,21 @@ void PhysicalPrinterDialog::update(bool printer_change)
         update_host_type(printer_change);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
         m_optgroup->show_field("host_type");
-
-        m_optgroup->enable_field("print_host");
-        m_optgroup->show_field("print_host_webui");
-        m_optgroup->hide_field("bbl_use_print_host_webui");
-        m_optgroup->enable_field("printhost_cafile");
-        m_optgroup->enable_field("printhost_ssl_ignore_revoke");
-        if (m_printhost_cafile_browse_btn)
-            m_printhost_cafile_browse_btn->Enable();
-
-        // hide pre-configured address, in case user switched to a different host type
-        if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-            if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp) {
-                const auto current_host = temp->GetValue();
-                if (current_host == L"https://connect.prusa3d.com" ||
-                    current_host == L"https://app.obico.io" ||
-                    current_host == "https://simplyprint.io" || current_host == "https://simplyprint.io/panel") {
-                    temp->SetValue(wxString());
-                    m_config->opt_string("print_host") = "";
-                }
-            }
-        }
-        if (opt->value == htPrusaLink) { // PrusaConnect does NOT allow http digest
+        if (opt->value == htPrusaLink)
+        {
             m_optgroup->show_field("printhost_authorization_type");
             AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
             m_optgroup->show_field("printhost_apikey", auth_type == AuthorizationType::atKeyPassword);
             for (const char* opt_key : { "printhost_user", "printhost_password" })
-                m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword); 
+                m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword);
         } else {
             m_optgroup->hide_field("printhost_authorization_type");
             m_optgroup->show_field("printhost_apikey", true);
             for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
                 m_optgroup->hide_field(opt_key);
-            supports_multiple_printers = opt->value == htRepetier || opt->value == htObico;
-
-            if (opt->value == htPrusaConnect) { // automatically show default prusaconnect address
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue(L"https://connect.prusa3d.com");
-                        m_config->opt_string("print_host") = "https://connect.prusa3d.com";
-                    }
-                }
-            } else if (opt->value == htObico) { // automatically show default obico address
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue(L"https://app.obico.io");
-                        m_config->opt_string("print_host") = "https://app.obico.io";
-                    }
-                }
-            } else if (opt->value == htSimplyPrint) {
-                // Set the host url
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    printhost_field->disable();
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue("https://simplyprint.io/panel");
-                    }
-                    m_config->opt_string("print_host") = "https://simplyprint.io/panel";
-                }
-
-                const auto current_webui = m_config->opt_string("print_host_webui");
-                if (!current_webui.empty()) {
-                    if (Field* printhost_webui_field = m_optgroup->get_field("print_host_webui"); printhost_webui_field) {
-                        if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_webui_field)->text_ctrl(); temp) {
-                            temp->SetValue("https://simplyprint.io/panel");
-                        }
-                    }
-                    m_config->opt_string("print_host_webui") = "https://simplyprint.io/panel";
-                }
-
-                // For bbl printers, show option to control the device tab
-                if (wxGetApp().preset_bundle->is_bbl_vendor()) {
-                    m_optgroup->show_field("bbl_use_print_host_webui");
-                    const bool use_print_host_webui = !current_webui.empty();
-                    if (Field* printhost_webui_field = m_optgroup->get_field("bbl_use_print_host_webui"); printhost_webui_field) {
-                        if (CheckBox* temp = dynamic_cast<CheckBox*>(printhost_webui_field); temp) {
-                            temp->set_value(use_print_host_webui);
-                        }
-                    }
-                }
-
-                m_optgroup->hide_field("print_host_webui");
-                m_optgroup->hide_field("printhost_apikey");
-                m_optgroup->disable_field("printhost_cafile");
-                m_optgroup->disable_field("printhost_ssl_ignore_revoke");
-                if (m_printhost_cafile_browse_btn)
-                    m_printhost_cafile_browse_btn->Disable();
-            }
+            supports_multiple_printers = opt && opt->value == htRepetier;
         }
         
-        if (opt->value == htFlashforge) {
-                m_optgroup->hide_field("printhost_apikey");
-                m_optgroup->hide_field("printhost_authorization_type");
-            }
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
@@ -662,30 +478,30 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
 {
     if (m_config == nullptr)
         return;
+    bool all_presets_are_from_mk3_family = false;
     Field* ht = m_optgroup->get_field("host_type");
-    wxArrayString types;
-    int last_in_conf = m_config->option("host_type")->getInt(); //  this is real position in last choice
 
+    wxArrayString types;
     // Append localized enum_labels
     assert(ht->m_opt.enum_labels.size() == ht->m_opt.enum_values.size());
-    for (size_t i = 0; i < ht->m_opt.enum_labels.size(); ++ i) {
-        wxString label = _(ht->m_opt.enum_labels[i]);
-        types.Add(label);
+    for (size_t i = 0; i < ht->m_opt.enum_labels.size(); i++) {
+        if (ht->m_opt.enum_values[i] == "prusalink" && !all_presets_are_from_mk3_family)
+            continue;
+        types.Add(_(ht->m_opt.enum_labels[i]));
     }
 
     Choice* choice = dynamic_cast<Choice*>(ht);
     choice->set_values(types);
-    int index_in_choice = (printer_change ? std::clamp(last_in_conf - ((int)ht->m_opt.enum_values.size() - (int)types.size()), 0, (int)ht->m_opt.enum_values.size() - 1) : last_in_conf);
-    choice->set_value(index_in_choice);
-    if ("prusalink" == ht->m_opt.enum_values.at(index_in_choice))
-        m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htPrusaLink));
-    else if ("prusaconnect" == ht->m_opt.enum_values.at(index_in_choice))
-        m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htPrusaConnect));
-    else {
-        int host_type = std::clamp(index_in_choice + ((int)ht->m_opt.enum_values.size() - (int)types.size()), 0, (int)ht->m_opt.enum_values.size() - 1);
-        PrintHostType type = static_cast<PrintHostType>(host_type);
+    auto set_to_choice_and_config = [this, choice](PrintHostType type) {
+        choice->set_value(static_cast<int>(type));
         m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(type));
-    }
+    };
+    if ((printer_change && all_presets_are_from_mk3_family) || all_presets_are_from_mk3_family)
+        set_to_choice_and_config(htPrusaLink);  
+    else if ((printer_change && !all_presets_are_from_mk3_family) || (!all_presets_are_from_mk3_family && m_config->option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink))
+        set_to_choice_and_config(htOctoPrint);
+    else
+        choice->set_value(m_config->option("host_type")->getInt());
 }
 
 void PhysicalPrinterDialog::update_printers()
@@ -714,7 +530,6 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     m_printhost_browse_btn->msw_rescale();
     m_printhost_test_btn->msw_rescale();
-    m_printhost_logout_btn->msw_rescale();
     if (m_printhost_cafile_browse_btn)
         m_printhost_cafile_browse_btn->msw_rescale();
 
@@ -729,10 +544,10 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-void PhysicalPrinterDialog::OnOK(wxEvent& event)
+void PhysicalPrinterDialog::OnOK(wxMouseEvent& event)
 {
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
-    event.Skip();
+    this->EndModal(wxID_YES);
 }
 
 }}    // namespace Slic3r::GUI

@@ -3,6 +3,8 @@
 
 #include "libslic3r/PrintConfig.hpp"
 
+#include <boost/property_tree/ptree_fwd.hpp>
+
 #include <wx/frame.h>
 #include <wx/settings.h>
 #include <wx/string.h>
@@ -25,8 +27,6 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
-
-#include <boost/property_tree/ptree_fwd.hpp>
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -135,7 +135,6 @@ class MainFrame : public DPIFrame
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_reslice() const;
-    void bind_diff_dialog();
 
     // BBS
     wxBoxSizer* create_side_tools();
@@ -258,7 +257,7 @@ public:
     void        update_title();
     void        set_max_recent_count(int max);
 
-    void        show_publish_button(bool show);
+    void        show_calibration_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
@@ -340,20 +339,21 @@ public:
 
     //BBS
     void        load_url(wxString url);
-    void        load_printer_url(wxString url, wxString apikey = "");
+    void        load_printer_url(wxString url);
     void        load_printer_url();
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);
-
-    //SoftFever
+    void RunScriptLeft(wxString js);
     void show_device(bool bBBLPrinter);
 
-    PA_Calibration_Dlg* m_pa_calib_dlg{ nullptr };
-    Temp_Calibration_Dlg* m_temp_calib_dlg{ nullptr };
-    MaxVolumetricSpeed_Test_Dlg* m_vol_test_dlg { nullptr };
-    VFA_Test_Dlg* m_vfa_test_dlg { nullptr };
-    Retraction_Test_Dlg* m_retraction_calib_dlg{ nullptr };
+    // OrcaSlicer calibration
+    PA_Calibration_Dlg *         m_pa_calib_dlg{nullptr};
+    Temp_Calibration_Dlg *       m_temp_calib_dlg{nullptr};
+    MaxVolumetricSpeed_Test_Dlg *m_vol_test_dlg{nullptr};
+    VFA_Test_Dlg *               m_vfa_test_dlg{nullptr};
+    Retraction_Test_Dlg *        m_retraction_calib_dlg{nullptr};
+    SecondaryCheckDialog*        m_confirm_download_plugin_dlg{ nullptr };
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
@@ -382,10 +382,9 @@ public:
     wxWindow*             m_plater_page{ nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
 
-    
+    // BBS
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
-    // Button* m_publish_btn{ nullptr };
     SideButton* m_slice_btn{ nullptr };
     SideButton* m_slice_option_btn{ nullptr };
     SideButton* m_print_btn{ nullptr };
@@ -397,6 +396,8 @@ public:
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
+
+    int select_device_page_count{ 0 };
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

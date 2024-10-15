@@ -18,7 +18,6 @@ namespace GUI {
 class ConfigOptionsGroup;
 
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
-using ConfigOptionsGroupWkp = std::weak_ptr<ConfigOptionsGroup>;
 
 struct BedShape
 {
@@ -36,9 +35,9 @@ struct BedShape
 
     BedShape(const ConfigOptionPoints& points);
 
-    bool            is_custom() { return m_build_volume.type() == BuildVolume_Type::Convex || m_build_volume.type() == BuildVolume_Type::Custom; }
+    bool            is_custom() { return m_build_volume.type() == BuildVolume::Type::Convex || m_build_volume.type() == BuildVolume::Type::Custom; }
 
-    static void     append_option_line(ConfigOptionsGroupShp optgroup, Parameter param);
+    static void     append_option_line(ConfigOptionsGroupShp optgroup, Parameter param,bool can_edit);
     static wxString get_name(PageType type);
 
     PageType        get_page_type();
@@ -60,16 +59,20 @@ class BedShapePanel : public wxPanel
     std::vector<Vec2d> m_loaded_shape;
     std::string        m_custom_texture;
     std::string        m_custom_model;
+    bool               m_is_valid{true};
+    bool               m_can_edit{true};
 
 public:
     BedShapePanel(wxWindow* parent) : wxPanel(parent, wxID_ANY), m_custom_texture(NONE), m_custom_model(NONE) {}
 
-    void build_panel(const ConfigOptionPoints& default_pt, const std::string& custom_texture, const std::string& custom_model);
+    void build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model);
 
     // Returns the resulting bed shape polygon. This value will be stored to the ini file.
     const std::vector<Vec2d>& get_shape() const { return m_shape; }
     const std::string& get_custom_texture() const { return (m_custom_texture != NONE) ? m_custom_texture : EMPTY_STRING; }
     const std::string& get_custom_model() const { return (m_custom_model != NONE) ? m_custom_model : EMPTY_STRING; }
+    bool  get_valid() { return m_is_valid; }
+    void  set_edit_state(bool flag) { m_can_edit = flag; }
 
 private:
     ConfigOptionsGroupShp	init_shape_options_page(const wxString& title);
@@ -92,16 +95,18 @@ private:
 class BedShapeDialog : public DPIDialog
 {
 	BedShapePanel*	m_panel;
+
+
 public:
 	BedShapeDialog(wxWindow* parent) : DPIDialog(parent, wxID_ANY, _(L("Bed Shape")),
-        wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE) {}
+        wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {}
 
-    void build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model);
+    void build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model,bool can_edit);
 
     const std::vector<Vec2d>& get_shape() const { return m_panel->get_shape(); }
     const std::string& get_custom_texture() const { return m_panel->get_custom_texture(); }
     const std::string& get_custom_model() const { return m_panel->get_custom_model(); }
-
+    bool  get_valid() { return m_panel->get_valid(); }
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 };

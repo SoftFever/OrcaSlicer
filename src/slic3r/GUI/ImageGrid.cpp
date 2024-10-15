@@ -520,7 +520,7 @@ void ImageGrid::render(wxDC& dc)
         dc.DrawRectangle({ 0, 0, size.x, size.y });
         if (!m_status_msg.IsEmpty()) {
             auto   si = m_status_icon.GetBmpSize();
-            auto   st = dc.GetTextExtent(m_status_msg);
+            auto st   = dc.GetMultiLineTextExtent(m_status_msg);
             auto   rect = wxRect{0, 0, max(st.x, si.x), si.y + 26 + st.y}.CenterIn(wxRect({0, 0}, size));
             dc.DrawBitmap(m_status_icon.bmp(), rect.x + (rect.width - si.x) / 2, rect.y);
             dc.SetTextForeground(wxColor(0x909090));
@@ -648,15 +648,11 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         }
         // Draw buttons on hovered item
         wxRect rect{pt.x, pt.y + m_content_rect.GetBottom() - m_buttons_background.GetHeight(), m_content_rect.GetWidth(), m_buttons_background.GetHeight()};
-        wxArrayString texts;
         if (hit) {
-            texts.Add(_L("Delete"));
-            texts.Add(secondAction);
-            texts.Add(thirdAction);
-            renderButtons(dc, texts, rect, m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
+            renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
+                          m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
         } else if (!nonHoverText.IsEmpty()) {
-            texts.Add(nonHoverText);
-            renderButtons(dc, texts, rect, -1, states);
+            renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
         }
     } else {
         dc.SetTextForeground(*wxWHITE); // time text color
@@ -702,7 +698,7 @@ void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int ind
     renderIconText(dc, m_model_weight_icon, file.Metadata("Weight", "0g"), rect);
 }
 
-void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxArrayString const &texts, wxRect const &rect2, size_t hit, int states)
+void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect2, size_t hit, int states)
 {
     // Draw background
     {

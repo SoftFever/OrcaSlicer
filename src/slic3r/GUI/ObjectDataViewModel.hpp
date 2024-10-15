@@ -2,6 +2,7 @@
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
 #include <boost/log/trivial.hpp>
+
 #include <wx/dataview.h>
 #include <vector>
 #include <map>
@@ -38,6 +39,7 @@ enum ItemType {
 enum ColumnNumber
 {
     colName         = 0,    // item name
+    colHeight          ,    // variable height
     colPrint           ,    // printable property
     colFilament        ,    // extruder selection
     // BBS
@@ -53,6 +55,12 @@ enum PrintIndicator
     piUndef         = 0,    // no print indicator
     piPrintable        ,    // printable
     piUnprintable      ,    // unprintable
+};
+
+enum VaryHeightIndicator
+{
+    hiUnVariable,    // unvariable height
+    hiVariable,    // variable height
 };
 
 enum class InfoItemType
@@ -86,19 +94,22 @@ class ObjectDataViewModelNode
     // BBS
     wxString				        m_extruder = wxEmptyString;
     wxBitmap                        m_extruder_bmp;
-    wxBitmap  		                m_action_icon;
+    wxBitmap				        m_action_icon;
     // BBS
     wxBitmap                        m_support_icon;
     wxBitmap                        m_color_icon;
     wxBitmap                        m_sinking_icon;
     PrintIndicator                  m_printable {piUndef};
-    wxBitmap                        m_printable_icon;
+    wxBitmap				        m_printable_icon;
+
+    VaryHeightIndicator             m_variable_height{ hiUnVariable };
+    wxBitmap				        m_variable_height_icon;
     std::string                     m_warning_icon_name{ "" };
     bool                            m_has_lock{false};  // for cut object icon
 
     std::string                     m_action_icon_name = "";
     ModelVolumeType                 m_volume_type = ModelVolumeType(-1);
-    bool                            m_is_text_volume{ false };
+    bool                            m_is_text_volume{false};
     bool                            m_is_svg_volume{false};
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
     bool                            m_action_enable = false; // can undo all settings
@@ -130,15 +141,16 @@ public:
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const wxString& sub_obj_name,
                             Slic3r::ModelVolumeType type,
-                            const bool is_text_volume,
-                            const bool is_svg_volume,
+                            const bool               is_svg_volume,
+                            const wxBitmap& bmp,
                             const wxString& extruder,
-                            const int idx = -1 );
+                            const int idx = -1,
+                            const std::string& warning_icon_name = std::string());
 
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const t_layer_height_range& layer_range,
                             const int idx = -1,
-                            const wxString& extruder = wxEmptyString );
+                            const wxString extruder = "" );
 
     ObjectDataViewModelNode(PartPlate* part_plate, wxString name);
 
@@ -228,9 +240,10 @@ public:
     void            SetVolumeType(ModelVolumeType type) { m_volume_type = type; }
     void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
     void            SetExtruder(const wxString &extruder) { m_extruder = extruder; }
-    void            SetWarningIconName(const std::string& warning_icon_name) { m_warning_icon_name = warning_icon_name; }
-    void            SetLock(bool has_lock)                                   { m_has_lock = has_lock; }
-    const wxBitmap& GetBitmap() const         { return m_bmp; }
+    void            SetWarningIconName(const std::string &warning_icon_name) { m_warning_icon_name = warning_icon_name; }
+    void            SetWarningBitmap(const wxBitmap& icon, const std::string& warning_icon_name) { m_bmp = icon; m_warning_icon_name = warning_icon_name; }
+    void            SetLock(bool has_lock) { m_has_lock = has_lock; }
+    const wxBitmap& GetBitmap() const               { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
     InfoItemType    GetInfoItemType() const         { return m_info_item_type; }
@@ -243,6 +256,7 @@ public:
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
     wxString        GetExtruder()                   { return m_extruder; }
     PrintIndicator  IsPrintable() const             { return m_printable; }
+    VaryHeightIndicator  IsVaribaleHeight() const { return m_variable_height; }
     // BBS
     bool            HasColorPainting() const        { return m_color_enable; }
     bool            HasSupportPainting() const { return m_support_enable; }
@@ -284,6 +298,7 @@ public:
     void        set_extruder_icon();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
+    void        set_variable_height_icon(VaryHeightIndicator vari_height);
     void        set_action_icon(bool enable);
     // BBS
     void        set_color_icon(bool enable);
@@ -298,7 +313,6 @@ public:
     int         volume_type() const { return int(m_volume_type); }
     bool        is_text_volume() const { return m_is_text_volume; }
     bool        is_svg_volume() const { return m_is_svg_volume; }
-    void        sys_color_changed();
     void        msw_rescale();
 
 #ifndef NDEBUG
@@ -308,6 +322,7 @@ public:
     bool        has_warning_icon() const { return !m_warning_icon_name.empty(); }
     std::string warning_icon_name() const { return m_warning_icon_name; }
     bool        has_lock() const { return m_has_lock; }
+    void        sys_color_changed();
 
 private:
     friend class ObjectDataViewModel;
@@ -325,14 +340,14 @@ class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_plates;
     std::vector<ObjectDataViewModelNode*>       m_objects;
-    std::vector<wxBitmap>                m_volume_bmps;
-    std::vector<wxBitmap>                m_text_volume_bmps;
-    std::vector<wxBitmap>                m_svg_volume_bmps;
-    std::map<InfoItemType, wxBitmap>     m_info_bmps;
-    wxBitmap                              m_empty_bmp;
-    wxBitmap                              m_warning_bmp;
-    wxBitmap                              m_warning_manifold_bmp;
-    wxBitmap                              m_lock_bmp;
+    std::vector<wxBitmap>                       m_volume_bmps;
+    std::vector<wxBitmap>                       m_text_volume_bmps;
+    std::vector<wxBitmap>                       m_svg_volume_bmps;
+    std::map<InfoItemType, wxBitmap>            m_info_bmps;
+    wxBitmap                                    m_empty_bmp;
+    wxBitmap                                    m_warning_bmp;
+    wxBitmap                                    m_warning_manifold_bmp;
+    wxBitmap                                    m_lock_bmp;
 
     ObjectDataViewModelNode*                    m_plate_outside;
 
@@ -349,7 +364,7 @@ public:
     std::map<int, int> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_map; }
     int                 get_real_volume_index_in_3d(int ui_value)
     {
-        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) { 
+        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) {
             return m_ui_and_3d_volume_map[ui_value];
         }
         return ui_value;
@@ -368,8 +383,7 @@ public:
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
                                     const Slic3r::ModelVolumeType volume_type,
-                                    const bool is_text_volume,
-                                    const bool is_svg_volume,
+                                    const bool   is_svg_volume,
                                     const std::string& warning_icon_name = std::string(),
                                     const int extruder = 0,
                                     const bool create_frst_child = true);
@@ -478,12 +492,15 @@ public:
     bool    IsPrintable(const wxDataViewItem &item) const;
     void    UpdateObjectPrintable(wxDataViewItem parent_item);
     void    UpdateInstancesPrintable(wxDataViewItem parent_item);
+    bool    IsVariableHeight(const wxDataViewItem& item) const;
+
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
     ModelVolumeType GetVolumeType(const wxDataViewItem &item);
     wxDataViewItem SetPrintableState( PrintIndicator printable, int obj_idx,
                                       int subobj_idx = -1,
                                       ItemType subobj_type = itInstance);
     wxDataViewItem SetObjectPrintableState(PrintIndicator printable, wxDataViewItem obj_item);
+    wxDataViewItem SetObjectVariableHeightState(VaryHeightIndicator vari_height, wxDataViewItem obj_item);
     // BBS
     bool    IsColorPainted(wxDataViewItem& item) const;
     bool    IsSupportPainted(wxDataViewItem &item) const;
@@ -496,6 +513,8 @@ public:
     // Rescale bitmaps for existing Items
     void    Rescale();
 
+    wxBitmap    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type,
+                              const std::string& warning_icon_name = std::string());
     void        AddWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
     void        UpdateWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
@@ -525,11 +544,12 @@ private:
     wxDataViewItem  AddInstanceRoot(const wxDataViewItem& parent_item);
     void            AddAllChildren(const wxDataViewItem& parent);
 
+    wxBitmap&       GetWarningBitmap(const std::string& warning_icon_name);
     void            ReparentObject(ObjectDataViewModelNode* plate, ObjectDataViewModelNode* object);
     wxDataViewItem  AddOutsidePlate(bool refresh = true);
 
     void UpdateBitmapForNode(ObjectDataViewModelNode *node);
-    void UpdateBitmapForNode(ObjectDataViewModelNode* node, const std::string& warning_icon_name, bool has_lock);
+    void UpdateBitmapForNode(ObjectDataViewModelNode *node, const std::string &warning_icon_name, bool has_lock);
 };
 
 

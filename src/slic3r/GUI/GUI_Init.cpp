@@ -13,6 +13,7 @@
 // To show a message box if GUI initialization ends up with an exception thrown.
 #include <wx/msgdlg.h>
 
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -65,10 +66,10 @@ int GUI_Run(GUI_InitParams &params)
         }
     } catch (const Slic3r::Exception &ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
-        wxMessageBox(boost::nowide::widen(ex.what()), _L("Orca Slicer GUI initialization failed"), wxICON_STOP);
+        wxMessageBox(boost::nowide::widen(ex.what()), _L("Bambu Studio GUI initialization failed"), wxICON_STOP);
     } catch (const std::exception &ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
-        wxMessageBox(format_wxstr(_L("Fatal error, exception caught: %1%"), ex.what()), _L("Orca Slicer GUI initialization failed"), wxICON_STOP);
+        wxMessageBox(format_wxstr(_L("Fatal error, exception caught: %1%"), ex.what()), _L("Bambu Studio GUI initialization failed"), wxICON_STOP);
     }
     // error
     return 1;

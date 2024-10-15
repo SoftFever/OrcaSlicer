@@ -34,13 +34,12 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 		// On MacOS the background is erased, on Windows the background is not erased
 		// and on Linux / GTK the background is erased to gray color.
 		// Fill DC with the background on Windows & Linux / GTK.
-		wxColour color;
-		if (wxGetApp().dark_mode()) {// SetBackgroundColour
-			color = wxColour(45, 45, 49);
-		}
-		else {
-			color = *wxWHITE;
-		}
+        wxColour color;
+        if (wxGetApp().dark_mode()) {// SetBackgroundColour
+            color = wxColour(45, 45, 49); 
+        } else {
+            color = *wxWHITE;
+        }
 		dc.SetPen(*new wxPen(color, 1, wxPENSTYLE_SOLID));
 		dc.SetBrush(*new wxBrush(color, wxBRUSHSTYLE_SOLID));
 		auto rect = GetUpdateRegion().GetBox();

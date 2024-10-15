@@ -30,7 +30,6 @@ void NotificationProgressIndicator::set_progress(int pr)
 {
     if (!pr)
         set_cancel_callback(m_cancelfn);
-
     m_nm->progress_indicator_set_progress(pr);
 }
 

@@ -7,8 +7,11 @@
 #include "libslic3r_version.h"
 #include "../Utils/Http.hpp"
 
+#include <regex>
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/chrono.hpp>
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
@@ -32,16 +35,23 @@ namespace GUI {
     END_EVENT_TABLE()
 
 
-
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    wxString url = wxString::Format("file://%s/web/homepage/index.html", from_u8(resources_dir()));
-    wxString strlang = wxGetApp().current_language_code_safe();
-    if (strlang != "")
-        url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
+    m_Region = wxGetApp().app_config->get_country_code();
+    m_loginstatus = -1;
 
-    wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
+    wxString UrlLeft = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
+    wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
+
+    wxString strlang = wxGetApp().current_language_code_safe();
+    if (strlang != "") 
+    { 
+        UrlLeft = wxString::Format("file://%s/web/homepage3/left.html?lang=%s", from_u8(resources_dir()), strlang);
+        UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
+    }
+
+    topsizer = new wxBoxSizer(wxVERTICAL);
     
 #if !BBL_RELEASE_TO_PUBLIC
     // Create the button
@@ -82,26 +92,44 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     // Create the info panel
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
+
+    //Create Webview Panel
+    m_home_web = new wxBoxSizer(wxHORIZONTAL);
+
     // Create the webview
-    m_browser = WebView::CreateWebView(this, url);
+    m_browser = WebView::CreateWebView(this, UrlRight);
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
-    m_browser->Hide();
-    SetSizer(topsizer);
 
-    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+    m_browserMW       = WebView::CreateWebView(this, "about:blank");
+    if (m_browserMW == nullptr) {
+        wxLogError("Could not init  m_browserMW");
+        return;
+    } 
+    m_browserMW->Hide();
+    SetMakerworldModelID("");
+    m_onlinefirst    = false;
 
-    // Log backend information
-    /* m_browser->GetUserAgent() may lead crash
-    if (wxGetApp().get_mode() == comDevelop) {
-        wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
-            wxWebView::GetBackendVersionInfo().ToString());
-        wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+    m_leftfirst   = false;
+    m_browserLeft = WebView::CreateWebView(this, UrlLeft);
+    if (m_browserLeft == nullptr) {
+        wxLogError("Could not init m_browser");
+        return;
     }
-    */
+    m_browserLeft->SetSize(wxSize(FromDIP(224), -1));
+    m_browserLeft->SetMinSize(wxSize(FromDIP(224), -1));
+    m_browserLeft->SetMaxSize(wxSize(FromDIP(224), -1));
+
+    m_home_web->Add(m_browserLeft, 0, wxEXPAND | wxALL, 0);
+    m_home_web->Add(m_browser, 1, wxEXPAND | wxALL, 0);
+    m_home_web->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
+
+    topsizer->Add(m_home_web,1, wxEXPAND | wxALL, 0);
+
+    SetSizer(topsizer);
+    Layout();
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();
@@ -219,6 +247,12 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     Bind(wxEVT_CLOSE_WINDOW, &WebViewPanel::OnClose, this);
 
     m_LoginUpdateTimer = nullptr;
+
+    Bind(wxEVT_SHOW, [this](auto &e) {
+        if (e.IsShown() && m_has_pending_staff_pick) {
+            SendDesignStaffpick(true);
+        }
+    });
  }
 
 WebViewPanel::~WebViewPanel()
@@ -236,6 +270,28 @@ WebViewPanel::~WebViewPanel()
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " End";
 }
 
+void WebViewPanel::ResetWholePage() 
+{ 
+    std::string tmp_Region = wxGetApp().app_config->get_country_code();
+    if (tmp_Region == m_Region) return;
+    
+    m_Region = tmp_Region;
+
+    //left
+    if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
+
+    //right
+    json m_Res           = json::object();
+    m_Res["command"]     = "homepage_rightarea_reset";
+    m_Res["sequence_id"] = "10001";
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    RunScript(strJS);
+
+    //online
+    SetMakerworldModelID("");
+    m_onlinefirst = false;
+}
 
 void WebViewPanel::load_url(wxString& url)
 {
@@ -257,6 +313,8 @@ void WebViewPanel::load_url(wxString& url)
 void WebViewPanel::UpdateState()
 {
 #if !BBL_RELEASE_TO_PUBLIC
+    if (m_browser == nullptr) return;
+
     if (m_browser->CanGoBack()) {
         m_button_back->Enable(true);
     }
@@ -286,6 +344,8 @@ void WebViewPanel::UpdateState()
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
 {
 #if !BBL_RELEASE_TO_PUBLIC
+    if (m_browser == nullptr) return;
+
     if (m_browser->IsBusy())
     {
         wxSetCursor(wxCURSOR_ARROWWAIT);
@@ -416,16 +476,30 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
 
 void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 {
+    //wxString mwnow = m_browserMW->GetCurrentURL();
+
     auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
     if (mainframe && mainframe->m_webview == this)
         Slic3r::GUI::wxGetApp().get_login_info();
+
+    if (wxGetApp().is_user_login()) { 
+        if (m_loginstatus != 1) 
+        { 
+            m_loginstatus = 1;
+
+            if (m_onlinefirst)
+                UpdateMakerworldLoginStatus();
+        }
+    } else {
+        if (m_loginstatus != 0) {
+            m_loginstatus = 0;
+
+            if (m_onlinefirst)
+                SetMakerworldPageLoginStatus(false);
+        }    
+    }
 }
 
-void WebViewPanel::SetLoginPanelVisibility(bool bshow)
-{
-    wxString strJS = wxString::Format("SetLoginPanelVisibility(%s)", bshow ? "true" : "false");
-    RunScript(strJS);
-}
 void WebViewPanel::SendRecentList(int images)
 {
     boost::property_tree::wptree req;
@@ -441,40 +515,170 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
-    // if (on) {
-    //     get_design_staffpick(0, 60, [this](std::string body) {
-    //         if (body.empty() || body.front() != '{') {
-    //             BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
-    //             return;
-    //         }
-    //         CallAfter([this, body] {
-    //             auto body2 = from_u8(body);
-    //             body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-    //             RunScript(wxString::Format("window.postMessage(%s)", body2));
-    //         });
-    //     });
-    // } else {
-    //     std::string body2 = "{\"total\":0, \"hits\":[]}";
-    //     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-    //     RunScript(wxString::Format("window.postMessage(%s)", body2));
-    // }
+    static long long StaffPickMs = 0;
+
+    auto      now       = std::chrono::system_clock::now();
+    long long TmpMs     = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    long long nInterval = TmpMs - StaffPickMs;
+    if (nInterval < 500) return;
+    StaffPickMs = TmpMs;
+
+    BOOST_LOG_TRIVIAL(info) << "Begin SendDesignStaffpick: " << nInterval;
+
+    try {
+        if (on) {
+            std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
+            if (sguide != "true") return;
+
+            if (!IsShownOnScreen()) {
+                m_has_pending_staff_pick = true;
+                return;
+            }
+
+            //For U Pick
+            NetworkAgent *agent = GUI::wxGetApp().getAgent();
+            if (agent && agent->is_user_login()) {
+                get_user_mw_4u_config([this](std::string body) {
+                    if (body.empty() || body.front() != '{') {
+                        BOOST_LOG_TRIVIAL(warning) << "get_mw_user_preference failed " + body;
+                        return;
+                    }
+                    CallAfter([this, body] { 
+                        json jPrefer = json::parse(body);
+
+                        int nRecommendStatus = jPrefer["recommendStatus"];
+                        if (nRecommendStatus != 1 && nRecommendStatus != 3) 
+                        {
+                            // Default : Staff Pick
+                            get_design_staffpick(0, 10, [this](std::string body) {
+                                if (body.empty() || body.front() != '{') {
+                                    BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
+                                    return;
+                                }
+                                CallAfter([this, body] {
+                                    if (!wxGetApp().has_model_mall()) return;
+
+                                    auto body2 = from_u8(body);
+                                    body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+                                    RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                                    m_online_type = "browse";
+                                    //Show Online Menu
+                                    SetLeftMenuShow("online", 1);
+                                });
+                            });                        
+                        } else {
+                            //For U Pick
+                                get_4u_staffpick(0, 10, [this](std::string body) {
+                                if (body.empty() || body.front() != '{') {
+                                    BOOST_LOG_TRIVIAL(warning) << "get_mw_user_4ulist failed " + body;
+                                    return;
+                                }
+                                CallAfter([this, body] {
+                                    if (!wxGetApp().has_model_mall()) return;
+
+                                    auto body2 = from_u8(body);
+                                    body2.insert(1, "\"command\": \"modelmall_model_customized_get\", ");
+                                    RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                                    m_online_type = "recommend";
+                                    //Show Online Menu
+                                    SetLeftMenuShow("online", 1);
+                                });
+                            }); 
+                        }
+                    });
+                });
+
+            }            
+            else
+            {
+                // Default : Staff Pick
+                get_design_staffpick(0, 10, [this](std::string body) {
+                    if (body.empty() || body.front() != '{') {
+                        BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
+                        return;
+                    }
+                    CallAfter([this, body] {
+                        if (!wxGetApp().has_model_mall()) return;
+
+                        auto body2 = from_u8(body);
+                        body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+                        RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                        m_online_type = "browse";
+                        //Show Online Menu
+                        SetLeftMenuShow("online", 1);
+                    });
+                });
+            }
+        } else {
+            std::string body2 = "{\"total\":0, \"hits\":[]}";
+            body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+            RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+            m_online_type = "";
+            SetLeftMenuShow("online", 0);
+        }
+    } catch (nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got a nlohmann::detail::parse_error, reason = " << err.what();
+        return;
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+        // wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got exception: " << e.what();
+        return;
+    }
+
+    m_has_pending_staff_pick = false;
 }
 
-void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
+void WebViewPanel::SendMakerlabList(  )
 {
-    std::string url;
-    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
-    {
-        if (url.find("?") != std::string::npos) 
-        { 
-            url += "&from=orcaslicer";
-        } else {
-            url += "?from=orcaslicer";
-        }
-        
-        wxLaunchDefaultBrowser(url); 
+    try {
+        std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
+        if (sguide != "true") return;
+
+        get_makerlab_list([this](std::string body) {
+            if (body.empty() || body.front() != '{') {
+                BOOST_LOG_TRIVIAL(warning) << "get_makerlab_list failed " + body;
+                return;
+            }
+            CallAfter([this, body] {
+                auto body2 = from_u8(body);
+
+                json jLab = json::parse(body2);
+                if (jLab.contains("list")) 
+                { 
+                    int nSize = jLab["list"].size();
+                    if (nSize > 0) 
+                    {
+                        body2.insert(1, "\"command\": \"homepage_makerlab_get\", ");
+                        RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                        SetLeftMenuShow("makerlab", 1);                    
+                    }
+                }
+            });
+        });
+    } catch (nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got a nlohmann::detail::parse_error, reason = " << err.what();
+        return;
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+        // wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got exception: " << e.what();
+        return;
     }
 }
+
+void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent) 
+{ 
+    SwitchLeftMenu("online"); 
+
+    SetMakerworldModelID(id);
+}
+
 
 void WebViewPanel::SendLoginInfo()
 {
@@ -503,22 +707,170 @@ void WebViewPanel::ShowNetpluginTip()
 
     wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
-    RunScript(strJS);
+    RunScriptLeft(strJS);
 }
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
 {
-    // auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
-    // std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
+    auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
+    std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
 
-    // Http http = Http::get(url);
-    // http.header("accept", "application/json")
-    //     .header("Content-Type", "application/json")
-    //     .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-    //     .on_error([this, callback](std::string body, std::string error, unsigned status) {
-    //         callback(body);
-    //     })
-    //     .perform();
+    Http http = Http::get(url);
+    http.header("accept", "application/json")
+        .header("Content-Type", "application/json")
+        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
+        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+            callback(body + error);
+        })
+        .perform();
+}
+
+void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
+{
+    std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/operation-service/makerlabhomepage");
+
+    Http http = Http::get(url);
+    http.header("accept", "application/json")
+        .header("Content-Type", "application/json")
+        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
+        .on_error([this, callback](std::string body, std::string error, unsigned status) { callback(body + error); })
+        .perform();
+}
+
+unsigned char ToHex(unsigned char x) { return x > 9 ? x + 55 : x + 48; }
+
+unsigned char FromHex(unsigned char x)
+{
+    unsigned char y;
+    if (x >= 'A' && x <= 'Z')
+        y = x - 'A' + 10;
+    else if (x >= 'a' && x <= 'z')
+        y = x - 'a' + 10;
+    else if (x >= '0' && x <= '9')
+        y = x - '0';
+    else
+        assert(0);
+    return y;
+}
+
+std::string UrlEncode(const std::string &str)
+{
+    std::string strTemp = "";
+    size_t      length  = str.length();
+    for (size_t i = 0; i < length; i++) {
+        if (isalnum((unsigned char) str[i]) || (str[i] == '-') || (str[i] == '_') || (str[i] == '.') || (str[i] == '~'))
+            strTemp += str[i];
+        else if (str[i] == ' ')
+            strTemp += "+";
+        else {
+            strTemp += '%';
+            strTemp += ToHex((unsigned char) str[i] >> 4);
+            strTemp += ToHex((unsigned char) str[i] % 16);
+        }
+    }
+    return strTemp;
+}
+
+std::string UrlDecode(const std::string &str)
+{
+    std::string strTemp = "";
+    size_t      length  = str.length();
+    for (size_t i = 0; i < length; i++) {
+        if (str[i] == '+')
+            strTemp += ' ';
+        else if (str[i] == '%') {
+            assert(i + 2 < length);
+            unsigned char high = FromHex((unsigned char) str[++i]);
+            unsigned char low  = FromHex((unsigned char) str[++i]);
+            strTemp += high * 16 + low;
+        } else
+            strTemp += str[i];
+    }
+    return strTemp;
+}
+
+bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl)
+{
+    std::string h             = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+    if (login) {
+        if (ticket == "") return false;
+
+        finalurl = wxString::Format("%sapi/sign-in/ticket?to=%s&ticket=%s", h, UrlEncode( std::string(targeturl.mb_str())), ticket);
+    } else {
+        finalurl = wxString::Format("%sapi/sign-out?to=%s", h, UrlEncode(std::string(targeturl.mb_str())));
+    }
+
+    return true;
+}
+
+void WebViewPanel::UpdateMakerworldLoginStatus()
+{
+    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+    if (agent == nullptr) return;
+
+    std::string newticket;
+    int ret = agent->request_bind_ticket(&newticket);
+    if (ret==0) SetMakerworldPageLoginStatus(true, newticket);
+}
+
+
+void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket) 
+{ 
+    if (m_browserMW == nullptr) return;
+    
+    wxString mw_currenturl;
+    if (m_online_LastUrl != "") {
+        mw_currenturl = m_online_LastUrl;
+    } else {
+        mw_currenturl = m_browserMW->GetCurrentURL();
+        mw_currenturl.Replace("modelid=", "");
+    }
+
+    //If AgreeTerms, Redirect Other Url
+    std::regex pattern("^https://.*/(.*/){0,1}agree-terms.*");
+    if (std::regex_match(mw_currenturl.ToStdString(), pattern)) {
+        std::regex  ParamPattern("agreeBackUrl=([^&]+)");
+        std::smatch match;
+        std::string CurUrl = mw_currenturl.ToStdString();
+        if (std::regex_search(CurUrl, match, ParamPattern)) 
+        {
+            //std::cout << "Param Value: " << match[1] << std::endl;
+            mw_currenturl = wxGetApp().url_decode(std::string(match[1]));
+        } else {
+            //std::cout << "Not Find agreeBackUrl" << std::endl;
+            auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+            wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+            language_code          = language_code.ToStdString();
+
+            mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+        }
+    } else {
+        //std::cout << "The string does not match the pattern." << std::endl;
+    }
+
+    wxString mw_jumpurl = "";
+
+    bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
+    if (b) { 
+        m_browserMW->LoadURL(mw_jumpurl);
+        m_online_LastUrl = "";
+    }
+}
+
+
+void WebViewPanel::get_user_mw_4u_config(std::function<void(std::string)> callback) { 
+    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+    if (agent)
+        int ret = agent->get_mw_user_preference(callback); 
+}
+
+void WebViewPanel::get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback)
+{
+    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+    if (agent) 
+        int ret = agent->get_mw_user_4ulist(seed,limit,callback);
 }
 
 int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
@@ -547,13 +899,36 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
-        if (!url.Contains("/web/homepage/index.html")) {
+        if (!url.Contains("/web/homepage3/")) {
             auto file = wxURL::Unescape(wxURL(url).GetPath());
 #ifdef _WIN32
             if (file.StartsWith('/'))
                 file = file.Mid(1);
 #endif
             wxGetApp().plater()->load_files(wxArrayString{1, &file});
+            evt.Veto();
+            return;
+        }
+    } 
+    else {
+        wxString surl = url;
+        if (surl.find("?") != std::string::npos) {
+            surl = surl.substr(0, surl.find("?")).Lower();
+        } 
+
+        if (surl.EndsWith(".zip")  || 
+            surl.EndsWith(".pdf")  || 
+            surl.EndsWith(".stl")  || 
+            surl.EndsWith(".3mf")  || 
+            surl.EndsWith(".xlsx") || 
+            surl.EndsWith(".xls")  ||
+            surl.EndsWith(".txt")  || 
+            surl.EndsWith("bbscfg") || 
+            surl.EndsWith("bbsflmt")
+            ) 
+        {
+            wxLaunchDefaultBrowser(url);
+
             evt.Veto();
             return;
         }
@@ -586,7 +961,19 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
-    m_browser->Show();
+    if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId()) 
+    {    
+        std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();
+        std::string mwHost    = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        if (TmpNowUrl.find(mwHost) != std::string::npos) m_onlinefirst = true;
+
+        if (m_contentname == "online") { // conf save
+            SetWebviewShow("right", false); 
+            SetWebviewShow("online", true);
+        }
+    }
+
+    //m_browser->Show();
     Layout();
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
@@ -601,12 +988,16 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    wxString wurl = evt.GetURL();
     // Only notify if the document is the main frame, not a subframe
-    if (evt.GetURL() == m_browser->GetCurrentURL())
-    {
-        if (wxGetApp().get_mode() == comDevelop)
-            wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
+    if (m_browser!=nullptr && evt.GetId() == m_browser->GetId()) {
+        if (wxGetApp().get_mode() == comDevelop) wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
+    } 
+    else if (m_browserLeft!=nullptr && evt.GetId() == m_browserLeft->GetId()) 
+    {       
+        m_leftfirst = true;
     }
+
     UpdateState();
 }
 
@@ -632,10 +1023,11 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
-    //If we handle new window events then just load them in this window as we
-    //are a single window browser
-    if (m_tools_handle_new_window->IsChecked())
-        m_browser->LoadURL(evt.GetURL());
+    //If we handle new window events then just load them in local browser
+    if (m_tools_handle_new_window->IsChecked()) 
+    {
+        wxLaunchDefaultBrowser(evt.GetURL());
+    }
 
     UpdateState();
 }
@@ -739,6 +1131,18 @@ void WebViewPanel::RunScript(const wxString& javascript)
 
     WebView::RunScript(m_browser, javascript);
 }
+
+void WebViewPanel::RunScriptLeft(const wxString &javascript)
+{
+    // Remember the script we run in any case, so the next time the user opens
+    // the "Run Script" dialog box, it is shown there for convenient updating.
+    m_javascript = javascript;
+
+    if (!m_browserLeft) return;
+
+    WebView::RunScript(m_browserLeft, javascript);
+}
+
 
 void WebViewPanel::OnRunScriptString(wxCommandEvent& WXUNUSED(evt))
 {
@@ -870,6 +1274,8 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
     */
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << "HomePage OnError, Url = " << evt.GetURL() << " , Message: "<<evt.GetString();
+
 #define WX_ERROR_CASE(type) \
     case type: \
     category = #type; \
@@ -894,13 +1300,224 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
     {
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
-        // Show the info bar with an error
-        m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
+        // Show the info bar with an error        
+    }
+    //m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
+
+    if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserMW->GetId()) 
+    {        
+        m_online_LastUrl = m_browserMW->GetCurrentURL();
+
+        if (m_contentname == "online") 
+        { 
+            wxString errurl = evt.GetURL();
+
+            wxString UrlRight = wxString::Format("file://%s/web/homepage3/disconnect.html", from_u8(resources_dir()));
+
+            wxString strlang = wxGetApp().current_language_code_safe();
+            if (strlang != "") {
+                UrlRight = wxString::Format("file://%s/web/homepage3/disconnect.html?lang=%s", from_u8(resources_dir()), strlang);
+            }
+
+            m_browserMW->LoadURL(UrlRight);
+       
+            SetWebviewShow("online", true);
+            SetWebviewShow("right", false);
+        }
     }
 
     UpdateState();
 }
 
+void WebViewPanel::SetMakerworldModelID(std::string ModelID) 
+{
+    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+    wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+    language_code          = language_code.ToStdString();
+
+    if (ModelID != "")
+        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
+    else
+        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+}
+
+void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
+{
+    m_contentname = modelname;
+
+    CheckMenuNewTag();
+
+    wxString strlang = wxGetApp().current_language_code_safe();
+
+    if (modelname.compare("makerlab") == 0) {
+        auto        host   = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        std::string LabUrl = (boost::format("%1%makerlab?from=bambustudio") % host).str();
+
+        wxString      FinalUrl = LabUrl;
+        NetworkAgent *agent    = GUI::wxGetApp().getAgent();
+        if (agent && agent->is_user_login()) {
+            std::string newticket;
+            int         ret = agent->request_bind_ticket(&newticket);
+            if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
+        }
+
+        wxLaunchDefaultBrowser(FinalUrl);
+
+        // conf save
+        wxGetApp().app_config->set_str("homepage", "makerlab_clicked", "1");
+        wxGetApp().app_config->save();
+        wxGetApp().CallAfter([this] { ShowMenuNewTag("makerlab", "0"); });
+
+        return;
+    } else if (modelname.compare("online") == 0) {
+
+        if (!m_onlinefirst) {
+            if (m_loginstatus == 1) {
+                UpdateMakerworldLoginStatus();
+            } else {
+                SetMakerworldPageLoginStatus(false);
+            }
+        } else {
+            if (m_online_LastUrl != "") {
+                m_browserMW->LoadURL(m_online_LastUrl);
+
+                m_online_LastUrl = "";
+            } else {
+                //m_browserMW->Reload();
+            }
+        }
+
+        SetWebviewShow("online", true);
+        SetWebviewShow("right", false);
+
+        GetSizer()->Layout();
+
+        // conf save
+        wxGetApp().app_config->set_str("homepage", "online_clicked", "1");
+        wxGetApp().app_config->save();
+        wxGetApp().CallAfter([this] { ShowMenuNewTag("online", "0"); });
+    } else if (modelname.compare("home") == 0 || modelname.compare("recent") == 0 || modelname.compare("manual") == 0) {
+        if (!m_browser) return;
+
+        json m_Res           = json::object();
+        m_Res["command"]     = "homepage_leftmenu_clicked";
+        m_Res["sequence_id"] = "10001";
+        m_Res["menu"]        = modelname;
+
+        // wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+        wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+
+        WebView::RunScript(m_browser, strJS);
+
+        CallAfter([this]{
+            SetWebviewShow("online", false);
+            SetWebviewShow("right", true);
+
+            GetSizer()->Layout();
+        });
+    }
+}
+
+void WebViewPanel::SwitchLeftMenu(std::string strMenu)
+{
+    if (!m_browserLeft) return;
+
+    json m_Res           = json::object();
+    m_Res["command"]     = "homepage_leftmenu_clicked";
+    m_Res["sequence_id"] = "10001";
+    m_Res["menu"]        = strMenu;
+
+    // wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+
+    WebView::RunScript(m_browserLeft, strJS);
+}
+
+void WebViewPanel::OpenOneMakerlab(std::string url) {
+    auto        host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+    std::string LabUrl  = (boost::format("%1%%2%?from=bambustudio") % host % url).str();
+
+    wxString      FinalUrl = LabUrl;
+    NetworkAgent *agent    = GUI::wxGetApp().getAgent();
+    if (agent && agent->is_user_login()) {
+        std::string newticket;
+        int         ret = agent->request_bind_ticket(&newticket);
+        if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
+    }
+
+    wxLaunchDefaultBrowser(FinalUrl);
+}
+
+
+void WebViewPanel::CheckMenuNewTag() {
+    std::string sClick = wxGetApp().app_config->get("homepage", "online_clicked");
+    if (sClick.compare("1")==0) 
+        ShowMenuNewTag("online", "0");
+    else
+        ShowMenuNewTag("online", "1");
+
+
+    sClick = wxGetApp().app_config->get("homepage", "makerlab_clicked");
+    if (sClick.compare("1") == 0)
+        ShowMenuNewTag("makerlab", "0");
+    else
+        ShowMenuNewTag("makerlab", "1");
+}
+
+void WebViewPanel::ShowMenuNewTag(std::string menuname, std::string show)
+{ 
+    if (!m_browserLeft) return;
+
+    if (menuname != "online" && menuname != "makerlab") return;
+
+    json m_Res           = json::object();
+    m_Res["command"]     = "homepage_leftmenu_newtag";
+    m_Res["sequence_id"] = "10001";
+    m_Res["menu"]           = menuname;
+
+
+    if (show.compare("1") == 0)
+        m_Res["show"] = 1;
+    else 
+        m_Res["show"] = 0;
+
+    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+    WebView::RunScript(m_browserLeft, strJS);
+}
+
+void WebViewPanel::SetLeftMenuShow(std::string menuname, int show) 
+{
+    if (!m_browserLeft) return;
+
+    json m_Res           = json::object();
+    m_Res["command"]     = "homepage_leftmenu_show";
+    m_Res["sequence_id"] = "10001";
+    m_Res["menu"]        = menuname;
+    m_Res["show"] = show;
+
+    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+    WebView::RunScript(m_browserLeft, strJS);
+}
+
+void WebViewPanel::SetWebviewShow(wxString name, bool show) 
+{ 
+    wxWebView *TmpWeb = nullptr;
+    if (name == "left")
+        TmpWeb = m_browserLeft;
+    else if (name == "right")
+        TmpWeb = m_browser;
+    else if (name == "online")
+        TmpWeb = m_browserMW;
+    
+    if (TmpWeb != nullptr) 
+    { 
+        if (show)
+            TmpWeb->Show();
+        else
+            TmpWeb->Hide();
+    }
+}
 
 SourceViewDialog::SourceViewDialog(wxWindow* parent, wxString source) :
                   wxDialog(parent, wxID_ANY, "Source Code",

@@ -4,10 +4,11 @@
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+
+#include <boost/log/trivial.hpp>
+
 #include "CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -313,14 +314,18 @@ Description:AMSextruder
 **************************************************/
 void AMSextruderImage::TurnOn(wxColour col) 
 {
-    m_colour  = col;
-    Refresh();
+    if (m_colour != col) {
+        m_colour = col;
+        Refresh();
+    }
 }
 
 void AMSextruderImage::TurnOff() 
 {
-    m_colour = AMS_EXTRUDER_DEF_COLOUR;
-    Refresh();
+    if (m_colour != AMS_EXTRUDER_DEF_COLOUR) {
+        m_colour = AMS_EXTRUDER_DEF_COLOUR;
+        Refresh();
+    }
 }
 
 void AMSextruderImage::msw_rescale() 
@@ -428,16 +433,22 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
 void AMSextruder::OnVamsLoading(bool load, wxColour col)
 {
-    m_vams_loading = load;
-    if (load)m_current_colur = col;
-    Refresh();
+    if (m_vams_loading != load) {
+        m_vams_loading = load;
+        if (load) m_current_colur = col;
+        //m_current_colur = col;
+        Refresh();
+    }
 }
 
 void AMSextruder::OnAmsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
-    m_ams_loading = load;
-    if (load)m_current_colur = col;
-    Refresh();
+    if (m_ams_loading != load) {
+        m_ams_loading = load;
+        //m_current_colur = col;
+        if (load) m_current_colur = col;
+        Refresh();
+    }
 }
 
 void AMSextruder::paintEvent(wxPaintEvent& evt)
@@ -472,7 +483,7 @@ void AMSextruder::doRender(wxDC& dc)
 {
     //m_current_colur = 
     wxSize size = GetSize();
-    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if (!m_none_ams_mode) {
@@ -484,24 +495,24 @@ void AMSextruder::doRender(wxDC& dc)
 
         if (m_vams_loading) {
 
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
-            else { dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
+            else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawRoundedRectangle(-size.x / 2 - FromDIP(3), size.y * 0.1 + FromDIP(3), size.x, size.y, 3);
                 dc.DrawRoundedRectangle(-size.x / 2 + FromDIP(3), size.y * 0.1 - FromDIP(3), size.x, size.y, 5);
             }
         }
 
         if (m_ams_loading && !m_none_ams_mode) {
-            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID));}
-            else {dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID));}
+            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID));}
+            else {dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));}
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
             }
@@ -509,12 +520,12 @@ void AMSextruder::doRender(wxDC& dc)
     }
     else {
         if (m_ams_loading) {
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
-            else { dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
+            else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
             }
@@ -541,9 +552,12 @@ AMSVirtualRoad::~AMSVirtualRoad() {}
 
 void AMSVirtualRoad::OnVamsLoading(bool load, wxColour col)
 {
-    m_vams_loading = load;
-    if (load)m_current_color = col;
-    Refresh();
+    if (m_vams_loading != load) {
+        m_vams_loading = load;
+        if (load)m_current_color = col;
+        //m_current_color = col;
+        Refresh();
+    }
 }
 
 void AMSVirtualRoad::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
@@ -587,18 +601,18 @@ void AMSVirtualRoad::doRender(wxDC& dc)
 
     wxSize size = GetSize();
     if (m_vams_loading) {
-        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
-        else { dc.SetPen(wxPen(m_current_color, 6, wxPENSTYLE_SOLID)); }
+        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
+        else { dc.SetPen(wxPen(m_current_color, 6, wxSOLID)); }
     }
     else {
-        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     }
 
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
 
     if ((m_current_color == *wxWHITE || m_current_color.Alpha() == 0) && !wxGetApp().dark_mode()) {
-        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
         dc.DrawRoundedRectangle(size.x / 2 - FromDIP(3), -size.y / 1.1 + FromDIP(4), size.x, size.y, 5);
         dc.DrawRoundedRectangle(size.x / 2 + FromDIP(3), -size.y / 1.1 - FromDIP(2), size.x, size.y, 3);
     }
@@ -988,11 +1002,11 @@ void AMSLib::render_extra_lib(wxDC& dc)
     //draw road
 
     
-    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if (m_pass_road) {
-        dc.SetPen(wxPen(m_info.material_colour, 6, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(m_info.material_colour, 6, wxSOLID));
     }
     
     if (m_can_index == 0 || m_can_index == 3) {
@@ -1114,9 +1128,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     // selected
     if (m_selected) {
-        dc.SetPen(wxPen(tmp_lib_colour, 2, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
         if (tmp_lib_colour.Alpha() == 0) {
-            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxPENSTYLE_SOLID));
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxSOLID));
         }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
@@ -1131,7 +1145,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     if (!m_selected && m_hover) {
-        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxSOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -1144,7 +1158,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
     else {
-        dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
 
@@ -1230,7 +1244,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
                     dc.SetBrush(wxBrush(tmp_lib_colour));
                 }
                 else {
-                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));
+                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
                     dc.SetBrush(wxBrush(tmp_lib_colour));
                 }
             }
@@ -1260,7 +1274,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
 #endif
             }
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
-                dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
                 dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
                 dc.DrawLine(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(4), FromDIP(4) + top);
             }
@@ -1268,10 +1282,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
         else {
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
-                dc.SetPen(wxPen(wxColour(130, 129, 128), 2, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 2, wxSOLID));
             }
             else {
-                dc.SetPen(wxPen(tmp_lib_colour, 2, wxPENSTYLE_SOLID));
+                dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
             }
 
 #ifdef __APPLE__
@@ -1285,7 +1299,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     //border
-    dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
+    dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
     dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(7), m_radius);
@@ -1323,9 +1337,14 @@ void AMSLib::Update(Caninfo info, bool refresh)
     if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
         transparent_changed = true;
     }
-    m_info = info;
-    Layout();
-    if (refresh) Refresh();
+
+    if (m_info == info) {
+        //todo
+    } else {
+        m_info = info;
+        Layout();
+        if (refresh) Refresh();
+    }
 }
 
 wxColour AMSLib::GetLibColour() { return m_info.material_colour; }
@@ -1430,9 +1449,14 @@ void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
 void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
 {
+    if (amsinfo == m_amsinfo && m_info == info && m_canindex == canindex) { 
+        return;
+    }
+
     m_amsinfo = amsinfo;
     m_info     = info;
     m_canindex = canindex;
+
     if (m_canindex == 0 && maxcan == 1) {
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_END_ONLY;
     } else if (m_canindex == 0 && maxcan > 1) {
@@ -1448,17 +1472,22 @@ void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
 
 void AMSRoad::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
-    m_vams_loading = load;
-    if(load)m_road_color = col;
-    Refresh();
+    if (m_vams_loading != load) {
+        m_vams_loading = load;
+        if (load) m_road_color = col;
+        //m_road_color = col;
+        Refresh();
+    }
 }
 
 void AMSRoad::SetPassRoadColour(wxColour col) { m_road_color = col; }
 
 void AMSRoad::SetMode(AMSRoadMode mode)
 {
-    m_rode_mode = mode;
-    Refresh();
+    if (m_rode_mode != mode) {
+        m_rode_mode = mode;
+        Refresh();
+    }
 }
 
 void AMSRoad::paintEvent(wxPaintEvent &evt)
@@ -1492,7 +1521,7 @@ void AMSRoad::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
 
-    dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
+    dc.SetPen(wxPen(m_road_def_color, 2, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     // left mode
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_LEFT) { dc.DrawRoundedRectangle(-10, -10, size.x / 2 + 10, size.y * 0.6 + 10, 4); }
@@ -1535,8 +1564,8 @@ void AMSRoad::doRender(wxDC &dc)
     // mode none
     // if (m_pass_rode_mode.size() == 1 && m_pass_rode_mode[0] == AMSPassRoadMode::AMS_ROAD_MODE_NONE) return;
 
-    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxPENSTYLE_SOLID));}
-    else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxPENSTYLE_SOLID));}
+    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxSOLID));}
+    else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxSOLID));}
     
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
@@ -1563,7 +1592,7 @@ void AMSRoad::doRender(wxDC &dc)
 
     // end mode
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
-        dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(m_road_def_color, 2, wxSOLID));
         dc.SetBrush(wxBrush(m_road_def_color));
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
     }
@@ -2004,31 +2033,31 @@ void AmsCans::Update(AMSinfo info)
         Canrefreshs *refresh = m_can_refresh_list[i];
         if (i < m_can_count) {
             refresh->canrefresh->Update(info.ams_id, info.cans[i]);
-            refresh->canrefresh->Show();
+            if (!refresh->canrefresh->IsShown()) { refresh->canrefresh->Show();}
+            
         } else {
-            refresh->canrefresh->Hide();
+            if (refresh->canrefresh->IsShown()) { refresh->canrefresh->Hide();}
         }
     }
-   
+
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs *lib = m_can_lib_list[i];
         if (i < m_can_count) {
             lib->canLib->Update(info.cans[i]);
-            lib->canLib->Show();
+            if(!lib->canLib->IsShown()) { lib->canLib->Show();}
         } else {
-            lib->canLib->Hide();
+            if(lib->canLib->IsShown()) { lib->canLib->Hide(); }
         }
     }
 
     if (m_ams_model == AMSModel::GENERIC_AMS) {
         for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-            CanRoads* road = m_can_road_list[i];
+            CanRoads *road = m_can_road_list[i];
             if (i < m_can_count) {
                 road->canRoad->Update(m_info, info.cans[i], i, m_can_count);
-                road->canRoad->Show();
-            }
-            else {
-                road->canRoad->Hide();
+                if (!road->canRoad->IsShown()) { road->canRoad->Show(); }
+            } else {
+                if (road->canRoad->IsShown()) { road->canRoad->Hide(); }
             }
         }
     }
@@ -2244,7 +2273,7 @@ void AmsCans::doRender(wxDC& dc)
 
        
         // A1
-        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
         try
@@ -2285,32 +2314,32 @@ void AmsCans::doRender(wxDC& dc)
    
             if (!m_road_canid.empty()) {
                 if (m_road_canid == "0") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                     dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
                     dc.DrawLine(a1_left, a1_top, end_top, a1_top);
                 }
 
                 if (m_road_canid == "1") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                     dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
                     dc.DrawLine(a2_left, a2_top, end_top, a2_top);
                 }
 
                 if (m_road_canid == "2") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                     dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
                     dc.DrawLine(a3_left, a3_top, end_top, a3_top);
                 }
 
                 if (m_road_canid == "3") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                     dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
                     dc.DrawLine(a4_left, a4_top, end_top, a4_top);
                 }
             }
 
             //to Extruder
-            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
             dc.DrawLine(end_top, a1_top, end_top, size.y);
@@ -2318,19 +2347,19 @@ void AmsCans::doRender(wxDC& dc)
             if (!m_road_canid.empty()) {
                 if (!m_road_canid.empty()) {
                     if (m_road_canid == "0") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                         dc.DrawLine(end_top, a1_top, end_top, size.y);
                     }
                     else if (m_road_canid == "1") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                         dc.DrawLine(end_top, a2_top, end_top, size.y);
                     }
                     else if (m_road_canid == "2") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                         dc.DrawLine(end_top, a3_top, end_top, size.y);
                     }
                     else if (m_road_canid == "3") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
                         dc.DrawLine(end_top, a4_top, end_top, size.y);
                     }
                 }
@@ -2445,7 +2474,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     //backup tips
     m_ams_backup_tip = new Label(m_amswin, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
-    m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
     m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     m_img_ams_backup->SetBackgroundColour(*wxWHITE);
@@ -2529,8 +2558,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     //m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), 
@@ -2574,6 +2603,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_extruder_feed->SetLabel("Load");
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
@@ -2590,6 +2620,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_extruder_back->SetLabel("Unload");
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
@@ -2651,6 +2682,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, AMS_REFRESH_SIZE.y);
     m_vams_top_sizer->Add(m_vams_lib, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
+
 
     //extra road
 
@@ -2772,6 +2804,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_guide->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_guide->SetLabel("Guide");
 
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
@@ -2781,15 +2814,18 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_button_retry = new Button(m_amswin, _L("Retry"));
     m_button_retry->SetFont(Label::Body_13);
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ru_RU") m_button_retry->SetLabel("Retry");
     if (wxGetApp().app_config->get("language") == "nl_NL") m_button_retry->SetLabel("Retry");
+    if (wxGetApp().app_config->get("language") == "tr_TR") m_button_retry->SetLabel("Retry");
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_retry->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_retry->SetLabel("Retry");
 
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2938,6 +2974,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     CreateAms();
     SetSelection(0);
     EnterNoneAMSMode();
+
 }
 
 void AMSControl::on_retry()
@@ -3273,10 +3310,13 @@ void AMSControl::show_noams_mode()
 
 void AMSControl::show_auto_refill(bool show)
 {
-    m_ams_backup_tip->Show(show);
-    m_img_ams_backup->Show(show);
-    m_amswin->Layout();
-    m_amswin->Fit();
+    if (m_auto_reill_show != show) {
+        m_ams_backup_tip->Show(show);
+        m_img_ams_backup->Show(show);
+        m_amswin->Layout();
+        m_amswin->Fit();
+        m_auto_reill_show = show;
+    }
 }
 
 void AMSControl::show_vams(bool show)
@@ -3304,6 +3344,9 @@ void AMSControl::show_vams_kn_value(bool show)
 
 void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
+    auto last_k_value = m_vams_info.k;
+    auto last_n_value = m_vams_info.n;
+
     m_vams_lib->m_obj = obj;
     if (obj->cali_version >= 0) {
         float k_value = 0;
@@ -3320,11 +3363,15 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
         m_vams_lib->m_info.k = tray.k;
         m_vams_lib->m_info.n = tray.n;
     }
+
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
     m_vams_lib->m_info.material_colour = tray.get_color();
-    m_vams_lib->Refresh();
+
+    if (last_k_value != m_vams_info.k || last_n_value != m_vams_info.n) { 
+        m_vams_lib->Refresh();
+    }
 }
 
 void AMSControl::reset_vams()
@@ -3348,7 +3395,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
     m_button_area->Fit();        
 
     // update item
-    m_ams_info = info;
+    
     if (m_ams_model == AMSModel::GENERIC_AMS){
         m_ams_cans_list = m_ams_generic_cans_list;
     }
@@ -3356,19 +3403,23 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
         m_ams_cans_list = m_ams_extra_cans_list;
     }
 
-    if (info.size() > 1) {
-        m_simplebook_amsitems->Show();
-        m_amswin->Layout();
-        m_amswin->Fit();
-        SetSize(m_amswin->GetSize());
-        SetMinSize(m_amswin->GetSize());
-    } else {
-        m_simplebook_amsitems->Hide();
-        m_amswin->Layout();
-        m_amswin->Fit();
-        SetSize(m_amswin->GetSize());
-        SetMinSize(m_amswin->GetSize());
+    if (m_ams_info.size() != info.size()) {
+        if (info.size() > 1) {
+            m_simplebook_amsitems->Show();
+            m_amswin->Layout();
+            m_amswin->Fit();
+            SetSize(m_amswin->GetSize());
+            SetMinSize(m_amswin->GetSize());
+        } else {
+            m_simplebook_amsitems->Hide();
+            m_amswin->Layout();
+            m_amswin->Fit();
+            SetSize(m_amswin->GetSize());
+            SetMinSize(m_amswin->GetSize());
+        }
     }
+
+    m_ams_info = info;
 
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
         AmsItems *item = m_ams_item_list[i];
@@ -3657,8 +3708,7 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
 
             if (ams_now != GetCurentShowAms()) {
                 m_extruder->OnAmsLoading(false, col);
-            }
-            else {
+            } else {
                 m_extruder->OnAmsLoading(true, col);
             }
         }
@@ -3723,10 +3773,8 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (notfound) return;
     if (cans == nullptr) return;
 
-
     m_last_ams_id = ams_id;
     m_last_tray_id = canid;
-
 
     if (m_ams_model == AMSModel::GENERIC_AMS) {
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
@@ -3742,9 +3790,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
             cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
             cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-            if (m_current_show_ams == ams_id) {
-                m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
-            }
+            if (m_current_show_ams == ams_id) { m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid)); }
         }
 
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {

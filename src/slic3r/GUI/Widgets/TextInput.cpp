@@ -1,7 +1,6 @@
 #include "TextInput.hpp"
 #include "Label.hpp"
 #include "TextCtrl.h"
-#include "slic3r/GUI/Widgets/Label.hpp"
 
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
@@ -19,14 +18,14 @@ END_EVENT_TABLE()
  */
 
 TextInput::TextInput()
-    : label_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled),
+    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled),
                  std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled),
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled),
                  std::make_pair(0x262E30, (int) StateColor::Normal))
 {
     radius = 0;
     border_width = 1;
-    border_color = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Hovered),
+    border_color = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
                               std::make_pair(0xDBDBDB, (int) StateColor::Normal));
     background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
@@ -52,7 +51,7 @@ void TextInput::Create(wxWindow *     parent,
                        const wxSize & size,
                        long           style)
 {
-        text_ctrl = nullptr;
+    text_ctrl = nullptr;
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
     style &= ~wxRIGHT;
@@ -220,10 +219,7 @@ void TextInput::render(wxDC& dc)
             pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         }
         dc.SetTextForeground(label_color.colorForStates(states));
-        if(align_right)
-            dc.SetFont(GetFont());
-        else
-            dc.SetFont(Label::Body_12);
+        dc.SetFont(GetFont());
         dc.DrawText(text, pt);
     }
 }
@@ -232,11 +228,6 @@ void TextInput::messureSize()
 {
     wxSize size = GetSize();
     wxClientDC dc(this);
-    bool   align_right = GetWindowStyle() & wxRIGHT;
-    if (align_right)
-        dc.SetFont(GetFont());
-    else
-        dc.SetFont(Label::Body_12);
     labelSize = dc.GetTextExtent(wxWindow::GetLabel());
     wxSize textSize = text_ctrl->GetSize();
     int h = textSize.y + 8;

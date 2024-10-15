@@ -24,9 +24,7 @@
 #include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintBase.hpp"
-
-#include "libslic3r/calib.hpp"
-#include "libslic3r/CutUtils.hpp"
+#include "libslic3r/Calib.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
@@ -41,9 +39,10 @@ class Button;
 namespace Slic3r {
 
 class BuildVolume;
-enum class BuildVolume_Type : unsigned char;
 class Model;
 class ModelObject;
+enum class ModelObjectCutAttribute : int;
+using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 class ModelInstance;
 class Print;
 class SLAPrint;
@@ -111,11 +110,6 @@ class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
 public:
-    enum DockingState
-    {
-        None, Left, Right
-    };
-
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
     Sidebar(const Sidebar &) = delete;
@@ -126,12 +120,15 @@ public:
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
+    void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
     //BBS
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
-
+    bool set_bed_type(const std::string& bed_type_name);
+    void save_bed_type_to_config(const std::string &bed_type_name);
+    bool use_default_bed_type(bool is_bbl_preset = true);
     void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
     void sys_color_changed();
@@ -148,9 +145,6 @@ public:
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
-    // Orca
-    void show_SEMM_buttons(bool bshow);
-    void update_dynamic_filament_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -189,7 +183,10 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
-
+    void                            set_is_gcode_file(bool flag);
+    void                            update_soft_first_start_state() { m_soft_first_start = false; }
+    void                            cancel_update_3d_state() { m_update_3d_state = false; }
+    bool                            get_update_3d_state() { return m_update_3d_state; }
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -198,6 +195,9 @@ private:
     ComboBox* m_bed_type_list = nullptr;
     ScalableButton* connection_btn = nullptr;
     ScalableButton* ams_btn = nullptr;
+    bool            m_soft_first_start {true };
+    bool            m_is_gcode_file{ false };
+    bool            m_update_3d_state{false};
 };
 
 class Plater: public wxPanel
@@ -233,7 +233,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
+    int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
@@ -249,7 +249,6 @@ public:
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
     void add_model(bool imperial_units = false, std::string fname = "");
-    void import_zip_archive();
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
@@ -257,15 +256,13 @@ public:
     void reload_gcode_from_disk();
     void refresh_print();
 
-    // SoftFever
-    void calib_pa(const Calib_Params& params);
-    void calib_flowrate(bool is_linear, int pass);
-    void calib_temp(const Calib_Params& params);
-    void calib_max_vol_speed(const Calib_Params& params);
-    void calib_retraction(const Calib_Params& params);
-    void calib_VFA(const Calib_Params& params);
-
-    BuildVolume_Type get_build_volume_type() const;
+    // OrcaSlicer calibration
+    void calib_pa(const Calib_Params &params);
+    void calib_flowrate(int pass);
+    void calib_temp(const Calib_Params &params);
+    void calib_max_vol_speed(const Calib_Params &params);
+    void calib_retraction(const Calib_Params &params);
+    void calib_VFA(const Calib_Params &params);
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }
@@ -286,55 +283,24 @@ public:
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
 
-    bool preview_zip_archive(const boost::filesystem::path& archive_path);
-
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
     std::vector<size_t> load_files(const std::vector<std::string>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
     // to be called on drag and drop
+    bool emboss_svg(const wxString &svg_file, bool from_toolbar_or_file_menu = false);
+    bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
+    bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
-
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
     void update(bool conside_update_flag = false, bool force_background_processing_update = false);
     //BBS
+    Worker &      get_ui_job_worker();
+    const Worker &get_ui_job_worker() const;
     void object_list_changed();
-
-    // Get the worker handling the UI jobs (arrange, fill bed, etc...)
-    // Here is an example of starting up an ad-hoc job:
-    //    queue_job(
-    //        get_ui_job_worker(),
-    //        [](Job::Ctl &ctl) {
-    //            // Executed in the worker thread
-    //
-    //            CursorSetterRAII cursor_setter{ctl};
-    //            std::string msg = "Running";
-    //
-    //            ctl.update_status(0, msg);
-    //            for (int i = 0; i < 100; i++) {
-    //                usleep(100000);
-    //                if (ctl.was_canceled()) break;
-    //                ctl.update_status(i + 1, msg);
-    //            }
-    //            ctl.update_status(100, msg);
-    //        },
-    //        [](bool, std::exception_ptr &e) {
-    //            // Executed in UI thread after the work is done
-    //
-    //            try {
-    //                if (e) std::rethrow_exception(e);
-    //            } catch (std::exception &e) {
-    //                BOOST_LOG_TRIVIAL(error) << e.what();
-    //            }
-    //            e = nullptr;
-    //        });
-    // This would result in quick run of the progress indicator notification
-    // from 0 to 100. Use replace_job() instead of queue_job() to cancel all
-    // pending jobs.
-    Worker& get_ui_job_worker();
-    const Worker & get_ui_job_worker() const;
-
+    void stop_jobs();
+    bool is_any_job_running() const;
     void select_view(const std::string& direction);
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
@@ -350,13 +316,8 @@ public:
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
 
-    bool is_sidebar_enabled() const;
-    void enable_sidebar(bool enabled);
     bool is_sidebar_collapsed() const;
-    void collapse_sidebar(bool collapse);
-    Sidebar::DockingState get_sidebar_docking_state() const;
-
-    void reset_window_layout();
+    void collapse_sidebar(bool show);
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
@@ -387,12 +348,13 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
+
     // BBS: replace z with plane_points
     void cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
 
     // BBS: segment model with CGAL
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
-    void apply_cut_object_to_model(size_t init_obj_idx, const ModelObjectPtrs& cut_objects);
+    void apply_cut_object_to_model(size_t obj_idx, const ModelObjectPtrs &cut_objects);
     void merge(size_t obj_idx, std::vector<int> &vol_indeces);
 
     void send_to_printer(bool isall = false);
@@ -434,7 +396,7 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool use_3mf = false);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
@@ -468,7 +430,7 @@ public:
 
     void on_filaments_change(size_t extruders_count);
     // BBS
-    void on_bed_type_change(BedType bed_type);
+    void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
@@ -530,7 +492,6 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
-    void drop_selection();
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
@@ -541,6 +502,10 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
+
+    //BBS:
+    void edit_text();
+    bool can_edit_text() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -554,7 +519,7 @@ public:
     bool can_simplify() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_arrange() const;
+    bool can_do_ui_job() const;
     //BBS
     bool can_cut_to_clipboard() const;
     bool can_layers_editing() const;
@@ -584,6 +549,7 @@ public:
 #endif
 
     bool init_collapse_toolbar();
+    void enable_collapse_toolbar(bool enable);
 
     const Camera& get_camera() const;
     Camera& get_camera();
@@ -599,7 +565,6 @@ public:
     int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
-    int duplicate_plate(int plate_index = -1);
     //BBS: select the sliced plate by index
     int select_sliced_plate(int plate_index);
     //BBS: set bed positions
@@ -659,7 +624,6 @@ public:
 
     bool need_update() const;
     void set_need_update(bool need_update);
-    void update_title_dirty_status();
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
@@ -741,6 +705,8 @@ public:
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
 
+    void toggle_non_manifold_edges();
+    bool is_show_non_manifold_edges();
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
     void enable_wireframe(bool status);
@@ -759,13 +725,14 @@ public:
     wxMenu* plate_menu();
     wxMenu* object_menu();
     wxMenu* part_menu();
-    wxMenu* text_part_menu();
     wxMenu* svg_part_menu();
+    wxMenu* cut_connector_menu();
     wxMenu* sla_object_menu();
     wxMenu* default_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
+    wxMenu* assemble_multi_selection_menu();
     int     GetPlateIndexByRightMenuInLeftUI();
     void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);
@@ -780,8 +747,6 @@ public:
         return m_arrange_running.compare_exchange_strong(prevRunning, true);
     };
     std::atomic<bool> m_arrange_running{false};
-
-    bool is_loading_project() const { return m_loading_project; }
 
 private:
     struct priv;
@@ -798,7 +763,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
-    bool m_loading_project { false };
+    bool m_loading_project {false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 
@@ -810,14 +775,11 @@ private:
     // BBS: add project slice related functions
     int start_next_slice();
 
-    void _calib_pa_pattern(const Calib_Params& params);
-    void _calib_pa_tower(const Calib_Params& params);
+    void _calib_pa_pattern(const Calib_Params &params);
+    void _calib_pa_tower(const Calib_Params &params);
     void _calib_pa_select_added_objects();
 
-    void cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
-
     friend class SuppressBackgroundProcessingUpdate;
-    friend class PlaterDropTarget;
 };
 
 class SuppressBackgroundProcessingUpdate

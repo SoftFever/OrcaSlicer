@@ -28,11 +28,12 @@ void GLGizmoSeam::on_shutdown()
 bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;
-
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    const wxString ctrl                = GUI::shortkey_ctrl_prefix();
+    const wxString alt                 = GUI::shortkey_alt_prefix();
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"] = _L("Section view");
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]= ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]      = _L("Brush size");
     m_desc["cursor_type"]      = _L("Brush shape");
     m_desc["enforce_caption"]  = _L("Left mouse button");
@@ -57,12 +58,16 @@ GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, u
 
 std::string GLGizmoSeam::on_get_name() const
 {
-    return _u8L("Seam painting");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Seam painting") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Seam painting");
+    }
 }
 
 
 
-void GLGizmoSeam::render_painter_gizmo()
+void GLGizmoSeam::render_painter_gizmo() const
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -120,12 +125,8 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
 
         float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
         Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
@@ -133,10 +134,11 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
-        shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
+        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
+        m_triangle_selectors[mesh_id]->render(m_imgui);
 
+        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -147,12 +149,12 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
+    caption_max += m_imgui->calc_text_size(": ").x + 35.f;
 
-    float  scale       = m_parent.get_scale();
-    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
+    float font_size = ImGui::GetFontSize();
+    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -185,7 +187,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (! m_c->selection_info()->model_object())
         return;
-
+    m_imgui_start_pos[0] = x;
+    m_imgui_start_pos[1] = y;
     const float approx_height = m_imgui->scaled(12.5f);
     y = std::min(y, bottom_limit - approx_height);
     //BBS: GUI refactor: move gizmo to the right
@@ -204,9 +207,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x + ImGui::GetStyle().FramePadding.x * 2)
-                                           + m_imgui->scaled(1.5f);
+    float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
+                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x + ImGui::GetStyle().FramePadding.x * 2) +
+                                       m_imgui->scaled(1.5f);
+    float rotate_horizontal_text = m_imgui->calc_text_size(_L("Rotate horizontally")).x + m_imgui->scaled(1.5f);
+    clipping_slider_left         = std::max(rotate_horizontal_text, clipping_slider_left);
     const float cursor_size_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
 
@@ -225,6 +230,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
+    float             textbox_width       = 1.5 * slider_icon_width;
+    SliderInputLayout slider_input_layout = {sliders_left_width, sliders_width, drag_left_width, textbox_width};
+
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_type"));
     std::array<wchar_t, 2> tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon };
@@ -240,13 +248,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));                     // ORCA Removes button background on dark mode
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));                       // ORCA: Fixes icon rendered without colors while using Light theme
         if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button,          ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,   ImVec4(0.f, 0.59f, 0.53f, 0.25f));  // ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,    ImVec4(0.f, 0.59f, 0.53f, 0.30f));  // ORCA use orca color for selected tool / brush
-            ImGui::PushStyleColor(ImGuiCol_Border,          ImGuiWrapper::COL_ORCA);            // ORCA use orca color for border on selected tool / brush
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
@@ -256,7 +262,6 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
-        ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(1);
         if (btn_clicked && m_current_tool != tool_ids[i]) {
             m_current_tool = tool_ids[i];
@@ -301,8 +306,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     }
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
-            wxGetApp().CallAfter([this](){
-                    m_c->object_clipper()->set_position_by_ratio(-1., false);
+            wxGetApp().CallAfter([this]() {
+                m_c->object_clipper()->set_position(-1., false);
                 });
         }
     }
@@ -316,13 +321,32 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
-    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position_by_ratio(clp_dist, true); }
-
-    ImGui::Separator();
-    m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only);
+    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
 
     ImGui::Separator();
 
+    if (!wxGetApp().plater()->get_camera().is_looking_front()){
+        m_is_front_view = false;
+    }
+    auto vertical_only = m_vertical_only;
+    if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
+        m_vertical_only = vertical_only;
+    }
+    auto is_front_view = m_is_front_view;
+    m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
+    if (m_is_front_view != is_front_view){
+        m_is_front_view = is_front_view;
+        if (m_is_front_view) {
+            update_front_view_radian();
+            change_camera_view_angle(m_front_view_radian);
+        }
+    }
+    m_imgui->disabled_begin(!m_is_front_view);
+    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, -180.f, 180.f, 0, DoubleShowType::DEGREE)) {
+       change_camera_view_angle(m_front_view_radian);
+    }
+    m_imgui->disabled_end();
+    ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
@@ -347,6 +371,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         m_parent.set_as_dirty();
     }
     ImGui::PopStyleVar(2);
+    m_imgui_end_pos[0] = m_imgui_start_pos[0] + ImGui::GetWindowWidth();
+    m_imgui_end_pos[1] = m_imgui_start_pos[1] + ImGui::GetWindowHeight();
     GizmoImguiEnd();
 
     //BBS
@@ -394,7 +420,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
     m_triangle_selectors.clear();
 
     int volume_id = -1;
-    std::vector<ColorRGBA> ebt_colors;
+    std::vector<std::array<float, 4>> ebt_colors;
     ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
     ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
     ebt_colors.push_back(TriangleSelectorGUI::blockers_color);

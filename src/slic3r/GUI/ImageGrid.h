@@ -10,7 +10,6 @@
 
 #include <wx/window.h>
 #include <wx/timer.h>
-#include <wx/arrstr.h>
 #include <boost/shared_ptr.hpp>
 
 #include "Widgets/StateColor.hpp"
@@ -88,7 +87,7 @@ protected:
 
     void renderContent2(wxDC &dc, wxPoint const &pt, int index, bool hit);
 
-    void renderButtons(wxDC &dc, wxArrayString const &texts, wxRect const &rect, size_t hit, int states);
+    void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit, int states);
 
     void renderText(wxDC &dc, wxString const &text, wxRect const &rect, int states);
 

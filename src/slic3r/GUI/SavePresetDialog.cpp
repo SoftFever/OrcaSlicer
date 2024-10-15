@@ -85,7 +85,13 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     m_input_ctrl = new ::TextInput(parent, from_u8(preset_name), wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     m_input_ctrl->SetBackgroundColor(input_bg);
-    m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
+    m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) {
+        update();
+        if (m_valid_type != NoValid)
+            m_parent->m_confirm->Enable();
+        else
+            m_parent->m_confirm->Disable();
+        });
     m_input_ctrl->SetMinSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
     m_input_ctrl->SetMaxSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
 
@@ -179,7 +185,6 @@ void SavePresetDialog::Item::update()
 
     m_valid_type = Valid;
     wxString info_line;
-
     const char *unusable_symbols = "<>[]:/\\|?*\"";
 
     const std::string unusable_suffix = PresetCollection::get_suffix_modified(); //"(modified)";
@@ -249,8 +254,13 @@ void SavePresetDialog::Item::update()
         m_radio_user->Disable();
         m_radio_project->Disable();
     } else {
-        m_radio_user->Enable();
-        m_radio_project->Enable();
+        if (m_valid_type != NoValid) {
+            m_radio_user->Enable();
+            m_radio_project->Enable();
+        } else {
+            m_radio_user->Disable();
+            m_radio_project->Disable();
+        }
 
         m_radio_user->SetValue(!m_save_to_project);
         m_radio_project->SetValue(m_save_to_project);
@@ -322,7 +332,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     SetFont(wxGetApp().normal_font());
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     if (suffix.empty()) suffix = _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
@@ -339,11 +349,14 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     btns->Add(0, 0, 1, wxEXPAND, 5);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_br_green(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_confirm->SetBorderColor(btn_br_green);
     m_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_confirm->SetCornerRadius(FromDIP(12));

@@ -1,4 +1,5 @@
 #include "PrintJob.hpp"
+#include <regex>
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -6,41 +7,39 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
-#include "slic3r/GUI/format.hpp"
 #include "bambu_networking.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-static auto check_gcode_failed_str      = _u8L("Abnormal print file data. Please slice again.");
-static auto     printjob_cancel_str         = _u8L("Task canceled.");
-static auto     timeout_to_upload_str       = _u8L("Upload task timed out. Please check the network status and try again.");
-static auto     failed_in_cloud_service_str = _u8L("Cloud service connection failed. Please try again.");
-static auto     file_is_not_exists_str      = _u8L("Print file not found. please slice again.");
-static auto file_over_size_str = _u8L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
-static auto print_canceled_str    = _u8L("Task canceled.");
-static auto send_print_failed_str = _u8L("Failed to send the print job. Please try again.");
-static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please try again.");
+static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again.");
+static wxString printjob_cancel_str         = _L("Task canceled.");
+static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network status and try again.");
+static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
+static wxString file_is_not_exists_str      = _L("Print file not found. please slice again.");
+static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
+static wxString print_canceled_str          = _L("Task canceled.");
+static wxString send_print_failed_str       = _L("Failed to send the print job. Please try again.");
+static wxString upload_ftp_failed_str       = _L("Failed to upload file to ftp. Please try again.");
 
-static auto     desc_network_error          = _u8L("Check the current status of the bambu server by clicking on the link above.");
-static auto     desc_file_too_large         = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
-static auto     desc_fail_not_exist         = _u8L("Print file not found, Please slice it again and send it for printing.");
+static wxString desc_network_error          = _L("Check the current status of the bambu server by clicking on the link above.");
+static wxString desc_file_too_large         = _L("The size of the print file is too large. Please adjust the file size and try again.");
+static wxString desc_fail_not_exist         = _L("Print file not found, Please slice it again and send it for printing.");
+static wxString desc_upload_ftp_failed      = _L("Failed to upload print file to FTP. Please check the network status and try again.");
 
-static auto desc_upload_ftp_failed      = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
-
-static auto sending_over_lan_str        = _u8L("Sending print job over LAN");
-static auto sending_over_cloud_str      = _u8L("Sending print job through cloud service");
+static wxString sending_over_lan_str        = _L("Sending print job over LAN");
+static wxString sending_over_cloud_str      = _L("Sending print job through cloud service");
 
 static wxString wait_sending_finish         = _L("Print task sending times out.");
 //static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
 //static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly.");
 
-PrintJob::PrintJob(std::string dev_id)
-: m_plater{wxGetApp().plater()},
+PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
+: PlaterJob{ std::move(pri), plater },
     m_dev_id(dev_id),
     m_is_calibration_task(false)
 {
-    m_print_job_completed_id = m_plater->get_print_finished_event();
+    m_print_job_completed_id = plater->get_print_finished_event();
 }
 
 void PrintJob::prepare()
@@ -52,6 +51,16 @@ void PrintJob::prepare()
         auto check_access_code_path = temp_file.c_str();
         BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
         job_data._temp_path = fs::path(check_access_code_path);
+    }
+}
+
+void PrintJob::on_exception(const std::exception_ptr &eptr)
+{
+    try {
+        if (eptr)
+            std::rethrow_exception(eptr);
+    } catch (std::exception &e) {
+        PlaterJob::on_exception(eptr);
     }
 }
 
@@ -103,6 +112,9 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
                 if (!j["message"].is_null())
                     message = j["message"].get<std::string>();
             }
+            switch (status) {
+                ;
+            }
         }
         catch (...) {
             ;
@@ -127,26 +139,24 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
     return wxEmptyString;
 } 
 
-void PrintJob::process(Ctl &ctl)
+void PrintJob::process()
 {
     /* display info */
-    std::string msg;
+    wxString msg;
     wxString error_str;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
 
     if (this->connection_type == "lan") {
-        msg = _u8L("Sending print job over LAN");
+        msg = _L("Sending print job over LAN");
     }
     else {
-        msg = _u8L("Sending print job through cloud service");
+        msg = _L("Sending print job through cloud service");
     }
 
-    ctl.update_status(0, msg);
-    ctl.call_on_main_thread([this] { prepare(); }).wait();
-
     int result = -1;
+    unsigned int http_code;
     std::string http_body;
 
     int total_plate_num = plate_data.plate_count;
@@ -160,12 +170,12 @@ void PrintJob::process(Ctl &ctl)
 
         /* check gcode is valid */
         if (!plate->is_valid_gcode_file() && m_print_type == "from_normal") {
-            ctl.update_status(curr_percent, check_gcode_failed_str);
+            update_status(curr_percent, check_gcode_failed_str);
             return;
         }
 
-        if (ctl.was_canceled()) {
-            ctl.update_status(curr_percent, printjob_cancel_str);
+        if (was_canceled()) {
+            update_status(curr_percent, printjob_cancel_str);
             return;
         }
     }
@@ -271,13 +281,23 @@ void PrintJob::process(Ctl &ctl)
         auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
         if (model_name != model_info->metadata_items.end()) {
             try {
-                params.project_name = model_name->second;
+
+                std::string mall_model_name = model_name->second;
+                std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
+                const char* unusable_symbols = "<>[]:/\\|?*\" ";
+                for (const char* symbol = unusable_symbols; *symbol != '\0'; ++symbol) {
+                    std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_');
+                }
+
+                std::regex pattern("_+");
+                params.project_name = std::regex_replace(mall_model_name, pattern, "_");
             }
             catch (...) {}
         }
     }
 
     params.stl_design_id = 0;
+
     if (!wxGetApp().model().stl_design_id.empty()) {
 
         auto country_code = wxGetApp().app_config->get_country_code();
@@ -308,12 +328,25 @@ void PrintJob::process(Ctl &ctl)
             try {
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
-            catch (const std::exception&) {
+            catch (...) {
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
         }
     }
+
+
+    if (params.stl_design_id == 0 || !wxGetApp().model().design_id.empty()) {
+        try {
+            params.stl_design_id = std::stoi(wxGetApp().model().design_id);
+        }
+        catch (...)
+        {
+            params.stl_design_id = 0;
+        }
+    }
+
+    
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
@@ -324,7 +357,7 @@ void PrintJob::process(Ctl &ctl)
     }
 
     wxString error_text;
-    std::string msg_text;
+    wxString msg_text;
 
 
     const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
@@ -340,7 +373,7 @@ void PrintJob::process(Ctl &ctl)
     bool is_try_lan_mode = false;
     bool is_try_lan_mode_failed = false;
 
-    auto update_fn = [this, &ctl,
+    auto update_fn = [this, 
         &is_try_lan_mode,
         &is_try_lan_mode_failed,
         &msg, 
@@ -352,49 +385,49 @@ void PrintJob::process(Ctl &ctl)
 
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate && !is_try_lan_mode_failed) {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending print job over LAN");
+                                msg = _L("Sending print job over LAN");
                             } else {
-                                msg = _u8L("Sending print job through cloud service");
+                                msg = _L("Sending print job through cloud service");
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload && !is_try_lan_mode_failed) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
                                 if (this->connection_type == "lan") {
-                                    msg = _u8L("Sending print job over LAN");
+                                    msg = _L("Sending print job over LAN");
                                 } else {
-                                    msg = _u8L("Sending print job through cloud service");
+                                    msg = _L("Sending print job through cloud service");
                                 }
-                                msg += format("(%s)", info);
+                                msg += wxString::Format("(%s)", info);
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending print job over LAN");
+                                msg = _L("Sending print job over LAN");
                             } else {
-                                msg = _u8L("Sending print job through cloud service");
+                                msg = _L("Sending print job through cloud service");
                             }
                         }
                         else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord && !is_try_lan_mode) {
-                            msg = _u8L("Sending print configuration");
+                            msg = _L("Sending print configuration");
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending && !is_try_lan_mode) {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending print job over LAN");
+                                msg = _L("Sending print job over LAN");
                             } else {
-                                msg = _u8L("Sending print job through cloud service");
+                                msg = _L("Sending print job through cloud service");
                             }
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
-                            msg = format(_u8L("Successfully sent. Will automatically jump to the device page in %ss"), info);
+                            msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %ss"), info);
                             if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
-                                msg = format(_u8L("Successfully sent. Will automatically jump to the next page in %ss"), info);
+                                msg = wxString::Format(_L("Successfully sent. Will automatically jump to the next page in %ss"), info);
                             }
-                            ctl.clear_percent();
+                            this->update_percent_finish();
                         } else {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending print job over LAN");
+                                msg = _L("Sending print job over LAN");
                             } else {
-                                msg = _u8L("Sending print job through cloud service");
+                                msg = _L("Sending print job through cloud service");
                             }
                         }
 
@@ -411,22 +444,22 @@ void PrintJob::process(Ctl &ctl)
                         //get errors 
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
                             if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
-                                m_plater->update_print_error_info(code, desc_file_too_large, info);
+                                m_plater->update_print_error_info(code, desc_file_too_large.ToStdString(), info);
                             }else if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST){
-                                m_plater->update_print_error_info(code, desc_fail_not_exist, info);
+                                m_plater->update_print_error_info(code, desc_fail_not_exist.ToStdString(), info);
                             }else if (code == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || code == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
-                                m_plater->update_print_error_info(code, desc_upload_ftp_failed, info);
+                                m_plater->update_print_error_info(code, desc_upload_ftp_failed.ToStdString(), info);
                             }else {
-                                m_plater->update_print_error_info(code, desc_network_error, info);
+                                m_plater->update_print_error_info(code, desc_network_error.ToStdString(), info);
                             }
                         }
                         else {
-                             ctl.update_status(curr_percent, msg);
+                             this->update_status(curr_percent, msg);
                         }
                     };
 
-    auto cancel_fn = [&ctl]() {
-            return ctl.was_canceled();
+    auto cancel_fn = [this]() {
+            return was_canceled();
         };
 
     
@@ -443,7 +476,7 @@ void PrintJob::process(Ctl &ctl)
             std::string curr_job_id;
             json job_info_j;
             try {
-                std::ignore = job_info_j.parse(job_info);
+                job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
                     curr_job_id = job_info_j["job_id"].get<std::string>();
                 }
@@ -495,7 +528,7 @@ void PrintJob::process(Ctl &ctl)
         //use ftp only
         if (m_print_type == "from_sdcard_view") {
             BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
-            ctl.update_status(curr_percent, _u8L("Sending print job through cloud service"));
+            this->update_status(curr_percent, _L("Sending print job through cloud service"));
             result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
         }
         else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
@@ -506,7 +539,7 @@ void PrintJob::process(Ctl &ctl)
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
-                ctl.update_status(curr_percent, _u8L("Sending print job over LAN"));
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
                 is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result < 0) {
@@ -523,7 +556,7 @@ void PrintJob::process(Ctl &ctl)
                 && this->has_sdcard) {
                 // try to send local with record
                 BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
-                ctl.update_status(curr_percent, _u8L("Sending print job over LAN"));
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result == 0) {
                     params.comments = "";
@@ -538,22 +571,22 @@ void PrintJob::process(Ctl &ctl)
                     is_try_lan_mode_failed = true;
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
-                    ctl.update_status(curr_percent, _u8L("Sending print job through cloud service"));
+                    this->update_status(curr_percent, _L("Sending print job through cloud service"));
                     result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
                 }
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
-                ctl.update_status(curr_percent, _u8L("Sending print job through cloud service"));
+                this->update_status(curr_percent, _L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
             }
         } 
     } else {
         if (this->has_sdcard) {
-            ctl.update_status(curr_percent, _u8L("Sending print job over LAN"));
+            this->update_status(curr_percent, _L("Sending print job over LAN"));
             result = m_agent->start_local_print(params, update_fn, cancel_fn);
         } else {
-            ctl.update_status(curr_percent, _u8L("An SD card needs to be inserted before printing via LAN."));
+            this->update_status(curr_percent, _L("An SD card needs to be inserted before printing via LAN."));
             return;
         }
     }
@@ -573,13 +606,13 @@ void PrintJob::process(Ctl &ctl)
             msg_text = upload_ftp_failed_str;
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
-            ctl.update_status(0, msg_text);
+            this->update_status(0, msg_text);
         } else {
             msg_text = send_print_failed_str;
         }
 
         if (result != BAMBU_NETWORK_ERR_CANCELED) {
-            ctl.show_error_info(msg_text, 0, "", "");
+            this->show_error_info(msg_text, 0, "", "");
         }
         
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
@@ -605,17 +638,10 @@ void PrintJob::process(Ctl &ctl)
     }
 }
 
-void PrintJob::finalize(bool canceled, std::exception_ptr &eptr) {
-    try {
-        if (eptr)
-            std::rethrow_exception(eptr);
-        eptr = nullptr;
-    } catch (...) {
-        eptr = std::current_exception();
-    }
+void PrintJob::finalize() {
+    if (was_canceled()) return;
 
-    if (canceled || eptr)
-        return;
+    Job::finalize();
 }
 
 void PrintJob::set_project_name(std::string name)
@@ -639,10 +665,10 @@ void PrintJob::on_check_ip_address_success(std::function<void()> func)
     m_enter_ip_address_fun_success = func;
 }
 
-// void PrintJob::connect_to_local_mqtt()
-// {
-//     this->update_status(0, wxEmptyString);
-// }
+void PrintJob::connect_to_local_mqtt()
+{
+    this->update_status(0, wxEmptyString);
+}
 
 void PrintJob::set_calibration_task(bool is_calibration)
 {

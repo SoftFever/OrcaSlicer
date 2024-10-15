@@ -3,18 +3,39 @@
 
 #include <memory>
 
-#include "Job.hpp"
+#include "JobNew.hpp"
 
 namespace Slic3r { namespace GUI {
-
+// #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
 // An interface of a worker that runs jobs on a dedicated worker thread, one
 // after the other. It is assumed that every method of this class is called
 // from the same main thread.
+
+    #ifdef EXECUTE_UPDATE_ON_MAIN_THREAD
+namespace {
+// Run Job on main thread (blocking) - ONLY DEBUG
+static inline bool execute_job(std::shared_ptr<JobNew> j)
+{
+    struct MyCtl : public JobNew::Ctl
+    {
+        void              update_status(int st, const std::string &msg = "") override{};
+        bool              was_canceled() const override { return false; }
+        std::future<void> call_on_main_thread(std::function<void()> fn) override { return std::future<void>{}; }
+    } ctl;
+    j->process(ctl);
+    wxGetApp().plater()->CallAfter([j]() {
+        std::exception_ptr e_ptr = nullptr;
+        j->finalize(false, e_ptr);
+    });
+    return true;
+}
+} // namespace
+#endif
 class Worker {
 public:
     // Queue up a new job after the current one. This call does not block.
     // Returns false if the job gets discarded.
-    virtual bool push(std::unique_ptr<Job> job) = 0;
+    virtual bool push(std::unique_ptr<JobNew> job) = 0;
 
     // Returns true if no job is running, the job queue is empty and no job
     // message is left to be processed. This means that nothing is left to
@@ -49,7 +70,7 @@ public:
     virtual ~Worker() = default;
 };
 
-template<class Fn> constexpr bool IsProcessFn = std::is_invocable_v<Fn, Job::Ctl&>;
+template<class Fn> constexpr bool IsProcessFn = std::is_invocable_v<Fn, JobNew::Ctl&>;
 template<class Fn> constexpr bool IsFinishFn  = std::is_invocable_v<Fn, bool, std::exception_ptr&>;
 
 // Helper function to use the worker with arbitrary functors.
@@ -58,7 +79,7 @@ template<class ProcessFn, class FinishFn,
          class = std::enable_if_t<IsFinishFn<FinishFn>> >
 bool queue_job(Worker &w, ProcessFn fn, FinishFn finishfn)
 {
-    struct LambdaJob: Job {
+    struct LambdaJob: JobNew {
         ProcessFn fn;
         FinishFn  finishfn;
 
@@ -83,7 +104,7 @@ bool queue_job(Worker &w, ProcessFn fn)
     return queue_job(w, std::move(fn), [](bool, std::exception_ptr &) {});
 }
 
-inline bool queue_job(Worker &w, std::unique_ptr<Job> j)
+inline bool queue_job(Worker &w, std::unique_ptr<JobNew> j)
 {
     return w.push(std::move(j));
 }

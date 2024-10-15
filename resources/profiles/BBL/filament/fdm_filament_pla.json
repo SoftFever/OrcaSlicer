@@ -28,6 +28,12 @@
     "textured_plate_temp": [
         "55"
     ],
+    "supertack_plate_temp": [
+        "35"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "35"
+    ],
     "cool_plate_temp_initial_layer": [
         "35"
     ],

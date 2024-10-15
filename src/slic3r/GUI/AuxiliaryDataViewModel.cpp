@@ -3,7 +3,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
 
-
 #include <boost/log/trivial.hpp>
 
 #include <wx/log.h>

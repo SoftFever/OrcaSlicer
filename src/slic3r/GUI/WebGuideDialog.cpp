@@ -102,14 +102,13 @@ static wxString update_custom_filaments()
 }
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
-    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "OrcaSlicer", wxDefaultPosition, wxDefaultSize, style),
+    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
     SetBackgroundColour(*wxWHITE);
     // INI
     m_SectionName = "firstguide";
-    PrivacyUse    = false;
-    StealthMode   = false;
+    PrivacyUse    = true;
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -486,15 +485,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
             else
                 InstallNetplugin = false;
-        }
-        else if (strCmd == "save_stealth_mode") {
-            wxString strAction = j["data"]["action"];
+        } 
+        else if (strCmd == "common_openurl")
+        {
+            std::string strUrl = j["url"];
 
-            if (strAction == "yes") {
-                StealthMode = true;
-            } else {
-                StealthMode = false;
-            }
+            wxLaunchDefaultBrowser(strUrl);
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
@@ -618,15 +614,13 @@ bool GuideFrame::IsFirstUse()
 
 int GuideFrame::SaveProfile()
 {
-    // SoftFever: don't collect info
     //privacy
-    // if (PrivacyUse == true) {
-    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
-    // } else
-    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+    if (PrivacyUse == true) {
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", true);
+    } else
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
     m_MainPtr->app_config->set("region", m_Region);
-    m_MainPtr->app_config->set_bool("stealth_mode", StealthMode);
 
     //finish
     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "finish", "1");
@@ -816,9 +810,9 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     }
 
     check_unsaved_preset_changes = (enabled_vendors != old_enabled_vendors) || (enabled_filaments != old_enabled_filaments);
-    wxString header = _L("The configuration package is changed in previous Config Guide");
+    wxString header = _L("The configuration package is changed to the previous Config Guide");
     wxString caption = _L("Configuration package changed");
-    int act_btns = ActionButtons::KEEP|ActionButtons::SAVE;
+    int act_btns = UnsavedChangesDialog::ActionButtons::KEEP|UnsavedChangesDialog::ActionButtons::SAVE;
 
     if (check_unsaved_preset_changes &&
         !wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
@@ -858,7 +852,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
 
         const std::map<std::string, std::set<std::string>>& model_maps = config->second;
         //for (const auto& vendor_profile : preset_bundle->vendors) {
-        for (const auto& model_it: model_maps) {
+        for (const auto model_it: model_maps) {
             if (model_it.second.size() > 0) {
                 variant = *model_it.second.begin();
                 const auto config_old = old_enabled_vendors.find(bundle_name);
@@ -908,7 +902,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     app_config->set_vendors(m_appconfig_new);
 
     if (check_unsaved_preset_changes)
-        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable,
+        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
                                     {preferred_model, preferred_variant, first_added_filament, std::string()});
 
     // Update the selections from the compatibilty.
@@ -975,7 +969,7 @@ bool GuideFrame::run()
             return false;
     } else if (result == wxID_EDIT) {
         this->Close();
-        Filamentinformation *filament_info = new Filamentinformation();
+        FilamentInfomation *filament_info = new FilamentInfomation();
         filament_info->filament_id        = m_editing_filament_id;
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
         return false;
@@ -990,10 +984,9 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDirectory << ", Filepath - "<<filepath;
 
     try {
-        std::string contents;
-        LoadFile(filepath, contents);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Json Contents: " << contents;
-        json jLocal = json::parse(contents);
+        boost::nowide::ifstream ifs(filepath);
+        json                    jLocal;
+        ifs >> jLocal;
 
         if (sVendor == "") {
             if (jLocal.contains("filament_vendor"))
@@ -1023,8 +1016,8 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
 
                 std::string FPath = pFilaList[FName]["sub_path"];
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Before Format Inherits Path: VendorDirectory - " << VendorDirectory << ", sub_path - " << FPath;
-                wxString strNewFile = wxString::Format("%s%c%s", wxString(VendorDirectory.c_str(), wxConvUTF8), boost::filesystem::path::preferred_separator, FPath);
-                boost::filesystem::path inherits_path(w2s(strNewFile));
+                std::string strNewFile = VendorDirectory + "/" + FPath;
+                boost::filesystem::path inherits_path(strNewFile);
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))
@@ -1073,11 +1066,11 @@ int GuideFrame::LoadProfile()
         //intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // ???????????
+        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // 查找目录中的第一个文件
         //if (handle == -1) { return -1; }
 
         //do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1085,7 +1078,7 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(strVendor, TargetFolder + findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // ???????????
+        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
 
         // BBS: change directories by design
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
@@ -1111,11 +1104,11 @@ int GuideFrame::LoadProfile()
         // intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // ???????????
+        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // 查找目录中的第一个文件
         // if (handle == -1) { return -1; }
 
         // do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1123,7 +1116,7 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(w2s(strVendor), vendor_dir.make_preferred().string() + "\\"+ findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // ???????????
+        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
 
 
         //load BBL bundle from user data path
@@ -1139,8 +1132,8 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
 
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast('\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast( '\\');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1158,8 +1151,8 @@ int GuideFrame::LoadProfile()
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast('\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast( '\\');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1234,9 +1227,6 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
         network_plugin_ready = wxGetApp().is_compatibility_version();
-
-        StealthMode = wxGetApp().app_config->get_bool("app","stealth_mode");
-        m_ProfileJson["stealth_mode"] = StealthMode;
     }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
@@ -1263,186 +1253,6 @@ void StringReplace(string &strBase, string strSrc, string strDes)
     }
 }
 
-
-//int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath)
-//{
-//    //wxString strFolder = strFilePath.BeforeLast(boost::filesystem::path::preferred_separator);
-//    boost::filesystem::path file_path(strFilePath);
-//    boost::filesystem::path vendor_dir = boost::filesystem::absolute(file_path.parent_path()/ strVendor).make_preferred();
-//    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  vendor path %1%.")% vendor_dir.string();
-//    try {
-//
-//        //wxLogMessage("GUIDE: json_path1  %s", w2s(strFilePath));
-//
-//        std::string contents;
-//        LoadFile(strFilePath, contents);
-//        //wxLogMessage("GUIDE: json_path1 content: %s", contents);
-//        json jLocal=json::parse(contents);
-//        //wxLogMessage("GUIDE: json_path1 Loaded");
-//
-//        // BBS:models
-//        json pmodels = jLocal["machine_model_list"];
-//        int  nsize   = pmodels.size();
-//
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% machine models")%nsize;
-//
-//        for (int n = 0; n < nsize; n++) {
-//            json OneModel = pmodels.at(n);
-//
-//            OneModel["model"] = OneModel["name"];
-//            OneModel.erase("name");
-//
-//            std::string s1 = OneModel["model"];
-//            std::string s2 = OneModel["sub_path"];
-//
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//
-//            //wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
-//            LoadFile(sub_file, contents);
-//            //wxLogMessage("GUIDE: json_path2 content: %s", contents);
-//            json     pm=json::parse(contents);
-//            //wxLogMessage("GUIDE: json_path2  loaded");
-//
-//            OneModel["vendor"]          = strVendor;
-//            std::string NozzleOpt = pm["nozzle_diameter"];
-//            StringReplace(NozzleOpt, " ", "");
-//            OneModel["nozzle_diameter"] = NozzleOpt;
-//            OneModel["materials"]       = pm["default_materials"];
-//
-//            //wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
-//            std::string cover_file = s1+"_cover.png";
-//            boost::filesystem::path cover_path = boost::filesystem::absolute(vendor_dir / cover_file).make_preferred();
-//            OneModel["cover"]   = cover_path.string();
-//
-//            OneModel["nozzle_selected"] = "";
-//
-//            m_ProfileJson["model"].push_back(OneModel);
-//        }
-//
-//        // BBS:Machine
-//        json pmachine = jLocal["machine_list"];
-//        nsize         = pmachine.size();
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% machines")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneMachine = pmachine.at(n);
-//
-//            std::string s1 = OneMachine["name"];
-//            std::string s2 = OneMachine["sub_path"];
-//
-//            //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//            LoadFile(sub_file, contents);
-//            json pm = json::parse(contents);
-//
-//            std::string strInstant = pm["instantiation"];
-//            if (strInstant.compare("true") == 0) {
-//                OneMachine["model"] = pm["printer_model"];
-//
-//                m_ProfileJson["machine"].push_back(OneMachine);
-//            }
-//        }
-//
-//        // BBS:Filament
-//        json pFilament = jLocal["filament_list"];
-//        nsize          = pFilament.size();
-//
-//        int nFalse = 0;
-//        int nModel = 0;
-//        int nFinish = 0;
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% filaments")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneFF = pFilament.at(n);
-//
-//            std::string s1 = OneFF["name"];
-//            std::string s2 = OneFF["sub_path"];
-//
-//            if (!m_ProfileJson["filament"].contains(s1))
-//            {
-//                //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//                boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//                std::string sub_file = sub_path.string();
-//                LoadFile(sub_file, contents);
-//                json pm = json::parse(contents);
-//
-//                std::string strInstant = pm["instantiation"];
-//                if (strInstant == "true") {
-//                    std::string sV;
-//                    std::string sT;
-//
-//                    int nRet = GetFilamentInfo(sub_file, sV, sT);
-//                    if (nRet != 0) continue;
-//
-//                    OneFF["vendor"] = sV;
-//                    OneFF["type"] = sT;
-//
-//                    OneFF["models"] = "";
-//                    OneFF["selected"] = 0;
-//                }
-//                else
-//                    continue;
-//
-//            } else {
-//                OneFF = m_ProfileJson["filament"][s1];
-//            }
-//
-//            std::string vModel = "";
-//            int nm    = m_ProfileJson["model"].size();
-//            int bFind = 0;
-//            for (int m = 0; m < nm; m++) {
-//                std::string strFF = m_ProfileJson["model"][m]["materials"];
-//                strFF          = (boost::format(";%1%;")%strFF).str();
-//                std::string strTT = (boost::format(";%1%;")%s1).str();
-//                if (strFF.find(strTT) != std::string::npos) {
-//                    std::string sModel = m_ProfileJson["model"][m]["model"];
-//
-//                    vModel = (boost::format("%1%[%2%]")%vModel %sModel).str();
-//                    bFind           = 1;
-//                }
-//            }
-//
-//            OneFF["models"]                    = vModel;
-//
-//            m_ProfileJson["filament"][s1] = OneFF;
-//        }
-//
-//        //process
-//        json pProcess = jLocal["process_list"];
-//        nsize    = pProcess.size();
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% processes")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneProcess = pProcess.at(n);
-//
-//            std::string s2            = OneProcess["sub_path"];
-//            //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//            LoadFile(sub_file, contents);
-//            json pm = json::parse(contents);
-//
-//            std::string bInstall = pm["instantiation"];
-//            if (bInstall == "true")
-//            {
-//                m_ProfileJson["process"].push_back(OneProcess);
-//            }
-//        }
-//
-//    }
-//    catch(nlohmann::detail::parse_error &err) {
-//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<strFilePath <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-//        return -1;
-//    }
-//    catch (std::exception &e) {
-//        // wxMessageBox(e.what(), "", MB_OK);
-//        //wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
-//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << strFilePath << " got exception: " << e.what();
-//        return -1;
-//    }
-//
-//    return 0;
-//}
-
 int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath)
 {
     // wxString strFolder = strFilePath.BeforeLast(boost::filesystem::path::preferred_separator);
@@ -1452,11 +1262,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
     try {
         // wxLogMessage("GUIDE: json_path1  %s", w2s(strFilePath));
 
-        std::string contents;
-        LoadFile(strFilePath, contents);
-        // wxLogMessage("GUIDE: json_path1 content: %s", contents);
-        json jLocal = json::parse(contents);
-        // wxLogMessage("GUIDE: json_path1 Loaded");
+        boost::nowide::ifstream ifs(strFilePath);
+        json                    jLocal;
+        ifs >> jLocal;
 
         // BBS:models
         json pmodels = jLocal["machine_model_list"];
@@ -1476,11 +1284,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
 
-            // wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
-            LoadFile(sub_file, contents);
-            // wxLogMessage("GUIDE: json_path2 content: %s", contents);
-            json pm = json::parse(contents);
-            // wxLogMessage("GUIDE: json_path2  loaded");
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             OneModel["vendor"]    = strVendor;
             std::string NozzleOpt = pm["nozzle_diameter"];
@@ -1490,13 +1296,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
             // wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
             std::string             cover_file = s1 + "_cover.png";
-            boost::filesystem::path cover_path = boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/profiles/" / strVendor / cover_file).make_preferred();
-            if (!boost::filesystem::exists(cover_path)) {
-                cover_path =
-                    (boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/web/image/printer/") /
-                     cover_file)
-                        .make_preferred();
-            }
+            boost::filesystem::path cover_path = boost::filesystem::absolute(vendor_dir / cover_file).make_preferred();
             OneModel["cover"]                  = cover_path.string();
 
             OneModel["nozzle_selected"] = "";
@@ -1517,8 +1317,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
-            LoadFile(sub_file, contents);
-            json pm = json::parse(contents);
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             std::string strInstant = pm["instantiation"];
             if (strInstant.compare("true") == 0) {
@@ -1558,11 +1359,12 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
                 boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
                 std::string             sub_file = sub_path.string();
-                LoadFile(sub_file, contents);
-                json pm = json::parse(contents);
+                boost::nowide::ifstream ifs(sub_file);
+                json                    pm;
+                ifs >> pm;
                 
                 std::string strInstant = pm["instantiation"];
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation?" << strInstant;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation：" << strInstant;
 
                 if (strInstant == "true") {
                     std::string sV;
@@ -1616,8 +1418,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
-            LoadFile(sub_file, contents);
-            json pm = json::parse(contents);
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             std::string bInstall = pm["instantiation"];
             if (bInstall == "true") { m_ProfileJson["process"].push_back(OneProcess); }
@@ -1656,26 +1459,26 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "/" , w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
-bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
-{
-    try {
-        boost::nowide::ifstream t(jPath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        sContent=buffer.str();
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
-    }
-    catch (std::exception &e)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",  got exception: "<<e.what();
-        return false;
-    }
-
-    return true;
-}
+//bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
+//{
+//    try {
+//        boost::nowide::ifstream t(jPath);
+//        std::stringstream buffer;
+//        buffer << t.rdbuf();
+//        sContent=buffer.str();
+//        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
+//    }
+//    catch (std::exception &e)
+//    {
+//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",  got exception: "<<e.what();
+//        return false;
+//    }
+//
+//    return true;
+//}
 
 int GuideFrame::DownloadPlugin()
 {

@@ -1,6 +1,6 @@
 //
 //  wxMediaCtrl2.m
-//  OrcaSlicer
+//  BambuStudio
 //
 //  Created by cmguo on 2021/12/7.
 //
@@ -97,8 +97,8 @@ void wxMediaCtrl2::Load(wxURI url)
     BambuPlayer * player = (BambuPlayer *) m_player;
     if (player) {
         [player close];
-        [player open: url.BuildURI().ToUTF8()];
         m_error = 0;
+        [player open: url.BuildURI().ToUTF8()];
     }
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     event.SetId(GetId());
@@ -140,6 +140,10 @@ void wxMediaCtrl2::Stop()
     NotifyStopped();
 }
 
+void wxMediaCtrl2::SetIdleImage(wxString const &image)
+{
+}
+
 void wxMediaCtrl2::NotifyStopped()
 {
     if (m_state != wxMEDIASTATE_STOPPED) {
@@ -167,4 +171,11 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     } else {
         return {0, 0};
     }
+}
+
+void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+{
+    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    wxMediaCtrl_OnSize(this, m_video_size, width, height);
 }
