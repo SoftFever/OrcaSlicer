@@ -6808,7 +6808,7 @@ std::string GCode::set_object_info(Print *print) {
 // convert a model-space scaled point into G-code coordinates
 Vec2d GCode::point_to_gcode(const Point &point) const
 {
-    Vec2d extruder_offset = FILAMENT_CONFIG(extruder_offset);
+    Vec2d extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return unscale(point) + m_origin - extruder_offset;
 }
 

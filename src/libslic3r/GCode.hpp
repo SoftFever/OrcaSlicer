@@ -84,7 +84,6 @@ public:
         m_right(float(/*print_config.wipe_tower_x.value +*/ print_config.prime_tower_width.value)),
         m_wipe_tower_pos(float(print_config.wipe_tower_x.get_at(plate_idx)), float(print_config.wipe_tower_y.get_at(plate_idx))),
         m_wipe_tower_rotation(float(print_config.wipe_tower_rotation_angle)),
-        m_extruder_offsets(print_config.extruder_offset.values),
         m_priming(priming),
         m_tool_changes(tool_changes),
         m_final_purge(final_purge),
@@ -95,7 +94,13 @@ public:
         m_enable_timelapse_print(print_config.timelapse_type.value == TimelapseType::tlSmooth),
         m_is_first_print(true),
         m_print_config(&print_config)
-    {}
+    {
+        // initialize with the extruder offset of master extruder id
+        m_extruder_offsets.resize(print_config.filament_map.size(), print_config.extruder_offset.get_at(print_config.master_extruder_id.value - 1));
+        const auto& filament_map = print_config.filament_map.values; // 1 based idx
+        for (size_t idx = 0; idx < filament_map.size(); ++idx)
+            m_extruder_offsets[idx] = print_config.extruder_offset.get_at(filament_map[idx] - 1);
+    }
 
     std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
@@ -121,7 +126,7 @@ private:
     const float                                                  m_right;
     const Vec2f                                                  m_wipe_tower_pos;
     const float                                                  m_wipe_tower_rotation;
-    const std::vector<Vec2d>                                     m_extruder_offsets;
+    std::vector<Vec2d>                                           m_extruder_offsets;
 
     // Reference to cached values at the Printer class.
     const std::vector<WipeTower::ToolChangeResult>              &m_priming;
