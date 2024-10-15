@@ -24,6 +24,7 @@
 namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
+constexpr double similar_color_threshold_de2000 = 20.0;
 
 static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_filaments, const PrintConfig* print_config, const std::string& type)
 {
@@ -1003,7 +1004,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
                     colors.emplace_back(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
                 ams_colors[i] = std::move(colors);
             }
-            ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors);
+            ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors, similar_color_threshold_de2000);
         }
     }
 

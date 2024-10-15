@@ -241,7 +241,7 @@ namespace Slic3r
                 }
             }
 
-            if (tmp_cost < ams_color_dist_threshold && tmp_cost < best_cost) {
+            if (best_map.empty() || (tmp_cost < ams_color_dist_threshold && tmp_cost < best_cost)) {
                 best_cost = tmp_cost;
                 best_map = map;
             }
