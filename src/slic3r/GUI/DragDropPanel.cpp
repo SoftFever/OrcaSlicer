@@ -1,6 +1,8 @@
 #include "DragDropPanel.hpp"
+#include <slic3r/GUI/wxExtensions.hpp>
 
 namespace Slic3r { namespace GUI {
+
 // Custom data object used to store information that needs to be backed up during drag and drop
 class ColorDataObject : public wxDataObjectSimple
 {
@@ -65,9 +67,8 @@ private:
 ///////////////   ColorPanel  start ////////////////////////
 // The UI panel of drag item
 ColorPanel::ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(50, 50), wxBORDER_SIMPLE), m_parent(parent), m_color(color), m_filament_id(filament_id)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32, 40), wxBORDER_NONE), m_parent(parent), m_color(color), m_filament_id(filament_id)
 {
-    SetBackgroundColour(color);
     Bind(wxEVT_LEFT_DOWN, &ColorPanel::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &ColorPanel::OnLeftUp, this);
     Bind(wxEVT_PAINT, &ColorPanel::OnPaint, this);
@@ -85,6 +86,9 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
 {
     wxPaintDC dc(this);
     wxSize   size  = GetSize();
+    std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    wxBitmap bmp = ScalableBitmap(this, "filament_green", 40, false, false, false, { replace_color }).bmp();
+    dc.DrawBitmap(bmp, wxPoint(0,0));
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
     dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color
     dc.DrawLabel(label, wxRect(0, 0, size.GetWidth(), size.GetHeight()), wxALIGN_CENTER);
@@ -153,17 +157,26 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 
 
 DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_is_auto(is_auto)
 {
-    SetBackgroundColour(*wxLIGHT_GREY);
+    SetBackgroundColour(0xF8F8F8);
 
     m_sizer    = new wxBoxSizer(wxVERTICAL);
+
+    auto title_panel = new wxPanel(this);
+    title_panel->SetBackgroundColour(0xEEEEEE);
+    auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
+    title_panel->SetSizer(title_sizer);
+
     wxStaticText *staticText = new wxStaticText(this, wxID_ANY, label);
-    m_sizer->Add(staticText, 0, wxALIGN_CENTER | wxALL, 5);
+    staticText->SetBackgroundColour(0xEEEEEE);
+    title_sizer->Add(staticText, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+    m_sizer->Add(title_panel, 0, wxEXPAND);
     m_sizer->AddSpacer(20);
 
-    m_grid_item_sizer = new wxGridSizer(0, 3, 10, 10);   // row = 0, col = 3,  10 10 is space
+    m_grid_item_sizer = new wxGridSizer(0, 5, FromDIP(10), 0);   // row = 0, col = 3,  10 10 is space
     m_sizer->Add(m_grid_item_sizer);
 
     // set droptarget
@@ -177,8 +190,8 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
 void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool update_ui)
 {
     ColorPanel *panel = new ColorPanel(this, color, filament_id);
-    panel->SetMinSize(wxSize(50, 50));
-    m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxALL, 5);
+    panel->SetMinSize(wxSize(FromDIP(32), FromDIP(40)));
+    m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(10));
     m_filament_blocks.push_back(panel);
     if (update_ui) {
         Layout();

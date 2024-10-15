@@ -81,7 +81,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
     main_sizer->Add(m_mode_switch_btn, 0, wxCENTER | wxALL, 10);
 
     m_tip_text = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-    main_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxALL, 5);
+    main_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxLEFT, 15);
 
     m_extruder_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -105,11 +105,11 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
         }
     }
 
-    m_switch_filament_btn = new Button(this, "", "switch_filament_maps", 12, 12);
+    m_switch_filament_btn = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
     m_switch_filament_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_filaments, this);
     m_switch_filament_btn->SetCanFocus(false);
     // just for placeholder for auto
-    m_switch_filament_btn_auto = new Button(this, "", "switch_filament_maps", 12, 12);
+    m_switch_filament_btn_auto = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
     m_switch_filament_btn_auto->Enable(false);
 
     m_extruder_panel_sizer->Add(m_manual_left_panel, 1, wxEXPAND | wxALL, 5);

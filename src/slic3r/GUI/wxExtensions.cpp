@@ -888,7 +888,7 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize, bitmap2, new_color);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, new_color.empty() ? std::string() : new_color.front(), false, resize, bitmap2, new_color);
     if (px_cnt == 0) {
         m_px_cnt = m_bmp.GetHeight(); // scale
         unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);

@@ -45,7 +45,7 @@ class ColorPanel : public wxPanel
 public:
     ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id);
 
-    wxColour GetColor() const { return GetBackgroundColour(); }
+    wxColour GetColor() const { return m_color; }
     int      GetFilamentId() const { return m_filament_id; }
 
 private:
