@@ -1,7 +1,10 @@
 #ifndef FLUSH_VOL_PREDICTOR_HPP
 #define FLUSH_VOL_PREDICTOR_HPP
 
+#include<cstdint>
 #include<unordered_map>
+#include<string>
+#include<vector>
 
 namespace FlushPredict
 {
