@@ -733,7 +733,8 @@ void PrintObject::simplify_extrusion_path()
     }
 
     if (this->set_started(posSimplifySupportPath)) {
-        //BBS: share same progress
+        //BBS: disable circle simplification for support as it causes separation of support walls
+        #if 0
         m_print->set_status(75, L("Optimizing toolpath"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
         tbb::parallel_for(
@@ -747,6 +748,7 @@ void PrintObject::simplify_extrusion_path()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
+        #endif
         this->set_done(posSimplifySupportPath);
     }
 }
@@ -3680,91 +3682,8 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
-    static const double super_overhang_area_threshold = SQ(scale_(5.0));
     const double cantilevel_dist_thresh = scale_(6);
-#if 0
-    double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
-    int enforce_support_layers = m_config.enforce_support_layers;
-    // not fixing in extrusion width % PR b/c never called 
-    const coordf_t extrusion_width = m_config.line_width.value;
-    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
-    float max_bridge_length = scale_(m_config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
 
-    for (size_t layer_nr = enforce_support_layers + 1; layer_nr < this->layer_count(); layer_nr++) {
-        Layer* layer = m_layers[layer_nr];
-        Layer* lower_layer = layer->lower_layer;
-
-        coordf_t support_offset_scaled = extrusion_width_scaled * 0.9;
-        ExPolygons lower_layer_offseted = offset_ex(lower_layer->lslices, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-
-        // 1. check sharp tail
-        for (const LayerRegion* layerm : layer->regions()) {
-            for (const ExPolygon& expoly : layerm->raw_slices) {
-                // detect sharp tail
-                if (intersection_ex({ expoly }, lower_layer_offseted).empty())
-                    return SharpTail;
-            }
-        }
-
-        // 2. check overhang area
-        ExPolygons super_overhang_expolys = std::move(diff_ex(layer->lslices, lower_layer_offseted));
-        super_overhang_expolys.erase(std::remove_if(
-            super_overhang_expolys.begin(),
-            super_overhang_expolys.end(),
-            [extrusion_width_scaled](ExPolygon& area) {
-                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
-            }),
-            super_overhang_expolys.end());
-
-        // remove bridge
-        if (bridge_no_support)
-            remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &super_overhang_expolys, max_bridge_length);
-
-        Polygons super_overhang_polys = to_polygons(super_overhang_expolys);
-
-
-        super_overhang_polys.erase(std::remove_if(
-            super_overhang_polys.begin(),
-            super_overhang_polys.end(),
-            [extrusion_width_scaled](Polygon& area) {
-                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
-            }),
-            super_overhang_polys.end());
-
-        double super_overhang_area = 0.0;
-        for (Polygon& poly : super_overhang_polys) {
-            bool is_ccw = poly.is_counter_clockwise();
-            double area_  = poly.area();
-            if (is_ccw) {
-                if (area_ > super_overhang_area_threshold)
-                    return LargeOverhang;
-                super_overhang_area += area_;
-            }
-            else {
-                super_overhang_area -= area_;
-            }
-        }
-
-        //if (super_overhang_area > super_overhang_area_threshold)
-        //    return LargeOverhang;
-
-        // 3. check overhang distance
-        const double distance_threshold_scaled = extrusion_width_scaled * 2;
-        ExPolygons lower_layer_offseted_2 = offset_ex(lower_layer->lslices, distance_threshold_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-        ExPolygons exceed_overhang = std::move(diff_ex(super_overhang_polys, lower_layer_offseted_2));
-        exceed_overhang.erase(std::remove_if(
-            exceed_overhang.begin(),
-            exceed_overhang.end(),
-            [extrusion_width_scaled](ExPolygon& area) {
-                // tolerance for 1 extrusion width offset
-                return offset_ex(area, -0.5 * extrusion_width_scaled).empty();
-            }),
-            exceed_overhang.end());
-        if (!exceed_overhang.empty())
-            return LargeOverhang;
-    }
-#else
     TreeSupport tree_support(*this, m_slicing_params);
     tree_support.support_type = SupportType::stTreeAuto; // need to set support type to fully utilize the power of feature detection
     tree_support.detect_overhangs(true);
@@ -3773,7 +3692,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
         return SharpTail;
     else if (tree_support.has_cantilever && tree_support.max_cantilever_dist > cantilevel_dist_thresh)
         return Cantilever;
-#endif
+
     return NoNeedSupp;
 }
 

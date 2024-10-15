@@ -4809,7 +4809,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(50., true));
 
     def = this->add("tree_support_branch_angle", coFloat);
-    def->label = L("Tree support branch angle");
+    def->label = L("Branch angle");
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
@@ -4843,7 +4843,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(25));
 
     def           = this->add("tree_support_branch_distance", coFloat);
-    def->label    = L("Tree support branch distance");
+    def->label    = L("Branch distance");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the distance between neighboring tree support nodes.");
     def->sidetext = L("mm");
@@ -4907,7 +4907,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.8));
 
     def           = this->add("tree_support_branch_diameter", coFloat);
-    def->label    = L("Tree support branch diameter");
+    def->label    = L("Branch diameter");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the initial diameter of support nodes.");
     def->sidetext = L("mm");
@@ -4915,16 +4915,6 @@ void PrintConfigDef::init_fff_params()
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
-
-    def           = this->add("tree_support_branch_diameter_organic", coFloat);
-    def->label    = L("Tree support branch diameter");
-    def->category = L("Support");
-    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
-    def->sidetext = L("mm");
-    def->min      = 1.0;
-    def->max      = 10;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_branch_diameter_angle", coFloat);
     // TRN PrintSettings: #lmFIXME 
@@ -4939,6 +4929,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 15;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
+
+    def           = this->add("tree_support_branch_diameter_organic", coFloat);
+    def->label    = L("Tree support branch diameter");
+    def->category = L("Support");
+    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
+    def->sidetext = L("mm");
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
