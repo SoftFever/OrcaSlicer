@@ -4417,14 +4417,20 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ////BBS Color Arrangement Recommendation
 
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
+    auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
     auto filament_map_mode = config.filament_map_mode.value;
-    auto is_auto           = filament_map_mode == FilamentMapMode::fmmAuto;
+    bool has_tips           = true;
+    if (filament_map_mode == FilamentMapMode::fmmAuto) {
+        float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
+        int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
+        if (!(saved_flush_weight > EPSILON || saved_filament_changed_time > 0)) has_tips = false;
+    }
     // BBS AMS containers
     float line_height          = ImGui::GetFrameHeight();
     int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
     float three_words_width    = imgui.calc_text_size("ABC"sv).x;
     float ams_item_height = std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.6f + line_height) + line_height * 2;
-    float AMS_container_height = ams_item_height + line_height * (is_auto ? 6 : 7);
+    float AMS_container_height = ams_item_height + line_height * (has_tips ? 6 : 4);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
@@ -4433,7 +4439,6 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
         float available_width   = ImGui::GetContentRegionAvail().x;
-        float available_height = ImGui::GetContentRegionAvail().y;
         float half_width       = available_width * 0.49f;
         float spacing           = 18.0f * m_scale;
 
@@ -4453,7 +4458,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
-            imgui.text(_u8L("Left"));
+            imgui.text(_u8L("Left extruder"));
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_left_extruder_filament) {
@@ -4468,7 +4473,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
-            imgui.text(_u8L("Right"));
+            imgui.text(_u8L("Right extruder"));
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_right_extruder_filament) {
@@ -4481,27 +4486,15 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar(1);
         ImGui::Dummy({window_padding, window_padding});
-        link_text(_u8L("Customize Arrangement"));
 
-        auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
         if (filament_map_mode == fmmAuto) {
-            // imgui.text(from_u8((boost::format(_u8L("Info by multi  extruder : %1%g filament and %2% filament changes")) %
-            // stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count).str()));
-            // imgui.text(from_u8((boost::format(_u8L("Info by single extruder : %1%g filament and %2% filament changes")) %
-            // stats_by_extruder.stats_by_single_extruder.filament_flush_weight % stats_by_extruder.stats_by_single_extruder.filament_change_count).str()));
-
             float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
             int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
             if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
                 imgui.text(_u8L("This arrangement would be optimal."));
-                imgui.text(from_u8((boost::format(_u8L("It will save %1%g filament and %2% filament changes")) % saved_flush_weight % saved_filament_changed_time).str()));
+                imgui.text(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-extruder printer.")) % saved_flush_weight % saved_filament_changed_time).str()));
             }
         } else if (filament_map_mode == fmmManual) {
-            // imgui.text(from_u8((boost::format(_u8L("Info by manual mode : %1%g filament and %2% filament changes")) %
-            // stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count).str()));
-            // imgui.text(from_u8((boost::format(_u8L("Info by auto   mode : %1%g filament and %2% filament changes")) %
-            // stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight % stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count).str()));
-
             ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
             float more_cost = stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
@@ -4509,17 +4502,20 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 
             if (more_cost > EPSILON || more_time > 0) {
                 imgui.text(_u8L("This arrangement is not optimal."));
-                imgui.text(from_u8((boost::format(_u8L("It will cost %1%g filament and %2% filament changes more than\nthe optiomal arrangrement.")) %more_cost % more_time).str()));
+                imgui.text(from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal arrangement.")) %more_cost % more_time).str()));
             } else {
                 float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
                 int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
                 if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
                     imgui.text(_u8L("This arrangement would be optimal."));
-                    imgui.text(from_u8((boost::format(_u8L("It will save %1%g filament and %2% filament changes")) % saved_flush_weight % saved_filament_changed_time).str()));
+                    imgui.text(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-extruder printer.")) % saved_flush_weight % saved_filament_changed_time).str()));
                 }
             }
             ImGui::PopStyleColor(1);
         }
+
+        ImGui::Dummy({window_padding, window_padding});
+        link_text(_u8L("Customize Arrangement"));
 
         ImGui::EndChild();
     }
