@@ -70,9 +70,6 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
 {
     SetBackgroundColour(*wxWHITE);
 
-    SetMinSize(wxSize(500, 100));
-    SetMaxSize(wxSize(500, 1500));
-
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_mode_switch_btn = new SwitchButton(this);
