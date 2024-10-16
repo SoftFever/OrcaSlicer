@@ -5108,6 +5108,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 		plate->set_shape(shape, exclude_areas, extruder_areas, pos, height_to_lid, height_to_rod);
 	}
 	is_load_bedtype_textures = false; //reload textures
+    is_load_extruder_only_area_textures = false; // reload textures
 	calc_bounding_boxes();
 
 	update_logo_texture_filename(texture_filename);
