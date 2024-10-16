@@ -216,6 +216,8 @@ public:
         bool                force_sinking_contours : 1;
         // Is render for picking
         bool                picking : 1;
+        // slice error
+        bool                slice_error : 1;
     };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?

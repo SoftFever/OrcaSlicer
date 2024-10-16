@@ -224,6 +224,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , partly_inside(false)
     , hover(HS_None)
     , is_modifier(false)
+    , slice_error(false)
     , is_wipe_tower(false)
     , is_extrusion_path(false)
     , force_transparent(false)
@@ -999,7 +1000,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
 #endif // ENABLE_ENVIRONMENT_MAP
         glcheck();
 
-        volume.first->model.set_color(volume.first->render_color);
+		auto red_color = ColorRGBA{1.0f, 0.0f, 0.0f, 1.0f};//slice_error
+        volume.first->model.set_color(volume.first->slice_error ? red_color : volume.first->render_color);
         const Transform3d model_matrix = volume.first->world_matrix();
         shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
         shader->set_uniform("projection_matrix", projection_matrix);

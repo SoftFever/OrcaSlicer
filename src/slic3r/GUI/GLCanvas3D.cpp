@@ -9755,15 +9755,34 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             int extruder_id = error_iter->first + 1;
             std::string filaments;
+            std::vector<int> slice_error_object_idxs;
             for (size_t i = 0; i < error_iter->second.size(); ++i) {
                 if (i > 0) {
                     filaments += ", ";
                 }
                 int filament_id = error_iter->second[i].first;
                 int object_label_id = error_iter->second[i].second;
-                // todo: display the conflict objects
+
                 //ModelObject* object->instances[0]->get_labeled_id();
                 filaments += std::to_string(filament_id);
+                for (int object_idx = 0; object_idx < (int) m_model->objects.size(); ++object_idx) {
+                    const ModelObject *model_object = m_model->objects[object_idx];
+                    for (int instance_idx = 0; instance_idx < (int) model_object->instances.size(); ++instance_idx) {
+                        const ModelInstance *model_instance = model_object->instances[instance_idx];
+                        auto                 expect_id      = model_instance->get_labeled_id();
+                        if (object_label_id == expect_id) {
+                            slice_error_object_idxs.emplace_back(object_idx);
+                        }
+                    }
+                }
+            }
+            for (GLVolume *volume : m_gcode_viewer.m_shells.volumes.volumes) {
+                for (auto obj_idx : slice_error_object_idxs) {
+                    if (volume->object_idx() == obj_idx) {
+                        volume->slice_error = true;
+                        volume->selected    = true;
+                    }
+                }
             }
             std::string extruder_name = extruder_id == master_extruder_id ? "Left extruder" : "Right extruder";
             if (error_iter->second.size() == 1) {
