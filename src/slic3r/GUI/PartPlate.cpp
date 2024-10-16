@@ -803,7 +803,8 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
             curr_bed_type = proj_cfg.opt_enum<BedType>(std::string("curr_bed_type"));
 	}
 	int bed_type_idx = (int)curr_bed_type;
-    bool is_single_extruder = m_print->config().nozzle_diameter.size() == 1;
+    DynamicPrintConfig *global_config      = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto  is_single_extruder = global_config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->size() == 1;
     if (!is_single_extruder) {
 		bed_type_idx = 0;
 	}
