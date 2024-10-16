@@ -290,6 +290,13 @@ enum BedType {
     btCount
 };
 
+enum class ExtruderOnlyAreaType:unsigned char {
+    btNoArea= 0,
+    Engilish,
+    Chinese,
+    btAreaCount
+};
+
 // BBS
 enum LayerSeq {
     flsAuto, 

@@ -792,7 +792,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 
 	m_partplate_list->load_bedtype_textures();
 	m_partplate_list->load_cali_textures();
-
+    m_partplate_list->load_extruder_only_area_textures();
 	// btDefault should be skipped
 	auto curr_bed_type = get_bed_type();
 	if (curr_bed_type == btDefault) {
@@ -801,6 +801,10 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
             curr_bed_type = proj_cfg.opt_enum<BedType>(std::string("curr_bed_type"));
 	}
 	int bed_type_idx = (int)curr_bed_type;
+    bool is_single_extruder = m_print->config().nozzle_diameter.size() == 1;
+    if (!is_single_extruder) {
+		bed_type_idx = 0;
+	}
 	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
 		if (part.texture) {
@@ -833,6 +837,22 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 				}
 			}
 		}
+	}
+
+	//render extruder_only_area_info
+    bool is_zh        = wxGetApp().app_config->get("language") == "zh_CN";
+    int  language_idx = (int) (is_zh ? ExtruderOnlyAreaType::Chinese:ExtruderOnlyAreaType::Engilish);
+    if (!is_single_extruder) {
+        for (auto &part : m_partplate_list->extruder_only_area_info[language_idx].parts) {
+            if (part.texture) {
+                if (part.buffer && part.buffer->is_initialized()) {
+                    if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
+                        part.offset = Vec2d(m_origin.x(), m_origin.y());
+                    }
+                    render_logo_texture(*(part.texture), *(part.buffer), bottom);
+                }
+            }
+        }
 	}
 }
 
@@ -3432,6 +3452,7 @@ void PartPlateList::release_icon_textures()
 	}
 	//reset
 	PartPlateList::is_load_bedtype_textures = false;
+    PartPlateList::is_load_extruder_only_area_textures = false;
 	PartPlateList::is_load_cali_texture = false;
 	for (int i = 0; i < btCount; i++) {
 		for (auto& part: bed_texture_info[i].parts) {
@@ -3444,6 +3465,15 @@ void PartPlateList::release_icon_textures()
 			}
 		}
 	}
+    for (int i = 0; i < (unsigned char)ExtruderOnlyAreaType::btAreaCount; i++) {
+        for (auto &part : extruder_only_area_info[i].parts) {
+            if (part.texture) {
+                part.texture->reset();
+                delete part.texture;
+            }
+            if (part.buffer) { delete part.buffer; }
+        }
+    }
 }
 
 void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
@@ -4928,7 +4958,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 		pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(shape, exclude_areas, pos, height_to_lid, height_to_rod);
 	}
-	is_load_bedtype_textures = false;//reload textures
+	is_load_bedtype_textures = false; //reload textures
 	calc_bounding_boxes();
 
 	update_logo_texture_filename(texture_filename);
@@ -5464,7 +5494,8 @@ void PartPlateList::print() const
 }
 
 bool PartPlateList::is_load_bedtype_textures = false;
-bool PartPlateList::is_load_cali_texture = false;
+bool PartPlateList::is_load_extruder_only_area_textures = false;
+bool PartPlateList::is_load_cali_texture     = false;
 
 void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 {
@@ -5561,6 +5592,40 @@ void PartPlateList::init_bed_type_info()
 	}
 }
 
+void PartPlateList::init_extruder_only_area_info()
+{
+    BedTextureInfo::TexturePart left_part(2.5, 75.6, 10, 100, "left_extruder_only_area.svg");
+    BedTextureInfo::TexturePart left_ch_part(2.5, 75.6, 10, 100, "left_extruder_only_area_ch.svg");
+    BedTextureInfo::TexturePart right_part(243.5, 74.5, 10, 100, "right_extruder_only_area.svg");
+    BedTextureInfo::TexturePart right_ch_part(243.5, 75.6, 10, 100, "right_extruder_only_area_ch.svg");
+
+    for (size_t i = 0; i < (unsigned char) ExtruderOnlyAreaType::btAreaCount; i++) {
+        extruder_only_area_info[i].reset();
+        extruder_only_area_info[i].parts.clear();
+    }
+    extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Engilish].parts.push_back(left_part);
+    extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Engilish].parts.push_back(right_part);
+    extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Chinese].parts.push_back(left_ch_part);
+    extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Chinese].parts.push_back(right_ch_part);
+
+    auto  bed_ext     = get_extents(m_shape);
+    int   bed_width   = bed_ext.size()(0);
+    int   bed_height  = bed_ext.size()(1);
+    float base_width  = 256;
+    float base_height = 256;
+    float x_rate      = bed_width / base_width;
+    float y_rate      = bed_height / base_height;
+    for (int i = 0; i < (unsigned char) ExtruderOnlyAreaType::btAreaCount; i++) {
+        for (int j = 0; j < extruder_only_area_info[i].parts.size(); j++) {
+            extruder_only_area_info[i].parts[j].x *= x_rate;
+            extruder_only_area_info[i].parts[j].y *= y_rate;
+            extruder_only_area_info[i].parts[j].w *= x_rate;
+            extruder_only_area_info[i].parts[j].h *= y_rate;
+            extruder_only_area_info[i].parts[j].update_buffer();
+        }
+    }
+}
+
 void PartPlateList::load_bedtype_textures()
 {
 	if (PartPlateList::is_load_bedtype_textures) return;
@@ -5582,6 +5647,28 @@ void PartPlateList::load_bedtype_textures()
 		}
 	}
 	PartPlateList::is_load_bedtype_textures = true;
+}
+
+void PartPlateList::load_extruder_only_area_textures() {
+    if (PartPlateList::is_load_extruder_only_area_textures) return;
+
+    init_extruder_only_area_info();
+    GLint max_tex_size  = OpenGLManager::get_gl_info().get_max_tex_size();
+    GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
+    for (int i = 0; i < (unsigned int) ExtruderOnlyAreaType::btAreaCount; ++i) {
+        for (int j = 0; j < extruder_only_area_info[i].parts.size(); j++) {
+            std::string filename = resources_dir() + "/images/" + extruder_only_area_info[i].parts[j].filename;
+            if (boost::filesystem::exists(filename)) {
+                PartPlateList::extruder_only_area_info[i].parts[j].texture = new GLTexture();
+                if (!PartPlateList::extruder_only_area_info[i].parts[j].texture->load_from_svg_file(filename, true, false, false, logo_tex_size)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
+            }
+        }
+    }
+    PartPlateList::is_load_extruder_only_area_textures = true;
 }
 
 void PartPlateList::init_cali_texture_info()

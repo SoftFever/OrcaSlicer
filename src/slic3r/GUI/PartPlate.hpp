@@ -634,6 +634,7 @@ public:
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
     static bool is_load_cali_texture;
+    static bool is_load_extruder_only_area_textures;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -850,7 +851,9 @@ public:
     }
 
     void init_bed_type_info();
+    void init_extruder_only_area_info();
     void load_bedtype_textures();
+    void load_extruder_only_area_textures();
 
     void show_cali_texture(bool show = true);
     void init_cali_texture_info();
@@ -858,6 +861,7 @@ public:
 
     BedTextureInfo bed_texture_info[btCount];
     BedTextureInfo cali_texture_info;
+    BedTextureInfo extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::btAreaCount];
 };
 
 } // namespace GUI
