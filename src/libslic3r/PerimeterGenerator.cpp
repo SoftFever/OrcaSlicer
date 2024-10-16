@@ -3114,10 +3114,10 @@ void PerimeterGenerator::process_arachne()
                 std::vector<PerimeterGeneratorArachneExtrusion> reordered_extrusions;
                 
                 // Get searching thresholds. For an external perimeter we take the middle of the external perimeter width, split it in two, add the spacing to the internal perimeter and add half the internal perimeter width.
-                // This should get us to the middle of the internal perimeter. We then scale by 10% up for safety margin.
-                coord_t threshold_external = (this->ext_perimeter_flow.scaled_width()/2+this->ext_perimeter_flow.scaled_spacing()+this->perimeter_flow.scaled_width()/2) * 1.1;
-                // For the intenal perimeter threshold, the distance is the perimeter width plus the spacing, scaled by 10% for safety margin.
-                coord_t threshold_internal = (this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing()) * 1.1;
+                // This should get us to the middle of the internal perimeter. We then scale by 2% up for safety margin.
+                coord_t threshold_external = (this->ext_perimeter_flow.scaled_width()/2+this->ext_perimeter_flow.scaled_spacing()+this->perimeter_flow.scaled_width()/2)*1.02;
+                // For the intenal perimeter threshold, the distance is the perimeter width plus the spacing, scaled by 2% for safety margin.
+                coord_t threshold_internal = (this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing()) * 1.02;
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter
