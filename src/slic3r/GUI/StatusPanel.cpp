@@ -3832,6 +3832,8 @@ void StatusPanel::on_start_unload(wxCommandEvent &event)
 
 void StatusPanel::on_set_bed_temp()
 {
+    if (!obj) {return;}
+
     wxString str = m_tempCtrl_bed->GetTextCtrl()->GetValue();
     try {
         long bed_temp;
@@ -3853,6 +3855,8 @@ void StatusPanel::on_set_bed_temp()
 
 void StatusPanel::on_set_nozzle_temp()
 {
+    if (!obj) {return;}
+
     wxString str = m_tempCtrl_nozzle->GetTextCtrl()->GetValue();
     wxString str_deputy;
     int nozzle_num = obj->m_extder_data.total_extder_count;
@@ -3884,6 +3888,8 @@ void StatusPanel::on_set_nozzle_temp()
 
 void StatusPanel::on_set_chamber_temp()
 {
+    if (!obj) {return;}
+
     wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
     try {
         long chamber_temp;
