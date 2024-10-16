@@ -6480,6 +6480,8 @@ void Tab::switch_excluder(int extruder_id)
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };
     auto index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
+    if (index < 0)
+        return;
     for (auto page : m_pages) {
         bool is_extruder = false;
         page->m_opt_id_map.clear();
