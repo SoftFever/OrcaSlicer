@@ -195,8 +195,10 @@ namespace Slic3r
 
         for (size_t idx = 0; idx < ams_filament_colors_str.size(); ++idx) {
             std::vector<Color> tmp;
-            for (auto& item : ams_filament_colors_str[idx])
-                tmp.emplace_back(Color(item));
+            for (auto& item : ams_filament_colors_str[idx]) {
+                if (!item.empty())
+                    tmp.emplace_back(Color(item));
+            }
             ams_filament_colors[idx] = std::move(tmp);
         }
 

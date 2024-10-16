@@ -421,8 +421,9 @@ namespace Slic3r
 
 
     template<class T>
-    static std::vector<T> collect_filaments_in_groups(const std::set<unsigned int>& group, const std::vector<unsigned int>& filament_list) {
+    static std::vector<T> collect_filaments_in_groups(const std::unordered_set<unsigned int>& group, const std::vector<unsigned int>& filament_list) {
         std::vector<T>ret;
+        ret.reserve(group.size());
         for (auto& f : filament_list) {
             if (auto iter = group.find(f); iter != group.end())
                 ret.emplace_back(static_cast<T>(f));
@@ -471,7 +472,7 @@ namespace Slic3r
         //only when layer filament num <= 5,we do forcast
         constexpr int max_n_with_forcast = 5;
         int cost = 0;
-        std::vector<std::set<unsigned int>>groups(2); //save the grouped filaments
+        std::vector<std::unordered_set<unsigned int>>groups(2); //save the grouped filaments
         std::vector<std::vector<std::vector<unsigned int>>> layer_sequences(2); //save the reordered filament sequence by group
         std::map<size_t, std::vector<unsigned int>> custom_layer_sequence_map; // save the filament sequences of custom layer
 
@@ -501,27 +502,26 @@ namespace Slic3r
                 custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
             }
         }
-
         using uint128_t = boost::multiprecision::uint128_t;
         auto extruders_to_hash_key = [](const std::vector<unsigned int>& curr_layer_extruders,
-            const std::vector<unsigned int>& next_layer_extruders,
-            const std::optional<unsigned int>& prev_extruder,
-            bool use_forcast)->uint128_t
-            {
-                uint128_t hash_key = 0;
-                //31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
-                if (prev_extruder)
-                    hash_key |= (uint128_t(1) << (64 + *prev_extruder));
+           const std::vector<unsigned int>& next_layer_extruders,
+           const std::optional<unsigned int>& prev_extruder,
+           bool use_forcast)->uint128_t
+           {
+               uint128_t hash_key = 0;
+               //31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
+               if (prev_extruder)
+                   hash_key |= (uint128_t(1) << (64 + *prev_extruder));
 
-                if (use_forcast) {
-                    for (auto item : next_layer_extruders)
-                        hash_key |= (uint128_t(1) << (32 + item));
-                }
+               if (use_forcast) {
+                   for (auto item : next_layer_extruders)
+                       hash_key |= (uint128_t(1) << (32 + item));
+               }
 
-                for (auto item : curr_layer_extruders)
-                    hash_key |= (uint128_t(1) << item);
-                return hash_key;
-            };
+               for (auto item : curr_layer_extruders)
+                   hash_key |= (uint128_t(1) << item);
+               return hash_key;
+           };
 
 
         // get best layer sequence by group
