@@ -657,7 +657,7 @@ class AMSCountPopupWindow : public PopupWindow
 {
 public:
     AMSCountPopupWindow(wxWindow * parent, wxStaticText *text, int index)
-        : PopupWindow(parent, wxBORDER_NONE)
+        : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
     {
         auto msg  = new wxStaticText(this, wxID_ANY, _L("Please set the number of ams installed on the this extrusion head."));
         msg->SetFont(Label::Body_14);
