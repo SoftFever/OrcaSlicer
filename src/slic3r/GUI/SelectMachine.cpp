@@ -1119,10 +1119,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
     m_bitmap_last_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_last_plate", this, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_bitmap_last_plate->Hide();
     last_plate_sizer->Add(m_bitmap_last_plate, 0, wxALIGN_CENTER, 0);
 
     auto next_plate_sizer = new wxBoxSizer(wxVERTICAL);
     m_bitmap_next_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_next_plate", this, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_bitmap_next_plate->Hide();
     next_plate_sizer->Add(m_bitmap_next_plate, 0, wxALIGN_CENTER, 0);
 
     sizer_rename->Add(m_rename_switch_panel, 0,  wxALIGN_CENTER, 0);
