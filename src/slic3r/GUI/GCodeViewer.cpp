@@ -4419,6 +4419,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
     auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
     auto filament_map_mode = config.filament_map_mode.value;
+    auto is_auto = filament_map_mode == FilamentMapMode::fmmAuto;
     bool has_tips           = true;
     if (filament_map_mode == FilamentMapMode::fmmAuto) {
         float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
@@ -4495,14 +4496,15 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                 imgui.text(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-extruder printer.")) % saved_flush_weight % saved_filament_changed_time).str()));
             }
         } else if (filament_map_mode == fmmManual) {
-            ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
-            ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
             float more_cost = stats_by_extruder.stats_by_multi_extruder_manual.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
             int   more_time = stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
 
             if (more_cost > EPSILON || more_time > 0) {
+                ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+                ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
                 imgui.text(_u8L("This arrangement is not optimal."));
                 imgui.text(from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal arrangement.")) %more_cost % more_time).str()));
+                ImGui::PopStyleColor(1);
             } else {
                 float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
                 int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
@@ -4511,11 +4513,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                     imgui.text(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-extruder printer.")) % saved_flush_weight % saved_filament_changed_time).str()));
                 }
             }
-            ImGui::PopStyleColor(1);
         }
 
         ImGui::Dummy({window_padding, window_padding});
-        link_text(_u8L("Customize Arrangement"));
+        link_text(_u8L("Rearrange filament"));
 
         ImGui::EndChild();
     }
