@@ -6,9 +6,11 @@
 
 namespace Slic3r { namespace GUI {
 
-const wxString manual_tips = _L("You can drag the filaments to change which extruder they are assigned to,\n"
-                                "and we will slice according to this grouping method.\n"
-                                "But your filament arrangement may not be the most filament-efficient.");
+const wxString manual_tips = _L("we will slice according to this grouping method:");
+
+const wxString manual_below_tips = _L("Tips:\n"
+                                      "You can drag the filaments to change which extruder they are assigned to.\n"
+                                      "But your filament arrangement may not be the most filament-efficient.");
 
 const wxString auto_tips = _L("Automatic filament grouping will be performed to reduce flushing consumption\n"
                               "and filament changes during the slicing process.\n"
@@ -146,10 +148,15 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
 
     main_sizer->Add(m_extruder_panel_sizer, 1, wxEXPAND | wxALL, 10);
 
+    m_below_tip_text = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_below_tip_text->SetLabel(manual_below_tips);
+    main_sizer->Add(m_below_tip_text, 0, wxALIGN_LEFT | wxLEFT, 15);
+
     if (is_auto) {
         m_manual_left_panel->Hide();
         m_manual_right_panel->Hide();
         m_switch_filament_btn->Hide();
+        m_below_tip_text->Hide();
         if (m_has_auto_result) {
             m_tip_text->SetLabel(auto_tips_with_result);
         }
@@ -165,6 +172,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow *parent,
         m_auto_right_panel->Hide();
         m_switch_filament_btn_auto->Hide();
         m_tip_text->SetLabel(manual_tips);
+        m_below_tip_text->Show();
     }
 
     wxBoxSizer *button_sizer  = new wxBoxSizer(wxHORIZONTAL);
@@ -222,6 +230,7 @@ void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
         m_manual_left_panel->Hide();
         m_manual_right_panel->Hide();
         m_switch_filament_btn->Hide();
+        m_below_tip_text->Hide();
         if (m_has_auto_result) {
             m_auto_left_panel->Show();
             m_auto_right_panel->Show();
@@ -238,6 +247,7 @@ void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
         m_manual_left_panel->Show();
         m_manual_right_panel->Show();
         m_switch_filament_btn->Show();
+        m_below_tip_text->Show();
 
         m_auto_left_panel->Hide();
         m_auto_right_panel->Hide();

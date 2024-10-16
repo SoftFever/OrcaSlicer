@@ -39,6 +39,7 @@ private:
 
 private:
     wxStaticText * m_tip_text;
+    wxStaticText * m_below_tip_text;
     SwitchButton * m_mode_switch_btn;
     wxBoxSizer *   m_extruder_panel_sizer;
     DragDropPanel* m_manual_left_panel;

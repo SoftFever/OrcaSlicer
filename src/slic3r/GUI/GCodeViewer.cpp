@@ -4414,6 +4414,36 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
     };
 
+    auto link_text_set_to_optional = [&](const std::string &label) {
+        ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
+
+        ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+        ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
+        imgui.text(label.c_str());
+        ImGui::PopStyleColor();
+
+        // click behavior
+        if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
+            // underline
+            ImVec2 lineEnd = ImGui::GetItemRectMax();
+            lineEnd.y -= 2.0f;
+            ImVec2 lineStart = lineEnd;
+            lineStart.x      = ImGui::GetItemRectMin().x;
+            ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
+
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                MessageDialog msg_dlg(nullptr, _L("Automatically re-slice according to the optimal filament arrangement, and the arrangement results will be displayed after slicing."), wxEmptyString, wxOK | wxCANCEL);
+                if (msg_dlg.ShowModal() == wxID_OK) {
+                    PartPlateList &partplate_list = wxGetApp().plater()->get_partplate_list();
+                    PartPlate     *plate          = partplate_list.get_curr_plate();
+                    plate->set_filament_map_mode(FilamentMapMode::fmmAuto);
+                    Plater        *plater = wxGetApp().plater();
+                    wxPostEvent(plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                }
+            }
+        }
+    };
+
     ////BBS Color Arrangement Recommendation
 
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
@@ -4488,6 +4518,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::PopStyleVar(1);
         ImGui::Dummy({window_padding, window_padding});
 
+        bool is_optimal_group = true;
         if (filament_map_mode == fmmAuto) {
             float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
             int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
@@ -4500,6 +4531,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             int   more_time = stats_by_extruder.stats_by_multi_extruder_manual.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
 
             if (more_cost > EPSILON || more_time > 0) {
+                is_optimal_group = false;
                 ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
                 ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
                 imgui.text(_u8L("This arrangement is not optimal."));
@@ -4516,6 +4548,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
 
         ImGui::Dummy({window_padding, window_padding});
+        if (!is_optimal_group) {
+            link_text_set_to_optional(_u8L("Set to Optimal"));
+            ImGui::SameLine();
+        }
         link_text(_u8L("Rearrange filament"));
 
         ImGui::EndChild();
