@@ -259,8 +259,8 @@ protected:
     Label*                              m_stext_printer_title{nullptr};
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
-    wxStaticText*                       m_statictext_ams_msg{ nullptr };
-    wxStaticText*                       m_text_printer_msg{ nullptr };
+    Label*                              m_statictext_ams_msg{ nullptr };
+    Label*                              m_text_printer_msg{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
