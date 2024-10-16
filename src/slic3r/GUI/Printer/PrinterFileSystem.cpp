@@ -69,6 +69,7 @@ struct StaticBambuLib : BambuLib {
     static StaticBambuLib &get(BambuLib * copy = nullptr);
     static int Fake_Bambu_Create(Bambu_Tunnel*, char const*) { return -2; }
     static void reset();
+    static void release();
 private:
     std::vector<BambuLib *> copies_;
 };
@@ -1641,6 +1642,7 @@ StaticBambuLib &StaticBambuLib::get(BambuLib *copy)
     GET_FUNC(Bambu_Destroy);
     GET_FUNC(Bambu_SetLogger);
     GET_FUNC(Bambu_FreeLogMsg);
+    GET_FUNC(Bambu_Deinit);
 
     if (!lib.Bambu_Create) {
         lib.Bambu_Create = Fake_Bambu_Create;
@@ -1656,6 +1658,12 @@ void StaticBambuLib::reset()
     auto &lib = get();
     for (auto c : lib.copies_)
         *c = lib;
+}
+
+void StaticBambuLib::release()
+{
+    if (auto f = get().Bambu_Deinit)
+        f();
 }
 
 extern "C" BambuLib *bambulib_get() {

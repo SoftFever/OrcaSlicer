@@ -691,10 +691,7 @@ void MediaPlayCtrl::media_proc()
             continue;
         }
         lock.unlock();
-        if (url.IsEmpty()) {
-            break;
-        }
-        else if (url == "<stop>") {
+        if (url == "<stop>") {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start stop";
             m_media_ctrl->Stop();
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end stop";
