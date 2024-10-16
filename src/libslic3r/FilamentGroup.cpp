@@ -534,7 +534,7 @@ namespace Slic3r
         if (used_filament_num < 10)
             return calc_filament_group_by_enum(layer_filaments, used_filaments, g_strategy, cost);
         else
-            return calc_filament_group_by_pam2(layer_filaments, used_filaments, g_strategy, cost, 300);
+            return calc_filament_group_by_pam2(layer_filaments, used_filaments, g_strategy, cost, 500);
     }
 
     // sorted used_filaments

@@ -979,7 +979,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             fg.set_memory_threshold(0.02);
             fg.get_custom_seq = get_custom_seq;
 
-            ret = fg.calc_filament_group(layer_filaments, FGStrategy::BestFit);
+            ret = fg.calc_filament_group(layer_filaments, FGStrategy::BestCost);
 
             // optimize for master extruder id
             optimize_group_for_master_extruder(used_filaments, context, ret);
