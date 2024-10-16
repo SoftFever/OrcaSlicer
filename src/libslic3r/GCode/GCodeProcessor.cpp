@@ -155,6 +155,19 @@ static float acceleration_time_from_distance(float initial_feedrate, float dista
     return (acceleration != 0.0f) ? (speed_from_distance(initial_feedrate, distance, acceleration) - initial_feedrate) / acceleration : 0.0f;
 }
 
+static int get_object_label_id(const std::string_view comment_1)
+{
+    std::string      comment(comment_1);
+    auto pos = comment.find(":");
+    std::string num_str = comment.substr(pos + 1);
+    int id = -1;
+    try {
+        id = stoi(num_str);
+    }
+    catch (const std::exception &) {}
+    return id;
+}
+
 void GCodeProcessor::CachedPosition::reset()
 {
     std::fill(position.begin(), position.end(), FLT_MAX);
@@ -711,54 +724,54 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
         return ps;
     };
 
-    std::map<int, Points> gcode_path_pos;
+
+    std::map<int, std::map<int, Points>>  gcode_path_pos; // object_id, filament_id, pos
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         if (move.type == EMoveType::Extrude/* || move.type == EMoveType::Travel*/) {
             if (move.is_arc_move_with_interpolation_points()) {
                 for (int i = 0; i < move.interpolation_points.size(); i++) {
-                    gcode_path_pos[int(move.extruder_id)].emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
                 }
             }
             else {
-                gcode_path_pos[int(move.extruder_id)].emplace_back(to_2d(move.position.cast<double>()));
+                gcode_path_pos[move.object_label_id][int(move.extruder_id)].emplace_back(to_2d(move.position.cast<double>()));
             }
         }
     }
 
     bool valid = true;
-    for (auto iter = gcode_path_pos.begin(); iter != gcode_path_pos.end(); ++iter) {
-        int extruder_id = filament_map[iter->first] - 1;
-        Polygon path_poly(iter->second);
-        BoundingBox bbox = path_poly.bounding_box();
+    Point plate_offset = Point(scale_(m_x_offset), scale_(m_y_offset));
+    for (auto obj_iter = gcode_path_pos.begin(); obj_iter != gcode_path_pos.end(); ++obj_iter) {
+        int object_label_id = obj_iter->first;
+        const std::map<int, Points>& path_pos = obj_iter->second;
+        for (auto iter = path_pos.begin(); iter != path_pos.end(); ++iter) {
+            int         extruder_id = filament_map[iter->first] - 1;
+            Polygon     path_poly(iter->second);
+            BoundingBox bbox = path_poly.bounding_box();
 
-        // Simplified use bounding_box, Accurate calculation is not efficient
-        for (const Polygon &poly : unprintable_areas[extruder_id]) {
-            if (poly.bounding_box().overlap(bbox)) {
-                m_result.gcode_check_result.error_code = 1;
-                m_result.gcode_check_result.error_infos[extruder_id].push_back(iter->first);
-                valid = false;
+            // Simplified use bounding_box, Accurate calculation is not efficient
+            for (Polygon poly : unprintable_areas[extruder_id]) {
+                poly.translate(plate_offset);
+                if (poly.bounding_box().overlap(bbox)) {
+                    m_result.gcode_check_result.error_code = 1;
+                    std::pair<int, int>         filament_to_object_id;
+                    filament_to_object_id.first = iter->first;
+                    filament_to_object_id.second = object_label_id;
+                    m_result.gcode_check_result.error_infos[extruder_id].push_back(filament_to_object_id);
+                    valid = false;
+                }
+            }
+
+            for (int i = 0; i < unprintable_areas.size(); ++i) {
+                for (Polygon poly : unprintable_areas[i]) {
+                    poly.translate(plate_offset);
+                    if (!poly.bounding_box().overlap(bbox))
+                        continue;
+
+                    m_result.limit_filament_maps[iter->first] |= (1 << i);
+                }
             }
         }
-
-        for (int i = 0; i < unprintable_areas.size(); ++i) {
-            for (const Polygon &poly : unprintable_areas[i]) {
-                if (!poly.bounding_box().overlap(bbox))
-                    continue;
-
-                m_result.limit_filament_maps[iter->first] |= (1 << i);
-            }
-        }
-
-        /*
-        // Accurate calculation is not efficient
-        for (const Polygon& poly : unprintable_areas[extruder_id]) {
-            if (poly.overlaps({path_poly})) {
-                m_result.gcode_check_result.error_code = 1;
-                valid = false;
-                break;
-            }
-        }
-        */
     }
 
     return valid;
@@ -2038,6 +2051,18 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
         m_processing_start_custom_gcode = (m_extrusion_role == erCustom && m_g1_line_id == 0);
+        return;
+    }
+
+    // ; OBJECT_ID  start
+    if (boost::starts_with(comment, " start printing object")) {
+        m_object_label_id = get_object_label_id(comment);
+        return;
+    }
+
+    // ; OBJECT_ID  end
+    if (boost::starts_with(comment, " stop printing object")) {
+        m_object_label_id = -1;
         return;
     }
 
@@ -5342,6 +5367,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         path_type,
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[filament_id],
         m_interpolation_points,
+        m_object_label_id
     });
 
     if (type == EMoveType::Seam) {

@@ -136,8 +136,7 @@ class Print;
     struct GCodeCheckResult
     {
         int error_code = 0;   // 0 means succeed
-        std::map<int, std::vector<int>> error_infos;   // extruder_id to filament_ids
-
+        std::map<int, std::vector<std::pair<int, int>>> error_infos;   // extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         void reset() {
             error_code = 0;
             error_infos.clear();
@@ -187,6 +186,7 @@ class Print;
             EMovePathType move_path_type{ EMovePathType::Noop_move };
             Vec3f arc_center_position{ Vec3f::Zero() };      // mm
             std::vector<Vec3f> interpolation_points;     // interpolation points of arc for drawing
+            int  object_label_id{-1};
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
             //BBS: new function to support arc move
@@ -707,6 +707,7 @@ class Print;
         bool m_flushing; // mark a section with real flush
         bool m_virtual_flushing; // mark a section with virtual flush, only for statistics
         bool m_wipe_tower;
+        int m_object_label_id{-1};
         std::vector<float> m_remaining_volume;
         bool m_manual_filament_change;
 

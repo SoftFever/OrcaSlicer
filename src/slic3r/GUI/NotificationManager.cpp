@@ -1918,6 +1918,22 @@ void NotificationManager::close_plater_error_notification(const std::string& tex
 	}
 }
 
+void NotificationManager::push_slicing_limit_error_notification(const std::string &text)
+{
+    set_all_slicing_errors_gray(false);
+    push_notification_data({NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text}, 0);
+    set_slicing_progress_hidden();
+}
+
+void NotificationManager::close_slicing_limit_error_notification(const std::string &text)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::BBLSliceLimitError) {
+            notification->close();
+        }
+    }
+}
+
 void NotificationManager::push_plater_warning_notification(const std::string& text)
 {
 	// Find if was not hidden

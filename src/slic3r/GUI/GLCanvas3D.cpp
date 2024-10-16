@@ -9680,7 +9680,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         PLATER_WARNING,
         PLATER_ERROR,
         SLICING_SERIOUS_WARNING,
-        SLICING_ERROR
+        SLICING_ERROR,
+        SLICING_LIMIT_ERROR
     };
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
@@ -9721,7 +9722,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 if (i > 0) {
                     filaments += ", ";
                 }
-                filaments += std::to_string(error_iter->second[i] + 1);
+                int filament_id = error_iter->second[i].first;
+                int object_label_id = error_iter->second[i].second;
+                // todo: display the conflict objects
+                //ModelObject* object->instances[0]->get_labeled_id();
+                filaments += std::to_string(filament_id);
             }
             std::string extruder_name = extruder_id == master_extruder_id ? "Left extruder" : "Right extruder";
             if (error_iter->second.size() == 1) {
@@ -9731,9 +9736,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 text += (boost::format(_u8L("Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
         }
-        text += "\n";
-        text += _u8L("Open wiki for more information.");
-        error = ErrorType::SLICING_ERROR;
+        if (!text.empty()) {
+            text += "\n";
+            text += _u8L("Open wiki for more information.");
+        }
+        error = ErrorType::SLICING_LIMIT_ERROR;
         break;
     }
     // BBS: remove _u8L() for SLA
@@ -9789,6 +9796,12 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_error_notification(text);
+        break;
+    case SLICING_LIMIT_ERROR:
+        if (state)
+            notification_manager.push_slicing_limit_error_notification(text);
+        else
+            notification_manager.close_slicing_limit_error_notification(text);
         break;
     default:
         break;
