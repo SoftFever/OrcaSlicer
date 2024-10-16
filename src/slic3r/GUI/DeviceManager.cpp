@@ -116,7 +116,7 @@ wxString get_stage_string(int stage)
     case 17:
         return _L("Pause of front cover falling");
     case 18:
-        return _L("Calibrating the micro lida");
+        return _L("Calibrating the micro lidar");
     case 19:
         return _L("Calibrating extrusion flow");
     case 20:
