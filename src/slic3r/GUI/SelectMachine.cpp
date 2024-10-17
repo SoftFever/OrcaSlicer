@@ -4559,16 +4559,21 @@ void SelectMachineDialog::sys_color_changed()
 
 bool SelectMachineDialog::Show(bool show)
 {
-    show_status(PrintDialogStatus::PrintStatusInit);
-
     // set default value when show this dialog
     if (show) {
+        m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
+        show_status(PrintDialogStatus::PrintStatusInit);
         wxGetApp().UpdateDlgDarkUI(this);
         wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
+
+        Layout();
+        Fit();
+        CenterOnParent();
     }
     else {
+        m_refresh_timer->Stop();
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (dev) {
             MachineObject* obj_ = dev->get_selected_machine();
@@ -4580,15 +4585,6 @@ bool SelectMachineDialog::Show(bool show)
             }
         }
     }
-
-    if (show) {
-        m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-    } else {
-        m_refresh_timer->Stop();
-    }
-    Layout();
-    Fit();
-    if (show) { CenterOnParent(); }
     return DPIDialog::Show(show);
 }
 
