@@ -4685,6 +4685,22 @@ void SelectMachineDialog::sys_color_changed()
 
 bool SelectMachineDialog::Show(bool show)
 {
+    if (show) {
+        m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
+    } else {
+        m_refresh_timer->Stop();
+
+        DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (dev) {
+            MachineObject *obj_ = dev->get_selected_machine();
+            if (obj_ && obj_->connection_type() == "cloud" /*&& m_print_type == FROM_SDCARD_VIEW*/) {
+                if (obj_->is_connected()) { obj_->disconnect(); }
+            }
+        }
+
+        return DPIDialog::Show(false);
+    }
+
     show_status(PrintDialogStatus::PrintStatusInit);
 
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
@@ -4715,34 +4731,16 @@ bool SelectMachineDialog::Show(bool show)
     else{
         m_text_bed_type->Hide();
     }
-    
 
     // set default value when show this dialog
-    if (show) {
-        m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-        show_status(PrintDialogStatus::PrintStatusInit);
-        wxGetApp().UpdateDlgDarkUI(this);
-        wxGetApp().reset_to_active();
-        set_default();
-        update_user_machine_list();
+    wxGetApp().UpdateDlgDarkUI(this);
+    wxGetApp().reset_to_active();
+    set_default();
+    update_user_machine_list();
 
-        Layout();
-        Fit();
-        CenterOnParent();
-    }
-    else {
-        m_refresh_timer->Stop();
-        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        if (dev) {
-            MachineObject* obj_ = dev->get_selected_machine();
-            if (obj_ && obj_->connection_type() == "cloud" /*&& m_print_type == FROM_SDCARD_VIEW*/) {
-                if (obj_->is_connected()) {
-                    obj_->disconnect();
-                }
-
-            }
-        }
-    }
+    Layout();
+    Fit();
+    CenterOnParent();
     return DPIDialog::Show(show);
 }
 
