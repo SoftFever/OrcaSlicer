@@ -993,6 +993,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_comboBox_filament->SetValue(wxEmptyString);
     }
 
+    // Set the flag whether to open the filament setting dialog from the device page
+    m_comboBox_filament->SetClientData(new int(1));
+
     update();
     Layout();
     Fit();
@@ -1026,6 +1029,9 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
+    // Get the flag whether to open the filament setting dialog from the device page
+    int* from_printer = static_cast<int*>(m_comboBox_filament->GetClientData());
+
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
@@ -1108,6 +1114,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_cali_result->SetValue(wxEmptyString);
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
+        m_comboBox_filament->SetClientData(new int(0));
         return;
     }
     else {
@@ -1231,6 +1238,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             m_input_k_val->Disable();
         }
     }
+
+    m_comboBox_filament->SetClientData(new int(0));
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
