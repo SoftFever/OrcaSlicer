@@ -1142,9 +1142,14 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
 
-    // TODO: Orca hack
-    int extruder_id = 0;
-    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal;
+    auto get_cali_index = [this](const std::string& str) -> int{
+        for (int i = 0; i < int(m_pa_profile_items.size()); ++i) {
+            if (m_pa_profile_items[i].name == str)
+                return i;
+        }
+        return 0;
+    };
+
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
@@ -1167,31 +1172,43 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
         m_comboBox_cali_result->Set(items);
         if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-            for (auto slot : obj->vt_slot) {
-                if (slot.id == std::to_string(ams_id))
-                    cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, slot.cali_idx);
+            if (from_printer && (*from_printer == 1)) {
+                for (auto slot : obj->vt_slot) {
+                    if (slot.id == std::to_string(ams_id))
+                        cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, slot.cali_idx);
+                }
+
+                if (cali_select_idx >= 0)
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
+                else
+                    m_comboBox_cali_result->SetSelection(0);
             }
-            
-            if (cali_select_idx >= 0)
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
-            else
-                m_comboBox_cali_result->SetSelection(0);
+            else {
+                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(index);
+            }
         }
         else {
-            if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
-                Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-                if (!selected_ams)
-                    return;
-                AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
-                if (!selected_tray)
-                    return;
-                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-                if (cali_select_idx < 0) {
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
-                        << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
-                    cali_select_idx = 0;
+            if (from_printer && (*from_printer == 1)) {
+                if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
+                    Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
+                    if (!selected_ams)
+                        return;
+                    AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
+                    if (!selected_tray)
+                        return;
+                    cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+                    if (cali_select_idx < 0) {
+                        BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
+                            << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
+                        cali_select_idx = 0;
+                    }
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
                 }
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            }
+            else {
+                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(index);
             }
         }
 
