@@ -2058,8 +2058,9 @@ bool Sidebar::should_sync_extruder_list(MachineObject *obj)
 
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
-    if (should_sync_extruder_list(obj))
-        sync_extruder_list();
+    // Remove auto sync
+    //if (should_sync_extruder_list(obj))
+    //    sync_extruder_list();
 
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 
