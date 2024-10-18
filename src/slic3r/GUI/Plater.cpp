@@ -6008,11 +6008,7 @@ void Plater::priv::reload_from_disk()
                 new_volume->set_material_id(old_volume->material_id());
 
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
-                new_volume->set_offset(old_volume->get_offset());
-                // Transform3d transform = Transform3d::Identity();
-                // transform.translate(new_volume->source.mesh_offset - old_volume->source.mesh_offset);
-                // new_volume->set_transformation(old_volume->get_transformation().get_matrix() * old_volume->source.transform.get_matrix(true) *
-                //                                transform * new_volume->source.transform.get_matrix(true).inverse());
+                new_volume->set_transformation(old_volume->get_transformation());
 
                 new_volume->source.object_idx = old_volume->source.object_idx;
                 new_volume->source.volume_idx = old_volume->source.volume_idx;
