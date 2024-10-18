@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.18",
+    "version": "01.09.00.23",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -936,6 +936,14 @@
         {
             "name": "Generic PPS @base",
             "sub_path": "filament/Generic PPS @base.json"
+        },
+        {
+            "name": "Bambu PPS-CF @base",
+            "sub_path": "filament/Bambu PPS-CF @base.json"
+        },
+        {
+            "name": "Bambu PPA-CF @base",
+            "sub_path": "filament/Bambu PPA-CF @base.json"
         },
         {
             "name": "Generic PPA-CF @base",
@@ -2344,6 +2352,18 @@
         {
             "name": "Generic PPS @BBL X1E",
             "sub_path": "filament/Generic PPS @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PPS-CF @BBL X1E",
+            "sub_path": "filament/Bambu PPS-CF @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PPA-CF @BBL X1C",
+            "sub_path": "filament/Bambu PPA-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PPA-CF @BBL X1E",
+            "sub_path": "filament/Bambu PPA-CF @BBL X1E.json"
         },
         {
             "name": "Generic PPA-CF @BBL X1E",
