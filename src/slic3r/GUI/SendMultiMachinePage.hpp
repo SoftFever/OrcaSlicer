@@ -32,9 +32,8 @@ namespace GUI {
 #define  DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
 #define  DESIGN_INPUT_SIZE wxSize(FromDIP(50), -1)
 
-#define MATERIAL_ITEM_SIZE wxSize(FromDIP(64), FromDIP(34))
-#define MATERIAL_ITEM_REAL_SIZE wxSize(FromDIP(62), FromDIP(32))
-#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(45))
+
+
 
 #define THUMBNAIL_SIZE FromDIP(128)
 

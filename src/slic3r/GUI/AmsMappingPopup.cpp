@@ -23,7 +23,9 @@
 #include "BindDialog.hpp"
 
 namespace Slic3r { namespace GUI {
-
+#define MATERIAL_ITEM_SIZE wxSize(FromDIP(52), FromDIP(50))
+#define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)

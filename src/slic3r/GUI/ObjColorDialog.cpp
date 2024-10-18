@@ -3,7 +3,7 @@
 //#include "libslic3r/FlushVolCalc.hpp"
 #include "ObjColorDialog.hpp"
 #include "BitmapCache.hpp"
-#include "GUI.hpp"
+#include "GUI.hpp"//for ICON_SIZE
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -28,8 +28,6 @@ const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 370;
 const int COLOR_LABEL_WIDTH = 180;
 
-#undef  ICON_SIZE
-#define ICON_SIZE                 wxSize(FromDIP(16), FromDIP(16))
 #define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(400)
 #define FIX_SCROLL_HEIGTH         FromDIP(400)
 #define BTN_SIZE                  wxSize(FromDIP(58), FromDIP(24))

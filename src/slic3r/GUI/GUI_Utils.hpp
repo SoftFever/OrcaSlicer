@@ -31,7 +31,8 @@ class wxTopLevelWindow;
 class wxRect;
 
 #define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION > major) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION > minor)) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION == minor) && (wxRELEASE_NUMBER >= release)))
-
+#define ICON_SINGLE_SIZE FromDIP(16)//don't change,if need new value,self create in cpp
+#define ICON_SIZE wxSize(FromDIP(16), FromDIP(16))//don't change,if need new value,self create in cpp
 namespace Slic3r {
 namespace GUI {
 
@@ -186,7 +187,7 @@ public:
                 on_sys_color_changed();
                 event.Skip();
 #endif // __WINDOWS__
-                
+
         });
 
         if (std::is_same<wxDialog, P>::value) {
@@ -220,7 +221,7 @@ public:
         on_sys_color_changed();
     }
 #endif
-    
+
     int ShowModal()
     {
         dialogStack.push_front(this);

@@ -10,8 +10,9 @@
 namespace Slic3r {
 namespace GUI {
 
-
-
+#define MATERIAL_ITEM_SIZE wxSize(FromDIP(64), FromDIP(34))
+#define MATERIAL_ITEM_REAL_SIZE wxSize(FromDIP(62), FromDIP(32))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(45))
 WX_DEFINE_LIST(AmsRadioSelectorList);
 
 class ScrolledWindow : public wxScrolledWindow {
@@ -198,9 +199,9 @@ void SendDeviceItem::doRender(wxDC& dc)
     if (state_local_task <= 1) {
         dc.DrawBitmap(m_bitmap_check_disable.bmp(), wxPoint(left, (size.y - m_bitmap_check_disable.GetBmpSize().y) / 2 ));
     }
- 
+
     left += FromDIP(SEND_LEFT_PRINTABLE);
-     
+
     //dev names
     DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->dev_name),  FromDIP(SEND_LEFT_DEV_NAME), left);
     left += FromDIP(SEND_LEFT_DEV_NAME);
@@ -460,13 +461,13 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
         if (rs->m_param_name == "use_extra" && rs->m_radiobox->GetValue()) {
             use_ams = false;
         }
-        
+
         node = node->GetNext();
     }
 
     //use ams
 
-   
+
     PrintPrepareData job_data;
     m_plater->get_print_job_data(&job_data);
 
@@ -511,7 +512,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
         params.ams_mapping = "";
         params.ams_mapping_info = "";
     }
-    
+
     params.connection_type = obj->connection_type();
     params.task_use_ams = use_ams;
 
@@ -527,7 +528,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     else {
         filename = m_current_project_name;
     }
-    
+
     if (m_print_plate_idx == PLATE_ALL_IDX && filename.empty()) {
         filename = _L("Untitled");
     }
@@ -1073,7 +1074,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_sizer_basic_time->Add(m_stext_time, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    
+
     print_weight = new ScalableBitmap(m_title_panel, "print-weight", 18);
     weightimg = new wxStaticBitmap(m_title_panel, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_weight->Add(weightimg, 1, wxEXPAND | wxALL, FromDIP(5));
@@ -1127,7 +1128,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
         if (m_select_checkbox->GetValue()) {
             for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
-                
+
                 if (it->second->state_printable <= 2) {
                     it->second->selected();
                 }
@@ -1142,7 +1143,7 @@ wxPanel* SendMultiMachinePage::create_page()
         e.Skip();
     });
 
-    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
+    m_printer_name = new Button(m_table_head_panel, _L("Device Name"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SINGLE_SIZE);
     m_printer_name->SetBackgroundColor(head_bg);
     m_printer_name->SetCornerRadius(0);
     m_printer_name->SetFont(TABLE_HEAD_FONT);
@@ -1164,7 +1165,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(10) );
     m_table_head_sizer->Add(m_printer_name, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE);
+    m_device_status = new Button(m_table_head_panel, _L("Device Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SINGLE_SIZE);
     m_device_status->SetBackgroundColor(head_bg);
     m_device_status->SetFont(TABLE_HEAD_FONT);
     m_device_status->SetCornerRadius(0);
@@ -1207,7 +1208,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     //m_table_head_sizer->Add(m_task_status, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_ams = new Button(m_table_head_panel, _L("AMS Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE, false);
+    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SINGLE_SIZE, false);
     m_ams->SetBackgroundColor(head_bg);
     m_ams->SetCornerRadius(0);
     m_ams->SetFont(TABLE_HEAD_FONT);
@@ -1228,7 +1229,7 @@ wxPanel* SendMultiMachinePage::create_page()
     });
     m_table_head_sizer->Add(m_ams, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, ICON_SIZE, false);
+    m_refresh_button = new Button(m_table_head_panel, "", "mall_control_refresh", wxNO_BORDER, ICON_SINGLE_SIZE, false);
     m_refresh_button->SetBackgroundColor(head_bg);
     m_refresh_button->SetCornerRadius(0);
     m_refresh_button->SetFont(TABLE_HEAD_FONT);
