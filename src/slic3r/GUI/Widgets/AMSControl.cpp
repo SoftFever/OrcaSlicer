@@ -472,7 +472,7 @@ void AMSextruder::doRender(wxDC& dc)
 {
     //m_current_colur = 
     wxSize size = GetSize();
-    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if (!m_none_ams_mode) {
@@ -484,24 +484,24 @@ void AMSextruder::doRender(wxDC& dc)
 
         if (m_vams_loading) {
 
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
-            else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
+            else { dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID)); }
             dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
                 dc.DrawRoundedRectangle(-size.x / 2 - FromDIP(3), size.y * 0.1 + FromDIP(3), size.x, size.y, 3);
                 dc.DrawRoundedRectangle(-size.x / 2 + FromDIP(3), size.y * 0.1 - FromDIP(3), size.x, size.y, 5);
             }
         }
 
         if (m_ams_loading && !m_none_ams_mode) {
-            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID));}
-            else {dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));}
+            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID));}
+            else {dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID));}
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
             }
@@ -509,12 +509,12 @@ void AMSextruder::doRender(wxDC& dc)
     }
     else {
         if (m_ams_loading) {
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
-            else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
+            else { dc.SetPen(wxPen(m_current_colur, 6, wxPENSTYLE_SOLID)); }
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
             if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
-                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
             }
@@ -587,18 +587,18 @@ void AMSVirtualRoad::doRender(wxDC& dc)
 
     wxSize size = GetSize();
     if (m_vams_loading) {
-        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
-        else { dc.SetPen(wxPen(m_current_color, 6, wxSOLID)); }
+        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxPENSTYLE_SOLID)); }
+        else { dc.SetPen(wxPen(m_current_color, 6, wxPENSTYLE_SOLID)); }
     }
     else {
-        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
     }
 
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
 
     if ((m_current_color == *wxWHITE || m_current_color.Alpha() == 0) && !wxGetApp().dark_mode()) {
-        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
         dc.DrawRoundedRectangle(size.x / 2 - FromDIP(3), -size.y / 1.1 + FromDIP(4), size.x, size.y, 5);
         dc.DrawRoundedRectangle(size.x / 2 + FromDIP(3), -size.y / 1.1 - FromDIP(2), size.x, size.y, 3);
     }
@@ -988,11 +988,11 @@ void AMSLib::render_extra_lib(wxDC& dc)
     //draw road
 
     
-    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if (m_pass_road) {
-        dc.SetPen(wxPen(m_info.material_colour, 6, wxSOLID));
+        dc.SetPen(wxPen(m_info.material_colour, 6, wxPENSTYLE_SOLID));
     }
     
     if (m_can_index == 0 || m_can_index == 3) {
@@ -1114,9 +1114,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     // selected
     if (m_selected) {
-        dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        dc.SetPen(wxPen(tmp_lib_colour, 2, wxPENSTYLE_SOLID));
         if (tmp_lib_colour.Alpha() == 0) {
-            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxSOLID));
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxPENSTYLE_SOLID));
         }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
@@ -1131,7 +1131,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     if (!m_selected && m_hover) {
-        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -1144,7 +1144,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
     else {
-        dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
+        dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
 
@@ -1230,7 +1230,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
                     dc.SetBrush(wxBrush(tmp_lib_colour));
                 }
                 else {
-                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
+                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));
                     dc.SetBrush(wxBrush(tmp_lib_colour));
                 }
             }
@@ -1260,7 +1260,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
 #endif
             }
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
-                dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxPENSTYLE_SOLID));
                 dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
                 dc.DrawLine(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(4), FromDIP(4) + top);
             }
@@ -1268,10 +1268,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
         else {
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
-                dc.SetPen(wxPen(wxColour(130, 129, 128), 2, wxSOLID));
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 2, wxPENSTYLE_SOLID));
             }
             else {
-                dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+                dc.SetPen(wxPen(tmp_lib_colour, 2, wxPENSTYLE_SOLID));
             }
 
 #ifdef __APPLE__
@@ -1285,7 +1285,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     //border
-    dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxSOLID));
+    dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
     dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(7), m_radius);
@@ -1492,7 +1492,7 @@ void AMSRoad::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
 
-    dc.SetPen(wxPen(m_road_def_color, 2, wxSOLID));
+    dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     // left mode
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_LEFT) { dc.DrawRoundedRectangle(-10, -10, size.x / 2 + 10, size.y * 0.6 + 10, 4); }
@@ -1535,8 +1535,8 @@ void AMSRoad::doRender(wxDC &dc)
     // mode none
     // if (m_pass_rode_mode.size() == 1 && m_pass_rode_mode[0] == AMSPassRoadMode::AMS_ROAD_MODE_NONE) return;
 
-    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxSOLID));}
-    else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxSOLID));}
+    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxPENSTYLE_SOLID));}
+    else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxPENSTYLE_SOLID));}
     
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
@@ -1563,7 +1563,7 @@ void AMSRoad::doRender(wxDC &dc)
 
     // end mode
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
-        dc.SetPen(wxPen(m_road_def_color, 2, wxSOLID));
+        dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(m_road_def_color));
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
     }
@@ -2244,7 +2244,7 @@ void AmsCans::doRender(wxDC& dc)
 
        
         // A1
-        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
         try
@@ -2285,32 +2285,32 @@ void AmsCans::doRender(wxDC& dc)
    
             if (!m_road_canid.empty()) {
                 if (m_road_canid == "0") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                     dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
                     dc.DrawLine(a1_left, a1_top, end_top, a1_top);
                 }
 
                 if (m_road_canid == "1") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                     dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
                     dc.DrawLine(a2_left, a2_top, end_top, a2_top);
                 }
 
                 if (m_road_canid == "2") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                     dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
                     dc.DrawLine(a3_left, a3_top, end_top, a3_top);
                 }
 
                 if (m_road_canid == "3") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                     dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
                     dc.DrawLine(a4_left, a4_top, end_top, a4_top);
                 }
             }
 
             //to Extruder
-            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
             dc.DrawLine(end_top, a1_top, end_top, size.y);
@@ -2318,19 +2318,19 @@ void AmsCans::doRender(wxDC& dc)
             if (!m_road_canid.empty()) {
                 if (!m_road_canid.empty()) {
                     if (m_road_canid == "0") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                         dc.DrawLine(end_top, a1_top, end_top, size.y);
                     }
                     else if (m_road_canid == "1") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                         dc.DrawLine(end_top, a2_top, end_top, size.y);
                     }
                     else if (m_road_canid == "2") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                         dc.DrawLine(end_top, a3_top, end_top, size.y);
                     }
                     else if (m_road_canid == "3") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxSOLID));
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
                         dc.DrawLine(end_top, a4_top, end_top, size.y);
                     }
                 }
