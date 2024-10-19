@@ -327,7 +327,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
-                                     "No  - Dont use alternate extra wall"));
+                                     "No  - Don't use alternate extra wall"));
         
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
@@ -449,17 +449,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 
-    if (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject && config->opt_int("skirt_height") > 1 && config->opt_int("skirt_loops") > 0) {
-        const wxString     msg_text = _(L("While printing by Object, the extruder may collide skirt.\nThus, reset the skirt layer to 1 to avoid that."));
-        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist    = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("skirt_height", new ConfigOptionInt(1));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
     if (config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None &&
         config->get_abs_value("seam_slope_start_height") >= layer_height) {
         const wxString     msg_text = _(L("seam_slope_start_height need to be smaller than layer_height.\nReset to 0."));
@@ -515,11 +504,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
-    // Orca: Hide the filter out tiny gaps field when gap fill target is nowhere as no gap fill will be applied.
-    bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
-    toggle_line("filter_out_gap_fill", have_gap_fill);
-
-    
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
         "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
@@ -531,6 +515,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "sparse_infill_pattern", "infill_combination",
         "minimum_sparse_infill_area", "sparse_infill_filament", "infill_anchor_max"})
         toggle_line(el, have_infill);
+    
+    bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
+    toggle_line("infill_combination_max_layer_height", have_combined_infill);
     
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
@@ -574,7 +561,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : { "skirt_distance", "draft_shield"})
+    for (auto el : {"skirt_type", "skirt_distance", "skirt_start_angle", "draft_shield"})
         toggle_field(el, have_skirt);
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);
@@ -689,9 +676,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
                     "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
                     "wipe_tower_bridging", "wipe_tower_extra_flow",
-                    "wipe_tower_no_sparse_layers",
-                    "single_extruder_multi_material_priming"})
+                    "wipe_tower_no_sparse_layers"})
       toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && !is_BBL_Printer);
 
     toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
@@ -748,8 +736,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
     bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
     bool force_wall_direction     = config->opt_enum<WallDirection>("wall_direction") != WallDirection::Auto;
-    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase && !force_wall_direction;
+    bool allow_overhang_reverse   = !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
+    toggle_field("overhang_reverse_threshold", has_detect_overhang_wall);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
     toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
     bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");

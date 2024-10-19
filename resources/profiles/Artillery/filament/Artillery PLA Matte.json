@@ -49,10 +49,16 @@
         "8"
     ],
     "filament_max_volumetric_speed": [
-        "18"
+        "22"
     ],
     "temperature_vitrification": [
         "190"
+    ],
+	"enable_pressure_advance": [
+        "1"
+    ],
+	"pressure_advance": [
+        "0.046"
     ],
     "version": "2.0.2.0"
 }

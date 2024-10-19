@@ -29,7 +29,7 @@ template<typename T> inline void reorder_by_shortest_traverse(std::vector<T> &po
 {
     Points start_point;
     start_point.reserve(polylines_out.size());
-    for (const T contour : polylines_out) start_point.push_back(contour.points.front());
+    for (const T& contour : polylines_out) start_point.push_back(contour.points.front());
 
     std::vector<Points::size_type> order = chain_points(start_point);
 
