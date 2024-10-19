@@ -81,6 +81,8 @@ enum class NotificationType
 	// Slicing warnings, issued by the slicing process.
 	// Slicing warnings are registered for a particular Print milestone or a PrintObject and its milestone.
 	SlicingWarning,
+	// BBL: general error
+	BBLGeneralError,
 	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
@@ -224,6 +226,9 @@ public:
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	// general error message
+	void push_general_error_notification(const std::string& text);
+	void close_general_error_notification(const std::string& text);
 	// Object partially outside of the printer working space, cannot print. No fade out.
 	void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.

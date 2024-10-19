@@ -1936,7 +1936,21 @@ void NotificationManager::push_plater_error_notification(const std::string& text
 void NotificationManager::close_plater_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterError) {
+			notification->close();
+		}
+	}
+}
+
+void NotificationManager::push_general_error_notification(const std::string& text)
+{
+	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+}
+
+void NotificationManager::close_general_error_notification(const std::string& text)
+{
+	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
 			notification->close();
 		}
 	}

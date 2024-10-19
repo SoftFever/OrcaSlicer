@@ -59,6 +59,21 @@ enum ModelInstanceEPrintVolumeState : unsigned char;
 
 using ModelObjectPtrs = std::vector<ModelObject*>;
 
+struct ObjectFilamentInfo {
+    ModelObject* object;
+    std::map<int, int> manual_filaments; //manual mode: filament id -> extruder id can not be printed
+
+    std::vector<int> auto_filaments; //auto mode: filaments in all extruder's outside area
+};
+
+struct ObjectFilamentResults {
+    FilamentMapMode         mode;
+    std::vector<int>        filaments; //filaments has conflicts
+    std::vector<ModelObject*> partly_outside_objects; //partly outside objects
+
+    std::vector<ObjectFilamentInfo> object_filaments;
+};
+
 // Return appropriate color based on the ModelVolume.
 extern ColorRGBA color_from_model_volume(const ModelVolume& model_volume);
 
@@ -514,7 +529,7 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state) const;
+    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);

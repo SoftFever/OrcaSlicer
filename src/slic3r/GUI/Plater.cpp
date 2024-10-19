@@ -5210,7 +5210,9 @@ void Plater::priv::object_list_changed()
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
     //const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() == ModelInstancePVS_Inside;
-    const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+    ObjectFilamentResults object_results;
+    bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state(&object_results) != ModelInstancePVS_Partly_Outside;
+    model_fits = model_fits && object_results.filaments.empty();
 
     PartPlate* part_plate = partplate_list.get_curr_plate();
 
@@ -6584,7 +6586,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             // see: Plater::priv::object_list_changed()
             // FIXME: it may be better to have a single function making this check and let it be called wherever needed
             bool export_in_progress = this->background_process.is_export_scheduled();
-            bool model_fits = this->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            ObjectFilamentResults object_results;
+            bool model_fits = this->view3D->get_canvas3d()->check_volumes_outside_state(&object_results) != ModelInstancePVS_Partly_Outside;
+            model_fits = model_fits&&object_results.filaments.empty();
             //BBS: add partplate logic
             PartPlate * current_plate = this->partplate_list.get_curr_plate();
             bool only_has_gcode_need_preview = false;
@@ -12315,7 +12319,7 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
         const SLAPrintObject *object = this->p->sla_print.get_print_object_by_model_object_id(mo.id());
 
         if (auto m = object->get_mesh_to_print(); m.empty())
-            mesh = combine_mesh_fff(mo, instance_id, [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); });
+            mesh = combine_mesh_fff(mo, instance_id, [this](const std::string& msg) {return get_notification_manager()->push_general_error_notification(msg); });
         else {
             const Transform3d mesh_trafo_inv = object->trafo().inverse();
             const bool is_left_handed = object->is_left_handed();
@@ -12382,7 +12386,7 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
     if (p->printer_technology == ptFFF)
 #if EXPORT_WITH_BOOLEAN
         mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
-            [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
+            [this](const std::string& msg) {return get_notification_manager()->push_general_error_notification(msg); }); };
 #else
         mesh_to_export = mesh_to_export_fff_no_boolean;
 #endif
@@ -14440,8 +14444,10 @@ extern std::string object_limited_text;
 extern std::string object_clashed_text;
 void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 {
-    ModelInstanceEPrintVolumeState state = p->view3D->get_canvas3d()->check_volumes_outside_state();
+    ObjectFilamentResults object_results;
+    ModelInstanceEPrintVolumeState state = p->view3D->get_canvas3d()->check_volumes_outside_state(&object_results);
     model_fits = (state != ModelInstancePVS_Partly_Outside);
+    model_fits = model_fits && object_results.filaments.empty();
     validate_error = false;
     if (p->printer_technology == ptFFF) {
         //std::string plater_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"

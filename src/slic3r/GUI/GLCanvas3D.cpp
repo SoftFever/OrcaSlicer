@@ -113,6 +113,11 @@ float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleF
 #undef Convex
 #endif
 
+std::string object_limited_text = _u8L("An object is laid on the left/right extruder only area.\n"
+    "Please make sure the filaments used by this object on this area are not mapped to the other extruders.");
+std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+    "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
+
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
     if (m_z_texture_id != 0) {
@@ -1354,7 +1359,38 @@ BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
     return test_volume;
 }
 
-ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
+void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, std::string& error_string)
+{
+    error_string.clear();
+    if (!object_result.partly_outside_objects.empty()) {
+        error_string += _u8L("Following objects are laid over the boundary of plate or exceeds the height limit:\n");
+        for(auto& object: object_result.partly_outside_objects)
+        {
+            error_string += object->name;
+            error_string += "\n";
+        }
+        error_string += _u8L("Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n");
+    }
+
+    if (!object_result.filaments.empty()) {
+        if (object_result.mode == FilamentMapMode::fmmAuto) {
+            error_string += _u8L("In the Filament auto-matching mode, Filament ");
+            for (auto& filament: object_result.filaments)
+                error_string += std::to_string(filament) + " ";
+            error_string += "are placed in the unprintable area of all extruders, making it impossible to match them with a suitable extruder. This may be caused by the following objects:\n";
+            for(ObjectFilamentInfo& object_filament: object_result.object_filaments)
+            {
+                error_string += object_filament.object->name;
+                error_string += "\n";
+            }
+            error_string += _u8L("Please solve the problem by moving them within the build volume.\n");
+        }
+        else {
+        }
+    }
+}
+
+ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFilamentResults* object_results) const
 {
     //BBS: if not initialized, return inside directly insteadof assert
     if (!m_initialized) {
@@ -1363,7 +1399,9 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
     //assert(m_initialized);
 
     ModelInstanceEPrintVolumeState state;
-    m_volumes.check_outside_state(m_bed.build_volume(), &state);
+    m_volumes.check_outside_state(m_bed.build_volume(), &state, object_results);
+
+    construct_error_string(*object_results, object_clashed_text);
     return state;
 }
 
@@ -2817,26 +2855,30 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
-            const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state);
+            ObjectFilamentResults object_results;
+            const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state, &object_results);
             const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
             const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
-            _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+            construct_error_string(object_results, object_clashed_text);
+
+            _set_warning_notification(EWarning::ObjectClashed, partlyOut || !object_results.filaments.empty());
             _set_warning_notification(EWarning::ObjectLimited, objectLimited);
             //BBS: turn off the warning when fully outside
             //_set_warning_notification(EWarning::ObjectOutside, fullyOut);
-            if (printer_technology != ptSLA || !contained_min_one)
-                _set_warning_notification(EWarning::SlaSupportsOutside, false);
+            //if (printer_technology != ptSLA || !contained_min_one)
+            //    _set_warning_notification(EWarning::SlaSupportsOutside, false);
 
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS,
-                contained_min_one && !m_model->objects.empty() && !partlyOut));
+            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty();
+            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
+            ppl.get_curr_plate()->update_slice_ready_status(model_fits);
         }
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
             _set_warning_notification(EWarning::ObjectClashed, false);
             _set_warning_notification(EWarning::ObjectLimited, false);
-            _set_warning_notification(EWarning::SlaSupportsOutside, false);
+            //_set_warning_notification(EWarning::SlaSupportsOutside, false);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
@@ -7334,7 +7376,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         }
         if (m_requires_check_outside_state) {
-            m_volumes.check_outside_state(build_volume, nullptr);
+            m_volumes.check_outside_state(build_volume, nullptr, nullptr);
             m_requires_check_outside_state = false;
         }
     }
@@ -9668,11 +9710,6 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 
     _set_warning_notification(warning, show);
 }
-
-std::string object_limited_text = _u8L("An object is laid on the left/right extruder only area.\n"
-            "Please make sure the filaments used by this object on this area are not mapped to the other extruders.");
-std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
-            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {

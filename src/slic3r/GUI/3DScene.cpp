@@ -1045,7 +1045,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state) const
+bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state, ObjectFilamentResults* object_results) const
 {
     if (GUI::wxGetApp().plater() == NULL)
     {
@@ -1078,9 +1078,14 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
-    std::vector<std::set<int>> unprintable_filament_ids;
+    std::map<ModelObject*, std::map<int, std::set<int>>> objects_unprintable_filaments;
+    int extruder_count = build_volume.get_extruder_area_count();
+    std::vector<std::set<int>> unprintable_filament_ids(extruder_count, std::set<int>());
+    std::set<ModelObject*> partly_objects_set;
+    const ModelObjectPtrs &model_objects = model.objects;
     for (GLVolume* volume : this->volumes)
     {
+        std::vector<bool> inside_extruders;
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
             if (volume_below(*volume))
@@ -1091,22 +1096,9 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
                     const BoundingBoxf3& bb = volume_bbox(*volume);
                     state = plate_build_volume.volume_state_bbox(bb);
-                    if ((state == BuildVolume::ObjectState::Inside) && (build_volume.get_extruder_area_count() > 0))
+                    if ((state == BuildVolume::ObjectState::Inside) && (extruder_count > 1))
                     {
-                        std::vector<bool> inside_extruders;
                         state = plate_build_volume.check_volume_bbox_state_with_extruder_areas(bb, inside_extruders);
-                        if (state == BuildVolume::ObjectState::Limited) {
-                            unprintable_filament_ids.resize(inside_extruders.size());
-                            const ModelObjectPtrs &model_objects = model.objects;
-                            ModelObject *model_object = model_objects[volume->object_idx()];
-                            ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
-                            for (size_t i = 0; i < inside_extruders.size(); ++i) {
-                                if (!inside_extruders[i]) {
-                                    std::vector<int> extruders = model_volume->get_extruders();
-                                    unprintable_filament_ids[i].insert(extruders.begin(), extruders.end());
-                                }
-                            }
-                        }
                     }
                     break;
                 }
@@ -1118,9 +1110,8 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     const indexed_triangle_set& convex_mesh_it = volume_convex_mesh(*volume).its;
                     const Transform3f trafo = volume->world_matrix().cast<float>();
                     state = plate_build_volume.object_state(convex_mesh_it, trafo, volume_sinking(*volume));
-                    if ((state == BuildVolume::ObjectState::Inside) && (build_volume.get_extruder_area_count() > 0))
+                    if ((state == BuildVolume::ObjectState::Inside) && (extruder_count > 1))
                     {
-                        std::vector<bool> inside_extruders;
                         state = plate_build_volume.check_object_state_with_extruder_areas(convex_mesh_it, trafo, inside_extruders);
                     }
                     break;
@@ -1131,6 +1122,23 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     break;
                 }
                 assert(state != BuildVolume::ObjectState::Below);
+
+                if (state == BuildVolume::ObjectState::Limited) {
+                    //unprintable_filament_ids.resize(inside_extruders.size());
+                    ModelObject *model_object = model_objects[volume->object_idx()];
+                    ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
+                    for (size_t i = 0; i < inside_extruders.size(); ++i) {
+                        if (!inside_extruders[i]) {
+                            std::vector<int> filaments = model_volume->get_extruders();
+                            unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
+                            if (object_results) {
+                                std::map<int, std::set<int>>& obj_extruder_filament_maps = objects_unprintable_filaments[model_object];
+                                std::set<int>& obj_extruder_filaments = obj_extruder_filament_maps[i+1];
+                                obj_extruder_filaments.insert(filaments.begin(), filaments.end());
+                            }
+                        }
+                    }
+                }
             }
 
             //int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
@@ -1140,6 +1148,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 if (state == BuildVolume::ObjectState::Colliding)
                 {
                     overall_state = ModelInstancePVS_Partly_Outside;
+                    partly_objects_set.emplace(model_objects[volume->object_idx()]);
                 }
                 else if ((state == BuildVolume::ObjectState::Limited) && (overall_state != ModelInstancePVS_Partly_Outside))
                     overall_state = ModelInstancePVS_Limited;
@@ -1188,6 +1197,108 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     }
 
     curr_plate->set_unprintable_filament_ids(unprintable_filament_vec);
+
+    if (object_results && !partly_objects_set.empty()) {
+        object_results->partly_outside_objects = std::vector<ModelObject*>(partly_objects_set.begin(), partly_objects_set.end());
+    }
+
+    //check per-object error for extruder areas
+    if (object_results && (extruder_count > 1))
+    {
+        object_results->mode = curr_plate->get_filament_map_mode();
+        if (object_results->mode == FilamentMapMode::fmmAuto)
+        {
+            std::vector<int> conflict_filament_vector;
+            for (int index = 0; index < extruder_count; index++ )
+            {
+                if (!unprintable_filament_vec[index].empty())
+                {
+                    std::sort (unprintable_filament_vec[index].begin(), unprintable_filament_vec[index].end());
+                    if (index == 0)
+                        conflict_filament_vector = unprintable_filament_vec[index];
+                    else
+                    {
+                        std::vector<int> result_filaments;
+                        //result_filaments.reserve(conflict_filaments.size());
+                        std::set_intersection (conflict_filament_vector.begin(), conflict_filament_vector.end(), unprintable_filament_vec[index].begin(), unprintable_filament_vec[index].end(), insert_iterator<vector<int>>(result_filaments, result_filaments.begin()));
+                        conflict_filament_vector = result_filaments;
+                    }
+                }
+                else
+                {
+                    conflict_filament_vector.clear();
+                    break;
+                }
+            }
+
+            if (!conflict_filament_vector.empty())
+            {
+                std::set<int> conflict_filaments_set(conflict_filament_vector.begin(), conflict_filament_vector.end());
+                object_results->filaments = conflict_filament_vector;
+
+                for (auto& object_map: objects_unprintable_filaments)
+                {
+                    ModelObject *model_object = object_map.first;
+                    std::map<int, std::set<int>>& obj_extruder_filament_maps = object_map.second;
+                    std::set<int> obj_filaments_set;
+                    ObjectFilamentInfo object_filament_info;
+                    object_filament_info.object = model_object;
+
+                    for (std::map<int, std::set<int>>::iterator extruder_map_iter = obj_extruder_filament_maps.begin(); extruder_map_iter != obj_extruder_filament_maps.end(); extruder_map_iter++ )
+                    {
+                        int extruder_id = extruder_map_iter->first;
+                        std::set<int>& filaments_set = extruder_map_iter->second;
+
+                        for (int filament: filaments_set)
+                        {
+                            if (conflict_filaments_set.find(filament) != conflict_filaments_set.end())
+                            {
+                                obj_filaments_set.emplace(filament);
+                            }
+                        }
+                    }
+                    if (!obj_filaments_set.empty()) {
+                        object_filament_info.auto_filaments = std::vector<int>(obj_filaments_set.begin(), obj_filaments_set.end());
+                        object_results->object_filaments.push_back(std::move(object_filament_info));
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::set<int> conflict_filaments_set;
+            std::vector<int> filament_maps = curr_plate->get_filament_maps();
+            for (auto& object_map: objects_unprintable_filaments)
+            {
+                ModelObject *model_object = object_map.first;
+                std::map<int, std::set<int>>& obj_extruder_filament_maps = object_map.second;
+                ObjectFilamentInfo object_filament_info;
+                object_filament_info.object = model_object;
+
+                for (std::map<int, std::set<int>>::iterator extruder_map_iter = obj_extruder_filament_maps.begin(); extruder_map_iter != obj_extruder_filament_maps.end(); extruder_map_iter++ )
+                {
+                    int extruder_id = extruder_map_iter->first;
+                    std::set<int>& filaments_set = extruder_map_iter->second;
+
+                    for (int filament: filaments_set)
+                    {
+                        if (filament_maps[filament - 1] == extruder_id)
+                        {
+                            object_filament_info.manual_filaments.emplace(filament, extruder_id);
+                            conflict_filaments_set.emplace(filament);
+                        }
+                    }
+                }
+                if (!object_filament_info.manual_filaments.empty())
+                {
+                    object_results->object_filaments.push_back(std::move(object_filament_info));
+                }
+            }
+            if (!conflict_filaments_set.empty()) {
+                object_results->filaments = std::vector<int>(conflict_filaments_set.begin(), conflict_filaments_set.end());
+            }
+        }
+    }
 
     /*for (GLVolume* volume : this->volumes)
     {
