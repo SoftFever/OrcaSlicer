@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PLA @base",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "EGPLAB00",
+    "instantiation": "false",
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "filament_start_gcode": [
+        "; Filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}
