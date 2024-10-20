@@ -9,6 +9,8 @@ add_library(clipper STATIC
     clipper_z.hpp
 )
 
+target_link_libraries(clipper TBB::tbb TBB::tbbmalloc)
+
 if(SLIC3R_PROFILE)
     target_link_libraries(clipper Shiny)
 endif()

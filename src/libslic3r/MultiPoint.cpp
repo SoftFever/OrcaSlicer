@@ -161,9 +161,9 @@ bool MultiPoint::intersections(const Line &line, Points *intersections) const
     return intersections->size() > intersections_size;
 }
 
-std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, const double tolerance)
+Points MultiPoint::_douglas_peucker(const Points &pts, const double tolerance)
 {
-    std::vector<Point> result_pts;
+    Points result_pts;
 	double tolerance_sq = tolerance * tolerance;
     if (! pts.empty()) {
         const Point  *anchor      = &pts.front();

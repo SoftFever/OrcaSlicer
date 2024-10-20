@@ -61,8 +61,10 @@ Points SinglePathProvider::s_end;
 // Clip source polygon to be used as a clipping polygon with a bouding box around the source (to be clipped) polygon.
 // Useful as an optimization for expensive ClipperLib operations, for example when clipping source polygons one by one
 // with a set of polygons covering the whole layer below.
-template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox, std::vector<PointType> &out, const bool get_entire_polygons=false)
+template<typename PointsType> inline void clip_clipper_polygon_with_subject_bbox_templ(const PointsType &src, const BoundingBox &bbox, PointsType &out, const bool get_entire_polygons=false)
 {
+    using PointType = typename PointsType::value_type;
+
     out.clear();
     const size_t cnt = src.size();
     if (cnt < 3) return;
@@ -112,9 +114,9 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
 void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out, const bool get_entire_polygons) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out, get_entire_polygons); }
 void clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox, ZPoints &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
 
-template<typename PointType> [[nodiscard]] std::vector<PointType> clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox)
+template<typename PointsType> [[nodiscard]] PointsType clip_clipper_polygon_with_subject_bbox_templ(const PointsType &src, const BoundingBox &bbox)
 {
-    std::vector<PointType> out;
+    PointsType out;
     clip_clipper_polygon_with_subject_bbox(src, bbox, out);
     return out;
 }
