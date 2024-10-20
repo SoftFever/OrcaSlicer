@@ -618,9 +618,18 @@ bool HorzSegmentsOverlap(cInt seg1a, cInt seg1b, cInt seg2a, cInt seg2b)
 // ClipperBase class methods ...
 //------------------------------------------------------------------------------
 
-#ifndef CLIPPERLIB_INT32
+#ifdef CLIPPERLIB_INT32
+static inline void RangeTest(const IntPoint &pt)
+{
+#ifndef NDEBUG
+    static constexpr const int32_t hi = 65536 * 16383;
+    if (pt.x() > hi || pt.y() > hi || -pt.x() > hi || -pt.y() > hi) 
+      throw clipperException("Coordinate outside allowed range");
+#endif // NDEBUG
+}
+#else // CLIPPERLIB_INT32
 // Called from ClipperBase::AddPath() to verify the scale of the input polygon coordinates.
-inline void RangeTest(const IntPoint& Pt, bool& useFullRange)
+static inline void RangeTest(const IntPoint& Pt, bool& useFullRange)
 {
   if (useFullRange)
   {
@@ -814,7 +823,10 @@ bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, b
   try
   {
     edges[1].Curr = pg[1];
-#ifndef CLIPPERLIB_INT32
+#ifdef CLIPPERLIB_INT32
+    RangeTest(pg[0]);
+    RangeTest(pg[highI]);
+#else
     RangeTest(pg[0], m_UseFullRange);
     RangeTest(pg[highI], m_UseFullRange);
 #endif // CLIPPERLIB_INT32
@@ -822,7 +834,9 @@ bool ClipperBase::AddPathInternal(const Path &pg, int highI, PolyType PolyTyp, b
     InitEdge(&edges[highI], &edges[0], &edges[highI-1], pg[highI]);
     for (int i = highI - 1; i >= 1; --i)
     {
-#ifndef CLIPPERLIB_INT32
+#ifdef CLIPPERLIB_INT32
+      RangeTest(pg[i]);
+#else
       RangeTest(pg[i], m_UseFullRange);
 #endif // CLIPPERLIB_INT32
       InitEdge(&edges[i], &edges[i+1], &edges[i-1], pg[i]);
