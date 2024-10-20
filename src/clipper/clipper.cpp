@@ -246,7 +246,7 @@ int PointInPolygon(const IntPoint &pt, const Path &path)
         if (ipNext.x() > pt.x()) result = 1 - result;
         else
         {
-          double d = (double)(ip.x() - pt.x()) * (ipNext.y() - pt.y()) - (double)(ipNext.x() - pt.x()) * (ip.y() - pt.y());
+          auto d = CrossProductType(ip.x() - pt.x()) * CrossProductType(ipNext.y() - pt.y()) - CrossProductType(ipNext.x() - pt.x()) * CrossProductType(ip.y() - pt.y());
           if (!d) return -1;
           if ((d > 0) == (ipNext.y() > ip.y())) result = 1 - result;
         }
@@ -254,7 +254,7 @@ int PointInPolygon(const IntPoint &pt, const Path &path)
       {
         if (ipNext.x() > pt.x())
         {
-          double d = (double)(ip.x() - pt.x()) * (ipNext.y() - pt.y()) - (double)(ipNext.x() - pt.x()) * (ip.y() - pt.y());
+          auto d = CrossProductType(ip.x() - pt.x()) * CrossProductType(ipNext.y() - pt.y()) - CrossProductType(ipNext.x() - pt.x()) * CrossProductType(ip.y() - pt.y());
           if (!d) return -1;
           if ((d > 0) == (ipNext.y() > ip.y())) result = 1 - result;
         }
@@ -267,7 +267,7 @@ int PointInPolygon(const IntPoint &pt, const Path &path)
 //------------------------------------------------------------------------------
 
 // Called by Poly2ContainsPoly1()
-int PointInPolygon (const IntPoint &pt, OutPt *op)
+int PointInPolygon(const IntPoint &pt, OutPt *op)
 {
   //returns 0 if false, +1 if true, -1 if pt ON polygon boundary
   int result = 0;
@@ -286,7 +286,7 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
         if (op->Next->Pt.x() > pt.x()) result = 1 - result;
         else
         {
-          double d = (double)(op->Pt.x() - pt.x()) * (op->Next->Pt.y() - pt.y()) - (double)(op->Next->Pt.x() - pt.x()) * (op->Pt.y() - pt.y());
+          auto d = CrossProductType(op->Pt.x() - pt.x()) * CrossProductType(op->Next->Pt.y() - pt.y()) - CrossProductType(op->Next->Pt.x() - pt.x()) * CrossProductType(op->Pt.y() - pt.y());
           if (!d) return -1;
           if ((d > 0) == (op->Next->Pt.y() > op->Pt.y())) result = 1 - result;
         }
@@ -294,7 +294,7 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
       {
         if (op->Next->Pt.x() > pt.x())
         {
-          double d = (double)(op->Pt.x() - pt.x()) * (op->Next->Pt.y() - pt.y()) - (double)(op->Next->Pt.x() - pt.x()) * (op->Pt.y() - pt.y());
+          auto d = CrossProductType(op->Pt.x() - pt.x()) * CrossProductType(op->Next->Pt.y() - pt.y()) - CrossProductType(op->Next->Pt.x() - pt.x()) * CrossProductType(op->Pt.y() - pt.y());
           if (!d) return -1;
           if ((d > 0) == (op->Next->Pt.y() > op->Pt.y())) result = 1 - result;
         }

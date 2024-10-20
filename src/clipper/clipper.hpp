@@ -85,9 +85,11 @@ enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 // Point coordinate type
 #ifdef CLIPPERLIB_INT32
   // Coordinates and their differences (vectors of the coordinates) have to fit int32_t.
-  typedef int32_t cInt;
+  using cInt = int32_t;
+  using CrossProductType = int64_t;
 #else
-  typedef int64_t cInt;
+  using cInt = int64_t;
+  using CrossProductType = double;
   // Maximum cInt value to allow a cross product calculation using 32bit expressions.
   static constexpr cInt const loRange = 0x3FFFFFFF; // 0x3FFFFFFF = 1 073 741 823
   // Maximum allowed cInt value.
