@@ -2788,7 +2788,6 @@ void ModelVolume::convert_from_meters()
 std::vector<size_t> ModelVolume::get_extruders_from_multi_material_painting() const {
      if (!this->is_mm_painted())
          return {};
-
      const TriangleSelector::TriangleSplittingData &data = this->mmu_segmentation_facets.get_data();
 
      std::vector<size_t> extruders;
