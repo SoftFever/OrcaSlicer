@@ -260,9 +260,9 @@ void AppConfig::set_defaults()
     }
 
     // Orca
-    if(get("show_splash_screen").empty()) {
-        set_bool("show_splash_screen", true);
-    }
+    // if(get("show_splash_screen").empty()) {
+    //     set_bool("show_splash_screen", true);
+    // }
 
     if(get("auto_arrange").empty()) {
         set_bool("auto_arrange", true);

@@ -2321,26 +2321,26 @@ bool GUI_App::on_init_inner()
         app_config->set("version", SLIC3R_VERSION);
     }
 
-    SplashScreen * scrn = nullptr;
-    if (app_config->get("show_splash_screen") == "true") {
-        // make a bitmap with dark grey banner on the left side
-        //BBS make BBL splash screen bitmap
-        wxBitmap bmp = SplashScreen::MakeBitmap();
-        // Detect position (display) to show the splash screen
-        // Now this position is equal to the mainframe position
-        wxPoint splashscreen_pos = wxDefaultPosition;
-        if (app_config->has("window_mainframe")) {
-            auto metrics = WindowMetrics::deserialize(app_config->get("window_mainframe"));
-            if (metrics)
-                splashscreen_pos = metrics->get_rect().GetPosition();
-        }
+    // SplashScreen * scrn = nullptr;
+    // if (app_config->get("show_splash_screen") == "true") {
+    //     // make a bitmap with dark grey banner on the left side
+    //     //BBS make BBL splash screen bitmap
+    //     wxBitmap bmp = SplashScreen::MakeBitmap();
+    //     // Detect position (display) to show the splash screen
+    //     // Now this position is equal to the mainframe position
+    //     wxPoint splashscreen_pos = wxDefaultPosition;
+    //     if (app_config->has("window_mainframe")) {
+    //         auto metrics = WindowMetrics::deserialize(app_config->get("window_mainframe"));
+    //         if (metrics)
+    //             splashscreen_pos = metrics->get_rect().GetPosition();
+    //     }
 
-        BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
-        //BBS use BBL splashScreen
-        scrn = new SplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 1500, splashscreen_pos);
-        wxYield();
-        scrn->SetText(_L("Loading configuration")+ dots);
-    }
+    //     BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
+    //     //BBS use BBL splashScreen
+    //     scrn = new SplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 1500, splashscreen_pos);
+    //     wxYield();
+    //     scrn->SetText(_L("Loading configuration")+ dots);
+    // }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
     preset_bundle = new PresetBundle();
