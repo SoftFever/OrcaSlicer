@@ -120,7 +120,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CU
 if (WIN32)
     add_library(OrcaSlicer SHARED OrcaSlicer.cpp OrcaSlicer.hpp BaseException.cpp BaseException.h StackWalker.cpp StackWalker.h)
 else ()
-    add_executable(OrcaSlicer OrcaSlicer.cpp OrcaSlicer.hpp)
+    add_executable(JusPrin OrcaSlicer.cpp OrcaSlicer.hpp)
 endif ()
 
 if (MINGW)
@@ -135,12 +135,12 @@ if (NOT WIN32 AND NOT APPLE)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/BuildLinuxImage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/BuildLinuxImage.sh @ONLY)
 endif ()
 
-target_link_libraries(OrcaSlicer libslic3r cereal::cereal)
+target_link_libraries(JusPrin libslic3r cereal::cereal)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
     # -liconv: boost links to libiconv by default
-    target_link_libraries(OrcaSlicer "-liconv -framework IOKit" "-framework CoreFoundation" "-framework AVFoundation" "-framework AVKit" "-framework CoreMedia" "-framework VideoToolbox" -lc++)
+    target_link_libraries(JusPrin "-liconv -framework IOKit" "-framework CoreFoundation" "-framework AVFoundation" "-framework AVKit" "-framework CoreMedia" "-framework VideoToolbox" -lc++)
 elseif (MSVC)
     # Manifest is provided through OrcaSlicer.rc, don't generate your own.
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
@@ -151,8 +151,8 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-#    target_link_libraries(OrcaSlicer ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
-target_link_libraries(OrcaSlicer libslic3r_gui)
+#    target_link_libraries(JusPrin ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
+target_link_libraries(JusPrin libslic3r_gui)
     if (MSVC)
         # Generate debug symbols even in release mode.
         target_link_options(OrcaSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
@@ -160,7 +160,7 @@ target_link_libraries(OrcaSlicer libslic3r_gui)
     elseif (MINGW)
         target_link_libraries(OrcaSlicer ws2_32 uxtheme setupapi)
     elseif (APPLE)
-        target_link_libraries(OrcaSlicer "-framework OpenGL")
+        target_link_libraries(JusPrin "-framework OpenGL")
     else ()
         target_link_libraries(OrcaSlicer -ldl)
     endif ()
@@ -231,13 +231,13 @@ if (WIN32)
 else ()
     if (APPLE AND NOT CMAKE_MACOSX_BUNDLE)
         # On OSX, the name of the binary matches the name of the Application.
-        add_custom_command(TARGET OrcaSlicer POST_BUILD
-            COMMAND ln -sf OrcaSlicer orca-slicer
-            WORKING_DIRECTORY "$<TARGET_FILE_DIR:OrcaSlicer>"
+        add_custom_command(TARGET JusPrin POST_BUILD
+            COMMAND ln -sf JusPrin orca-slicer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:JusPrin>"
             VERBATIM)
     else ()
-        add_custom_command(TARGET OrcaSlicer POST_BUILD
-            WORKING_DIRECTORY "$<TARGET_FILE_DIR:OrcaSlicer>"
+        add_custom_command(TARGET JusPrin POST_BUILD
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:JusPrin>"
             VERBATIM)
     endif ()
     if (XCODE)
@@ -249,16 +249,16 @@ else ()
     endif ()
     if (CMAKE_MACOSX_BUNDLE)
         if (CMAKE_CONFIGURATION_TYPES)
-            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/OrcaSlicer.app/Contents/Resources")
+            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/JusPrin.app/Contents/Resources")
         else()
-            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/OrcaSlicer.app/Contents/Resources")
+            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/JusPrin.app/Contents/Resources")
         endif()
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
-        set(MACOSX_BUNDLE_BUNDLE_NAME "OrcaSlicer")
+        set(MACOSX_BUNDLE_BUNDLE_NAME "JusPrin")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SoftFever_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2022-2024 Li Jiang All Rights Reserved")
     endif()
-    add_custom_command(TARGET OrcaSlicer POST_BUILD
+    add_custom_command(TARGET JusPrin POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM)
@@ -284,5 +284,5 @@ if (WIN32)
     endif ()
     install(FILES ${output_dlls_${build_type}} DESTINATION ".")
 else ()
-    install(TARGETS OrcaSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS JusPrin RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()

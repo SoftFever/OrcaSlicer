@@ -159,7 +159,7 @@ function build_slicer() {
                 -G "${SLICER_CMAKE_GENERATOR}" \
                 -DBBL_RELEASE_TO_PUBLIC=1 \
                 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
-                -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
+                -DCMAKE_INSTALL_PREFIX="$PWD/JusPrin" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                 -DCMAKE_MACOSX_RPATH=ON \
                 -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
@@ -179,18 +179,18 @@ function build_slicer() {
     echo "Fix macOS app package..."
     (
         cd "$PROJECT_BUILD_DIR"
-        mkdir -p OrcaSlicer
-        cd OrcaSlicer
+        mkdir -p JusPrin
+        cd JusPrin
         # remove previously built app
-        rm -rf ./OrcaSlicer.app
+        rm -rf ./JusPrin.app
         # fully copy newly built app
-        cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer.app" ./OrcaSlicer.app
+        cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/JusPrin.app" ./JusPrin.app
         # fix resources
-        resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
-        rm ./OrcaSlicer.app/Contents/Resources
-        cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
+        resources_path=$(readlink ./JusPrin.app/Contents/Resources)
+        rm ./JusPrin.app/Contents/Resources
+        cp -R "$resources_path" ./JusPrin.app/Contents/Resources
         # delete .DS_Store file
-        find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+        find ./JusPrin.app/ -name '.DS_Store' -delete
     )
 
     # extract version
