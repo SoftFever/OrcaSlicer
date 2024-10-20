@@ -2370,93 +2370,93 @@ bool GUI_App::on_init_inner()
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
-        Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            if (this->plater_ != nullptr) {
-                // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
-                //BBS show msg box to download new version
-               /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
-                DownloadDialog dialog(this->mainframe,
-                    tips,
-                    _L("New version of Orca Slicer"),
-                    false,
-                    wxCENTER | wxICON_INFORMATION);
+        // Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+        //     if (this->plater_ != nullptr) {
+        //         // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+        //         //BBS show msg box to download new version
+        //        /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
+        //         DownloadDialog dialog(this->mainframe,
+        //             tips,
+        //             _L("New version of Orca Slicer"),
+        //             false,
+        //             wxCENTER | wxICON_INFORMATION);
 
 
-                dialog.SetExtendedMessage(extmsg);*/
-                std::string skip_version_str = this->app_config->get("app", "skip_version");
-                bool skip_this_version = false;
-                if (!skip_version_str.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << "new version = " << version_info.version_str << ", skip version = " << skip_version_str;
-                    if (version_info.version_str <= skip_version_str) {
-                        skip_this_version = true;
-                    } else {
-                        app_config->set("skip_version", "");
-                        skip_this_version = false;
-                    }
-                }
-                if (!skip_this_version
-                    || evt.GetInt() != 0) {
-                    UpdateVersionDialog dialog(this->mainframe);
-                    wxString            extmsg = wxString::FromUTF8(version_info.description);
-                    dialog.update_version_info(extmsg, version_info.version_str);
-                    //dialog.update_version_info(version_info.description);
-                    if (evt.GetInt() != 0) {
-                        dialog.m_button_skip_version->Hide();
-                    }
-                    switch (dialog.ShowModal())
-                    {
-                    case wxID_YES:
-                        wxLaunchDefaultBrowser(version_info.url);
-                        break;
-                    case wxID_NO:
-                        break;
-                    default:
-                        ;
-                    }
-                }
-            }
-            });
+        //         dialog.SetExtendedMessage(extmsg);*/
+        //         std::string skip_version_str = this->app_config->get("app", "skip_version");
+        //         bool skip_this_version = false;
+        //         if (!skip_version_str.empty()) {
+        //             BOOST_LOG_TRIVIAL(info) << "new version = " << version_info.version_str << ", skip version = " << skip_version_str;
+        //             if (version_info.version_str <= skip_version_str) {
+        //                 skip_this_version = true;
+        //             } else {
+        //                 app_config->set("skip_version", "");
+        //                 skip_this_version = false;
+        //             }
+        //         }
+        //         if (!skip_this_version
+        //             || evt.GetInt() != 0) {
+        //             UpdateVersionDialog dialog(this->mainframe);
+        //             wxString            extmsg = wxString::FromUTF8(version_info.description);
+        //             dialog.update_version_info(extmsg, version_info.version_str);
+        //             //dialog.update_version_info(version_info.description);
+        //             if (evt.GetInt() != 0) {
+        //                 dialog.m_button_skip_version->Hide();
+        //             }
+        //             switch (dialog.ShowModal())
+        //             {
+        //             case wxID_YES:
+        //                 wxLaunchDefaultBrowser(version_info.url);
+        //                 break;
+        //             case wxID_NO:
+        //                 break;
+        //             default:
+        //                 ;
+        //             }
+        //         }
+        //     }
+        //     });
 
-        Bind(EVT_ENTER_FORCE_UPGRADE, [this](const wxCommandEvent& evt) {
-                wxString      version_str = wxString::FromUTF8(this->app_config->get("upgrade", "version"));
-                wxString      description_text = wxString::FromUTF8(this->app_config->get("upgrade", "description"));
-                std::string   download_url = this->app_config->get("upgrade", "url");
-                wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_str);
-                DownloadDialog dialog(this->mainframe,
-                    tips,
-                    _L("The Orca Slicer needs an upgrade"),
-                    false,
-                    wxCENTER | wxICON_INFORMATION);
-                dialog.SetExtendedMessage(description_text);
+        // Bind(EVT_ENTER_FORCE_UPGRADE, [this](const wxCommandEvent& evt) {
+        //         wxString      version_str = wxString::FromUTF8(this->app_config->get("upgrade", "version"));
+        //         wxString      description_text = wxString::FromUTF8(this->app_config->get("upgrade", "description"));
+        //         std::string   download_url = this->app_config->get("upgrade", "url");
+        //         wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_str);
+        //         DownloadDialog dialog(this->mainframe,
+        //             tips,
+        //             _L("The Orca Slicer needs an upgrade"),
+        //             false,
+        //             wxCENTER | wxICON_INFORMATION);
+        //         dialog.SetExtendedMessage(description_text);
 
-                int result = dialog.ShowModal();
-                switch (result)
-                {
-                 case wxID_YES:
-                     wxLaunchDefaultBrowser(download_url);
-                     break;
-                 case wxID_NO:
-                     wxGetApp().mainframe->Close(true);
-                     break;
-                 default:
-                     wxGetApp().mainframe->Close(true);
-                }
-            });
+        //         int result = dialog.ShowModal();
+        //         switch (result)
+        //         {
+        //          case wxID_YES:
+        //              wxLaunchDefaultBrowser(download_url);
+        //              break;
+        //          case wxID_NO:
+        //              wxGetApp().mainframe->Close(true);
+        //              break;
+        //          default:
+        //              wxGetApp().mainframe->Close(true);
+        //         }
+        //     });
 
-        Bind(EVT_SHOW_NO_NEW_VERSION, [this](const wxCommandEvent& evt) {
-            wxString msg = _L("This is the newest version.");
-            InfoDialog dlg(nullptr, _L("Info"), msg);
-            dlg.ShowModal();
-        });
+        // Bind(EVT_SHOW_NO_NEW_VERSION, [this](const wxCommandEvent& evt) {
+        //     wxString msg = _L("This is the newest version.");
+        //     InfoDialog dlg(nullptr, _L("Info"), msg);
+        //     dlg.ShowModal();
+        // });
 
-        Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
-            wxString msg = evt.GetString();
-            InfoDialog dlg(this->mainframe, _L("Info"), msg);
-            dlg.Bind(wxEVT_DESTROY, [this](auto& e) {
-                m_info_dialog_content = wxEmptyString;
-            });
-            dlg.ShowModal();
-        });
+        // Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
+        //     wxString msg = evt.GetString();
+        //     InfoDialog dlg(this->mainframe, _L("Info"), msg);
+        //     dlg.Bind(wxEVT_DESTROY, [this](auto& e) {
+        //         m_info_dialog_content = wxEmptyString;
+        //     });
+        //     dlg.ShowModal();
+        // });
     }
     else {
 #ifdef __WXMSW__
