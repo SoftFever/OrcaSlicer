@@ -4,6 +4,7 @@
 #include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/dcmemory.h>
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
@@ -28,6 +29,23 @@ static int _ITEM_WIDTH() { return _scale(30); }
 #define LEFT_RIGHT_PADING       FromDIP(20)
 
 wxDEFINE_EVENT(wxEVT_THREAD_DONE, wxCommandEvent);
+
+class CenteredStaticText : public wxStaticText
+{
+public:
+    CenteredStaticText(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& position, const wxSize& size = wxDefaultSize, long style = 0)
+        : wxStaticText(parent, id, label, position, size, style) {
+        CenterOnPosition(position);
+    }
+
+    void CenterOnPosition(const wxPoint& position) {
+        int textWidth, textHeight;
+        GetTextExtent(GetLabel(), &textWidth, &textHeight);
+        int x = position.x - textWidth / 2;
+        int y = position.y - textHeight / 2;
+        SetPosition(wxPoint(x, y));
+    }
+};
 
 void StepMeshDialog::on_dpi_changed(const wxRect& suggested_rect) {
 };
@@ -66,6 +84,34 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
 
     wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);
     bSizer->SetMinSize(wxSize(MIN_DIALOG_WIDTH, -1));
+
+    auto  image_bitmap = create_scaled_bitmap("step_mesh_info", this, FromDIP(120), false, std::string(), false, false, true);
+    int image_width = image_bitmap.GetWidth();
+    int image_height = image_bitmap.GetHeight();
+    wxPanel* overlay_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, image_bitmap.GetSize(), wxTAB_TRAVERSAL);
+    overlay_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    wxStaticBitmap *image = new wxStaticBitmap(overlay_panel, wxID_ANY, image_bitmap, wxDefaultPosition, wxDefaultSize, 0);
+
+    CenteredStaticText* text_1 = new CenteredStaticText (overlay_panel, wxID_ANY, _L("Rough"),
+                                                          wxPoint(overlay_panel->GetSize().GetWidth() / 6,
+                                                                  overlay_panel->GetSize().GetHeight() / 2));
+    CenteredStaticText* text_2 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Smooth"),
+                                                         wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
+                                                                 overlay_panel->GetSize().GetHeight() / 2));
+    CenteredStaticText* text_3 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Linear"),
+                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 2,
+                                                                overlay_panel->GetSize().GetHeight() * 1.3 / 3));
+    CenteredStaticText* text_4 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Angle"),
+                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 2,
+                                                                overlay_panel->GetSize().GetHeight() * 2 / 3));
+    CenteredStaticText* text_5 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Many faces"),
+                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 6,
+                                                                overlay_panel->GetSize().GetHeight() * 2.8 / 3));
+    CenteredStaticText* text_6 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Few faces"),
+                                                        wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
+                                                                overlay_panel->GetSize().GetHeight() * 2.8 / 3));
+
+    bSizer->Add(overlay_panel, 0, wxALIGN_CENTER | wxALL, 10);
 
     wxBoxSizer* linear_sizer = new wxBoxSizer(wxHORIZONTAL);
     //linear_sizer->SetMinSize(wxSize(MIN_DIALOG_WIDTH, -1));
