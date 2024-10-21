@@ -1,10 +1,10 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.2.9                                                           *
-* Date      :  16 February 2015                                                *
+* Version   :  6.4.2                                                           *
+* Date      :  27 February 2017                                                *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2015                                         *
+* Copyright :  Angus Johnson 2010-2017                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -144,7 +144,7 @@ typedef std::vector<PolyNode*, Allocator<PolyNode*>> PolyNodes;
 class PolyNode 
 { 
 public:
-    PolyNode() : Childs(), Parent(0), Index(0), m_IsOpen(false) {}
+    PolyNode() : Parent(0), Index(0), m_IsOpen(false) {}
     virtual ~PolyNode(){};
     Path Contour;
     PolyNodes Childs;
@@ -234,8 +234,6 @@ enum EdgeSide { esLeft = 1, esRight = 2};
     IntPoint Curr;
     // Top point of this edge (with maximum Y).
     IntPoint Top;
-    // Vector from Bot to Top.
-    IntPoint Delta;
     // Slope (dx/dy). For horiontal edges, the slope is set to HORIZONTAL (-1.0E+40).
     double Dx;
     PolyType PolyTyp;
@@ -529,7 +527,8 @@ private:
   void JoinCommonEdges();
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
-  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec);
+  void FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec);
+  void FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec);
 #ifdef CLIPPERLIB_USE_XYZ
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
