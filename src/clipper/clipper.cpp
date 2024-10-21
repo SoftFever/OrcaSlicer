@@ -97,7 +97,8 @@ inline IType Round(double val)
 {
     double v = FRound(val);
 #if defined(CLIPPERLIB_INT32) && ! defined(NDEBUG)
-    static constexpr const double hi = 65536 * 16383;
+    static_assert(sizeof(IType) == 4 || sizeof(IType) == 8, "IType must be int32 or int64");
+    static constexpr const double hi = 65536. * 16383. * (sizeof(IType) == 4 ? 1 : 65536. * 65536.);
     if (v > hi || -v > hi)
         throw clipperException("Coordinate outside allowed range");
 #endif
