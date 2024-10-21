@@ -803,8 +803,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
             curr_bed_type = proj_cfg.opt_enum<BedType>(std::string("curr_bed_type"));
 	}
 	int bed_type_idx = (int)curr_bed_type;
-    DynamicPrintConfig *global_config      = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    auto  is_single_extruder = global_config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->size() == 1;
+    auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     if (!is_single_extruder) {
 		bed_type_idx = 0;
 	}
@@ -5747,12 +5746,72 @@ void PartPlateList::init_bed_type_info()
 	}
 }
 
-void PartPlateList::init_extruder_only_area_info()
+bool PartPlateList::calc_extruder_only_area(Rect &left_only_rect, Rect &right_only_rect)
 {
-    BedTextureInfo::TexturePart left_part(2.5, 75.6, 10, 100, "left_extruder_only_area.svg");
-    BedTextureInfo::TexturePart left_ch_part(2.5, 75.6, 10, 100, "left_extruder_only_area_ch.svg");
-    BedTextureInfo::TexturePart right_part(243.5, 74.5, 10, 100, "right_extruder_only_area.svg");
-    BedTextureInfo::TexturePart right_ch_part(243.5, 75.6, 10, 100, "right_extruder_only_area_ch.svg");
+    auto                convert_to_rect         = [](const Pointfs &pts, Rect &rect) {
+		rect.x = pts[0].x();
+        rect.y = pts[0].y();
+        rect.w = pts[1].x() - pts[0].x();
+        rect.h = pts[2].y() - pts[1].y();
+    };
+    auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() ==1;
+    if (is_single_extruder) {
+		return false;
+	}
+    if (m_extruder_areas.size() == 2) {
+        Rect printable_rect, left_extruder_printable_area, right_extruder_printable_area;
+        convert_to_rect(m_shape, printable_rect);
+        convert_to_rect(m_extruder_areas[0], left_extruder_printable_area);
+        convert_to_rect(m_extruder_areas[1], right_extruder_printable_area);
+        left_only_rect.x = left_extruder_printable_area.x;
+        left_only_rect.y = left_extruder_printable_area.y;
+        left_only_rect.w = printable_rect.w - right_extruder_printable_area.w;
+        left_only_rect.h = left_extruder_printable_area.h;
+
+        right_only_rect.x = left_extruder_printable_area.x + left_extruder_printable_area.w;
+        right_only_rect.y = right_extruder_printable_area.y;
+        right_only_rect.w = printable_rect.w - left_extruder_printable_area.w;
+        right_only_rect.h = right_extruder_printable_area.h;
+        if (left_only_rect.w < 0 || right_only_rect.w < 0) {
+			return false;
+		}
+        return true;
+	}
+    return false;
+}
+
+bool PartPlateList::init_extruder_only_area_info()
+{
+    Rect left_only_rect,  right_only_rect;
+    auto ok = calc_extruder_only_area(left_only_rect, right_only_rect);
+    if (!ok) { return false; }
+    float  base_width  = 25.f;
+    float  base_height = 320.f;
+    float  left_x_rate = left_only_rect.w / base_width;
+    float  left_y_rate = left_only_rect.h / base_height;
+    bool   is_zh       = wxGetApp().app_config->get("language") == "zh_CN";
+    Vec4f  base_left(-6.f, -75.f, 12.f, 150.f);
+    if (is_zh) {
+		base_left = Vec4f(-5.5f, -60.f, 10.f, 120.f);
+	}
+    base_left[0]   = base_left[0] * left_x_rate + left_only_rect.x + left_only_rect.w / 2.f;
+    base_left[1]   = base_left[1] * left_y_rate + left_only_rect.y + left_only_rect.h / 2.f;
+    base_left[2]   = base_left[2] * left_x_rate;
+    base_left[3]   = base_left[3] * left_y_rate;
+    Vec4f   base_right(-5.5f, -75.f, 12.f, 150.f);
+    if (is_zh) {
+		base_right = Vec4f(-4.5f, -60.f, 10.f, 120.f);
+	}
+    float right_x_rate = right_only_rect.w / base_width;
+    float right_y_rate = right_only_rect.h / base_height;
+    base_right[0]                   = base_right[0] * right_x_rate + right_only_rect.x + right_only_rect.w / 2.f;
+    base_right[1]                   = base_right[1] * right_y_rate + right_only_rect.y + right_only_rect.h / 2.f;
+    base_right[2]                   = base_right[2] * right_x_rate;
+    base_right[3]                   = base_right[3] * right_y_rate;
+    BedTextureInfo::TexturePart left_part(base_left[0], base_left[1], base_left[2], base_left[3], "left_extruder_only_area.svg");
+    BedTextureInfo::TexturePart left_ch_part(base_left[0], base_left[1], base_left[2], base_left[3], "left_extruder_only_area_ch.svg");
+    BedTextureInfo::TexturePart right_part(base_right[0], base_right[1], base_right[2], base_right[3], "right_extruder_only_area.svg");
+    BedTextureInfo::TexturePart right_ch_part(base_right[0], base_right[1], base_right[2], base_right[3], "right_extruder_only_area_ch.svg");
 
     for (size_t i = 0; i < (unsigned char) ExtruderOnlyAreaType::btAreaCount; i++) {
         extruder_only_area_info[i].reset();
@@ -5763,22 +5822,12 @@ void PartPlateList::init_extruder_only_area_info()
     extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Chinese].parts.push_back(left_ch_part);
     extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::Chinese].parts.push_back(right_ch_part);
 
-    auto  bed_ext     = get_extents(m_shape);
-    int   bed_width   = bed_ext.size()(0);
-    int   bed_height  = bed_ext.size()(1);
-    float base_width  = 256;
-    float base_height = 256;
-    float x_rate      = bed_width / base_width;
-    float y_rate      = bed_height / base_height;
     for (int i = 0; i < (unsigned char) ExtruderOnlyAreaType::btAreaCount; i++) {
         for (int j = 0; j < extruder_only_area_info[i].parts.size(); j++) {
-            extruder_only_area_info[i].parts[j].x *= x_rate;
-            extruder_only_area_info[i].parts[j].y *= y_rate;
-            extruder_only_area_info[i].parts[j].w *= x_rate;
-            extruder_only_area_info[i].parts[j].h *= y_rate;
             extruder_only_area_info[i].parts[j].update_buffer();
         }
     }
+    return true;
 }
 
 void PartPlateList::load_bedtype_textures()
@@ -5807,7 +5856,11 @@ void PartPlateList::load_bedtype_textures()
 void PartPlateList::load_extruder_only_area_textures() {
     if (PartPlateList::is_load_extruder_only_area_textures) return;
 
-    init_extruder_only_area_info();
+    auto ok  = init_extruder_only_area_info();
+    if (!ok) {
+        PartPlateList::is_load_extruder_only_area_textures = true;
+        return;
+    }
     GLint max_tex_size  = OpenGLManager::get_gl_info().get_max_tex_size();
     GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
     for (int i = 0; i < (unsigned int) ExtruderOnlyAreaType::btAreaCount; ++i) {

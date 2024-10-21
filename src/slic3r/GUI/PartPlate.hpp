@@ -881,9 +881,16 @@ public:
         ar(m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
-
+    struct Rect
+    {
+        int x;
+        int y;
+        int w;
+        int h;
+    };
+    bool calc_extruder_only_area(Rect &left_only_rect, Rect &right_only_rect);
     void init_bed_type_info();
-    void init_extruder_only_area_info();
+    bool init_extruder_only_area_info();
     void load_bedtype_textures();
     void load_extruder_only_area_textures();
 
@@ -899,7 +906,7 @@ public:
 
     BedTextureInfo bed_texture_info[btCount];
     BedTextureInfo cali_texture_info;
-    BedTextureInfo extruder_only_area_info[(unsigned char) ExtruderOnlyAreaType::btAreaCount];
+    BedTextureInfo extruder_only_area_info[(unsigned char) Slic3r::ExtruderOnlyAreaType::btAreaCount];
 };
 
 } // namespace GUI
