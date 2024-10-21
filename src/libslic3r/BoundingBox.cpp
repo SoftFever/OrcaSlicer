@@ -182,14 +182,14 @@ template Vec3d BoundingBox3Base<Vec3d>::size() const;
 template <class PointType, typename APointsType> double BoundingBoxBase<PointType, APointsType>::radius() const
 {
     assert(this->defined);
-    return 0.5 * (this->max - this->min).cast<double>().norm();
+    return 0.5 * (this->max - this->min).template cast<double>().norm();
 }
 template double BoundingBoxBase<Point, Points>::radius() const;
 template double BoundingBoxBase<Vec2d>::radius() const;
 
 template <class PointType> double BoundingBox3Base<PointType>::radius() const
 {
-    return 0.5 * (this->max - this->min).cast<double>().norm();
+    return 0.5 * (this->max - this->min).template cast<double>().norm();
 }
 template double BoundingBox3Base<Vec3d>::radius() const;
 
