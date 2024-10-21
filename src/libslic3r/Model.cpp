@@ -1852,7 +1852,7 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->input_file.clear();
 }
 
-bool ModelVolume::is_the_only_one_part() const 
+bool ModelVolume::is_the_only_one_part() const
 {
     if (m_type != ModelVolumeType::MODEL_PART)
         return false;
@@ -1904,7 +1904,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
 
-        // splited volume should not be text object 
+        // splited volume should not be text object
         if (volume->text_configuration.has_value())
             volume->text_configuration.reset();
 

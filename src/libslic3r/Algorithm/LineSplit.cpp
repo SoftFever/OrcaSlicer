@@ -50,7 +50,7 @@ static bool point_on_line(const Point& p, const Line& l)
     // Check collinear
     const Vec2crd d1 = l.b - l.a;
     const Vec2crd d2 = p - l.a;
-    if (d1.x() * d2.y() != d1.y() * d2.x()) { 
+    if (d1.x() * d2.y() != d1.y() * d2.x()) {
         return false;
     }
 
@@ -60,7 +60,7 @@ static bool point_on_line(const Point& p, const Line& l)
     else
         return (p.y() > l.a.y()) == (p.y() < l.b.y());
 }
- 
+
 SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& clip, bool closed)
 {
     assert(path.size() > 1);
@@ -287,7 +287,7 @@ SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& c
         }
     }
 
-    
+
 #ifdef DEBUG_SPLIT_LINE
     {
         ::Slic3r::SVG svg(debug_out_path("do_split_line_%d_result.svg", dbg_id).c_str(), dbg_bbox);
