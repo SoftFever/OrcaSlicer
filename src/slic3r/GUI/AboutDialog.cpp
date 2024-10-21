@@ -243,23 +243,14 @@ AboutDialog::AboutDialog()
 
     // version
     {
-<<<<<<< HEAD
-
         auto _build_string_font = Label::Body_12;
         // _build_string_font.SetStyle(wxFONTSTYLE_ITALIC);
 
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-        auto          version_string = std::string(SoftFever_VERSION); // _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
+        auto version_string = _L("JusPrin") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxStaticText* credits_string = new wxStaticText(this, wxID_ANY, wxString::Format("Build %s", std::string(GIT_COMMIT_HASH)), wxDefaultPosition, wxDefaultSize);
         credits_string->SetFont(_build_string_font);
-=======
-        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
-        auto version_string = _L("JusPrin") + " " + std::string(SoftFever_VERSION);
-        wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on Orca Slicer"), wxDefaultPosition, wxDefaultSize);
-        bs_version->SetFont(Label::Body_12);
->>>>>>> 2f17ff28d (About Dialog switched to JusPrin)
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
 			version_font.SetPointSize(version_font.GetPointSize()-1);
