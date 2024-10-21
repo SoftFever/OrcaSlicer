@@ -37,6 +37,20 @@ static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_f
     return target_filaments;
 }
 
+
+/**
+ * @brief Determines the unprintable filaments for each extruder based on its physical attributes
+ *
+ * Currently, the criteria for determining unprintable filament include the following:
+ * 1. TPU filaments can only be placed in the master extruder and must be grouped alone.
+ * 2. We only support at most 1 tpu filament.
+ * 3. An extruder can only accommodate filament with a hardness requirement lower than that of its nozzle.
+ * If extruder num is 1, just return an empty vector.
+ *
+ * @param used_filaments Totally used filaments when slicing
+ * @param config Config that stores releted params
+ * @return A vector of sets representing unprintable filaments for each extruder
+ */
 std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::vector<unsigned int>& used_filaments, const PrintConfig* config)
 {
     // master saved in config is 1 based,so we should transfer to 0 based here
@@ -46,8 +60,12 @@ std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::ve
         throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
     }
 
+    int extruder_num = config->nozzle_diameter.size();
     // consider tpu, only place tpu in extruder with ams
-    std::vector<std::set<int>>physical_unprintables(config->nozzle_diameter.size());
+    std::vector<std::set<int>>physical_unprintables(extruder_num);
+    if (extruder_num < 2)
+        return physical_unprintables;
+
     int extruder_without_tpu = 1 - master_extruder_id;
     for (auto& f : tpu_filaments)
         physical_unprintables[extruder_without_tpu].insert(f);
@@ -67,11 +85,25 @@ std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::ve
     return physical_unprintables;
 }
 
+/**
+ * @brief Determines the unprintable filaments for each extruder based on its printable area.
+ *
+ * The returned array will always have the same size as the number of extruders.
+ * If extruder num is 1, just return an empty vector.
+ * If an extruder has no unprintable filaments, an empty set will also be returned
+ *
+ * @param unprintable_arrs An array of unprintable filaments for each extruder
+ * @param config Containing extruder nums or any other info requested
+ * @return A vector of sets representing unprintable filaments for each extruder
+ */
 std::vector<std::set<int>> ToolOrdering::get_geometrical_unprintables(const std::vector<std::vector<int>>& unprintable_arrs, const PrintConfig* config)
 {
     auto arrs_idx_switched = unprintable_arrs;
     int extruder_nums = config->nozzle_diameter.size();
     std::vector<std::set<int>> unprintables(extruder_nums);
+    if(extruder_nums < 2)
+        return unprintables;
+
     for (auto& arr : arrs_idx_switched)
         for (auto& item : arr)
             item -= 1;
