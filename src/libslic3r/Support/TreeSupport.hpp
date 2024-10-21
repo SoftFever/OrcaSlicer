@@ -247,10 +247,9 @@ public:
     SupportNode* create_node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0);
     void clear_nodes();
-    void remove_invalid_nodes();
     std::vector<LayerHeightData> layer_heights;
 
-    std::vector<SupportNode*> contact_nodes;
+    std::vector<std::unique_ptr<SupportNode>> contact_nodes;
     // ExPolygon                  m_machine_border;
 
 private:

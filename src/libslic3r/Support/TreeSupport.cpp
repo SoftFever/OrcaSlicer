@@ -1947,7 +1947,7 @@ void TreeSupport::draw_circles()
         return;
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, contact_nodes.size()),
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_ts_data->layer_heights.size()),
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
@@ -2597,7 +2597,8 @@ void TreeSupport::drop_nodes()
                     // Remove all circle neighbours that are completely inside the polygon and merge them into this node.
                     for (const Point &neighbour : neighbours) {
                         SupportNode *    neighbour_node          = nodes_this_part[neighbour];
-                        if(neighbour_node->type==ePolygon) continue;
+                        if (neighbour_node->valid == false) continue;
+                        if (neighbour_node->type == ePolygon) continue;
                         coord_t    neighbour_radius = scale_(neighbour_node->radius);
                         Point     pt_north = neighbour + Point(0, neighbour_radius), pt_south = neighbour - Point(0, neighbour_radius),
                               pt_west = neighbour - Point(neighbour_radius, 0), pt_east = neighbour + Point(neighbour_radius, 0);
@@ -2871,8 +2872,6 @@ void TreeSupport::drop_nodes()
             for (; i_node != nullptr; i_node = i_node->parent)
             {
                 size_t i_layer = i_node->obj_layer_nr;
-                std::vector<SupportNode*>::iterator to_erase = std::find(contact_nodes[i_layer].begin(), contact_nodes[i_layer].end(), i_node);
-                if (to_erase != contact_nodes[i_layer].end())
                 {
                     // update the parent-child chain
                     if (i_node->parent) {
@@ -2887,18 +2886,23 @@ void TreeSupport::drop_nodes()
                         i_node->child->parents.erase(std::find(i_node->child->parents.begin(), i_node->child->parents.end(), i_node));
                         append(i_node->child->parents, i_node->parents);
                     }
-                    contact_nodes[i_layer].erase(to_erase);
-                    i_node->valid = false;
+                    i_node->is_processed = true;  // mark to be deleted later
 
                     for (SupportNode* neighbour : i_node->merged_neighbours)
                     {
-                        unsupported_branch_leaves.push_front({ i_layer, neighbour });
+                        if (neighbour && !neighbour->is_processed)
+                            unsupported_branch_leaves.push_front({ i_layer, neighbour });
                     }
                 }
             }
         }
+        for (auto &layer_contact_nodes : contact_nodes) {
+            if (!layer_contact_nodes.empty())
+                layer_contact_nodes.erase(std::remove_if(layer_contact_nodes.begin(), layer_contact_nodes.end(), [](SupportNode *node) { return node->is_processed; }),
+                                          layer_contact_nodes.end());
+        }
     }
-    
+
     BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
 }
 
@@ -3419,31 +3423,19 @@ SupportNode* TreeSupportData::create_node(const Point position, const int distan
 {
     // this function may be called from multiple threads, need to lock
     m_mutex.lock();
-    SupportNode* node = new SupportNode(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
-    contact_nodes.emplace_back(node);
+    std::unique_ptr<SupportNode> node = std::make_unique<SupportNode>(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
+    SupportNode* raw_ptr = node.get();
+    contact_nodes.emplace_back(std::move(node));
     m_mutex.unlock();
     if (parent)
-        node->movement = position - parent->position;
-    return node;
+        raw_ptr->movement = position - parent->position;
+    return raw_ptr;
 }
+
 void TreeSupportData::clear_nodes()
 {
-    for (auto node : contact_nodes) {
-        delete node;
-    }
+    tbb::spin_mutex::scoped_lock guard(m_mutex);
     contact_nodes.clear();
-}
-void TreeSupportData::remove_invalid_nodes()
-{
-    for (auto it = contact_nodes.begin(); it != contact_nodes.end();) {
-        if ((*it)->valid==false) {
-            delete (*it);
-            it = contact_nodes.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
 }
 
 coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
@@ -3473,27 +3465,22 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
 {
     const auto &radius = key.radius;
     const auto &layer_nr = key.layer_nr;
-    if (layer_nr == 0) {
-        // avoid ExPolygons:~ExPolygons() in multi-threading case, as it's not thread-safe and may
-        // cause crash in some cases. See STUDIO-8313.
-        if (m_avoidance_cache.find(key) == m_avoidance_cache.end())
-            m_avoidance_cache[key] = get_collision(radius, 0);
-        return m_avoidance_cache[key];
-    }
+    ExPolygons avoidance_areas;
+    if (layer_nr > 0) {
+        // Avoidance for a given layer depends on all layers beneath it so could have very deep recursion depths if
+        // called at high layer heights. We can limit the reqursion depth to N by checking if the layer N
+        // below the current one exists and if not, forcing the calculation of that layer. This may cause another recursion
+        // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
+        // below our current one.
+        constexpr auto max_recursion_depth = 100;
+        // Check if we would exceed the recursion limit by trying to process this layer
+        if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr - max_recursion_depth}) == m_avoidance_cache.end()) {
+            // Force the calculation of the layer `max_recursion_depth` below our current one, ignoring the result.
+            get_avoidance(radius, layer_nr - max_recursion_depth);
+        }
 
-    // Avoidance for a given layer depends on all layers beneath it so could have very deep recursion depths if
-    // called at high layer heights. We can limit the reqursion depth to N by checking if the layer N
-    // below the current one exists and if not, forcing the calculation of that layer. This may cause another recursion
-    // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
-    // below our current one.
-    constexpr auto max_recursion_depth = 100;
-    // Check if we would exceed the recursion limit by trying to process this layer
-    if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr - max_recursion_depth}) == m_avoidance_cache.end()) {
-        // Force the calculation of the layer `max_recursion_depth` below our current one, ignoring the result.
-        get_avoidance(radius, layer_nr - max_recursion_depth);
+        avoidance_areas = offset_ex(get_avoidance(radius, layer_nr - 1), scale_(-m_max_move_distances[layer_nr-1]));
     }
-
-    ExPolygons avoidance_areas = offset_ex(get_avoidance(radius, layer_nr - 1), scale_(-m_max_move_distances[layer_nr-1]));
     const ExPolygons &collision       = get_collision(radius, layer_nr);
     avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
     avoidance_areas = std::move(union_ex(avoidance_areas));
