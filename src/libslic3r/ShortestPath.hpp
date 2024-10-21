@@ -8,13 +8,11 @@
 #include <utility>
 #include <vector>
 
-#include <oneapi/tbb/scalable_allocator.h>
-
 namespace Slic3r {
 
 	namespace ClipperLib {
 		class PolyNode;
-		using PolyNodes = std::vector<PolyNode*, tbb::scalable_allocator<PolyNode*>>;
+		using PolyNodes = std::vector<PolyNode*, PointsAllocator<PolyNode*>>;
 	}
 
 std::vector<size_t> 				 chain_points(const Points &points, Point *start_near = nullptr);

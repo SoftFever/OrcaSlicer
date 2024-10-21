@@ -281,7 +281,7 @@ enum EdgeSide { esLeft = 1, esRight = 2};
     OutPt    *Prev;
   };
 
-  using OutPts = std::vector<OutPt, tbb::scalable_allocator<OutPt>>;
+  using OutPts = std::vector<OutPt, Allocator<OutPt>>;
 
   struct OutRec;
   struct Join {
