@@ -84,9 +84,24 @@ inline IntPoint IntPoint2d(cInt x, cInt y)
     );
 }
 
-inline cInt Round(double val)
+// Fast rounding upwards.
+inline double FRound(double a)
 {
-  return static_cast<cInt>((val < 0) ? (val - 0.5) : (val + 0.5));
+    // Why does Java Math.round(0.49999999999999994) return 1?
+    // https://stackoverflow.com/questions/9902968/why-does-math-round0-49999999999999994-return-1
+    return a == 0.49999999999999994 ? 0 : floor(a + 0.5);
+}
+
+template<typename IType>
+inline IType Round(double val)
+{
+    double v = FRound(val);
+#if defined(CLIPPERLIB_INT32) && ! defined(NDEBUG)
+    static constexpr const double hi = 65536 * 16383;
+    if (v > hi || -v > hi)
+        throw clipperException("Coordinate outside allowed range");
+#endif
+    return static_cast<IType>(v);
 }
 
 // Overriding the Eigen operators because we don't want to compare Z coordinate if IntPoint is 3 dimensional.
@@ -334,7 +349,7 @@ inline cInt TopX(TEdge &edge, const cInt currentY)
 {
   return (currentY == edge.Top.y()) ?
     edge.Top.x() : 
-    edge.Bot.x() + Round(edge.Dx *(currentY - edge.Bot.y()));
+    edge.Bot.x() + Round<cInt>(edge.Dx *(currentY - edge.Bot.y()));
 }
 //------------------------------------------------------------------------------
 
@@ -344,65 +359,53 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
   ip.z() = 0;
 #endif
 
-  double b1, b2;
   if (Edge1.Dx == Edge2.Dx)
   {
     ip.y() = Edge1.Curr.y();
     ip.x() = TopX(Edge1, ip.y());
     return;
   }
-  else if (Edge1.Delta.x() == 0)
+ 
+  int64_t y;
+  if (Edge1.Delta.x() == 0)
   {
     ip.x() = Edge1.Bot.x();
-    if (IsHorizontal(Edge2))
-      ip.y() = Edge2.Bot.y();
-    else
-    {
-      b2 = Edge2.Bot.y() - (Edge2.Bot.x() / Edge2.Dx);
-      ip.y() = Round(ip.x() / Edge2.Dx + b2);
-    }
+    y = IsHorizontal(Edge2) ?
+      Edge2.Bot.y() :
+      Round<int64_t>(ip.x() / Edge2.Dx + Edge2.Bot.y() - (Edge2.Bot.x() / Edge2.Dx));
+      
   }
   else if (Edge2.Delta.x() == 0)
   {
     ip.x() = Edge2.Bot.x();
-    if (IsHorizontal(Edge1))
-      ip.y() = Edge1.Bot.y();
-    else
-    {
-      b1 = Edge1.Bot.y() - (Edge1.Bot.x() / Edge1.Dx);
-      ip.y() = Round(ip.x() / Edge1.Dx + b1);
-    }
-  } 
-  else 
+    y = IsHorizontal(Edge1) ? 
+      Edge1.Bot.y() :
+      Round<int64_t>(ip.x() / Edge1.Dx + Edge1.Bot.y() - (Edge1.Bot.x() / Edge1.Dx));
+  }
+  else
   {
-    b1 = double(Edge1.Bot.x()) - double(Edge1.Bot.y()) * Edge1.Dx;
-    b2 = double(Edge2.Bot.x()) - double(Edge2.Bot.y()) * Edge2.Dx;
+    double b1 = double(Edge1.Bot.x()) - double(Edge1.Bot.y()) * Edge1.Dx;
+    double b2 = double(Edge2.Bot.x()) - double(Edge2.Bot.y()) * Edge2.Dx;
     double q = (b2-b1) / (Edge1.Dx - Edge2.Dx);
-    ip.y() = Round(q);
-    ip.x() = (std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx)) ? 
-      Round(Edge1.Dx * q + b1) :
-      Round(Edge2.Dx * q + b2);
+    y = Round<int64_t>(q);
+    ip.x() = (std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx)) ?
+      Round<cInt>(Edge1.Dx * q + b1) :
+      Round<cInt>(Edge2.Dx * q + b2);
   }
 
-  if (ip.y() < Edge1.Top.y() || ip.y() < Edge2.Top.y()) 
+  ip.y() = cInt(y);
+  if (y < Edge1.Top.y() || y < Edge2.Top.y())
   {
-    if (Edge1.Top.y() > Edge2.Top.y())
-      ip.y() = Edge1.Top.y();
-    else
-      ip.y() = Edge2.Top.y();
-    if (std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx))
-      ip.x() = TopX(Edge1, ip.y());
-    else
-      ip.x() = TopX(Edge2, ip.y());
-  } 
+    ip.y() = (Edge1.Top.y() > Edge2.Top.y() ? Edge1 : Edge2).Top.y();
+    y = ip.y();
+    ip.x() = TopX(std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx) ? Edge1 : Edge2, ip.y());
+  }
   //finally, don't allow 'ip' to be BELOW curr.y() (ie bottom of scanbeam) ...
-  if (ip.y() > Edge1.Curr.y())
+  if (y > Edge1.Curr.y())
   {
     ip.y() = Edge1.Curr.y();
     //use the more vertical edge to derive X ...
-    if (std::fabs(Edge1.Dx) > std::fabs(Edge2.Dx))
-      ip.x() = TopX(Edge2, ip.y()); else
-      ip.x() = TopX(Edge1, ip.y());
+    ip.x() = TopX(std::fabs(Edge1.Dx) > std::fabs(Edge2.Dx) ? Edge2 : Edge1, ip.y());
   }
 }
 //------------------------------------------------------------------------------
@@ -3533,8 +3536,8 @@ void ClipperOffset::DoOffset(double delta)
         for (cInt j = 1; j <= steps; j++)
         {
           m_destPoly.emplace_back(IntPoint2d(
-            Round(m_srcPoly[0].x() + X * delta),
-            Round(m_srcPoly[0].y() + Y * delta)));
+            Round<cInt>(m_srcPoly[0].x() + X * delta),
+            Round<cInt>(m_srcPoly[0].y() + Y * delta)));
           double X2 = X;
           X = X * m_cos - m_sin * Y;
           Y = X2 * m_sin + Y * m_cos;
@@ -3546,8 +3549,8 @@ void ClipperOffset::DoOffset(double delta)
         for (int j = 0; j < 4; ++j)
         {
           m_destPoly.emplace_back(IntPoint2d(
-            Round(m_srcPoly[0].x() + X * delta),
-            Round(m_srcPoly[0].y() + Y * delta)));
+            Round<cInt>(m_srcPoly[0].x() + X * delta),
+            Round<cInt>(m_srcPoly[0].y() + Y * delta)));
           if (X < 0) X = 1;
           else if (Y < 0) Y = 1;
           else X = -1;
@@ -3600,9 +3603,9 @@ void ClipperOffset::DoOffset(double delta)
       if (node.m_endtype == etOpenButt)
       {
         int j = len - 1;
-        pt1 = IntPoint2d(Round(m_srcPoly[j].x() + m_normals[j].x() * delta), Round(m_srcPoly[j].y() + m_normals[j].y() * delta));
+        pt1 = IntPoint2d(Round<cInt>(m_srcPoly[j].x() + m_normals[j].x() * delta), Round<cInt>(m_srcPoly[j].y() + m_normals[j].y() * delta));
         m_destPoly.emplace_back(pt1);
-        pt1 = IntPoint2d(Round(m_srcPoly[j].x() - m_normals[j].x() * delta), Round(m_srcPoly[j].y() - m_normals[j].y() * delta));
+        pt1 = IntPoint2d(Round<cInt>(m_srcPoly[j].x() - m_normals[j].x() * delta), Round<cInt>(m_srcPoly[j].y() - m_normals[j].y() * delta));
         m_destPoly.emplace_back(pt1);
       }
       else
@@ -3627,9 +3630,9 @@ void ClipperOffset::DoOffset(double delta)
 
       if (node.m_endtype == etOpenButt)
       {
-        pt1 = IntPoint2d(Round(m_srcPoly[0].x() - m_normals[0].x() * delta), Round(m_srcPoly[0].y() - m_normals[0].y() * delta));
+        pt1 = IntPoint2d(Round<cInt>(m_srcPoly[0].x() - m_normals[0].x() * delta), Round<cInt>(m_srcPoly[0].y() - m_normals[0].y() * delta));
         m_destPoly.emplace_back(pt1);
-        pt1 = IntPoint2d(Round(m_srcPoly[0].x() + m_normals[0].x() * delta), Round(m_srcPoly[0].y() + m_normals[0].y() * delta));
+        pt1 = IntPoint2d(Round<cInt>(m_srcPoly[0].x() + m_normals[0].x() * delta), Round<cInt>(m_srcPoly[0].y() + m_normals[0].y() * delta));
         m_destPoly.emplace_back(pt1);
       }
       else
@@ -3657,8 +3660,8 @@ void ClipperOffset::OffsetPoint(int j, int& k, JoinType jointype)
     double cosA = (m_normals[k].x() * m_normals[j].x() + m_normals[j].y() * m_normals[k].y() ); 
     if (cosA > 0) // angle => 0 degrees
     {
-      m_destPoly.emplace_back(IntPoint2d(Round(m_srcPoly[j].x() + m_normals[k].x() * m_delta),
-        Round(m_srcPoly[j].y() + m_normals[k].y() * m_delta)));
+      m_destPoly.emplace_back(IntPoint2d(Round<cInt>(m_srcPoly[j].x() + m_normals[k].x() * m_delta),
+        Round<cInt>(m_srcPoly[j].y() + m_normals[k].y() * m_delta)));
       return; 
     }
     //else angle => 180 degrees   
@@ -3668,11 +3671,11 @@ void ClipperOffset::OffsetPoint(int j, int& k, JoinType jointype)
 
   if (m_sinA * m_delta < 0)
   {
-    m_destPoly.emplace_back(IntPoint2d(Round(m_srcPoly[j].x() + m_normals[k].x() * m_delta),
-      Round(m_srcPoly[j].y() + m_normals[k].y() * m_delta)));
+    m_destPoly.emplace_back(IntPoint2d(Round<cInt>(m_srcPoly[j].x() + m_normals[k].x() * m_delta),
+      Round<cInt>(m_srcPoly[j].y() + m_normals[k].y() * m_delta)));
     m_destPoly.emplace_back(m_srcPoly[j]);
-    m_destPoly.emplace_back(IntPoint2d(Round(m_srcPoly[j].x() + m_normals[j].x() * m_delta),
-      Round(m_srcPoly[j].y() + m_normals[j].y() * m_delta)));
+    m_destPoly.emplace_back(IntPoint2d(Round<cInt>(m_srcPoly[j].x() + m_normals[j].x() * m_delta),
+      Round<cInt>(m_srcPoly[j].y() + m_normals[j].y() * m_delta)));
   }
   else
     switch (jointype)
@@ -3696,19 +3699,19 @@ void ClipperOffset::DoSquare(int j, int k)
   double dx = std::tan(std::atan2(m_sinA,
       m_normals[k].x() * m_normals[j].x() + m_normals[k].y() * m_normals[j].y()) / 4);
   m_destPoly.emplace_back(IntPoint2d(
-      Round(m_srcPoly[j].x() + m_delta * (m_normals[k].x() - m_normals[k].y() * dx)),
-      Round(m_srcPoly[j].y() + m_delta * (m_normals[k].y() + m_normals[k].x() * dx))));
+      Round<cInt>(m_srcPoly[j].x() + m_delta * (m_normals[k].x() - m_normals[k].y() * dx)),
+      Round<cInt>(m_srcPoly[j].y() + m_delta * (m_normals[k].y() + m_normals[k].x() * dx))));
   m_destPoly.emplace_back(IntPoint2d(
-      Round(m_srcPoly[j].x() + m_delta * (m_normals[j].x() + m_normals[j].y() * dx)),
-      Round(m_srcPoly[j].y() + m_delta * (m_normals[j].y() - m_normals[j].x() * dx))));
+      Round<cInt>(m_srcPoly[j].x() + m_delta * (m_normals[j].x() + m_normals[j].y() * dx)),
+      Round<cInt>(m_srcPoly[j].y() + m_delta * (m_normals[j].y() - m_normals[j].x() * dx))));
 }
 //------------------------------------------------------------------------------
 
 void ClipperOffset::DoMiter(int j, int k, double r)
 {
   double q = m_delta / r;
-  m_destPoly.emplace_back(IntPoint2d(Round(m_srcPoly[j].x() + (m_normals[k].x() + m_normals[j].x()) * q),
-      Round(m_srcPoly[j].y() + (m_normals[k].y() + m_normals[j].y()) * q)));
+  m_destPoly.emplace_back(IntPoint2d(Round<cInt>(m_srcPoly[j].x() + (m_normals[k].x() + m_normals[j].x()) * q),
+      Round<cInt>(m_srcPoly[j].y() + (m_normals[k].y() + m_normals[j].y()) * q)));
 }
 //------------------------------------------------------------------------------
 
@@ -3716,21 +3719,21 @@ void ClipperOffset::DoRound(int j, int k)
 {
   double a = std::atan2(m_sinA,
   m_normals[k].x() * m_normals[j].x() + m_normals[k].y() * m_normals[j].y());
-  auto steps = std::max<int>(Round(m_StepsPerRad * std::fabs(a)), 1);
+  auto steps = std::max<int>(Round<cInt>(m_StepsPerRad * std::fabs(a)), 1);
 
   double X = m_normals[k].x(), Y = m_normals[k].y(), X2;
   for (int i = 0; i < steps; ++i)
   {
     m_destPoly.emplace_back(IntPoint2d(
-        Round(m_srcPoly[j].x() + X * m_delta),
-        Round(m_srcPoly[j].y() + Y * m_delta)));
+        Round<cInt>(m_srcPoly[j].x() + X * m_delta),
+        Round<cInt>(m_srcPoly[j].y() + Y * m_delta)));
     X2 = X;
     X = X * m_cos - m_sin * Y;
     Y = X2 * m_sin + Y * m_cos;
   }
   m_destPoly.emplace_back(IntPoint2d(
-  Round(m_srcPoly[j].x() + m_normals[j].x() * m_delta),
-  Round(m_srcPoly[j].y() + m_normals[j].y() * m_delta)));
+  Round<cInt>(m_srcPoly[j].x() + m_normals[j].x() * m_delta),
+  Round<cInt>(m_srcPoly[j].y() + m_normals[j].y() * m_delta)));
 }
 
 //------------------------------------------------------------------------------
