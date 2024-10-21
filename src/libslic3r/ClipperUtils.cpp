@@ -997,31 +997,26 @@ Polygons union_pt_chained_outside_in(const Polygons &subject)
     return retval;
 }
 
-Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)
+Polygons simplify_polygons(const Polygons &subject)
 {
     ClipperLib::Paths output;
-    if (preserve_collinear) {
-        ClipperLib::Clipper c;
-        c.PreserveCollinear(true);
-        c.StrictlySimple(true);
-        c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
-        c.Execute(ClipperLib::ctUnion, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
-    } else {
-        output = ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(subject), ClipperLib::pftNonZero);
-    }
-    
+    ClipperLib::Clipper c;
+//    c.PreserveCollinear(true);
+    //FIXME StrictlySimple is very expensive! Is it needed?
+    c.StrictlySimple(true);
+    c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
+    c.Execute(ClipperLib::ctUnion, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+
     // convert into Slic3r polygons
     return to_polygons(std::move(output));
 }
 
-ExPolygons simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
+ExPolygons simplify_polygons_ex(const Polygons &subject)
 {
-    if (! preserve_collinear)
-        return union_ex(simplify_polygons(subject, false));
-
-    ClipperLib::PolyTree polytree;    
+    ClipperLib::PolyTree polytree;
     ClipperLib::Clipper c;
-    c.PreserveCollinear(true);
+//    c.PreserveCollinear(true);
+    //FIXME StrictlySimple is very expensive! Is it needed?
     c.StrictlySimple(true);
     c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
     c.Execute(ClipperLib::ctUnion, polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);

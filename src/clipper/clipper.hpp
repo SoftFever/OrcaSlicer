@@ -52,6 +52,7 @@
 //use_deprecated: Enables temporary support for the obsolete functions
 //#define use_deprecated  
 
+#include <array>
 #include <vector>
 #include <deque>
 #include <stdexcept>
@@ -116,7 +117,8 @@ using DoublePoint = Eigen::Matrix<double, 2, 1, Eigen::DontAlign>;
 
 template<typename BaseType>
 using Allocator = tbb::scalable_allocator<BaseType>;
-using Path    = std::vector<IntPoint, Allocator<IntPoint>>;
+//using Allocator = std::allocator<BaseType>;
+using Path      = std::vector<IntPoint, Allocator<IntPoint>>;
 using Paths     = std::vector<Path, Allocator<Path>>;
 
 inline Path& operator <<(Path& poly, const IntPoint& p) {poly.push_back(p); return poly;}
@@ -198,7 +200,8 @@ double Area(const Path &poly);
 inline bool Orientation(const Path &poly) { return Area(poly) >= 0; }
 int PointInPolygon(const IntPoint &pt, const Path &path);
 
-Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType = pftEvenOdd);
+// Union with "strictly simple" fix enabled.
+Paths SimplifyPolygon(const Path &in_poly, PolyFillType fillType = pftNonZero, bool strictly_simple = true);
 
 void CleanPolygon(const Path& in_poly, Path& out_poly, double distance = 1.415);
 void CleanPolygon(Path& poly, double distance = 1.415);
@@ -283,7 +286,25 @@ enum EdgeSide { esLeft = 1, esRight = 2};
 
   using OutPts = std::vector<OutPt, Allocator<OutPt>>;
 
-  struct OutRec;
+  // Output polygon.
+  struct OutRec {
+      int       Idx;
+      bool      IsHole;
+      bool      IsOpen;
+      //The 'FirstLeft' field points to another OutRec that contains or is the
+      //'parent' of OutRec. It is 'first left' because the ActiveEdgeList (AEL) is
+      //parsed left from the current edge (owning OutRec) until the owner OutRec
+      //is found. This field simplifies sorting the polygons into a tree structure
+      //which reflects the parent/child relationships of all polygons.
+      //This field should be renamed Parent, and will be later.
+      OutRec* FirstLeft;
+      // Used only by void Clipper::BuildResult2(PolyTree& polytree)
+      PolyNode* PolyNd;
+      // Linked list of output points, dynamically allocated.
+      OutPt* Pts;
+      OutPt* BottomPt;
+  };
+
   struct Join {
     Join(OutPt *OutPt1, OutPt *OutPt2, IntPoint OffPt) :
       OutPt1(OutPt1), OutPt2(OutPt2), OffPt(OffPt) {}
@@ -431,12 +452,12 @@ protected:
 private:
   
   // Output polygons.
-  std::vector<OutRec*, Allocator<OutRec*>>  m_PolyOuts;
+  std::deque<OutRec, Allocator<OutRec>>  m_PolyOuts;
   // Output points, allocated by a continuous sets of m_OutPtsChunkSize.
-  std::vector<OutPt*, Allocator<OutPt*>>   m_OutPts;
+  static constexpr const size_t m_OutPtsChunkSize = 32;
+  std::deque<std::array<OutPt, m_OutPtsChunkSize>, Allocator<std::array<OutPt, m_OutPtsChunkSize>>> m_OutPts;
   // List of free output points, to be used before taking a point from m_OutPts or allocating a new chunk.
   OutPt                *m_OutPtsFree;
-  size_t                m_OutPtsChunkSize;
   size_t                m_OutPtsChunkLast;
 
   std::vector<Join, Allocator<Join>>     m_Joins;
@@ -481,7 +502,7 @@ private:
   void AddLocalMaxPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutPt* AddLocalMinPoly(TEdge *e1, TEdge *e2, const IntPoint &pt);
   OutRec* GetOutRec(int idx);
-  void AppendPolygon(TEdge *e1, TEdge *e2) const;
+  void AppendPolygon(TEdge *e1, TEdge *e2);
   void IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &pt);
   OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
@@ -497,7 +518,7 @@ private:
   void ProcessEdgesAtTopOfScanbeam(const cInt topY);
   void BuildResult(Paths& polys);
   void BuildResult2(PolyTree& polytree);
-  void SetHoleState(TEdge *e, OutRec *outrec) const;
+  void SetHoleState(TEdge *e, OutRec *outrec);
   bool FixupIntersectionOrder();
   void FixupOutPolygon(OutRec &outrec);
   void FixupOutPolyline(OutRec &outrec);
@@ -507,8 +528,8 @@ private:
   bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b, const IntPoint &Pt, bool DiscardLeft);
   void JoinCommonEdges();
   void DoSimplePolygons();
-  void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec) const;
-  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec) const;
+  void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
+  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec);
 #ifdef CLIPPERLIB_USE_XYZ
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
@@ -566,8 +587,9 @@ class clipperException : public std::exception
 };
 //------------------------------------------------------------------------------
 
+// Union with "strictly simple" fix enabled.
 template<typename PathsProvider>
-inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd, bool strictly_simple = true) {
+inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftNonZero, bool strictly_simple = true) {
     Clipper c;
     c.StrictlySimple(strictly_simple);
     c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
