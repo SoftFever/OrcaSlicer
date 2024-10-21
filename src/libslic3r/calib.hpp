@@ -255,6 +255,7 @@ public:
     double print_size_x() const { return object_size_x() + pattern_shift(); };
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
+    double flow_val() const;
 
     void generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
 

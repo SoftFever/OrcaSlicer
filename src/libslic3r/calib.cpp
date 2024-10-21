@@ -537,6 +537,20 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 
     refresh_setup(config, is_bbl_machine, model, origin);
+}
+
+double CalibPressureAdvancePattern::flow_val() const
+{
+    double flow_mult = m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    double nozzle_diameter = m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    double line_width = m_config.get_abs_value("line_width", nozzle_diameter);
+    double layer_height = m_config.get_abs_value("layer_height");
+    double speed = m_config.opt_float("outer_wall_speed");
+    Flow pattern_line = Flow(line_width, layer_height, m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+
+    /* round value to 1/1000 */
+    unsigned long intval = 1000 * speed * pattern_line.mm3_per_mm() * flow_mult;
+    return 0.001f * intval;
 };
 
 void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config,
@@ -564,7 +578,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
     draw_box_opt_args.is_filled      = true;
     draw_box_opt_args.num_perimeters = wall_count();
     gcode << draw_box(m_writer, m_starting_point.x(), m_starting_point.y() + frame_size_y() + line_spacing_first_layer(),
-                      glyph_tab_max_x() - m_starting_point.x(),
+                      print_size_x(),
                       max_numbering_height() + line_spacing_first_layer() + m_glyph_padding_vertical * 2, draw_box_opt_args);
 
     std::vector<CustomGCode::Item> gcode_items;
@@ -606,6 +620,18 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
                                      m_params.start + (j * m_params.step), m_draw_digit_mode, line_width(), number_e_per_mm,
                                      speed_first_layer(), m_writer);
             }
+
+            // flow value
+            int line_num = num_patterns + 2;
+            gcode << draw_number(glyph_start_x(line_num), m_starting_point.y() + frame_size_y() + m_glyph_padding_vertical + line_width(),
+                                 flow_val(), m_draw_digit_mode, line_width(), number_e_per_mm,
+                                 speed_first_layer(), m_writer);
+
+            // acceleration
+            line_num = num_patterns + 4;
+            gcode << draw_number(glyph_start_x(line_num), m_starting_point.y() + frame_size_y() + m_glyph_padding_vertical + line_width(),
+                                 m_config.opt_float("default_acceleration"), m_draw_digit_mode, line_width(), number_e_per_mm,
+                                 speed_first_layer(), m_writer);
         }
 
 
@@ -805,6 +831,12 @@ double CalibPressureAdvancePattern::max_numbering_height() const
     }
 
     most_characters = std::min(most_characters, m_max_number_len);
+
+    std::string sFlow = convert_number_to_string(flow_val());
+    most_characters = std::max(most_characters, sFlow.length());
+
+    std::string sAccel = convert_number_to_string(m_config.opt_float("default_acceleration"));
+    most_characters = std::max(most_characters, sAccel.length());
 
     return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_digit_gap_len);
 }
