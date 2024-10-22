@@ -6,7 +6,19 @@
 #include "MainFrame.hpp"
 #include <string>
 namespace Slic3r { namespace GUI {
-    
+
+namespace {
+
+void ParseStringValues(std::string str, std::vector<double> &vec)
+{
+    std::replace(str.begin(), str.end(), ',', ' ');
+    std::istringstream inss(str);
+    std::copy_if(std::istream_iterator<int>(inss), std::istream_iterator<int>(), std::back_inserter(vec),
+                 [](int x){ fprintf(stderr, "copy_if: %i", x); return x > 0; });
+}
+
+}
+
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
@@ -59,9 +71,13 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     wxString start_pa_str = _L("Start PA: ");
     wxString end_pa_str = _L("End PA: ");
     wxString PA_step_str = _L("PA step: ");
+    wxString sp_accel_str = _L("Accelerations: ");
+    wxString sp_speed_str = _L("Speeds: ");
 	auto text_size = wxWindow::GetTextExtent(start_pa_str);
 	text_size.IncTo(wxWindow::GetTextExtent(end_pa_str));
 	text_size.IncTo(wxWindow::GetTextExtent(PA_step_str));
+    text_size.IncTo(wxWindow::GetTextExtent(sp_accel_str));
+    text_size.IncTo(wxWindow::GetTextExtent(sp_speed_str));
 	text_size.x = text_size.x * 1.5;
 	wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
@@ -98,6 +114,30 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	settings_sizer->Add(create_item_checkbox(_L("Print numbers"), this, &m_params.print_numbers, m_cbPrintNum));
     m_cbPrintNum->SetValue(false);
 
+    settings_sizer->Add(create_item_checkbox(_L("Batch mode"), this, &m_params.batch_mode, m_cbBatchMode));
+    m_cbBatchMode->SetValue(false);
+
+    wxTextValidator val_list_validator(wxFILTER_INCLUDE_CHAR_LIST);
+    val_list_validator.SetCharIncludes(wxString("0123456789,"));
+
+    auto sp_accel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto sp_accel_text = new wxStaticText(this, wxID_ANY, sp_accel_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiBMAccels = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_PROCESS_ENTER);
+    m_tiBMAccels->SetToolTip(_L("Comma-separated list of printing accelerations"));
+    m_tiBMAccels->GetTextCtrl()->SetValidator(val_list_validator);
+    sp_accel_sizer->Add(sp_accel_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    sp_accel_sizer->Add(m_tiBMAccels, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(sp_accel_sizer);
+
+    auto sp_speed_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto sp_speed_text = new wxStaticText(this, wxID_ANY, sp_speed_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiBMSpeeds = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_PROCESS_ENTER);
+    m_tiBMSpeeds->SetToolTip(_L("Comma-separated list of printing speeds"));
+    m_tiBMSpeeds->GetTextCtrl()->SetValidator(val_list_validator);
+    sp_speed_sizer->Add(sp_speed_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    sp_speed_sizer->Add(m_tiBMSpeeds, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(sp_speed_sizer);
+
     v_sizer->Add(settings_sizer);
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
@@ -119,6 +159,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // Connect Events
     m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
+    m_cbBatchMode->Connect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(PA_Calibration_Dlg::on_batch_mode_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
 
@@ -130,6 +171,7 @@ PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
     m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
+    m_cbBatchMode->Disconnect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(PA_Calibration_Dlg::on_batch_mode_changed), NULL, this);
     m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
 
@@ -146,6 +188,8 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
             m_cbPrintNum->SetValue(true);
             m_cbPrintNum->Enable(true);
+            m_cbBatchMode->SetValue(false);
+            m_cbBatchMode->Enable(false);
             break;
         case 2:
             m_params.mode = CalibMode::Calib_PA_Pattern;
@@ -153,6 +197,8 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.005));
             m_cbPrintNum->SetValue(true);
             m_cbPrintNum->Enable(false);
+            m_cbBatchMode->SetValue(false);
+            m_cbBatchMode->Enable(true);
             break;
         default:
             m_params.mode = CalibMode::Calib_PA_Tower;
@@ -160,8 +206,13 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
             m_cbPrintNum->SetValue(false);
             m_cbPrintNum->Enable(false);
+            m_cbBatchMode->SetValue(false);
+            m_cbBatchMode->Enable(false);
             break;
     }
+
+    m_tiBMAccels->Enable(m_cbBatchMode->GetValue());
+    m_tiBMSpeeds->Enable(m_cbBatchMode->GetValue());
 
     if (!isDDE) {
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
@@ -197,6 +248,17 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     }
 
     m_params.print_numbers = m_cbPrintNum->GetValue();
+    m_params.batch_mode = m_cbBatchMode->GetValue();
+    if (m_params.batch_mode) {
+        ParseStringValues(m_tiBMAccels->GetTextCtrl()->GetValue().ToStdString(), m_params.accelerations);
+        ParseStringValues(m_tiBMSpeeds->GetTextCtrl()->GetValue().ToStdString(), m_params.speeds);
+
+        if (m_params.speeds.empty() || m_params.accelerations.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("Accelerations and speeds must contain at least 1 element each.\n"), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+    }
 
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);
@@ -209,6 +271,16 @@ void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
 void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
     PA_Calibration_Dlg::reset_params();
     event.Skip(); 
+}
+
+void PA_Calibration_Dlg::on_batch_mode_changed(wxCommandEvent &event)
+{
+    bool val = m_cbBatchMode->GetValue();
+
+    m_tiBMAccels->Enable(val);
+    m_tiBMSpeeds->Enable(val);
+
+    event.Skip();
 }
 
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {

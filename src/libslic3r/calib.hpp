@@ -31,6 +31,11 @@ struct Calib_Params
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
     bool      print_numbers;
+
+    bool      batch_mode;
+    std::vector<double> accelerations;
+    std::vector<double> speeds;
+
     CalibMode mode;
 };
 
