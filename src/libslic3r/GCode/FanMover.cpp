@@ -50,7 +50,11 @@ float get_axis_value(const std::string& line, char axis)
     char match[3] = " X";
     match[1] = axis;
 
-    size_t pos = line.find(match) + 2;
+    size_t pos = line.find(match);
+    if (pos == std::string::npos) {
+        return NAN;
+    }
+    pos += 2;
     //size_t end = std::min(line.find(' ', pos + 1), line.find(';', pos + 1));
     // Try to parse the numeric value.
     const char* c = line.c_str();
@@ -83,6 +87,12 @@ int16_t get_fan_speed(const std::string &line, GCodeFlavor flavor) {
         if (flavor == (gcfMach3) || flavor == (gcfMachinekit)) {
             return (int16_t)get_axis_value(line, 'P');
         } else {
+            // BBS: for Bambu machine, we both use M106 P1 and M106 to indicate the part cooling fan
+            // and use M106 P2/P3 for other fans, which should be ignored here
+            const auto idx = get_axis_value(line, 'P');
+            if (!isnan(idx) && idx != 1.0f) {
+                return -1;
+            }
             return (int16_t)get_axis_value(line, 'S');
         }
     } else if (line.compare(0, 4, "M127") == 0 || line.compare(0, 4, "M107") == 0) {
