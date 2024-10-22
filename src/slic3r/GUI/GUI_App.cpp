@@ -323,7 +323,7 @@ public:
 
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
-        
+
         int width = bmp.GetWidth();
 		int height = bmp.GetHeight();
 
@@ -1733,7 +1733,7 @@ void GUI_App::init_networking_callbacks()
                     else {
                         obj->parse_json(msg, true);
                     }
-                    
+
 
                     if (!this->is_enable_multi_machine()) {
                         if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
@@ -3628,20 +3628,21 @@ void GUI_App::request_login(bool show_user_info)
 
 void GUI_App::get_login_info()
 {
-    if (m_agent) {
-        if (m_agent->is_user_login()) {
-            std::string login_cmd = m_agent->build_login_cmd();
-            wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
-            GUI::wxGetApp().run_script(strJS);
-        }
-        else {
-            m_agent->user_logout();
-            std::string logout_cmd = m_agent->build_logout_cmd();
-            wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
-            GUI::wxGetApp().run_script(strJS);
-        }
-        mainframe->m_webview->SetLoginPanelVisibility(true);
-    }
+//     if (m_agent) {
+//         if (m_agent->is_user_login()) {
+//             std::string login_cmd = m_agent->build_login_cmd();
+//             wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
+//             GUI::wxGetApp().run_script(strJS);
+//         }
+//         else {
+//             m_agent->user_logout();
+//             std::string logout_cmd = m_agent->build_logout_cmd();
+//             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
+//             GUI::wxGetApp().run_script(strJS);
+//         }
+//     }
+
+    mainframe->m_webview->SetLoginPanelVisibility(true);
 }
 
 bool GUI_App::is_user_login()
@@ -3888,17 +3889,17 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (path.has_value()) {
                     wxLaunchDefaultBrowser(path.value());
                 }
-            } 
+            }
             else if (command_str.compare("homepage_makerlab_get") == 0) {
                 //if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
             }
-            else if (command_str.compare("makerworld_model_open") == 0) 
+            else if (command_str.compare("makerworld_model_open") == 0)
             {
                 if (root.get_child_optional("model") != boost::none) {
                     pt::ptree                    data_node = root.get_child("model");
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
-                    if (path.has_value()) 
-                    { 
+                    if (path.has_value())
+                    {
                         wxString realurl = from_u8(url_decode(path.value()));
                         wxGetApp().request_model_download(realurl);
                     }
