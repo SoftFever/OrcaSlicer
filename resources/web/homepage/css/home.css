@@ -14,7 +14,7 @@ html, body {
     margin: 0px;
     padding: 0px;
 	line-height: 20px;
-    font-size: 16px;	
+    font-size: 16px;
 }
 
 .ZScrol::-webkit-scrollbar {/*滚动条整体样式*/
@@ -41,13 +41,13 @@ html, body {
 .RedFont
 {
 	font-size:12px;
-	color: #F07E4A;		
+	color: #F07E4A;
 }
 
 .LinkBtn
 {
 	font-size:12px;
-	color: #00ffea;	
+	color: #00ffea;
 	cursor: pointer;
 }
 
@@ -69,12 +69,22 @@ body
 	justify-content: flex-start;
 }
 
+#TopContainer
+{
+	width: 100%;
+	height: 100%;
+}
+
 #LeftBoard
 {
 	border-right-width: 1px;
 	border-right-style: solid;
-	width:262px;
-	height: 100%;
+	width: 312px;
+}
+
+.LoginFullWidth #LeftBoard
+{
+	width: 100%;
 }
 
 #LoginArea
@@ -133,7 +143,7 @@ body
 
 #Icon1
 {
-	margin-right: 10px;	
+	margin-right: 10px;
 }
 
 #BBLIcon
@@ -160,7 +170,7 @@ body
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: center;
-	overflow: hidden; 
+	overflow: hidden;
 	width: 80%;
 }
 
@@ -187,13 +197,13 @@ body
 /*------------------*/
 #BtnArea
 {
-	
+
 }
 
 
 .BtnItem
 {
-    padding-left:40px;	
+    padding-left:40px;
 	height:50px;
 	line-height: 50px;
 	display: flex;
@@ -229,10 +239,12 @@ body
 /*--------------------*/
 #RightBoard
 {
-	width: 100%;
-	height: 100%;
-	min-width: 835px;
 	overflow-y:auto;
+}
+
+.LoginFullWidth #RightBoard
+{
+	display: none;
 }
 
 #ContentBoard
@@ -322,7 +334,7 @@ body
 {
 	display:flex;
 	align-items: center;
-	padding: 6px 0px;	
+	padding: 6px 0px;
 }
 
 #HotModel_RIGHT_Title
@@ -374,7 +386,7 @@ body
 
 #RecentTitle
 {
-	
+
 }
 
 #FileList
@@ -413,7 +425,7 @@ body
 	background-color: #E4E4E4;
 	border-radius: 8px;
 	width: 184px;
-	height: 184px;	
+	height: 184px;
 }
 
 .FileItem img
@@ -430,7 +442,7 @@ body
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    word-break: break-all;	
+    word-break: break-all;
 }
 
 .FileDate
@@ -475,35 +487,35 @@ body
 {
 	margin-right: 6px;
 	width: 16px;
-	height: 16px;	
+	height: 16px;
 }
 
 #CT_Delete_Bar:hover  .CT_Delete
 {
 	background: url("../img/remove2.svg");
 	background-repeat: no-repeat;
-	background-size: contain;	
+	background-size: contain;
 }
 
 .CT_Delete
 {
 	background: url("../img/remove.svg");
 	background-repeat: no-repeat;
-	background-size: contain;	
+	background-size: contain;
 }
 
 #CT_Folder_Bar:hover .CT_Explore
 {
 	background: url("../img/open_folder2.svg");
 	background-repeat: no-repeat;
-	background-size: contain;	
+	background-size: contain;
 }
 
 .CT_Explore
 {
 	background: url("../img/open_folder.svg");
 	background-repeat: no-repeat;
-	background-size: contain;		
+	background-size: contain;
 }
 
 
@@ -515,7 +527,7 @@ body
 .CT_Text
 {
 	line-height: 20px;
-	height: 20px;	
+	height: 20px;
 	display: block;
 }
 
@@ -598,7 +610,7 @@ body
 @media screen and ( min-width:1681px) and (max-width:2120px ) {
 .GuideBlock
 {
-    width: calc(25% - 20px);	
+    width: calc(25% - 20px);
 	margin: 0px 10px 40px 10px;
 	cursor: pointer;
 }
@@ -636,7 +648,7 @@ body
 
 .UG_IMG
 {
-	width: 100%;	
+	width: 100%;
 }
 
 .UG_IMG img
@@ -679,7 +691,7 @@ body
 	display:flex;
 	align-items: center;
 	height: 28px;
-	padding: 0px 8px;	
+	padding: 0px 8px;
 }
 
 .HotModel_Designer_Info img
@@ -700,8 +712,8 @@ body
 
 #HotModel_RIGHT_Title:hover
 {
-	cursor: pointer;	
-	color:#009688;	
+	cursor: pointer;
+	color:#009688;
 }
 
 .HotModelPiece
