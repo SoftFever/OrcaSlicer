@@ -21,11 +21,11 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& ic
 {
 }
 
-GLGizmoMeshBoolean::~GLGizmoMeshBoolean() 
+GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 {
 }
 
-bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) 
+bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (action == SLAGizmoEventType::LeftDown) {
         const ModelObject* mo = m_c->selection_info()->model_object();
@@ -34,8 +34,8 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const ModelInstance* mi = mo->instances[m_parent.get_selection().get_instance_idx()];
         std::vector<Transform3d> trafo_matrices;
         for (const ModelVolume* mv : mo->volumes) {
-            //if (mv->is_model_part()) { 
-                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); 
+            //if (mv->is_model_part()) {
+                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
             //}
         }
 
@@ -95,7 +95,7 @@ bool GLGizmoMeshBoolean::on_mouse(const wxMouseEvent &mouse_event)
     bool control_down           = mouse_event.CmdDown();
     bool grabber_contains_mouse = (get_hover_id() != -1);
     if (mouse_event.LeftDown()) {
-        if ((!control_down || grabber_contains_mouse) &&            
+        if ((!control_down || grabber_contains_mouse) &&
             gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
             // the gizmo got the event and took some action, there is no need
             // to do anything more
@@ -153,7 +153,7 @@ void GLGizmoMeshBoolean::on_render()
     }
 
     ColorRGB src_color = { 1.0f, 1.0f, 1.0f };
-    ColorRGB tool_color = {0.0f, 150.0f / 255.0f, 136.0f / 255.0f};
+    ColorRGB tool_color = {105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f};
     m_parent.get_selection().render_bounding_box(src_bb, src_color, m_parent.get_scale());
     m_parent.get_selection().render_bounding_box(tool_bb, tool_color, m_parent.get_scale());
 }
@@ -221,13 +221,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 
         if (selected || hovered) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_Button, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_Button, { 105.0f / 255.0f, 75.0f / 255.0f, 124.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 105.0f / 255.0f, 75.0f / 255.0f, 124.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 105.0f / 255.0f, 75.0f / 255.0f, 124.0f / 255.0f, 1.0f });
         }
         else {
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 105.0f / 255.0f, 75.0f / 255.0f, 124.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 105.0f / 255.0f, 75.0f / 255.0f, 124.0f / 255.0f, 1.0f });
         }
 
         bool res = ImGui::Button(label.c_str(), size_arg);

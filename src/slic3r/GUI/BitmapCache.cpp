@@ -202,7 +202,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
         x += bmp->GetScaledWidth();
 #else
         x += bmp->GetWidth();
-#endif 
+#endif
     }
     memDC.SelectObject(wxNullBitmap);
     return bitmap;
@@ -233,8 +233,8 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
 wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, unsigned height,
     const bool grayscale/* = false*/, const float scale_in_center/* = 0*/) // BBS: support resize by fill border
 {
-    std::string bitmap_key = bitmap_name + ( height !=0 ? 
-                                           "-h" + std::to_string(height) : 
+    std::string bitmap_key = bitmap_name + ( height !=0 ?
+                                           "-h" + std::to_string(height) :
                                            "-w" + std::to_string(width))
                                          + (grayscale ? "-gs" : "");
 
@@ -306,11 +306,11 @@ error:
     return NULL;
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height,
     const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const float scale_in_center/* = 0*/)
 {
-    std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
-                                           "-h" + std::to_string(target_height) : 
+    std::string bitmap_key = bitmap_name + ( target_height !=0 ?
+                                           "-h" + std::to_string(target_height) :
                                            "-w" + std::to_string(target_width))
                                          + (m_scale != 1.0f ? "-s" + float_to_string_decimal_point(m_scale) : "")
                                          + (dark_mode ? "-dm" : "")
@@ -323,7 +323,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
-    replaces["\"#0x00AE42\""] = "\"#009688\"";
+    replaces["\"#0x00AE42\""] = "\"#694b7c\"";
     replaces["\"#00FF00\""] = "\"#52c7b8\"";
     if (dark_mode) {
         replaces["\"#262E30\""] = "\"#EFEFF0\"";
@@ -334,7 +334,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
         replaces["\"#6B6B6B\""] = "\"#818182\"";
         replaces["\"#909090\""] = "\"#FFFFFF\"";
         replaces["\"#00FF00\""] = "\"#FF0000\"";
-        replaces["\"#009688\""] = "\"#00675b\"";
+        replaces["\"#694b7c\""] = "\"#00675b\"";
         replaces["#DBDBDB"] = "#4A4A51"; // ORCA border color
         replaces["#F0F0F1"] = "#333337"; // ORCA disabled background color
         replaces["#262E30"] = "#EFEFF0"; // ORCA
@@ -343,7 +343,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     }
 
     if (strstr(bitmap_name.c_str(), "toggle_on") != NULL && dark_mode) // ORCA only replace color of toggle button
-        replaces["#009688"] = "#00675b";
+        replaces["#694b7c"] = "#00675b";
 
     //if (!new_color.empty())
     //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
@@ -365,7 +365,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     target_height != 0 ? target_height *= m_scale : target_width *= m_scale;
 
-    float svg_scale = target_height != 0 ? 
+    float svg_scale = target_height != 0 ?
                   (float)target_height / image->height  : target_width != 0 ?
                   (float)target_width / image->width    : 1;
 
@@ -406,7 +406,7 @@ wxBitmap* BitmapCache::load_svg2(const std::string& bitmap_name, unsigned target
         replaces["#D9D9D9"] = array_new_color[0];
         replaces["fill-opacity=\"1.0"] = array_new_color[1];
     }
-    
+
 
     NSVGimage* image = nullptr;
     image = nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);

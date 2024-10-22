@@ -1152,7 +1152,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
     m_ams_backup_tip = new Label(this, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
-    m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x694b7c));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
     img_ams_backup = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_ams_backup->SetBackgroundColour(*wxWHITE);
@@ -1197,7 +1197,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
     m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                               std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(m_btn_bg_enable);
@@ -1275,7 +1275,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
-    
+
     m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
@@ -1291,7 +1291,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_finish->Wrap(-1);
-    m_statictext_finish->SetForegroundColour(wxColour(0, 150, 136));
+    m_statictext_finish->SetForegroundColour(wxColour(105, 75, 124));
     m_sizer_finish_h->Add(m_statictext_finish, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer_finish_v->Add(m_sizer_finish_h, 1, wxALIGN_CENTER, 0);
@@ -2178,11 +2178,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             auto target_print_name = wxString(obj_->get_preset_printer_model_name(target_model_id));
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."), sourcet_print_name, target_print_name);
-            
+
             update_print_status_msg(msg_text, true, true);
         }
         catch (...){}
-        
+
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     }else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
@@ -2262,8 +2262,8 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        
-       
+
+
     }else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         if (m_required_data_plate_data_list.size() > 0) {
             source_model = m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
@@ -2495,7 +2495,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             wxString error_info = Plater::get_slice_warning_string(warning);
             if (error_info.IsEmpty()) {
                 error_info = wxString::Format("%s\n", warning.msg);
-            } 
+            }
 
             confirm_text.push_back(ConfirmBeforeSendInfo(error_info));
             has_slice_warnings = true;
@@ -2530,7 +2530,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string info;
 
         DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
-        
+
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
             prohibited_error = wxString::FromUTF8(info);
@@ -2566,16 +2566,16 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
-            
+
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
 
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
-                + "\n    " + nozzle_in_preset 
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.")
+                + "\n    " + nozzle_in_preset
                 + "\n    " + nozzle_in_printer
                 + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
-        
+
         if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             is_printing_block = true;
@@ -2585,7 +2585,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
-    
+
 
     if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");
@@ -2622,7 +2622,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         //    }
         //    });
 
-       
+
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
@@ -2665,7 +2665,7 @@ wxString SelectMachineDialog::format_steel_name(std::string name)
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
 {
     if (enable) {
-        m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
+        m_ams_backup_tip->SetForegroundColour(wxColour(0x694b7c));
     }
     else {
         m_ams_backup_tip->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
@@ -3568,7 +3568,7 @@ void SelectMachineDialog::update_show_status()
                 else {
                     show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
                 }
-                
+
             } else {
                 int mismatch_index = -1;
                 for (int i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -3607,13 +3607,13 @@ void SelectMachineDialog::update_show_status()
                     show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
                 }
                 return;
-            }       
+            }
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return;
         }
-    } 
+    }
 }
 
 bool SelectMachineDialog::has_timelapse_warning()
@@ -3624,7 +3624,7 @@ bool SelectMachineDialog::has_timelapse_warning()
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -3980,7 +3980,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         delete item;
         iter++;
     }
-    
+
     m_sizer_material->Clear();
     m_materialList.clear();
     m_filaments.clear();
@@ -4393,7 +4393,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         image = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     }
-   
+
     //for black list
     std::vector<std::string> materials;
     std::vector<std::string> brands;
@@ -4688,9 +4688,9 @@ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
 
 
     m_button_confirm = new Button(this, _L("Confirm"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(105, 75, 124));
     m_button_confirm->SetTextColor(wxColour(255, 255, 255));
     m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
@@ -4817,7 +4817,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  }
 
  void ThumbnailPanel::render(wxDC& dc) {
-     
+
      if (wxGetApp().dark_mode() && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
          #ifdef __WXMSW__
              wxMemoryDC memdc;
@@ -4831,7 +4831,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      }
      else
          dc.DrawBitmap(m_bitmap, 0, 0);
-     
+
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}
@@ -4846,7 +4846,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
      m_type = type;
      m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
-     
+
      this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
      this->Bind(wxEVT_LEAVE_WINDOW, &PinCodePanel::on_mouse_leave, this);
      this->Bind(wxEVT_LEFT_UP, &PinCodePanel::on_mouse_left_up, this);

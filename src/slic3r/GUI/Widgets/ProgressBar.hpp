@@ -6,12 +6,12 @@
 
 class ProgressBar : public wxWindow
 {
-public: 
+public:
     ProgressBar();
     ProgressBar(wxWindow *         parent,
                 wxWindowID         id        = wxID_ANY,
                 int                max       = 100,
-                const wxPoint &    pos       = wxDefaultPosition, 
+                const wxPoint &    pos       = wxDefaultPosition,
                 const wxSize &     size      = wxDefaultSize,
                 bool               shown     = false);
 
@@ -30,10 +30,10 @@ public:
     double   m_radius                     = {7};
     double   m_proportion                 = {0};
     wxColour m_progress_background_colour = {233, 233, 233};
-    wxColour m_progress_colour            = {0, 150, 136};
+    wxColour m_progress_colour            = {105, 75, 124,};
     wxColour m_progress_colour_disable    = {255, 111, 0};
     wxString m_disable_text;
-    
+
 
 public:
     void         ShowNumber(bool shown);

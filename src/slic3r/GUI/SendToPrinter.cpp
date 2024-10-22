@@ -201,7 +201,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
     m_scrollable_region       = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL); 
+    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL);
 
     m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
@@ -252,7 +252,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
     btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                               std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(btn_bg_enable);
@@ -302,7 +302,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
-    
+
     m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
@@ -318,7 +318,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     m_statictext_finish = new wxStaticText(m_panel_finish, wxID_ANY, L("send completed"), wxDefaultPosition, wxDefaultSize, 0);
     m_statictext_finish->Wrap(-1);
-    m_statictext_finish->SetForegroundColour(wxColour(0, 150, 136));
+    m_statictext_finish->SetForegroundColour(wxColour(105, 75, 124));
     m_sizer_finish_h->Add(m_statictext_finish, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer_finish_v->Add(m_sizer_finish_h, 1, wxALIGN_CENTER, 0);
@@ -613,7 +613,7 @@ void SendToPrinterDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SendToPrinterDialog::update_priner_status_msg(wxString msg, bool is_warning) 
+void SendToPrinterDialog::update_priner_status_msg(wxString msg, bool is_warning)
 {
     auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00) : wxColour(0x6B, 0x6B, 0x6B);
     m_statictext_printer_msg->SetForegroundColour(colour);
@@ -675,7 +675,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
     m_worker->cancel_all();
     this->EndModal(wxID_CANCEL);
 }
- 
+
 void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
@@ -693,7 +693,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (!dev) return;
 
     MachineObject *obj_ = dev->get_selected_machine();
-    
+
     if (obj_ == nullptr) {
         m_printer_last_select = "";
         m_comboBox_printer->SetTextLabel("");
@@ -764,7 +764,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		fs::path default_output_file_path = boost::filesystem::path(default_output_file.c_str());
 		file_name = default_output_file_path.filename().string();
     }*/
-    
+
 
 
     auto m_send_job                 = std::make_unique<SendJob>(m_printer_last_select);
@@ -784,7 +784,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
- 
+
     enable_prepare_mode = false;
 
     m_send_job->on_check_ip_address_fail([this](int result) {
@@ -1289,7 +1289,7 @@ void SendToPrinterDialog::set_default()
     m_comboBox_printer->Enable();
     // rset status bar
     m_status_bar->reset();
-    
+
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
         if (agent->is_user_login()) {
@@ -1316,7 +1316,7 @@ void SendToPrinterDialog::set_default()
         image  = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     }
-    
+
     std::vector<std::string> materials;
     std::vector<std::string> display_materials;
     {
@@ -1338,7 +1338,7 @@ void SendToPrinterDialog::set_default()
     Layout();
     Fit();
 
-  
+
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
 

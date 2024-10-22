@@ -28,7 +28,7 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     sizer_top->Add(m_staticText_connection_code, 0, wxALL, 0);
 
     sizer_top->Add(0, FromDIP(10));
-	
+
     wxBoxSizer *sizer_connect;
     sizer_connect = new wxBoxSizer(wxHORIZONTAL);
 
@@ -55,10 +55,10 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     StateColor btn_bg(
         std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal)
     );
 
-    StateColor btn_bd(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bd(std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     StateColor btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
@@ -67,7 +67,7 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     m_button_confirm->SetTextColor(btn_text);
 
     sizer_connect->Add(m_button_confirm, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
-    
+
     sizer_connect->Add(FromDIP(60), 0);
 
     sizer_top->Add(sizer_connect);
@@ -156,7 +156,7 @@ void ConnectPrinterDialog::on_input_enter(wxCommandEvent& evt)
 }
 
 
-void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event) 
+void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
 {
     wxString code = m_textCtrl_code->GetTextCtrl()->GetValue();
     for (char c : code) {
@@ -183,7 +183,7 @@ void ConnectPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_confirm->Rescale();
-    
+
     Layout();
     this->Refresh();
 }

@@ -38,7 +38,7 @@
 #define AUFILE_GREY500 wxColour(158, 158, 158)
 #define AUFILE_GREY300 wxColour(238, 238, 238)
 #define AUFILE_GREY200 wxColour(248, 248, 248)
-#define AUFILE_BRAND wxColour(0, 150, 136)
+#define AUFILE_BRAND wxColour(105, 75, 124)
 #define AUFILE_BRAND_TRANSPARENT wxColour("#E5F0EE") // ORCA color with %10 opacity
 //#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
 //#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
@@ -70,18 +70,18 @@ private:
     static inline int m_sequence_id = 8000;
 
     void show_info_editor(bool show);
-    
+
 
 public:
     ProjectPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~ProjectPanel();
 
-    
+
     void onWebNavigating(wxWebViewEvent& evt);
     void on_reload(wxCommandEvent& evt);
     void on_size(wxSizeEvent &event);
     void on_navigated(wxWebViewEvent& event);
-   
+
     void msw_rescale();
     void update_model_data();
     void clear_model_info();

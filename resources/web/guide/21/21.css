@@ -7,7 +7,7 @@
 .BlockBanner
 {
 	padding: 0px;
-	border-bottom:#009688 1px solid;
+	border-bottom:#694b7c 1px solid;
 	width: 100%;
 }
 
@@ -27,7 +27,7 @@
 .BlockBanner  a
 {
 	display: inline-block;
-	background-color:#009688;
+	background-color:#694b7c;
 	line-height: 40px;
 	height: 40px;
 	padding: 0px 24px;
@@ -65,7 +65,7 @@
 	display: flex;
 	align-items: center;
 	justify-content:flex-start;
-	color: #5A5A5A;	
+	color: #5A5A5A;
 	padding-left: 10px;
 }
 
@@ -96,7 +96,7 @@
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 4px;
-	background-color: inherit;	
+	background-color: inherit;
 	position: absolute;
 	left: 50%;
 	top: 200px;
@@ -114,7 +114,7 @@
 
 #NoticeContent
 {
-	padding: 4mm 10mm;	
+	padding: 4mm 10mm;
 }
 
 
@@ -130,10 +130,10 @@
 	position: relative;
 	display: flex;
   }
-  
+
   .searchTerm {
 	width: 100%;
-	border: 3px solid #009688;
+	border: 3px solid #694b7c;
 	/*border-right: none;*/
 	padding: 5px;
 	height: 20px;
@@ -141,11 +141,11 @@
 	outline: none;
 	color: #9DBFAF;
   }
-  
+
   .searchTerm:focus{
-	color: #009688;
+	color: #694b7c;
   }
-  
+
   /*Resize the wrap to see the search bar change!*/
   .wrap{
 	width: 30%;

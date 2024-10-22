@@ -27,7 +27,7 @@ static const ImU32 BACKGROUND_COLOR_DARK  = IM_COL32(65, 65, 71, 255);
 static const ImU32 BACKGROUND_COLOR_LIGHT = IM_COL32(255, 255, 255, 255);
 static const ImU32 GROOVE_COLOR_DARK      = IM_COL32(45, 45, 49, 255);
 static const ImU32 GROOVE_COLOR_LIGHT     = IM_COL32(206, 206, 206, 255);
-static const ImU32 BRAND_COLOR            = IM_COL32(0, 150, 136, 255);
+static const ImU32 BRAND_COLOR            = IM_COL32(105, 75, 124, 255);
 
 
 static int m_tick_value = -1;
@@ -310,8 +310,8 @@ void IMSlider::SetLayersTimes(const std::vector<double> &layers_times)
 
 void IMSlider::SetDrawMode(bool is_sequential_print)
 {
-    m_draw_mode = is_sequential_print   ? dmSequentialFffPrint  : 
-                                          dmRegular; 
+    m_draw_mode = is_sequential_print   ? dmSequentialFffPrint  :
+                                          dmRegular;
     m_can_change_color = m_can_change_color && !(m_draw_mode == dmSequentialFffPrint);
 }
 
@@ -422,7 +422,7 @@ bool IMSlider::check_ticks_changed_event(Type type)
                                                              _L("The last color change data was saved for a multi extruder printing.")) +
                            "\n" + _L("Your current changes will delete all saved color changes.") + "\n\n\t" + _L("Are you sure you want to continue?");
 
-        
+
         GUI::MessageDialog msg(this, message, _L("Notice"), wxYES_NO);
         if (msg.ShowModal() == wxID_YES) {
             m_ticks.erase_all_ticks_with_code(ColorChange);
@@ -778,7 +778,7 @@ void IMSlider::show_tooltip(const TickCode& tick){
     if (!time_str.empty()) {
         time_str += "\n";
     }
-    
+
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
@@ -802,17 +802,17 @@ void IMSlider::show_tooltip(const TickCode& tick){
 
 int IMSlider::get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect) {
     ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
-    
+
     const ImGuiAxis axis = is_horizontal() ? ImGuiAxis_X : ImGuiAxis_Y;
     const float region_usable_sz = (rect.Max[axis] - rect.Min[axis]);
     const float region_usable_pos_min = rect.Min[axis];
-    
+
     const float abs_pos = pt[axis];
-    
+
     float pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
     if (axis == ImGuiAxis_Y)
         pos_ratio = 1.0f - pos_ratio;
-    
+
     return v_min + (ImS32)(v_range * pos_ratio + 0.5f);
 }
 
@@ -820,9 +820,9 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     int v_min = GetMinValue();
     int v_max = GetMaxValue();
     ImGuiContext& context = *GImGui;
-    
+
     int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
-    
+
     //draw tick
     ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
     float  tick_width    = 1.0f * m_scale;
@@ -834,7 +834,7 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
     ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
     ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
-    
+
     // draw layer time
     std::string label = get_label(tick, ltEstimatedTime);
     show_tooltip(label);
@@ -907,16 +907,16 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImRect one_handle = ImRect(higher_handle.Min - ImVec2(one_handle_offset, 0), higher_handle.Max - ImVec2(one_handle_offset, 0));
 
     bool value_changed = false;
-    if (!one_layer_flag) 
+    if (!one_layer_flag)
     {
         // select higher handle by default
         static bool h_selected = (selection == ssHigher);
         if (ImGui::ItemHoverable(higher_handle, id) && context.IO.MouseClicked[0]) {
-            selection = ssHigher; 
+            selection = ssHigher;
             h_selected = true;
         }
         if (ImGui::ItemHoverable(lower_handle, id) && context.IO.MouseClicked[0]) {
-            selection = ssLower; 
+            selection = ssLower;
             h_selected = false;
         }
 
@@ -924,7 +924,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         if (h_selected)
         {
             value_changed = slider_behavior(id, higher_slideable_region, v_min, v_max,
-                higher_value, &higher_handle, ImGuiSliderFlags_Vertical, 
+                higher_value, &higher_handle, ImGuiSliderFlags_Vertical,
                 m_tick_value, m_tick_rect);
         }
         if (!h_selected) {
@@ -1008,13 +1008,13 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         pos_3 = pos_1 + triangle_offsets[2];
         window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
-        
+
         // draw mouse position
         if (hovered) {
             draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
         }
     }
-    if (one_layer_flag) 
+    if (one_layer_flag)
     {
         // update handle position
         value_changed = slider_behavior(id, one_slideable_region, v_min, v_max,
@@ -1029,7 +1029,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         if ((!ImGui::ItemHoverable(one_handle, id) && context.IO.MouseClicked[1]) ||
             context.IO.MouseClicked[0])
             m_show_menu = false;
-        
+
         ImVec2 bar_center = higher_handle.GetCenter();
 
         // draw ticks
@@ -1052,7 +1052,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImRect text_rect = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, text_frame_rounding);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
-        
+
         // draw mouse position
         if (hovered) {
             draw_tick_on_mouse_position(one_slideable_region);
@@ -1340,7 +1340,7 @@ void IMSlider::render_add_menu()
             }
             if (hovered) { show_tooltip(_u8L("Insert a pause command at the beginning of this layer.")); }
 
-            
+
             if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                 m_show_custom_gcode_window = true;
             }
@@ -1464,7 +1464,7 @@ void IMSlider::on_mouse_wheel(wxMouseEvent& evt) {
     }
     else if (wxGetKeyState(WXK_RAW_CONTROL)) {
         wheel *= 5;
-    } 
+    }
 #else
     if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_SHIFT))
         wheel *= 5;

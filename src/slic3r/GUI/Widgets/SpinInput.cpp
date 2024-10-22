@@ -26,7 +26,7 @@ SpinInput::SpinInput()
 {
     radius = 0;
     border_width     = 1;
-    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Hovered),
+    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x694b7c, (int) StateColor::Hovered),
                               std::make_pair(0xDBDBDB, (int) StateColor::Normal));
     background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
@@ -44,7 +44,7 @@ SpinInput::SpinInput(wxWindow *parent,
     Create(parent, text, label, pos, size, style, min, max, initial);
 }
 
-void SpinInput::Create(wxWindow *parent, 
+void SpinInput::Create(wxWindow *parent,
                      wxString       text,
                      wxString       label,
                      const wxPoint &pos,
@@ -137,7 +137,7 @@ void SpinInput::SetRange(int min, int max)
 }
 
 void SpinInput::DoSetToolTipText(wxString const &tip)
-{ 
+{
     wxWindow::DoSetToolTipText(tip);
     text_ctrl->SetToolTip(tip);
 }
@@ -323,5 +323,5 @@ void SpinInput::sendSpinEvent()
 {
     wxCommandEvent event(wxEVT_SPINCTRL, GetId());
     event.SetEventObject(this);
-    GetEventHandler()->ProcessEvent(event); 
+    GetEventHandler()->ProcessEvent(event);
 }

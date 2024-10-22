@@ -7,6 +7,7 @@
 #include <string>
 namespace Slic3r { namespace GUI {
 
+<<<<<<< HEAD
 namespace {
 
 void ParseStringValues(std::string str, std::vector<double> &vec)
@@ -20,6 +21,8 @@ void ParseStringValues(std::string str, std::vector<double> &vec)
 
 }
 
+=======
+>>>>>>> 3010ddfa7 (Primary color change)
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
@@ -141,10 +144,10 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
 		std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-		std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+		std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
 	m_btnStart->SetBackgroundColor(btn_bg_green);
-	m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+	m_btnStart->SetBorderColor(wxColour(105, 75, 124));
 	m_btnStart->SetTextColor(wxColour("#FFFFFE"));
 	m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
 	m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
@@ -209,7 +212,7 @@ void PA_Calibration_Dlg::reset_params() {
 
     if (!isDDE) {
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
-        
+
         if (m_params.mode == CalibMode::Calib_PA_Pattern) {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.05));
         } else {
@@ -218,7 +221,7 @@ void PA_Calibration_Dlg::reset_params() {
     }
 }
 
-void PA_Calibration_Dlg::on_start(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiStartPA->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
@@ -248,17 +251,17 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     EndModal(wxID_OK);
 
 }
-void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
     PA_Calibration_Dlg::reset_params();
-    event.Skip(); 
+    event.Skip();
 }
-void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
+void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) {
     PA_Calibration_Dlg::reset_params();
-    event.Skip(); 
+    event.Skip();
 }
 
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
-    this->Refresh(); 
+    this->Refresh();
     Fit();
 }
 
@@ -345,10 +348,10 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetBorderColor(wxColour(105, 75, 124));
     m_btnStart->SetTextColor(wxColour("#FFFFFE"));
     m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
@@ -390,7 +393,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
         e.Skip();
         });
 
-    
+
 }
 
 Temp_Calibration_Dlg::~Temp_Calibration_Dlg() {
@@ -453,7 +456,7 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             end = 190;
             break;
     }
-    
+
     m_tiEnd->GetTextCtrl()->SetValue(std::to_string(end));
     m_tiStart->GetTextCtrl()->SetValue(std::to_string(start));
     event.Skip();
@@ -524,10 +527,10 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetBorderColor(wxColour(105, 75, 124));
     m_btnStart->SetTextColor(wxColour("#FFFFFE"));
     m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
@@ -632,10 +635,10 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetBorderColor(wxColour(105, 75, 124));
     m_btnStart->SetTextColor(wxColour("#FFFFFE"));
     m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
@@ -741,10 +744,10 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetBorderColor(wxColour(105, 75, 124));
     m_btnStart->SetTextColor(wxColour("#FFFFFE"));
     m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));

@@ -52,7 +52,7 @@ wxString get_calibration_wiki_page(CalibMode cali_mode)
 
 CalibrationFilamentMode get_cali_filament_mode(MachineObject* obj, CalibMode mode)
 {
-    // default 
+    // default
     if (!obj) return CalibrationFilamentMode::CALI_MODEL_SINGLE;
 
 
@@ -144,7 +144,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
@@ -152,7 +152,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
     StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Enabled));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Enabled));
 
     StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
@@ -302,7 +302,7 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 
         if (m_radioBox)
             m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
-            
+
         if (m_checkBox)
             m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
 
@@ -548,7 +548,7 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 }
 
 
-CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) 
+CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(wxColour(0xCECECE));
@@ -717,7 +717,7 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_PREV));
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_NEXT));
         }
-        
+
     }
 
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);

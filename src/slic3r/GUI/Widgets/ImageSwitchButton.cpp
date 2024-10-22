@@ -26,7 +26,7 @@ EVT_PAINT(FanSwitchButton::paintEvent)
 
 END_EVENT_TABLE()
 
-static const wxColour DEFAULT_HOVER_COL = wxColour(0, 150, 136);
+static const wxColour DEFAULT_HOVER_COL = wxColour(105, 75, 124);
 static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
 ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style)
@@ -110,7 +110,7 @@ void ImageSwitchButton::render(wxDC& dc)
 	wxSize szIcon;
 	wxSize szContent = textSize;
     ScalableBitmap &icon      = GetValue() ? m_on : m_off;
-	
+
 	int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
 
 	wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
@@ -126,9 +126,9 @@ void ImageSwitchButton::render(wxDC& dc)
         dc.SetTextForeground(text_color.colorForStates(states));
 
     auto fina_txt = GetValue() ? labels[0] : labels[1];
-    if (dc.GetTextExtent(fina_txt).x > size.x) { 
+    if (dc.GetTextExtent(fina_txt).x > size.x) {
         wxString forment_txt = wxEmptyString;
-        for (auto i = 0; i < fina_txt.length(); i++) { 
+        for (auto i = 0; i < fina_txt.length(); i++) {
             forment_txt = fina_txt.SubString(0, i) + "...";
             if (dc.GetTextExtent(forment_txt).x > size.x) {
                 pt.x = (size.x - dc.GetTextExtent(forment_txt).x) / 2;
@@ -138,7 +138,7 @@ void ImageSwitchButton::render(wxDC& dc)
         }
     } else {
         dc.DrawText(fina_txt, pt);
-    }  
+    }
 }
 
 void ImageSwitchButton::Rescale()

@@ -20,14 +20,14 @@ body
 
 #Title div
 {
-	color: #009688;
+	color: #694b7c;
 }
 
 /*-----Button-----*/
 .GrayBtn
 {
 	border: 1px solid #B9B9BC;
-	color: #B9B9BC;	
+	color: #B9B9BC;
 }
 
 .GrayBtn:hover
@@ -63,8 +63,8 @@ body
 
 .RegionSelected:hover
 {
-	background-color:#009688;
-	color: #fff;	
+	background-color:#694b7c;
+	color: #fff;
 }
 
 /*----Menu----*/

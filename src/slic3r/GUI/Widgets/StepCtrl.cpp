@@ -23,7 +23,7 @@ StepCtrlBase::StepCtrlBase(wxWindow *      parent,
     , font_tip(Label::Body_14)
     , clr_bar(0xACACAC)
     , clr_step(0xACACAC)
-    , clr_text(std::make_pair(0x009688, (int) StateColor::Checked), 
+    , clr_text(std::make_pair(0x694b7c, (int) StateColor::Checked),
             std::make_pair(0x6B6B6B, (int) StateColor::Normal))
     , clr_tip(0x828280)
 {
@@ -49,9 +49,9 @@ void StepCtrlBase::SelectItem(int item)
     Refresh();
 }
 
-void StepCtrlBase::Idle() 
-{ 
-    step = -1; 
+void StepCtrlBase::Idle()
+{
+    step = -1;
     sendStepCtrlEvent();
     Refresh();
 }
@@ -255,11 +255,11 @@ StepIndicator::StepIndicator(wxWindow *parent, wxWindowID id, const wxPoint &pos
     font_tip = Label::Body_10;
     clr_bar = 0xE1E1E1;
     clr_step = StateColor(
-            std::make_pair(0xACACAC, (int) StateColor::Disabled), 
-            std::make_pair(0x009688, 0));
+            std::make_pair(0xACACAC, (int) StateColor::Disabled),
+            std::make_pair(0x694b7c, 0));
     clr_text = StateColor(
-            std::make_pair(0xACACAC, (int) StateColor::Disabled), 
-            std::make_pair(0x323A3D, (int) StateColor::Checked), 
+            std::make_pair(0xACACAC, (int) StateColor::Disabled),
+            std::make_pair(0x323A3D, (int) StateColor::Checked),
             std::make_pair(0x6B6B6B, 0));
     clr_tip = *wxWHITE;
     StaticBox::border_width = 0;
@@ -288,10 +288,10 @@ void StepIndicator::doRender(wxDC &dc)
     wxSize size   = GetSize();
 
     int    states = state_handler.states();
-    if (!IsEnabled()) { 
+    if (!IsEnabled()) {
         states = clr_step.Disabled;
-    } 
-    
+    }
+
     int textWidth = size.x - radius * 5;
     dc.SetFont(GetFont());
     wxString firstLine;
@@ -333,7 +333,7 @@ void StepIndicator::doRender(wxDC &dc)
             dc.DrawText(tip, circleX - sz.x / 2, circleY - sz.y / 2 + 1);
         }
         // Draw step text
-        dc.SetTextForeground(clr_text.colorForStates(states 
+        dc.SetTextForeground(clr_text.colorForStates(states
                 | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
         dc.SetFont(checked ? GetFont().Bold() : GetFont());
         wxString text;

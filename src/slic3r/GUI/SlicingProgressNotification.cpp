@@ -370,7 +370,7 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_bar(c
 
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-	ImColor progress_color = ImColor(0, 150, 136, (int)(255 * m_current_fade_opacity));
+	ImColor progress_color = ImColor(105, 75, 124, (int)(255 * m_current_fade_opacity));
 	ImColor bg_color = ImColor(217, 217, 217, (int)(255 * m_current_fade_opacity));
 
 	ImVec2 lineStart = pos;
@@ -378,7 +378,7 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_bar(c
 	ImVec2 midPoint = ImVec2(lineStart.x + (lineEnd.x - lineStart.x) * m_percentage, lineEnd.y);
 	ImGui::GetWindowDrawList()->AddRectFilled(lineStart, lineEnd, bg_color);
 	ImGui::GetWindowDrawList()->AddRectFilled(lineStart, midPoint, progress_color);
-	
+
 	// percentage text
 	ImVec2 text_pos = ImVec2(pos.x, pos.y + size.y + m_line_height * 0.2f);
 	std::string text;
