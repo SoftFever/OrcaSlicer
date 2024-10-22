@@ -34,7 +34,7 @@ input
 {
 	flex: 0 0 40px;
 	height:40px;
-	border-top: 1px solid #009688;
+	border-top: 1px solid #694b7c;
 	display: flex;
 	align-items: center;
 }
@@ -84,7 +84,7 @@ input
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 4px;
-	background-color: inherit;	
+	background-color: inherit;
 	position: absolute;
 	left: 50%;
 	top: 200px;
@@ -102,7 +102,7 @@ input
 
 #NoticeContent
 {
-	padding: 4mm 10mm;	
+	padding: 4mm 10mm;
 }
 
 

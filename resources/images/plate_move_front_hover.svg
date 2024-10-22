@@ -41,34 +41,34 @@
      id="rect1" />
   <path
      d="M38,2a3,3,0,0,1,3,3V38a3,3,0,0,1-3,3H5a3,3,0,0,1-3-3V5A3,3,0,0,1,5,2H38m0-1H5A4,4,0,0,0,1,5V38a4,4,0,0,0,4,4H38a4,4,0,0,0,4-4V5a4,4,0,0,0-4-4Z"
-     style="fill:#009688"
+     style="fill:#694b7c"
      id="path1" />
   <line
      x1="33.471352"
      y1="6.9334393"
      x2="9.9450846"
      y2="6.9334393"
-     style="fill:none;stroke:#009688;stroke-width:0.850459;stroke-linecap:round;stroke-linejoin:round"
+     style="fill:none;stroke:#694b7c;stroke-width:0.850459;stroke-linecap:round;stroke-linejoin:round"
      id="line1" />
   <line
      x1="32.300442"
      y1="18.26045"
      x2="21.987902"
      y2="8.080493"
-     style="fill:none;stroke:#009688;stroke-width:0.714338;stroke-linecap:round;stroke-linejoin:round"
+     style="fill:none;stroke:#694b7c;stroke-width:0.714338;stroke-linecap:round;stroke-linejoin:round"
      id="line1-1" />
   <line
      x1="11.504755"
      y1="18.329735"
      x2="21.855713"
      y2="8.0229683"
-     style="fill:none;stroke:#009688;stroke-width:0.720111;stroke-linecap:round;stroke-linejoin:round"
+     style="fill:none;stroke:#694b7c;stroke-width:0.720111;stroke-linecap:round;stroke-linejoin:round"
      id="line1-1-1" />
   <line
      x1="21.938486"
      y1="36.433311"
      x2="21.938484"
      y2="8.6247864"
-     style="fill:none;stroke:#009688;stroke-width:0.623622;stroke-linecap:round;stroke-linejoin:round"
+     style="fill:none;stroke:#694b7c;stroke-width:0.623622;stroke-linecap:round;stroke-linejoin:round"
      id="line1-1-1-2" />
 </svg>

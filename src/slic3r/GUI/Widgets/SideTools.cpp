@@ -45,8 +45,8 @@ namespace Slic3r { namespace GUI {
 
 SideToolsPanel::~SideToolsPanel() { delete m_intetval_timer; }
 
-void SideToolsPanel::set_none_printer_mode() 
-{ 
+void SideToolsPanel::set_none_printer_mode()
+{
     m_none_printer = true;
     Refresh();
 }
@@ -55,26 +55,26 @@ void SideToolsPanel::on_timer(wxTimerEvent &event)
 {
 }
 
-void SideToolsPanel::set_current_printer_name(std::string dev_name) 
+void SideToolsPanel::set_current_printer_name(std::string dev_name)
 {
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
      Refresh();
 }
 
-void SideToolsPanel::set_current_printer_signal(WifiSignal sign) 
+void SideToolsPanel::set_current_printer_signal(WifiSignal sign)
 {
      if (last_printer_signal == sign) return;
-    
+
      last_printer_signal = sign;
      m_none_printer = false;
      m_wifi_type    = sign;
      Refresh();
 }
 
-void SideToolsPanel::start_interval() 
-{ 
-    m_intetval_timer->Start(SIDE_TOOL_CLICK_INTERVAL); 
+void SideToolsPanel::start_interval()
+{
+    m_intetval_timer->Start(SIDE_TOOL_CLICK_INTERVAL);
     m_is_in_interval = true;
 }
 
@@ -85,13 +85,13 @@ void SideToolsPanel::stop_interval(wxTimerEvent& event)
 }
 
 
-bool SideToolsPanel::is_in_interval() 
+bool SideToolsPanel::is_in_interval()
 {
     return m_is_in_interval;
 }
 
-void SideToolsPanel::msw_rescale() 
-{ 
+void SideToolsPanel::msw_rescale()
+{
     m_printing_img.msw_rescale();
     m_arrow_img.msw_rescale();
 
@@ -138,7 +138,7 @@ void SideToolsPanel::doRender(wxDC &dc)
 {
     auto   left = FromDIP(15);
     wxSize size = GetSize();
-    
+
     //if (m_none_printer) {
     //    dc.SetPen(SIDE_TOOLS_LIGHT_GREEN);
     //    dc.SetBrush(SIDE_TOOLS_LIGHT_GREEN);
@@ -196,7 +196,7 @@ void SideToolsPanel::doRender(wxDC &dc)
 
         auto sizet = dc.GetTextExtent(m_dev_name);
         auto text_end = size.x - m_wifi_none_img.GetBmpSize().x - 20;
-        
+
         std::string finally_name = m_dev_name.ToStdString();
         if (sizet.x > (text_end - left)) {
             auto limit_width = text_end - left - dc.GetTextExtent("...").x - 20;
@@ -233,7 +233,7 @@ void SideToolsPanel::on_mouse_left_down(wxMouseEvent &evt)
     Refresh();
 }
 
-void SideToolsPanel::on_mouse_left_up(wxMouseEvent &evt) 
+void SideToolsPanel::on_mouse_left_up(wxMouseEvent &evt)
 {
      m_click = false;
      Refresh();
@@ -404,7 +404,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     Fit();
 }
 
-void SideTools::msw_rescale() 
+void SideTools::msw_rescale()
 {
     m_side_tools->msw_rescale();
     m_connection_info->SetCornerRadius(0);
@@ -523,8 +523,8 @@ void SideTools::show_status(int status)
     else if ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
         m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
-        m_connection_info->SetBackgroundColor(0x009688);
-        m_connection_info->SetBorderColor(0x009688);
+        m_connection_info->SetBackgroundColor(0x694b7c);
+        m_connection_info->SetBorderColor(0x694b7c);
         m_connection_info->Show();
         m_more_button->Hide();
         m_side_error_panel->Hide();

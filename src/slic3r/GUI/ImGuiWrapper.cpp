@@ -414,7 +414,7 @@ void ImGuiWrapper::set_language(const std::string &language)
     }
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
-    } 
+    }
     else{
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesOthers();
     }
@@ -1579,9 +1579,9 @@ bool begin_menu(const char *label, bool enabled)
     return menu_is_open;
 }
 
-void end_menu() 
-{ 
-    ImGui::EndMenu(); 
+void end_menu()
+{
+    ImGui::EndMenu();
 }
 
 bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/, bool* hovered/* = nullptr*/)
@@ -1963,7 +1963,7 @@ ColorRGBA ImGuiWrapper::from_ImVec4(const ImVec4& color)
     return { color.x, color.y, color.z, color.w };
 }
 
-template <typename T, typename Func> 
+template <typename T, typename Func>
 static bool input_optional(std::optional<T> &v, Func& f, std::function<bool(const T&)> is_default, const T& def_val)
 {
     if (v.has_value()) {
@@ -1991,7 +1991,7 @@ bool ImGuiWrapper::input_optional_int(const char *        label,
     auto func = [&](int &value) {
         return ImGui::InputInt(label, &value, step, step_fast, flags);
     };
-    std::function<bool(const int &)> is_default = 
+    std::function<bool(const int &)> is_default =
         [def_val](const int &value) -> bool { return value == def_val; };
     return input_optional(v, func, is_default, def_val);
 }
@@ -2080,7 +2080,7 @@ bool ImGuiWrapper::slider_optional_int(const char         *label,
         if (val.has_value())
             v = static_cast<int>(std::round(*val));
         else
-            v.reset(); 
+            v.reset();
         return true;
     } else return false;
 }
@@ -2101,14 +2101,14 @@ std::optional<ImVec2> ImGuiWrapper::change_window_position(const char *window_na
     std::optional<ImVec2> output_window_offset;
     if (position.x < 0) {
         if (position.y < 0)
-            // top left 
-            output_window_offset = ImVec2(0, 0); 
+            // top left
+            output_window_offset = ImVec2(0, 0);
         else
             // only left
-            output_window_offset = ImVec2(0, position.y); 
+            output_window_offset = ImVec2(0, position.y);
     } else if (position.y < 0) {
         // only top
-        output_window_offset = ImVec2(position.x, 0); 
+        output_window_offset = ImVec2(position.x, 0);
     } else if (screen.x < (position.x + size.x)) {
         if (screen.y < (position.y + size.y))
             // right bottom
@@ -2127,8 +2127,8 @@ std::optional<ImVec2> ImGuiWrapper::change_window_position(const char *window_na
     return output_window_offset;
 }
 
-void ImGuiWrapper::left_inputs() { 
-    ImGui::ClearActiveID(); 
+void ImGuiWrapper::left_inputs() {
+    ImGui::ClearActiveID();
 }
 
 std::string ImGuiWrapper::trunc(const std::string &text,
@@ -2141,7 +2141,7 @@ std::string ImGuiWrapper::trunc(const std::string &text,
     assert(width > tail_width);
     if (width <= tail_width) return "Error: Can't add tail and not be under wanted width.";
     float allowed_width = width - tail_width;
-    
+
     // guess approx count of letter
     float average_letter_width = calc_text_size(std::string_view("n")).x; // average letter width
     unsigned count_letter  = static_cast<unsigned>(allowed_width / average_letter_width);
@@ -2164,8 +2164,8 @@ std::string ImGuiWrapper::trunc(const std::string &text,
             --count_letter;
             result_text = text_.substr(0, count_letter);
             text_width  = calc_text_size(result_text).x;
-            if (text_width < allowed_width) break;            
-        } 
+            if (text_width < allowed_width) break;
+        }
     }
     return std::string(result_text) + tail;
 }
@@ -2176,7 +2176,7 @@ void ImGuiWrapper::escape_double_hash(std::string &text)
     const std::string search  = "##";
     const std::string replace = "# #";
     size_t pos = 0;
-    while ((pos = text.find(search, pos)) != std::string::npos) 
+    while ((pos = text.find(search, pos)) != std::string::npos)
         text.replace(pos, search.length(), replace);
 }
 
@@ -2236,7 +2236,7 @@ ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size,
     double allowed_space = 10; // in px
     double allowed_space_sq = allowed_space * allowed_space;
     Vec2d  move_vec         = (center - (offset.cast<coord_t>() + half_dialog_size))
-                         .cast<double>();    
+                         .cast<double>();
     Vec2d result_move(0, 0);
     do {
         move_vec             = move_vec / 2.;
@@ -2245,7 +2245,7 @@ ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size,
         for (Point &p : moved_polygon) p += move_point;
         if (Slic3r::intersection(interest, Polygon(moved_polygon)).empty())
             result_move += move_vec;
-        
+
     } while (move_vec.squaredNorm() >= allowed_space_sq);
     offset += result_move;
 
@@ -2518,16 +2518,16 @@ void ImGuiWrapper::pop_common_window_style() {
 
 void ImGuiWrapper::push_confirm_button_style() {
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_ImVec4(decode_color_to_float_array("#267E73")));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.88f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.88f));
     }
     else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_ImVec4(decode_color_to_float_array("#26A69A")));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
@@ -2585,20 +2585,20 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 0.6f));  // ORCA hovered item border color
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     } else {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.6f));  // ORCA hovered item border color
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 0.6f));  // ORCA hovered item border color
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, {0.f, 0.f, 0.f, 0.f});                            // ORCA hovered item background color
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));       // ORCA active item background color
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(105.0f / 255.0f, 750.f / 255.0f, 124.0f / 255.0f, 0.25f));       // ORCA active item background color
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     }
@@ -2615,7 +2615,7 @@ void ImGuiWrapper::push_radio_style()
     if (m_is_dark_mode) {
         ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA use orca color for radio buttons
     } else {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#694b7c"))); // ORCA use orca color for radio buttons
     }
 }
 
@@ -2900,8 +2900,8 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_HeaderActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f)));  // ORCA Use orca color for headers
 
     // Slider
-    set_color(ImGuiCol_SliderGrab,			to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use orca color for slider thumbs 
-    set_color(ImGuiCol_SliderGrabActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f))); // ORCA Use orca color for slider thumbs 
+    set_color(ImGuiCol_SliderGrab,			to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use orca color for slider thumbs
+    set_color(ImGuiCol_SliderGrabActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f))); // ORCA Use orca color for slider thumbs
 
     // Separator
     set_color(ImGuiCol_Separator, COL_BLUE_LIGHT);

@@ -600,7 +600,7 @@ DiffViewCtrl::DiffViewCtrl(wxWindow* parent, wxSize size)
     this->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &DiffViewCtrl::item_value_changed, this);
 }
 
-DiffViewCtrl::~DiffViewCtrl() { 
+DiffViewCtrl::~DiffViewCtrl() {
     this->AssociateModel(nullptr);
     delete model;
 }
@@ -819,7 +819,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
 
 inline int UnsavedChangesDialog::ShowModal()
 {
-    auto choise_key = "save_preset_choise"; 
+    auto choise_key = "save_preset_choise";
     auto choise     = wxGetApp().app_config->get(choise_key);
     long result = 0;
     if ((m_buttons & REMEMBER_CHOISE) && !choise.empty() && wxString(choise).ToLong(&result) && (1 << result) & (m_buttons | DONT_SAVE)) {
@@ -966,7 +966,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
      // Add Buttons
     wxFont      btn_font = this->GetFont().Scaled(1.4f);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
@@ -974,7 +974,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
         if (focus) {
             (*btn)->SetBackgroundColor(btn_bg_green);
-            (*btn)->SetBorderColor(wxColour(0, 150, 136));
+            (*btn)->SetBorderColor(wxColour(105, 75, 124));
             (*btn)->SetTextColor(wxColour("#FFFFFE"));
         } else {
             (*btn)->SetTextColor(wxColour(107, 107, 107));
@@ -1610,7 +1610,7 @@ void UnsavedChangesDialog::update_list()
        wxSize text_size = m_action_line->GetTextExtent(m_action_line->GetLabel());
        int    width     = UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE.GetWidth();
        // +2: Ensure that there is at least one line and that the content contains '\n'
-       int    rows      = int(text_size.GetWidth() / width) + 2; 
+       int    rows      = int(text_size.GetWidth() / width) + 2;
        int    height    = rows * text_size.GetHeight();
        m_action_line->SetMinSize(wxSize(width, height));
        Layout();
@@ -1933,7 +1933,7 @@ void DiffPresetDialog::create_buttons()
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
                             std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
 
     auto show_in_bottom_info = [this](const wxString& ext_line, wxEvent* e = nullptr) {
@@ -1943,10 +1943,10 @@ void DiffPresetDialog::create_buttons()
         if (e) e->Skip();
     };
 
-    // Transfer 
+    // Transfer
     m_transfer_btn = new Button(this, L("Transfer"));
     m_transfer_btn->SetBackgroundColor(btn_bg_green);
-    m_transfer_btn->SetBorderColor(wxColour(0, 150, 136));
+    m_transfer_btn->SetBorderColor(wxColour(105, 75, 124));
     m_transfer_btn->SetTextColor(wxColour("#FFFFFE"));
     m_transfer_btn->SetMinSize(wxSize(-1, -1));
     m_transfer_btn->SetCornerRadius(FromDIP(12));
@@ -2017,7 +2017,7 @@ void DiffPresetDialog::create_edit_sizer()
             this->Layout();
     });
 
-    // Add Buttons 
+    // Add Buttons
     create_buttons();
 
     // Create and fill edit sizer
@@ -2258,7 +2258,7 @@ void DiffPresetDialog::update_tree()
     bool can_transfer_options = m_view_type == Preset::TYPE_INVALID || get_left_preset_name(m_view_type) != get_right_preset_name(m_view_type);
     m_edit_sizer->Show(show_tree && can_transfer_options);
     m_buttons->Show(m_edit_sizer->IsShown(size_t(0)) && m_use_for_transfer->GetValue());
-   
+
     update_bottom_info(bottom_info);
 
     if (tree_was_shown == m_tree->IsShown())

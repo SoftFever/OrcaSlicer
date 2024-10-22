@@ -35,9 +35,9 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
     StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(confirm_btn_bg);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(105, 75, 124));
     m_button_confirm->SetTextColor(*wxWHITE);
 
     m_button_close = new Button(this, _L("Close"));
@@ -84,7 +84,7 @@ void RecenterDialog::OnPaint(wxPaintEvent& event){
     wxPaintDC dc(this);
     render(dc);
 }
-  
+
 void RecenterDialog::render(wxDC& dc) {
     wxSize     size = GetSize();
 
@@ -107,7 +107,7 @@ void RecenterDialog::render(wxDC& dc) {
 
     if (hint2_size.x + pos_hint2.x + BORDER > DRAW_PANEL_SIZE.x) {
         bool is_ch = false;
-        if (hint2[0] > 0x80 && hint2[1] > 0x80) 
+        if (hint2[0] > 0x80 && hint2[1] > 0x80)
             is_ch = true;
 
         wxString fisrt_line;
@@ -145,7 +145,7 @@ void RecenterDialog::render(wxDC& dc) {
         for (int i = 0; i < remaining_line.length(); i++) {
             count_txt += remaining_line[i];
             auto text_size = dc.GetTextExtent(count_txt);
-            if (text_size.x + BORDER + BORDER < DRAW_PANEL_SIZE.x) 
+            if (text_size.x + BORDER + BORDER < DRAW_PANEL_SIZE.x)
             {
                 if (remaining_line[i] == ' ' || remaining_line[i] == '\n')
                     new_line_pos = i;

@@ -44,9 +44,9 @@ void AMSMaterialsSetting::create()
 
     m_button_confirm = new Button(this, _L("Confirm"));
     m_btn_bg_green   = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(105, 75, 124));
     m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_confirm->SetCornerRadius(FromDIP(12));
@@ -76,7 +76,7 @@ void AMSMaterialsSetting::create()
     m_sizer_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
     m_sizer_main->Add(m_panel_normal, 0, wxALL, FromDIP(2));
-    
+
     m_sizer_main->Add(m_panel_kn, 0, wxALL, FromDIP(2));
 
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
@@ -147,7 +147,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
     m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY | wxRIGHT);
-    m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x009688, (int)StateColor::Hovered),
+    m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x694b7c, (int)StateColor::Hovered),
         std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
     m_readonly_filament->SetFont(::Label::Body_14);
     m_readonly_filament->SetLabelColor(AMS_MATERIALS_SETTING_GREY800);
@@ -353,7 +353,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     parent->SetSizer(sizer);
 }
 
-void AMSMaterialsSetting::paintEvent(wxPaintEvent &evt) 
+void AMSMaterialsSetting::paintEvent(wxPaintEvent &evt)
 {
     auto      size = GetSize();
     wxPaintDC dc(this);
@@ -368,7 +368,7 @@ AMSMaterialsSetting::~AMSMaterialsSetting()
     m_comboBox_cali_result->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_cali_result), NULL, this);
 }
 
-void AMSMaterialsSetting::input_min_finish() 
+void AMSMaterialsSetting::input_min_finish()
 {
     if (m_input_nozzle_min->GetTextCtrl()->GetValue().empty()) return;
 
@@ -415,7 +415,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
     m_button_confirm->Show(en);
     if (!m_is_third) {
-        m_tip_readonly->Hide(); 
+        m_tip_readonly->Hide();
     }
     else {
         //m_comboBox_filament->Show(en);
@@ -523,7 +523,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                         std::string vendor_name = vendor->values[0];
                         DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, in_blacklist, action, info);
                     }
-                    
+
 
                     if (in_blacklist) {
                         if (action == "prohibition") {
@@ -575,7 +575,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
     }
-    
+
     //reset param
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
@@ -703,7 +703,7 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
     set_color(wxColour(color_num>>24&0xFF, color_num>>16&0xFF, color_num>>8&0xFF, color_num&0xFF));
 }
 
-void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
+void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 {
     if(!m_is_third || obj->is_in_printing() || obj->can_resume())
         return;
@@ -757,8 +757,8 @@ void AMSMaterialsSetting::update_widgets()
     Layout();
 }
 
-bool AMSMaterialsSetting::Show(bool show) 
-{ 
+bool AMSMaterialsSetting::Show(bool show)
+{
     if (show) {
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
@@ -782,7 +782,7 @@ bool AMSMaterialsSetting::Show(bool show)
         Fit();
         wxGetApp().UpdateDarkUI(this);
     }
-    return DPIDialog::Show(show); 
+    return DPIDialog::Show(show);
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
@@ -808,7 +808,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     stream << std::fixed << std::setprecision(1) << obj->nozzle_diameter;
     std::string nozzle_diameter_str = stream.str();
     std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type), nozzle_diameter_str);
-    
+
     if (preset_bundle) {
         BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
         for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
@@ -820,7 +820,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
                 continue;
             }
-  
+
             ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
             ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
             for (auto printer_str : printer_strs->values) {
@@ -855,7 +855,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         if (filament_it->filament_id == ams_filament_id) {
                             selection_idx = idx;
                             bambu_filament_name = filament_it->alias;
-                            
+
 
                             // update if nozzle_temperature_range is found
                             ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
@@ -879,7 +879,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                     }
                 }
             }
-            
+
         }
     }
 
@@ -901,7 +901,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             else {
                 m_readonly_filament->SetLabel(bambu_filament_name);
             }
-            
+
             m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
             m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
         }
@@ -922,8 +922,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
 
         m_button_reset->Show();
-        m_button_confirm->Show(); 
-    } 
+        m_button_confirm->Show();
+    }
 
     m_comboBox_filament->Set(filament_items);
     m_comboBox_filament->SetSelection(selection_idx);
@@ -1051,7 +1051,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
     else {
         m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-        m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+        m_button_confirm->SetBorderColor(wxColour(105, 75, 124));
         m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
         m_button_confirm->Enable(true);
     }
@@ -1080,7 +1080,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     wxArrayString items;
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
-    
+
     if (obj->cali_version >= 0) {
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
@@ -1109,7 +1109,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
-        
+
         if (cali_select_idx >= 0) {
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].k_value));
             m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].n_coef));
@@ -1127,8 +1127,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
 }
 
-void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
-{ 
+void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
+{
     m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     //m_clr_picker->msw_rescale();
@@ -1141,7 +1141,7 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_close->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_close->SetCornerRadius(FromDIP(12));
-    this->Refresh(); 
+    this->Refresh();
 }
 
 ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
@@ -1590,7 +1590,7 @@ void ColorPickerPopup::paintEvent(wxPaintEvent& evt)
 
 void ColorPickerPopup::OnDismiss() {}
 
-void ColorPickerPopup::Popup() 
+void ColorPickerPopup::Popup()
 {
     PopupWindow::Popup();
 }

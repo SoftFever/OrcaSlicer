@@ -198,16 +198,16 @@ void SendDeviceItem::doRender(wxDC& dc)
     if (state_local_task <= 1) {
         dc.DrawBitmap(m_bitmap_check_disable.bmp(), wxPoint(left, (size.y - m_bitmap_check_disable.GetBmpSize().y) / 2 ));
     }
- 
+
     left += FromDIP(SEND_LEFT_PRINTABLE);
-     
+
     //dev names
     DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->dev_name),  FromDIP(SEND_LEFT_DEV_NAME), left);
     left += FromDIP(SEND_LEFT_DEV_NAME);
 
     //device state
     if (state_printable <= 2) {
-        dc.SetTextForeground(wxColour(0, 150, 136));
+        dc.SetTextForeground(wxColour(105, 75, 124));
     }
     else {
         dc.SetTextForeground(wxColour(208, 27, 27));
@@ -232,7 +232,7 @@ void SendDeviceItem::doRender(wxDC& dc)
     }
 
     if (m_hover) {
-        dc.SetPen(wxPen(wxColour(0, 150, 136)));
+        dc.SetPen(wxPen(wxColour(105, 75, 124)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
     }
@@ -463,13 +463,13 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
         if (rs->m_param_name == "use_extra" && rs->m_radiobox->GetValue()) {
             use_ams = false;
         }
-        
+
         node = node->GetNext();
     }
 
     //use ams
 
-   
+
     PrintPrepareData job_data;
     m_plater->get_print_job_data(&job_data);
 
@@ -516,7 +516,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
         params.ams_mapping = "";
         params.ams_mapping_info = "";
     }
-    
+
     params.connection_type = obj->connection_type();
     params.task_use_ams = use_ams;
 
@@ -532,7 +532,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     else {
         filename = m_current_project_name;
     }
-    
+
     if (m_print_plate_idx == PLATE_ALL_IDX && filename.empty()) {
         filename = _L("Untitled");
     }
@@ -1078,7 +1078,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_sizer_basic_time->Add(m_stext_time, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    
+
     print_weight = new ScalableBitmap(m_title_panel, "print-weight", 18);
     weightimg = new wxStaticBitmap(m_title_panel, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_weight->Add(weightimg, 1, wxEXPAND | wxALL, FromDIP(5));
@@ -1132,7 +1132,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
         if (m_select_checkbox->GetValue()) {
             for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
-                
+
                 if (it->second->state_printable <= 2) {
                     it->second->selected();
                 }
@@ -1265,7 +1265,7 @@ wxPanel* SendMultiMachinePage::create_page()
     auto m_btn_bg_enable = StateColor(
         std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal)
     );
 
     m_button_add = new Button(main_page, _L("Add"));
@@ -1326,7 +1326,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add send button
     btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     m_button_send = new Button(main_page, _L("Send"));
     m_button_send->SetBackgroundColor(btn_bg_enable);

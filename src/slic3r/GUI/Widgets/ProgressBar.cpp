@@ -15,7 +15,7 @@ ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint
 {
     m_shownumber = shown;
     SetBackgroundColour(wxColour(255,255,255));
-    
+
     if (size.y >= miniHeight) {
         m_miniHeight = size.y;
     } else {
@@ -45,7 +45,7 @@ void ProgressBar::create(wxWindow *parent, wxWindowID id, const wxPoint &pos,  w
      auto m_progress_bk = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
      m_progress_bk->SetBackgroundColour(wxColour(238, 130, 238));
      StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                             std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
      wxBoxSizer *m_sizer_progress= new wxBoxSizer(wxHORIZONTAL);
 
@@ -64,20 +64,20 @@ void ProgressBar::create(wxWindow *parent, wxWindowID id, const wxPoint &pos,  w
 }
 
 
-void ProgressBar::SetRadius(double radius) { 
+void ProgressBar::SetRadius(double radius) {
     m_radius = radius;
     Refresh();
 }
 
-void ProgressBar::SetProgressForedColour(wxColour colour) 
+void ProgressBar::SetProgressForedColour(wxColour colour)
 {
     m_progress_background_colour = colour;
     Refresh();
 }
 
-void ProgressBar::SetProgressBackgroundColour(wxColour colour) 
-{ 
-    m_progress_colour = colour; 
+void ProgressBar::SetProgressBackgroundColour(wxColour colour)
+{
+    m_progress_colour = colour;
      Refresh();
 }
 
@@ -86,34 +86,34 @@ void ProgressBar::Rescale()
     ;
 }
 
-void ProgressBar::ShowNumber(bool shown) 
+void ProgressBar::ShowNumber(bool shown)
 {
     m_shownumber = shown;
     Refresh();
 }
 
-void ProgressBar::Disable(wxString text) 
-{ 
+void ProgressBar::Disable(wxString text)
+{
     if (m_disable) return;
     m_disable_text = text;
     m_disable = true;
     Refresh();
 }
 
-void ProgressBar::SetValue(int step) 
-{ 
+void ProgressBar::SetValue(int step)
+{
     m_disable = false;
     SetProgress(step);
 }
 
-void ProgressBar::Reset() 
-{ 
-    m_step = 0; 
+void ProgressBar::Reset()
+{
+    m_step = 0;
     SetValue(0);
 }
 
 void ProgressBar::SetProgress(int step)
-{ 
+{
     m_disable = false;
     if (step < 0) return;
     //if (step == m_step) return;
@@ -122,9 +122,9 @@ void ProgressBar::SetProgress(int step)
 }
 
 
-void ProgressBar::SetMinSize(const wxSize &size) 
-{ 
-    if (size.y >= miniHeight) { 
+void ProgressBar::SetMinSize(const wxSize &size)
+{
+    if (size.y >= miniHeight) {
         m_miniHeight = size.y;
     } else {
         return;
@@ -177,7 +177,7 @@ void ProgressBar::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
     }
 
-    //draw progress 
+    //draw progress
     if (m_disable) {
         m_proportion = float(size.x * float(this->m_step) / float(this->m_max));
         if (m_proportion < m_radius * 2 && m_proportion != 0) { m_proportion = m_radius * 2; }
@@ -228,11 +228,11 @@ void ProgressBar::doRender(wxDC &dc)
             dc.DrawText(text + wxString("%"), pt);
         }
     }
-    
+
 }
 
 
-void ProgressBar::DoSetSize(int x, int y, int width, int height, int sizeFlags) 
-{ 
+void ProgressBar::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+{
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
 }

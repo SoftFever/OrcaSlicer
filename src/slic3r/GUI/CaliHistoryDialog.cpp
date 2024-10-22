@@ -11,7 +11,7 @@
 namespace Slic3r {
 namespace GUI {
 
-  
+
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
@@ -74,10 +74,10 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     Button *   mew_btn = new Button(scroll_window, _L("New"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     mew_btn->SetBackgroundColour(*wxWHITE);
     mew_btn->SetBackgroundColor(btn_bg_green);
-    mew_btn->SetBorderColor(wxColour(0, 150, 136));
+    mew_btn->SetBorderColor(wxColour(105, 75, 124));
     mew_btn->SetTextColor(wxColour("#FFFFFE"));
     mew_btn->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
     mew_btn->SetMaxSize(wxSize(FromDIP(100), FromDIP(24)));
@@ -217,13 +217,13 @@ void HistoryWindow::update(MachineObject* obj)
 void HistoryWindow::on_select_nozzle(wxCommandEvent& evt)
 {
     reqeust_history_result(curr_obj);
-    
+
 }
 
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
-        // reset 
+        // reset
         curr_obj->reset_pa_cali_history_result();
         m_calib_results_history.clear();
         sync_history_data();
@@ -309,10 +309,10 @@ void HistoryWindow::sync_history_data() {
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
         StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
             std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
         edit_button->SetBackgroundColour(*wxWHITE);
         edit_button->SetBackgroundColor(btn_bg_green);
-        edit_button->SetBorderColor(wxColour(0, 150, 136));
+        edit_button->SetBorderColor(wxColour(105, 75, 124));
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
@@ -425,10 +425,10 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     Button* save_btn = new Button(top_panel, _L("Save"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     save_btn->SetBackgroundColour(*wxWHITE);
     save_btn->SetBackgroundColor(btn_bg_green);
-    save_btn->SetBorderColor(wxColour(0, 150, 136));
+    save_btn->SetBorderColor(wxColour(105, 75, 124));
     save_btn->SetTextColor(wxColour("#FFFFFE"));
     save_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     save_btn->SetCornerRadius(FromDIP(12));
@@ -468,7 +468,7 @@ void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
         return;
 
     m_new_result.name = m_name_value->GetTextCtrl()->GetValue().ToUTF8().data();
-    
+
     float k = 0.0f;
     if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
         MessageDialog msg_dlg(nullptr, wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE), wxEmptyString, wxICON_WARNING | wxOK);
@@ -620,7 +620,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
             m_comboBox_nozzle_diameter->SetSelection(i);
         }
     }
-    
+
     // Nozzle Diameter
     flex_sizer->Add(nozzle_diameter_title);
     flex_sizer->Add(m_comboBox_nozzle_diameter);
@@ -628,7 +628,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     Label *k_title = new Label(top_panel, _L("Factor K"));
     auto   k_str   = wxString::Format("%.3f", m_new_result.k_value);
     m_k_value      = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    
+
     // Factor K
     flex_sizer->Add(k_title);
     flex_sizer->Add(m_k_value);
@@ -640,10 +640,10 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     auto       btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     Button *   ok_btn  = new Button(top_panel, _L("Ok"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
     ok_btn->SetBackgroundColour(*wxWHITE);
     ok_btn->SetBackgroundColor(btn_bg_green);
-    ok_btn->SetBorderColor(wxColour(0, 150, 136));
+    ok_btn->SetBorderColor(wxColour(105, 75, 124));
     ok_btn->SetTextColor(wxColour("#FFFFFE"));
     ok_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     ok_btn->SetCornerRadius(FromDIP(12));
@@ -703,7 +703,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     m_new_result.k_value  = k;
     m_new_result.tray_id = -1;
     m_new_result.cali_idx = -1;
-    
+
     m_new_result.nozzle_diameter = nozzle_value;
     m_new_result.filament_id = filament_id;
     m_new_result.setting_id = setting_id;

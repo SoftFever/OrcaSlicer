@@ -134,19 +134,19 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     {
         if (item.GetState() & wxAUI_BUTTON_STATE_PRESSED)
         {
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(StateColor::darkModeColorFor("#694b7c"))); // ORCA
+            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#694b7c"))); // ORCA
             dc.DrawRectangle(rect);
         }
         else if ((item.GetState() & wxAUI_BUTTON_STATE_HOVER) || item.IsSticky())
         {
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(StateColor::darkModeColorFor("#694b7c"))); // ORCA
+            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#694b7c"))); // ORCA
 
             // draw an even lighter background for checked item hovers (since
             // the hover background is the same color as the check background)
             if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
-                dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+                dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#694b7c"))); // ORCA
 
             dc.DrawRectangle(rect);
         }
@@ -154,8 +154,8 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
         {
             // it's important to put this code in an else statement after the
             // hover, otherwise hovers won't draw properly for checked items
-            dc.SetPen(wxPen(StateColor::darkModeColorFor("#009688"))); // ORCA
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#009688"))); // ORCA
+            dc.SetPen(wxPen(StateColor::darkModeColorFor("#694b7c"))); // ORCA
+            dc.SetBrush(wxBrush(StateColor::darkModeColorFor("#694b7c"))); // ORCA
             dc.DrawRectangle(rect);
         }
     }
@@ -180,19 +180,19 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     }
 }
 
-BBLTopbar::BBLTopbar(wxFrame* parent) 
+BBLTopbar::BBLTopbar(wxFrame* parent)
     : wxAuiToolBar(parent, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
-{ 
+{
     Init(parent);
 }
 
 BBLTopbar::BBLTopbar(wxWindow* pwin, wxFrame* parent)
-    : wxAuiToolBar(pwin, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT) 
-{ 
+    : wxAuiToolBar(pwin, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
+{
     Init(parent);
 }
 
-void BBLTopbar::Init(wxFrame* parent) 
+void BBLTopbar::Init(wxFrame* parent)
 {
     SetArtProvider(new BBLTopbarArt());
     m_frame = parent;
@@ -621,7 +621,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
     wxPoint frame_pos = m_frame->GetScreenPosition();
     m_delta = mouse_pos - frame_pos;
 
-    if (FindToolByCurrentPosition() == NULL 
+    if (FindToolByCurrentPosition() == NULL
         || this->FindToolByCurrentPosition() == m_title_item)
     {
         CaptureMouse();
@@ -631,7 +631,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
         return;
 #endif //  __WXMSW__
     }
-    
+
     event.Skip();
 }
 
@@ -659,7 +659,7 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
 
     if (event.Dragging() && event.LeftIsDown())
     {
-        // leave max state and adjust position 
+        // leave max state and adjust position
         if (m_frame->IsMaximized()) {
             wxRect rect = m_frame->GetRect();
             // Filter unexcept mouse move

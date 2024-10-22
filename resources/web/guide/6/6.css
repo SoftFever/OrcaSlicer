@@ -2,8 +2,8 @@
 {
 	padding: 0;
 	border: 0;
-	margin: 0;		
-    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;	
+	margin: 0;
+    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
 }
 
 html,body
@@ -14,7 +14,7 @@ html,body
 
 .LinkBtn
 {
-	color: #1200FF;	
+	color: #1200FF;
 	cursor: pointer;
 }
 
@@ -28,11 +28,11 @@ html,body
 	padding: 1.5mm 6mm;
 	font-size: 14px;
 	text-align: center;
-	background-color: #009688;
+	background-color: #694b7c;
 	border-radius: 6px;
 	color: #fff;
 	cursor: pointer;
-	display: inline-block;	
+	display: inline-block;
 	border: 1px solid #02c7b3;
 }
 
@@ -86,7 +86,7 @@ html,body
 {
 	height:20px;
 	background-color:#CFCFCF;
-	border-radius: 20px;	
+	border-radius: 20px;
 }
 
 #PercentTip
@@ -94,8 +94,8 @@ html,body
 	float: left;
 	height:20px;
 	width: 0%;
-	background-color:#009688;
-	border-radius: 20px;		
+	background-color:#694b7c;
+	border-radius: 20px;
 }
 
 #DownSuccessTip

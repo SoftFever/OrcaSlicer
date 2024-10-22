@@ -28,7 +28,7 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     default_btn_bg = wxColour("#2D2D30"); // Gradient #414B4E
 #endif
 
-   
+
     SetBackgroundColour(default_btn_bg);
 
     int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();
@@ -142,7 +142,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     if (m_selection == sel)
         return;
     // BBS: change button color
-    wxColour selected_btn_bg("#009688");    // Gradient #009688
+    wxColour selected_btn_bg("#694b7c");    // Gradient #694b7c
     if (m_selection >= 0) {
         StateColor bg_color = StateColor(
         std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
@@ -157,8 +157,8 @@ void ButtonsListCtrl::SetSelection(int sel)
     m_selection = sel;
 
     StateColor bg_color = StateColor(
-        std::pair{wxColour(0, 150, 136), (int) StateColor::Hovered},
-        std::pair{wxColour(0,150, 136), (int) StateColor::Normal});
+        std::pair{wxColour(105, 75, 124), (int) StateColor::Hovered},
+        std::pair{wxColour(105, 75, 124), (int) StateColor::Normal});
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(
@@ -166,7 +166,7 @@ void ButtonsListCtrl::SetSelection(int sel)
         );
     m_pageButtons[m_selection]->SetSelected(true);
     m_pageButtons[m_selection]->SetTextColor(text_color);
-    
+
     Refresh();
 }
 
@@ -194,7 +194,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
             auto sel = it - m_pageButtons.begin();
             //do it later
             //SetSelection(sel);
-            
+
             wxCommandEvent evt = wxCommandEvent(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED);
             evt.SetId(sel);
             wxPostEvent(this->GetParent(), evt);
@@ -226,7 +226,7 @@ bool ButtonsListCtrl::SetPageImage(size_t n, const std::string& bmp_name) const
 {
     if (n >= m_pageButtons.size())
         return false;
-     
+
     // BBS
     //return m_pageButtons[n]->SetBitmap_(bmp_name);
     ScalableBitmap bitmap(NULL, bmp_name);
@@ -261,9 +261,9 @@ void Notebook::Init()
 
     /* On Linux, Gstreamer wxMediaCtrl does not seem to get along well with
      * 32-bit X11 visuals (the overlay does not work).  Is this a wxWindows
-     * bug?  Is this a Gstreamer bug?  No idea, but it is our problem ... 
+     * bug?  Is this a Gstreamer bug?  No idea, but it is our problem ...
      * and anyway, this transparency thing just isn't all that interesting,
-     * so we just don't do it on Linux. 
+     * so we just don't do it on Linux.
      */
 #ifndef __WXGTK__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);

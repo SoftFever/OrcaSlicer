@@ -20,9 +20,9 @@ body
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	background-color: #F4F4F4;	
-	font-size: 14px;	
-	color: #595959;	
+	background-color: #F4F4F4;
+	font-size: 14px;
+	color: #595959;
 	line-height: 24px;
 }
 
@@ -82,7 +82,7 @@ body
 {
 	font-size: 16px;
 	font-weight: 700;
-	color: black;	
+	color: black;
 }
 
 .Text_Value
@@ -125,7 +125,7 @@ body
 {
 	overflow:hidden;
 	white-space: nowrap;
-	text-overflow: ellipsis;	
+	text-overflow: ellipsis;
 }
 
 
@@ -143,7 +143,7 @@ body
 .swiper
 {
     --swiper-theme-color: #ff6600;/* 设置Swiper风格 */
-    --swiper-navigation-color: #009688;/* 单独设置按钮颜色 */
+    --swiper-navigation-color: #694b7c;/* 单独设置按钮颜色 */
     --swiper-navigation-size: 30px;/* 设置按钮大小 */
 }
 
@@ -184,12 +184,12 @@ body
 
 .ProcessBarSelected
 {
-	border-left-color:#009688;
+	border-left-color:#694b7c;
 }
 
 .ProcessBarSelected span
 {
-	color:#009688;
+	color:#694b7c;
 }
 
 #Info_ProcessBar.ProcessBarSelected img
@@ -283,7 +283,7 @@ body
 .File_Board
 {
 	background-color: #F4F4F4;
-	padding: 12px 15px;	
+	padding: 12px 15px;
 }
 
 .File_Board:nth-child(n+2)

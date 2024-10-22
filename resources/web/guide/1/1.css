@@ -19,7 +19,7 @@ body
 	height:20mm;
 	line-height: 20mm;
 	font-size: 6mm;
-	color: #009688;
+	color: #694b7c;
 }
 
 #STip
@@ -36,5 +36,5 @@ body
 #StartBtn
 {
 	display: inline-block;
-    text-decoration:none;	
+    text-decoration:none;
 }

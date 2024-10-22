@@ -6,7 +6,7 @@
         <id>io.github.softfever.OrcaSlicer.desktop</id>
     </provides>
     <name>OrcaSlicer</name>
-    <!-- hehe hadess @ppd 
+    <!-- hehe hadess @ppd
     ... seriously though, thanks -->
     <summary>Get even more perfect prints!</summary>
     <developer_name>SoftFever</developer_name>
@@ -39,7 +39,7 @@
 	    <p>A 3D printer slicer forked from Bambu Studio, PrusaSlicer, and SuperSlicer with many more printer profiles, helpful calibration prints, and many more features to get your 3D printer printing perfectly!</p>
     </description>
     <branding>
-	  <color type="primary" scheme_preference="light">#009688</color>
+	  <color type="primary" scheme_preference="light">#694b7c</color>
 	</branding>
     <releases>
 	    <release version="2.0.0-951fc8e" date="2024-01-30"> <url>https://github.com/SoftFever/OrcaSlicer/commit/951fc8e98a0d5ca0ccb254315646ce7889a44836</url>

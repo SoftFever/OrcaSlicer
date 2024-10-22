@@ -25,7 +25,7 @@ TempInput::TempInput()
 {
     hover  = false;
     radius = 0;
-    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Focused), std::make_pair(0x009688, (int) StateColor::Hovered),
+    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x694b7c, (int) StateColor::Focused), std::make_pair(0x694b7c, (int) StateColor::Hovered),
                  std::make_pair(*wxWHITE, (int) StateColor::Normal));
     background_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
@@ -57,7 +57,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         if (m_read_only) return;
         // enter input mode
         auto temp = text_ctrl->GetValue();
-        if (temp.length() > 0 && temp[0] == (0x5f)) { 
+        if (temp.length() > 0 && temp[0] == (0x5f)) {
             text_ctrl->SetValue(wxEmptyString);
         }
         if (wdialog != nullptr) { wdialog->Dismiss(); }
@@ -110,7 +110,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
-        if (m_read_only) { 
+        if (m_read_only) {
             return;
         } else {
             e.Skip();
@@ -167,19 +167,19 @@ void TempInput::SetTagTemp(int temp)
     Refresh();
 }
 
-void TempInput::SetTagTemp(wxString temp) 
-{ 
+void TempInput::SetTagTemp(wxString temp)
+{
     text_ctrl->SetValue(temp);
     messureSize();
     Refresh();
 }
 
-void TempInput::SetCurrTemp(int temp) 
-{ 
-    SetLabel(wxString::Format("%d", temp)); 
+void TempInput::SetCurrTemp(int temp)
+{
+    SetLabel(wxString::Format("%d", temp));
 }
 
-void TempInput::SetCurrTemp(wxString temp) 
+void TempInput::SetCurrTemp(wxString temp)
 {
     SetLabel(temp);
 }
@@ -205,10 +205,10 @@ void TempInput::Warning(bool warn, WarningType type)
             wxBoxSizer *sizer_text;
             sizer_text = new wxBoxSizer(wxHORIZONTAL);
 
-           
 
-            warning_text = new wxStaticText(body, wxID_ANY, 
-                                            wxEmptyString, 
+
+            warning_text = new wxStaticText(body, wxID_ANY,
+                                            wxEmptyString,
                                             wxDefaultPosition, wxDefaultSize,
                                             wxALIGN_CENTER_HORIZONTAL);
             warning_text->SetFont(::Label::Body_12);
@@ -371,8 +371,8 @@ void TempInput::render(wxDC &dc)
     if (warning_mode) {
         border_color = wxColour(255, 111, 0);
     } else {
-        border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Focused),
-                                  std::make_pair(0x009688, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+        border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x694b7c, (int) StateColor::Focused),
+                                  std::make_pair(0x694b7c, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     }
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -398,19 +398,19 @@ void TempInput::render(wxDC &dc)
     auto text = wxWindow::GetLabel();
     dc.SetFont(::Label::Head_14);
     labelSize = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
-    
+
     if (!IsEnabled()) {
         dc.SetTextForeground(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetTextBackground(background_color.colorForStates((int) StateColor::Disabled));
-    } 
+    }
     else {
         dc.SetTextForeground(wxColour(0x32, 0x3A, 0x3D));
         dc.SetTextBackground(background_color.colorForStates((int) states));
     }
-        
+
 
     /*if (!text.IsEmpty()) {
-        
+
     }*/
     wxSize textSize = text_ctrl->GetSize();
     if (align_right) {

@@ -145,7 +145,7 @@ void LayerNumberTextInput::update_label()
 
 void LayerNumberTextInput::set_layer_number(int layer_number)
 {
-    m_layer_number = layer_number; 
+    m_layer_number = layer_number;
     if (layer_number == MAX_LAYER_VALUE)
         m_value_type = ValueType::End;
     else
@@ -450,7 +450,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     m_drag_canvas->Hide();
     top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 0);
     top_sizer->Add(m_drag_canvas, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxBOTTOM, FromDIP(10));
-    
+
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(30));
 
     // Other layer filament sequence
@@ -461,7 +461,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
@@ -625,7 +625,7 @@ void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 }
 
 wxString PlateSettingsDialog::get_plate_name() const {
-    return m_ti_plate_name->GetTextCtrl()->GetValue(); 
+    return m_ti_plate_name->GetTextCtrl()->GetValue();
 }
 
 void PlateSettingsDialog::set_plate_name(const wxString &name) { m_ti_plate_name->GetTextCtrl()->SetValue(name); }
@@ -672,7 +672,7 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
 
     auto       sizer_button = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+                            std::pair<wxColour, int>(wxColour(105, 75, 124), StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
