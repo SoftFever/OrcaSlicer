@@ -700,8 +700,9 @@ void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config
                                                 const Vec3d              &origin)
 {
     m_config = config;
-    m_config.apply(model.objects.front()->config.get(), true);
-    m_config.apply(model.objects.front()->volumes.front()->config.get(), true);
+
+    m_config.apply(model.objects[model.curr_plate_index]->config.get(), true);
+    m_config.apply(model.objects[model.curr_plate_index]->volumes.front()->config.get(), true);
 
     _refresh_starting_point(model);
     _refresh_writer(is_bbl_machine, model, origin);
@@ -712,7 +713,7 @@ void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
     if (m_is_start_point_fixed)
         return;
 
-    ModelObject  *obj  = model.objects.front();
+    ModelObject  *obj  = model.objects[model.curr_plate_index];
     BoundingBoxf3 bbox = obj->instance_bounding_box(*obj->instances.front(), false);
 
     m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
@@ -728,7 +729,7 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
     m_writer.set_xy_offset(origin(0), origin(1));
     m_writer.set_is_bbl_machine(is_bbl_machine);
 
-    const unsigned int extruder_id = model.objects.front()->volumes.front()->extruder_id();
+    const unsigned int extruder_id = model.objects[model.curr_plate_index]->volumes.front()->extruder_id();
     m_writer.set_extruders({extruder_id});
     m_writer.set_extruder(extruder_id);
 }
