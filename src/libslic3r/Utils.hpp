@@ -65,9 +65,11 @@
 #define CLI_OBJECT_COLLISION_IN_SEQ_PRINT   -63
 #define CLI_OBJECT_COLLISION_IN_LAYER_PRINT -64
 #define CLI_SPIRAL_MODE_INVALID_PARAMS      -65
+#define CLI_FILAMENT_CAN_NOT_MAP      -66
 
 #define CLI_SLICING_ERROR                  -100
 #define CLI_GCODE_PATH_CONFLICTS           -101
+#define CLI_GCODE_PATH_IN_UNPRINTABLE_AREA -102
 
 
 namespace boost { namespace filesystem { class directory_entry; }}

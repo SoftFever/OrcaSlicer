@@ -148,6 +148,8 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                     extruder_volume.bboxf = m_bboxf;
                     extruder_volume.circle = m_circle;
                 }
+                //always ignore z
+                extruder_volume.bboxf.min.z() = -std::numeric_limits<double>::max();
                 m_extruder_volumes.push_back(std::move(extruder_volume));
             }
 

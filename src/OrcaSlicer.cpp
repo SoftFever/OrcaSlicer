@@ -142,8 +142,10 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_COLLISION_IN_SEQ_PRINT, "Object conflicts were detected when using print-by-object mode. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_SPIRAL_MODE_INVALID_PARAMS, "Some slicing parameters cannot work with Spiral Vase mode. Please solve the issue in Orca Slicer before uploading."},
+    {CLI_FILAMENT_CAN_NOT_MAP, "Some filaments cannot be mapped to correct extruders for multi-extruder Printer."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Orca Slicer before uploading."},
-    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Orca Slicer."}
+    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Orca Slicer."},
+    {CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, "Found G-code in unprintable area of multi-extruder printers after slicing. Please make sure the 3mf file can be successfully sliced in the latest Orca Slicer."}
 };
 
 typedef struct  _sliced_plate_info{
@@ -1011,22 +1013,22 @@ static void load_downward_settings_list_from_config(std::string config_file, std
                         json downward_check_json = printer_model_json["downward_check"];
                         if (downward_check_json.contains(printer_name)) {
                             downward_settings = downward_check_json[printer_name].get<std::vector<std::string>>();
-                            BOOST_LOG_TRIVIAL(info) << boost::format("got %1% downward settings of %2% in cli_config.json")%downward_settings.size() %printer_name;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("got %1% downward settings of %2% in %3%")%downward_settings.size() %printer_name %config_file;
                         }
                         else {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("can not find  %1% in downward_check of %2% in cli_config.json")%printer_name %printer_model;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("can not find  %1% in downward_check of %2% in %3%")%printer_name %printer_model %config_file;
                         }
                     }
                     else {
-                        BOOST_LOG_TRIVIAL(info) << boost::format("can not find downward_check for %1% in cli_config.json")%printer_model;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("can not find downward_check for %1% in %2%")%printer_model%config_file;
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find printer_model %1% in the file")%printer_model;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find printer_model %1% in %2%")%printer_model%config_file;
                 }
             }
             else {
-                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key printer in the file");
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key printer in %1%")%config_file;
             }
         }
         catch (std::exception &err) {
@@ -1189,15 +1191,15 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
-    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
+    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 0, new_extruder_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model, new_default_process_name;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
-    std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
+    std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group, current_extruder_variants;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
@@ -1441,6 +1443,19 @@ int CLI::run(int argc, char **argv)
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
+                    current_extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+                    current_is_multi_extruder = current_extruder_count > 1;
+                    if (current_is_multi_extruder) {
+                        auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(config.option("extruder_type"));
+                        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(config.option("nozzle_volume_type"));
+                        current_extruder_variants.resize(current_extruder_count, "");
+                        for (int e_index = 0; e_index < current_extruder_count; e_index++)
+                        {
+                            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(e_index));
+                            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
+                            current_extruder_variants[e_index] = get_extruder_variant_string(extruder_type, nozzle_volume_type);
+                        }
+                    }
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
                     ConfigOptionStrings* option_strings = config.option<ConfigOptionStrings>("inherits_group");
@@ -1778,6 +1793,9 @@ int CLI::run(int argc, char **argv)
                     }
                 }
             }
+            //new_default_process_name
+            if (config.option<ConfigOptionString>("default_print_profile"))
+                new_default_process_name = config.option<ConfigOptionString>("default_print_profile")->value;
 
             //printer_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             load_machine_config = std::move(config);
@@ -2281,7 +2299,8 @@ int CLI::run(int argc, char **argv)
     }
     if (!process_compatible && !new_printer_name.empty() && !current_printer_name.empty() && (new_printer_name != current_printer_name)) {
         //set all printer to compatible
-        process_compatible = true;
+        if (new_process_name.empty())
+            process_compatible = true;
         machine_switch = true;
         BOOST_LOG_TRIVIAL(info) << boost::format("switch to new printers, set to compatible");
         if (upward_compatible_printers.size() > 0) {
@@ -2531,6 +2550,8 @@ int CLI::run(int argc, char **argv)
             flush_and_exit(ret);
         }
     }
+    new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    new_is_multi_extruder = new_extruder_count > 1;
 
     //set the process settings into print config
     std::vector<std::string>& print_compatible_printers = m_print_config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
@@ -2572,7 +2593,7 @@ int CLI::run(int argc, char **argv)
 
         int ret;
 
-        load_default_gcodes_to_config(load_machine_config, Preset::TYPE_PRINT);
+        load_default_gcodes_to_config(load_process_config, Preset::TYPE_PRINT);
         if (new_process_name.empty()) {
             int diff_keys_size = different_keys_set.size();
             ret = update_full_config(m_print_config, load_process_config, different_keys_set, false, skip_modified_gcodes);
@@ -2617,11 +2638,70 @@ int CLI::run(int argc, char **argv)
             if (need_insert)
                 different_settings[0] = old_setting + ";compatible_printers";
         }
+
+        //add multi-extruder related logic
+        if (new_process_name.empty() && (current_is_multi_extruder != new_is_multi_extruder)) {
+            if (new_default_process_name.empty()) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("machine_switch: default process configis null, should not happen, new_printer_name %1%")%new_printer_name;
+                record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+            else {
+                std::string default_path = resources_dir() + "/profiles/BBL/process_full/";
+                std::string file_path = default_path + new_default_process_name + ".json";
+                DynamicPrintConfig  config;
+                std::string config_type, config_name, filament_id, config_from, downward_printer;
+                int ret = load_config_file(file_path, config, config_type, config_name, filament_id, config_from);
+                if (ret) {
+                    record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                    flush_and_exit(ret);
+                }
+                if ((config_type != "process") || (config_from != "system")) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("found invalid config type %1% or from %2% in file %3% when downward_check")%config_type %config_from %file_path;
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("machine_switch: loaded default process config %1%, from %2%")%config_name %file_path ;
+
+                if (!current_is_multi_extruder && new_is_multi_extruder) {
+                    //single -> multiple
+                    ret = m_print_config.update_values_from_single_to_multi(config, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+                }
+                else if (current_is_multi_extruder && !new_is_multi_extruder) {
+                    //multiple -> single
+                    ret = m_print_config.update_values_from_multi_to_single(config, print_options_with_variant, "print_extruder_id", "print_extruder_variant", current_extruder_variants);
+                }
+
+                if (ret) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("current_is_multi_extruder %1% new_is_multi_extruder %2%, update_values failed") % current_is_multi_extruder % new_is_multi_extruder;
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+            }
+        }
     }
 
     //set the filament settings into print config
     if ((load_filament_count > 0) || (up_config_to_date))
     {
+        std::vector<int> filament_variant_count(filament_count, 1);
+        std::vector<int> old_start_index(filament_count, 0);
+        std::vector<int> old_variant_count(filament_count, 1);
+        if (current_is_multi_extruder) {
+            std::vector<int>& old_self_indice = m_print_config.option<ConfigOptionInts>("filament_self_index", true)->values;
+            int old_self_indice_size = old_self_indice.size();
+            int k = -1, current_filament = 0;
+            for (size_t i = 0; i < old_self_indice_size; i++) {
+                if (old_self_indice[i] > current_filament) {
+                    current_filament = old_self_indice[i];
+                    old_start_index[++k] = i;
+                    old_variant_count[k] = 1;
+                }
+                else {
+                    old_variant_count[k] = old_variant_count[k] + 1;
+                }
+            }
+        }
         for (int index = 0; index < load_filaments_config.size(); index++) {
             DynamicPrintConfig&  config = load_filaments_config[index];
             int filament_index = load_filaments_index[index];
@@ -2727,7 +2807,25 @@ int CLI::run(int argc, char **argv)
                     }
                     ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
                     const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
-                    opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
+                    if (new_is_multi_extruder && (filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())) {
+                        if (load_filament_count > 0) {
+                            if (filament_index == 1)
+                                opt_vec_dst->set(opt_vec_src);
+                            else
+                                opt_vec_dst->append(opt_vec_src);
+
+                            if (opt_key == "filament_extruder_variant")
+                                filament_variant_count[filament_index - 1] = opt_vec_src->size();
+                        }
+                        else {
+                            //only update
+                            for (size_t i = 0; i < old_variant_count[filament_index-1]; i++) {
+                                opt_vec_dst->set_at(opt_vec_src, old_start_index[filament_index - 1] + i, i);
+                            }
+                        }
+                    }
+                    else
+                        opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
                 }
             }
 
@@ -2739,6 +2837,18 @@ int CLI::run(int argc, char **argv)
                     different_keys.emplace_back(*iter);
                 different_settings[filament_index] = Slic3r::escape_strings_cstyle(different_keys);
                 BOOST_LOG_TRIVIAL(info) << boost::format("filament %1% new different key size %2%, different_settings %3%")%filament_index %different_keys_set.size() %different_settings[filament_index];
+            }
+        }
+
+        if ((load_filament_count > 0) && m_print_config.option<ConfigOptionStrings>("filament_extruder_variant")) {
+            std::vector<int>& filament_self_indice = m_print_config.option<ConfigOptionInts>("filament_self_index", true)->values;
+            int index_size = m_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+            filament_self_indice.resize(index_size, 1);
+            int k = 0;
+            for (size_t i = 0; i < filament_count; i++) {
+                for (size_t j = 0; j < filament_variant_count[i]; j++) {
+                    filament_self_indice[k++] = i + 1;
+                }
             }
         }
     }
@@ -2753,7 +2863,7 @@ int CLI::run(int argc, char **argv)
         std::vector<std::string>& project_filament_colors = project_filament_colors_option->values;
         project_filament_colors.resize(filament_count, "#FFFFFF");
     }
-    if (project_filament_colors_option && (selected_filament_colors_option || !m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")))
+    if (project_filament_colors_option && (selected_filament_colors_option || !m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix") || (new_extruder_count != current_extruder_count)))
     {
         std::vector<std::string>  selected_filament_colors;
         if (selected_filament_colors_option) {
@@ -2831,21 +2941,15 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%") % m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
             }
 
-            size_t nozzle_nums = 1;
-            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
-            if (opt_nozzle_diameters != nullptr) {
-                nozzle_nums       = opt_nozzle_diameters->values.size();
-            }
-
             std::vector<double> &flush_vol_matrix = m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
-            flush_vol_matrix.resize(project_filament_count * project_filament_count * nozzle_nums, 0.f);
+            flush_vol_matrix.resize(project_filament_count * project_filament_count * new_extruder_count, 0.f);
 
             // set multiplier to 1?
             std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
-            flush_multipliers.resize(nozzle_nums, 1.f);
+            flush_multipliers.resize(new_extruder_count, 1.f);
 
-            for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                std::vector<double> flush_vol_mtx = get_flush_volumes_matrix(flush_vol_matrix, nozzle_id, nozzle_nums);
+            for (size_t nozzle_id = 0; nozzle_id < new_extruder_count; ++nozzle_id) {
+                std::vector<double> flush_vol_mtx = get_flush_volumes_matrix(flush_vol_matrix, nozzle_id, new_extruder_count);
                 for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
                     const std::string &from_color  = project_filament_colors[from_idx];
                     unsigned char      from_rgb[4] = {};
@@ -2873,7 +2977,7 @@ int CLI::run(int argc, char **argv)
                             flush_vol_mtx[project_filament_count * from_idx + to_idx] = flushing_volume;
                         }
                     }
-                    set_flush_volumes_matrix(flush_vol_matrix, flush_vol_mtx, nozzle_id, nozzle_nums);
+                    set_flush_volumes_matrix(flush_vol_matrix, flush_vol_mtx, nozzle_id, new_extruder_count);
                 }
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix after computed: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
@@ -3291,7 +3395,7 @@ int CLI::run(int argc, char **argv)
         if (downward_settings.size() == 0) {
             //parse from internal
             std::string cli_config_file = resources_dir() + "/profiles/BBL/cli_config.json";
-            load_downward_settings_list_from_config(cli_config_file, current_printer_name, current_printer_model, downward_settings);
+            load_downward_settings_list_from_config(cli_config_file, current_printer_system_name, current_printer_model, downward_settings);
             use_default = true;
             default_path = resources_dir() + "/profiles/BBL/machine_full/";
         }
@@ -4822,6 +4926,7 @@ int CLI::run(int argc, char **argv)
                             long long triangle_count = 0;
                             int printable_instances = 0;
                             int skipped_count = 0;
+                            std::vector<std::set<int>> unprintable_filament_ids(new_extruder_count, std::set<int>());
                             for (ModelObject* model_object : model.objects)
                                 for (ModelInstance *i : model_object->instances)
                                 {
@@ -4865,6 +4970,7 @@ int CLI::run(int argc, char **argv)
                                     }
                                     else if (i->print_volume_state == ModelInstancePVS_Inside)
                                     {
+                                        const Transform3d& inst_matrix = i->get_transformation().get_matrix();
                                         for (const ModelVolume* vol : model_object->volumes)
                                         {
                                             if (vol->is_model_part()) {
@@ -4876,6 +4982,21 @@ int CLI::run(int argc, char **argv)
                                                     BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
                                                     record_exit_reson(outfile_dir, CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT, index+1, cli_errors[CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT], sliced_info);
                                                     flush_and_exit(CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT);
+                                                }
+
+                                                if (new_extruder_count > 1) {
+                                                    BoundingBoxf3 bbox = vol->get_convex_hull().transformed_bounding_box(inst_matrix * vol->get_matrix());
+                                                    std::vector<bool> inside_extruders;
+                                                    BuildVolume::ObjectState state = build_volume.check_volume_bbox_state_with_extruder_areas(bbox, inside_extruders);
+                                                    if (state == BuildVolume::ObjectState::Limited) {
+                                                        for (size_t i = 0; i < inside_extruders.size(); ++i) {
+                                                            if (!inside_extruders[i]) {
+                                                                std::vector<int> filaments = vol->get_extruders();
+                                                                unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
+                                                            }
+                                                        }
+                                                    }
+
                                                 }
                                             }
                                         }
@@ -4891,6 +5012,69 @@ int CLI::run(int argc, char **argv)
                                 flush_and_exit(CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP);
                             }
 
+                            if (new_extruder_count > 1) {
+                                std::vector<std::vector<int>> unprintable_filament_vec;
+                                for (const std::set<int>& filamnt_ids : unprintable_filament_ids) {
+                                    unprintable_filament_vec.emplace_back(std::vector<int>(filamnt_ids.begin(), filamnt_ids.end()));
+                                }
+
+                                FilamentMapMode mode;
+                                if (m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
+                                    mode = m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+                                else
+                                    mode = part_plate->get_filament_map_mode();
+                                if (mode == FilamentMapMode::fmmAuto) {
+                                    part_plate->set_unprintable_filament_ids(unprintable_filament_vec);
+                                    std::vector<int> conflict_filament_vector;
+                                    for (int index = 0; index < new_extruder_count; index++)
+                                    {
+                                        if (!unprintable_filament_vec[index].empty())
+                                        {
+                                            std::sort(unprintable_filament_vec[index].begin(), unprintable_filament_vec[index].end());
+                                            if (index == 0)
+                                                conflict_filament_vector = unprintable_filament_vec[index];
+                                            else
+                                            {
+                                                std::vector<int> result_filaments;
+                                                //result_filaments.reserve(conflict_filaments.size());
+                                                std::set_intersection(conflict_filament_vector.begin(), conflict_filament_vector.end(), unprintable_filament_vec[index].begin(),
+                                                    unprintable_filament_vec[index].end(), insert_iterator<vector<int>>(result_filaments, result_filaments.begin()));
+                                                conflict_filament_vector = result_filaments;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            conflict_filament_vector.clear();
+                                            break;
+                                        }
+                                    }
+                                    //check whether has filament can not map
+                                    if (!conflict_filament_vector.empty())
+                                    {
+                                        BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under auto mode for multi extruder printer ")% (index + 1);
+                                        record_exit_reson(outfile_dir, CLI_FILAMENT_CAN_NOT_MAP, index + 1, cli_errors[CLI_FILAMENT_CAN_NOT_MAP], sliced_info);
+                                        flush_and_exit(CLI_FILAMENT_CAN_NOT_MAP);
+                                    }
+                                }
+                                else {
+                                    std::vector<int> filament_maps;
+                                    if (m_extra_config.option<ConfigOptionInts>("filament_map"))
+                                        filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
+                                    else
+                                        filament_maps = part_plate->get_filament_maps();
+                                    for (int index = 0; index < filament_maps.size(); index++)
+                                    {
+                                        int filament_extruder = filament_maps[index];
+                                        if (unprintable_filament_ids[filament_extruder - 1].find(index + 1) != unprintable_filament_ids[filament_extruder - 1].end())
+                                        {
+                                            BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under auto mode for multi extruder printer ") % (index + 1);
+                                            record_exit_reson(outfile_dir, CLI_FILAMENT_CAN_NOT_MAP, index + 1, cli_errors[CLI_FILAMENT_CAN_NOT_MAP], sliced_info);
+                                            flush_and_exit(CLI_FILAMENT_CAN_NOT_MAP);
+                                        }
+                                    }
+                                }
+                            }
+
                             plate_triangle_counts[index] = triangle_count;
                             plate_object_count[index] = printable_instances;
                             BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
@@ -4902,6 +5086,35 @@ int CLI::run(int argc, char **argv)
                         DynamicPrintConfig new_print_config = m_print_config;
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
+                        if (new_extruder_count > 1) {
+                            FilamentMapMode map_mode = fmmAuto;
+                            if (new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
+                                map_mode = new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+
+                            if (map_mode == fmmAuto) {
+                                //set default params for auto map
+                                std::vector<std::string> extruder_ams_count(new_extruder_count, "");
+                                std::vector<std::vector<DynamicPrintConfig>> extruder_filament_info(new_extruder_count, std::vector<DynamicPrintConfig>());
+                                int color_count = 0;
+                                for (int e_index = 0; e_index < new_extruder_count; e_index++)
+                                {
+                                    extruder_ams_count[e_index] = "1#0|4#1";
+                                    for (int color_index = 0; color_index < 4; color_index++)
+                                    {
+                                        DynamicPrintConfig temp_config;
+                                        std::vector<std::string> temp_colors(1, "#FFFFFFFF");
+                                        if (filament_color) {
+                                            temp_colors[0] = colors[color_count % colors.size()];
+                                        }
+                                        temp_config.option<ConfigOptionStrings>("filament_colour", true)->values = temp_colors;
+                                        extruder_filament_info[e_index].push_back(std::move(temp_config));
+                                        color_count++;
+                                    }
+                                }
+                                new_print_config.option<ConfigOptionStrings>("extruder_ams_count", true)->values = extruder_ams_count;
+                                print_fff->set_extruder_filament_info(extruder_filament_info);
+                            }
+                        }
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
@@ -5077,6 +5290,13 @@ int CLI::run(int argc, char **argv)
                                     outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     time_using_cache = time_using_cache + ((long long)Slic3r::Utils::get_current_time_utc() - temp_time);
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << time_using_cache << " secs.";
+                                    if (gcode_result && gcode_result->gcode_check_result.error_code) {
+                                        //found gcode error
+                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode in unprintable area of multi extruder printers!" << std::endl;
+                                        record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
+                                        flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
+                                    }
+
 
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
