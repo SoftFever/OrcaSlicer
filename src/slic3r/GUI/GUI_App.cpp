@@ -3905,6 +3905,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("homepage_set_classic_mode") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    app_config->set("use_classic_mode", data_node.get<std::string>("classic_mode"));
+                }
+            }
         }
     }
     catch (...) {
@@ -5280,6 +5286,7 @@ void GUI_App::update_mode()
     if (mainframe->m_printer_view)
         mainframe->m_printer_view->update_mode();
     mainframe->m_webview->update_mode();
+    mainframe->m_webview->update_classic_mode();
 
 #ifdef _MSW_DARK_MODE
     if (!wxGetApp().tabs_as_menu())

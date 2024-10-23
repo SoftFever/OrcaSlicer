@@ -264,6 +264,10 @@ void AppConfig::set_defaults()
     //     set_bool("show_splash_screen", true);
     // }
 
+    if (get("use_classic_mode").empty()) {
+        set_bool("use_classic_mode", false);
+    }
+
     if(get("auto_arrange").empty()) {
         set_bool("auto_arrange", true);
     }

@@ -714,6 +714,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 #endif // __WXMSW__
 
+        if (param == "use_classic_mode") {
+            Slic3r::GUI::wxGetApp().mainframe->m_webview->update_classic_mode();
+        }
+
         if (param == "developer_mode") {
             m_developer_mode_def = app_config->get("developer_mode");
             if (m_developer_mode_def == "true") {
@@ -1108,6 +1112,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_classic_mode = create_item_checkbox(_L("Use classic mode"), page, _L("Enable classic interface mode"), 50, "use_classic_mode");
     auto item_single_instance = create_item_checkbox(_L("Allow only one OrcaSlicer instance"), page, 
     #if __APPLE__
             _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1199,6 +1204,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_default_page, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_camera_navigation_style, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_classic_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_use_free_camera_settings, 0, wxTOP, FromDIP(3));

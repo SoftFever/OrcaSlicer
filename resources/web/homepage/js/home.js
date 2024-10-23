@@ -19,6 +19,7 @@ var MousePosX=0;
 var MousePosY=0;
 var sImages = {};
 
+var ClassicMode = false;
 function Set_RecentFile_MouseRightBtn_Event()
 {
 	$(".FileItem").mousedown(
@@ -84,9 +85,17 @@ function SetLoginPanelVisibility(visible) {
   }
 }
 
-function SwitchToClassicView() {
+function SetClassicMode(classic_mode) {
+	ClassicMode = classic_mode;
 	var topContainer = document.getElementById("TopContainer");
-	topContainer.classList.remove("LoginFullWidth");
+	var switchToClassicView = document.getElementById("switchToClassicView");
+	if (classic_mode) {
+		topContainer.classList.remove("LoginFullWidth");
+		switchToClassicView.textContent = "Switch to AI-assisted mode";
+	} else {
+		topContainer.classList.add("LoginFullWidth");
+		switchToClassicView.textContent = "Switch to classic mode";
+	}
 }
 
 function HandleStudio( pVal )
@@ -506,6 +515,18 @@ function OpenOneStaffPickModel( ModelID )
 	tSend['command']="modelmall_model_open";
 	tSend['data']={};
 	tSend['data']['id']=ModelID;
+
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
+
+function ToggleClassicMode() {
+	SetClassicMode(!ClassicMode);
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_set_classic_mode";
+	tSend['data']={};
+	tSend['data']['classic_mode']=ClassicMode;
 
 	SendWXMessage( JSON.stringify(tSend) );
 }

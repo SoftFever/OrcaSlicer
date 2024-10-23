@@ -538,6 +538,12 @@ void WebViewPanel::update_mode()
     GetSizer()->Layout();
 }
 
+void WebViewPanel::update_classic_mode()
+{
+    wxString strJS = wxString::Format("SetClassicMode(%s)", wxGetApp().app_config->get("use_classic_mode"));
+    RunScript(strJS);
+}
+
 /**
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
