@@ -9594,7 +9594,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                     model(),
                     cur_plate_origin
                 );
-                fprintf(stderr, "%s:%d\n", __func__, __LINE__);
             }
         }
     } else {

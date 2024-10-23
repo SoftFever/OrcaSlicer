@@ -700,7 +700,6 @@ void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config
                                                 const Vec3d              &origin)
 {
     m_config = config;
-
     m_config.apply(model.objects[model.curr_plate_index]->config.get(), true);
     m_config.apply(model.objects[model.curr_plate_index]->volumes.front()->config.get(), true);
 
