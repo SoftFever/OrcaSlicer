@@ -1304,6 +1304,9 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
 }
 
 bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
+    // Mixed mappings are not allowed
+    return false;
+
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
