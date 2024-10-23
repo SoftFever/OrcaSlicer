@@ -87,5 +87,5 @@
     "print_sequence": "by layer",
     "spiral_mode": "0",
     "reduce_infill_retraction": "1",
-    "filename_format": "{input_filename_base}_{filament_type[0]}_{printer_model}.gcode"
+    "filename_format": "{input_filename_base}_{layer_height}mm_{filament_type[0]}_{printer_model}.gcode"
 }
