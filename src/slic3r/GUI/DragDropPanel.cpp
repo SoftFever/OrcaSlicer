@@ -194,6 +194,7 @@ void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool u
     m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(10));
     m_filament_blocks.push_back(panel);
     if (update_ui) {
+        m_filament_blocks.front()->Refresh();  // FIX BUG: STUDIO-8467
         Layout();
         Fit();
         GetParent()->Layout();
