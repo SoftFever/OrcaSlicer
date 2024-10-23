@@ -22,32 +22,31 @@
 <div id="TopContainer" class="LoginFullWidth flex">
 <div id="LeftBoard" class="relative">
 
-    <div class="bg-gray-100 flex justify-center items-center min-h-screen">
-			<div class="text-center p-8">
-					<header class="mb-6">
-							<img src="img/jusprin_full_logo_inkscape_h.png" alt="JusPrin Logo" class="max-w-[250px] mx-auto">
-					</header>
+    <div class="bg-gray-100 flex text-center flex-col justify-evenly items-center h-full min-h-screen p-4">
+				<div>
+						<img src="img/jusprin_full_logo_inkscape_h.png" alt="JusPrin Logo" class="max-w-[250px] mx-auto">
+						<p class="text-3xl font-bold text-primary mt-6 mb-2">No slicing. Just print.</p>
+						<div class="text-gray-600 leading-relaxed">Powered by GenAI technology</div>
 
-					<main>
-							<p class="text-3xl font-bold text-primary mb-2">No slicing. Just print.</p>
-							<p>Powered by GenAI technology</p>
+				</div>
 
-							<div class="mt-12">
-								<a href="https://app.obico.io" class="inline-block bg-primary text-white px-8 py-3 rounded-lg text-lg hover:bg-primary/80 transition-colors duration-300 mb-2 no-underline text-center">
-									Sign Up/Sign In to Get Started
-								</a>
-								<p class="text-sm text-gray-600 leading-relaxed">
-										AI computation takes a lot of server resources.<br>
-										We require sign-in to prevent abuse.
-								</p>
+				<div>
+						<button id="signUpSignInBtn" onClick="OnLoginOrRegister()" class="inline-block bg-primary text-white px-8 py-3 rounded-lg text-lg hover:bg-primary/80 transition-colors duration-300 mb-2 no-underline text-center">
+								Sign Up/Sign In to Get Started
+						</button>
+						<p class="text-sm text-gray-600 leading-relaxed">
+								AI computation takes a lot of server resources.<br>
+								We require sign-in to prevent abuse.
+            </p>
+						<div class="text-sm text-gray-600 leading-relaxed">
+							Built with <span class="text-red-500">♥️</span> by the Obico Team
 						</div>
-					</main>
-			</div>
-		</div>
+        </div>
+    </div>
 
-		<button id="switchToClassicView" class="absolute bottom-4 right-4 text-gray-600 hover:text-white hover:bg-gray-600 border border-gray-600 rounded px-3 py-1 transition-colors duration-300" onClick="ToggleClassicMode()">
-			Switch to classic mode
-		</button>
+    <button id="switchToClassicView" class="absolute bottom-4 right-4 text-gray-600 hover:text-white hover:bg-gray-600 border border-gray-600 rounded px-3 py-1 transition-colors duration-300" onClick="ToggleClassicMode()">
+        Switch to classic mode
+    </button>
 </div>
 
 <div id="RightBoard">
