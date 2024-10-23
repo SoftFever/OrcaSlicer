@@ -28,6 +28,7 @@
     "machine_unload_filament_time": "28",
     "nozzle_height": "4.2",
     "scan_first_layer": "1",
+    "support_air_filtration": "1",
     "upward_compatible_machine": [
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab P1P 0.4 nozzle",
