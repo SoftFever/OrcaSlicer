@@ -3117,15 +3117,25 @@ void TabFilament::add_filament_overrides_page()
         line.near_label_widget = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup), opt_key, opt_index](wxWindow* parent) {
             wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
-            check_box->Bind(wxEVT_CHECKBOX, [optgroup_wk, opt_key, opt_index](wxCommandEvent& evt) {
+            check_box->Bind(
+                wxEVT_CHECKBOX,
+                [this, optgroup_wk, opt_key, opt_index](wxCommandEvent& evt) {
                 const bool is_checked = evt.IsChecked();
                 if (auto optgroup_sh = optgroup_wk.lock(); optgroup_sh) {
                     if (Field *field = optgroup_sh->get_fieldc(opt_key, opt_index); field != nullptr) {
                         field->toggle(is_checked);
-                        if (is_checked)
+
+                        if (is_checked) {
+                            field->update_na_value(_(L("N/A")));
                             field->set_last_meaningful_value();
-                        else
+                        }
+                        else {
+                            const std::string printer_opt_key = opt_key.substr(strlen("filament_"));
+                            const auto printer_config = m_preset_bundle->printers.get_edited_preset().config;
+                            const boost::any printer_config_value = optgroup_sh->get_config_value(printer_config, printer_opt_key, opt_index);
+                            field->update_na_value(printer_config_value);
                             field->set_na_value();
+                        }
                     }
                 }
             }, check_box->GetId());
@@ -3162,7 +3172,7 @@ void TabFilament::add_filament_overrides_page()
         append_single_option_line(opt_key, extruder_idx);
 }
 
-void TabFilament::update_filament_overrides_page()
+void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* printers_config)
 {
     if (!m_active_page || m_active_page->title() != "Setting Overrides")
         return;
@@ -3213,22 +3223,30 @@ void TabFilament::update_filament_overrides_page()
         m_overrides_options[opt_key]->SetValue(is_checked);
 
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
-        if (field != nullptr) {
-            if (opt_key == "filament_long_retractions_when_cut") {
-                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
-                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
-                toggle_line(opt_key, machine_enabled);
-                field->toggle(is_checked && machine_enabled);
+        if (field == nullptr) continue;
+
+        if (opt_key == "filament_long_retractions_when_cut") {
+            int machine_enabled_level = printers_config->option<ConfigOptionInt>(
+                "enable_long_retraction_when_cut")->value;
+            bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+            toggle_line(opt_key, machine_enabled);
+            field->toggle(is_checked && machine_enabled);
+        } else if (opt_key == "filament_retraction_distances_when_cut") {
+            int machine_enabled_level = printers_config->option<ConfigOptionInt>(
+                "enable_long_retraction_when_cut")->value;
+            bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+            bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
+            toggle_line(opt_key, filament_enabled && machine_enabled);
+            field->toggle(is_checked && filament_enabled && machine_enabled);
+        } else {
+            if (!is_checked) {
+                const std::string printer_opt_key = opt_key.substr(strlen("filament_"));
+                boost::any printer_config_value = optgroup->get_config_value(*printers_config, printer_opt_key, extruder_idx);
+                field->update_na_value(printer_config_value);
+                field->set_value(printer_config_value, false);
             }
-            else if (opt_key == "filament_retraction_distances_when_cut") {
-                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
-                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
-                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
-                toggle_line(opt_key, filament_enabled && machine_enabled);
-                field->toggle(is_checked && filament_enabled && machine_enabled);
-            }
-            else
-                field->toggle(is_checked);
+
+            field->toggle(is_checked);
         }
     }
 }
@@ -3683,7 +3701,7 @@ void TabFilament::toggle_options()
         toggle_line("filament_diameter", !is_pellet_printer);
     }
     if (m_active_page->title() == L("Setting Overrides"))
-        update_filament_overrides_page();
+        update_filament_overrides_page(&cfg);
 
     if (m_active_page->title() == L("Multimaterial")) {
         // Orca: hide specific settings for BBL printers
