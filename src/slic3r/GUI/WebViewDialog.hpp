@@ -104,6 +104,7 @@ public:
     int  get_model_mall_detail_url(std::string *url, std::string id);
 
     void update_mode();
+    void update_classic_mode();
 private:
 
     wxWebView* m_browser;
