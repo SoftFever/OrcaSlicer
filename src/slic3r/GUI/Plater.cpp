@@ -6852,10 +6852,10 @@ bool Plater::priv::warnings_dialog()
     } else {
         get_text_from_warnings(current_warnings[cur_plate_idx]);
     }
-    //text += "\n\nDo you still wish to export?";
-    MessageDialog msg_window(this->q, from_u8(text), _L("Slicing Warnings"), wxOK);
+    text += "\n\nDo you still wish to export?";
+    MessageDialog msg_window(this->q, from_u8(text), _L("Slicing Warnings"), wxYES_NO);
     const auto    res = msg_window.ShowModal();
-    return res == wxID_OK;
+    return res == wxID_YES;
 }
 
 //BBS: add project slice logic
