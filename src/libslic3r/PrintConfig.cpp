@@ -974,6 +974,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("solid_infill_flow_ratio", coFloat);
+    def->label = L("Solid infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for solid infill. "
+                     "\n\nThe actual solid infill flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
