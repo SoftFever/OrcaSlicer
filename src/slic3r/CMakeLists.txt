@@ -537,6 +537,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/MKS.hpp
     Utils/ESP3D.cpp
     Utils/ESP3D.hpp
+    Utils/CrealityPrint.cpp
+    Utils/CrealityPrint.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/Duet.cpp

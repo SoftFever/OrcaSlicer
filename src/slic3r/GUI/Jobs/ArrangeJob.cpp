@@ -237,7 +237,7 @@ void ArrangeJob::prepare_all() {
     if (m_selected.empty()) {
         if (!selected_is_locked) {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangable objects are selected.")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("No arrangeable objects are selected.")));
         }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
@@ -766,12 +766,16 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     auto                              &print        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     const PrintConfig                 &print_config = print.config();
 
+    auto [object_skirt_offset, object_skirt_witdh] = print.object_skirt_offset();
+
     params.clearance_height_to_rod             = print_config.extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;
-    params.cleareance_radius                   = print_config.extruder_clearance_radius.value;
+    params.clearance_radius                    = print_config.extruder_clearance_radius.value + object_skirt_offset * 2;
+    params.object_skirt_offset                 = object_skirt_offset;
     params.printable_height                    = print_config.printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
-    params.nozzle_height                       = print.config().nozzle_height.value;
+    params.nozzle_height                       = print_config.nozzle_height.value;
+    params.all_objects_are_short               = print.is_all_objects_are_short();
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
