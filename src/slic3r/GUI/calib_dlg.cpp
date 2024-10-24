@@ -11,6 +11,7 @@ namespace {
 
 void ParseStringValues(std::string str, std::vector<double> &vec)
 {
+    vec.clear();
     std::replace(str.begin(), str.end(), ',', ' ');
     std::istringstream inss(str);
     std::copy_if(std::istream_iterator<int>(inss), std::istream_iterator<int>(), std::back_inserter(vec),
