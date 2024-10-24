@@ -3744,6 +3744,7 @@ LayerResult GCode::process_layer(
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
+       unsigned int first_printing_extruder_id;
       if (print.is_BBL_printer()) {
         // BBS: open powerlost recovery
         {
@@ -3782,8 +3783,20 @@ LayerResult GCode::process_layer(
         }
 
         // BBS
+        // int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
+        // gcode += m_writer.set_bed_temperature(bed_temp);
+        // Mark the temperature transition from 1st to 2nd layer to be finished.
+
+        // ELEGOO
+        // If the temperature of the other layer is different from the temperature of the first layer, it needs 
+        // to be applied. To facilitate the setup of a hot bed with multi-zone control in a custom G-CODE.
+        int bed_temp_first = get_bed_temperature(first_printing_extruder_id, true, print.config().curr_bed_type);
         int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
-        gcode += m_writer.set_bed_temperature(bed_temp);
+        if ( bed_temp != bed_temp_first ) {
+            gcode += m_writer.set_bed_temperature(bed_temp);
+        } else {
+        gcode +="; No need to reheat.\n";
+        }
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
