@@ -197,7 +197,7 @@ public:
     size_t GetIndexAtTime(boost::uint32_t time);
 
     void ToggleSelect(size_t index);
-    
+
     void SelectAll(bool select);
 
     size_t GetSelectCount() const;
@@ -210,12 +210,12 @@ public:
 
     enum Status {
         Initializing,
-        Connecting, 
+        Connecting,
         ListSyncing,
         ListReady,
         Failed,
     };
-    
+
     Status GetStatus() const { return m_status; }
     int GetLastError() const { return m_last_error; }
 

@@ -1546,7 +1546,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                     ret = Bambu_StartStreamEx
                         ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
                         : Bambu_StartStream(tunnel, false);
-                } while (ret == Bambu_would_block);
+                    if (ret == Bambu_would_block)
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+                } while (ret == Bambu_would_block && !m_stopped);
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;

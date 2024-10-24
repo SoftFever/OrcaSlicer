@@ -204,6 +204,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     };
     Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
+
+    m_lan_user = "bblp";
 }
 
 MediaFilePanel::~MediaFilePanel()
