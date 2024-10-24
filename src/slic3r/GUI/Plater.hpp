@@ -636,6 +636,8 @@ public:
     //BBS: post process string object exception strings by warning types
     void post_process_string_object_exception(StringObjectException &err);
 
+    bool check_ams_status();
+
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
     unsigned int get_environment_texture_id() const;
@@ -804,6 +806,7 @@ public:
         return m_arrange_running.compare_exchange_strong(prevRunning, true);
     };
     std::atomic<bool> m_arrange_running{false};
+    void              reset_check_status() { m_check_status = 0; }
 
     bool is_loading_project() const { return m_loading_project; }
 
@@ -825,6 +828,7 @@ private:
     bool m_loading_project { false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
+    int m_check_status = 0; // 0 not check, 1 check success, 2 check failed
 
     void suppress_snapshots();
     void allow_snapshots();

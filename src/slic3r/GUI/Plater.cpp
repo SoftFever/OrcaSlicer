@@ -2719,6 +2719,7 @@ struct Plater::priv
     GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
+    bool check_ams_status_impl();  // Check whether the printer and ams status are consistent, for grouping algorithm
 
     // BBS
     bool init_collapse_toolbar();
@@ -3737,6 +3738,9 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         set_current_panel(view3D, no_slice);
     }
     else if (name == "Preview") {
+        if (!q->check_ams_status())
+            return;
+
         BOOST_LOG_TRIVIAL(info) << "select preview";
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -7514,6 +7518,9 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
+        if (!q->check_ams_status())
+            return;
+
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -8337,6 +8344,66 @@ void Plater::priv::reset_canvas_volumes()
 
     if (preview != nullptr)
         preview->get_canvas3d()->reset_volumes();
+}
+
+bool Plater::priv::check_ams_status_impl()
+{
+    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return true;
+
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj || !obj->is_multi_extruders())
+        return true;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
+        std::vector<std::map<int, int>> ams_count_info;
+        ams_count_info.resize(2);
+        int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
+        for (auto ams : obj->amsList) {
+            // Main (first) extruder at right
+            if (ams.second->nozzle == 0) {
+                if (ams.second->type == 4) // N3S
+                    ++main_1;
+                else
+                    ++main_4;
+            } else if (ams.second->nozzle == 1) {
+                if (ams.second->type == 4) // N3S
+                    ++deputy_1;
+                else
+                    ++deputy_4;
+            }
+        }
+
+        bool is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == main_4
+            && preset_bundle->extruder_ams_counts[0][1] == main_1
+            && preset_bundle->extruder_ams_counts[1][4] == deputy_4
+            && preset_bundle->extruder_ams_counts[1][1] == deputy_1;
+
+        if (!is_same_as_printer) {
+            struct SyncInfoDialog : MessageDialog
+            {
+                SyncInfoDialog(wxWindow *parent)
+                    : MessageDialog(parent,
+                                    _L("It is detected that you have not synchronized the nozzle and AMS information.\n"
+                                       "If you synchronize it before slicing, the filament arrangement will be more reasonable.\n"
+                                       "Do you need to synchronize it ?"),
+                                    _L("Warning"), 0)
+                {
+                    add_button(wxID_YES, true, _L("Sync now"));
+                    add_button(wxID_NO, true, _L("Out of sync"));
+                }
+            } dlg(q);
+            dlg.Fit();
+            if (dlg.ShowModal() == wxID_YES) {
+                GUI::wxGetApp().sidebar().sync_extruder_list();
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool Plater::priv::init_collapse_toolbar()
@@ -15039,6 +15106,21 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
     }
 
     return;
+}
+
+bool Plater::check_ams_status()
+{
+    if (m_check_status == 0) {
+        if (!p->check_ams_status_impl()) {
+            m_check_status = 0;
+            return false;
+        }
+        else {
+            m_check_status = 1;
+        }
+    }
+
+    return true;
 }
 
 #if ENABLE_ENVIRONMENT_MAP
