@@ -3622,9 +3622,7 @@ wxString GUI_App::transition_tridid(int trid_id)
 void GUI_App::show_jusprin_login() {
     Slic3r::GUI::JusPrinLoginDialog login_dlg;
     if (login_dlg.run()) {
-        // Login was successful
-        // You might want to update the UI or perform some action here
-        wxMessageBox(_L("JusPrin login successful!"), _L("Success"), wxOK | wxICON_INFORMATION);
+        mainframe->m_webview->update_login_status(true);
     } else {
         // Login failed or was cancelled
         wxMessageBox(_L("JusPrin login was cancelled or failed."), _L("Login Failed"), wxOK | wxICON_WARNING);

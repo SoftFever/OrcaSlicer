@@ -20,6 +20,8 @@ var MousePosY=0;
 var sImages = {};
 
 var ClassicMode = false;
+var IsLogin = false;
+
 function Set_RecentFile_MouseRightBtn_Event()
 {
 	$(".FileItem").mousedown(
@@ -85,17 +87,31 @@ function SetLoginPanelVisibility(visible) {
   }
 }
 
+function SetHomePageVisibility(visible) {
+	var topContainer = document.getElementById("TopContainer");
+	if (visible) {
+		topContainer.classList.remove("RightBoardInvisible");
+	} else {
+		topContainer.classList.add("RightBoardInvisible");
+	}
+}
+
 function SetClassicMode(classic_mode) {
 	ClassicMode = classic_mode;
-	var topContainer = document.getElementById("TopContainer");
 	var switchToClassicView = document.getElementById("switchToClassicView");
 	if (classic_mode) {
-		topContainer.classList.remove("LoginFullWidth");
+		SetHomePageVisibility(true);
 		switchToClassicView.textContent = "Switch to AI-assisted mode";
 	} else {
-		topContainer.classList.add("LoginFullWidth");
+		SetHomePageVisibility(false);
 		switchToClassicView.textContent = "Switch to classic mode";
 	}
+}
+
+function SetLoginStatus(is_login) {
+  IsLogin = is_login;
+	SetLoginPanelVisibility(!is_login);
+	SetHomePageVisibility(is_login);
 }
 
 function HandleStudio( pVal )

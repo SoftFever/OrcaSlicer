@@ -23,7 +23,7 @@ private:
     wxString m_javascript;
     wxString m_response_js;
     wxString m_user_agent;
-
+    wxString m_oauth_token;
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
     void OnDocumentLoaded(wxWebViewEvent& evt);

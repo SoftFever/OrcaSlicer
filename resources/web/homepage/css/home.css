@@ -82,7 +82,7 @@ body
 	width: 376px;
 }
 
-.LoginFullWidth #LeftBoard
+.RightBoardInvisible #LeftBoard
 {
 	width: 100%;
 }
@@ -242,7 +242,7 @@ body
 	overflow-y:auto;
 }
 
-.LoginFullWidth #RightBoard
+.RightBoardInvisible #RightBoard
 {
 	display: none;
 }

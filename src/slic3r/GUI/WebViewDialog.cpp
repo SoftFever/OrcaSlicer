@@ -544,6 +544,12 @@ void WebViewPanel::update_classic_mode()
     RunScript(strJS);
 }
 
+void WebViewPanel::update_login_status(bool is_login)
+{
+    wxString strJS = wxString::Format("SetLoginStatus(%s)", is_login ? "true" : "false");
+    RunScript(strJS);
+}
+
 /**
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
