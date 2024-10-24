@@ -28,7 +28,7 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     SetBackgroundColour(*wxWHITE);
 
     // Set up the URL for JusPrin login
-    m_jusprint_url = "https://app.obico.io/o/authorize?response_type=token&client_id=OrcaSlicer&hide_navbar=true";
+    m_jusprint_url = "https://app.obico.io/o/authorize?response_type=token&client_id=JusPrin&hide_navbar=true";
     m_networkOk = false;
 
     // Create the webview
@@ -103,6 +103,34 @@ void JusPrinLoginDialog::UpdateState()
 
 void JusPrinLoginDialog::OnNavigationRequest(wxWebViewEvent& evt)
 {
+    wxString tmpUrl = evt.GetURL();
+    if (tmpUrl.Contains("authorized/") && tmpUrl.Contains("access_token=")) {
+        wxString access_token;
+        int start = tmpUrl.Find("access_token=");
+        if (start != wxNOT_FOUND) {
+            start += 13; // length of "access_token="
+            int end = tmpUrl.find('&', start);
+            if (end != wxNOT_FOUND) {
+                access_token = tmpUrl.SubString(start, end - 1);
+            } else {
+                access_token = tmpUrl.SubString(start, tmpUrl.Length() - 1);
+            }
+            m_oauth_token = access_token.ToStdString();
+
+            // Check if access_token is not null and not empty
+            if (!m_oauth_token.empty()) {
+                // End the modal with wxID_OK
+                EndModal(wxID_OK);
+            } else {
+                // End the modal with a "not okay" value
+                EndModal(wxID_CANCEL);
+            }
+        } else {
+            // No access_token found in the URL
+            EndModal(wxID_CANCEL);
+        }
+    }
+
     UpdateState();
 }
 

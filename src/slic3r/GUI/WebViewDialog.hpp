@@ -105,6 +105,8 @@ public:
 
     void update_mode();
     void update_classic_mode();
+    void update_login_status(bool is_login);
+
 private:
 
     wxWebView* m_browser;
