@@ -256,7 +256,7 @@ public:
         // Bit stream containing splitting information.
         std::vector<bool>                     bitstream;
         // Array indicating which triangle state types are used (encoded inside bitstream).
-        std::vector<bool>                     used_states { std::vector<bool>(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false) };
+        std::vector<bool>                     used_states { std::vector<bool>(static_cast<size_t>(EnforcerBlockerType::ExtruderMax) + 1, false) };
 
         TriangleSplittingData() = default;
 
@@ -270,7 +270,7 @@ public:
 
         // Reset all used states before they are recomputed based on the bitstream.
         void reset_used_states() {
-            used_states.resize(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false);
+            used_states.resize(static_cast<size_t>(EnforcerBlockerType::ExtruderMax) + 1, false);
             std::fill(used_states.begin(), used_states.end(), false);
         }
 
