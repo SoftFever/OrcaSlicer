@@ -346,6 +346,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
     // for a sequence of extrusion moves.
     size_t            active_speed_modifier = size_t(-1);
 
+    // Orca: Whether we had our first extrusion in this layer.
+    // Time of any other movements before the first extrusion will be excluded from the layer time.
+    bool layer_had_extrusion = false;
+
     for (; *line_start != 0; line_start = line_end) 
     {
         while (*line_end != '\n' && *line_end != 0)
@@ -404,6 +408,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 line.type |= CoolingLine::TYPE_EXTERNAL_PERIMETER;
             if (wipe)
                 line.type |= CoolingLine::TYPE_WIPE;
+
+            // Orca: only slow down movements since the first extrusion
+            if (boost::contains(sline, ";_EXTRUDE_SET_SPEED"))
+                layer_had_extrusion = true;
             
             // ORCA: Dont slowdown external perimeters for layer time feature
             // use the adjustment pointer to ensure the value for the current extruder (filament) is used.
@@ -514,6 +522,13 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         } else if (boost::starts_with(sline, ";_FORCE_RESUME_FAN_SPEED")) {
             line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;
         }
+
+        // Orca: For any movements before this layer's first ever extrusion, we exclude them from the layer time calculation.
+        if (!layer_had_extrusion) {
+            assert((line.type & CoolingLine::TYPE_ADJUSTABLE) == 0);
+            line.time = line.time_max = 0;
+        }
+
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
     }
