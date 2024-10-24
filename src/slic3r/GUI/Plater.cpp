@@ -12347,7 +12347,6 @@ void Plater::reslice()
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
         p->m_is_slicing = true;
-        this->SetDropTarget(nullptr);
         if (p->m_cur_slice_plate == 0)
             reset_gcode_toolpaths();
         return;
@@ -12355,7 +12354,6 @@ void Plater::reslice()
 
     if (result) {
         p->m_is_slicing = true;
-        this->SetDropTarget(nullptr);
     }
 
     bool clean_gcode_toolpaths = true;
