@@ -108,6 +108,9 @@
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 
+// JusPrin
+#include "JusPrin/JusPrinLoginDialog.hpp"
+
 //#ifdef WIN32
 //#include "BaseException.h"
 //#endif
@@ -3616,6 +3619,19 @@ wxString GUI_App::transition_tridid(int trid_id)
     return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
 }
 
+void GUI_App::show_jusprin_login() {
+    Slic3r::GUI::JusPrinLoginDialog login_dlg;
+    if (login_dlg.run()) {
+        // Login was successful
+        // You might want to update the UI or perform some action here
+        wxMessageBox(_L("JusPrin login successful!"), _L("Success"), wxOK | wxICON_INFORMATION);
+    } else {
+        // Login failed or was cancelled
+        wxMessageBox(_L("JusPrin login was cancelled or failed."), _L("Login Failed"), wxOK | wxICON_WARNING);
+    }
+}
+
+// TODO: Remove BBL login
 //BBS
 void GUI_App::request_login(bool show_user_info)
 {
@@ -3754,7 +3770,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
                 CallAfter([this] {
-                    this->request_login(true);
+                    this->show_jusprin_login();
                 });
             }
             else if (command_str.compare("homepage_logout") == 0) {
