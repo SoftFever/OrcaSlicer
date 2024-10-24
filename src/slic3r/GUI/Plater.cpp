@@ -10128,6 +10128,10 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(filename);
     }
 
+    // Orca: Fix crash when loading gcode file multiple times
+    if (m_only_gcode) {
+        p->view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+    }
 }
 
 void Plater::reload_gcode_from_disk()
