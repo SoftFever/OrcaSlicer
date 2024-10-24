@@ -555,8 +555,7 @@ static inline void extruder_range_slow_down_non_proportional(
     for (PerExtruderAdjustments *adj : by_min_print_speed) {
         adj->idx_line_begin = 0;
         adj->idx_line_end   = 0;
-        assert(adj->idx_line_begin < adj->n_lines_adjustable);
-        if (adj->lines[adj->idx_line_begin].feedrate > feedrate)
+        if (adj->idx_line_begin < adj->n_lines_adjustable && adj->lines[adj->idx_line_begin].feedrate> feedrate)
             feedrate = adj->lines[adj->idx_line_begin].feedrate;
     }
     assert(feedrate > 0.f);
@@ -643,6 +642,7 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
         } else
             elapsed_time_total0 += adj.elapsed_time_total();
     }
+
     std::sort(by_slowdown_time.begin(), by_slowdown_time.end(),
         [](const PerExtruderAdjustments *adj1, const PerExtruderAdjustments *adj2)
             { return adj1->slow_down_layer_time < adj2->slow_down_layer_time; });
