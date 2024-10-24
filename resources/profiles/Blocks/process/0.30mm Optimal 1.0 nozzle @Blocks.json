@@ -1,0 +1,15 @@
+{
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.30mm Optimal 1.0 nozzle @Blocks",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_common 1.0 nozzle",
+    "bottom_shell_layers": "4",
+    "top_shell_layers": "4",
+    "layer_height": "0.30",
+    "compatible_printers": [
+        "BLOCKS Pro S100",
+        "BLOCKS Pro S100 1.0 nozzle"
+    ]
+}
