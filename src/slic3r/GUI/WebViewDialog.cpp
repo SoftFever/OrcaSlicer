@@ -281,6 +281,8 @@ void WebViewPanel::UpdateState()
     //SetTitle(m_browser->GetCurrentTitle());
     m_url->SetValue(m_browser->GetCurrentURL());
 #endif //BBL_RELEASE_TO_PUBLIC
+    update_classic_mode();
+    update_login_status();
 }
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
@@ -421,11 +423,11 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         Slic3r::GUI::wxGetApp().get_login_info();
 }
 
-void WebViewPanel::SetLoginPanelVisibility(bool bshow)
-{
-    wxString strJS = wxString::Format("SetLoginPanelVisibility(%s)", bshow ? "true" : "false");
-    RunScript(strJS);
-}
+// void WebViewPanel::SetLoginPanelVisibility(bool bshow)
+// {
+//     wxString strJS = wxString::Format("SetLoginPanelVisibility(%s)", bshow ? "true" : "false");
+//     RunScript(strJS);
+// }
 void WebViewPanel::SendRecentList(int images)
 {
     boost::property_tree::wptree req;
@@ -544,9 +546,9 @@ void WebViewPanel::update_classic_mode()
     RunScript(strJS);
 }
 
-void WebViewPanel::update_login_status(bool is_login)
+void WebViewPanel::update_login_status()
 {
-    wxString strJS = wxString::Format("SetLoginStatus(%s)", is_login ? "true" : "false");
+    wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get("jusprin_server", "access_token").empty() ? "false" : "true");
     RunScript(strJS);
 }
 

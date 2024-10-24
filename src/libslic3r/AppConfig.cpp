@@ -421,6 +421,11 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
     erase("app", "severity_level");
+
+    // Add default for jusprin_server section
+    if (get("jusprin_server", "access_token").empty()) {
+        set_str("jusprin_server", "access_token", "");
+    }
 }
 
 #ifdef WIN32
@@ -626,6 +631,11 @@ std::string AppConfig::load()
                         local_machine.printer_type = p["printer_type"].get<std::string>();
                     m_local_machines[local_machine.dev_id] = local_machine;
                 }
+            } else if (it.key() == "jusprin_server") {
+                for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
+                    m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
+                }
+                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -809,6 +819,11 @@ void AppConfig::save()
         m_json["printer_type"]     = local_machine.second.printer_type;
 
         j["local_machines"][local_machine.first] = m_json;
+    }
+
+    // Write the jusprin_server section
+    for (const auto& kvp : m_storage["jusprin_server"]) {
+        j["jusprin_server"][kvp.first] = kvp.second;
     }
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
