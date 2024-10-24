@@ -1851,6 +1851,26 @@ void PresetBundle::export_selections(AppConfig &config)
 }
 
 // BBS
+void PresetBundle::set_num_filaments(unsigned int n, std::vector<std::string> new_colors) {
+    int old_filament_count = this->filament_presets.size();
+    if (n > old_filament_count && old_filament_count != 0)
+        filament_presets.resize(n, filament_presets.back());
+    else {
+        filament_presets.resize(n);
+    }
+    ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    filament_color->resize(n);
+    ams_multi_color_filment.resize(n);
+    // BBS set new filament color to new_color
+    if (old_filament_count < n) {
+        if (!new_colors.empty()) {
+            for (int i = old_filament_count; i < n; i++) {
+                filament_color->values[i] = new_colors[i - old_filament_count];
+            }
+        }
+    }
+    update_multi_material_filament_presets();
+}
 void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
     int old_filament_count = this->filament_presets.size();
