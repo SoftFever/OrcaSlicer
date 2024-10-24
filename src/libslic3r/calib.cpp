@@ -46,13 +46,20 @@ double CalibPressureAdvance::e_per_mm(
     return line_flow.mm3_per_mm() * print_flow_ratio / filament_area ;
 }
 
-std::string CalibPressureAdvance::convert_number_to_string(double num) const
+std::string CalibPressureAdvance::convert_number_to_string(double num, unsigned int precision) const
 {
-    auto sNumber = std::to_string(num);
-    sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
-    sNumber.erase(sNumber.find_last_not_of('.') + 1, std::string::npos);
+    std::ostringstream stream;
 
-    return sNumber;
+    if (precision) {
+        /* if number is > 1000 then there are no way we'll fit fractional part into 5 glyphs, so
+         * in this case we keep full precision.
+         * Otherwise we reduce precision by 1 to accomodate decimal separator */
+        stream << std::setprecision(num >= 1000 ? precision : precision - 1);
+    }
+
+    stream << num;
+
+    return stream.str();
 }
 
 std::string CalibPressureAdvance::draw_digit(
@@ -201,12 +208,12 @@ std::string CalibPressureAdvance::draw_number(double                            
                                               double                              speed,
                                               GCodeWriter                        &writer)
 {
-    auto              sNumber = convert_number_to_string(value);
+    auto              sNumber = convert_number_to_string(value, m_number_len);
     std::stringstream gcode;
     gcode << writer.set_speed(speed);
 
     for (std::string::size_type i = 0; i < sNumber.length(); ++i) {
-        if (i > m_max_number_len) {
+        if (i >= m_number_len) {
             break;
         }
         switch (mode) {
@@ -548,9 +555,7 @@ double CalibPressureAdvancePattern::flow_val() const
     double speed = m_config.opt_float("outer_wall_speed");
     Flow pattern_line = Flow(line_width, layer_height, m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
 
-    /* round value to 1/1000 */
-    unsigned long intval = 1000 * speed * pattern_line.mm3_per_mm() * flow_mult;
-    return 0.001f * intval;
+    return speed * pattern_line.mm3_per_mm() * flow_mult;
 };
 
 void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config,
@@ -607,6 +612,8 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
         // line numbering
         if (i == 1) {
+            m_number_len = max_numbering_length();
+
             gcode << m_writer.set_pressure_advance(m_params.start);
 
             double number_e_per_mm = e_per_mm(line_width(), height_layer(),
@@ -816,7 +823,7 @@ double CalibPressureAdvancePattern::glyph_tab_max_x() const
            (glyph_length_x() - line_width() / 2) + padding;
 }
 
-double CalibPressureAdvancePattern::max_numbering_height() const
+size_t CalibPressureAdvancePattern::max_numbering_length() const
 {
     std::string::size_type most_characters = 0;
     const int              num_patterns    = get_num_patterns();
@@ -830,15 +837,18 @@ double CalibPressureAdvancePattern::max_numbering_height() const
         }
     }
 
-    most_characters = std::min(most_characters, m_max_number_len);
-
-    std::string sFlow = convert_number_to_string(flow_val());
-    most_characters = std::max(most_characters, sFlow.length());
-
     std::string sAccel = convert_number_to_string(m_config.opt_float("default_acceleration"));
     most_characters = std::max(most_characters, sAccel.length());
 
-    return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_digit_gap_len);
+    /* don't actually check flow value: we'll print as many fractional digits as fits */
+
+    return std::min(most_characters, m_max_number_len);
+}
+
+double CalibPressureAdvancePattern::max_numbering_height() const
+{
+    std::string::size_type num_characters = max_numbering_length();
+    return (num_characters * m_digit_segment_len) + ((num_characters - 1) * m_digit_gap_len);
 }
 
 double CalibPressureAdvancePattern::pattern_shift() const
