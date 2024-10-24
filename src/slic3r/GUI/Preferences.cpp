@@ -1104,6 +1104,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_stealth_mode = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), 50, "stealth_mode");
     auto item_enable_plugin = create_item_checkbox(_L("Enable network plugin"), page, _L("Enable network plugin"), 50, "installed_networking");
+    auto item_sync_on_start = create_item_checkbox(_L("Sync network and printer config on start"), page, _L("Check for latest version of Bambu's network plugin and your Bambu's printer config on start"), 50, "sync_on_start");
     auto item_check_stable_version_only = create_item_checkbox(_L("Check for stable updates only"), page, _L("Check for stable updates only"), 50, "check_stable_update_only");
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
@@ -1218,6 +1219,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_check_stable_version_only, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_stealth_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_enable_plugin, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_sync_on_start, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));

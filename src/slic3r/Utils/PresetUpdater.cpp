@@ -1332,7 +1332,7 @@ PresetUpdater::~PresetUpdater()
 
 //BBS: change directories by design
 //BBS: refine the preset updater logic
-void PresetUpdater::sync(std::string http_url, std::string language, std::string plugin_version, PresetBundle *preset_bundle)
+void PresetUpdater::sync(std::string http_url, std::string language, std::string plugin_version, PresetBundle *preset_bundle, bool sync_on_start)
 {
 	//p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
@@ -1342,7 +1342,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
 	// into the closure (but perhaps the compiler can elide this).
     VendorMap vendors = preset_bundle ? preset_bundle->vendors : VendorMap{};
 
-	p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
+	p->thread = std::thread([this, vendors, http_url, language, plugin_version, sync_on_start]() {
 		this->p->prune_tmps();
 		if (p->cancel)
 			return;
@@ -1359,8 +1359,12 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
         }
 		if (p->cancel)
 			return;
-        this->p->sync_plugins(http_url, plugin_version);
-        this->p->sync_printer_config(http_url);
+
+        // orca: sync network plugin & printer config from bambu if needed
+        if (sync_on_start) {
+            this->p->sync_plugins(http_url, plugin_version);
+            this->p->sync_printer_config(http_url);
+        }
 		//if (p->cancel)
 		//	return;
 		//remove the tooltip currently

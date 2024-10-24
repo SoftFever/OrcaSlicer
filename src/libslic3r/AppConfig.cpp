@@ -255,6 +255,11 @@ void AppConfig::set_defaults()
         set_bool("stealth_mode", false);
     }
 
+    if (get("sync_on_start").empty()) {
+        // set default value as true to avoid breaking change for existing users
+        set_bool("sync_on_start", true);
+    }
+
     if(get("check_stable_update_only").empty()) {
         set_bool("check_stable_update_only", false);
     }

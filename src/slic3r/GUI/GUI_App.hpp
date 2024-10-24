@@ -661,7 +661,7 @@ private:
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
-    std::string     get_http_url(std::string country_code, std::string path = {});
+    std::string     get_http_url(std::string country_code, std::string path = {}, bool override_stealth_mode = false);
     std::string     get_model_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();

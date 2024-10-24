@@ -110,6 +110,9 @@ var LangText = {
     orca3: "Stealth Mode",
     orca4: "This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function.",
     orca5: "Enable Stealth Mode.",
+    orca6: "Sync on start",
+    orca7: "OrcaSlicer will check for the latest Bambu Network plug-in version and latest Bambu printer configuration on application start. Uncheck the following option if you do not want this. Users who don't use BBL machines can safely turn this off",
+    orca8: "Sync latest Bambu Network plug-in and printer configuration on application start",
   },
     ca_ES: {
     t1: "Benvingut a Orca Slicer",
