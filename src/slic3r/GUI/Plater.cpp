@@ -9417,12 +9417,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
 void Plater::_calib_pa_pattern(const Calib_Params& params)
 {
-    // add "handle" cube
-    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
-    orient();
-    changed_objects({ 0 });
-    _calib_pa_select_added_objects();
-
+    /* Set common parameters */
     DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -9513,6 +9508,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl_machine = preset_bundle->is_bbl_vendor();
     const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
+
+    // add "handle" cube
+    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
+    orient();
+    changed_objects({ 0 });
+    _calib_pa_select_added_objects();
+
     CalibPressureAdvancePattern pa_pattern(
         params,
         full_config,
@@ -9542,15 +9544,15 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     giz_obj_manip.on_change(
         "position",
         0,
-        plate_center.x() - (pa_pattern.print_size_x() / 2)
+        plate_center.x() - (pa_pattern.print_size_x() / 2) - 2
     );
-    giz_obj_manip.on_change(
-        "position",
-        1,
-        plate_center.y() -
-            (pa_pattern.print_size_y() / 2) -
-            pa_pattern.handle_spacing()
-    );
+    // giz_obj_manip.on_change(
+    //     "position",
+    //     1,
+    //     plate_center.y() -
+    //         (pa_pattern.print_size_y() / 2) -
+    //         pa_pattern.handle_spacing()
+    // );
 
     if (params.batch_mode) {
         /* Generate entire test set for adaptive PA calibration */

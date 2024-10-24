@@ -716,7 +716,8 @@ void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
     BoundingBoxf3 bbox = obj->instance_bounding_box(*obj->instances.front(), false);
 
     m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
-    m_starting_point.y() += m_handle_spacing;
+    m_starting_point.x() -= m_handle_spacing;
+    m_starting_point.y() -= std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length + (bbox.max.y() - bbox.min.y()) / 2;
 }
 
 void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin)
