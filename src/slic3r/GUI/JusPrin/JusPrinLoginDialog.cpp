@@ -115,10 +115,14 @@ void JusPrinLoginDialog::OnNavigationRequest(wxWebViewEvent& evt)
             } else {
                 access_token = tmpUrl.SubString(start, tmpUrl.Length() - 1);
             }
-            m_oauth_token = access_token.ToStdString();
+            std::string oauth_token = access_token.ToStdString();
 
             // Check if access_token is not null and not empty
-            if (!m_oauth_token.empty()) {
+            if (!oauth_token.empty()) {
+                // Set the access_token in the jusprin_server section of the AppConfig
+                wxGetApp().app_config->set("jusprin_server", "access_token", oauth_token);
+                wxGetApp().app_config->save();
+
                 // End the modal with wxID_OK
                 EndModal(wxID_OK);
             } else {

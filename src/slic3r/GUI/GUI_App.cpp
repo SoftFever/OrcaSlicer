@@ -3622,8 +3622,9 @@ wxString GUI_App::transition_tridid(int trid_id)
 void GUI_App::show_jusprin_login() {
     Slic3r::GUI::JusPrinLoginDialog login_dlg;
     if (login_dlg.run()) {
-        mainframe->m_webview->update_login_status(true);
+        mainframe->m_webview->update_login_status();
     } else {
+        mainframe->m_webview->update_login_status();
         // Login failed or was cancelled
         wxMessageBox(_L("JusPrin login was cancelled or failed."), _L("Login Failed"), wxOK | wxICON_WARNING);
     }
@@ -3656,7 +3657,7 @@ void GUI_App::get_login_info()
 //         }
 //     }
 
-    mainframe->m_webview->SetLoginPanelVisibility(true);
+    // mainframe->m_webview->SetLoginPanelVisibility(true);
 }
 
 bool GUI_App::is_user_login()
@@ -5300,7 +5301,6 @@ void GUI_App::update_mode()
     if (mainframe->m_printer_view)
         mainframe->m_printer_view->update_mode();
     mainframe->m_webview->update_mode();
-    mainframe->m_webview->update_classic_mode();
 
 #ifdef _MSW_DARK_MODE
     if (!wxGetApp().tabs_as_menu())

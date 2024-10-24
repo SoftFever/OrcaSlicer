@@ -419,6 +419,11 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
     erase("app", "severity_level");
+
+    // Add default for jusprin_server section
+    if (get("jusprin_server", "access_token").empty()) {
+        set_str("jusprin_server", "access_token", "");
+    }
 }
 
 #ifdef WIN32
@@ -611,6 +616,10 @@ std::string AppConfig::load()
                 for (auto& j_model : it.value()) {
                     m_printer_settings[j_model["machine"].get<std::string>()] = j_model;
                 }
+            } else if (it.key() == "jusprin_server") {
+                for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
+                    m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
+                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -787,6 +796,12 @@ void AppConfig::save()
     for (const auto& preset : m_printer_settings) {
         j["orca_presets"].push_back(preset.second);
     }
+
+    // Write the jusprin_server section
+    for (const auto& kvp : m_storage["jusprin_server"]) {
+        j["jusprin_server"][kvp.first] = kvp.second;
+    }
+
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
     c << std::setw(4) << j << std::endl;
