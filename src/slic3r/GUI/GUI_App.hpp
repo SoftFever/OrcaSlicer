@@ -18,6 +18,7 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "slic3r/GUI/JusPrin/JusPrinLoginDialog.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -672,6 +673,8 @@ public:
     void            cancel_networking_install();
     void            restart_networking();
     void            check_config_updates_from_updater() { check_updates(false); }
+
+    void            show_jusprin_login();
 
 private:
     int             updating_bambu_networking();

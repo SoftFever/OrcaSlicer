@@ -572,6 +572,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/ElegooLink.hpp
     Utils/ElegooLink.cpp
     Utils/WebSocketClient.hpp
+    GUI/JusPrin/JusPrinLoginDialog.cpp
+    GUI/JusPrin/JusPrinLoginDialog.hpp
 )
 
 if (WIN32)
