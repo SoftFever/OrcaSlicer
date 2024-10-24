@@ -4280,7 +4280,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                         best_pre         = tag_version;
                         best_pre_url     = root.get<std::string>("html_url");
                         best_pre_content = root.get<std::string>("body");
-                        best_pre.set_prerelease("Preview");
                     }
                 } else {
                     if (best_release < tag_version) {
@@ -4302,7 +4301,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                             best_pre         = tag_version;
                             best_pre_url     = json_version.second.get<std::string>("html_url");
                             best_pre_content = json_version.second.get<std::string>("body");
-                            best_pre.set_prerelease("Preview");
                         }
                     } else {
                         if (best_release < tag_version) {
