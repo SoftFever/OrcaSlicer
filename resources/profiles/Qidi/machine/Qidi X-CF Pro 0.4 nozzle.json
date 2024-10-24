@@ -94,7 +94,7 @@
 	"deretraction_speed": [
 		"0"
 	],
-	"single_extruder_multi_material": "0",
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [
