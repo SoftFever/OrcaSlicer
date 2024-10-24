@@ -312,6 +312,7 @@ public:
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
     // get used filaments, 1 based idx
     std::vector<int> get_used_extruders();
+    bool check_tpu_printable_status(const DynamicPrintConfig *config, const std::vector<int> &tpu_filaments);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not

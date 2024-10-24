@@ -1992,6 +1992,30 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     return filament_presets.size();
 }
 
+std::vector<int> PresetBundle::get_used_tpu_filaments(const std::vector<int> &used_filaments)
+{
+    std::vector<int> tpu_filaments;
+    for (size_t i = 0; i < this->filament_presets.size(); ++i) {
+        auto iter = std::find(used_filaments.begin(), used_filaments.end(), i + 1);
+        if (iter == used_filaments.end()) continue;
+
+        std::string filament_name = this->filament_presets[i];
+        for (int f_index = 0; f_index < this->filaments.size(); f_index++) {
+            PresetCollection *filament_presets = &this->filaments;
+            Preset           *preset           = &filament_presets->preset(f_index);
+            int               size             = this->filaments.size();
+            if (preset && filament_name.compare(preset->name) == 0) {
+                std::string display_filament_type;
+                std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                if (display_filament_type == "TPU") {
+                    tpu_filaments.push_back(i);
+                }
+            }
+        }
+    }
+    return tpu_filaments;
+}
+
 void PresetBundle::set_calibrate_printer(std::string name)
 {
     if (name.empty()) {

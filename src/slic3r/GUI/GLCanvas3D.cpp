@@ -2870,7 +2870,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //if (printer_technology != ptSLA || !contained_min_one)
             //    _set_warning_notification(EWarning::SlaSupportsOutside, false);
 
-            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty();
+            PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+            bool tpu_valid = cur_plate->check_tpu_printable_status(m_config, wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
+            _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
+
+            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
         }
@@ -2879,7 +2883,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             _set_warning_notification(EWarning::ObjectClashed, false);
             _set_warning_notification(EWarning::ObjectLimited, false);
             //_set_warning_notification(EWarning::SlaSupportsOutside, false);
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+           _set_warning_notification(EWarning::TPUPrintableError, false);
+           post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
 
@@ -9744,8 +9749,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ObjectOutside:      text = _u8L("An object is laid over the plate boundaries."); break;
     case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::TPUPrintableError: {
+        int master_extruder_id = 0;  // main extruder is left or right
+        if (m_config->has("master_extruder_id"))
+            master_extruder_id = m_config->opt_int("master_extruder_id"); // base 1
+        std::string extruder_name = master_extruder_id == 1 ? "Left extruder" : "Right extruder";
+        text = (boost::format(_u8L("Multiple TPU filaments are not allowed to print at the same time, and the TPU filament must be placed in the virtual slot of %s.")) %extruder_name).str();
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
     case EWarning::MultiExtruderPrintableError: {
-        text.clear();
         int master_extruder_id = 0;  // main extruder is left or right
         if (m_config->has("master_extruder_id"))
             master_extruder_id = m_config->opt_int("master_extruder_id") - 1;

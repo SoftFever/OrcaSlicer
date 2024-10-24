@@ -1675,6 +1675,29 @@ std::vector<int> PartPlate::get_used_extruders()
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
+bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig *config, const std::vector<int> &tpu_filaments)
+{
+    bool tpu_valid = true;
+
+    if (!tpu_filaments.empty()) {
+        if (tpu_filaments.size() > 1)
+            tpu_valid = false;
+        else if (get_filament_map_mode() == FilamentMapMode::fmmManual) {
+            if (config->has("master_extruder_id")) {
+                int tpu_filament_id = *tpu_filaments.begin();
+                std::vector<int> filament_map    = get_filament_maps();
+                int extruder_id = filament_map[tpu_filament_id];
+
+                int master_extruder_id = config->opt_int("master_extruder_id");  // base 1
+                if (master_extruder_id != extruder_id)
+                    tpu_valid = false;
+            }
+        }
+    }
+
+    return tpu_valid;
+}
+
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
 {
 	Vec3d wipe_tower_size;
