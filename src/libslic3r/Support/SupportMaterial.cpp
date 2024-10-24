@@ -415,7 +415,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     if (m_object_config->support_interface_pattern == smipGrid)
         m_support_params.contact_fill_pattern = ipGrid;
-    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+    else if (m_object_config->support_interface_pattern == smipRectilinear)
         m_support_params.contact_fill_pattern = ipRectilinear;
     else
         m_support_params.contact_fill_pattern =
@@ -4378,7 +4378,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     loop_interface_processor.n_contact_loops = this->has_contact_loops() ? 1 : 0;
 
     std::vector<float>      angles { m_support_params.base_angle };
-    if (m_object_config->support_base_pattern == smpRectilinearGrid)
+    if (m_object_config->support_base_pattern == smpRectilinear)
         angles.push_back(m_support_params.interface_angle);
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
@@ -4544,7 +4544,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            float         interface_angle_delta = m_object_config->support_style.value == smsSnug ? 
+            float         interface_angle_delta = m_object_config->support_style.value == smsSnug ?
                 (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
                 0;
 
@@ -4696,7 +4696,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     filler_interface->angle = Geometry::deg2rad(m_support_params.base_angle);
                     fill_params.dont_sort = true;
                 }
-                if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                if (m_object_config->support_interface_pattern == smipRectilinear)
                     filler_interface->layer_id = support_layer.interface_id();
                 fill_expolygons_generate_paths(
                     // Destination

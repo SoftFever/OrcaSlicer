@@ -13625,9 +13625,6 @@ msgstr "Trama base"
 msgid "Line pattern of support"
 msgstr "Questo è la trama lineare del supporto."
 
-msgid "Rectilinear grid"
-msgstr "Griglia rettilinea"
-
 msgid "Hollow"
 msgstr "Svuota"
 
@@ -13642,9 +13639,6 @@ msgstr ""
 "Questo è la Trama lineare per le interfacce di supporto. Il modello "
 "predefinito per le interfacce di supporto non solubili è rettilineo mentre "
 "il modello predefinito per le interfacce di supporto solubili è concentrico."
-
-msgid "Rectilinear Interlaced"
-msgstr "Rettilineo Interlacciato"
 
 msgid "Base pattern spacing"
 msgstr "Spazio trama base"

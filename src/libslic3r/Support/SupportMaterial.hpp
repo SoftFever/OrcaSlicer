@@ -133,18 +133,18 @@ public:
 
 		coordf_t	gap_xy;
 
-	    float    				base_angle;
-	    float    				interface_angle;
-	    coordf_t 				interface_spacing;
-	    coordf_t				support_expansion;
-	    coordf_t 				interface_density;
-	    coordf_t 				support_spacing;
-	    coordf_t 				support_density;
+	    float           base_angle;
+	    float           interface_angle;
+	    coordf_t        interface_spacing;
+	    coordf_t        support_expansion;
+	    coordf_t        interface_density;
+	    coordf_t        support_spacing;
+	    coordf_t        support_density;
 
-	    InfillPattern           base_fill_pattern;
-	    InfillPattern           interface_fill_pattern;
-	    InfillPattern 			contact_fill_pattern;
-	    bool                    with_sheath;
+	    InfillPattern   base_fill_pattern;
+	    InfillPattern   interface_fill_pattern;
+	    InfillPattern   contact_fill_pattern;
+	    bool            with_sheath;
 	};
 
 	// Layers are allocated and owned by a deque. Once a layer is allocated, it is maintained

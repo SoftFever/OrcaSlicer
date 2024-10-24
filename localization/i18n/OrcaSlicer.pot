@@ -12076,9 +12076,6 @@ msgstr ""
 msgid "Line pattern of support"
 msgstr ""
 
-msgid "Rectilinear grid"
-msgstr ""
-
 msgid "Hollow"
 msgstr ""
 
@@ -12089,9 +12086,6 @@ msgid ""
 "Line pattern of support interface. Default pattern for non-soluble support "
 "interface is Rectilinear, while default pattern for soluble support "
 "interface is Concentric"
-msgstr ""
-
-msgid "Rectilinear Interlaced"
 msgstr ""
 
 msgid "Base pattern spacing"

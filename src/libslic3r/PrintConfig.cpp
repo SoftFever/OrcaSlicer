@@ -204,12 +204,12 @@ static t_config_enum_values s_keys_map_SlicingMode {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
+    { "alignedrectilinear", smpAlignedRectilinear },
     { "rectilinear",        smpRectilinear },
-    { "rectilinear-grid",   smpRectilinearGrid },
     { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
     { "default",            smpDefault},
-    { "hollow",               smpNone},
+    { "hollow",             smpNone},
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -225,11 +225,11 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
 static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
-    { "auto",           smipAuto },
-    { "rectilinear",    smipRectilinear },
-    { "concentric",     smipConcentric },
-    { "rectilinear_interlaced", smipRectilinearInterlaced},
-    { "grid",           smipGrid }
+    { "auto",               smipAuto },
+    { "rectilinear",        smipRectilinear },
+    { "concentric",         smipConcentric },
+    { "alignedrectilinear", smipAlignedRectilinear},
+    { "grid",               smipGrid }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
@@ -4570,14 +4570,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line pattern of support");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
     def->enum_values.push_back("default");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("rectilinear");
-    def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear"));
-    def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
@@ -4594,12 +4594,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("auto");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
-    def->enum_values.push_back("rectilinear_interlaced");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("grid");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
-    def->enum_labels.push_back(L("Rectilinear Interlaced"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipAuto));

@@ -13080,9 +13080,6 @@ msgstr "Základní vzor"
 msgid "Line pattern of support"
 msgstr "Čárový vzor podpěry"
 
-msgid "Rectilinear grid"
-msgstr "Přímočará mřížka"
-
 msgid "Hollow"
 msgstr "Dutá"
 
@@ -13097,9 +13094,6 @@ msgstr ""
 "Vzor čáry pro kontaktní vrstvy podpěr. Výchozí vzor pro rozhraní nerozpustné "
 "podpěry je přímočarý, zatímco výchozí vzor pro rozhraní rozpustné podpěry je "
 "koncentrický"
-
-msgid "Rectilinear Interlaced"
-msgstr "Přímočarý Prokládaný"
 
 msgid "Base pattern spacing"
 msgstr "Rozestup základního vzoru"
