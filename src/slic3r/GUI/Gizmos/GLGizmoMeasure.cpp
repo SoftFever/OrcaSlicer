@@ -1175,7 +1175,6 @@ void GLGizmoMeasure::render_dimensioning()
 
         const Transform3d ss_to_ndc_matrix = TransformHelper::ndc_to_ss_matrix_inverse(viewport);
 
-#if ENABLE_GL_CORE_PROFILE
         if (OpenGLManager::get_gl_info().is_core_profile()) {
             shader->stop_using();
 
@@ -1191,7 +1190,6 @@ void GLGizmoMeasure::render_dimensioning()
             shader->set_uniform("gap_size", 0.0f);
         }
         else
-#endif // ENABLE_GL_CORE_PROFILE
             glsafe(::glLineWidth(2.0f));
 
         // stem
@@ -1201,7 +1199,6 @@ void GLGizmoMeasure::render_dimensioning()
         m_dimensioning.line.set_color(ColorRGBA::WHITE());
         m_dimensioning.line.render();
 
-#if ENABLE_GL_CORE_PROFILE
         if (OpenGLManager::get_gl_info().is_core_profile()) {
             shader->stop_using();
 
@@ -1212,7 +1209,6 @@ void GLGizmoMeasure::render_dimensioning()
             shader->start_using();
         }
         else
-#endif // ENABLE_GL_CORE_PROFILE
             glsafe(::glLineWidth(1.0f));
 
         // arrow 1
@@ -1475,7 +1471,6 @@ void GLGizmoMeasure::render_dimensioning()
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
-#if ENABLE_GL_CORE_PROFILE
         if (OpenGLManager::get_gl_info().is_core_profile()) {
             shader->stop_using();
 
@@ -1491,7 +1486,6 @@ void GLGizmoMeasure::render_dimensioning()
             shader->set_uniform("gap_size", 0.0f);
         }
         else
-#endif // ENABLE_GL_CORE_PROFILE
           glsafe(::glLineWidth(2.0f));
 
         // arc
@@ -1499,7 +1493,6 @@ void GLGizmoMeasure::render_dimensioning()
         shader->set_uniform("view_model_matrix", camera.get_view_matrix() * Geometry::translation_transform(center));
         m_dimensioning.arc.render();
 
-#if ENABLE_GL_CORE_PROFILE
         if (OpenGLManager::get_gl_info().is_core_profile()) {
             shader->stop_using();
 
@@ -1510,7 +1503,6 @@ void GLGizmoMeasure::render_dimensioning()
             shader->start_using();
         }
         else
-#endif // ENABLE_GL_CORE_PROFILE
           glsafe(::glLineWidth(1.0f));
 
         // arrows
