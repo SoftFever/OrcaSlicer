@@ -6747,8 +6747,9 @@ void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 
 void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
-    if (show_warning_dialog)
-        warnings_dialog();
+    // Orca: warning dialog calls moved
+    // if (show_warning_dialog)
+    //     warnings_dialog();
 }
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
@@ -7266,6 +7267,10 @@ int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, 
 
 void Plater::priv::on_action_send_to_printer(bool isall)
 {
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!warnings_dialog())
+        return;
+
 	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
     if (isall) {
         m_send_to_sdcard_dlg->prepare(PLATE_ALL_IDX);
@@ -11435,6 +11440,10 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
 
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
+        return;
+
     // If possible, remove accents from accented latin characters.
     // This function is useful for generating file names to be processed by legacy firmwares.
     fs::path default_output_file;
@@ -11535,6 +11544,10 @@ void Plater::export_gcode_3mf(bool export_all)
         return;
 
     if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
+        return;
+
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
         return;
 
     //calc default_output_file, get default output file from background process
@@ -12577,6 +12590,10 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
     DynamicPrintConfig* physical_printer_config = &Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
     if (! physical_printer_config || p->model.objects.empty())
+        return;
+
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
         return;
 
     PrintHostJob upload_job(physical_printer_config);
