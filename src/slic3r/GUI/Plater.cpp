@@ -9511,9 +9511,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
-    orient();
-    changed_objects({ 0 });
-    _calib_pa_select_added_objects();
 
     CalibPressureAdvancePattern pa_pattern(
         params,
@@ -9523,36 +9520,12 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         plate_origin
     );
 
-    // scale cube to suit test
-    GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
-        get_gizmos_manager().get_object_manipulation();
-    giz_obj_manip.set_uniform_scaling(true);
-    giz_obj_manip.on_change(
-        "size",
-        0,
-        pa_pattern.handle_xy_size()
-    );
-    giz_obj_manip.set_uniform_scaling(false);
-    giz_obj_manip.on_change(
-        "size",
-        2,
-        pa_pattern.max_layer_z()
-    );
-    // start with pattern centered on plate
-    center_selection();
-    const Vec3d plate_center = get_partplate_list().get_curr_plate()->get_center_origin();
-    giz_obj_manip.on_change(
-        "position",
-        0,
-        plate_center.x() - (pa_pattern.print_size_x() / 2) - 2
-    );
-    // giz_obj_manip.on_change(
-    //     "position",
-    //     1,
-    //     plate_center.y() -
-    //         (pa_pattern.print_size_y() / 2) -
-    //         pa_pattern.handle_spacing()
-    // );
+    auto *cube = model().objects[0];
+    const auto cube_bb = cube->raw_bounding_box();
+    cube->scale(pa_pattern.handle_xy_size() / cube_bb.size().x(),
+                pa_pattern.handle_xy_size() / cube_bb.size().y(),
+                pa_pattern.max_layer_z() / cube_bb.size().z());
+    cube->translate(pa_pattern.handle_spacing() - pa_pattern.print_size_x() / 2 - pa_pattern.handle_xy_size() / 2, 0, 0);
 
     if (params.batch_mode) {
         /* Generate entire test set for adaptive PA calibration */
