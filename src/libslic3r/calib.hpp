@@ -311,7 +311,7 @@ private:
     bool               m_is_start_point_fixed = false;
 
     const double m_handle_xy_size{5};
-    const double m_handle_spacing{2};
+    const double m_handle_spacing{1.2};
     const int    m_num_layers{4};
 
     const double m_wall_side_length{30.0};
