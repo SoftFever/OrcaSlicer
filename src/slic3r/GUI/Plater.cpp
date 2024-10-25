@@ -370,6 +370,10 @@ struct Sidebar::priv
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
+    ChatConfigPanel* chat_config_panel = nullptr;
+    wxBoxSizer* config_sizer = nullptr;
+    wxBoxSizer* size_top = nullptr;
+
     priv(Plater *plater) : plater(plater) {}
     ~priv();
 
@@ -1128,19 +1132,18 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, 0);
 
     // byzzh
-    auto* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(p->scrolled, 1, wxEXPAND);
+    p->config_sizer = new wxBoxSizer(wxVERTICAL);
+    p->config_sizer->Add(p->scrolled, 1, wxEXPAND);
 
-    auto* size_top = new wxBoxSizer(wxVERTICAL);
-    size_top->Add(sizer, 1, wxEXPAND);
+    p->size_top = new wxBoxSizer(wxVERTICAL);
+    p->size_top->Add(p->config_sizer, 1, wxEXPAND);
+    
+    p->chat_config_panel = new ChatConfigPanel(this);
+    p->size_top->Add(p->chat_config_panel, 1, wxEXPAND);
 
-    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
-        auto chat_panel = new ChatConfigPanel(this);
-        size_top->Add(chat_panel, 1, wxEXPAND);
-        size_top->Hide(sizer, true);
-    }
+    update_content();
 
-    SetSizer(size_top);
+    SetSizer(p->size_top);
     Layout();
 }
 
@@ -1876,6 +1879,18 @@ void Sidebar::update_dynamic_filament_list()
 {
     dynamic_filament_list.update();
     dynamic_filament_list_1_based.update();
+}
+
+void Sidebar::update_content(){
+    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
+        p->size_top->Hide(p->config_sizer, true);
+        p->size_top->Show(p->chat_config_panel, true);
+    }
+    else{
+        p->size_top->Hide(p->chat_config_panel, true);
+        p->size_top->Show(p->config_sizer, true);
+    }
+    Layout();
 }
 
 ObjectList* Sidebar::obj_list()
@@ -3457,6 +3472,7 @@ void Plater::priv::enable_sidebar(bool enabled)
     update_sidebar();
 }
 
+
 void Plater::priv::collapse_sidebar(bool collapse)
 {
     if (q->m_only_gcode)
@@ -3476,12 +3492,12 @@ void Plater::priv::collapse_sidebar(bool collapse)
 }
 
 void Plater::priv::update_sidebar(bool force_update) {
+    this->sidebar->update_content();
     auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
     if (!sidebar.IsOk() || this->current_panel == nullptr) {
         return;
     }
     bool  needs_update = force_update;
-
     if (!sidebar_layout.is_enabled) {
         if (sidebar.IsShown()) {
             sidebar.Hide();

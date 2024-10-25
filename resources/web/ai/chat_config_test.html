@@ -30,17 +30,27 @@
         }
     </style>
     <script>
+        function handleClickLayoutHight() {
+            var inputElement = document.getElementById("layer_height");
+            var floatValue = parseFloat(inputElement.value); 
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "config_property",
+                key : 'layer_height',
+                type: 'TYPE_PRINT',
+                value: floatValue
+            }));
+        }
         function handleClick() {
             window.onGUIMessage('Hello from HTML');
-            sendMessageToWxWebView();
-            }
+        }
+
         window.onGUIMessage = function(message) {
             var pElement = document.getElementById("content");
             pElement.innerHTML = message;
         }
-        function sendMessageToWxWebView() {
+        function sendMessageToWxWebView(value) {
             if (window.wx) {
-                window.wx.postMessage('Hello from HTML');
+                window.wx.postMessage(value);
             } else {
                 alert('wx 对象不可用');
             }
@@ -55,6 +65,12 @@
         <h2>关于我们</h2>
         <p id="content">这是一个简单的HTML原页面示例。</p>
         <button onclick="handleClick()">点击我</button>
+        <br><br>
+        <label for="layer_height">layer_height:</label>
+        <input type="text" id="layer_height" value="0.33"/>
+        <button onclick="handleClickLayoutHight()">发送</button>
+        <br><br>
+
     </main>
     <footer>
         <p>&copy; 2023 我的公司</p>

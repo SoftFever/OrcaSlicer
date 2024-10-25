@@ -1374,6 +1374,32 @@ static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
     return config.opt_bool("pad_enable") ? (config.opt_bool("pad_around_object") ? _("Around object") : _("Below object")) : _("None");
 }
 
+void Tab::ApplyConfig(const std::string& opt_key, const boost::any& value) {
+    DynamicPrintConfig new_conf = *m_config;
+    try {
+        if (value.type() == typeid(std::string)) {
+            std::string str_value = boost::any_cast<std::string>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionString(str_value));
+        } else if (value.type() == typeid(int)) {
+            int int_value = boost::any_cast<int>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionInt(int_value));
+        } else if (value.type() == typeid(float)) {
+            float f_value = boost::any_cast<float>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionFloat(f_value));
+        } else if (value.type() == typeid(bool)) {
+            bool str_value = boost::any_cast<bool>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionBool(str_value));
+        } else {
+           return;
+        }
+    } catch (const boost::bad_any_cast& e) {
+        //std::cerr << "Bad any_cast: " << e.what() << std::endl;
+        return;
+    }
+ 
+    m_config_manipulation.apply(m_config, &new_conf);
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     if (wxGetApp().plater() == nullptr) {

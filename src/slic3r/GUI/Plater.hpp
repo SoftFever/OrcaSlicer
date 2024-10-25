@@ -151,6 +151,7 @@ public:
     // Orca
     void show_SEMM_buttons(bool bshow);
     void update_dynamic_filament_list();
+    void update_content();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();

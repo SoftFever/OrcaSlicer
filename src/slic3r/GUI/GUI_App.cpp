@@ -3924,6 +3924,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
                     app_config->set("use_classic_mode", data_node.get<std::string>("classic_mode"));
+
+                    if(plater_){
+                        plater_->reset_window_layout();
+                    }
                 }
             }
         }
