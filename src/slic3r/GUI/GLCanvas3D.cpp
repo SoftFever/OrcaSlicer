@@ -2917,6 +2917,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
         _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
+        _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
     }
 
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
@@ -9649,7 +9650,7 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
         if (wxGetApp().is_editor()) {
             if (current_printer_technology() != ptSLA) {
                 unsigned int max_z_layer = m_gcode_viewer.get_layers_z_range().back();
-                if (warning == EWarning::ToolHeightOutside)  // check if max z_layer height exceed max print height
+                if (warning == EWarning::ToolHeightOutside) // check if max z_layer height exceed max print height
                     show = m_gcode_viewer.has_data() && (m_gcode_viewer.get_layers_zs()[max_z_layer] - m_gcode_viewer.get_max_print_height() >= 1e-6);
                 else if (warning == EWarning::ToolpathOutside) { // check if max x,y coords exceed bed area
                     show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed() &&
@@ -9659,6 +9660,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
                 else if (warning == EWarning::MultiExtruderPrintableError)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.m_gcode_check_result.error_code != 0;
+                else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
+                    show = m_gcode_viewer.has_data() && m_gcode_viewer.filament_printable_reuslt.has_value();
             }
         }
     }
@@ -9743,6 +9746,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text  = (boost::format(_u8L("filaments %s cannot be printed directly on the surface of this plate.")) % warning).str();
         error = ErrorType::SLICING_ERROR;
         break;
+    }
     }
     //BBS: this may happened when exit the app, plater is null
     if (!wxGetApp().plater())

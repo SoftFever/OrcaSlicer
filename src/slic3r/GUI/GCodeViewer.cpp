@@ -1096,6 +1096,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
     m_gcode_check_result = gcode_result.gcode_check_result;
 
+    filament_printable_reuslt = gcode_result.filament_printable_reuslt;
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
     //BBS: add logs

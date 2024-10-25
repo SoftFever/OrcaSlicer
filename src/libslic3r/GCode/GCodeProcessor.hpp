@@ -120,18 +120,18 @@ class Print;
         ConflictResult() = default;
     };
 
-    struct BedMatchResult
-    {
-        bool match;
-        std::string bed_type_name;
-        int extruder_id;
-        BedMatchResult():match(true),bed_type_name(""),extruder_id(-1) {}
-        BedMatchResult(bool _match,const std::string& _bed_type_name="",int _extruder_id=-1)
-            :match(_match),bed_type_name(_bed_type_name),extruder_id(_extruder_id)
-        {}
-    };
-
     using ConflictResultOpt = std::optional<ConflictResult>;
+
+    struct FilamentPrintableResult
+    {
+        std::vector<int> conflict_filament;
+        std::string plate_name;
+        FilamentPrintableResult(){};
+        FilamentPrintableResult(std::vector<int> &conflict_filament, std::string plate_name) : conflict_filament(conflict_filament), plate_name(plate_name) {}
+        bool has_value(){
+           return !conflict_filament.empty();
+        };
+    };
 
     struct GCodeCheckResult
     {
@@ -148,7 +148,7 @@ class Print;
     {
         ConflictResultOpt conflict_result;
         GCodeCheckResult  gcode_check_result;
-        BedMatchResult  bed_match_result;
+        FilamentPrintableResult filament_printable_reuslt;
 
         struct SettingsIds
         {
@@ -273,7 +273,7 @@ class Print;
             warnings = other.warnings;
             bed_type = other.bed_type;
             gcode_check_result = other.gcode_check_result;
-            bed_match_result = other.bed_match_result;
+            filament_printable_reuslt = other.filament_printable_reuslt;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif

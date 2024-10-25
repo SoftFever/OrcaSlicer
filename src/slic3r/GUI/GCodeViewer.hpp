@@ -737,6 +737,8 @@ public:
     //BBS
     ConflictResultOpt m_conflict_result;
     GCodeCheckResult  m_gcode_check_result;
+    FilamentPrintableResult filament_printable_reuslt;
+
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };

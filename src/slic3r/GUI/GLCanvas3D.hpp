@@ -384,6 +384,7 @@ class GLCanvas3D
         GCodeConflict,
         ToolHeightOutside,
         MultiExtruderPrintableError,      // after slice
+        FilamentUnPrintableOnFirstLayer
     };
 
     class RenderStats
