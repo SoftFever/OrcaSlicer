@@ -9512,16 +9512,16 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
+    auto *cube = model().objects[0];
 
     CalibPressureAdvancePattern pa_pattern(
         params,
         full_config,
         is_bbl_machine,
-        model(),
+        *cube,
         cur_plate->get_origin()
     );
 
-    auto *cube = model().objects[0];
     const auto cube_bb = cube->raw_bounding_box();
     cube->scale(pa_pattern.handle_xy_size() / cube_bb.size().x(),
                 pa_pattern.handle_xy_size() / cube_bb.size().y(),
@@ -9567,12 +9567,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
         obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
 
-        pa_pattern.generate_custom_gcodes(
-            full_config,
-            is_bbl_machine,
-            model(),
-            cur_plate->get_origin()
+        auto gcode = pa_pattern.generate_custom_gcodes(
+                            full_config,
+                            is_bbl_machine,
+                            *obj,
+                            cur_plate->get_origin()
         );
+        model().plates_custom_gcodes[test_idx] = gcode;
     }
 
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
@@ -12325,7 +12326,7 @@ void Plater::reslice()
         model().calib_pa_pattern->generate_custom_gcodes(
             wxGetApp().preset_bundle->full_config(),
             preset_bundle->is_bbl_vendor(),
-            model(),
+            *model().objects[model().curr_plate_index],
             get_partplate_list().get_current_plate_origin()
         );
     }

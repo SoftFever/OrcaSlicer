@@ -538,12 +538,12 @@ void CalibPressureAdvanceLine::delta_modify_start(double &startx, double &starty
 }
 
 CalibPressureAdvancePattern::CalibPressureAdvancePattern(
-    const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin)
+    const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin)
     : m_params(params),CalibPressureAdvance(config)
 {
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 
-    refresh_setup(config, is_bbl_machine, model, origin);
+    refresh_setup(config, is_bbl_machine, object, origin);
 }
 
 double CalibPressureAdvancePattern::flow_val() const
@@ -558,15 +558,15 @@ double CalibPressureAdvancePattern::flow_val() const
     return speed * pattern_line.mm3_per_mm() * flow_mult;
 };
 
-void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config,
-                                                                                                                  bool                      is_bbl_machine,
-                                                         Model                    &model,
-                                                         const Vec3d              &origin)
+CustomGCode::Info CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config,
+                                                                      bool                      is_bbl_machine,
+                                                                      const ModelObject        &object,
+                                                                      const Vec3d              &origin)
 {
     std::stringstream gcode;
     gcode << "; start pressure advance pattern for layer\n";
 
-        refresh_setup(config, is_bbl_machine, model, origin);
+        refresh_setup(config, is_bbl_machine, object, origin);
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(height_first_layer() + height_z_offset(), "Move to start Z position");
@@ -713,7 +713,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
     info.mode   = CustomGCode::Mode::SingleExtruder;
     info.gcodes = gcode_items;
 
-    model.plates_custom_gcodes[model.curr_plate_index] = info;
+    return info;
 }
 
 void CalibPressureAdvancePattern::set_start_offset(const Vec3d &offset)
@@ -729,31 +729,30 @@ Vec3d CalibPressureAdvancePattern::get_start_offset()
 
 void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config,
                                                 bool                      is_bbl_machine,
-                                                const Model              &model,
+                                                const ModelObject         &object,
                                                 const Vec3d              &origin)
 {
     m_config = config;
-    m_config.apply(model.objects[model.curr_plate_index]->config.get(), true);
-    m_config.apply(model.objects[model.curr_plate_index]->volumes.front()->config.get(), true);
+    m_config.apply(object.config.get(), true);
+    m_config.apply(object.volumes.front()->config.get(), true);
 
-    _refresh_starting_point(model);
-    _refresh_writer(is_bbl_machine, model, origin);
+    _refresh_starting_point(object);
+    _refresh_writer(is_bbl_machine, object, origin);
 }
 
-void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
+void CalibPressureAdvancePattern::_refresh_starting_point(const ModelObject &object)
 {
     if (m_is_start_point_fixed)
         return;
 
-    ModelObject  *obj  = model.objects[model.curr_plate_index];
-    BoundingBoxf3 bbox = obj->instance_bounding_box(*obj->instances.front(), false);
+    BoundingBoxf3 bbox = object.instance_bounding_box(*object.instances.front(), false);
 
     m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
     m_starting_point.x() -= m_handle_spacing;
     m_starting_point.y() -= std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length + (bbox.max.y() - bbox.min.y()) / 2;
 }
 
-void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin)
+void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const ModelObject &object, const Vec3d &origin)
 {
     PrintConfig print_config;
     print_config.apply(m_config, true);
@@ -762,7 +761,7 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
     m_writer.set_xy_offset(origin(0), origin(1));
     m_writer.set_is_bbl_machine(is_bbl_machine);
 
-    const unsigned int extruder_id = model.objects[model.curr_plate_index]->volumes.front()->extruder_id();
+    const unsigned int extruder_id = object.volumes.front()->extruder_id();
     m_writer.set_extruders({extruder_id});
     m_writer.set_extruder(extruder_id);
 }
