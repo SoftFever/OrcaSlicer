@@ -152,6 +152,8 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 
+#include "slic3r/GUI/AI/ChatConfigPanel.hpp"
+
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -1125,9 +1127,21 @@ Sidebar::Sidebar(Plater *parent)
     p->object_layers->Hide();
     p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, 0);
 
-    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    // byzzh
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
-    SetSizer(sizer);
+
+    auto* size_top = new wxBoxSizer(wxVERTICAL);
+    size_top->Add(sizer, 1, wxEXPAND);
+
+    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        auto chat_panel = new ChatConfigPanel(this);
+        size_top->Add(chat_panel, 1, wxEXPAND);
+        size_top->Hide(sizer, true);
+    }
+
+    SetSizer(size_top);
+    Layout();
 }
 
 Sidebar::~Sidebar() {}
@@ -1243,7 +1257,7 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
-        connection_btn->Hide();
+        connection_btn->Hide(); 
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
