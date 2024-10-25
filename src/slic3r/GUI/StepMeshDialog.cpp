@@ -104,10 +104,10 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
     CenteredStaticText* text_4 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Angle"),
                                                         wxPoint(overlay_panel->GetSize().GetWidth() / 2,
                                                                 overlay_panel->GetSize().GetHeight() * 2 / 3));
-    CenteredStaticText* text_5 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Many faces"),
+    CenteredStaticText* text_5 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Fewer faces"),
                                                         wxPoint(overlay_panel->GetSize().GetWidth() / 6,
                                                                 overlay_panel->GetSize().GetHeight() * 2.8 / 3));
-    CenteredStaticText* text_6 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Few faces"),
+    CenteredStaticText* text_6 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("More faces"),
                                                         wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
                                                                 overlay_panel->GetSize().GetHeight() * 2.8 / 3));
 
