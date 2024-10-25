@@ -3,11 +3,11 @@
 function GetFullToday( )
 {
 	var d=new Date();
-	
+
 	var nday=d.getDate();
 	var nmonth=d.getMonth()+1;
 	var nyear=d.getFullYear();
-	
+
 	var strM=nmonth+'';
 	if( nmonth<10 )
 		strM='0'+nmonth;
@@ -15,27 +15,27 @@ function GetFullToday( )
     var strD=nday+'';
     if( nday<10 )
 	    strD='0'+nday;
-		
+
 	return nyear+'-'+strM+'-'+strD;
 }
 
 function GetFullDate()
 {
 	var d=new Date();
-	
+
 	var tDate={};
-	
+
 	tDate.nyear=d.getFullYear();
 	tDate.nmonth=d.getMonth()+1;
 	tDate.nday=d.getDate();
-	
+
 	tDate.nhour=d.getHours();
 	tDate.nminute=d.getMinutes();
-	tDate.nsecond=d.getSeconds();	
-	
+	tDate.nsecond=d.getSeconds();
+
 	tDate.nweek=d.getDay();
 	tDate.ndate=d.getDate();
-	
+
 	var strM=tDate.nmonth+'';
 	if( tDate.nmonth<10 )
 		strM='0'+tDate.nmonth;
@@ -43,7 +43,7 @@ function GetFullDate()
     var strD=tDate.nday+'';
     if( tDate.nday<10 )
 	    strD='0'+tDate.nday;
-	
+
 	var strH=tDate.nhour+'';
 	if( tDate.nhour<10 )
 		strH='0'+tDate.nhour;
@@ -54,11 +54,11 @@ function GetFullDate()
 
 	var strS=tDate.nsecond+'';
 	if( tDate.nsecond<10 )
-		strS='0'+tDate.nsecond;					
-	
+		strS='0'+tDate.nsecond;
+
 	tDate.strdate=tDate.nyear+'-'+strM+'-'+strD;
 	tDate.strFulldate=tDate.strdate+' '+strH+':'+strMin+':'+strS;
-	
+
 	return tDate;
 }
 
@@ -66,20 +66,20 @@ function GetFullDate()
 function Unixtimestamp2Date( nSecond )
 {
 	var d=new Date(nSecond*1000);
-	
+
 	var tDate={};
-	
+
 	tDate.nyear=d.getFullYear();
 	tDate.nmonth=d.getMonth()+1;
 	tDate.nday=d.getDate();
-	
+
 	tDate.nhour=d.getHours();
 	tDate.nminute=d.getMinutes();
-	tDate.nsecond=d.getSeconds();	
-	
+	tDate.nsecond=d.getSeconds();
+
 	tDate.nweek=d.getDay();
 	tDate.ndate=d.getDate();
-	
+
 	var strM=tDate.nmonth+'';
 	if( tDate.nmonth<10 )
 		strM='0'+tDate.nmonth;
@@ -87,9 +87,9 @@ function Unixtimestamp2Date( nSecond )
     var strD=tDate.nday+'';
     if( tDate.nday<10 )
 	    strD='0'+tDate.nday;
-				
+
 	tDate.strdate=tDate.nyear+'-'+strM+'-'+strD;
-	
+
 	return tDate.strdate;
 }
 
@@ -98,7 +98,7 @@ function Unixtimestamp2Date( nSecond )
 Array.prototype.in_array = function (e) {
     let sArray= ',' + this.join(this.S) + ',';
 	let skey=','+e+',';
-	
+
 	if(sArray.indexOf(skey)>=0)
 		return true;
 	else
@@ -132,24 +132,24 @@ String.prototype.rtrim=function()
 
 
 //----------------Get Param-------------
-function GetQueryString(name) 
+function GetQueryString(name)
 {
-	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"); 
-    var r = window.location.search.substr(1).match(reg); 
+	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
     if (r!=null)
 	{
 		return unescape(r[2]);
 	}
     else
 	{
-		return null; 
+		return null;
     }
-} 
+}
 
 function GetGetStr()
 {
 	let strGet="";
-	
+
 	//获取当前URL
     let url = document.location.href;
 
@@ -157,69 +157,69 @@ function GetGetStr()
     let index = url.indexOf("?")
     if(index != -1) {
         //截取出?后面的字符串
-        strGet = url.substr(index + 1);	
+        strGet = url.substr(index + 1);
 	}
-	
+
 	return strGet;
 }
 
 /*--------------File Function--------------*/
-function getFileName(path) 
-{ 
-    var pos1 = path.lastIndexOf('/'); 
-    var pos2 = path.lastIndexOf('\\'); 
-    var pos = Math.max(pos1, pos2); 
-    if (pos < 0) { 
-      return null; 
-    } 
-    else 
-	{ 
-      return path.substring(pos + 1); 
-    } 
+function getFileName(path)
+{
+    var pos1 = path.lastIndexOf('/');
+    var pos2 = path.lastIndexOf('\\');
+    var pos = Math.max(pos1, pos2);
+    if (pos < 0) {
+      return null;
+    }
+    else
+	{
+      return path.substring(pos + 1);
+    }
 }
 
-function getFileTail(path) 
-{ 
+function getFileTail(path)
+{
     var pos = path.lastIndexOf('.');
-    if (pos < 0) { 
-		return null; 
-    } 
-    else 
-	{ 
-        return path.substring(pos + 1); 
-    } 
+    if (pos < 0) {
+		return null;
+    }
+    else
+	{
+        return path.substring(pos + 1);
+    }
 }
 
 /*--------------String Function-----------*/
-function html_encode(str) 
+function html_encode(str)
 {
-	var s = ""; 
-    if (str.length == 0) return ""; 
-    s = str.replace(/&/g, "&amp;"); 
-    s = s.replace(/</g, "&lt;"); 
-    s = s.replace(/>/g, "&gt;"); 
-    s = s.replace(/ /g, "&nbsp;"); 
-    s = s.replace(/\'/g, "&#39;"); 
-    s = s.replace(/\"/g, "&quot;"); 
-    s = s.replace(/\n/g, "<br/>"); 
-    
-	return s; 
-} 
+	var s = "";
+    if (str.length == 0) return "";
+    s = str.replace(/&/g, "&amp;");
+    s = s.replace(/</g, "&lt;");
+    s = s.replace(/>/g, "&gt;");
+    s = s.replace(/ /g, "&nbsp;");
+    s = s.replace(/\'/g, "&#39;");
+    s = s.replace(/\"/g, "&quot;");
+    s = s.replace(/\n/g, "<br/>");
 
-function html_decode(str) 
-{ 
-	var s = ""; 
-	if (str.length == 0) return ""; 
-	s = str.replace(/&amp;/g, "&"); 
-	s = s.replace(/&lt;/g, "<"); 
-	s = s.replace(/&gt;/g, ">"); 
-	s = s.replace(/&nbsp;/g, " "); 
-	s = s.replace(/&#39;/g, "\'"); 
-	s = s.replace(/&quot;/g, "\""); 
-	s = s.replace(/<br\/>/g, "\n"); 
+	return s;
+}
 
-	return s; 
-} 
+function html_decode(str)
+{
+	var s = "";
+	if (str.length == 0) return "";
+	s = str.replace(/&amp;/g, "&");
+	s = s.replace(/&lt;/g, "<");
+	s = s.replace(/&gt;/g, ">");
+	s = s.replace(/&nbsp;/g, " ");
+	s = s.replace(/&#39;/g, "\'");
+	s = s.replace(/&quot;/g, "\"");
+	s = s.replace(/<br\/>/g, "\n");
+
+	return s;
+}
 
 /*--------------------JSON  Function------------*/
 
@@ -239,8 +239,8 @@ function IsJson( strJson )
 	catch(exception)
 	{
 	    return null;
-	}	
-	
+	}
+
 	return tJson;
 }
 
@@ -248,9 +248,9 @@ function DecodeJsonObject( pJson )
 {
 	let tmpJson=JSON.stringify(pJson);
 	tmpJson=decodeURIComponent(tmpJson);
-	
+
 	pJson=JSON.parse(tmpJson);
-	
+
 	return pJson;
 }
 
@@ -265,10 +265,10 @@ function DecodeJsonObject( pJson )
 function HttpReq( url,action, data,callbackfunc)
 {
 	var strAction=action.toLowerCase();
-	
+
 	if( strAction=="post")
 	{
-		$.post(url,data,callbackfunc);			
+		$.post(url,data,callbackfunc);
 	}
 	else if( strAction=="get")
     {
@@ -276,7 +276,7 @@ function HttpReq( url,action, data,callbackfunc)
 	}
 }
 
-/*---------------Cookie Function-------------------*/ 
+/*---------------Cookie Function-------------------*/
 function setCookie(name, value, time='',path='') {
     if(time && path){
         var strsec = time * 1000;
@@ -295,7 +295,7 @@ function setCookie(name, value, time='',path='') {
     }
 }
 
-function getCookie(c_name) 
+function getCookie(c_name)
 {
 	if(document.cookie.length > 0) {
 		c_start = document.cookie.indexOf(c_name + "=");//获取字符串的起点
@@ -306,29 +306,29 @@ function getCookie(c_name)
 			return decodeURI(document.cookie.substring(c_start, c_end));//截取字符串返回
 	    }
 	}
-	
+
 	return "";
 }
 
-function checkCookie(c_name) {     
-    username = getCookie(c_name);     
-    console.log(username);     
-    if (username != null && username != "")     
-    { return true; }     
-    else     
+function checkCookie(c_name) {
+    username = getCookie(c_name);
+    console.log(username);
+    if (username != null && username != "")
+    { return true; }
+    else
     { return false;  }
 }
 
-function clearCookie(name) {     
-    setCookie(name, "", -1); 
+function clearCookie(name) {
+    setCookie(name, "", -1);
 }
 
 
 /*--------Studio WX Message-------*/
 function IsInSlicer()
 {
-	let bMatch=navigator.userAgent.match(  RegExp('BBL-Slicer','i') );
-	
+	let bMatch=navigator.userAgent.match(  RegExp('JusPrin','i') );
+
 	return bMatch;
 }
 
@@ -337,7 +337,7 @@ function IsInSlicer()
 function SendWXMessage( strMsg )
 {
 	let bCheck=IsInSlicer();
-	
+
 	if(bCheck!=null)
 	{
 		window.wx.postMessage(strMsg);
@@ -351,7 +351,7 @@ function SendWXDebugInfo( strMsg )
 	tSend['command']="debug_info";
 	tSend['msg']=strMsg;
 
-	SendWXMessage( JSON.stringify(tSend) );		
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 function OpenUrlInLocalBrowser( strUrl )
@@ -361,7 +361,7 @@ function OpenUrlInLocalBrowser( strUrl )
 	tSend['command']="common_openurl";
 	tSend['url']=strUrl;
 
-	SendWXMessage( JSON.stringify(tSend) );		
+	SendWXMessage( JSON.stringify(tSend) );
 }
 
 
@@ -369,16 +369,16 @@ function OpenUrlInLocalBrowser( strUrl )
 function RemoveCssLink( LinkPath )
 {
 	let pNow=$("head link[href='"+LinkPath+"']");
-	
+
 	let nTotal=pNow.length;
     for( let n=0;n<nTotal;n++ )
 	{
 		pNow[n].remove();
-	}	
+	}
 }
 
 function AddCssLink( LinkPath )
-{	
+{
 	var head = document.getElementsByTagName('head')[0];
 	var link = document.createElement('link');
 	link.href = LinkPath;
@@ -391,7 +391,7 @@ function CheckCssLinkExist( LinkPath )
 {
 	let pNow=$("head link[href='"+LinkPath+"']");
 	let nTotal=pNow.length;
-	
+
 	return nTotal;
 }
 
@@ -399,18 +399,18 @@ function CheckCssLinkExist( LinkPath )
 /*------Dark Mode------*/
 
 function SwitchDarkMode( DarkCssPath )
-{		
+{
 	ExecuteDarkMode( DarkCssPath );
-    setInterval("ExecuteDarkMode('"+DarkCssPath+"')",1000);	
+    setInterval("ExecuteDarkMode('"+DarkCssPath+"')",1000);
 }
 
 function ExecuteDarkMode( DarkCssPath )
 {
     let nMode=0;
-	let bDarkMode=navigator.userAgent.match(  RegExp('dark','i') );	
+	let bDarkMode=navigator.userAgent.match(  RegExp('dark','i') );
 	if( bDarkMode!=null )
 		nMode=1;
-	
+
 	let nNow=CheckCssLinkExist(DarkCssPath);
 	if( nMode==0 )
 	{
@@ -421,7 +421,7 @@ function ExecuteDarkMode( DarkCssPath )
 	{
 		if(nNow==0)
 			AddCssLink(DarkCssPath);
-	}	
+	}
 }
 
 SwitchDarkMode( "./css/dark.css" );
