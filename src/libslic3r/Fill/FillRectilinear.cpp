@@ -3048,23 +3048,23 @@ Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParam
     // First half tetrahedral fill
     double  pattern_z_shift = 0.0;
     coord_t shift = coord_t(one_div_root_two * (scale_(z) + pattern_z_shift * period * 2)) % period;
-    shift            = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
-    shift            = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
-    shift            = std::max(shift, line_width / 2);              // don't put lines too close to each other
-    float dx1                = unscale_(shift);
+    shift = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
+    shift = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
+    shift = std::max(shift, line_width / 2);              // don't put lines too close to each other
+    float dx1 = unscale_(shift);
 
     // Second half tetrahedral fill
     pattern_z_shift = 0.5;
     shift = coord_t(one_div_root_two * (scale_(z) + pattern_z_shift * period * 2)) % period;
-    shift           = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
-    shift         = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
-    shift         = std::max(shift, line_width / 2);              // don't put lines too close to each other
-    float dx2              = unscale_(shift);
-    if (!this->fill_surface_by_multilines(surface, params, {{0.f, dx1}, {0.f, -dx1}, {float(M_PI / 2.), dx2}, {float(M_PI / 2.), -dx2}},
-                                          polylines_out))
+    shift = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
+    shift = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
+    shift = std::max(shift, line_width / 2);              // don't put lines too close to each other
+    float dx2 = unscale_(shift);
+    if (!this->fill_surface_by_multilines(
+            surface, params, 
+            {{0.f, dx1}, {0.f, -dx1}, {float(M_PI / 2.), dx2}, {float(M_PI / 2.), -dx2}},
+            polylines_out))
         BOOST_LOG_TRIVIAL(error) << "FillQuarterCubic::fill_surface() failed to fill a region.";
-    //if (!this->fill_surface_by_multilines(surface, params, {{ float(M_PI / 2.), dx2}, { float(M_PI / 2.), -dx2}}, polylines_out))
-    //    BOOST_LOG_TRIVIAL(error) << "FillQuarterCubic::fill_surface() failed to fill a region.";
 
     return polylines_out;
 }
