@@ -2155,12 +2155,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-            {
-                // save the flush statitics stored in tool ordering by object
-                print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
-                print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
-                print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
-            }
             if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
                 //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
                 initial_non_support_extruder_id = initial_extruder_id;
@@ -2201,12 +2195,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
         tool_ordering = print.tool_ordering();
-        {
-            //save the flush statitics stored in tool ordering
-            print.m_statistics_by_extruder_count.stats_by_single_extruder = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
-            print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
-            print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
-        }
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.
@@ -2638,10 +2626,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
                 this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
-                // save sorted filament sequences
-                const auto& layer_tools = tool_ordering.layer_tools();
-                for (const auto& lt : layer_tools)
-                    m_sorted_layer_filaments.emplace_back(lt.extruders);
+                {
+                    // save the flush statitics stored in tool ordering by object
+                    print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
+                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
+                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+                    // save sorted filament sequences
+                    const auto& layer_tools = tool_ordering.layer_tools();
+                    for (const auto& lt : layer_tools)
+                        m_sorted_layer_filaments.emplace_back(lt.extruders);
+                }
+
                 //BBS: close powerlost recovery
                 {
                     if (is_bbl_printers && m_second_layer_things_done) {
@@ -2706,10 +2701,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
             this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
-            // save sorted filament sequences
-            const auto& layer_tools = tool_ordering.layer_tools();
-            for (const auto& lt : layer_tools)
-                m_sorted_layer_filaments.emplace_back(lt.extruders);
+            {
+                //save the flush statitics stored in tool ordering
+                print.m_statistics_by_extruder_count.stats_by_single_extruder = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+                // save sorted filament sequences
+                const auto& layer_tools = tool_ordering.layer_tools();
+                for (const auto& lt : layer_tools)
+                    m_sorted_layer_filaments.emplace_back(lt.extruders);
+            }
 
             //BBS: close powerlost recovery
             {
