@@ -1,0 +1,63 @@
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原页面示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+    <script>
+        function handleClick() {
+            window.onGUIMessage('Hello from HTML');
+            sendMessageToWxWebView();
+            }
+        window.onGUIMessage = function(message) {
+            var pElement = document.getElementById("content");
+            pElement.innerHTML = message;
+        }
+        function sendMessageToWxWebView() {
+            if (window.wx) {
+                window.wx.postMessage('Hello from HTML');
+            } else {
+                alert('wx 对象不可用');
+            }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>欢迎来到我的网站</h1>
+    </header>
+    <main>
+        <h2>关于我们</h2>
+        <p id="content">这是一个简单的HTML原页面示例。</p>
+        <button onclick="handleClick()">点击我</button>
+    </main>
+    <footer>
+        <p>&copy; 2023 我的公司</p>
+    </footer>
+</body>
+</html>
