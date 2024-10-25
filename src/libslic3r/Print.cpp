@@ -2280,7 +2280,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
-
+    gcode.export_layer_filaments(result);
     //BBS
     result->conflict_result = m_conflict_result;
     return path.c_str();
