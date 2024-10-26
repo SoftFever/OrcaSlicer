@@ -1389,8 +1389,23 @@ void Tab::ApplyConfig(const std::string& opt_key, const boost::any& value) {
         } else if (value.type() == typeid(bool)) {
             bool str_value = boost::any_cast<bool>(value);
             new_conf.set_key_value(opt_key, new ConfigOptionBool(str_value));
-        } else {
-           return;
+        } else if (value.type() == typeid(std::vector<std::string>)) {
+            std::vector<std::string> vec_value = boost::any_cast<std::vector<std::string>>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionStrings(vec_value));
+        } else if (value.type() == typeid(std::vector<double>)) {
+            std::vector<double> vec_value = boost::any_cast<std::vector<double>>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionFloats(vec_value));
+        } 
+         else if (value.type() == typeid(std::vector<int>)) {
+            std::vector<int> vec_value = boost::any_cast<std::vector<int>>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionInts(vec_value));
+        } 
+          else if (value.type() == typeid(std::vector<unsigned char>)) {
+            std::vector<unsigned char> vec_value = boost::any_cast<std::vector<unsigned char>>(value);
+            new_conf.set_key_value(opt_key, new ConfigOptionBools(vec_value));
+        } 
+          else {
+            return;
         }
     } catch (const boost::bad_any_cast& e) {
         //std::cerr << "Bad any_cast: " << e.what() << std::endl;

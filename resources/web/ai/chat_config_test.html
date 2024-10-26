@@ -30,6 +30,9 @@
         }
     </style>
     <script>
+        function parseBoolean(value) {
+            return value === 'true' || value === '1';
+        }
         function handleClickLayoutHight() {
             var inputElement = document.getElementById("layer_height");
             var floatValue = parseFloat(inputElement.value); 
@@ -40,11 +43,22 @@
                 value: floatValue
             }));
         }
+        function handleClickFilamentSoluble() {
+            var inputElement = document.getElementById("filament_soluble");
+            var boolValue = parseBoolean(inputElement.value); 
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "config_property",
+                key : 'filament_soluble',
+                type: 'TYPE_FILAMENT',
+                value: [boolValue]
+            }));
+        }
 
-        function handleClick() {
+
+        function handleClick(fetch_type) {
             sendMessageToWxWebView(JSON.stringify({
                 action:  "fetch_property",
-                type: 'TYPE_PRINT',
+                type: fetch_type,
             }))
         }
 
@@ -67,11 +81,17 @@
     </header>
     <main>
         <h2>关于我们</h2>
-        <button onclick="handleClick()">获取TYPE_PRINT参数</button>
+        <button onclick="handleClick('TYPE_PRINT')">获取TYPE_PRINT参数</button>
+        <button onclick="handleClick('TYPE_FILAMENT')">获取TYPE_FILAMENT参数</button>
         <br><br>
-        <label for="layer_height">layer_height:</label>
+        <label for="layer_height">TYPE_PRINT:layer_height:</label>
         <input type="text" id="layer_height" value="0.33"/>
-        <button onclick="handleClickLayoutHight()">发送</button>
+        <button onclick="handleClickLayoutHight()">发送layer_height</button>
+        <br><br>
+        <br><br>
+        <label for="filament_soluble">TYPE_FILAMENT:filament_soluble:</label>
+        <input type="text" id="filament_soluble" value="true"/>
+        <button onclick="handleClickFilamentSoluble()">发送filament_soluble</button>
         <br><br>
         <p id="content">这是一个简单的HTML原页面示例。</p>
         <br><br>
