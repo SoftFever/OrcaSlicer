@@ -9507,7 +9507,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl_machine = preset_bundle->is_bbl_vendor();
-    const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
+    auto cur_plate = get_partplate_list().get_plate(0);
+    Vec3d plate_origin = cur_plate->get_origin();
 
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
@@ -9525,15 +9526,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     cube->scale(pa_pattern.handle_xy_size() / cube_bb.size().x(),
                 pa_pattern.handle_xy_size() / cube_bb.size().y(),
                 pa_pattern.max_layer_z() / cube_bb.size().z());
-    cube->translate(pa_pattern.handle_spacing() - pa_pattern.print_size_x() / 2 - pa_pattern.handle_xy_size() / 2, 0, 0);
+
+    Vec3d cube_pos{cur_plate->get_center_origin().x() - pa_pattern.print_size_x() / 2 + pa_pattern.handle_xy_size() / 2 + pa_pattern.handle_spacing(),
+                   cur_plate->get_center_origin().y(),
+                   pa_pattern.max_layer_z() / 2};
+    cube->instances[0]->set_offset(cube_pos);
 
     if (params.batch_mode) {
         /* Generate entire test set for adaptive PA calibration */
-
-        /* Make plates */
-        for (size_t i = 1; i < (params.speeds.size() * params.accelerations.size()); i++) {
-            duplicate_plate();
-        }
 
         /* Set speed and acceleration on per-object basis and generate PA pattern for each test case */
         for (size_t is = 0; is < params.speeds.size(); is++) {
@@ -9542,7 +9542,10 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                 const float speed = params.speeds[is];
                 const float accel = params.accelerations[ia];
 
-                select_plate(plate_idx);
+                if (plate_idx > 0)
+                    duplicate_plate();
+
+                cur_plate = get_partplate_list().get_plate(plate_idx);
 
                 auto *obj = model().objects[plate_idx];
                 obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
@@ -9561,13 +9564,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                 obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
                 obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
 
-                const Vec3d cur_plate_origin = get_partplate_list().get_current_plate_origin();
-
                 pa_pattern.generate_custom_gcodes(
                     full_config,
                     is_bbl_machine,
                     model(),
-                    cur_plate_origin
+                    cur_plate->get_origin()
                 );
             }
         }
