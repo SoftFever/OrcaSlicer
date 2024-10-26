@@ -183,9 +183,41 @@ void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::j
         } else if (jsonObject["value"].is_boolean()) {
             auto value = jsonObject["value"].get<bool>();
             tab->ApplyConfig(key, value);
-        } else {
+        } else  if (jsonObject["value"].is_array()) {
+            auto values = jsonObject["value"];
+            if(values.size() == 0) return;
+            if (values[0].is_string()) {   
+                std::vector<std::string> vec_value;
+                for (const auto& item : jsonObject["value"]) {
+                    vec_value.push_back(item.get<std::string>());
+                }
+                tab->ApplyConfig(key, vec_value);
+            }
+            else if(values[0].is_number_integer()) {
+                std::vector<int> vec_value;
+                for (const auto& item : jsonObject["value"]) {
+                    vec_value.push_back(item.get<int>());
+                }
+                tab->ApplyConfig(key, vec_value);
+            }else if(values[0].is_number_float()) {
+                std::vector<double> vec_value;
+                for (const auto& item : jsonObject["value"]) {
+                    vec_value.push_back(item.get<float>());
+                }
+                tab->ApplyConfig(key, vec_value);
+            }else if(values[0].is_boolean()) {
+                std::vector<unsigned char> vec_value;
+                for (const auto& item : jsonObject["value"]) {
+                    vec_value.push_back((unsigned char)item.get<bool>());
+                }
+                tab->ApplyConfig(key, vec_value);
+            }
+        }
+        
+        else {
             // 处理其他类型或抛出异常
-            throw std::runtime_error("Unsupported JSON value type");
+            //throw std::runtime_error("Unsupported JSON value type");
+            return;
         }
     }
 }
