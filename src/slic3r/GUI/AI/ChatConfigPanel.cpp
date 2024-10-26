@@ -1,13 +1,43 @@
 #include "ChatConfigPanel.hpp"
 #include <iostream>
 #include <wx/sizer.h>
-#include "slic3r/GUI/GUI_App.hpp"
-#include <slic3r/GUI/Widgets/WebView.hpp>
-#include "libslic3r/Utils.hpp"
-#include "slic3r/GUI/Tab.hpp"
-#include "nlohmann/json.hpp"
+
 
 namespace Slic3r { namespace GUI {
+
+std::string ConfigToJSON(const ConfigBase* config)
+{
+    nlohmann::json j;
+    if (config == nullptr)
+        return "";
+    //record all the key-values
+    for (const std::string &opt_key : config->keys())
+    {
+        const ConfigOption* opt = config->option(opt_key);
+        if ( opt->is_scalar() ) {
+            if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
+                //keep \n, \r, \t
+                j[opt_key] = (dynamic_cast<const ConfigOptionString *>(opt))->value;
+            else
+                j[opt_key] = opt->serialize();
+        }
+        else {
+            const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
+            //if (!vec->empty())
+            std::vector<std::string> string_values = vec->vserialize();
+
+            /*for (int i = 0; i < string_values.size(); i++)
+            {
+                std::string string_value = escape_string_cstyle(string_values[i]);
+                j[opt_key][i] = string_value;
+            }*/
+
+            json j_array(string_values);
+            j[opt_key] = j_array;
+        }
+    }
+    return j.dump();
+}
 
 ChatConfigPanel::ChatConfigPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -111,50 +141,59 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     std::string  jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
-    if(action == "config_property"){
-        std::string key = jsonObject["key"];
-        std::string type = jsonObject["type"];
-
-        Preset::Type preset_type;
-        if (type == "TYPE_PRINT"){
-            preset_type = Preset::Type::TYPE_PRINT;
-        }else if (type == "TYPE_PRINTER"){
-            preset_type = Preset::Type::TYPE_PRINTER;
-        }else if (type == "TYPE_FILAMENT"){
-          preset_type = Preset::Type::TYPE_FILAMENT;
-        }else if (type == "TYPE_SLA_MATERIAL"){
-            preset_type = Preset::Type::TYPE_SLA_MATERIAL;
-        }else if (type == "TYPE_PRINTER"){
-            preset_type = Preset::Type::TYPE_PRINTER;
-        }else if (type == "TYPE_COUNT"){
-            preset_type = Preset::Type::TYPE_COUNT;
-        }else if (type == "TYPE_PHYSICAL_PRINTER"){
-            preset_type = Preset::Type::TYPE_PHYSICAL_PRINTER;
-        }else if (type == "TYPE_PLATE"){
-            preset_type = Preset::Type::TYPE_PLATE;
-        }
-        Tab*        tab   = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-        if (tab) {
-            if (jsonObject["value"].is_string()) {
-                std::string value = jsonObject["value"].get<std::string>();
-                tab->ApplyConfig(key, value);
-            } else if (jsonObject["value"].is_number_integer()) {
-                auto value = jsonObject["value"].get<int>();
-                tab->ApplyConfig(key, value);
-            } else if (jsonObject["value"].is_number_float()) {
-                auto value = jsonObject["value"].get<float>();
-                tab->ApplyConfig(key, value);
-            } else if (jsonObject["value"].is_boolean()) {
-                auto value = jsonObject["value"].get<bool>();
-                tab->ApplyConfig(key, value);
-            } else {
-                // 处理其他类型或抛出异常
-                throw std::runtime_error("Unsupported JSON value type");
-            }
-            
-        }
-            
+    Preset::Type   preset_type;
+    std::string    type = jsonObject["type"];
+    if (type == "TYPE_PRINT") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "TYPE_PRINTER") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else if (type == "TYPE_FILAMENT") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else if (type == "TYPE_SLA_MATERIAL") {
+        preset_type = Preset::Type::TYPE_SLA_MATERIAL;
+    } else if (type == "TYPE_PRINTER") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else if (type == "TYPE_COUNT") {
+        preset_type = Preset::Type::TYPE_COUNT;
+    } else if (type == "TYPE_PHYSICAL_PRINTER") {
+        preset_type = Preset::Type::TYPE_PHYSICAL_PRINTER;
+    } else if (type == "TYPE_PLATE") {
+        preset_type = Preset::Type::TYPE_PLATE;
     }
-    SendMessage("Hello from C++");
+
+    if(action == "config_property"){
+        ConfigProperty(preset_type, jsonObject);
+    } else if (action == "fetch_property") {
+        FetchProperty(preset_type);
+    }
+}
+void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
+    std::string key  = jsonObject["key"];
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab) {
+        if (jsonObject["value"].is_string()) {
+            std::string value = jsonObject["value"].get<std::string>();
+            tab->ApplyConfig(key, value);
+        } else if (jsonObject["value"].is_number_integer()) {
+            auto value = jsonObject["value"].get<int>();
+            tab->ApplyConfig(key, value);
+        } else if (jsonObject["value"].is_number_float()) {
+            auto value = jsonObject["value"].get<float>();
+            tab->ApplyConfig(key, value);
+        } else if (jsonObject["value"].is_boolean()) {
+            auto value = jsonObject["value"].get<bool>();
+            tab->ApplyConfig(key, value);
+        } else {
+            // 处理其他类型或抛出异常
+            throw std::runtime_error("Unsupported JSON value type");
+        }
+    }
+}
+void ChatConfigPanel::FetchProperty(Preset::Type preset_type) {
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab) {
+        auto config = tab->m_config;
+        SendMessage(ConfigToJSON(config));
+    }
 }
 }} // namespace Slic3r::GUI

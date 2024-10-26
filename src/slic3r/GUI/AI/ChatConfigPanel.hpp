@@ -7,6 +7,12 @@
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
 #endif
+#include "slic3r/GUI/GUI_App.hpp"
+#include <slic3r/GUI/Widgets/WebView.hpp>
+#include "libslic3r/Utils.hpp"
+#include "slic3r/GUI/Tab.hpp"
+#include "nlohmann/json.hpp"
+
 namespace Slic3r { namespace GUI {
 
 class ChatConfigPanel : public wxPanel
@@ -27,6 +33,9 @@ private:
 private:
     void SendMessage(wxString  message);
     void OnScriptMessageReceived(wxWebViewEvent& event);
+
+    void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
+    void FetchProperty(Preset::Type preset_type);
 
     wxWebView* m_browser;
     long       m_zoomFactor;
