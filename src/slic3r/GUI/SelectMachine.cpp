@@ -1316,7 +1316,7 @@ bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
     for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++){
         //exist field is not updated, wait add
         //if (it->exist < 3) return false;
-        std::string type_str = /*it->flow_type ? "Big Traffic" :*/ "Normal";
+        std::string type_str = it->current_nozzle_flow_type ? "Big Traffic" : "Normal";
         flow_type_of_machine.push_back(type_str);
     }
     //get the nozzle type of preset --> flow_types
@@ -1362,24 +1362,49 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
-    //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
-    std::vector<std::string>flow_type_of_machine;
-    for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
-        std::string str_flow = /*it->flow_type ? "Big Traffic" :*/ "Normal";
-        flow_type_of_machine.push_back(str_flow);
+    //check nozzle used
+    auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders(); // 1 based
+    auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();  // 1 based
+    std::map<int, std::string> used_extruders_flow;
+    std::vector<int> used_extruders; // 0 based
+    for (auto f : used_filaments) {
+        int filament_extruder = filament_maps[f - 1] - 1;
+        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) used_extruders.emplace_back(filament_extruder);
     }
-    //get the nozzle type of preset --> flow_types
-    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
-    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
-    auto flow_data = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_printer->name);
-    std::vector<string> flow_types;
-    boost::split(flow_types, flow_data, boost::is_any_of(","));
 
-    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
+    std::sort(used_extruders.begin(), used_extruders.end());
+
+    auto nozzle_volume_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(wxGetApp().preset_bundle->project_config.option("nozzle_volume_type"));
+    for (auto i = 0; i < used_extruders.size(); i++) {
+        if (nozzle_volume_type_opt) {
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
+            if (nozzle_volume_type == NozzleVolumeType::nvtNormal) { used_extruders_flow[used_extruders[i]] = "Normal";}
+            else {used_extruders_flow[used_extruders[i]] = "Big Traffic";}
+        }
+    }
+
+    vector<int> map_extruders = {1, 0};
+
+
+    // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
+    std::vector<std::string> flow_type_of_machine;
+    for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
+        if (it->current_nozzle_flow_type == NozzleFlowType::H_FLOW) {
+            flow_type_of_machine.push_back("Big Traffic");
+        } else if (it->current_nozzle_flow_type == NozzleFlowType::S_FLOW){
+            flow_type_of_machine.push_back("Normal");
+        }
+    }
 
     //Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
-    for (int i = 0; i < flow_types.size(); i++) {
-        if (flow_types[i] != flow_type_of_machine[i]) return false;
+    for (std::map<int, std::string>::iterator it = used_extruders_flow.begin(); it!= used_extruders_flow.end(); it++) {
+        int target_machine_nozzle_id = map_extruders[it->first];
+
+        if (target_machine_nozzle_id <= flow_type_of_machine.size()) {
+            if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -1576,6 +1601,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with Ams");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
+        wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -3009,9 +3039,16 @@ void SelectMachineDialog::update_show_status()
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     //the nozzle type of preset and machine are different
-    if (nozzle_nums > 1 && !is_nozzle_type_match(obj_->m_extder_data)) {
-        show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
-        return;
+    if (nozzle_nums > 1) {
+        if (!obj_->is_nozzle_data_invalid()) {
+            show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
+            return;
+        }
+
+        if (!is_nozzle_type_match(obj_->m_extder_data)) {
+            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
+            return;
+        }
     }
 
     if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
@@ -3605,13 +3642,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             m_filaments.push_back(info);
         }
     }
-
-    /*if (extruders.size() <= 10) {
-        m_sizer_ams_mapping->SetCols(extruders.size());
-    }
-    else {
-        m_sizer_ams_mapping->SetCols(10);
-    }*/
 
     if (use_double_extruder)
     {

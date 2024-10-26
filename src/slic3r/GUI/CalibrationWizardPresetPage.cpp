@@ -1789,7 +1789,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     if (obj->is_multi_extruders()) {
         for (int i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
             m_comboBox_nozzle_volume_types[i]->Show();
-            m_comboBox_nozzle_volume_types[i]->SetSelection(0);
+            m_comboBox_nozzle_volume_types[i]->SetSelection(obj->m_extder_data.extders[i].current_nozzle_flow_type);
         }
 
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {

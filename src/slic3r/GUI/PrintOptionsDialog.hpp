@@ -22,8 +22,15 @@ class PrinterPartsDialog : public DPIDialog
 {
 protected:
     wxWindowID ID_NOZZLE_TYPE_CHECKBOX_SINGLE;
+    wxWindowID ID_NOZZLE_TYPE_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_TYPE_CHECKBOX_RIGHT;
 
     wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE;
+    wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_RIGHT;
+
+    wxWindowID ID_NOZZLE_FLOW_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_FLOW_CHECKBOX_RIGHT;
 
     MachineObject* obj{ nullptr };
 

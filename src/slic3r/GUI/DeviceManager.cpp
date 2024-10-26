@@ -2063,6 +2063,19 @@ int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float dia
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow)
+{
+    nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
+    BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle2, nozzle_type = " << nozzle_type << " diameter = " << diameter;
+    json j;
+    j["print"]["command"]         = "set_nozzle";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["id"]              = id;
+    j["print"]["type"]            = "type";
+    j["print"]["diameter"]        = diameter;
+    return this->publish_json(j.dump());
+}
+
 
 int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {
@@ -5708,6 +5721,19 @@ void MachineObject::parse_new_info(json print)
                 nozzle_obj.id           = njon["id"].get<int>();
 
                 if (type.length() >= 4) {
+                    if (type.substr(0, 1) == std::string("H")) {
+                        nozzle_obj.tool_type = NozzleToolType::H_TOOL;
+                    }
+                    else if (type.substr(0, 1) == std::string("C")) {
+                        nozzle_obj.tool_type = NozzleToolType::C_TOOL;
+                    }
+
+                    if (type.substr(1, 1) == std::string("S")) {
+                        nozzle_obj.nozzle_flow = NozzleFlowType::S_FLOW;
+                    } else if (type.substr(1, 1) == std::string("H")) {
+                        nozzle_obj.nozzle_flow = NozzleFlowType::H_FLOW;
+                    }
+
                     if (type.substr(2, 2) == std::string("00")) {
                         nozzle_obj.nozzle_type = NozzleType::ntStainlessSteel;
                     } else if (type.substr(2, 2) == std::string("01")) {
@@ -5785,11 +5811,13 @@ void MachineObject::parse_new_info(json print)
                 if (extder_obj.nozzle_id == 0xff) {
                     extder_obj.current_nozzle_type = NozzleType::ntUndefine;
                     extder_obj.current_nozzle_diameter = 0.4f;
+                    extder_obj.current_nozzle_flow_type = NozzleFlowType::NONE_FLOWTYPE;
                 } else {
                     for (auto i = 0; i < m_nozzle_data.nozzles.size(); i++) {
                         if (m_nozzle_data.nozzles[i].id == extder_obj.nozzle_id) {
                             extder_obj.current_nozzle_type      = m_nozzle_data.nozzles[i].nozzle_type;
                             extder_obj.current_nozzle_diameter  = m_nozzle_data.nozzles[i].diameter;
+                            extder_obj.current_nozzle_flow_type = m_nozzle_data.nozzles[i].nozzle_flow;
                         }
                     }
                 }
@@ -5828,7 +5856,8 @@ bool MachineObject::is_nozzle_data_invalid()
     for (const auto &ext : m_extder_data.extders)
     {
         if (ext.current_nozzle_type == NozzleType::ntUndefine ||
-            ext.current_nozzle_diameter <= 0.0f) {
+            ext.current_nozzle_diameter <= 0.0f ||
+            ext.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
             return true;
         }
     }

@@ -483,7 +483,13 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     nozzle_type->Wrap(-1);
 
     ID_NOZZLE_TYPE_CHECKBOX_SINGLE = wxNewId();
+    ID_NOZZLE_TYPE_CHECKBOX_LEFT = wxNewId();
+    ID_NOZZLE_TYPE_CHECKBOX_RIGHT = wxNewId();
     ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE = wxNewId();
+    ID_NOZZLE_DIAMETER_CHECKBOX_LEFT = wxNewId();
+    ID_NOZZLE_DIAMETER_CHECKBOX_RIGHT = wxNewId();
+    ID_NOZZLE_FLOW_CHECKBOX_LEFT = wxNewId();
+    ID_NOZZLE_FLOW_CHECKBOX_RIGHT = wxNewId();
 
     nozzle_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
     nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
@@ -578,7 +584,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_nozzle_type->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_right_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
-    multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, ID_NOZZLE_TYPE_CHECKBOX_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
     multiple_right_nozzle_type_checkbox->Append(_L("Stainless Steel"));
     multiple_right_nozzle_type_checkbox->Append(_L("Hardened Steel"));
     multiple_right_nozzle_type_checkbox->SetSelection(0);
@@ -634,9 +640,24 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     nozzle_type_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
     nozzle_diameter_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
 
+    multiple_left_nozzle_type_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_left_nozzle_diameter_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_left_nozzle_flow_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+
+    multiple_right_nozzle_type_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_right_nozzle_diameter_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_right_nozzle_flow_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+
     nozzle_type_checkbox->SetId(ID_NOZZLE_TYPE_CHECKBOX_SINGLE);
+    multiple_left_nozzle_type_checkbox->SetId(ID_NOZZLE_TYPE_CHECKBOX_LEFT);
+    multiple_right_nozzle_type_checkbox->SetId(ID_NOZZLE_TYPE_CHECKBOX_RIGHT);
 
     nozzle_diameter_checkbox->SetId(ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE);
+    multiple_left_nozzle_diameter_checkbox->SetId(ID_NOZZLE_DIAMETER_CHECKBOX_LEFT);
+    multiple_right_nozzle_diameter_checkbox->SetId(ID_NOZZLE_DIAMETER_CHECKBOX_RIGHT);
+
+    multiple_left_nozzle_flow_checkbox->SetId(ID_NOZZLE_FLOW_CHECKBOX_LEFT);
+    multiple_right_nozzle_flow_checkbox->SetId(ID_NOZZLE_FLOW_CHECKBOX_RIGHT);
 }
 
 PrinterPartsDialog::~PrinterPartsDialog()

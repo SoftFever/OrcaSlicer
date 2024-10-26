@@ -75,6 +75,7 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingMixInvalid,
     PrintStatusNozzleMatchInvalid,
+    PrintStatusNozzleDataInvalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
