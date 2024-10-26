@@ -78,7 +78,7 @@ ChatConfigPanel::~ChatConfigPanel()
 
 void ChatConfigPanel::load_url()
 {
-    wxString url = wxString::Format("file://%s/web/ai/chat_config_test.html", from_u8(resources_dir()));
+    wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
 
