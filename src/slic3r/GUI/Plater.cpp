@@ -152,7 +152,7 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 
-#include "slic3r/GUI/AI/ChatConfigPanel.hpp"
+#include "slic3r/GUI/JusPrin/ChatConfigPanel.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
