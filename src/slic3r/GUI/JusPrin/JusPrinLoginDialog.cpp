@@ -28,7 +28,7 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     SetBackgroundColour(*wxWHITE);
 
     // Set up the URL for JusPrin login
-    m_jusprint_url = "https://app.obico.io/o/authorize?response_type=token&client_id=JusPrin&hide_navbar=true";
+    m_jusprint_url = "https://app.obico.io/accounts/login/?hide_navbar=true&next=/o/authorize/%3Fresponse_type%3Dtoken%26client_id%3DJusPrin";
     m_networkOk = false;
 
     // Create the webview
