@@ -15,7 +15,7 @@ void ParseStringValues(std::string str, std::vector<double> &vec)
     std::replace(str.begin(), str.end(), ',', ' ');
     std::istringstream inss(str);
     std::copy_if(std::istream_iterator<int>(inss), std::istream_iterator<int>(), std::back_inserter(vec),
-                 [](int x){ fprintf(stderr, "copy_if: %i", x); return x > 0; });
+                 [](int x){ return x > 0; });
 }
 
 }
