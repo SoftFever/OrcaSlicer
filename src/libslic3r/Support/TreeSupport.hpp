@@ -440,8 +440,7 @@ private:
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
     const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
-    const double tree_support_branch_diameter_angle = 5.0;
-    const double diameter_angle_scale_factor = tan(tree_support_branch_diameter_angle*M_PI/180.0);
+    double diameter_angle_scale_factor = tan(5.0*M_PI/180.0);
     // minimum roof area (1 mm^2), area smaller than this value will not have interface
     const double minimum_roof_area{SQ(scaled<double>(1.))};
     float        top_z_distance = 0.0;
