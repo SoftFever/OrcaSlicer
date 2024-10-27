@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PLA-CF",
+    "inherits": "Elegoo Generic PLA-CF @base",
+    "from": "system",
+    "setting_id": "EGPLACF00",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo Centauri Carbon 0.8 nozzle"
+    ]
+}

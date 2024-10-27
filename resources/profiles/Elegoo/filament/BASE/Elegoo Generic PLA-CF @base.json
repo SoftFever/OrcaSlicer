@@ -1,0 +1,32 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PLA-CF @base",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "EGPLACFB00",
+    "instantiation": "false",
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
+    "cool_plate_temp": [
+        "45"
+    ],
+    "cool_plate_temp_initial_layer": [
+        "45"
+    ],
+    "filament_type": [
+        "PLA-CF"
+    ],
+    "required_nozzle_HRC": [
+        "40"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "filament_start_gcode": [
+        "; Filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

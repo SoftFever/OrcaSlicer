@@ -1,0 +1,36 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic TPU 95A",
+    "inherits": "Elegoo Generic TPU 95A @base",
+    "from": "system",
+    "setting_id": "EGTPU95A00",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "3"
+    ],
+    "compatible_printers": [
+        "Elegoo Neptune 3 Pro 0.4 nozzle",
+        "Elegoo Neptune 3 Plus 0.4 nozzle",
+        "Elegoo Neptune 3 Max 0.4 nozzle",
+        "Elegoo Neptune 4 0.4 nozzle",
+        "Elegoo Neptune 4 0.6 nozzle",
+        "Elegoo Neptune 4 0.8 nozzle",
+        "Elegoo Neptune 4 1.0 nozzle",
+        "Elegoo Neptune 4 Max 0.4 nozzle",
+        "Elegoo Neptune 4 Max 0.6 nozzle",
+        "Elegoo Neptune 4 Max 0.8 nozzle",
+        "Elegoo Neptune 4 Max 1.0 nozzle",
+        "Elegoo Neptune 4 Plus 0.4 nozzle",
+        "Elegoo Neptune 4 Plus 0.6 nozzle",
+        "Elegoo Neptune 4 Plus 0.8 nozzle",
+        "Elegoo Neptune 4 Plus 1.0 nozzle",
+        "Elegoo Neptune 4 Pro 0.4 nozzle",
+        "Elegoo Neptune 4 Pro 0.6 nozzle",
+        "Elegoo Neptune 4 Pro 0.8 nozzle",
+        "Elegoo Neptune 4 Pro 1.0 nozzle",
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo OrangeStorm Giga 0.4 nozzle",
+        "Elegoo OrangeStorm Giga 0.6 nozzle"
+    ]
+}

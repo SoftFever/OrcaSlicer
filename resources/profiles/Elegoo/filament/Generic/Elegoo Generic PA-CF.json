@@ -1,0 +1,57 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PA-CF",
+    "inherits": "Elegoo Generic PA-CF @base",
+    "from": "system",
+    "setting_id": "EGPACF00",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "5"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "filament_type": [
+        "PA-CF"
+    ],
+    "full_fan_speed_layer": [
+        "2"
+    ],
+    "overhang_fan_speed": [
+        "40"
+    ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "temperature_vitrification": [
+        "170"
+    ],
+    "compatible_printers": [
+        "Elegoo Neptune 4 0.4 nozzle",
+        "Elegoo Neptune 4 0.6 nozzle",
+        "Elegoo Neptune 4 0.8 nozzle",
+        "Elegoo Neptune 4 1.0 nozzle",
+        "Elegoo Neptune 4 Max 0.4 nozzle",
+        "Elegoo Neptune 4 Max 0.6 nozzle",
+        "Elegoo Neptune 4 Max 0.8 nozzle",
+        "Elegoo Neptune 4 Max 1.0 nozzle",
+        "Elegoo Neptune 4 Plus 0.4 nozzle",
+        "Elegoo Neptune 4 Plus 0.6 nozzle",
+        "Elegoo Neptune 4 Plus 0.8 nozzle",
+        "Elegoo Neptune 4 Plus 1.0 nozzle",
+        "Elegoo Neptune 4 Pro 0.4 nozzle",
+        "Elegoo Neptune 4 Pro 0.6 nozzle",
+        "Elegoo Neptune 4 Pro 0.8 nozzle",
+        "Elegoo Neptune 4 Pro 1.0 nozzle",
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo Centauri Carbon 0.8 nozzle",
+        "Elegoo OrangeStorm Giga 0.4 nozzle",
+        "Elegoo OrangeStorm Giga 0.6 nozzle",
+        "Elegoo OrangeStorm Giga 0.8 nozzle",
+        "Elegoo OrangeStorm Giga 1.0 nozzle"
+    ]
+}
