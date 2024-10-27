@@ -258,6 +258,7 @@ public:
 
     double handle_xy_size() const { return m_handle_xy_size; };
     double handle_spacing() const { return m_handle_spacing; };
+    Vec3d handle_pos_offset() const;
     double print_size_x() const { return object_size_x() + pattern_shift(); };
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };

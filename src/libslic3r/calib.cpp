@@ -546,6 +546,13 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     refresh_setup(config, is_bbl_machine, object, origin);
 }
 
+Vec3d CalibPressureAdvancePattern::handle_pos_offset() const
+{
+    return Vec3d{0 - print_size_x() / 2 + handle_xy_size() / 2 + handle_spacing(),
+                 0,
+                 max_layer_z() / 2};
+}
+
 double CalibPressureAdvancePattern::flow_val() const
 {
     double flow_mult = m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);

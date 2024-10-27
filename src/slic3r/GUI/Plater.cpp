@@ -9527,10 +9527,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                 pa_pattern.handle_xy_size() / cube_bb.size().y(),
                 pa_pattern.max_layer_z() / cube_bb.size().z());
 
-    Vec3d cube_pos{cur_plate->get_center_origin().x() - pa_pattern.print_size_x() / 2 + pa_pattern.handle_xy_size() / 2 + pa_pattern.handle_spacing(),
-                   cur_plate->get_center_origin().y(),
-                   pa_pattern.max_layer_z() / 2};
-    cube->instances[0]->set_offset(cube_pos);
+    cube->instances[0]->set_offset(cur_plate->get_center_origin() + pa_pattern.handle_pos_offset());
 
     /* Unify code paths for single and batch modes */
     std::vector<double> speeds(params.speeds);
