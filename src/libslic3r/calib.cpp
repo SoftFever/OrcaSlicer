@@ -549,7 +549,7 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
 Vec3d CalibPressureAdvancePattern::handle_pos_offset() const
 {
     return Vec3d{0 - print_size_x() / 2 + handle_xy_size() / 2 + handle_spacing(),
-                 0,
+                 0 - max_numbering_height() / 2 - m_glyph_padding_vertical,
                  max_layer_z() / 2};
 }
 

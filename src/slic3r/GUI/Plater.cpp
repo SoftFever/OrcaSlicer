@@ -9435,6 +9435,10 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         accel = print_config.option<ConfigOptionFloat>("default_acceleration")->value;
     // Orca: Set all accelerations except first layer, as the first layer accel doesnt affect the PA test since accel
     // is set to the travel accel before printing the pattern.
+    if (params.batch_mode) {
+        // set max acceleration in case of batch mode to get correct test pattern size
+        accel = *std::max_element(params.accelerations.begin(), params.accelerations.end());
+    }
     print_config.set_key_value( "default_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "inner_wall_acceleration", new ConfigOptionFloat(accel));
@@ -9529,10 +9533,25 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     cube->instances[0]->set_offset(cur_plate->get_center_origin() + pa_pattern.handle_pos_offset());
 
-    /* Unify code paths for single and batch modes */
     std::vector<double> speeds(params.speeds);
     std::vector<double> accels(params.accelerations);
-    if (!params.batch_mode) {
+
+    const unsigned tests_padding{3};
+    const Vec3d tests_pos_step{0, pa_pattern.print_size_y() + tests_padding, 0};
+    size_t tests_per_plate = 1;
+    const auto &plate_size = build_volume().bounding_volume2d().size();
+    Vec3d first_offset{plate_size.x() / 2 + pa_pattern.handle_pos_offset().x(),
+                       plate_size.y() / 2 + pa_pattern.handle_pos_offset().y(),
+                       pa_pattern.handle_pos_offset().z()};
+
+    if (params.batch_mode) {
+        tests_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_step.y();
+        BOOST_LOG_TRIVIAL(info) << "Build plate " << plate_size.x() << "x" << plate_size.y()
+                                << ", test pattern " << pa_pattern.print_size_x() << "x" << pa_pattern.print_size_y()
+                                << " mm, may fit " << tests_per_plate << " tests per plate";
+        double border_width = (plate_size.y() - pa_pattern.print_size_y() * tests_per_plate - tests_padding * (tests_per_plate -1)) / 2;
+        first_offset.y() = pa_pattern.print_size_y() / 2 + pa_pattern.handle_pos_offset().y() + border_width;
+    } else {
         speeds.assign({speed});
         accels.assign({accel});
     }
@@ -9542,12 +9561,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         auto speed = speeds[test_idx % speeds.size()];
         auto accel = accels[test_idx / speeds.size()];
 
-        if (test_idx > 0)
-            duplicate_plate();
+        const size_t pos_on_plate = test_idx % tests_per_plate;
+        size_t plate_idx = test_idx / tests_per_plate;
 
-        cur_plate = get_partplate_list().get_plate(test_idx);
-
-        auto *obj = model().objects[test_idx];
+        /* make a copy of anchor cube for a new test */
+        auto obj = model().add_object(*cube);
         obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
 
         auto &obj_config = obj->config;
@@ -9564,15 +9582,24 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
         obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
 
+        auto cur_plate = get_partplate_list().get_plate(plate_idx);
+        if (!cur_plate) {
+            plate_idx = get_partplate_list().create_plate();
+            cur_plate = get_partplate_list().get_plate(plate_idx);
+        }
+
+        obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + pos_on_plate * tests_pos_step);
+
         auto gcode = pa_pattern.generate_custom_gcodes(
                             full_config,
                             is_bbl_machine,
                             *obj,
                             cur_plate->get_origin()
         );
-        model().plates_custom_gcodes[test_idx] = gcode;
+        model().plates_custom_gcodes[plate_idx] = gcode;
     }
 
+    model().delete_object(cube);
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
     changed_objects({ 0 });
 }
