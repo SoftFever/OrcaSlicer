@@ -775,18 +775,6 @@
             "sub_path": "process/EN2SERIES/0.42mm Extra Draft @Elegoo Neptune 0.6 nozzle.json"
         },
         {
-            "name": "0.40mm Standard @Elegoo Neptune 0.8 nozzle",
-            "sub_path": "process/EN2SERIES/0.40mm Standard @Elegoo Neptune 0.8 nozzle.json"
-        },
-        {
-            "name": "0.24mm Fine @Elegoo Neptune 0.8 nozzle",
-            "sub_path": "process/EN2SERIES/0.24mm Fine @Elegoo Neptune 0.8 nozzle.json"
-        },
-        {
-            "name": "0.32mm Optimal @Elegoo Neptune 0.8 nozzle",
-            "sub_path": "process/EN2SERIES/0.32mm Optimal @Elegoo Neptune 0.8 nozzle.json"
-        },
-        {
             "name": "0.20mm Standard @EOS Giga 0.4 nozzle",
             "sub_path": "process/EOSGIGA/0.20mm Standard @EOS Giga 0.4 nozzle.json"
         },
