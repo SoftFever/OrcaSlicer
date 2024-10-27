@@ -194,7 +194,7 @@ void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::j
         } else  if (jsonObject["value"].is_array()) {
             auto values = jsonObject["value"];
             if(values.size() == 0) return;
-            if (values[0].is_string()) {   
+            if (values[0].is_string()) {
                 std::vector<std::string> vec_value;
                 for (const auto& item : jsonObject["value"]) {
                     vec_value.push_back(item.get<std::string>());
@@ -221,7 +221,7 @@ void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::j
                 tab->ApplyConfig(key, vec_value);
             }
         }
-        
+
         else {
             // 处理其他类型或抛出异常
             //throw std::runtime_error("Unsupported JSON value type");
@@ -241,8 +241,9 @@ void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string&
      Slic3r::GUI::wxGetApp().preset_bundle->full_config();
 }
 
-void ChatConfigPanel::FetchPresetBundle() { 
-    SendMessage(ConfigToJSON("FETCH_PresetBundle", dynamic_cast<ConfigBase*>(&Slic3r::GUI::wxGetApp().preset_bundle->full_config())));
+void ChatConfigPanel::FetchPresetBundle() {
+    const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
+    SendMessage(ConfigToJSON("FETCH_PresetBundle", &full_config));
 }
 
 }} // namespace Slic3r::GUI
