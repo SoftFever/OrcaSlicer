@@ -33,6 +33,14 @@
         function parseBoolean(value) {
             return value === 'true' || value === '1';
         }
+        
+        function handleClickFetchPreset() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "fetch_preset_bundle",
+            }));
+
+            <!--   "printer_settings_id": "Default Printer" 表示是用户没有自定义的-->
+        }
         function handleClickLayoutHight() {
             var inputElement = document.getElementById("layer_height");
             var floatValue = parseFloat(inputElement.value); 
@@ -81,6 +89,7 @@
     </header>
     <main>
         <h2>关于我们</h2>
+        <button onclick="handleClickFetchPreset()">获取Preset参数</button>
         <button onclick="handleClick('TYPE_PRINT')">获取TYPE_PRINT参数</button>
         <button onclick="handleClick('TYPE_FILAMENT')">获取TYPE_FILAMENT参数</button>
         <br><br>
