@@ -5,7 +5,5 @@
     "from": "system",
     "setting_id": "EASA00",
     "instantiation": "true",
-    "compatible_printers": [
-    ]
+    "compatible_printers": []
 }
-  

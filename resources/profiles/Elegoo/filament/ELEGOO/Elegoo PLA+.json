@@ -8,6 +8,5 @@
     "filament_max_volumetric_speed": [
         "16"
     ],
-    "compatible_printers": [
-    ]
+    "compatible_printers": []
 }

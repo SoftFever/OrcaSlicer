@@ -6,7 +6,7 @@
     "filament_id": "EGTPU95AB00",
     "instantiation": "false",
     "filament_max_volumetric_speed": [
-      "3.6"
+        "3.6"
     ],
     "nozzle_temperature": [
         "230"

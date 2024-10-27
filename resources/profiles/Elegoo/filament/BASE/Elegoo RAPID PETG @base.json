@@ -6,49 +6,49 @@
     "filament_id": "ERPETGB00",
     "instantiation": "false",
     "cool_plate_temp": [
-      "0"
+        "0"
     ],
     "cool_plate_temp_initial_layer": [
-      "0"
+        "0"
     ],
     "eng_plate_temp": [
-      "70"
+        "70"
     ],
     "eng_plate_temp_initial_layer": [
-      "70"
+        "70"
     ],
     "fan_cooling_layer_time": [
-      "30"
+        "30"
     ],
     "fan_max_speed": [
-      "80"
+        "80"
     ],
     "fan_min_speed": [
-      "30"
+        "30"
     ],
     "filament_cost": [
-      "0"
+        "0"
     ],
     "filament_density": [
-      "1.26"
+        "1.26"
     ],
     "filament_max_volumetric_speed": [
-      "18"
+        "18"
     ],
     "filament_vendor": [
-      "Elegoo"
+        "Elegoo"
     ],
     "hot_plate_temp": [
-      "70"
+        "70"
     ],
     "hot_plate_temp_initial_layer": [
-      "70"
+        "70"
     ],
     "nozzle_temperature_range_high": [
-      "270"
+        "270"
     ],
     "nozzle_temperature_range_low": [
-      "230"
+        "230"
     ],
     "nozzle_temperature": [
         "250"
@@ -57,19 +57,19 @@
         "250"
     ],
     "overhang_fan_speed": [
-      "90"
+        "90"
     ],
     "overhang_fan_threshold": [
-      "10%"
+        "10%"
     ],
     "slow_down_layer_time": [
-      "12"
+        "12"
     ],
     "textured_plate_temp": [
-      "70"
+        "70"
     ],
     "textured_plate_temp_initial_layer": [
-      "70"
+        "70"
     ],
     "filament_start_gcode": [
         "; Filament start gcode\n"

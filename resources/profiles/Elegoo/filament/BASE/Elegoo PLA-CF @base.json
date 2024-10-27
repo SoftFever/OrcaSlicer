@@ -18,10 +18,10 @@
         "PLA-CF"
     ],
     "filament_vendor": [
-      "Elegoo"
+        "Elegoo"
     ],
     "filament_density": [
-      "1.21"
+        "1.21"
     ],
     "required_nozzle_HRC": [
         "40"

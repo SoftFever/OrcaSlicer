@@ -6,7 +6,7 @@
     "bed_model": "elegoo_orangestorm_giga_buildplate_model.stl",
     "bed_texture": "elegoo_orangestorm_giga_buildplate_texture.png",
     "machine_tech": "FFF",
-    "family": "Elegoo",    
+    "family": "Elegoo",
     "hotend_model": "",
     "default_materials": "Elegoo PLA @EOS Giga;Elegoo PETG PRO @EOS Giga;Elegoo ABS @EOS Giga;Elegoo PLA Silk"
 }

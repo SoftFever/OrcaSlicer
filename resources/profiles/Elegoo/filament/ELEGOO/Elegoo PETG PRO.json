@@ -5,6 +5,5 @@
     "from": "system",
     "setting_id": "EPETGPRO00",
     "instantiation": "true",
-    "compatible_printers": [
-    ]
+    "compatible_printers": []
 }
