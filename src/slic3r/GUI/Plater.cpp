@@ -9556,6 +9556,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         accels.assign({accel});
     }
 
+    /* Container to store custom g-codes genereted by the test generator.
+     * We'll store gcode for all tests on a single plate here. Once the plate handling is done,
+     * all the g-codes will be merged into a single one on per-layer basis */
+    std::vector<CustomGCode::Info> pcg;
+
     /* Set speed and acceleration on per-object basis and generate PA pattern for each test case */
     for(size_t test_idx = 0; test_idx < speeds.size() * accels.size(); test_idx++) {
         auto speed = speeds[test_idx % speeds.size()];
@@ -9596,11 +9601,27 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                             *obj,
                             cur_plate->get_origin()
         );
-        model().plates_custom_gcodes[plate_idx] = gcode;
+        pcg.emplace_back(gcode);
+
+        if ((pos_on_plate + 1 == tests_per_plate) || (test_idx + 1 == speeds.size() * accels.size())) {
+            // move first item into model custom gcode
+            auto &mcg = model().plates_custom_gcodes[plate_idx];
+            mcg = std::move(pcg[0]);
+            pcg.erase(pcg.begin());
+
+            // concat layer gcodes for each test
+            for (size_t i = 0; i < mcg.gcodes.size(); i++) {
+                for (auto &gc : pcg) {
+                        mcg.gcodes[i].extra += gc.gcodes[i].extra;
+                }
+            }
+
+            pcg.clear();
+        }
     }
 
     model().delete_object(cube);
-    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
+    // model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
     changed_objects({ 0 });
 }
 
