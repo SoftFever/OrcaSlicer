@@ -5,9 +5,10 @@
 
 namespace Slic3r { namespace GUI {
 
-std::string ConfigToJSON(const ConfigBase* config)
+std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
 {
     nlohmann::json j;
+    j["type"] = type;
     if (config == nullptr)
         return "";
     //record all the key-values
@@ -141,6 +142,13 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     std::string  jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
+
+    if (action == "fetch_preset_bundle")
+    {
+        FetchPresetBundle();
+        return;
+    }
+
     Preset::Type   preset_type;
     std::string    type = jsonObject["type"];
     if (type == "TYPE_PRINT") {
@@ -164,7 +172,7 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     if(action == "config_property"){
         ConfigProperty(preset_type, jsonObject);
     } else if (action == "fetch_property") {
-        FetchProperty(preset_type);
+        FetchProperty(preset_type, "FETCH_"+type);
     }
 }
 void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
@@ -221,11 +229,20 @@ void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::j
         }
     }
 }
-void ChatConfigPanel::FetchProperty(Preset::Type preset_type) {
+
+void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string& type)
+{
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
         auto config = tab->m_config;
-        SendMessage(ConfigToJSON(config));
+        SendMessage(ConfigToJSON(type, config));
     }
+
+     Slic3r::GUI::wxGetApp().preset_bundle->full_config();
 }
+
+void ChatConfigPanel::FetchPresetBundle() { 
+    SendMessage(ConfigToJSON("FETCH_PresetBundle", dynamic_cast<ConfigBase*>(&Slic3r::GUI::wxGetApp().preset_bundle->full_config())));
+}
+
 }} // namespace Slic3r::GUI

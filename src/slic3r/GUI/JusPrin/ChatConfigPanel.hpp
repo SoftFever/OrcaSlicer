@@ -35,7 +35,8 @@ private:
     void OnScriptMessageReceived(wxWebViewEvent& event);
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
-    void FetchProperty(Preset::Type preset_type);
+    void FetchProperty(Preset::Type preset_type, const std::string& type);
+    void FetchPresetBundle();
 
     wxWebView* m_browser;
     long       m_zoomFactor;
