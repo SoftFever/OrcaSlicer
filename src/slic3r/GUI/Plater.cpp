@@ -9490,12 +9490,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
 
     // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
-    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
-                                                       wxGetApp().preset_bundle->full_config(),
-                                                       (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
-                                                           (nozzle_diameter * 1.125) :
-                                                           print_config.get_abs_value("line_width", nozzle_diameter),
-                                                       print_config.get_abs_value("layer_height"), 0)));
+    double speed = CalibPressureAdvance::find_optimal_PA_speed(
+                            wxGetApp().preset_bundle->full_config(),
+                            (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
+                                (nozzle_diameter * 1.125) :
+                                print_config.get_abs_value("line_width", nozzle_diameter),
+                            print_config.get_abs_value("layer_height"), 0);
+    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
@@ -9508,7 +9509,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl_machine = preset_bundle->is_bbl_vendor();
     auto cur_plate = get_partplate_list().get_plate(0);
-    Vec3d plate_origin = cur_plate->get_origin();
 
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
@@ -9518,7 +9518,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         full_config,
         is_bbl_machine,
         model(),
-        plate_origin
+        cur_plate->get_origin()
     );
 
     auto *cube = model().objects[0];
@@ -9532,53 +9532,46 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                    pa_pattern.max_layer_z() / 2};
     cube->instances[0]->set_offset(cube_pos);
 
-    if (params.batch_mode) {
-        /* Generate entire test set for adaptive PA calibration */
+    /* Unify code paths for single and batch modes */
+    std::vector<double> speeds(params.speeds);
+    std::vector<double> accels(params.accelerations);
+    if (!params.batch_mode) {
+        speeds.assign({speed});
+        accels.assign({accel});
+    }
 
-        /* Set speed and acceleration on per-object basis and generate PA pattern for each test case */
-        for (size_t is = 0; is < params.speeds.size(); is++) {
-            for (size_t ia = 0; ia < params.accelerations.size(); ia++) {
-                const size_t plate_idx = is * params.accelerations.size() + ia;
-                const float speed = params.speeds[is];
-                const float accel = params.accelerations[ia];
+    /* Set speed and acceleration on per-object basis and generate PA pattern for each test case */
+    for(size_t test_idx = 0; test_idx < speeds.size() * accels.size(); test_idx++) {
+        auto speed = speeds[test_idx % speeds.size()];
+        auto accel = accels[test_idx / speeds.size()];
 
-                if (plate_idx > 0)
-                    duplicate_plate();
+        if (test_idx > 0)
+            duplicate_plate();
 
-                cur_plate = get_partplate_list().get_plate(plate_idx);
+        cur_plate = get_partplate_list().get_plate(test_idx);
 
-                auto *obj = model().objects[plate_idx];
-                obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
+        auto *obj = model().objects[test_idx];
+        obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
 
-                auto &obj_config = obj->config;
-                obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
-                obj_config.set_key_value("inner_wall_speed", new ConfigOptionFloat(speed));
-                obj_config.set_key_value("small_perimeter_speed", new ConfigOptionFloatOrPercent(speed, false));
-                obj_config.set_key_value("top_surface_speed", new ConfigOptionFloat(speed));
-                obj_config.set_key_value("default_acceleration", new ConfigOptionFloat(accel));
-                obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(accel));
-                obj_config.set_key_value("inner_wall_acceleration", new ConfigOptionFloat(accel));
-                obj_config.set_key_value("bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-                obj_config.set_key_value("sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-                obj_config.set_key_value("internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-                obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
-                obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
+        auto &obj_config = obj->config;
+        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
+        obj_config.set_key_value("inner_wall_speed", new ConfigOptionFloat(speed));
+        obj_config.set_key_value("small_perimeter_speed", new ConfigOptionFloatOrPercent(speed, false));
+        obj_config.set_key_value("top_surface_speed", new ConfigOptionFloat(speed));
+        obj_config.set_key_value("default_acceleration", new ConfigOptionFloat(accel));
+        obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(accel));
+        obj_config.set_key_value("inner_wall_acceleration", new ConfigOptionFloat(accel));
+        obj_config.set_key_value("bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+        obj_config.set_key_value("sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+        obj_config.set_key_value("internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+        obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
+        obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
 
-                pa_pattern.generate_custom_gcodes(
-                    full_config,
-                    is_bbl_machine,
-                    model(),
-                    cur_plate->get_origin()
-                );
-            }
-        }
-    } else {
-        /* Single test pattern */
         pa_pattern.generate_custom_gcodes(
             full_config,
             is_bbl_machine,
             model(),
-            plate_origin
+            cur_plate->get_origin()
         );
     }
 
