@@ -9439,15 +9439,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         // set max acceleration in case of batch mode to get correct test pattern size
         accel = *std::max_element(params.accelerations.begin(), params.accelerations.end());
     }
-    print_config.set_key_value( "default_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
-    print_config.set_key_value( "inner_wall_acceleration", new ConfigOptionFloat(accel));
-    print_config.set_key_value( "bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-    print_config.set_key_value( "sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-    print_config.set_key_value( "internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-    print_config.set_key_value( "top_surface_acceleration", new ConfigOptionFloat(accel));
-    print_config.set_key_value( "travel_acceleration", new ConfigOptionFloat(accel));
-    
     
     //Orca: find jerk value to use in the test
     if(print_config.option<ConfigOptionFloat>("default_jerk")->value > 0){ // we have set a jerk value
@@ -9575,18 +9567,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         auto &obj_config = obj->config;
         obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
-        obj_config.set_key_value("inner_wall_speed", new ConfigOptionFloat(speed));
-        obj_config.set_key_value("small_perimeter_speed", new ConfigOptionFloatOrPercent(speed, false));
-        obj_config.set_key_value("top_surface_speed", new ConfigOptionFloat(speed));
-        obj_config.set_key_value("default_acceleration", new ConfigOptionFloat(accel));
         obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(accel));
-        obj_config.set_key_value("inner_wall_acceleration", new ConfigOptionFloat(accel));
-        obj_config.set_key_value("bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-        obj_config.set_key_value("sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-        obj_config.set_key_value("internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
-        obj_config.set_key_value("top_surface_acceleration", new ConfigOptionFloat(accel));
-        obj_config.set_key_value("travel_acceleration", new ConfigOptionFloat(accel));
-
         auto cur_plate = get_partplate_list().get_plate(plate_idx);
         if (!cur_plate) {
             plate_idx = get_partplate_list().create_plate();
