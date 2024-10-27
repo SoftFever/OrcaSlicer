@@ -315,22 +315,6 @@
             "sub_path": "process/EN4SERIES/0.42mm Extra Draft @Elegoo N4Pro 0.6 nozzle.json"
         },
         {
-            "name": "0.40mm Standard @Elegoo N4Pro 0.8 nozzle",
-            "sub_path": "process/EN4SERIES/0.40mm Standard @Elegoo N4Pro 0.8 nozzle.json"
-        },
-        {
-            "name": "0.24mm Fine @Elegoo N4Pro 0.8 nozzle",
-            "sub_path": "process/EN4SERIES/0.24mm Fine @Elegoo N4Pro 0.8 nozzle.json"
-        },
-        {
-            "name": "0.32mm Optimal @Elegoo N4Pro 0.8 nozzle",
-            "sub_path": "process/EN4SERIES/0.32mm Optimal @Elegoo N4Pro 0.8 nozzle.json"
-        },
-        {
-            "name": "0.48mm Draft @Elegoo N4Pro 0.8 nozzle",
-            "sub_path": "process/EN4SERIES/0.48mm Draft @Elegoo N4Pro 0.8 nozzle.json"
-        },
-        {
             "name": "0.50mm Standard @Elegoo N4Pro 1.0 nozzle",
             "sub_path": "process/EN4SERIES/0.50mm Standard @Elegoo N4Pro 1.0 nozzle.json"
         },
