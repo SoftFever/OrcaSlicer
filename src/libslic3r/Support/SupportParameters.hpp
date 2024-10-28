@@ -1,6 +1,7 @@
 #ifndef slic3r_SupportParameters_hpp_
 #define slic3r_SupportParameters_hpp_
 
+#include <boost/log/trivial.hpp>
 #include "../libslic3r.h"
 #include "../Flow.hpp"
 
