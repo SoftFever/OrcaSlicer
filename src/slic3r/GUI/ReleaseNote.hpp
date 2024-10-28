@@ -275,10 +275,12 @@ class InputIpAddressDialog : public DPIDialog
 public:
     wxString comfirm_before_enter_text;
     wxString comfirm_after_enter_text;
+    wxString comfirm_last_enter_text;
 
     boost::thread* m_thread{nullptr};
 
     std::string m_ip;
+    wxWindow* m_step_icon_panel3{ nullptr };
     Label* m_tip1{ nullptr };
     Label* m_tip2{ nullptr };
     Label* m_tip3{ nullptr };
@@ -287,13 +289,19 @@ public:
     ~InputIpAddressDialog();
 
     MachineObject* m_obj{nullptr};
+    wxPanel * ip_input_top_panel{ nullptr };
+    wxPanel * ip_input_bot_panel{ nullptr };
     Button* m_button_ok{ nullptr };
     Label* m_tips_ip{ nullptr };
     Label* m_tips_access_code{ nullptr };
+    Label* m_tips_sn{nullptr};
+    Label* m_tips_modelID{nullptr};
     Label* m_test_right_msg{ nullptr };
     Label* m_test_wrong_msg{ nullptr };
     TextInput* m_input_ip{ nullptr };
     TextInput* m_input_access_code{ nullptr };
+    TextInput* m_input_sn{ nullptr };
+    ComboBox*  m_input_modelID{ nullptr };
     wxStaticBitmap* m_img_help{ nullptr };
     wxStaticBitmap* m_img_step1{ nullptr };
     wxStaticBitmap* m_img_step2{ nullptr };
@@ -303,8 +311,10 @@ public:
     int     closeCount{3};
     bool   m_show_access_code{ false };
     int    m_result;
+    int    current_input_index {0};
     std::shared_ptr<BBLStatusBarSend>  m_status_bar;
 
+    void switch_input_panel(int index);
     void on_cancel();
     void update_title(wxString title);
     void set_machine_obj(MachineObject* obj);
@@ -313,7 +323,7 @@ public:
     void check_ip_address_failed(int result);
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
-    void workerThreadFunc(std::string str_ip, std::string str_access_code);
+    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;

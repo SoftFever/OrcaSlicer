@@ -5953,6 +5953,7 @@ std::string DeviceManager::get_printer_ams_img(std::string type_str)
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {
     return get_value_from_config<bool>(type_str, "printer_is_enclosed");
 }
+
 std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)
 {
     std::vector<std::string> resolution_supported;
@@ -5998,6 +5999,43 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
     return compatible_machine;
 }
 
+std::vector<std::string> DeviceManager::get_all_model_id()
+{
+    std::vector<std::string> models;
+    std::vector<wxString> m_files;
+
+    wxDir dir(Slic3r::resources_dir() + "/printers/");
+    if (!dir.IsOpened()) {
+        return models;
+    }
+
+    wxString filename;
+    bool     hasFile = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while (hasFile) {
+        m_files.push_back(filename);
+        hasFile = dir.GetNext(&filename);
+    }
+
+    for (wxString file : m_files) {
+        std::string config_file = Slic3r::resources_dir() + "/printers/" + file.ToStdString();
+        boost::nowide::ifstream json_file(config_file.c_str());
+
+        try {
+            json jj;
+            if (json_file.is_open()) {
+                json_file >> jj;
+                if (jj.contains("00.00.00.00")) {
+                    json const &printer = jj["00.00.00.00"];
+                    if (printer.contains("model_id")) {
+                        for (auto res : printer["model_id"]) models.emplace_back(res.get<std::string>());
+                    }
+                }
+            }
+        } catch (...) {}
+    }
+
+    return models;
+}
 
 bool DeviceManager::load_filaments_blacklist_config()
 {
