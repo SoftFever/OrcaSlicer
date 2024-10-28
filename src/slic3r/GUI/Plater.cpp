@@ -9417,6 +9417,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
 void Plater::_calib_pa_pattern(const Calib_Params& params)
 {
+    std::vector<size_t> object_idxs{};
     /* Set common parameters */
     DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -9561,19 +9562,23 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         const size_t pos_on_plate = test_idx % tests_per_plate;
         size_t plate_idx = test_idx / tests_per_plate;
 
-        /* make a copy of anchor cube for a new test */
-        auto obj = model().add_object(*cube);
+        /* make an own copy of anchor cube for each test */
+        auto obj = test_idx == 0 ? cube : model().add_object(*cube);
+        auto obj_idx = std::distance(model().objects.begin(), std::find(model().objects.begin(), model().objects.end(), obj));
         obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
 
         auto &obj_config = obj->config;
         obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
         obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(accel));
+
         auto cur_plate = get_partplate_list().get_plate(plate_idx);
         if (!cur_plate) {
             plate_idx = get_partplate_list().create_plate();
             cur_plate = get_partplate_list().get_plate(plate_idx);
         }
 
+        object_idxs.emplace_back(obj_idx);
+        get_partplate_list().add_to_plate(obj_idx, 0, plate_idx);
         obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + pos_on_plate * tests_pos_step);
 
         auto gcode = pa_pattern.generate_custom_gcodes(
@@ -9601,9 +9606,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         }
     }
 
-    model().delete_object(cube);
     // model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
-    changed_objects({ 0 });
+    changed_objects(object_idxs);
 }
 
 void Plater::cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes)
