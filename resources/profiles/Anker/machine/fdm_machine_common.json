@@ -16,46 +16,46 @@
     ],
     "silent_mode": "0",
     "machine_max_acceleration_e": [
-        "4000"
+        "10000"
     ],
     "machine_max_acceleration_extruding": [
-        "6000"
+        "10000"
     ],
     "machine_max_acceleration_retracting": [
-        "1000"
+        "10000"
     ],
     "machine_max_acceleration_x": [
-        "6000"
+        "10000"
     ],
     "machine_max_acceleration_y": [
-        "6000"
+        "10000"
     ],
     "machine_max_acceleration_z": [
-        "300"
+        "10000"
     ],
     "machine_max_acceleration_travel": [
-        "6000"
+        "10000"
     ],
     "machine_max_speed_e": [
-        "50"
+        "100"
     ],
     "machine_max_speed_x": [
-        "600"
+        "500"
     ],
     "machine_max_speed_y": [
-        "600"
+        "500"
     ],
     "machine_max_speed_z": [
-        "30"
+        "50"
     ],
     "machine_max_jerk_e": [
         "3"
     ],
     "machine_max_jerk_x": [
-        "8"
+        "15"
     ],
     "machine_max_jerk_y": [
-        "8"
+        "15"
     ],
     "machine_max_jerk_z": [
         "0.3"
@@ -70,11 +70,11 @@
         "0.32"
     ],
     "min_layer_height": [
-        "0.05"
+        "0.08"
     ],
     "printer_settings_id": "",
     "retraction_minimum_travel": [
-        "1"
+        "1.5"
     ],
     "retract_before_wipe": [
         "0%"
@@ -83,10 +83,10 @@
         "1"
     ],
     "retraction_length": [
-        "0.5"
+        "3"
     ],
     "retract_length_toolchange": [
-        "2"
+        "4"
     ],
     "z_hop": [
         "0"
