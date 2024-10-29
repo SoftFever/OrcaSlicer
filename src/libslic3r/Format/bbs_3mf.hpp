@@ -95,6 +95,8 @@ struct PlateData
     bool            is_label_object_enabled {false};
     int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
     std::vector<int>          filament_maps;   // 1 base
+    using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
+    LayerFilaments layer_filaments;
 
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1
