@@ -42,8 +42,8 @@ class StepPreProcessor {
 public:
     bool preprocess(const char* path, std::string &output_path);
     static bool isUtf8File(const char* path);
-private:
     static bool isUtf8(const std::string str);
+private: 
     static bool isGBK(const std::string str);
     static int preNum(const unsigned char byte);
     //BBS: default is UTF8 for most step file.

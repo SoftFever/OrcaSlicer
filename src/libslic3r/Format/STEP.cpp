@@ -182,7 +182,7 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName))
         name = TCollection_AsciiString(shapeName->Get()).ToCString();
 
-    if (name == "")
+    if (name == "" || !StepPreProcessor::isUtf8(name))
         name = std::to_string(id++);
     std::string fullName{name};
 
