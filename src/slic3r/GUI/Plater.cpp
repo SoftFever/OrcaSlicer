@@ -9549,12 +9549,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         accels.assign({accel});
     }
 
-    /* Container to store custom g-codes genereted by the test generator.
-     * We'll store gcode for all tests on a single plate here. Once the plate handling is done,
-     * all the g-codes will be merged into a single one on per-layer basis */
-    std::vector<CustomGCode::Info> pcg;
-
-    /* Set speed and acceleration on per-object basis and generate PA pattern for each test case */
+    /* Set speed and acceleration on per-object basis and arrange anchor object on the plates.
+     * Test gcode will be genecated during plate slicing */
     for(size_t test_idx = 0; test_idx < speeds.size() * accels.size(); test_idx++) {
         auto speed = speeds[test_idx % speeds.size()];
         auto accel = accels[test_idx / speeds.size()];
@@ -9580,34 +9576,49 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         object_idxs.emplace_back(obj_idx);
         get_partplate_list().add_to_plate(obj_idx, 0, plate_idx);
         obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + pos_on_plate * tests_pos_step);
-
-        auto gcode = pa_pattern.generate_custom_gcodes(
-                            full_config,
-                            is_bbl_machine,
-                            *obj,
-                            cur_plate->get_origin()
-        );
-        pcg.emplace_back(gcode);
-
-        if ((pos_on_plate + 1 == tests_per_plate) || (test_idx + 1 == speeds.size() * accels.size())) {
-            // move first item into model custom gcode
-            auto &mcg = model().plates_custom_gcodes[plate_idx];
-            mcg = std::move(pcg[0]);
-            pcg.erase(pcg.begin());
-
-            // concat layer gcodes for each test
-            for (size_t i = 0; i < mcg.gcodes.size(); i++) {
-                for (auto &gc : pcg) {
-                        mcg.gcodes[i].extra += gc.gcodes[i].extra;
-                }
-            }
-
-            pcg.clear();
-        }
     }
 
-    // model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
+    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
     changed_objects(object_idxs);
+}
+
+void Plater::_calib_pa_pattern_gen_gcode()
+{
+    if (!model().calib_pa_pattern)
+        return;
+
+    auto cur_plate = get_partplate_list().get_curr_plate();
+    if (cur_plate->empty())
+        return;
+
+    /* Container to store custom g-codes genereted by the test generator.
+     * We'll store gcode for all tests on a single plate here. Once the plate handling is done,
+     * all the g-codes will be merged into a single one on per-layer basis */
+    std::vector<CustomGCode::Info> mgc;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+
+    /* iterate over all cubes on current plate and generate gcode for them */
+    for (auto obj : cur_plate->get_objects_on_this_plate()) {
+        auto gcode = model().calib_pa_pattern->generate_custom_gcodes(
+                                preset_bundle->full_config(),
+                                preset_bundle->is_bbl_vendor(),
+                                *obj,
+                                cur_plate->get_origin()
+        );
+        mgc.emplace_back(gcode);
+    }
+
+    // move first item into model custom gcode
+    auto &pcgc = model().plates_custom_gcodes[get_partplate_list().get_curr_plate_index()];
+    pcgc = std::move(mgc[0]);
+    mgc.erase(mgc.begin());
+
+    // concat layer gcodes for each test
+    for (size_t i = 0; i < pcgc.gcodes.size(); i++) {
+        for (auto &gc : mgc) {
+            pcgc.gcodes[i].extra += gc.gcodes[i].extra;
+        }
+    }
 }
 
 void Plater::cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes)
@@ -12355,14 +12366,7 @@ void Plater::reslice()
 
     // Orca: regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-
-        model().calib_pa_pattern->generate_custom_gcodes(
-            wxGetApp().preset_bundle->full_config(),
-            preset_bundle->is_bbl_vendor(),
-            *model().objects[model().curr_plate_index],
-            get_partplate_list().get_current_plate_origin()
-        );
+        _calib_pa_pattern_gen_gcode();
     }
 
     if (printer_technology() == ptSLA) {
