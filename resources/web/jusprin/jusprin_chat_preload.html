@@ -39,6 +39,7 @@
     </div>
 
     <script>
+
         function showError() {
             document.querySelector('.loading').style.display = 'none';
             document.querySelector('.error').style.display = 'block';
@@ -49,7 +50,7 @@
             document.querySelector('.error').style.display = 'none';
         }
 
-        function checkAndRedirect() {
+        function checkAndRedirectToChatServer(serverUrl) {
             showLoading();
 
             // Set a timeout to handle no response
@@ -57,7 +58,7 @@
                 showError();
             }, 5000); // 5 second timeout
 
-            fetch('http://localhost:3334/jusprin/embedded_chat/', {
+            fetch(serverUrl + '/embedded_chat/', {
                 method: 'HEAD',
                 mode: 'no-cors'
             })
@@ -65,15 +66,13 @@
                 clearTimeout(timeoutId);
                 // Don't check response.ok when using no-cors
                 // Just redirect if we get any response
-                window.location.href = 'http://localhost:3334/jusprin/embedded_chat/';
+                window.location.href = serverUrl + '/embedded_chat/';
             })
             .catch(() => {
                 clearTimeout(timeoutId);
                 showError();
             });
         }
-
-        checkAndRedirect();
     </script>
 </body>
 </html>

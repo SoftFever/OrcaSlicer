@@ -134,6 +134,11 @@ void ChatConfigPanel::OnLoaded(wxWebViewEvent& evt)
     if (evt.GetURL().IsEmpty())
         return;
 
+    if (evt.GetURL().Contains("jusprin_chat_preload.html")) {
+        wxString strJS = wxString::Format("checkAndRedirectToChatServer('%s')",
+            wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+        WebView::RunScript(m_browser, strJS);
+    }
 }
 
 void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
@@ -243,7 +248,8 @@ void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string&
 
 void ChatConfigPanel::FetchPresetBundle() {
     const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
-    SendMessage(ConfigToJSON("FETCH_PresetBundle", &full_config));
+    wxString strJS = wxString::Format("updateJusprinEmbeddedChatState('selectedFilament', %s)", ConfigToJSON("FETCH_PresetBundle", &full_config));
+    WebView::RunScript(m_browser, strJS);
 }
 
 }} // namespace Slic3r::GUI

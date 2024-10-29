@@ -9529,19 +9529,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         accel = *std::max_element(accels.begin(), accels.end());
     }
     print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
-<<<<<<< HEAD
     print_config.set_key_value( "print_sequence", new ConfigOptionEnum(PrintSequence::ByLayer));
-    
-=======
     print_config.set_key_value( "inner_wall_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
     print_config.set_key_value( "sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
     print_config.set_key_value( "internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
     print_config.set_key_value( "top_surface_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "travel_acceleration", new ConfigOptionFloat(accel));
-
-
->>>>>>> 3010ddfa7 (Primary color change)
     //Orca: find jerk value to use in the test
     if(print_config.option<ConfigOptionFloat>("default_jerk")->value > 0){ // we have set a jerk value
         auto jerk = print_config.option<ConfigOptionFloat>("outer_wall_jerk")->value; // get outer wall jerk

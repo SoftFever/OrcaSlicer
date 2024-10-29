@@ -194,13 +194,8 @@ protected:
 };
 
 #define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
-<<<<<<< HEAD
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
-=======
 #define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(182), FromDIP(35))
->>>>>>> 3010ddfa7 (Primary color change)
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)

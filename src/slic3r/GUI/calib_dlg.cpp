@@ -7,7 +7,6 @@
 #include <string>
 namespace Slic3r { namespace GUI {
 
-<<<<<<< HEAD
 namespace {
 
 void ParseStringValues(std::string str, std::vector<double> &vec)
@@ -20,9 +19,6 @@ void ParseStringValues(std::string str, std::vector<double> &vec)
 }
 
 }
-
-=======
->>>>>>> 3010ddfa7 (Primary color change)
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
