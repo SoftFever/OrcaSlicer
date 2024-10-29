@@ -2148,17 +2148,25 @@ void TreeSupport::draw_circles()
                     }
                 }
                 auto &area_groups = ts_layer->area_groups;
-                for (auto& area : ts_layer->base_areas) {
-                    area_groups.emplace_back(&area, SupportLayer::BaseType, max_layers_above_base);
-                    area_groups.back().need_infill = overlaps({ area }, area_poly);
-                    area_groups.back().need_extra_wall = need_extra_wall;
+                for (auto& expoly : ts_layer->base_areas) {
+                    if (area(expoly) < SQ(scale_(1))) continue;
+                    area_groups.emplace_back(&expoly, SupportLayer::BaseType, max_layers_above_base);
+                    area_groups.back().need_infill = overlaps({ expoly }, area_poly);
+                    area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                 }
-                for (auto& area : ts_layer->roof_areas) {
-                    area_groups.emplace_back(&area, SupportLayer::RoofType, max_layers_above_roof);
+                for (auto& expoly : ts_layer->roof_areas) {
+                    if (area(expoly) < SQ(scale_(1))) continue;
+                    area_groups.emplace_back(&expoly, SupportLayer::RoofType, max_layers_above_roof);
                     area_groups.back().interface_id = interface_id;
                 }
-                for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, SupportLayer::FloorType, 10000);
-                for (auto &area : ts_layer->roof_1st_layer) area_groups.emplace_back(&area, SupportLayer::Roof1stLayer, max_layers_above_roof1);
+                for (auto &expoly : ts_layer->floor_areas) {
+                    if (area(expoly) < SQ(scale_(1))) continue;
+                    area_groups.emplace_back(&expoly, SupportLayer::FloorType, 10000);
+                }
+                for (auto &expoly : ts_layer->roof_1st_layer) {
+                    if (area(expoly) < SQ(scale_(1))) continue;
+                    area_groups.emplace_back(&expoly, SupportLayer::Roof1stLayer, max_layers_above_roof1);
+                }
 
                 for (auto &area_group : area_groups) {
                     auto& expoly = area_group.area;
@@ -3075,7 +3083,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
         if (contact_nodes[layer_nr].empty()) continue;
         SupportNode *node1 = contact_nodes[layer_nr].front();
-        auto         it    = z_heights.lower_bound(node1->print_z - EPSILON);
+        auto         it    = z_heights.lower_bound(node1->print_z + EPSILON);
         if (it == z_heights.end()) it = std::prev(it);
         int layer_nr2 = std::distance(z_heights.begin(), it);
         contact_nodes2[layer_nr2].insert(contact_nodes2[layer_nr2].end(), contact_nodes[layer_nr].begin(), contact_nodes[layer_nr].end());
@@ -3091,6 +3099,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
                                  << ", object_layer_zs[" << layer_heights[layer_nr].obj_layer_nr << "]=" << m_object->get_layer(layer_heights[layer_nr].obj_layer_nr)->print_z;
         coordf_t new_height = layer_heights[layer_nr].height;
         if (std::abs(node1->height - new_height) < EPSILON) continue;
+        if (top_z_distance < EPSILON && node1->height < EPSILON) continue; // top_z_distance==0, this is soluable interface
         coordf_t              accum_height = 0;
         int                   num_layers   = 0;
         for (int i=layer_nr;i>=0;i--){
@@ -3164,9 +3173,6 @@ void TreeSupport::generate_contact_points()
   //  }
     const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
     int gap_layers = z_distance_top == 0 ? 0 : 1;
-    // virtual layer with 0 height will be deleted
-    if (z_distance_top == 0)
-        z_distance_top = 0.001;
 
     size_t support_roof_layers = config.support_interface_top_layers.value;
     if (support_roof_layers > 0)
