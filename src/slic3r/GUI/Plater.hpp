@@ -153,7 +153,7 @@ public:
     void on_filaments_delete(size_t filament_id);
 
     void add_filament();
-    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base
+    void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
     void add_custom_filament(wxColour new_col);

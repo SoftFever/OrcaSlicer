@@ -1957,7 +1957,7 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
     wxGetApp().preset_bundle->update_num_filaments(filament_id);
     wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
-    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id > filament_id ? (replace_filament_id - 1) : replace_filament_id);
+    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id > (int)filament_id ? (replace_filament_id - 1) : replace_filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
@@ -13545,7 +13545,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     // update mmu info
     for (ModelObject *mo : wxGetApp().model().objects) {
         for (ModelVolume *mv : mo->volumes) {
-            mv->update_extruder_count_when_delete_filament(num_filaments, filament_id, replace_filament_id);
+            mv->update_extruder_count_when_delete_filament(num_filaments, filament_id + 1, replace_filament_id + 1);  // this function is 1 base
         }
     }
 
