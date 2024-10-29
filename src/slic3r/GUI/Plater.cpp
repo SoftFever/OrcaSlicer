@@ -9540,11 +9540,15 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                        pa_pattern.handle_pos_offset().z()};
 
     if (params.batch_mode) {
-        rows_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_y_step.y();
-        cols_per_plate = (unsigned)(plate_size.x() + tests_padding) / tests_pos_x_step.x();
-        BOOST_LOG_TRIVIAL(info) << "Build plate " << plate_size.x() << "x" << plate_size.y()
-                                << ", test pattern " << pa_pattern.print_size_x() << "x" << pa_pattern.print_size_y()
-                                << " mm, may fit " << cols_per_plate << "x" << rows_per_plate << " tests per plate";
+        if (build_volume().type() == BuildVolume_Type::Rectangle) {
+            rows_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_y_step.y();
+            cols_per_plate = (unsigned)(plate_size.x() + tests_padding) / tests_pos_x_step.x();
+            BOOST_LOG_TRIVIAL(info) << "Build plate " << plate_size.x() << "x" << plate_size.y()
+                                    << ", test pattern " << pa_pattern.print_size_x() << "x" << pa_pattern.print_size_y()
+                                    << " mm, may fit " << cols_per_plate << "x" << rows_per_plate << " tests per plate";
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "Multiple patterns per plate supported on Rect plates only";
+        }
         double border_y_width = (plate_size.y() - pa_pattern.print_size_y() * rows_per_plate - tests_padding * (rows_per_plate - 1)) / 2;
         double border_x_width = (plate_size.x() - pa_pattern.print_size_x() * cols_per_plate - tests_padding * (cols_per_plate - 1)) / 2;
         first_offset.y() = pa_pattern.print_size_y() / 2 + pa_pattern.handle_pos_offset().y() + border_y_width;
