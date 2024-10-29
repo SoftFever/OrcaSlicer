@@ -66,6 +66,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
+                info.cali_idx      = it->second->cali_idx;
+                info.filament_id   = it->second->filament_setting_id;
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
                 } else {
@@ -97,6 +99,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
+                info.cali_idx      = -1;
+                info.filament_id   = "";
                 info.ctype = 0;
                 info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
@@ -136,6 +140,8 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
         info.material_name = tray.get_display_filament_type();
+        info.cali_idx    = tray.cali_idx;
+        info.filament_id = tray.filament_setting_id;
         if (!tray.color.empty()) {
             info.material_colour = AmsTray::decode_color(tray.color);
         }
@@ -151,6 +157,8 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
     }
     else {
         info.material_name = "";
+        info.cali_idx    = -1;
+        info.filament_id = "";
         info.ctype = 0;
         info.material_colour = AMS_TRAY_DEFAULT_COL;
         wxColour(255, 255, 255);
@@ -907,8 +915,11 @@ void AMSLib::render_lite_text(wxDC& dc)
 void AMSLib::render_generic_text(wxDC &dc)
 {
     bool show_k_value = true;
-    if (m_obj && (m_obj->cali_version >= 0) && (abs(m_info.k - 0) < 1e-3)) {
+    if (m_info.material_name.empty()) {
         show_k_value = false;
+    }
+    else if (m_info.cali_idx == -1) {
+        get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
     }
 
     auto tmp_lib_colour = m_info.material_colour;

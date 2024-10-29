@@ -13,31 +13,6 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
-static void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
-{
-    if (filament_id.compare("GFG00") == 0) {
-        // PETG
-        k = 0.04;
-        n = 1.0;
-    } else if (filament_id.compare("GFB00") == 0 || filament_id.compare("GFB50") == 0) {
-        // ABS
-        k = 0.04;
-        n = 1.0;
-    } else if (filament_id.compare("GFU01") == 0) {
-        // TPU
-        k = 0.2;
-        n = 1.0;
-    } else if (filament_id.compare("GFB01") == 0) {
-        // ASA
-        k = 0.04;
-        n = 1.0;
-    } else {
-        // PLA , other
-        k = 0.02;
-        n = 1.0;
-    }
-}
-
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
     std::stringstream stream;

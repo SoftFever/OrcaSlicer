@@ -147,6 +147,8 @@ struct Caninfo
     AMSCanType      material_state;
     int             ctype=0;
     int             material_remain = 100;
+    int             cali_idx = -1;
+    std::string     filament_id;
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
