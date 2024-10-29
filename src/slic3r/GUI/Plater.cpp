@@ -9530,24 +9530,30 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     std::vector<double> accels(params.accelerations);
 
     const unsigned tests_padding{3};
-    const Vec3d tests_pos_step{0, pa_pattern.print_size_y() + tests_padding, 0};
-    size_t tests_per_plate = 1;
+    const Vec3d tests_pos_y_step{0, pa_pattern.print_size_y() + tests_padding, 0};
+    const Vec3d tests_pos_x_step{pa_pattern.print_size_x() + tests_padding, 0, 0};
+    size_t rows_per_plate = 1;
+    size_t cols_per_plate = 1;
     const auto &plate_size = build_volume().bounding_volume2d().size();
     Vec3d first_offset{plate_size.x() / 2 + pa_pattern.handle_pos_offset().x(),
                        plate_size.y() / 2 + pa_pattern.handle_pos_offset().y(),
                        pa_pattern.handle_pos_offset().z()};
 
     if (params.batch_mode) {
-        tests_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_step.y();
+        rows_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_y_step.y();
+        cols_per_plate = (unsigned)(plate_size.x() + tests_padding) / tests_pos_x_step.x();
         BOOST_LOG_TRIVIAL(info) << "Build plate " << plate_size.x() << "x" << plate_size.y()
                                 << ", test pattern " << pa_pattern.print_size_x() << "x" << pa_pattern.print_size_y()
-                                << " mm, may fit " << tests_per_plate << " tests per plate";
-        double border_width = (plate_size.y() - pa_pattern.print_size_y() * tests_per_plate - tests_padding * (tests_per_plate -1)) / 2;
-        first_offset.y() = pa_pattern.print_size_y() / 2 + pa_pattern.handle_pos_offset().y() + border_width;
+                                << " mm, may fit " << cols_per_plate << "x" << rows_per_plate << " tests per plate";
+        double border_y_width = (plate_size.y() - pa_pattern.print_size_y() * rows_per_plate - tests_padding * (rows_per_plate - 1)) / 2;
+        double border_x_width = (plate_size.x() - pa_pattern.print_size_x() * cols_per_plate - tests_padding * (cols_per_plate - 1)) / 2;
+        first_offset.y() = pa_pattern.print_size_y() / 2 + pa_pattern.handle_pos_offset().y() + border_y_width;
+        first_offset.x() = pa_pattern.print_size_x() / 2 + pa_pattern.handle_pos_offset().x() + border_x_width;
     } else {
         speeds.assign({speed});
         accels.assign({accel});
     }
+    const size_t tests_per_plate = rows_per_plate * cols_per_plate;
 
     /* Set speed and acceleration on per-object basis and arrange anchor object on the plates.
      * Test gcode will be genecated during plate slicing */
@@ -9556,6 +9562,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         auto accel = accels[test_idx / speeds.size()];
 
         const size_t pos_on_plate = test_idx % tests_per_plate;
+        const size_t row_on_plate = pos_on_plate % rows_per_plate;
+        const size_t col_on_plate = pos_on_plate / rows_per_plate;
         size_t plate_idx = test_idx / tests_per_plate;
 
         /* make an own copy of anchor cube for each test */
@@ -9575,7 +9583,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         object_idxs.emplace_back(obj_idx);
         get_partplate_list().add_to_plate(obj_idx, 0, plate_idx);
-        obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + pos_on_plate * tests_pos_step);
+        obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + row_on_plate * tests_pos_y_step + col_on_plate * tests_pos_x_step);
     }
 
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
