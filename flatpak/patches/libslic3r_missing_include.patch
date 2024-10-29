@@ -1,0 +1,12 @@
+diff --git a/src/libslic3r/PrintObject.cpp b/src/libslic3r/PrintObject.cpp
+index 528a72e70..1530fe655 100644
+--- a/src/libslic3r/PrintObject.cpp
++++ b/src/libslic3r/PrintObject.cpp
+@@ -31,6 +31,7 @@
+ #include <boost/log/trivial.hpp>
+ 
+ #include <tbb/parallel_for.h>
++#include <tbb/spin_mutex.h>
+ 
+ #include <Shiny/Shiny.h>
+ 
