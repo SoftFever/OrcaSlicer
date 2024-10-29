@@ -141,12 +141,17 @@ protected:
     bool          load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template = false);
     void          generate_process_presets_data(std::vector<Preset const *> presets, std::string nozzle);
     void          update_preset_list_size();
+    std::string   get_printer_vendor() const;
+    std::string   get_printer_model() const;
+    std::string   get_nozzle_diameter() const;
+    std::string   get_custom_printer_model() const;
+    std::string   get_custom_printer_name() const;
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
 
-    wxString    curr_create_preset_type();
-    wxString    curr_create_printer_type();
+    wxString    curr_create_preset_type() const;
+    wxString    curr_create_printer_type() const;
 
 private:
     struct CreatePrinterType
@@ -178,10 +183,12 @@ private:
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
     ComboBox *                                         m_select_printer                 = nullptr;
-    ::CheckBox *                                             m_can_not_find_vendor_combox     = nullptr;
+    ::CheckBox *                                       m_can_not_find_vendor_combox     = nullptr;
+    ::CheckBox *                                       m_can_not_find_nozzle_checkbox   = nullptr;
     wxStaticText *                                     m_can_not_find_vendor_text       = nullptr;
     wxTextCtrl *                                       m_custom_vendor_text_ctrl        = nullptr;
     wxTextCtrl *                                       m_custom_model_text_ctrl         = nullptr;
+    wxTextCtrl *                                       m_custom_nozzle_diameter_ctrl    = nullptr;
     ComboBox *                                         m_nozzle_diameter                = nullptr;
     ComboBox *                                         m_printer_vendor                 = nullptr;
     ComboBox *                                         m_printer_model                  = nullptr;

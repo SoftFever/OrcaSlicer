@@ -1823,7 +1823,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
-    wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxHORIZONTAL);
     m_nozzle_diameter         = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, OPTION_SIZE, 0, nullptr, wxCB_READONLY);
     wxArrayString nozzle_diameters;
     for (const std::string& nozzle : nozzle_diameter_vec) {
@@ -1832,7 +1833,54 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
     m_nozzle_diameter->Set(nozzle_diameters);
     m_nozzle_diameter->SetSelection(0);
     comboBoxSizer->Add(m_nozzle_diameter, 0, wxEXPAND | wxALL, 0);
-    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    m_custom_nozzle_diameter_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
+    m_custom_nozzle_diameter_ctrl->SetHint(_L("Input Custom Nozzle Diameter"));
+    m_custom_nozzle_diameter_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+        int key = event.GetKeyCode();
+        if (key != 46 && cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
+            event.Skip(false);
+            return;
+        }
+        event.Skip();
+    });
+    comboBoxSizer->Add(m_custom_nozzle_diameter_ctrl, 0, wxEXPAND | wxALL, 0);
+    m_custom_nozzle_diameter_ctrl->Hide();
+    vertical_sizer->Add(comboBoxSizer, 0, wxEXPAND, 0);
+
+    wxBoxSizer *checkbox_sizer   = new wxBoxSizer(wxHORIZONTAL);
+    m_can_not_find_nozzle_checkbox = new ::CheckBox(parent);
+
+    checkbox_sizer->Add(m_can_not_find_nozzle_checkbox, 0, wxALIGN_CENTER, 0);
+    checkbox_sizer->Add(0, 0, 0, wxEXPAND | wxRIGHT, FromDIP(5));
+
+    auto can_not_find_nozzle_diameter = new wxStaticText(parent, wxID_ANY, _L("Can't find my nozzle diameter"), wxDefaultPosition, wxDefaultSize, 0);
+    can_not_find_nozzle_diameter->SetFont(::Label::Body_13);
+
+    wxSize size = can_not_find_nozzle_diameter->GetTextExtent(_L("Can't find my printer model"));
+    can_not_find_nozzle_diameter->SetMinSize(wxSize(size.x + FromDIP(4), -1));
+    can_not_find_nozzle_diameter->Wrap(-1);
+    checkbox_sizer->Add(can_not_find_nozzle_diameter, 0, wxALIGN_CENTER, 0);
+
+    m_can_not_find_nozzle_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        bool value = m_can_not_find_nozzle_checkbox->GetValue();
+        if (value) {
+            m_can_not_find_nozzle_checkbox->SetValue(true);
+            m_custom_nozzle_diameter_ctrl->Show();
+            m_nozzle_diameter->Hide();
+        } else {
+            m_can_not_find_nozzle_checkbox->SetValue(false);
+            m_custom_nozzle_diameter_ctrl->Hide();
+            m_nozzle_diameter->Show();
+        }
+        Refresh();
+        Layout();
+        m_page1->SetSizerAndFit(m_page1_sizer);
+        Fit();
+    });
+
+    vertical_sizer->Add(checkbox_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+    horizontal_sizer->Add(vertical_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     horizontal_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(200));
 
     return horizontal_sizer;
@@ -2198,10 +2246,8 @@ void CreatePrinterPresetDialog::generate_process_presets_data(std::vector<Preset
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and nozzle is: " << nozzle;
     std::unordered_map<std::string, float> nozzle_diameter_map_ = nozzle_diameter_map;
+    float                                  nozzle_dia           = std::stof(get_nozzle_diameter());
     for (const Preset *preset : presets) {
-        float nozzle_dia = nozzle_diameter_map_[nozzle];
-        assert(nozzle_dia != 0);
-
         auto layer_height = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("layer_height", true));
         if (layer_height)
             layer_height->value = nozzle_dia / 2;
@@ -2299,6 +2345,85 @@ void CreatePrinterPresetDialog::update_preset_list_size()
     Refresh();
     adjust_dialog_in_screen(this);
     m_scrolled_preset_window->Thaw();
+}
+
+std::string CreatePrinterPresetDialog::get_printer_vendor() const
+{
+    assert(curr_create_printer_type() == m_create_type.create_printer);
+    std::string custom_vendor;
+    if (m_can_not_find_vendor_combox->GetValue()) {
+        custom_vendor = into_u8(m_custom_vendor_text_ctrl->GetValue());
+        custom_vendor             = remove_special_key(custom_vendor);
+        boost::algorithm::trim(custom_vendor);
+    } else {
+        custom_vendor = into_u8(m_select_vendor->GetStringSelection());
+    }
+    return custom_vendor;
+}
+
+std::string CreatePrinterPresetDialog::get_printer_model() const
+{
+    assert(curr_create_printer_type() == m_create_type.create_printer);
+    std::string custom_model;
+    if (m_can_not_find_vendor_combox->GetValue()) {
+        custom_model  = into_u8(m_custom_model_text_ctrl->GetValue());
+        custom_model              = remove_special_key(custom_model);
+        boost::algorithm::trim(custom_model);
+    } else {
+        custom_model = into_u8(m_select_model->GetStringSelection());
+    }
+    return custom_model;
+}
+
+std::string CreatePrinterPresetDialog::get_nozzle_diameter() const
+{
+    std::string diameter;
+    if (m_can_not_find_nozzle_checkbox->GetValue()) {
+        diameter = into_u8(m_custom_nozzle_diameter_ctrl->GetValue());
+    } else {
+        diameter = into_u8(m_nozzle_diameter->GetStringSelection());
+        size_t index_mm = diameter.find(" mm");
+        if (std::string::npos != index_mm) { diameter = diameter.substr(0, index_mm); }
+    }
+    float nozzle = 0;
+    try {
+        nozzle = std::stof(diameter);
+    }
+    catch (...) { }
+    if (nozzle == 0) diameter = "0.4";
+    return diameter;
+}
+
+std::string CreatePrinterPresetDialog::get_custom_printer_model() const
+{
+    const wxString curr_selected_printer_type = curr_create_printer_type();
+    std::string    printer_model_name;
+    if (curr_selected_printer_type == m_create_type.create_printer) {
+        std::string custom_vendor = get_printer_vendor();
+        std::string custom_model  = get_printer_model();
+        printer_model_name        = custom_vendor + " " + custom_model;
+    } else if (curr_selected_printer_type == m_create_type.create_nozzle) {
+        std::string selected_printer_preset_name = into_u8(m_select_printer->GetStringSelection());
+        std::unordered_map<std::string, std::shared_ptr<Preset>>::const_iterator itor = m_printer_name_to_preset.find(selected_printer_preset_name);
+        assert(m_printer_name_to_preset.end() != itor);
+        if (m_printer_name_to_preset.end() != itor) {
+            std::shared_ptr<Preset> printer_preset = itor->second;
+            try {
+                printer_model_name  = printer_preset->config.opt_string("printer_model", true);
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get config printer_model or , and the name is: " << selected_printer_preset_name;
+            }
+
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " don't get printer preset, and the name is: " << selected_printer_preset_name;
+        }
+    }
+    return printer_model_name;
+}
+
+std::string CreatePrinterPresetDialog::get_custom_printer_name() const
+{
+    return get_custom_printer_model() + " " + get_nozzle_diameter() + " nozzle";
 }
 
 wxBoxSizer *CreatePrinterPresetDialog::create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list)
@@ -2579,58 +2704,10 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
         }
 
         // create preset name
-        std::string printer_preset_name;
-        std::string printer_model_name;
-        std::string printer_nozzle_name;
-        std::string nozzle_diameter = into_u8(m_nozzle_diameter->GetStringSelection());
-        size_t      index_mm        = nozzle_diameter.find("mm");
-        if (std::string::npos != index_mm) {
-            nozzle_diameter.replace(index_mm, 2, "nozzle");
-        }
-        if (curr_selected_printer_type == m_create_type.create_printer) {
-            if (m_can_not_find_vendor_combox->GetValue()) {
-                std::string custom_vendor = into_u8(m_custom_vendor_text_ctrl->GetValue());
-                std::string custom_model  = into_u8(m_custom_model_text_ctrl->GetValue());
-                if (custom_vendor.empty() || custom_model.empty()) {
-                    MessageDialog dlg(this, _L("The custom printer or model is not entered, please enter it."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
-                                      wxYES | wxYES_DEFAULT | wxCENTRE);
-                    dlg.ShowModal();
-                    show_page1();
-                    return;
-                }
-                custom_vendor = remove_special_key(custom_vendor);
-                custom_model  = remove_special_key(custom_model);
-                boost::algorithm::trim(custom_vendor);
-                boost::algorithm::trim(custom_model);
-
-                printer_preset_name = custom_vendor + " " + custom_model + " " + nozzle_diameter;
-                printer_model_name  = custom_vendor + " " + custom_model;
-            } else {
-                std::string vender_name = into_u8(m_select_vendor->GetStringSelection());
-                std::string model_name  = into_u8(m_select_model->GetStringSelection());
-                printer_preset_name     = vender_name + " " + model_name + " " + nozzle_diameter;
-                printer_model_name      = vender_name + " " + model_name;
-                
-            }
-        } else if (curr_selected_printer_type == m_create_type.create_nozzle) {
-            std::string selected_printer_preset_name = into_u8(m_select_printer->GetStringSelection());
-            std::unordered_map<std::string, std::shared_ptr<Preset>>::iterator itor                         = m_printer_name_to_preset.find(selected_printer_preset_name);
-            assert(m_printer_name_to_preset.end() != itor);
-            if (m_printer_name_to_preset.end() != itor) {
-                std::shared_ptr<Preset> printer_preset = itor->second;
-                try{
-                    printer_model_name = printer_preset->config.opt_string("printer_model", true);
-                    printer_preset_name = printer_model_name + " " + nozzle_diameter;
-                }
-                catch (...) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get config printer_model or , and the name is: " << selected_printer_preset_name;
-                }
-
-            } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " don't get printer preset, and the name is: " << selected_printer_preset_name;
-            }
-        }
-        printer_nozzle_name = nozzle_diameter.substr(0, nozzle_diameter.find(" nozzle"));
+        std::string printer_model_name = get_custom_printer_model();
+        std::string printer_nozzle_name = get_nozzle_diameter();
+        std::string nozzle_diameter     = printer_nozzle_name + " nozzle";
+        std::string printer_preset_name = printer_model_name + " " + nozzle_diameter;
 
         // Confirm if the printer preset has a duplicate name
         if (!rewritten && preset_bundle->printers.find_preset(printer_preset_name)) {
@@ -2789,6 +2866,8 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
                 std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name);
                 if (nozzle_diameter_map.end() != iter) {
                     nozzle_diameter->values = {iter->second};
+                } else {
+                    nozzle_diameter->values = {std::stof(get_nozzle_diameter())};
                 }
             }
         }
@@ -2887,10 +2966,14 @@ void CreatePrinterPresetDialog::set_current_visible_printer()
     wxArrayString             printer_choice;
     m_printer_name_to_preset.clear();
     for (const Preset &printer_preset : printer_presets) {
-        if (printer_preset.is_system || !printer_preset.is_visible) continue;
+        if (!printer_preset.is_visible) continue;
         if (preset_bundle->printers.get_preset_base(printer_preset)->name != printer_preset.name) continue;
-        printer_choice.push_back(from_u8(printer_preset.name));
-        m_printer_name_to_preset[printer_preset.name] = std::make_shared<Preset>(printer_preset);
+        if (auto printer_model = dynamic_cast<ConfigOptionString*>(const_cast<Preset&>(printer_preset).config.option("printer_model", false))) {
+            if (m_printer_name_to_preset.find(printer_model->value) == m_printer_name_to_preset.end()) {
+                printer_choice.push_back(from_u8(printer_model->value));
+                m_printer_name_to_preset[printer_model->value] = std::make_shared<Preset>(printer_preset);
+            }
+        }
     }
     m_select_printer->Set(printer_choice);
 }
@@ -3099,15 +3182,8 @@ bool CreatePrinterPresetDialog::validate_input_valid()
 {
     const wxString curr_selected_printer_type = curr_create_printer_type();
     if (curr_selected_printer_type == m_create_type.create_printer) {
-        std::string vendor_name, model_name;
-        if (m_can_not_find_vendor_combox->GetValue()) {
-            vendor_name = into_u8(m_custom_vendor_text_ctrl->GetValue());
-            model_name  = into_u8(m_custom_model_text_ctrl->GetValue());
-
-        } else {
-            vendor_name = into_u8(m_select_vendor->GetStringSelection());
-            model_name  = into_u8(m_select_model->GetStringSelection());
-        }
+        std::string vendor_name = get_printer_vendor();
+        std::string model_name  = get_printer_model();
         if ((vendor_name.empty() || model_name.empty())) {
             MessageDialog dlg(this, _L("You have not selected the vendor and model or entered the custom vendor and model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -3146,7 +3222,37 @@ bool CreatePrinterPresetDialog::validate_input_valid()
             return false;
         }
     }
-    
+
+    std::string nozzle_diameter;
+    if (m_can_not_find_nozzle_checkbox->GetValue()) {
+        nozzle_diameter = into_u8(m_custom_nozzle_diameter_ctrl->GetValue());
+    } else {
+        nozzle_diameter = into_u8(m_nozzle_diameter->GetStringSelection());
+        size_t index_mm = nozzle_diameter.find(" mm");
+        if (std::string::npos != index_mm) { nozzle_diameter.substr(0, index_mm); }
+    }
+    float nozzle_dia = 0;
+    try {
+        nozzle_dia = std::stof(nozzle_diameter);
+    } catch (...) { }
+    if (nozzle_dia == 0) {
+        MessageDialog dlg(this, _L("The entered nozzle diameter is invalid, please re-enter:\n"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                          wxOK | wxYES_DEFAULT | wxCENTRE);
+        int           res = dlg.ShowModal();
+        return false;
+    }
+
+    std::string custom_printer_name = get_custom_printer_name();
+
+    if (auto preset = wxGetApp().preset_bundle->printers.find_preset(custom_printer_name)) {
+        if (preset->is_system) {
+            MessageDialog dlg(this, _L("The system preset does not allow creation. \nPlease re-enter the printer model or nozzle diameter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -3171,7 +3277,7 @@ void CreatePrinterPresetDialog::on_preset_model_value_change(wxCommandEvent &e)
     e.Skip();
 }
 
-wxString CreatePrinterPresetDialog::curr_create_preset_type()
+wxString CreatePrinterPresetDialog::curr_create_preset_type() const
 {
     wxString curr_selected_preset_type;
     for (const std::pair<RadioBox *, wxString> &presets_radio : m_create_presets_btns) {
@@ -3182,7 +3288,7 @@ wxString CreatePrinterPresetDialog::curr_create_preset_type()
     return curr_selected_preset_type;
 }
 
-wxString CreatePrinterPresetDialog::curr_create_printer_type()
+wxString CreatePrinterPresetDialog::curr_create_printer_type() const
 {
     wxString curr_selected_printer_type;
     for (const std::pair<RadioBox *, wxString> &printer_radio : m_create_type_btns) {
