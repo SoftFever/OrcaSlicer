@@ -19,7 +19,7 @@
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/JusPrin/JusPrinLoginDialog.hpp"
-#include "slic3r/GUI/JusPrin/ChatConfigPanel.hpp"
+#include "slic3r/GUI/JusPrin/JusPrinChatPanel.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -397,11 +397,7 @@ public:
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
     void            link_to_network_check();
-<<<<<<< HEAD
     void            link_to_lan_only_wiki();
-=======
-
->>>>>>> 79f6fff51 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     const wxColour& get_label_clr_modified() { return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
@@ -680,7 +676,7 @@ public:
 
     void            show_jusprin_login();
     void            update_oauth_access_token();
-    ChatConfigPanel* chat_config_panel();
+    JusPrinChatPanel* jusprin_chat_panel();
 
 private:
     int             updating_bambu_networking();
