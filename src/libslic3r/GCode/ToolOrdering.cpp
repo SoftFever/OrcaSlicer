@@ -1136,6 +1136,23 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
         }
     }
+    else if (nozzle_nums == 1) {
+        filament_maps = m_print->get_filament_maps();
+        bool invalid = std::any_of(filament_maps.begin(), filament_maps.end(), [](int value) { return value != 1; });
+        if (invalid) {
+            assert(false);
+            std::stringstream sstream;
+            for (size_t i = 0; i < filament_maps.size(); ++i) {
+                if (i != 0)
+                    sstream << " ";
+                sstream << filament_maps[i];
+            }
+            BOOST_LOG_TRIVIAL(error) << "The filament_map of single printer is invalid. filament_map = " << sstream.str();
+            std::fill(filament_maps.begin(), filament_maps.end(), 1);
+            m_print->update_filament_maps_to_config(filament_maps);
+        }
+        std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
+    }
 
     std::vector<std::vector<unsigned int>>filament_sequences;
     std::vector<unsigned int>filament_lists(number_of_extruders);
