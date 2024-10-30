@@ -50,7 +50,7 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     return filament_name;
 }
 
-static wxString get_tray_name_by_tray_id(int tray_id) 
+static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
     if (tray_id == VIRTUAL_TRAY_ID) {
@@ -119,14 +119,14 @@ CaliPASaveAutoPanel::CaliPASaveAutoPanel(
     const wxPoint& pos,
     const wxSize& size,
     long style)
-    : wxPanel(parent, id, pos, size, style) 
+    : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
 
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     create_panel(this);
-    
+
     this->SetSizer(m_top_sizer);
     m_top_sizer->Fit(this);
 }
@@ -385,7 +385,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         }
         m_calib_results[tray_id].name = into_u8(name);
     }
-    
+
     auto childern = window->GetChildren();
     for (auto child : childern) {
         save_to_result_from_widgets(child, out_is_valid, out_msg);
@@ -515,7 +515,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveManualPanel::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result_CN", 330));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result", 330));
@@ -772,19 +772,19 @@ void CaliSavePresetValuePanel::set_save_name_title(const wxString& title) {
     m_save_name_title->SetLabel(title);
 }
 
-void CaliSavePresetValuePanel::get_value(double& value) 
-{ 
-    m_input_value->GetTextCtrl()->GetValue().ToDouble(&value); 
+void CaliSavePresetValuePanel::get_value(double& value)
+{
+    m_input_value->GetTextCtrl()->GetValue().ToDouble(&value);
 }
 
 void CaliSavePresetValuePanel::get_save_name(std::string& name)
-{ 
-    name = into_u8(m_input_name->GetTextCtrl()->GetValue()); 
+{
+    name = into_u8(m_input_name->GetTextCtrl()->GetValue());
 }
 
 void CaliSavePresetValuePanel::set_save_name(const std::string& name)
-{ 
-    m_input_name->GetTextCtrl()->SetValue(name); 
+{
+    m_input_name->GetTextCtrl()->SetValue(name);
 }
 
 void CaliSavePresetValuePanel::msw_rescale()
@@ -1233,7 +1233,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     checkBox_panel->SetBackgroundColour(*wxWHITE);
     auto cb_sizer = new wxBoxSizer(wxHORIZONTAL);
     checkBox_panel->SetSizer(cb_sizer);
-    m_checkBox_skip_calibration = new CheckBox(checkBox_panel);
+    m_checkBox_skip_calibration = new ::CheckBox(checkBox_panel);
     cb_sizer->Add(m_checkBox_skip_calibration);
 
     auto cb_text = new Label(checkBox_panel, _L("Skip Calibration2"));
@@ -1301,7 +1301,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result_CN", 350));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result", 350));
@@ -1485,7 +1485,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowFineSavePage::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result_CN", 350));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result", 350));

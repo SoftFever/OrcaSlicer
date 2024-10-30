@@ -152,8 +152,6 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 
-#include "slic3r/GUI/JusPrin/ChatConfigPanel.hpp"
-
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -1137,7 +1135,7 @@ Sidebar::Sidebar(Plater *parent)
 
     p->size_top = new wxBoxSizer(wxVERTICAL);
     p->size_top->Add(p->config_sizer, 1, wxEXPAND);
-    
+
     p->chat_config_panel = new ChatConfigPanel(this);
     p->size_top->Add(p->chat_config_panel, 1, wxEXPAND);
 
@@ -1260,7 +1258,7 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
-        connection_btn->Hide(); 
+        connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
