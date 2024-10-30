@@ -3629,8 +3629,8 @@ void GUI_App::update_oauth_access_token() {
     if (mainframe && mainframe->m_webview) {
         mainframe->m_webview->update_oauth_access_token();
     }
-    if (chat_config_panel()) {
-        chat_config_panel()->UpdateOAuthAccessToken();
+    if (jusprin_chat_panel()) {
+        jusprin_chat_panel()->UpdateOAuthAccessToken();
     }
 }
 
@@ -5975,9 +5975,9 @@ Sidebar& GUI_App::sidebar()
     return plater_->sidebar();
 }
 
-ChatConfigPanel* GUI_App::chat_config_panel()
+JusPrinChatPanel* GUI_App::jusprin_chat_panel()
 {
-    return sidebar().chat_config_panel();
+    return sidebar().jusprin_chat_panel();
 }
 
 GizmoObjectManipulation *GUI_App::obj_manipul()

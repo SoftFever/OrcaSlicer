@@ -1,5 +1,5 @@
-#ifndef slic3r_ChatConfigPanel_hpp_
-#define slic3r_ChatConfigPanel_hpp_
+#ifndef slic3r_JusPrinChatPanel_hpp_
+#define slic3r_JusPrinChatPanel_hpp_
 
 #include <wx/panel.h>
 #include <wx/webview.h>
@@ -15,11 +15,11 @@
 
 namespace Slic3r { namespace GUI {
 
-class ChatConfigPanel : public wxPanel
+class JusPrinChatPanel : public wxPanel
 {
 public:
-    ChatConfigPanel(wxWindow* parent);
-    virtual ~ChatConfigPanel();
+    JusPrinChatPanel(wxWindow* parent);
+    virtual ~JusPrinChatPanel();
     void UpdateOAuthAccessToken();
 
 private:

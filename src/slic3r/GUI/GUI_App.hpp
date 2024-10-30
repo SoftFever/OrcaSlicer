@@ -26,7 +26,7 @@
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/JusPrin/JusPrinLoginDialog.hpp"
-#include "slic3r/GUI/JusPrin/ChatConfigPanel.hpp"
+#include "slic3r/GUI/JusPrin/JusPrinChatPanel.hpp"
 
 #include <mutex>
 #include <stack>
@@ -83,7 +83,7 @@ class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
-class ChatConfigPanel;
+class JusPrinChatPanel;
 
 
 enum FileType
@@ -673,7 +673,7 @@ private:
 
     void            show_jusprin_login();
     void            update_oauth_access_token();
-    ChatConfigPanel* chat_config_panel();
+    JusPrinChatPanel* jusprin_chat_panel();
 
 private:
     int             updating_bambu_networking();
