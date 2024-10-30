@@ -121,6 +121,7 @@ void JusPrinLoginDialog::OnNavigationRequest(wxWebViewEvent& evt)
             if (!oauth_token.empty()) {
                 wxGetApp().app_config->set("jusprin_server", "access_token", oauth_token);
                 wxGetApp().app_config->save();
+                wxGetApp().update_oauth_access_token();
 
                 EndModal(wxID_OK);
             } else {

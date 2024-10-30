@@ -282,7 +282,7 @@ void WebViewPanel::UpdateState()
     m_url->SetValue(m_browser->GetCurrentURL());
 #endif //BBL_RELEASE_TO_PUBLIC
     update_classic_mode();
-    update_login_status();
+    update_oauth_access_token();
 }
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
@@ -546,7 +546,7 @@ void WebViewPanel::update_classic_mode()
     RunScript(strJS);
 }
 
-void WebViewPanel::update_login_status()
+void WebViewPanel::update_oauth_access_token()
 {
     wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "").empty() ? "false" : "true");
     RunScript(strJS);
