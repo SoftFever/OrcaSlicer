@@ -675,6 +675,7 @@ public:
     void            check_config_updates_from_updater() { check_updates(false); }
 
     void            show_jusprin_login();
+    void            update_oauth_access_token();
 
 private:
     int             updating_bambu_networking();
