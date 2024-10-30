@@ -3630,7 +3630,7 @@ void GUI_App::update_oauth_access_token() {
         mainframe->m_webview->update_oauth_access_token();
     }
     if (chat_config_panel()) {
-        chat_config_panel()->SetOAuthAccessToken();
+        chat_config_panel()->UpdateOAuthAccessToken();
     }
 }
 
