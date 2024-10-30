@@ -9519,65 +9519,56 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         cur_plate->get_origin()
     );
 
-    const auto cube_bb = cube->raw_bounding_box();
+    /* Having PA pattern configured, we could make a set of polygons resembling N test patterns.
+     * We'll arrange this set of polygons, so we would know position of each test pattern and
+     * could position test cubes later on
+     *
+     * We'll take advantage of already existing cube: shale it up to test pattern size to use
+     * as a reference for objects arrangement. Polygon is slightly oversized to add spaces between patterns.
+     * That arrangement will be used to place 'handle cubes' for each test. */
+    auto cube_bb = cube->raw_bounding_box();
+    cube->scale((pa_pattern.print_size_x() + 4) / cube_bb.size().x(),
+                (pa_pattern.print_size_y() + 4) / cube_bb.size().y(),
+                pa_pattern.max_layer_z() / cube_bb.size().z());
+
+    arrangement::ArrangePolygons arranged_items;
+    {
+        arrangement::ArrangeParams ap;
+        ap.all_objects_are_short = true;
+        Points bedpts = arrangement::get_shrink_bedpts(&full_config, ap);
+
+        for(size_t i = 0; i < params.speeds.size() * params.accelerations.size(); i++) {
+            arrangement::ArrangePolygon p;
+            cube->instances[0]->get_arrange_polygon(&p);
+            p.bed_idx = 0;
+            arranged_items.emplace_back(p);
+        }
+
+        arrangement::arrange(arranged_items, bedpts, ap);
+    }
+
+    /* scale cube back to the size of test pattern 'handle' */
+    cube_bb = cube->raw_bounding_box();
     cube->scale(pa_pattern.handle_xy_size() / cube_bb.size().x(),
                 pa_pattern.handle_xy_size() / cube_bb.size().y(),
                 pa_pattern.max_layer_z() / cube_bb.size().z());
 
-    cube->instances[0]->set_offset(cur_plate->get_center_origin() + pa_pattern.handle_pos_offset());
-
-    std::vector<double> speeds(params.speeds);
-    std::vector<double> accels(params.accelerations);
-
-    const unsigned tests_padding{3};
-    const Vec3d tests_pos_y_step{0, pa_pattern.print_size_y() + tests_padding, 0};
-    const Vec3d tests_pos_x_step{pa_pattern.print_size_x() + tests_padding, 0, 0};
-    size_t rows_per_plate = 1;
-    size_t cols_per_plate = 1;
-    const auto &plate_size = build_volume().bounding_volume2d().size();
-    Vec3d first_offset{plate_size.x() / 2 + pa_pattern.handle_pos_offset().x(),
-                       plate_size.y() / 2 + pa_pattern.handle_pos_offset().y(),
-                       pa_pattern.handle_pos_offset().z()};
-
-    if (params.batch_mode) {
-        if (build_volume().type() == BuildVolume_Type::Rectangle) {
-            rows_per_plate = (unsigned)(plate_size.y() + tests_padding) / tests_pos_y_step.y();
-            cols_per_plate = (unsigned)(plate_size.x() + tests_padding) / tests_pos_x_step.x();
-            BOOST_LOG_TRIVIAL(info) << "Build plate " << plate_size.x() << "x" << plate_size.y()
-                                    << ", test pattern " << pa_pattern.print_size_x() << "x" << pa_pattern.print_size_y()
-                                    << " mm, may fit " << cols_per_plate << "x" << rows_per_plate << " tests per plate";
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << "Multiple patterns per plate supported on Rect plates only";
-        }
-        double border_y_width = (plate_size.y() - pa_pattern.print_size_y() * rows_per_plate - tests_padding * (rows_per_plate - 1)) / 2;
-        double border_x_width = (plate_size.x() - pa_pattern.print_size_x() * cols_per_plate - tests_padding * (cols_per_plate - 1)) / 2;
-        first_offset.y() = pa_pattern.print_size_y() / 2 + pa_pattern.handle_pos_offset().y() + border_y_width;
-        first_offset.x() = pa_pattern.print_size_x() / 2 + pa_pattern.handle_pos_offset().x() + border_x_width;
-    } else {
-        speeds.assign({speed});
-        accels.assign({accel});
-    }
-    const size_t tests_per_plate = rows_per_plate * cols_per_plate;
-
     /* Set speed and acceleration on per-object basis and arrange anchor object on the plates.
      * Test gcode will be genecated during plate slicing */
-    for(size_t test_idx = 0; test_idx < speeds.size() * accels.size(); test_idx++) {
-        auto speed = speeds[test_idx % speeds.size()];
-        auto accel = accels[test_idx / speeds.size()];
-
-        const size_t pos_on_plate = test_idx % tests_per_plate;
-        const size_t row_on_plate = pos_on_plate % rows_per_plate;
-        const size_t col_on_plate = pos_on_plate / rows_per_plate;
-        size_t plate_idx = test_idx / tests_per_plate;
+    for(size_t test_idx = 0; test_idx < arranged_items.size(); test_idx++) {
+        const auto &ai = arranged_items[test_idx];
+        size_t plate_idx = arranged_items[test_idx].bed_idx;
+        auto tspd = params.batch_mode ? params.speeds[test_idx % params.speeds.size()] : speed;
+        auto tacc = params.batch_mode ? params.accelerations[test_idx / params.speeds.size()] : accel;
 
         /* make an own copy of anchor cube for each test */
         auto obj = test_idx == 0 ? cube : model().add_object(*cube);
         auto obj_idx = std::distance(model().objects.begin(), std::find(model().objects.begin(), model().objects.end(), obj));
-        obj->name.assign(std::string("pa_pattern_") + std::to_string(int(speed)) + std::string("_") + std::to_string(int(accel)));
+        obj->name.assign(std::string("pa_pattern_") + std::to_string(int(tspd)) + std::string("_") + std::to_string(int(tacc)));
 
         auto &obj_config = obj->config;
-        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
-        obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(accel));
+        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(tspd));
+        obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(tacc));
 
         auto cur_plate = get_partplate_list().get_plate(plate_idx);
         if (!cur_plate) {
@@ -9587,7 +9578,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         object_idxs.emplace_back(obj_idx);
         get_partplate_list().add_to_plate(obj_idx, 0, plate_idx);
-        obj->instances[0]->set_offset(cur_plate->get_origin() + first_offset + row_on_plate * tests_pos_y_step + col_on_plate * tests_pos_x_step);
+        const Vec3d obj_offset{unscale<double>(ai.translation(X)),
+                               unscale<double>(ai.translation(Y)),
+                               0};
+        obj->instances[0]->set_offset(cur_plate->get_origin() + obj_offset + pa_pattern.handle_pos_offset());
+        obj->ensure_on_bed();
     }
 
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
