@@ -86,10 +86,10 @@ void ChatConfigPanel::load_url()
 
     m_browser->LoadURL(url);
     // m_browser->SetFocus();
-    //UpdateState();
+    UpdateState();
 }
 
-void ChatConfigPanel::SetOAuthAccessToken() {
+void ChatConfigPanel::UpdateOAuthAccessToken() {
     wxString access_token = wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "");
     wxString script = wxString::Format(R"(
     if (window.setJusPrinEmbeddedChatOauthAccessToken) {
@@ -106,7 +106,7 @@ void ChatConfigPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp
 
 void ChatConfigPanel::UpdateState()
 {
-    // SetTitle(m_browser->GetCurrentTitle());
+    UpdateOAuthAccessToken();
 }
 
 void ChatConfigPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
@@ -162,6 +162,11 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     if (action == "fetch_preset_bundle")
     {
         FetchPresetBundle();
+        return;
+    }
+
+    if (action == "jusprin_login_or_register") {
+        wxGetApp().show_jusprin_login();
         return;
     }
 
