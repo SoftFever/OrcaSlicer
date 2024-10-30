@@ -6984,15 +6984,13 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "使用縮時攝影功能需要插入 SD 記憶卡"
 
-#, fuzzy
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
 "updated."
-msgstr "需要更新列印設備韌體後，才能將列印作業傳送到列印設備"
+msgstr "機台需要更新韌體才能接收列印作業"
 
-#, fuzzy
 msgid "Cannot send the print job for empty plate"
-msgstr "無法為空列印板傳送列印作業"
+msgstr "無法傳送空的列印板"
 
 #, fuzzy
 msgid "This printer does not support printing all plates"
@@ -7013,7 +7011,6 @@ msgstr "錯誤"
 msgid "Please check the following:"
 msgstr "請檢查以下內容："
 
-#, fuzzy
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
@@ -7022,13 +7019,12 @@ msgstr ""
 "產生 G-code 時選擇的列印設備類型與目前選擇的列印設備不一致。建議您使用相同的"
 "列印設備類型進行切片。"
 
-#, fuzzy
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
 "they are the required filaments. If they are okay, press \"Confirm\" to "
 "start printing."
 msgstr ""
-"AMS 映射中存在一些未知的線材。請檢查是否符合預期線材。如果符合，按“確定”以開"
+"AMS 設定中存在一些未知的線材。請檢查是否符合所需的線材。如果符合，按“確定”以開"
 "始列印作業。"
 
 #, c-format, boost-format
@@ -7058,7 +7054,6 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "如果您仍然想繼續列印，請滑鼠左鍵點擊 確定 按鈕。"
 
-#, fuzzy
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "正在連接列印設備。連接過程中無法取消。"
@@ -7083,7 +7078,6 @@ msgstr "傳送到列印設備的 SD 記憶卡"
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "設備升級中，無法傳送列印作業"
 
-#, fuzzy
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr "所選列印設備與選擇的列印設備預設檔不相容。"
 
@@ -7217,11 +7211,9 @@ msgstr "關於使用者體驗改善計劃的聲明"
 msgid "Log in successful."
 msgstr "登入成功。"
 
-#, fuzzy
 msgid "Log out printer"
 msgstr "登出列印設備"
 
-#, fuzzy
 msgid "Would you like to log out the printer?"
 msgstr "你想登出列印設備嗎?"
 
@@ -7245,11 +7237,9 @@ msgstr "刪除此預設"
 msgid "Search in preset"
 msgstr "在預設中搜索"
 
-#, fuzzy
 msgid "Click to reset all settings to the last saved preset."
 msgstr "點擊以將所有設定還原到最後一次儲存的版本。"
 
-#, fuzzy
 msgid ""
 "Prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
@@ -7292,7 +7282,6 @@ msgstr ""
 "對於 \"強壯樹 \"和 \"混合樹 \"的支撐樣式，我們推薦以下設定：至少 2 層界面層，"
 "至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
 
-#, fuzzy
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
@@ -7300,7 +7289,7 @@ msgid ""
 "independent support layer height"
 msgstr ""
 "當使用專用的支撐線材時，我們推薦以下設定：\n"
-"0 頂層z距離，0 接觸層間距，同心圖案，並且禁用獨立支撐層高"
+"0 頂層z距離，0 接觸層間距，同心模式，並且禁用獨立支撐層高"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -7392,7 +7381,6 @@ msgstr "其他層速度"
 msgid "Overhang speed"
 msgstr "懸空列印速度"
 
-#, fuzzy
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
 "expressed as a percentage of line width. 0 speed means no slowing down for "
@@ -7404,7 +7392,6 @@ msgstr ""
 msgid "Bridge"
 msgstr "橋接"
 
-#, fuzzy
 msgid "Set speed for external and internal bridges"
 msgstr "設定外部和內部橋接的速度"
 
@@ -7484,12 +7471,11 @@ msgstr "基本資訊"
 msgid "Recommended nozzle temperature"
 msgstr "建議噴嘴溫度"
 
-#, fuzzy
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "該線材的建議噴嘴溫度範圍。0 表示未設定"
 
 msgid "Flow ratio and Pressure Advance"
-msgstr ""
+msgstr "流量比與壓力提前"
 
 msgid "Print chamber temperature"
 msgstr "列印設備內部溫度"
@@ -7506,7 +7492,6 @@ msgstr "列印時的噴嘴溫度"
 msgid "Cool plate"
 msgstr "低溫列印板"
 
-#, fuzzy
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
@@ -7520,11 +7505,9 @@ msgid ""
 "does not support to print on the Textured Cool Plate"
 msgstr ""
 
-#, fuzzy
 msgid "Engineering plate"
 msgstr "工程高溫列印板"
 
-#, fuzzy
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7533,7 +7516,6 @@ msgstr "使用工程高溫列印板時的熱床溫度。0 值表示這個線材�
 msgid "Smooth PEI Plate / High Temp Plate"
 msgstr "光滑面 PEI 列印板/高溫列印板"
 
-#, fuzzy
 msgid ""
 "Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
 "Value 0 means the filament does not support to print on the Smooth PEI Plate/"
@@ -7545,7 +7527,6 @@ msgstr ""
 msgid "Textured PEI Plate"
 msgstr "紋理 PEI 列印板"
 
-#, fuzzy
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
@@ -7568,21 +7549,19 @@ msgstr "物件冷卻風扇"
 msgid "Min fan speed threshold"
 msgstr "最小風扇速度臨界值"
 
-#, fuzzy
 msgid ""
 "Part cooling fan speed will start to run at min speed when the estimated "
 "layer time is no longer than the layer time in setting. When layer time is "
 "shorter than threshold, fan speed is interpolated between the minimum and "
 "maximum fan speed according to layer printing time"
 msgstr ""
-"當預計的層時間不大於設定的層時間時，物件冷卻風扇速度將開始以最小速度運轉。當"
+"當預計的層時間小於設定的層時間時，物件冷卻風扇速度將開始以最小速度運轉。當"
 "層時間小於設定值時，風扇速度將根據該層列印時間在最小和最大風扇速度之間自動調"
 "整"
 
 msgid "Max fan speed threshold"
 msgstr "最大風扇速度臨界值"
 
-#, fuzzy
 msgid ""
 "Part cooling fan speed will be max when the estimated layer time is shorter "
 "than the setting value"
@@ -7773,7 +7752,7 @@ msgid ""
 "please reset the filament information for that slot."
 msgstr ""
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "確定要 %1% 所選預設嗎？"
 
