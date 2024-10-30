@@ -267,16 +267,16 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
 
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
 
-    
+
 
     auto sm    = create_scaled_bitmap("OrcaSlicer", nullptr, 70);
     m_brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
 
-    
+
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
@@ -307,7 +307,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
         }else{
             load_url_first = true;
         }
-        
+
     });
 
 	fs::path ph(data_dir());
@@ -325,7 +325,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_simplebook_release_note->AddPage(m_vebview_release_note, wxEmptyString, false);
 
 
-    
+
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
 
@@ -356,12 +356,12 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_button_skip_version->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_skip_version->SetCornerRadius(FromDIP(12));
 
-    m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         wxGetApp().set_skip_version(true);
         EndModal(wxID_NO);
     });
 
-    m_cb_stable_only = new CheckBox(this);
+    m_cb_stable_only = new ::CheckBox(this);
     m_cb_stable_only->SetValue(wxGetApp().app_config->get_bool("check_stable_update_only"));
     m_cb_stable_only->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
         wxGetApp().app_config->set_bool("check_stable_update_only", m_cb_stable_only->GetValue());
@@ -386,7 +386,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     });
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
-    
+
     //sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
     sizer_button->AddStretchSpacer();
     sizer_button->Add(stable_only_label, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
@@ -506,18 +506,6 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     //bbs check whether the web display is used
     bool use_web_link = false;
     url_line          = "";
-    // Orca: not used in Orca Slicer
-    // auto split_array = splitWithStl(release_note.ToStdString(), "###");
-    // if (split_array.size() >= 3) {
-    //     for (auto i = 0; i < split_array.size(); i++) {
-    //         std::string url = split_array[i];
-    //         if (std::strstr(url.c_str(), "http://") != NULL || std::strstr(url.c_str(), "https://") != NULL) {
-    //             use_web_link = true;
-    //             url_line     = url;
-    //             break;
-    //         }
-    //     }
-    // }
 
     if (use_web_link) {
         m_brand->Hide();
@@ -851,11 +839,11 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    rescale(); 
+    rescale();
 }
 
-void SecondaryCheckDialog::msw_rescale() { 
-    wxGetApp().UpdateFrameDarkUI(this); 
+void SecondaryCheckDialog::msw_rescale() {
+    wxGetApp().UpdateFrameDarkUI(this);
     Refresh();
 }
 
@@ -961,12 +949,15 @@ void PrintErrorDialog::update_text_image(const wxString& text, const wxString& e
     //}
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
+<<<<<<< HEAD
     wxString error_code_msg = error_code;
     if (!error_code.IsEmpty()) {
         wxDateTime now       = wxDateTime::Now();
         wxString  show_time = now.Format("%H%M%d");
         error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
     }
+=======
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
@@ -1082,8 +1073,13 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
 
 }
 
+<<<<<<< HEAD
 void PrintErrorDialog::init_button_list()
 {
+=======
+void PrintErrorDialog::init_button_list() {
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
@@ -1262,7 +1258,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         m_button_cancel->Hide();
     else
         m_button_cancel->Show();
-    
+
     m_button_update_nozzle = new Button(this, _L("Confirm and Update Nozzle"));
     m_button_update_nozzle->SetBackgroundColor(btn_bg_white);
     m_button_update_nozzle->SetBorderColor(wxColour(38, 46, 48));
@@ -1352,7 +1348,7 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
         sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         height += label_item->GetSize().y;
     }
-    
+
     m_vebview_release_note->Layout();
     if (height < FromDIP(380))
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), height + FromDIP(25)));
@@ -1602,6 +1598,10 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_test_right_msg->SetForegroundColour(wxColour(38, 166, 154));
     m_test_right_msg->Hide();
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     m_test_wrong_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_test_wrong_msg->SetForegroundColour(wxColour(208, 27, 27));
     m_test_wrong_msg->Hide();
@@ -1613,6 +1613,10 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_trouble_shoot = new wxHyperlinkCtrl(this, wxID_ANY, "How to trouble shooting", "");
 
     m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), -1), 0);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1630,6 +1634,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
@@ -1676,6 +1685,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
+<<<<<<< HEAD
     m_step_icon_panel3      = new wxWindow(this, wxID_ANY);
 
     m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
@@ -1685,10 +1695,28 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
     auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
     auto m_sizer_step_icon_panel3 = new wxBoxSizer(wxVERTICAL);
+=======
+
+    m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
+    m_step_icon_panel2->SetBackgroundColour(*wxWHITE);
+
+
+    auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
+    auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
+
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     m_img_step1 = new wxStaticBitmap(m_step_icon_panel1, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
     m_img_step2 = new wxStaticBitmap(m_step_icon_panel2, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
+<<<<<<< HEAD
     m_img_step3 = new wxStaticBitmap(m_step_icon_panel3, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
+=======
+    m_img_step3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
+
+    m_sizer_step_icon_panel1->Add(m_img_step1, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     m_step_icon_panel1->SetSizer(m_sizer_step_icon_panel1);
     m_step_icon_panel1->Layout();
@@ -1725,7 +1753,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     m_trouble_shoot->Hide();
 
+<<<<<<< HEAD
     m_sizer_main_right->Add(m_tip1, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+=======
+    m_sizer_main_right->Add(m_tip1, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
     m_sizer_main_right->Add(m_tip2, 0, wxRIGHT | wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(2));
@@ -1746,7 +1778,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Layout();
-   
+
     m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
     m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
     m_sizer_main->Layout();
@@ -1762,8 +1794,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
+<<<<<<< HEAD
     
     switch_input_panel(0);
+=======
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     SetSizer(m_sizer_body);
     Layout();
@@ -1848,7 +1883,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
     m_img_help->SetBitmap(diagram_bmp);
 
-    
+
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
@@ -1886,6 +1921,7 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+<<<<<<< HEAD
              if (current_input_index == 0) {
                  m_button_manual_setup->Show();
                  m_button_manual_setup->Enable();
@@ -1893,6 +1929,11 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              wxCommandEvent e;
              on_text(e);
          } 
+=======
+         }
+
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     }
 
     Layout();
@@ -2040,9 +2081,16 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 #ifdef __APPLE__
         wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
         wxPostEvent(this, event);
+<<<<<<< HEAD
 #else
         closeTimer->Start(1000);
 #endif
+=======
+        m_result = 0;
+
+        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
+
+>>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     });
 }
 
@@ -2074,7 +2122,7 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
         Layout();
         Fit();
     }
-    
+
     m_button_ok->Enable(true);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));

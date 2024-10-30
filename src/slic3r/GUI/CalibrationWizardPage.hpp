@@ -89,8 +89,8 @@ public:
     bool is_bbl_filament() { return m_is_bbl_filamnet; }
     std::string get_tray_name() { return m_tray_name; }
     CalibrateFilamentComboBox* GetComboBox() { return m_comboBox; }
-    CheckBox* GetCheckBox() { return m_checkBox; }
-    void SetCheckBox(CheckBox* cb) { m_checkBox = cb; }
+    ::CheckBox* GetCheckBox() { return m_checkBox; }
+    void SetCheckBox(::CheckBox* cb) { m_checkBox = cb; }
     wxRadioButton* GetRadioBox() { return m_radioBox; }
     void SetRadioBox(wxRadioButton* btn) { m_radioBox = btn; }
     virtual bool Show(bool show = true);
@@ -103,7 +103,7 @@ protected:
     std::string m_tray_name;
     bool m_is_bbl_filamnet{ false };
 
-    CheckBox* m_checkBox{ nullptr };
+    ::CheckBox* m_checkBox{ nullptr };
     wxRadioButton* m_radioBox{ nullptr };
     CalibrateFilamentComboBox* m_comboBox{ nullptr };
     CalibrationFilamentMode m_mode { CalibrationFilamentMode::CALI_MODEL_SINGLE };
@@ -160,7 +160,7 @@ protected:
     std::vector<Label*> m_text_steps;
 };
 
-class CaliPagePicture : public wxPanel 
+class CaliPagePicture : public wxPanel
 {
 public:
     CaliPagePicture(wxWindow* parent,
@@ -232,7 +232,7 @@ private:
     CaliPageActionType m_action_type;
 };
 
-class CaliPageSendingPanel : public wxPanel 
+class CaliPageSendingPanel : public wxPanel
 {
 public:
     CaliPageSendingPanel(wxWindow* parent,
@@ -277,7 +277,7 @@ protected:
     std::vector<CaliPageButton*> m_action_btns;
 };
 
-class CalibrationWizardPage : public wxPanel 
+class CalibrationWizardPage : public wxPanel
 {
 public:
     CalibrationWizardPage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

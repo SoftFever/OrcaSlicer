@@ -28,6 +28,7 @@
 #include "libslic3r/calib.hpp"
 #include "libslic3r/CutUtils.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
+#include "slic3r/GUI/JusPrin/ChatConfigPanel.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
