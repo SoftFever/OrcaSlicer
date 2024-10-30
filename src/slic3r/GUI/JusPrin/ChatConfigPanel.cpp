@@ -89,6 +89,17 @@ void ChatConfigPanel::load_url()
     //UpdateState();
 }
 
+void ChatConfigPanel::SetOAuthAccessToken() {
+    wxString access_token = wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "");
+    wxString script = wxString::Format(R"(
+    if (window.setJusPrinEmbeddedChatOauthAccessToken) {
+            window.setJusPrinEmbeddedChatOauthAccessToken('%s');
+        }
+    )",
+        access_token);
+    WebView::RunScript(m_browser, script);
+}
+
 void ChatConfigPanel::reload() { m_browser->Reload(); }
 
 void ChatConfigPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
