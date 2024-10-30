@@ -3629,9 +3629,9 @@ void GUI_App::update_oauth_access_token() {
     if (mainframe && mainframe->m_webview) {
         mainframe->m_webview->update_oauth_access_token();
     }
-    // if (plater_ && plater_->sidebar() && plater_->sidebar()->jusprin_chat_panel()) {
-    //     plater_->sidebar()->jusprin_chat_panel()->SetOAuthAccessToken();
-    // }
+    if (chat_config_panel()) {
+        chat_config_panel()->SetOAuthAccessToken();
+    }
 }
 
 // TODO: Remove BBL login
@@ -5973,6 +5973,11 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
+}
+
+ChatConfigPanel* GUI_App::chat_config_panel()
+{
+    return sidebar().chat_config_panel();
 }
 
 GizmoObjectManipulation *GUI_App::obj_manipul()

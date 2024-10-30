@@ -20,6 +20,7 @@ class ChatConfigPanel : public wxPanel
 public:
     ChatConfigPanel(wxWindow* parent);
     virtual ~ChatConfigPanel();
+    void SetOAuthAccessToken();
 
 private:
     void load_url();

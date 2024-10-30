@@ -1923,6 +1923,11 @@ wxPanel* Sidebar::filament_panel()
     return p->m_panel_filament_content;
 }
 
+ChatConfigPanel* Sidebar::chat_config_panel()
+{
+    return p->chat_config_panel;
+}
+
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
 {
     // BBS
