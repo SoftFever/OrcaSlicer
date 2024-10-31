@@ -8447,10 +8447,13 @@ bool Plater::priv::check_ams_status_impl()
             }
         }
 
-        bool is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == main_4
+        bool is_same_as_printer = false;
+        if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
+            is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == main_4
             && preset_bundle->extruder_ams_counts[0][1] == main_1
             && preset_bundle->extruder_ams_counts[1][4] == deputy_4
             && preset_bundle->extruder_ams_counts[1][1] == deputy_1;
+        }
 
         if (!is_same_as_printer) {
             struct SyncInfoDialog : MessageDialog
