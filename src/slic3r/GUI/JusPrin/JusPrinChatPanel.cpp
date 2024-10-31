@@ -90,7 +90,10 @@ void JusPrinChatPanel::load_url()
 }
 
 void JusPrinChatPanel::UpdateOAuthAccessToken() {
-    wxString strJS = wxString::Format("window.setJusPrinEmbeddedChatOauthAccessToken('%s')",
+    wxString strJS = wxString::Format(
+        "if (typeof window.setJusPrinEmbeddedChatOauthAccessToken === 'function') {"
+        "    window.setJusPrinEmbeddedChatOauthAccessToken('%s');"
+        "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
     WebView::RunScript(m_browser, strJS);
 }
@@ -136,8 +139,10 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     if (evt.GetURL().IsEmpty())
         return;
 
-    // Blindly run the script without checking what the current url is. This is for simplicity as well as to be more forward compatible.
-    wxString strJS = wxString::Format("checkAndRedirectToChatServer('%s')",
+    wxString strJS = wxString::Format(
+        "if (typeof checkAndRedirectToChatServer === 'function') {"
+        "    checkAndRedirectToChatServer('%s');"
+        "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
     WebView::RunScript(m_browser, strJS);
 
