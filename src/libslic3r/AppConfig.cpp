@@ -353,7 +353,6 @@ void AppConfig::set_defaults()
     if (get(SETTING_PROJECT_LOAD_BEHAVIOUR).empty()) {
         set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT);
     }
-
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }
@@ -421,11 +420,6 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
     erase("app", "severity_level");
-
-    // Add default for jusprin_server section
-    if (get("jusprin_server", "access_token").empty()) {
-        set_str("jusprin_server", "access_token", "");
-    }
 }
 
 #ifdef WIN32

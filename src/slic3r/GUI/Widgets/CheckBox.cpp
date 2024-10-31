@@ -115,11 +115,11 @@ void CheckBox::updateBitmap(wxEvent & evt)
             m_focus = false;
         }
         wxMouseEvent e;
-        if (m_hover)	
+        if (m_hover)
             OnEnterWindow(e);
         else
             OnLeaveWindow(e);
     }
 }
-	
+
 #endif

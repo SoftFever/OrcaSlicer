@@ -105,7 +105,7 @@ public:
 
     void update_mode();
     void update_classic_mode();
-    void update_login_status();
+    void update_oauth_access_token();
 
 private:
 
