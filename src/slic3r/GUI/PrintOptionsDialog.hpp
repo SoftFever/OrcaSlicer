@@ -37,19 +37,19 @@ public:
     void update_machine_obj(MachineObject* obj_);
     bool Show(bool show) override;
 };
- 
+
 
 class PrintOptionsDialog : public DPIDialog
 {
 protected:
     // settings
-    CheckBox* m_cb_first_layer;
-    CheckBox* m_cb_ai_monitoring;
-    CheckBox* m_cb_plate_mark;
-    CheckBox* m_cb_auto_recovery;
-    CheckBox* m_cb_sup_sound;
-    CheckBox* m_cb_filament_tangle;
-    CheckBox* m_cb_nozzle_blob;
+    ::CheckBox* m_cb_first_layer;
+    ::CheckBox* m_cb_ai_monitoring;
+    ::CheckBox* m_cb_plate_mark;
+    ::CheckBox* m_cb_auto_recovery;
+    ::CheckBox* m_cb_sup_sound;
+    ::CheckBox* m_cb_filament_tangle;
+    ::CheckBox* m_cb_nozzle_blob;
     Label* text_first_layer;
     Label* text_ai_monitoring;
     Label* text_ai_monitoring_caption;
@@ -80,7 +80,7 @@ public:
 
     MachineObject *obj { nullptr };
 
-    std::vector<int> last_stage_list_info; 
+    std::vector<int> last_stage_list_info;
     int              m_state{0};
     void             update_options(MachineObject *obj_);
     void             update_machine_obj(MachineObject *obj_);

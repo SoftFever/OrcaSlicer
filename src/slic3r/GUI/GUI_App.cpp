@@ -3621,12 +3621,16 @@ wxString GUI_App::transition_tridid(int trid_id)
 
 void GUI_App::show_jusprin_login() {
     Slic3r::GUI::JusPrinLoginDialog login_dlg;
-    if (login_dlg.run()) {
-        mainframe->m_webview->update_login_status();
-    } else {
-        mainframe->m_webview->update_login_status();
-        // Login failed or was cancelled
-        wxMessageBox(_L("JusPrin login was cancelled or failed."), _L("Login Failed"), wxOK | wxICON_WARNING);
+    login_dlg.run();
+    update_oauth_access_token();
+}
+
+void GUI_App::update_oauth_access_token() {
+    if (mainframe && mainframe->m_webview) {
+        mainframe->m_webview->update_oauth_access_token();
+    }
+    if (jusprin_chat_panel()) {
+        jusprin_chat_panel()->UpdateOAuthAccessToken();
     }
 }
 
@@ -5969,6 +5973,11 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
+}
+
+JusPrinChatPanel* GUI_App::jusprin_chat_panel()
+{
+    return sidebar().jusprin_chat_panel();
 }
 
 GizmoObjectManipulation *GUI_App::obj_manipul()

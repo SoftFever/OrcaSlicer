@@ -7,7 +7,7 @@
 #include <string>
 namespace Slic3r { namespace GUI {
 
-wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
+wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, ::CheckBox*& checkbox)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 

@@ -14,7 +14,7 @@
 #include "Widgets/PopupWindow.hpp"
 #include "Widgets/TextInput.hpp"
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 #define CLOUD_TASK_ITEM_MAX_WIDTH 1100
@@ -49,7 +49,7 @@ public:
 
     bool m_hover{ false };
     wxString get_left_time(int mc_left_time);
-    
+
     ScalableBitmap m_bitmap_check_disable;
     ScalableBitmap m_bitmap_check_off;
     ScalableBitmap m_bitmap_check_on;
@@ -104,7 +104,7 @@ private:
     // table head
     wxPanel* m_table_head_panel{ nullptr };
     wxBoxSizer* m_table_head_sizer{ nullptr };
-    CheckBox* m_select_checkbox{ nullptr };
+    ::CheckBox* m_select_checkbox{ nullptr };
     Button* m_task_name{ nullptr };
     Button* m_printer_name{ nullptr };
     Button* m_status{ nullptr };
@@ -182,7 +182,7 @@ private:
     // table head
     wxPanel*                    m_table_head_panel{ nullptr };
     wxBoxSizer*                 m_table_head_sizer{ nullptr };
-    CheckBox*                   m_select_checkbox{ nullptr };
+    ::CheckBox*                   m_select_checkbox{ nullptr };
     Button*                     m_task_name{ nullptr };
     Button*                     m_printer_name{ nullptr };
     Button*                     m_status{ nullptr };

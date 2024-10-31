@@ -1,4 +1,4 @@
-#include "ChatConfigPanel.hpp"
+#include "JusPrinChatPanel.hpp"
 #include <iostream>
 #include <wx/sizer.h>
 
@@ -42,7 +42,7 @@ std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
     return j.dump();
 }
 
-ChatConfigPanel::ChatConfigPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -53,9 +53,9 @@ ChatConfigPanel::ChatConfigPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, w
         return;
     }
 
-    m_browser->Bind(wxEVT_WEBVIEW_ERROR, &ChatConfigPanel::OnError, this);
-    m_browser->Bind(wxEVT_WEBVIEW_LOADED, &ChatConfigPanel::OnLoaded, this);
-    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ChatConfigPanel::OnScriptMessageReceived, this);
+    m_browser->Bind(wxEVT_WEBVIEW_ERROR, &JusPrinChatPanel::OnError, this);
+    m_browser->Bind(wxEVT_WEBVIEW_LOADED, &JusPrinChatPanel::OnLoaded, this);
+    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnScriptMessageReceived, this);
 
     topsizer->Add(m_browser, 1, wxEXPAND);
     SetSizer(topsizer);
@@ -66,12 +66,12 @@ ChatConfigPanel::ChatConfigPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, w
     m_zoomFactor = 100;
 
     // Connect the idle events
-    Bind(wxEVT_CLOSE_WINDOW, &ChatConfigPanel::OnClose, this);
+    Bind(wxEVT_CLOSE_WINDOW, &JusPrinChatPanel::OnClose, this);
 
     load_url();
 }
 
-ChatConfigPanel::~ChatConfigPanel()
+JusPrinChatPanel::~JusPrinChatPanel()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Start";
     SetEvtHandlerEnabled(false);
@@ -79,7 +79,7 @@ ChatConfigPanel::~ChatConfigPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
-void ChatConfigPanel::load_url()
+void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
@@ -88,21 +88,26 @@ void ChatConfigPanel::load_url()
 
     m_browser->LoadURL(url);
     // m_browser->SetFocus();
-    //UpdateState();
+    // UpdateState();
 }
 
-void ChatConfigPanel::reload() { m_browser->Reload(); }
-
-void ChatConfigPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
-
-void ChatConfigPanel::UpdateState()
-{
-    // SetTitle(m_browser->GetCurrentTitle());
+void JusPrinChatPanel::UpdateOAuthAccessToken() {
+    wxString strJS = wxString::Format(
+        "if (typeof window.setJusPrinEmbeddedChatOauthAccessToken === 'function') {"
+        "    window.setJusPrinEmbeddedChatOauthAccessToken('%s');"
+        "}",
+        wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
+    WebView::RunScript(m_browser, strJS);
 }
 
-void ChatConfigPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
+void JusPrinChatPanel::reload() { m_browser->Reload(); }
 
-void ChatConfigPanel::SendMessage(wxString  message)
+void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
+
+
+void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
+
+void JusPrinChatPanel::SendMessage(wxString  message)
 {
     wxString script = wxString::Format(R"(
     // Check if window.fetch exists before overriding
@@ -114,7 +119,7 @@ void ChatConfigPanel::SendMessage(wxString  message)
     WebView::RunScript(m_browser, script);
 }
 
-void ChatConfigPanel::OnError(wxWebViewEvent& evt)
+void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
 {
     auto e = "unknown error";
     switch (evt.GetInt()) {
@@ -131,14 +136,22 @@ void ChatConfigPanel::OnError(wxWebViewEvent& evt)
                             << boost::format(": error loading page %1% %2% %3% %4%") % evt.GetURL() % evt.GetTarget() % e % evt.GetString();
 }
 
-void ChatConfigPanel::OnLoaded(wxWebViewEvent& evt)
+void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
     if (evt.GetURL().IsEmpty())
         return;
 
+    wxString strJS = wxString::Format(
+        "if (typeof checkAndRedirectToChatServer === 'function') {"
+        "    checkAndRedirectToChatServer('%s');"
+        "}",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+    WebView::RunScript(m_browser, strJS);
+
+    UpdateOAuthAccessToken();
 }
 
-void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
+void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
 {
     wxString message = event.GetString();
     std::string  jsonString = std::string(message.mb_str());
@@ -152,6 +165,11 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     } else if (action == "fetch_filaments") {
         
         FetchFilaments();
+        return;
+    }
+
+    if (action == "jusprin_login_or_register") {
+        wxGetApp().show_jusprin_login();
         return;
     }
 
@@ -181,7 +199,7 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
         FetchProperty(preset_type, "FETCH_"+type);
     }
 }
-void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
+void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
@@ -236,7 +254,7 @@ void ChatConfigPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::j
     }
 }
 
-void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string& type)
+void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string& type)
 {
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
@@ -245,12 +263,13 @@ void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string&
     }
 }
 
-void ChatConfigPanel::FetchPresetBundle() {
+void JusPrinChatPanel::FetchPresetBundle() {
     const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
-    SendMessage(ConfigToJSON("FETCH_PresetBundle", &full_config));
+    wxString strJS = wxString::Format("updateJusprinEmbeddedChatState('selectedFilament', %s)", ConfigToJSON("FETCH_PresetBundle", &full_config));
+    WebView::RunScript(m_browser, strJS);
 }
 
-void ChatConfigPanel::FetchFilaments() { 
+void JusPrinChatPanel::FetchFilaments() { 
     auto&          filaments = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
     SendMessage(ConfigToJSON("FETCH_filaments", &filaments));
 }

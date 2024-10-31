@@ -40,7 +40,7 @@ protected:
 	TextInput* m_tiStartPA;
 	TextInput* m_tiEndPA;
 	TextInput* m_tiPAStep;
-	CheckBox* m_cbPrintNum;
+	::CheckBox* m_cbPrintNum;
 	Button* m_btnStart;
 
 	Plater* m_plater;
@@ -54,7 +54,7 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 protected:
-    
+
     virtual void on_start(wxCommandEvent& event);
     virtual void on_filament_type_changed(wxCommandEvent& event);
     Calib_Params m_params;
