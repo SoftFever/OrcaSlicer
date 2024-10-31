@@ -33,7 +33,7 @@
         function parseBoolean(value) {
             return value === 'true' || value === '1';
         }
-        
+
         function handleClickFetchPreset() {
             sendMessageToWxWebView(JSON.stringify({
                 action:  "fetch_preset_bundle",
@@ -43,7 +43,7 @@
         }
         function handleClickLayoutHight() {
             var inputElement = document.getElementById("layer_height");
-            var floatValue = parseFloat(inputElement.value); 
+            var floatValue = parseFloat(inputElement.value);
             sendMessageToWxWebView(JSON.stringify({
                 action:  "config_property",
                 key : 'layer_height',
@@ -53,7 +53,7 @@
         }
         function handleClickFilamentSoluble() {
             var inputElement = document.getElementById("filament_soluble");
-            var boolValue = parseBoolean(inputElement.value); 
+            var boolValue = parseBoolean(inputElement.value);
             sendMessageToWxWebView(JSON.stringify({
                 action:  "config_property",
                 key : 'filament_soluble',
@@ -72,7 +72,13 @@
 
         window.onGUIMessage = function(message) {
             var pElement = document.getElementById("content");
-            pElement.innerHTML = message;
+            try {
+                var jsonObject = JSON.parse(message);
+                var content = JSON.stringify(jsonObject, null, 2);
+                pElement.innerHTML = content;
+            } catch (error) {
+                pElement.innerHTML = '<span style="color: red;">Error parsing JSON: ' + error.message + '</span>';
+            }
         }
         function sendMessageToWxWebView(value) {
             if (window.wx) {
@@ -84,9 +90,6 @@
     </script>
 </head>
 <body>
-    <header>
-        <h1>欢迎来到我的网站</h1>
-    </header>
     <main>
         <h2>关于我们</h2>
         <button onclick="handleClickFetchPreset()">获取Preset参数</button>
@@ -102,11 +105,8 @@
         <input type="text" id="filament_soluble" value="true"/>
         <button onclick="handleClickFilamentSoluble()">发送filament_soluble</button>
         <br><br>
-        <p id="content">这是一个简单的HTML原页面示例。</p>
+        <pre id="content">这是一个简单的HTML原页面示例。</pre>
         <br><br>
     </main>
-    <footer>
-        <p>&copy; 2023 我的公司</p>
-    </footer>
 </body>
 </html>

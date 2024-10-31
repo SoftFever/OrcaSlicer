@@ -79,7 +79,7 @@ JusPrinChatPanel::~JusPrinChatPanel()
 
 void JusPrinChatPanel::load_url()
 {
-    wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
+    wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
 
