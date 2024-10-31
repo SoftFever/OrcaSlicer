@@ -157,6 +157,7 @@ enum class NotificationType
     BBLFilamentPrintableError,
     BBLSliceLimitError,
     BBLSliceMultiExtruderHeightOutside,
+	BBLBedFilamentIncompatible,
     NotificationTypeCount
 
 };
@@ -359,6 +360,10 @@ public:
 	//BBS--gcode overlap
     void bbl_show_gcode_overlap_notification();
     void bbl_close_gcode_overlap_notification();
+
+	//BBS--bed filament match
+	void bbl_show_bed_filament_incompatible_notification(const std::string& text);
+	void bbl_close_bed_filament_incompatible_notification();
 
 	//BBS--sole notification
     void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);
