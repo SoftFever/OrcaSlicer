@@ -1,4 +1,5 @@
 #include "JusPrinChatPanel.hpp"
+#include "../PresetComboBoxes.hpp"
 #include <iostream>
 #include <wx/sizer.h>
 
@@ -163,7 +164,7 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
         FetchPresetBundle();
         return;
     } else if (action == "fetch_filaments") {
-        
+
         FetchFilaments();
         return;
     }
@@ -256,6 +257,33 @@ void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::
 
 void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string& type)
 {
+    Tab* printer_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+    Tab* filament_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT);
+    Tab* process_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
+    PresetBundle* preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    PresetCollection& printer_presets = preset_bundle->printers;
+    PresetCollection& filament_presets = preset_bundle->filaments;
+    PresetCollection& process_presets = preset_bundle->prints;
+
+    PresetWithVendorProfile printer_profile = printer_presets.get_edited_preset_with_vendor_profile();
+    PresetWithVendorProfile filament_profile = filament_presets.get_edited_preset_with_vendor_profile();
+    PresetWithVendorProfile process_profile = process_presets.get_edited_preset_with_vendor_profile();
+
+    // process_tab->m_presets->get_selected_preset().name;
+    // process_tab->m_presets->get_selected_preset().config;
+
+    TabPresetComboBox* combo = process_tab->get_combo_box();
+    // int selection = combo->GetSelection();
+    for (unsigned int i = 0; i < combo->GetCount(); i++) {
+        std::string preset_name = combo->GetString(i).ToUTF8().data();
+        const Preset* process_preset = process_presets.find_preset(preset_name, false);
+        if (process_preset) {
+            PresetWithVendorProfile process_profile1 = process_presets.get_preset_with_vendor_profile(*process_preset);
+            // bool is_compatible = is_compatible_with_print(process_profile1, filament_profile, printer_profile);
+        }
+    }
+    std::string preset_name1 = "0.15mm Quality @MK3S 0.4";
+    process_tab->select_preset(preset_name1, false, std::string(), false);
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
         auto config = tab->m_config;
@@ -269,8 +297,8 @@ void JusPrinChatPanel::FetchPresetBundle() {
     WebView::RunScript(m_browser, strJS);
 }
 
-void JusPrinChatPanel::FetchFilaments() { 
-    auto&          filaments = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
+void JusPrinChatPanel::FetchFilaments() {
+    auto filaments = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
     SendMessage(ConfigToJSON("FETCH_filaments", &filaments));
 }
 
