@@ -86,28 +86,19 @@ void JusPrinChatPanel::load_url()
 
     m_browser->LoadURL(url);
     // m_browser->SetFocus();
-    UpdateState();
+    // UpdateState();
 }
 
 void JusPrinChatPanel::UpdateOAuthAccessToken() {
-    wxString access_token = wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "");
-    wxString script = wxString::Format(R"(
-    if (window.setJusPrinEmbeddedChatOauthAccessToken) {
-            window.setJusPrinEmbeddedChatOauthAccessToken('%s');
-        }
-    )",
-        access_token);
-    WebView::RunScript(m_browser, script);
+    wxString strJS = wxString::Format("window.setJusPrinEmbeddedChatOauthAccessToken('%s')",
+        wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
+    WebView::RunScript(m_browser, strJS);
 }
 
 void JusPrinChatPanel::reload() { m_browser->Reload(); }
 
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
-void JusPrinChatPanel::UpdateState()
-{
-    UpdateOAuthAccessToken();
-}
 
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 
@@ -145,11 +136,12 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     if (evt.GetURL().IsEmpty())
         return;
 
-    if (evt.GetURL().Contains("jusprin_chat_preload.html")) {
-        wxString strJS = wxString::Format("checkAndRedirectToChatServer('%s')",
-            wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
-        WebView::RunScript(m_browser, strJS);
-    }
+    // Blindly run the script without checking what the current url is. This is for simplicity as well as to be more forward compatible.
+    wxString strJS = wxString::Format("checkAndRedirectToChatServer('%s')",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+    WebView::RunScript(m_browser, strJS);
+
+    UpdateOAuthAccessToken();
 }
 
 void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)

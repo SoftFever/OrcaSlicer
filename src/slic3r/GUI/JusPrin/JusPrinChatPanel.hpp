@@ -24,7 +24,6 @@ public:
 
 private:
     void load_url();
-    void UpdateState();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
