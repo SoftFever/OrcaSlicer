@@ -5,26 +5,19 @@
 
 namespace Slic3r { namespace GUI {
 
-std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
-{
-    nlohmann::json j;
-    j["type"] = type;
-    if (config == nullptr)
-        return "";
-    //record all the key-values
-    for (const std::string &opt_key : config->keys())
-    {
+void ConfigToJSONObj(const std::string& type, const ConfigBase* config, nlohmann::json& j) {
+    // record all the key-values
+    for (const std::string& opt_key : config->keys()) {
         const ConfigOption* opt = config->option(opt_key);
-        if ( opt->is_scalar() ) {
+        if (opt->is_scalar()) {
             if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
-                //keep \n, \r, \t
-                j[opt_key] = (dynamic_cast<const ConfigOptionString *>(opt))->value;
+                // keep \n, \r, \t
+                j[opt_key] = (dynamic_cast<const ConfigOptionString*>(opt))->value;
             else
                 j[opt_key] = opt->serialize();
-        }
-        else {
-            const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
-            //if (!vec->empty())
+        } else {
+            const ConfigOptionVectorBase* vec = static_cast<const ConfigOptionVectorBase*>(opt);
+            // if (!vec->empty())
             std::vector<std::string> string_values = vec->vserialize();
 
             /*for (int i = 0; i < string_values.size(); i++)
@@ -37,6 +30,15 @@ std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
             j[opt_key] = j_array;
         }
     }
+}
+
+std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
+{
+    nlohmann::json j;
+    j["type"] = type;
+    if (config == nullptr)
+        return "";
+    ConfigToJSONObj(type, config, j);
     return j.dump();
 }
 
@@ -79,7 +81,7 @@ ChatConfigPanel::~ChatConfigPanel()
 
 void ChatConfigPanel::load_url()
 {
-    wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
+    wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
 
@@ -146,6 +148,10 @@ void ChatConfigPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     if (action == "fetch_preset_bundle")
     {
         FetchPresetBundle();
+        return;
+    } else if (action == "fetch_filaments") {
+        
+        FetchFilaments();
         return;
     }
 
@@ -237,13 +243,16 @@ void ChatConfigPanel::FetchProperty(Preset::Type preset_type, const std::string&
         auto config = tab->m_config;
         SendMessage(ConfigToJSON(type, config));
     }
-
-     Slic3r::GUI::wxGetApp().preset_bundle->full_config();
 }
 
 void ChatConfigPanel::FetchPresetBundle() {
     const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
     SendMessage(ConfigToJSON("FETCH_PresetBundle", &full_config));
+}
+
+void ChatConfigPanel::FetchFilaments() { 
+    auto&          filaments = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
+    SendMessage(ConfigToJSON("FETCH_filaments", &filaments));
 }
 
 }} // namespace Slic3r::GUI

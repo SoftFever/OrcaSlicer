@@ -2104,6 +2104,131 @@ const std::set<std::string> ignore_settings_list ={
     "inherits",
     "print_settings_id", "filament_settings_id", "printer_settings_id"
 };
+DynamicPrintConfig          PresetBundle::filaments_config() const
+{
+    DynamicPrintConfig out;
+    out.apply(this->filaments.default_preset().config);
+
+    // BBS
+    size_t                   num_filaments     = this->filament_presets.size();
+    auto*                    extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
+    std::vector<std::string> filament_ids;
+    std::vector<std::string> inherits;
+    std::vector<std::string> different_settings;
+    if (num_filaments <= 1) {
+        out.apply(this->filaments.get_edited_preset().config);
+        // BBS: add logic for settings check between different system presets
+        // std::string filament_inherits = this->filaments.get_edited_preset().inherits();
+        std::string   current_preset_name = this->filament_presets[0];
+        const Preset* preset              = this->filaments.find_preset(current_preset_name, true);
+        std::string   filament_inherits   = preset->inherits();
+        inherits.emplace_back(filament_inherits);
+        filament_ids.emplace_back(this->filaments.get_edited_preset().filament_id);
+
+        std::string   different_filament_settings;
+        const Preset* filament_parent_preset = this->filaments.get_selected_preset_parent();
+        if (filament_parent_preset) {
+            std::vector<std::string> dirty_options =
+                this->filaments.dirty_options_without_option_list(&(this->filaments.get_edited_preset()), filament_parent_preset,
+                                                                  ignore_settings_list, false);
+            if (!dirty_options.empty()) {
+                different_filament_settings = Slic3r::escape_strings_cstyle(dirty_options);
+            }
+        }
+
+        different_settings.emplace_back(different_filament_settings);
+    } else {
+        // Retrieve filament presets and build a single config object for them.
+        // First collect the filament configurations based on the user selection of this->filament_presets.
+        // Here this->filaments.find_preset() and this->filaments.first_visible() return the edited copy of the preset if active.
+        std::vector<const DynamicPrintConfig*> filament_configs;
+        std::vector<const Preset*>             filament_presets;
+        for (const std::string& filament_preset_name : this->filament_presets) {
+            const Preset* preset = this->filaments.find_preset(filament_preset_name, true);
+            filament_presets.emplace_back(preset);
+            filament_configs.emplace_back(&(preset->config));
+        }
+        while (filament_configs.size() < num_filaments) {
+            const Preset* preset = &this->filaments.first_visible();
+            filament_presets.emplace_back(preset);
+            filament_configs.emplace_back(&(preset->config));
+        }
+        for (int index = 0; index < num_filaments; index++) {
+            const DynamicPrintConfig* cfg    = filament_configs[index];
+            const Preset*             preset = filament_presets[index];
+            // The compatible_prints/printers_condition() returns a reference to configuration key, which may not yet exist.
+            DynamicPrintConfig& cfg_rw = *const_cast<DynamicPrintConfig*>(cfg);
+        
+            // BBS: add logic for settings check between different system presets
+            std::string filament_inherits = Preset::inherits(cfg_rw);
+            filament_ids.emplace_back(preset->filament_id);
+            std::string different_filament_settings;
+
+            const Preset* filament_parent_preset = nullptr;
+            if (preset->is_system || preset->is_default) {
+                bool is_selected = this->filaments.get_selected_preset_name() == preset->name;
+                if (is_selected) {
+                    // use the real preset
+                    filament_parent_preset = const_cast<PresetBundle*>(this)->filaments.find_preset(preset->name, false, true);
+                } else {
+                    filament_parent_preset = preset;
+                }
+            } else if (!filament_inherits.empty())
+                filament_parent_preset = const_cast<PresetBundle*>(this)->filaments.find_preset(filament_inherits, false, true);
+
+            if (filament_parent_preset) {
+                std::vector<std::string> dirty_options = cfg_rw.diff(filament_parent_preset->config);
+                if (!dirty_options.empty()) {
+                    auto iter = dirty_options.begin();
+                    while (iter != dirty_options.end()) {
+                        if (ignore_settings_list.find(*iter) != ignore_settings_list.end()) {
+                            iter = dirty_options.erase(iter);
+                        } else {
+                            ++iter;
+                        }
+                    }
+                    different_filament_settings = Slic3r::escape_strings_cstyle(dirty_options);
+                }
+            }
+        }
+
+        // loop through options and apply them to the resulting config.
+        for (const t_config_option_key& key : this->filaments.default_preset().config.keys()) {
+            if (key == "compatible_prints" || key == "compatible_printers")
+                continue;
+            // Get a destination option.
+            ConfigOption* opt_dst = out.option(key, false);
+            if (opt_dst->is_scalar()) {
+                // Get an option, do not create if it does not exist.
+                const ConfigOption* opt_src = filament_configs.front()->option(key);
+                if (opt_src != nullptr)
+                    opt_dst->set(opt_src);
+            } else {
+                // BBS
+                ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
+                {
+                    std::vector<const ConfigOption*> filament_opts(num_filaments, nullptr);
+                    // Setting a vector value from all filament_configs.
+                    for (size_t i = 0; i < filament_opts.size(); ++i)
+                        filament_opts[i] = filament_configs[i]->option(key);
+                    opt_vec_dst->set(filament_opts);
+                }
+            }
+        }
+    }
+    auto add_if_some_non_empty = [&out](std::vector<std::string>&& values, const std::string& key) {
+        bool nonempty = false;
+        for (const std::string& v : values)
+            if (!v.empty()) {
+                nonempty = true;
+                break;
+            }
+        if (nonempty)
+            out.set_key_value(key, new ConfigOptionStrings(std::move(values)));
+    };
+    add_if_some_non_empty(std::move(different_settings), "different_settings_to_system");
+    return out;
+}
 
 DynamicPrintConfig PresetBundle::full_fff_config() const
 {

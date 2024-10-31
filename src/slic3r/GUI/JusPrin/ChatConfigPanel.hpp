@@ -37,6 +37,7 @@ private:
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type, const std::string& type);
     void FetchPresetBundle();
+    void FetchFilaments();
 
     wxWebView* m_browser;
     long       m_zoomFactor;

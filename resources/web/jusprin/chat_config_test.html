@@ -33,6 +33,12 @@
         function parseBoolean(value) {
             return value === 'true' || value === '1';
         }
+
+        handleClickFetchFilaments = function() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "fetch_filaments",
+            }));
+        }
         
         function handleClickFetchPreset() {
             sendMessageToWxWebView(JSON.stringify({
@@ -90,8 +96,9 @@
     <main>
         <h2>关于我们</h2>
         <button onclick="handleClickFetchPreset()">获取Preset参数</button>
-        <button onclick="handleClick('TYPE_PRINT')">获取TYPE_PRINT参数</button>
-        <button onclick="handleClick('TYPE_FILAMENT')">获取TYPE_FILAMENT参数</button>
+        <button onclick="handleClick('TYPE_PRINT')">获取EDITED TYPE_PRINT参数</button>
+        <button onclick="handleClick('TYPE_FILAMENT')">获取EDITED TYPE_FILAMENT参数</button>
+        <button onclick="handleClickFetchFilaments()">获取Filaments参数</button>
         <br><br>
         <label for="layer_height">TYPE_PRINT:layer_height:</label>
         <input type="text" id="layer_height" value="0.33"/>
