@@ -32,17 +32,18 @@ private:
     void update_mode();
 
 private:
-    void SendMessage(wxString  message);
+    void SendMessage(wxString message);
     void OnScriptMessageReceived(wxWebViewEvent& event);
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);
     void FetchPresetBundle();
     void FetchFilaments();
+    void FetchUsedFilamentIds();
 
     wxWebView* m_browser;
-    long       m_zoomFactor;
-    wxString   m_apikey; // todo
+    long     m_zoomFactor;
+    wxString m_apikey; // todo
 };
 
 }} // namespace Slic3r::GUI
