@@ -3180,8 +3180,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
-<<<<<<< HEAD
-=======
             // update printing stage
 
             m_project_task_panel->update_left_time(obj->mc_left_time);
@@ -3195,7 +3193,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
                 m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
             }
->>>>>>> 3010ddfa7 (Primary color change)
         }
 
         m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));

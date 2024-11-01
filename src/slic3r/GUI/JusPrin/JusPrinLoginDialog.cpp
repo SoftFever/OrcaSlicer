@@ -28,7 +28,8 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     SetBackgroundColour(*wxWHITE);
 
     // Set up the URL for JusPrin login
-    m_jusprint_url = "https://app.obico.io/o/authorize?response_type=token&client_id=JusPrin&hide_navbar=true";
+    m_jusprint_url = wxGetApp().app_config->get_with_default("jusprin_server", "auth_url",
+        "https://app.obico.io/accounts/login/?hide_navbar=true&next=/o/authorize/%3Fresponse_type%3Dtoken%26client_id%3DJusPrin");
     m_networkOk = false;
 
     // Create the webview
@@ -117,20 +118,16 @@ void JusPrinLoginDialog::OnNavigationRequest(wxWebViewEvent& evt)
             }
             std::string oauth_token = access_token.ToStdString();
 
-            // Check if access_token is not null and not empty
             if (!oauth_token.empty()) {
-                // Set the access_token in the jusprin_server section of the AppConfig
                 wxGetApp().app_config->set("jusprin_server", "access_token", oauth_token);
                 wxGetApp().app_config->save();
+                wxGetApp().update_oauth_access_token();
 
-                // End the modal with wxID_OK
                 EndModal(wxID_OK);
             } else {
-                // End the modal with a "not okay" value
                 EndModal(wxID_CANCEL);
             }
         } else {
-            // No access_token found in the URL
             EndModal(wxID_CANCEL);
         }
     }

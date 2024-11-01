@@ -42,7 +42,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-    
+
 #if !BBL_RELEASE_TO_PUBLIC
     // Create the button
     bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
@@ -225,7 +225,7 @@ WebViewPanel::~WebViewPanel()
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " Start";
     SetEvtHandlerEnabled(false);
-    
+
     delete m_tools_menu;
 
     if (m_LoginUpdateTimer != nullptr) {
@@ -282,7 +282,7 @@ void WebViewPanel::UpdateState()
     m_url->SetValue(m_browser->GetCurrentURL());
 #endif //BBL_RELEASE_TO_PUBLIC
     update_classic_mode();
-    update_login_status();
+    update_oauth_access_token();
 }
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
@@ -465,16 +465,16 @@ void WebViewPanel::SendDesignStaffpick(bool on)
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 {
     std::string url;
-    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
+    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0)
     {
-        if (url.find("?") != std::string::npos) 
-        { 
+        if (url.find("?") != std::string::npos)
+        {
             url += "&from=orcaslicer";
         } else {
             url += "?from=orcaslicer";
         }
-        
-        wxLaunchDefaultBrowser(url); 
+
+        wxLaunchDefaultBrowser(url);
     }
 }
 
@@ -546,9 +546,9 @@ void WebViewPanel::update_classic_mode()
     RunScript(strJS);
 }
 
-void WebViewPanel::update_login_status()
+void WebViewPanel::update_oauth_access_token()
 {
-    wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get("jusprin_server", "access_token").empty() ? "false" : "true");
+    wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "").empty() ? "false" : "true");
     RunScript(strJS);
 }
 
@@ -904,7 +904,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
 
-    if (wxGetApp().get_mode() == comDevelop) 
+    if (wxGetApp().get_mode() == comDevelop)
     {
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 

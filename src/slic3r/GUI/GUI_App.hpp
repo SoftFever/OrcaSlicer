@@ -19,6 +19,7 @@
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/JusPrin/JusPrinLoginDialog.hpp"
+#include "slic3r/GUI/JusPrin/JusPrinChatPanel.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -82,7 +83,7 @@ class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
-class NetworkErrorDialog;
+    class NetworkErrorDialog;
 
 
 enum FileType
@@ -240,7 +241,7 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-   
+
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -339,7 +340,7 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "OrcaSlicer-gcodeviewer"; }
-    
+
     // SoftFever
     bool show_gcode_window() const { return m_show_gcode_window; }
     void toggle_show_gcode_window();
@@ -632,7 +633,6 @@ public:
 	size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
-
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
     void            open_web_page_localized(const std::string &http_address);
@@ -653,7 +653,7 @@ public:
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
-    // extend is stl/3mf/gcode/step etc 
+    // extend is stl/3mf/gcode/step etc
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
     bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
@@ -675,6 +675,8 @@ public:
     void            check_config_updates_from_updater() { check_updates(false); }
 
     void            show_jusprin_login();
+    void            update_oauth_access_token();
+    JusPrinChatPanel* jusprin_chat_panel();
 
 private:
     int             updating_bambu_networking();

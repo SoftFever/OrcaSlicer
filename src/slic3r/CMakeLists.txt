@@ -574,8 +574,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/WebSocketClient.hpp
     GUI/JusPrin/JusPrinLoginDialog.cpp
     GUI/JusPrin/JusPrinLoginDialog.hpp
-    GUI/AI/ChatConfigPanel.cpp
-    GUI/AI/ChatConfigPanel.hpp
+    GUI/JusPrin/JusPrinChatPanel.cpp
+    GUI/JusPrin/JusPrinChatPanel.hpp
 )
 
 if (WIN32)
