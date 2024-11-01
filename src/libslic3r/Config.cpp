@@ -25,8 +25,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/format.hpp>
 #include <string.h>
-//BBS: add json support
-#include "nlohmann/json.hpp"
 
 using namespace nlohmann;
 
@@ -700,7 +698,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
     // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
     return opt_def->ratio_over.empty() ? 0. :
         static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
-    
+
 
     throw ConfigurationError("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
 }
@@ -1014,7 +1012,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
             }
         }
-        
+
         // Do legacy conversion on a completely loaded dictionary.
         // Perform composite conversions, for example merging multiple keys into one key.
         this->handle_legacy_composite();
@@ -1387,7 +1385,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 }
 
 //BBS: add json support
-void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
+nlohmann::json ConfigBase::to_json(const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
 {
     json j;
     //record the headers
@@ -1423,7 +1421,12 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
             j[opt_key] = j_array;
         }
     }
+    return j;
+}
 
+void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
+{
+    nlohmann::json j = this->to_json(name, from, version, is_custom);
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
     c << std::setw(4) << j << std::endl;

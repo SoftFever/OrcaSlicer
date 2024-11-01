@@ -15,6 +15,7 @@
 #include "clonable_ptr.hpp"
 #include "Exception.hpp"
 #include "Point.hpp"
+#include "nlohmann/json.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -2169,6 +2170,7 @@ public:
     void save(const std::string &file) const;
 
     //BBS: add json support
+    nlohmann::json to_json(const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "") const;
     void save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "") const;
 
 	// Set all the nullable values to nils.
