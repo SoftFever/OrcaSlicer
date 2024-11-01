@@ -98,6 +98,9 @@ void JusPrinChatPanel::UpdatePrinterPresets() {
     std::vector<std::pair<const Preset*, bool>> printer_presets;
     for (unsigned int i = 0; i < printer_combo->GetCount(); i++) {
         std::string preset_name = printer_combo->GetString(i).ToUTF8().data();
+
+        if (preset_name.substr(0, 5) == "-----") continue;   // Skip separator
+
         const Preset* printer_preset = printer_tab->m_presets->find_preset(preset_name, false);
         if (printer_preset) {
             printer_presets.push_back({printer_preset, printer_combo->GetSelection() == i});
