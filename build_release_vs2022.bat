@@ -35,7 +35,7 @@ echo build type set to %build_type%
 
 setlocal DISABLEDELAYEDEXPANSION 
 cd deps
-if not exist %build_dir%\\ (
+if not exist %build_dir%\ (
     mkdir %build_dir%
 )
 cd %build_dir%
