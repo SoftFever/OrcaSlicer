@@ -1,46 +1,20 @@
 #include "JusPrinChatPanel.hpp"
 #include "../PresetComboBoxes.hpp"
+#include "libslic3r/Config.hpp"
+
 #include <iostream>
 #include <wx/sizer.h>
 
 
 namespace Slic3r { namespace GUI {
 
-void ConfigToJSONObj(const std::string& type, const ConfigBase* config, nlohmann::json& j) {
-    // record all the key-values
-    for (const std::string& opt_key : config->keys()) {
-        const ConfigOption* opt = config->option(opt_key);
-        if (opt->is_scalar()) {
-            if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
-                // keep \n, \r, \t
-                j[opt_key] = (dynamic_cast<const ConfigOptionString*>(opt))->value;
-            else
-                j[opt_key] = opt->serialize();
-        } else {
-            const ConfigOptionVectorBase* vec = static_cast<const ConfigOptionVectorBase*>(opt);
-            // if (!vec->empty())
-            std::vector<std::string> string_values = vec->vserialize();
 
-            /*for (int i = 0; i < string_values.size(); i++)
-            {
-                std::string string_value = escape_string_cstyle(string_values[i]);
-                j[opt_key][i] = string_value;
-            }*/
-
-            json j_array(string_values);
-            j[opt_key] = j_array;
-        }
-    }
-}
-
-std::string ConfigToJSON(const std::string& type,  const ConfigBase* config)
+std::string ConfigToJSON(const ConfigBase* config, const Preset* preset)
 {
-    nlohmann::json j;
-    j["type"] = type;
-    if (config == nullptr)
-        return "";
-    ConfigToJSONObj(type, config, j);
-    return j.dump();
+    nlohmann::json j = config->to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
+    // Convert to compact JSON string without indentation or newlines
+    std::string json_str = j.dump();
+    return json_str;
 }
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
@@ -287,19 +261,28 @@ void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
         auto config = tab->m_config;
-        SendMessage(ConfigToJSON(type, config));
+        const Preset& preset = tab->m_presets->get_selected_preset();
+        // Convert the config to JSON string using the correct parameter types
+        std::string json_str = ConfigToJSON(config, &preset);
+        SendMessage(json_str);
     }
 }
 
 void JusPrinChatPanel::FetchPresetBundle() {
-    const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
-    wxString strJS = wxString::Format("updateJusprinEmbeddedChatState('selectedFilament', %s)", ConfigToJSON("FETCH_PresetBundle", &full_config));
-    WebView::RunScript(m_browser, strJS);
+    // const DynamicPrintConfig& full_config = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
+    // wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", ConfigToJSON(&full_config));
+    // WebView::RunScript(m_browser, strJS);
 }
 
 void JusPrinChatPanel::FetchFilaments() {
-    auto filaments = Slic3r::GUI::wxGetApp().preset_bundle->full_config();
-    SendMessage(ConfigToJSON("FETCH_filaments", &filaments));
+    PresetBundle* preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    PresetCollection& filament_presets = preset_bundle->filaments;
+    PresetWithVendorProfile filament_profile = filament_presets.get_edited_preset_with_vendor_profile();
+
+    // Fix: Take the address of the config with &
+    std::string json_str = ConfigToJSON(&filament_profile.preset.config, &filament_profile.preset);
+    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", json_str);
+    WebView::RunScript(m_browser, strJS);
 }
 
 }} // namespace Slic3r::GUI
