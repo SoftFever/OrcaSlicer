@@ -721,6 +721,9 @@ class Print;
         bool m_wipe_tower;
         int m_object_label_id{-1};
         std::vector<float> m_remaining_volume;
+        ExtruderTemps m_filament_nozzle_temp;
+        ExtruderTemps m_filament_nozzle_temp_first_layer;
+        std::vector<int> m_physical_extruder_map;
         bool m_manual_filament_change;
 
         //BBS: x, y offset for gcode generated
@@ -749,8 +752,6 @@ class Print;
         unsigned char m_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
-        ExtruderTemps m_extruder_temps_config;
-        ExtruderTemps m_extruder_temps_first_layer_config;
         bool  m_is_XL_printer = false;
         int m_highest_bed_temp;
         float m_extruded_last_z;

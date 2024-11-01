@@ -1060,9 +1060,9 @@ void GCodeProcessor::run_post_process()
         }
         if (cmd.size() >= 2) {
             if (tool_number != -1) {
-                if (tool_number < 0 || (int)m_extruder_temps_config.size() <= tool_number) {
+                if (tool_number < 0 || (int)m_filament_nozzle_temp.size() <= tool_number) {
                     // found an invalid value, clamp it to a valid one
-                    tool_number = std::clamp<int>(0, m_extruder_temps_config.size() - 1, tool_number);
+                    tool_number = std::clamp<int>(0, m_filament_nozzle_temp.size() - 1, tool_number);
                     // emit warning
                     std::string warning = "GCode Post-Processor encountered an invalid toolchange, maybe from a custom gcode:";
                     warning += "\n> ";
@@ -1077,8 +1077,8 @@ void GCodeProcessor::run_post_process()
                     backtrace, cmd,
                     // line inserter
                     [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
-                        const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
-                                                                    m_extruder_temps_first_layer_config[tool_number]);
+                        const int temperature = int(m_layer_id != 1 ? m_filament_nozzle_temp[tool_number] :
+                                                                    m_filament_nozzle_temp_first_layer[tool_number]);
                         // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
                         // Prusa-Firmware-Buddy here
                         /**
@@ -1101,9 +1101,10 @@ void GCodeProcessor::run_post_process()
                             out += " S" + std::to_string(temperature) + "\n";
                             return out;
                         } else {
-                            std::string comment = "preheat T" + std::to_string(tool_number) +
+                            const int real_tool = m_physical_extruder_map[tool_number];
+                            std::string comment = "preheat T" + std::to_string(real_tool) +
                                                 " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
-                            return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
+                            return GCodeWriter::set_temperature(temperature, this->m_flavor, false, real_tool, comment);
                         }
                     },
                     // line replacer
@@ -1115,7 +1116,7 @@ void GCodeProcessor::run_post_process()
 
                             float val;
                             if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
-                                if (static_cast<int>(val) == tool_number)
+                                if (static_cast<int>(val) == m_physical_extruder_map[tool_number])
                                     return std::string("; removed M104\n");
                             }
                         }
@@ -1606,6 +1607,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < config.nozzle_volume.size(); ++idx)
         m_nozzle_volume[idx] = config.nozzle_volume.values[idx];
 
+    m_physical_extruder_map = config.physical_extruder_map.values;
+
     m_extruder_offsets.resize(filament_count);
     m_extruder_colors.resize(filament_count);
     m_result.filament_diameters.resize(filament_count);
@@ -1614,8 +1617,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_vitrification_temperature.resize(filament_count);
     m_result.filament_costs.resize(filament_count);
     m_extruder_temps.resize(filament_count);
-    m_extruder_temps_config.resize(filament_count);
-    m_extruder_temps_first_layer_config.resize(filament_count);
+    m_filament_nozzle_temp.resize(filament_count);
+    m_filament_nozzle_temp_first_layer.resize(filament_count);
     m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
     std::vector<NozzleType>(config.nozzle_type.size()).swap(m_result.nozzle_type);
     for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
@@ -1629,11 +1632,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t i = 0; i < filament_count; ++ i) {
         m_extruder_offsets[i] = to_3d(config.extruder_offset.get_at(filament_map[i] - 1).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
-        m_extruder_temps_first_layer_config[i] = static_cast<int>(config.nozzle_temperature_initial_layer.get_at(i));
-        m_extruder_temps_config[i]      = static_cast<int>(config.nozzle_temperature.get_at(i));
-        if (m_extruder_temps_config[i] == 0) {
+        m_filament_nozzle_temp_first_layer[i] = static_cast<int>(config.nozzle_temperature_initial_layer.get_at(i));
+        m_filament_nozzle_temp[i]      = static_cast<int>(config.nozzle_temperature.get_at(i));
+        if (m_filament_nozzle_temp[i] == 0) {
             // This means the value should be ignored and first layer temp should be used.
-            m_extruder_temps_config[i] = m_extruder_temps_first_layer_config[i];
+            m_filament_nozzle_temp[i] = m_filament_nozzle_temp_first_layer[i];
         }
         m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
         m_result.required_nozzle_HRC[i] = static_cast<int>(config.required_nozzle_HRC.get_at(i));
@@ -1725,6 +1728,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionInt *nozzle_HRC = config.option<ConfigOptionInt>("nozzle_hrc");
     if (nozzle_HRC != nullptr) m_result.nozzle_hrc = nozzle_HRC->value;
+
+    const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
+    if (physical_extruder_map != nullptr) {
+        m_physical_extruder_map = physical_extruder_map->values;
+    }
 
     const ConfigOptionEnumsGenericNullable* nozzle_type = config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
     if (nozzle_type != nullptr) {
@@ -2082,6 +2090,9 @@ void GCodeProcessor::reset()
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_temps[i] = 0.0f;
     }
+
+    m_physical_extruder_map.clear();
+
     m_highest_bed_temp = 0;
 
     m_extruded_last_z = 0.0f;
@@ -2263,14 +2274,14 @@ void GCodeProcessor::finalize(bool post_process)
     m_height_compare.output();
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+    if (post_process){
+        run_post_process();
+    }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     //BBS: update slice warning
     update_slice_warnings();
-
-    if (post_process)
-        run_post_process();
 }
 
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const
