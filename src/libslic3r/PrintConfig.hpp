@@ -1217,6 +1217,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionIntsGroups,          unprintable_filament_map))
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
+    ((ConfigOptionInts,                physical_extruder_map))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionPoints,              thumbnail_size))

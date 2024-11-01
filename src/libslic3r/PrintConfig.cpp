@@ -2123,6 +2123,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts{1});
 
+    def = this->add("physical_extruder_map",coInts);
+    def->label = "Map the logical extruder to physical extruder";
+    def->tooltip = "Map the logical extruder to physical extruder";
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def          = this->add("unprintable_filament_map", coIntsGroups);
     def->label   = L("Unprintable filament map to extruder");
     def->tooltip = L("Unprintable filament map to extruder");
