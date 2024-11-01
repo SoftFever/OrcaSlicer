@@ -716,6 +716,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
         if (param == "use_classic_mode") {
             Slic3r::GUI::wxGetApp().mainframe->m_webview->update_classic_mode();
+            auto* plater = Slic3r::GUI::wxGetApp().plater();
+            if(plater != nullptr){
+                plater->reset_window_layout();
+            }
         }
 
         if (param == "developer_mode") {

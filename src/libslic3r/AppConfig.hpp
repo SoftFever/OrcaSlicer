@@ -72,7 +72,7 @@ public:
 		if (it == m_storage.end())
 			return false;
 		auto it2 = it->second.find(key);
-		if (it2 == it->second.end()) 
+		if (it2 == it->second.end())
 			return false;
 		value = it2->second;
 		return true;
@@ -100,6 +100,11 @@ public:
 			old = value;
 			m_dirty = true;
 		}
+	}
+
+	std::string get_with_default(const std::string& section, const std::string& key, const std::string& default_value) const {
+	    std::string value;
+	    return get(section, key, value) ? value : default_value;
 	}
 
 	void			    set_str(const std::string& section, const std::string& key, const std::string& value)
@@ -299,7 +304,7 @@ public:
 
 private:
 	template<typename T>
-	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const 
+	bool get_3dmouse_device_numeric_value(const std::string &device_name, const char *parameter_name, T &out) const
 	{
 	    std::string key = std::string("mouse_device:") + device_name;
 	    auto it = m_storage.find(key);

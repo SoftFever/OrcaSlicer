@@ -1,0 +1,120 @@
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原页面示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+    <script>
+        function parseBoolean(value) {
+            return value === 'true' || value === '1';
+        }
+
+        handleClickFetchFilaments = function() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "fetch_filaments",
+            }));
+        }
+        
+        function handleClickFetchPreset() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "fetch_preset_bundle",
+            }));
+
+            <!--   "printer_settings_id": "Default Printer" 表示是用户没有自定义的-->
+        }
+        function handleClickLayoutHight() {
+            var inputElement = document.getElementById("layer_height");
+            var floatValue = parseFloat(inputElement.value);
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "config_property",
+                key : 'layer_height',
+                type: 'TYPE_PRINT',
+                value: floatValue
+            }));
+        }
+        function handleClickFilamentSoluble() {
+            var inputElement = document.getElementById("filament_soluble");
+            var boolValue = parseBoolean(inputElement.value);
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "config_property",
+                key : 'filament_soluble',
+                type: 'TYPE_FILAMENT',
+                value: [boolValue]
+            }));
+        }
+
+
+        function handleClick(fetch_type) {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "fetch_property",
+                type: fetch_type,
+            }))
+        }
+
+        window.onGUIMessage = function(message) {
+            var pElement = document.getElementById("content");
+            try {
+                pElement.innerHTML = message;
+                //var jsonObject = JSON.parse(message);
+                //var content = JSON.stringify(jsonObject, null, 2);
+                
+            } catch (error) {
+                pElement.innerHTML = '<span style="color: red;">Error parsing JSON: ' + error.message + '</span>';
+            }
+        }
+        function sendMessageToWxWebView(value) {
+            if (window.wx) {
+                window.wx.postMessage(value);
+            } else {
+                alert('wx 对象不可用');
+            }
+        }
+    </script>
+</head>
+<body>
+    <main>
+        <h2>关于我们</h2>
+        <button onclick="handleClickFetchPreset()">获取Preset参数</button>
+        <button onclick="handleClick('TYPE_PRINT')">获取EDITED TYPE_PRINT参数</button>
+        <button onclick="handleClick('TYPE_FILAMENT')">获取EDITED TYPE_FILAMENT参数</button>
+        <button onclick="handleClickFetchFilaments()">获取Filaments参数</button>
+        <br><br>
+        <label for="layer_height">TYPE_PRINT:layer_height:</label>
+        <input type="text" id="layer_height" value="0.33"/>
+        <button onclick="handleClickLayoutHight()">发送layer_height</button>
+        <br><br>
+        <br><br>
+        <label for="filament_soluble">TYPE_FILAMENT:filament_soluble:</label>
+        <input type="text" id="filament_soluble" value="true"/>
+        <button onclick="handleClickFilamentSoluble()">发送filament_soluble</button>
+        <br><br>
+        <pre id="content">这是一个简单的HTML原页面示例。</pre>
+        <br><br>
+    </main>
+</body>
+</html>

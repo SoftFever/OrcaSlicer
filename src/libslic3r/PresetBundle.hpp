@@ -280,6 +280,8 @@ public:
         return false;
     }
 
+    DynamicPrintConfig filaments_config() const;
+
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic

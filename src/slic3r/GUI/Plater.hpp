@@ -28,6 +28,7 @@
 #include "libslic3r/calib.hpp"
 #include "libslic3r/CutUtils.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
+#include "slic3r/GUI/JusPrin/JusPrinChatPanel.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -159,6 +160,7 @@ public:
     wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();
+    JusPrinChatPanel* jusprin_chat_panel();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();

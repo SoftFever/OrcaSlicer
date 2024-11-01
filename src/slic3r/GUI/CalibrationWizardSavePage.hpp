@@ -218,7 +218,7 @@ public:
     bool is_all_failed() { return m_is_all_failed; }
 
     virtual bool Show(bool show = true) override;
-    
+
     void msw_rescale() override;
 
 protected:
@@ -269,7 +269,7 @@ protected:
     TextInput*         m_save_name_input;
 
     Label* m_coarse_calc_result_text;
-    CheckBox* m_checkBox_skip_calibration;
+    ::CheckBox* m_checkBox_skip_calibration;
 
     bool m_skip_fine_calibration = false;
     float m_curr_flow_ratio;

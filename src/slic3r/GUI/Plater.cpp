@@ -152,8 +152,6 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 
-#include "slic3r/GUI/AI/ChatConfigPanel.hpp"
-
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -370,7 +368,7 @@ struct Sidebar::priv
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
-    ChatConfigPanel* chat_config_panel = nullptr;
+    JusPrinChatPanel* jusprin_chat_panel = nullptr;
     wxBoxSizer* config_sizer = nullptr;
     wxBoxSizer* size_top = nullptr;
 
@@ -1137,9 +1135,9 @@ Sidebar::Sidebar(Plater *parent)
 
     p->size_top = new wxBoxSizer(wxVERTICAL);
     p->size_top->Add(p->config_sizer, 1, wxEXPAND);
-    
-    p->chat_config_panel = new ChatConfigPanel(this);
-    p->size_top->Add(p->chat_config_panel, 1, wxEXPAND);
+
+    p->jusprin_chat_panel = new JusPrinChatPanel(this);
+    p->size_top->Add(p->jusprin_chat_panel, 1, wxEXPAND);
 
     update_content();
 
@@ -1260,7 +1258,7 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
-        connection_btn->Hide(); 
+        connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
@@ -1884,10 +1882,10 @@ void Sidebar::update_dynamic_filament_list()
 void Sidebar::update_content(){
     if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
         p->size_top->Hide(p->config_sizer, true);
-        p->size_top->Show(p->chat_config_panel, true);
+        p->size_top->Show(p->jusprin_chat_panel, true);
     }
     else{
-        p->size_top->Hide(p->chat_config_panel, true);
+        p->size_top->Hide(p->jusprin_chat_panel, true);
         p->size_top->Show(p->config_sizer, true);
     }
     Layout();
@@ -1923,6 +1921,11 @@ wxPanel* Sidebar::print_panel()
 wxPanel* Sidebar::filament_panel()
 {
     return p->m_panel_filament_content;
+}
+
+JusPrinChatPanel* Sidebar::jusprin_chat_panel()
+{
+    return p->jusprin_chat_panel;
 }
 
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
