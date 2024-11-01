@@ -35,7 +35,9 @@ echo build type set to %build_type%
 
 setlocal DISABLEDELAYEDEXPANSION 
 cd deps
-mkdir %build_dir%
+if not exist %build_dir%\ (
+    mkdir %build_dir%
+)
 cd %build_dir%
 set DEPS=%CD%/OrcaSlicer_dep
 
