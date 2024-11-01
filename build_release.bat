@@ -21,7 +21,7 @@ if "%debug%"=="ON" (
 echo build type set to %build_type%
 
 cd deps
-if not exist %build_dir%\ (
+if not exist %build_dir%\\ (
     mkdir %build_dir%
 )
 cd %build_dir%
