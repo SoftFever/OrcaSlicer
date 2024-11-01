@@ -21,6 +21,7 @@ public:
     JusPrinChatPanel(wxWindow* parent);
     virtual ~JusPrinChatPanel();
     void UpdateOAuthAccessToken();
+    void UpdatePrinterPresets();
 
 private:
     void load_url();
@@ -35,7 +36,7 @@ private:
     void OnScriptMessageReceived(wxWebViewEvent& event);
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
-    void FetchProperty(Preset::Type preset_type, const std::string& type);
+    void FetchProperty(Preset::Type preset_type);
     void FetchPresetBundle();
     void FetchFilaments();
 

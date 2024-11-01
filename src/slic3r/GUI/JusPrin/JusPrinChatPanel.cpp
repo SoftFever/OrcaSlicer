@@ -9,13 +9,20 @@
 namespace Slic3r { namespace GUI {
 
 
-std::string ConfigToJSON(const ConfigBase* config, const Preset* preset)
+std::string PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& presets)
 {
-    nlohmann::json j = config->to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
-    // Convert to compact JSON string without indentation or newlines
-    std::string json_str = j.dump();
-    return json_str;
+    nlohmann::json j_array = nlohmann::json::array();
+    for (const auto& [preset, is_selected] : presets) {
+        nlohmann::json j;
+        j["name"] = preset->name;
+        j["is_default"] = preset->is_default;
+        j["is_selected"] = is_selected;
+        j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
+        j_array.push_back(j);
+    }
+    return j_array.dump();
 }
+
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -62,8 +69,6 @@ void JusPrinChatPanel::load_url()
 
 
     m_browser->LoadURL(url);
-    // m_browser->SetFocus();
-    // UpdateState();
 }
 
 void JusPrinChatPanel::UpdateOAuthAccessToken() {
@@ -81,6 +86,27 @@ void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetAp
 
 
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
+
+void JusPrinChatPanel::UpdatePrinterPresets() {
+    Tab* printer_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+    if (!printer_tab) {
+        return;
+    }
+    TabPresetComboBox* printer_combo = printer_tab->get_combo_box();
+    std::vector<std::pair<const Preset*, bool>> printer_presets;
+    for (unsigned int i = 0; i < printer_combo->GetCount(); i++) {
+        std::string preset_name = printer_combo->GetString(i).ToUTF8().data();
+        const Preset* printer_preset = printer_tab->m_presets->find_preset(preset_name, false);
+        if (printer_preset) {
+            printer_presets.push_back({printer_preset, printer_combo->GetSelection() == i});
+        }
+    }
+    std::string json_str = PresetsToJSON(printer_presets);
+    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('printerPresets', %s)", json_str);
+    WebView::RunScript(m_browser, strJS);
+}
+
+// TODO: Clean up the code below this line
 
 void JusPrinChatPanel::SendMessage(wxString  message)
 {
@@ -133,6 +159,11 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
 
+    if (action == "update_printer_presets")
+    {
+        UpdatePrinterPresets();
+        return;
+    }
     if (action == "fetch_preset_bundle")
     {
         FetchPresetBundle();
@@ -140,6 +171,9 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
     } else if (action == "fetch_filaments") {
 
         FetchFilaments();
+        return;
+    } else if (action == "fetch_property") {
+        FetchProperty(Preset::Type::TYPE_PRINT);
         return;
     }
 
@@ -170,8 +204,6 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
 
     if(action == "config_property"){
         ConfigProperty(preset_type, jsonObject);
-    } else if (action == "fetch_property") {
-        FetchProperty(preset_type, "FETCH_"+type);
     }
 }
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
@@ -229,7 +261,7 @@ void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::
     }
 }
 
-void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string& type)
+void JusPrinChatPanel::FetchProperty(Preset::Type preset_type)
 {
     Tab* printer_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
     Tab* filament_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT);
@@ -263,7 +295,7 @@ void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string
         auto config = tab->m_config;
         const Preset& preset = tab->m_presets->get_selected_preset();
         // Convert the config to JSON string using the correct parameter types
-        std::string json_str = ConfigToJSON(config, &preset);
+        std::string json_str = PresetsToJSON({{&preset, true}});
         SendMessage(json_str);
     }
 }
@@ -280,7 +312,7 @@ void JusPrinChatPanel::FetchFilaments() {
     PresetWithVendorProfile filament_profile = filament_presets.get_edited_preset_with_vendor_profile();
 
     // Fix: Take the address of the config with &
-    std::string json_str = ConfigToJSON(&filament_profile.preset.config, &filament_profile.preset);
+    std::string json_str = PresetsToJSON({{&filament_profile.preset, true}});
     wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", json_str);
     WebView::RunScript(m_browser, strJS);
 }
