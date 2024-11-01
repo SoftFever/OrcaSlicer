@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <wx/sizer.h>
+#include <libslic3r/Model.hpp>
+#include <slic3r/GUI/PartPlate.hpp>
 
 
 namespace Slic3r { namespace GUI {
@@ -169,10 +171,13 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
         FetchPresetBundle();
         return;
     } else if (action == "fetch_filaments") {
-
         FetchFilaments();
         return;
-    } else if (action == "fetch_property") {
+    } else if (action == "fetch_used_filament_ids") {
+        FetchUsedFilamentIds();
+        return;
+    } 
+    else if (action == "fetch_property") {
         FetchProperty(Preset::Type::TYPE_PRINT);
         return;
     }
@@ -315,6 +320,33 @@ void JusPrinChatPanel::FetchFilaments() {
     std::string json_str = PresetsToJSON({{&filament_profile.preset, true}});
     wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", json_str);
     WebView::RunScript(m_browser, strJS);
+}
+
+void JusPrinChatPanel::FetchUsedFilamentIds()
+{
+    Slic3r::Model&              model           = Slic3r::GUI::wxGetApp().model();
+    int                         object_count    = model.objects.size();
+    Slic3r::GUI::PartPlateList& partplate_list  = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
+    const DynamicPrintConfig*   plater_config   = Slic3r::GUI::wxGetApp().plater()->config();
+    const DynamicPrintConfig&   filament_config = *plater_config;
+
+    nlohmann::json j;
+    std::set<int>  ids;
+    for (int i = 0; i < object_count; i++) {
+        ModelObject* object             = model.objects[i];
+        auto         object_grid_config = &(object->config);
+        auto         plate_index        = partplate_list.find_instance_belongs(i, 0);
+        if (plate_index == -1) {
+            continue;
+        }
+
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+        if (extruder_id_ptr) {
+            ids.insert(*extruder_id_ptr);
+        }
+    }
+    j["used_filiment_ids"] = ids;
+    SendMessage(j.dump());
 }
 
 }} // namespace Slic3r::GUI
