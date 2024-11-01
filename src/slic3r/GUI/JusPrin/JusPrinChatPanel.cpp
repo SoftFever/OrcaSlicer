@@ -282,8 +282,8 @@ void JusPrinChatPanel::FetchProperty(Preset::Type preset_type, const std::string
             // bool is_compatible = is_compatible_with_print(process_profile1, filament_profile, printer_profile);
         }
     }
-    std::string preset_name1 = "0.15mm Quality @MK3S 0.4";
-    process_tab->select_preset(preset_name1, false, std::string(), false);
+    // std::string preset_name1 = "0.15mm Quality @MK3S 0.4";
+    // process_tab->select_preset(preset_name1, false, std::string(), false);
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab) {
         auto config = tab->m_config;
