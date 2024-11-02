@@ -1581,6 +1581,10 @@ void GUI_App::init_networking_callbacks()
                     m_server_error_dialog = new NetworkErrorDialog(mainframe);
                 }
 
+                if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
+                    return;
+                }
+
                 if (m_server_error_dialog->m_show_again) {
                     return;
                 }
