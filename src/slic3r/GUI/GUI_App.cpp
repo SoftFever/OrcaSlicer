@@ -3927,10 +3927,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_set_classic_mode") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
-                    app_config->set("use_classic_mode", data_node.get<std::string>("classic_mode"));
+                    bool      use_classic_mode = data_node.get<std::string>("classic_mode") == "true";
+                    app_config->set_bool("use_classic_mode", use_classic_mode);
 
                     if(plater_){
                         plater_->reset_window_layout();
+                    }
+                    if(mainframe){
+                        mainframe->update_classic();
                     }
                 }
             }

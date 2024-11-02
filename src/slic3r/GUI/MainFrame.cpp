@@ -1482,9 +1482,15 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->model().objects.empty();
 }
 
-bool MainFrame::can_reslice() const
-{
-    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+bool MainFrame::can_reslice() const { return (m_plater != nullptr) && !m_plater->model().objects.empty(); }
+
+void MainFrame::update_classic(){
+ 
+    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        show_option(true);
+    } else {
+        show_option(false);
+    }
 }
 
 wxBoxSizer* MainFrame::create_side_tools()

@@ -8837,7 +8837,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 bool Plater::Show(bool show)
 {
     if (wxGetApp().mainframe)
-        wxGetApp().mainframe->show_option(show);
+        wxGetApp().mainframe->update_classic();
     return wxPanel::Show(show);
 }
 
