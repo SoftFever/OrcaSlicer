@@ -33,25 +33,78 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
-Flashforge::Flashforge(DynamicPrintConfig* config) : m_host(config->opt_string("print_host")), m_console_port("8899") {
-    m_read_timeout = config->opt_int("read_timeout");
+Flashforge::Flashforge(DynamicPrintConfig* config)
+    : m_host(config->opt_string("print_host"))
+    , m_port("8898")
+    , m_serial(config->opt_string("machine_serial"))
+    , m_activation_code(config->opt_string("activation_code"))
+{
+    BOOST_LOG_TRIVIAL(error) << boost::format("Flashforge: init  %1% %2% %3% %4%") % m_host % m_port % m_serial % m_activation_code;
 }
 
 const char* Flashforge::get_name() const { return "Flashforge"; }
 
+std::string Flashforge::make_url(const std::string& path) const
+{
+    if (m_host.find("http://") == 0 || m_host.find("https://") == 0) {
+        if (m_host.back() == '/') {
+            return (boost::format("%1%:%2%%3%") % m_host % m_port % path).str();
+        } else {
+            return (boost::format("%1%:%2%/%3%") % m_host % m_port % path).str();
+        }
+    } else {
+        return (boost::format("http://%1%:%2%/%3%") % m_host % m_port % path).str();
+    }
+}
+
 bool Flashforge::test(wxString& msg) const
 {
-    BOOST_LOG_TRIVIAL(debug) << boost::format("[Flashforge] testing connection");
-    // Utils::TCPConsole console(m_host, m_console_port);
-    Utils::TCPConsole client(m_host, m_console_port,m_read_timeout * 1000);
-    client.enqueue_cmd(controlCommand);
-    bool res = client.run_queue();
-    if (!res) {
-        msg = wxString::FromUTF8(client.error_message().c_str());
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] testing connection failed");
-    } else {
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] testing connection success");
-    }
+    const char* name = get_name();
+
+    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: init test %2% %3% %4% %5%") % name % m_host % m_port % m_serial % m_activation_code;
+
+    bool res = true;
+    auto url = make_url("product");
+
+    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Get printer at: %2%") % name % url;
+
+    auto http = Http::post(std::move(url));
+    http.header("Accept", "application/json");
+    std::string body = (boost::format("{\"serialNumber\":\"%1%\",\"checkCode\":\"%2%\"}") % m_serial % m_activation_code).str();
+    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: %2% with body %3%") % name % url % body;
+
+    http.set_post_body(std::move(body));
+
+    http.on_error([&](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error getting product info %2%, HTTP %3%, body: `%4%`") % name % error %
+                                            status % body;
+            res = false;
+            msg = format_error(body, error, status);
+        })
+        .on_complete([&, this](std::string body, unsigned) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Got info: %2%") % name % body;
+
+            try {
+                std::stringstream ss(body);
+                pt::ptree         ptree;
+                pt::read_json(ss, ptree);
+
+                const auto code    = ptree.get_optional<std::int32_t>("code");
+                const auto message = ptree.get_optional<std::string>("message");
+
+                BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Got info: %2% %3%") % name % code % message;
+
+                if (code != 0) {
+                    msg = GUI::format_wxstr(_L("%s"), (message));
+                    res = false;
+                }
+            } catch (const std::exception&) {
+                res = false;
+                msg = "Could not parse server response";
+            }
+        })
+        .perform_sync();
+
     return res;
 }
 
@@ -64,70 +117,48 @@ wxString Flashforge::get_test_failed_msg(wxString& msg) const
 
 bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
-    bool res = true;
+    const char* name = get_name();
+    const auto upload_filename = upload_data.upload_path.filename();
+    const auto upload_parent_path = upload_data.upload_path.parent_path();
+    std::string url = make_url("uploadGcode");
+    bool result = true;
 
-    Utils::TCPConsole client(m_host, m_console_port,m_read_timeout);
-    client.enqueue_cmd(controlCommand);
+    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%")
+        % name
+        % upload_data.source_path
+        % url
+        % upload_filename.string()
+        % upload_parent_path.string()
+        % (upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
 
-    client.enqueue_cmd(connect5MCommand);
+    auto http = Http::post(std::move(url));
+    http.header("serialNumber", m_serial);
+    http.header("checkCode", m_activation_code);
+    http.header("printNow", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
+    http.header("levelingBeforePrint", "false");
+    std::uintmax_t filesize = boost::filesystem::file_size(upload_data.source_path.c_str());
+    http.header("fileSize", std::to_string(filesize));
 
-    client.enqueue_cmd(statusCommand);
-    wxString errormsg;
-    try {
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...");
-        std::uintmax_t filesize = boost::filesystem::file_size(upload_data.source_path.c_str());
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] File size is %1%") % filesize;
-        auto buf = new char[filesize];
-        // Read file
-        std::ifstream fin(upload_data.source_path.c_str(), std::ios::binary);
-        fin.read(buf, filesize);
-        if (!fin) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("Error reading file, could only read %1% bytes") % fin.gcount();
-        } else {
-            Slic3r::Utils::SerialMessage fileuploadCommand =
-                {(boost::format("~M28 %1% 0:/user/%2%") % filesize % upload_data.upload_path.generic_string()).str(),
-                 Slic3r::Utils::Command};
-            client.enqueue_cmd(fileuploadCommand);
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file upload command ");
-            std::string                  content     = buf;
-            Slic3r::Utils::SerialMessage dataCommand = {content.substr(0, filesize), Slic3r::Utils::Data};
-            client.enqueue_cmd(dataCommand);
-        }
-        // Close file
-        fin.close();
+    http.form_add_file("gcodeFile", upload_data.source_path.string(), upload_filename.string())
+  
+        .on_complete([&](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: File uploaded: HTTP %2%: %3%") % name % status % body;
+        })
+        .on_error([&](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error uploading file to %2%: %3%, HTTP %4%, body: `%5%`") % name % url % error % status % body;
+            error_fn(format_error(body, error, status));
+            result = false;
+        })
+        .on_progress([&](Http::Progress progress, bool& cancel) {
+            progress_fn(std::move(progress), cancel);
+            if (cancel) {
+                // Upload was canceled
+                BOOST_LOG_TRIVIAL(error) << name << ": Upload canceled";
+                result = false;
+            }
+        })
+        .perform_sync();
 
-        if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Starting print %1%") % upload_data.upload_path.string();
-            Slic3r::Utils::SerialMessage startPrintCommand = {(boost::format("~M23 0:/user/%1%") % upload_data.upload_path.string()).str(),
-                                                              Slic3r::Utils::Command};
-            client.enqueue_cmd(startPrintCommand);
-        }
-
-        res = client.run_queue();
-
-        if (!res) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % client.error_message().c_str();
-            errormsg = wxString::FromUTF8(client.error_message().c_str());
-        }
-        if (!res) {
-            error_fn(std::move(errormsg));
-        }
-    } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % e.what();
-        errormsg = wxString::FromUTF8(e.what());
-        error_fn(std::move(errormsg));
-    }
-
-    return res;
+    return result;
 }
-
-int Flashforge::get_err_code_from_body(const std::string& body) const
-{
-    pt::ptree          root;
-    std::istringstream iss(body); // wrap returned json to istringstream
-    pt::read_json(iss, root);
-
-    return root.get<int>("err", 0);
-}
-
 } // namespace Slic3r

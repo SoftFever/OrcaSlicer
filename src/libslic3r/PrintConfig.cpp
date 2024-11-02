@@ -549,13 +549,19 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("read_timeout", coInt);
-    def->label = L("Read timeout");
-    def->tooltip = L("Read timeout for transfer in sec");
+    def = this->add("machine_serial", coString);
+    def->label = L("Machine serial");
+    def->tooltip = L("The 5M serial number");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->min = 30;
-    def->set_default_value(new ConfigOptionInt(30));
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("activation_code", coString);
+    def->label = L("Activation code");
+    def->tooltip = L("The 5M activation code");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");

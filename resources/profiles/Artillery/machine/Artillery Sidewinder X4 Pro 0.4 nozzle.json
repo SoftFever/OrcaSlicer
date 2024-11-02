@@ -142,7 +142,8 @@
     "parking_pos_retraction": "92",
     "preferred_orientation": "0",
     "print_host": "192.168.0.249",
-    "read_timeout": "30",
+    "machine_serial":"",
+    "activation_code":"",
     "print_host_webui": "",
     "printable_area": [
         "0x0",

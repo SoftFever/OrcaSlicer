@@ -128,7 +128,6 @@
   "nozzle_type": "brass",
   "nozzle_volume": "151.32",
   "parking_pos_retraction": "92",
-  "read_timeout":"30",
   "print_host_webui": "",
   "printable_area": [
       "0x0",

@@ -32,15 +32,10 @@ public:
 
 private:
     std::string m_host;
-    std::string m_console_port;
-    int m_read_timeout;
-    Slic3r::Utils::SerialMessage controlCommand  = {"~M601 S1\r\n",Slic3r::Utils::Command};
-    Slic3r::Utils::SerialMessage connect5MCommand  = {"~M640\r\n",Slic3r::Utils::Command};
-    Slic3r::Utils::SerialMessage connectGuiderCommand  = {"~M650\r\n",Slic3r::Utils::Command};
-    Slic3r::Utils::SerialMessage statusCommand   = {"~M119\r\n",Slic3r::Utils::Command};
-    Slic3r::Utils::SerialMessage saveFileCommand = {"~M29\r\n",Slic3r::Utils::Command};
-    int  get_err_code_from_body(const std::string &body) const;
-    void splitData(Utils::TCPConsole &client, std::vector<char> &result);
+    std::string m_port;
+    std::string m_serial;
+    std::string m_activation_code;
+    std::string make_url(const std::string &path) const;
 };
 
 } // namespace Slic3r
