@@ -69,12 +69,9 @@ JusPrinChatPanel::~JusPrinChatPanel()
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
-<<<<<<< HEAD
     action_handlers["select_preset"] = &JusPrinChatPanel::select_preset;
-=======
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
->>>>>>> f6e5383eaf7f22ba23c654abd2dc85ab3b89c149
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
