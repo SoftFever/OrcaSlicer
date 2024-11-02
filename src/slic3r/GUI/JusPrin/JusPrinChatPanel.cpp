@@ -68,10 +68,10 @@ JusPrinChatPanel::~JusPrinChatPanel()
 
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
-    action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
-    action_handlers["select_preset"] = &JusPrinChatPanel::select_preset;
+    action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
+    action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
@@ -88,6 +88,24 @@ void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
     load_url();
 }
 
+void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
+{
+    Preset::Type preset_type;
+    std::string  type = params["type"];
+    std::string  name = params["name"];
+    if (type == "print") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "filament") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else if (type == "printer") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    }
+
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        tab->select_preset(name, false, std::string(), false);
+    }
+}
 void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
@@ -245,34 +263,6 @@ void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
     Slic3r::GUI::wxGetApp().mainframe->start_slicer_all();
 }
 
-void JusPrinChatPanel::select_preset(const nlohmann::json& params)
-{
-    Preset::Type preset_type;
-    std::string  type = params["type"];
-    std::string  value = params["value"];
-    if (type == "TYPE_PRINT") {
-        preset_type = Preset::Type::TYPE_PRINT;
-    } else if (type == "TYPE_PRINTER") {
-        preset_type = Preset::Type::TYPE_PRINTER;
-    } else if (type == "TYPE_FILAMENT") {
-        preset_type = Preset::Type::TYPE_FILAMENT;
-    } else if (type == "TYPE_SLA_MATERIAL") {
-        preset_type = Preset::Type::TYPE_SLA_MATERIAL;
-    } else if (type == "TYPE_PRINTER") {
-        preset_type = Preset::Type::TYPE_PRINTER;
-    } else if (type == "TYPE_COUNT") {
-        preset_type = Preset::Type::TYPE_COUNT;
-    } else if (type == "TYPE_PHYSICAL_PRINTER") {
-        preset_type = Preset::Type::TYPE_PHYSICAL_PRINTER;
-    } else if (type == "TYPE_PLATE") {
-        preset_type = Preset::Type::TYPE_PLATE;
-    }
-
-    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-    if (tab != nullptr) {
-        tab->select_preset(value);
-    }
-}
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
