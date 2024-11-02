@@ -87,8 +87,11 @@ int16_t get_fan_speed(const std::string &line, GCodeFlavor flavor) {
         if (flavor == (gcfMach3) || flavor == (gcfMachinekit)) {
             return (int16_t)get_axis_value(line, 'P');
         } else {
-            // BBS: for Bambu machine, we both use M106 P1 and M106 to indicate the part cooling fan
-            // and use M106 P2/P3 for other fans, which should be ignored here
+            // Bambu machines use both M106 P1(not P0!) and M106 for part cooling fan.
+            // Non-bambu machines usually use M106 (without P parameter) for part cooling fan.
+            // P2 is reserved for auxiliary fan regardless of bambu or not.
+            // To keep compatibility with Bambu machines, we accept M106 and M106 P1 as the only two valid form
+            // of gcode that control the part cooling fan. Any other command will be ignored!
             const auto idx = get_axis_value(line, 'P');
             if (!isnan(idx) && idx != 1.0f) {
                 return -1;
