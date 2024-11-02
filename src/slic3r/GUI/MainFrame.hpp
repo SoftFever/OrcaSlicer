@@ -205,7 +205,6 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
-    void update_classic();
 
     //BBS GUI refactor
     enum TabPosition
