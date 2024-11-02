@@ -57,6 +57,8 @@
     "0x175"
   ],
   "print_host": "10.0.0.51",
+  "machine_serial":"",
+  "activation_code":"",
   "print_host_webui": "10.0.0.51",
   "gcode_flavor": "marlin",
   "thumbnails": [

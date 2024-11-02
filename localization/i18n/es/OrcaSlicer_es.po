@@ -9765,6 +9765,15 @@ msgstr ""
 "URL en el siguiente formato: https://nombredeusuario:"
 "contraseña@tudirecciondeoctopi/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "ACtivation code"
+
 msgid "Device UI"
 msgstr "IU de dispositivo"
 

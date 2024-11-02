@@ -128,6 +128,8 @@
   "nozzle_volume": "0",
   "parking_pos_retraction": "0",
   "print_host": "",
+  "machine_serial":"",
+  "activation_code":"",
   "print_host_webui": "",
   "printable_area": [
     "-150x-165",

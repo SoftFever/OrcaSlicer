@@ -9273,6 +9273,15 @@ msgstr ""
 "ホスト名、IPアドレス、URLを入力してください。ユーザ名とパスワードがある場合、"
 "下記形式を参照してください https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "Device UI"
 

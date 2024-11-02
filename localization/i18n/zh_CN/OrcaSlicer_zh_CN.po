@@ -9121,6 +9121,16 @@ msgstr ""
 "名、IP地址或URL。启用基本身份验证的Print host可以通过将用户名和密码放入以下格"
 "式的URL中来访问：https://username:password@your-octopi-address/"
 
+
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "设备用户界面"
 

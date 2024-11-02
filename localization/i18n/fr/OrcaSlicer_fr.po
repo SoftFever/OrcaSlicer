@@ -9851,6 +9851,15 @@ msgstr ""
 "d'utilisateur et le mot de passe dans l'URL au format suivant : https://"
 "username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "Interface utilisateur de l’appareil"
 

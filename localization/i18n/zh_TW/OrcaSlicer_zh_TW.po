@@ -9448,6 +9448,15 @@ msgstr ""
 "IP 位址或 URL。啟用基本身份驗證的列印設備可以透過將使用者名稱和密碼放入以下格"
 "式的URL中來訪問：https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "設備使用者界面"
 

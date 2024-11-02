@@ -9816,6 +9816,15 @@ msgstr ""
 "получить, указав имя пользователя и пароль в поле URL-адрес в следующем "
 "формате: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "URL-адрес хоста"
 

@@ -9367,6 +9367,15 @@ msgstr ""
 "aktiverad genom att ange användarnamn och lösenord i URL:en i följande "
 "format: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "Enhetens gränssnitt"
 

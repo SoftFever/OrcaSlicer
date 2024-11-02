@@ -2111,6 +2111,8 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
     DynamicPrintConfig config = this->full_config();
     //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
     config.erase("print_host");
+    config.erase("machine_serial");
+    config.erase("activation_code");
     config.erase("print_host_webui");
     config.erase("printhost_apikey");
     config.erase("printhost_cafile");    

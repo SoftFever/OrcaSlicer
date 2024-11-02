@@ -9653,6 +9653,15 @@ msgstr ""
 "básica ativada pode ser acessado colocando o nome de usuário e senha na URL "
 "no seguinte formato: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "Interface do dispositivo"
 

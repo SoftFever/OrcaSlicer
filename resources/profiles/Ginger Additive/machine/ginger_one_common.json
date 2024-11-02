@@ -21,6 +21,8 @@
   "machine_start_gcode": "START_PRINT MATERIAL=[filament_type] BED=[bed_temperature_initial_layer]\n",
   "name": "ginger_one_common",
   "print_host": "192.168.0.167",
+  "machine_serial":"",
+  "activation_code":"",
   "printer_settings_id": "ginger_one_common",
   "retract_restart_extra": ["0.5"],
   "retraction_length": ["3"],

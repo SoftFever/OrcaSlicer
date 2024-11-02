@@ -9681,6 +9681,15 @@ msgstr ""
 "base abilitata è accessibile inserendo il nome utente e la password nell'URL "
 "nel seguente formato: https://username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Machine serial"
+msgstr "5M serial"
+
+msgid "Activation code"
+msgstr "Activation code"
+
 msgid "Device UI"
 msgstr "Interfaccia utente del dispositivo"
 
