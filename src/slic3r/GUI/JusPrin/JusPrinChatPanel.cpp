@@ -42,7 +42,7 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
 
     m_browser->Bind(wxEVT_WEBVIEW_ERROR, &JusPrinChatPanel::OnError, this);
     m_browser->Bind(wxEVT_WEBVIEW_LOADED, &JusPrinChatPanel::OnLoaded, this);
-    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnScriptMessageReceived, this);
+    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnActionCallReceived, this);
 
     topsizer->Add(m_browser, 1, wxEXPAND);
     SetSizer(topsizer);
@@ -67,11 +67,21 @@ JusPrinChatPanel::~JusPrinChatPanel()
 }
 
 void JusPrinChatPanel::init_action_handlers() {
+    action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
+    action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
     action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+}
+
+void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
+    wxGetApp().set_classic_mode(true);
+}
+
+void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
+    wxGetApp().show_jusprin_login();
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
@@ -136,13 +146,12 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
 void JusPrinChatPanel::UpdatePresets() {
     nlohmann::json printerPresetsJson = GetPresets(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresets(Preset::Type::TYPE_FILAMENT);
-    if (printerPresetsJson == nullptr || filamentPresetsJson == nullptr) {
-        return;
-    }
+    nlohmann::json printPresetsJson = GetPresets(Preset::Type::TYPE_PRINT);
 
     nlohmann::json allPresetsJson = {
         {"printerPresets", printerPresetsJson},
-        {"filamentPresets", filamentPresetsJson}
+        {"filamentPresets", filamentPresetsJson},
+        {"printProcessPresets", printPresetsJson}
     };
     wxString allPresetsStr = allPresetsJson.dump();
     wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "presets", allPresetsStr);
@@ -161,7 +170,7 @@ void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 nlohmann::json JusPrinChatPanel::GetPresets(Preset::Type type) {
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(type);
     if (!tab) {
-        return nullptr;
+        return nlohmann::json::array();
     }
 
     TabPresetComboBox* combo = tab->get_combo_box();
@@ -180,8 +189,6 @@ nlohmann::json JusPrinChatPanel::GetPresets(Preset::Type type) {
 
     return PresetsToJSON(presets);
 }
-
-// TODO: Clean up the code below this line
 
 void JusPrinChatPanel::SendMessage(wxString  message)
 {
@@ -226,12 +233,14 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     if (wxGetApp().plater() != nullptr)
         wxGetApp().plater()->add_model_changed([this]() { SendMessage("model_changed"); });
 
-    Slic3r::GUI::wxGetApp().mainframe->update_classic();
     UpdateOAuthAccessToken();
     UpdatePresets();
 }
 
-void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
+
+// TODO: Clean up the code below this line
+
+void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
     wxString message = event.GetString();
     std::string jsonString = std::string(message.mb_str());

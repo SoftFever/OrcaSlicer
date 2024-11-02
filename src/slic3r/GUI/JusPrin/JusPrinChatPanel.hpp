@@ -36,6 +36,8 @@ private:
 
     void init_action_handlers();
 
+    void handle_switch_to_classic_mode(const nlohmann::json& params);
+    void handle_show_login(const nlohmann::json& params);
     void handle_update_presets(const nlohmann::json& params);
     void handle_select_preset(const nlohmann::json& params);
     void handle_add_printers(const nlohmann::json& params);
@@ -44,7 +46,7 @@ private:
 
 private:
     void SendMessage(wxString message);
-    void OnScriptMessageReceived(wxWebViewEvent& event);
+    void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresets(Preset::Type type);
     void UpdatePresets();
 
