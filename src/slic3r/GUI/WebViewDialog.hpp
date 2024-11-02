@@ -104,7 +104,7 @@ public:
     int  get_model_mall_detail_url(std::string *url, std::string id);
 
     void update_mode();
-    void update_classic_mode();
+    void update_ui_from_settings();
     void update_oauth_access_token();
 
 private:

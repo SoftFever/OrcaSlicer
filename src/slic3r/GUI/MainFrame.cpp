@@ -3821,6 +3821,10 @@ void MainFrame::update_ui_from_settings()
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
 
+    if (m_webview) {
+        m_webview->update_ui_from_settings();
+    }
+
     if (wxGetApp().app_config->get_bool("use_classic_mode")) {
         if (!m_slice_btn->IsShown()) {
             m_slice_btn->Show();
