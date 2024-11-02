@@ -197,6 +197,8 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     WebView::RunScript(m_browser, strJS);
     if (wxGetApp().plater() != nullptr)
         wxGetApp().plater()->add_model_changed([this]() { SendMessage("model_changed"); });
+
+    Slic3r::GUI::wxGetApp().mainframe->update_classic();
     UpdateOAuthAccessToken();
     UpdatePresets();
 }

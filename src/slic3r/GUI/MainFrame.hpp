@@ -140,6 +140,8 @@ class MainFrame : public DPIFrame
     // BBS
     wxBoxSizer* create_side_tools();
 
+
+
     // MenuBar items changeable in respect to printer technology
     enum MenuItems
     {                   //   FFF                  SLA
@@ -203,6 +205,7 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
+    void update_classic();
 
     //BBS GUI refactor
     enum TabPosition
