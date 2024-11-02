@@ -11,5 +11,5 @@ if [ $BAMBU_STUDIO_DARK_THEME == true ]; then
     # echo "Message: $(date +%T): INFO: using dark theme variant"
 fi
 
-exec /app/bin/orca-slicer "$@" &
+exec /app/bin/jus-prin "$@" &
 $(/app/bin/set-dark-theme-variant.py) &

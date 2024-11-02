@@ -2285,6 +2285,7 @@ struct Plater::priv
     int m_cur_slice_plate;
     //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
     bool m_slice_all_only_has_gcode{ false };
+    FunModelChanged m_model_changed = nullptr;
 
     bool m_need_update{false};
     //BBS: add popup object table logic
@@ -4884,6 +4885,10 @@ void Plater::priv::object_list_changed()
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 
     wxGetApp().params_panel()->notify_object_config_changed();
+
+    if (m_model_changed != nullptr){
+        m_model_changed();
+    }
 }
 
 void Plater::priv::select_curr_plate_all()
@@ -14543,6 +14548,7 @@ void Plater::update_title_dirty_status()
     p->update_title_dirty_status();
 }
 
+void Plater::add_model_changed(FunModelChanged on_model_changed){ p->m_model_changed = on_model_changed; }
 
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }

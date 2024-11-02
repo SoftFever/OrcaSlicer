@@ -14,7 +14,7 @@ Unless printed in spiral vase mode, every layer needs to begin somewhere and end
 
 - **Seam Gap**: Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
 
-- **Scarf Seam**: Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+- **Scarf Seam**: Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-jus-prin-guide-to-using-scarf-s).
 
 - **Role-Based Wipe Speed**: Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
 

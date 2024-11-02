@@ -1,5 +1,5 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/JusPrin.ico" width="100"> Orca Slicer</p> </h1>
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers. 

@@ -3215,7 +3215,7 @@ void TabFilament::add_filament_overrides_page()
 
 void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* printers_config)
 {
-    if (!m_active_page || m_active_page->title() != "Setting Overrides")
+     if (!m_active_page || m_active_page->title() != "Setting Overrides")
         return;
 
     //BBS: GUI refactor

@@ -39,12 +39,14 @@ private:
     void handle_update_presets(const nlohmann::json& params);
     void handle_add_printer(const nlohmann::json& params);
     void start_slice_all(const nlohmann::json& params);
+    void select_preset(const nlohmann::json& params);
 
 private:
     void SendMessage(wxString message);
     void OnScriptMessageReceived(wxWebViewEvent& event);
     nlohmann::json GetPresets(Preset::Type type);
     void UpdatePresets();
+
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);

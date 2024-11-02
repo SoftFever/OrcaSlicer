@@ -49,6 +49,14 @@
                 action:  "start_slice_all",
             }));
         }
+
+        handleClickSelectPreset = function() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "select_preset",
+                type: 'TYPE_FILAMENT',
+                value : 'Default Pilament',
+            }));
+        }
         
         function handleClickFetchPreset() {
             sendMessageToWxWebView(JSON.stringify({
@@ -115,6 +123,7 @@
         <button onclick="handleClickFetchFilaments()">获取Filaments参数</button>
         <button onclick="handleClickUsedFilaments()">获取Filaments Used序号</button>
         <button onclick="handleClickStartSliceALl()">开始切片all</button>
+        <button onclick="handleClickSelectPreset()">SelectPreset</button>
         <br><br>
         <label for="layer_height">TYPE_PRINT:layer_height:</label>
         <input type="text" id="layer_height" value="0.33"/>

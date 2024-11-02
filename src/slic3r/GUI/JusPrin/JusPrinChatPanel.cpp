@@ -70,6 +70,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
     action_handlers["add_printer"] = &JusPrinChatPanel::handle_add_printer;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+    action_handlers["select_preset"] = &JusPrinChatPanel::select_preset;
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
@@ -188,7 +189,8 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
         "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
     WebView::RunScript(m_browser, strJS);
-
+    if (wxGetApp().plater() != nullptr)
+        wxGetApp().plater()->add_model_changed([this]() { SendMessage("model_changed"); });
     UpdateOAuthAccessToken();
     UpdatePresets();
 }
@@ -235,6 +237,34 @@ void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
     Slic3r::GUI::wxGetApp().mainframe->start_slicer_all(); 
 }
 
+void JusPrinChatPanel::select_preset(const nlohmann::json& params)
+{
+    Preset::Type preset_type;
+    std::string  type = params["type"];
+    std::string  value = params["value"];
+    if (type == "TYPE_PRINT") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "TYPE_PRINTER") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else if (type == "TYPE_FILAMENT") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else if (type == "TYPE_SLA_MATERIAL") {
+        preset_type = Preset::Type::TYPE_SLA_MATERIAL;
+    } else if (type == "TYPE_PRINTER") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else if (type == "TYPE_COUNT") {
+        preset_type = Preset::Type::TYPE_COUNT;
+    } else if (type == "TYPE_PHYSICAL_PRINTER") {
+        preset_type = Preset::Type::TYPE_PHYSICAL_PRINTER;
+    } else if (type == "TYPE_PLATE") {
+        preset_type = Preset::Type::TYPE_PLATE;
+    }
+
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        tab->select_preset(value);
+    }
+}
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
