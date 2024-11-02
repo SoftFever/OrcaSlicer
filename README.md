@@ -107,19 +107,24 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
           - Run => Options tab => Document Versions: uncheck `Allow debugging when browsing versions`
       - menu bar: Product => Run
 
-- Linux (All Distros)
-    - Docker
-        - Dependencies: Docker [Installation Instructions](https://www.docker.com/get-started/), git
-        - clone this repository `git clone https://github.com/SoftFever/OrcaSlicer`
-        - run `cd OrcaSlicer`
-        - run `./DockerBuild.sh`
-        - To run OrcaSlicer:
-            - run `./DockerRun.sh`
-                - For most common errors, open `DockerRun.sh` and read the comments.  
-    - Ubuntu 
-      - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
-      - run 'sudo ./BuildLinux.sh -u'
-      - run './BuildLinux.sh -dsir'
+- Ubuntu 
+  - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
+  - run 'sudo ./BuildLinux.sh -u'
+  - run './BuildLinux.sh -dsir'
+
+# How to package for distribution
+
+**Windows**: 
+
+- Install https://nsis.sourceforge.io/Download
+- Open Developer PowerShell for VS 2022.
+- `cd build`
+- `cpack`
+
+**MacOS**:
+
+- `hdiutil create -volname "JustPrin" -srcfolder JusPrin.app -ov -format UDZO  JustPrin.dmg`
+
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
