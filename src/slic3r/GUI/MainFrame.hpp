@@ -346,6 +346,8 @@ public:
     void        refresh_plugin_tips();
     void RunScript(wxString js);
 
+    void start_slicer_all();
+
     //SoftFever
     void show_device(bool bBBLPrinter);
 

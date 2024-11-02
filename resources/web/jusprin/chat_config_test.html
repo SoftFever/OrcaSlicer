@@ -44,6 +44,11 @@
                 action:  "fetch_used_filament_ids",
             }));
         }
+        handleClickStartSliceALl = function() {
+            sendMessageToWxWebView(JSON.stringify({
+                action:  "start_slice_all",
+            }));
+        }
         
         function handleClickFetchPreset() {
             sendMessageToWxWebView(JSON.stringify({
@@ -109,6 +114,7 @@
         <button onclick="handleClick('TYPE_FILAMENT')">获取EDITED TYPE_FILAMENT参数</button>
         <button onclick="handleClickFetchFilaments()">获取Filaments参数</button>
         <button onclick="handleClickUsedFilaments()">获取Filaments Used序号</button>
+        <button onclick="handleClickStartSliceALl()">开始切片all</button>
         <br><br>
         <label for="layer_height">TYPE_PRINT:layer_height:</label>
         <input type="text" id="layer_height" value="0.33"/>

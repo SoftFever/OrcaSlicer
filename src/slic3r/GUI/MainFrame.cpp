@@ -1532,17 +1532,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     //     });
     // });
 
-    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            //this->m_plater->select_view_3D("Preview");
-            m_plater->exit_gizmo();
-            m_plater->update(true, true);
-            if (m_slice_select == eSliceAll)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-            else
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-
-            this->m_tabpanel->SetSelection(tpPreview);
+    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { start_slicer_all();
         });
 
     m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -3730,6 +3720,18 @@ void MainFrame::RunScript(wxString js)
 {
     if (m_webview != nullptr)
         m_webview->RunScript(js);
+}
+
+void MainFrame::start_slicer_all() {
+    // this->m_plater->select_view_3D("Preview");
+    m_plater->exit_gizmo();
+    m_plater->update(true, true);
+    if (m_slice_select == eSliceAll)
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+    else
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+
+    this->m_tabpanel->SetSelection(tpPreview);
 }
 
 void MainFrame::technology_changed()

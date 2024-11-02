@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <libslic3r/Model.hpp>
 #include <slic3r/GUI/PartPlate.hpp>
+#include <slic3r/GUI/MainFrame.hpp>
 
 
 namespace Slic3r { namespace GUI {
@@ -68,6 +69,7 @@ JusPrinChatPanel::~JusPrinChatPanel()
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
     action_handlers["add_printer"] = &JusPrinChatPanel::handle_add_printer;
+    action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
@@ -228,6 +230,11 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
         ConfigProperty(preset_type, jsonObject);
     }
 }
+
+void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
+    Slic3r::GUI::wxGetApp().mainframe->start_slicer_all(); 
+}
+
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
