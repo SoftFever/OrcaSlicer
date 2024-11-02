@@ -37,8 +37,9 @@ private:
     void init_action_handlers();
 
     void handle_update_presets(const nlohmann::json& params);
-    void handle_add_printer(const nlohmann::json& params);
     void start_slice_all(const nlohmann::json& params);
+    void handle_add_printers(const nlohmann::json& params);
+    void handle_add_filaments(const nlohmann::json& params);
 
 private:
     void SendMessage(wxString message);
