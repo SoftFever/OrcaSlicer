@@ -108,6 +108,19 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
 
+# How to package for distribution
+
+**Windows**: 
+
+- Install https://nsis.sourceforge.io/Download
+- Open Developer PowerShell for VS 2022.
+- `cd build`
+- `cpack`
+
+**MacOS**:
+
+- `hdiutil create -volname "JustPrin" -srcfolder JusPrin.app -ov -format UDZO  JustPrin.dmg`
+
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.

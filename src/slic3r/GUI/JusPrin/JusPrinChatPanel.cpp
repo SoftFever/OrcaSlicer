@@ -68,17 +68,26 @@ JusPrinChatPanel::~JusPrinChatPanel()
 
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
-    action_handlers["add_printer"] = &JusPrinChatPanel::handle_add_printer;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+<<<<<<< HEAD
     action_handlers["select_preset"] = &JusPrinChatPanel::select_preset;
+=======
+    action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
+    action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
+>>>>>>> f6e5383eaf7f22ba23c654abd2dc85ab3b89c149
 }
 
 void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
     UpdatePresets();
 }
 
-void JusPrinChatPanel::handle_add_printer(const nlohmann::json& params) {
+void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+    load_url();
+}
+
+void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
     load_url();
 }
 
@@ -234,7 +243,7 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
 }
 
 void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
-    Slic3r::GUI::wxGetApp().mainframe->start_slicer_all(); 
+    Slic3r::GUI::wxGetApp().mainframe->start_slicer_all();
 }
 
 void JusPrinChatPanel::select_preset(const nlohmann::json& params)
