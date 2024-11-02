@@ -12,6 +12,7 @@
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "nlohmann/json.hpp"
+#include <map>
 
 namespace Slic3r { namespace GUI {
 
@@ -30,6 +31,14 @@ private:
     void reload();
     void update_mode();
 
+    using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
+    std::map<std::string, MemberFunctionPtr> action_handlers;
+
+    void init_action_handlers();
+
+    void handle_update_presets(const nlohmann::json& params);
+    void handle_add_printer(const nlohmann::json& params);
+
 private:
     void SendMessage(wxString message);
     void OnScriptMessageReceived(wxWebViewEvent& event);
@@ -45,6 +54,7 @@ private:
     wxWebView* m_browser;
     long     m_zoomFactor;
     wxString m_apikey; // todo
+
 };
 
 }} // namespace Slic3r::GUI
