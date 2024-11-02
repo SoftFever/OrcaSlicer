@@ -1484,14 +1484,6 @@ bool MainFrame::can_delete_all() const
 
 bool MainFrame::can_reslice() const { return (m_plater != nullptr) && !m_plater->model().objects.empty(); }
 
-void MainFrame::update_classic(){
- 
-    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
-        show_option(true);
-    } else {
-        show_option(false);
-    }
-}
 
 wxBoxSizer* MainFrame::create_side_tools()
 {
@@ -3757,6 +3749,20 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
+
+    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        if (!m_slice_btn->IsShown()) {
+            m_slice_btn->Show();
+            m_slice_option_btn->Show();
+            Layout();
+        }
+    } else {
+        if (m_slice_btn->IsShown()) {
+            m_slice_btn->Hide();
+            m_slice_option_btn->Hide();
+            Layout();
+        }
+    }
 }
 
 

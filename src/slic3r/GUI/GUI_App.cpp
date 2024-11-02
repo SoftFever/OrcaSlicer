@@ -3930,12 +3930,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     bool      use_classic_mode = data_node.get<std::string>("classic_mode") == "true";
                     app_config->set_bool("use_classic_mode", use_classic_mode);
 
-                    if(plater_){
-                        plater_->reset_window_layout();
-                    }
-                    if(mainframe){
-                        mainframe->update_classic();
-                    }
+                    update_ui_from_settings();
                 }
             }
         }

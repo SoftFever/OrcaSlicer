@@ -1139,8 +1139,6 @@ Sidebar::Sidebar(Plater *parent)
     p->jusprin_chat_panel = new JusPrinChatPanel(this);
     p->size_top->Add(p->jusprin_chat_panel, 1, wxEXPAND);
 
-    update_content();
-
     SetSizer(p->size_top);
     Layout();
 }
@@ -1879,18 +1877,6 @@ void Sidebar::update_dynamic_filament_list()
     dynamic_filament_list_1_based.update();
 }
 
-void Sidebar::update_content(){
-    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
-        p->size_top->Hide(p->config_sizer, true);
-        p->size_top->Show(p->jusprin_chat_panel, true);
-    }
-    else{
-        p->size_top->Hide(p->jusprin_chat_panel, true);
-        p->size_top->Show(p->config_sizer, true);
-    }
-    Layout();
-}
-
 ObjectList* Sidebar::obj_list()
 {
     // BBS
@@ -2024,6 +2010,16 @@ void Sidebar::update_ui_from_settings()
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
+
+    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
+        p->size_top->Hide(p->config_sizer, true);
+        p->size_top->Show(p->jusprin_chat_panel, true);
+    }
+    else{
+        p->size_top->Hide(p->jusprin_chat_panel, true);
+        p->size_top->Show(p->config_sizer, true);
+    }
+
 #if 0
     p->object_list->apply_volumes_order();
 #endif
@@ -3496,7 +3492,6 @@ void Plater::priv::collapse_sidebar(bool collapse)
 }
 
 void Plater::priv::update_sidebar(bool force_update) {
-    this->sidebar->update_content();
     auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
     if (!sidebar.IsOk() || this->current_panel == nullptr) {
         return;
@@ -8836,8 +8831,6 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::Show(bool show)
 {
-    if (wxGetApp().mainframe)
-        wxGetApp().mainframe->update_classic();
     return wxPanel::Show(show);
 }
 
