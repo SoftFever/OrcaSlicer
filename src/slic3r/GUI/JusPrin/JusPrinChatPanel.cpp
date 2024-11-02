@@ -28,6 +28,8 @@ nlohmann::json PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& 
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
+    init_action_handlers();
+
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
     // Create the webview
@@ -63,13 +65,25 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
+void JusPrinChatPanel::init_action_handlers() {
+    action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
+    action_handlers["add_printer"] = &JusPrinChatPanel::handle_add_printer;
+}
+
+void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
+    UpdatePresets();
+}
+
+void JusPrinChatPanel::handle_add_printer(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+    load_url();
+}
+
 void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
-
-
     m_browser->LoadURL(url);
 }
 
@@ -80,6 +94,24 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
         "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
     WebView::RunScript(m_browser, strJS);
+}
+
+void JusPrinChatPanel::UpdatePresets() {
+    nlohmann::json printerPresetsJson = GetPresets(Preset::Type::TYPE_PRINTER);
+    nlohmann::json filamentPresetsJson = GetPresets(Preset::Type::TYPE_FILAMENT);
+    if (printerPresetsJson == nullptr || filamentPresetsJson == nullptr) {
+        return;
+    }
+
+    nlohmann::json allPresetsJson = {
+        {"printerPresets", printerPresetsJson},
+        {"filamentPresets", filamentPresetsJson}
+    };
+    wxString allPresetsStr = allPresetsJson.dump();
+    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "presets", allPresetsStr);
+    WebView::RunScript(m_browser, strJS);
+    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", allPresetsStr);
+    WebView::RunScript(m_browser, strJS1);
 }
 
 void JusPrinChatPanel::reload() { m_browser->Reload(); }
@@ -111,25 +143,6 @@ nlohmann::json JusPrinChatPanel::GetPresets(Preset::Type type) {
 
     return PresetsToJSON(presets);
 }
-
-void JusPrinChatPanel::UpdatePresets() {
-    nlohmann::json printerPresetsJson = GetPresets(Preset::Type::TYPE_PRINTER);
-    nlohmann::json filamentPresetsJson = GetPresets(Preset::Type::TYPE_FILAMENT);
-    if (printerPresetsJson == nullptr || filamentPresetsJson == nullptr) {
-        return;
-    }
-
-    nlohmann::json allPresetsJson = {
-        {"printerPresets", printerPresetsJson},
-        {"filamentPresets", filamentPresetsJson}
-    };
-    wxString allPresetsStr = allPresetsJson.dump();
-    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "presets", allPresetsStr);
-    WebView::RunScript(m_browser, strJS);
-    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", allPresetsStr);
-    WebView::RunScript(m_browser, strJS1);
-}
-
 
 // TODO: Clean up the code below this line
 
@@ -175,38 +188,19 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     WebView::RunScript(m_browser, strJS);
 
     UpdateOAuthAccessToken();
+    UpdatePresets();
 }
 
 void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
 {
     wxString message = event.GetString();
-    std::string  jsonString = std::string(message.mb_str());
+    std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
 
-    if (action == "update_presets")
-    {
-        UpdatePresets();
-        return;
-    }
-    if (action == "fetch_preset_bundle")
-    {
-        FetchPresetBundle();
-        return;
-    } else if (action == "fetch_filaments") {
-        FetchFilaments();
-        return;
-    } else if (action == "fetch_used_filament_ids") {
-        FetchUsedFilamentIds();
-        return;
-    } 
-    else if (action == "fetch_property") {
-        FetchProperty(Preset::Type::TYPE_PRINT);
-        return;
-    }
-
-    if (action == "jusprin_login_or_register") {
-        wxGetApp().show_jusprin_login();
+    auto it = action_handlers.find(action);
+    if (it != action_handlers.end()) {
+        (this->*(it->second))(jsonObject);
         return;
     }
 
