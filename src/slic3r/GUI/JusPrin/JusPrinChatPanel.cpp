@@ -90,21 +90,31 @@ void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
 
 void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 {
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+    if (payload.is_null()) {
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: missing payload parameter";
+        return;
+    }
     Preset::Type preset_type;
-    std::string  type = params["type"];
-    std::string  name = params["name"];
+    std::string  type = payload.value("type", "");
     if (type == "print") {
         preset_type = Preset::Type::TYPE_PRINT;
     } else if (type == "filament") {
         preset_type = Preset::Type::TYPE_FILAMENT;
     } else if (type == "printer") {
         preset_type = Preset::Type::TYPE_PRINTER;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: invalid type parameter";
+        return;
     }
 
+    std::string  name = payload.value("name", "");
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab != nullptr) {
         tab->select_preset(name, false, std::string(), false);
     }
+
+    load_url();
 }
 void JusPrinChatPanel::load_url()
 {
