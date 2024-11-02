@@ -3629,9 +3629,14 @@ void GUI_App::update_oauth_access_token() {
     if (mainframe && mainframe->m_webview) {
         mainframe->m_webview->update_oauth_access_token();
     }
-    if (jusprin_chat_panel()) {
-        jusprin_chat_panel()->UpdateOAuthAccessToken();
+    if (sidebar().jusprin_chat_panel()) {
+        sidebar().jusprin_chat_panel()->UpdateOAuthAccessToken();
     }
+}
+
+void GUI_App::set_classic_mode(bool use_classic_mode) {
+    app_config->set_bool("use_classic_mode", use_classic_mode);
+    update_ui_from_settings();
 }
 
 // TODO: Remove BBL login
@@ -3928,9 +3933,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
                     bool      use_classic_mode = data_node.get<std::string>("classic_mode") == "true";
-                    app_config->set_bool("use_classic_mode", use_classic_mode);
-
-                    update_ui_from_settings();
+                    set_classic_mode(use_classic_mode);
                 }
             }
         }
@@ -5972,11 +5975,6 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
-}
-
-JusPrinChatPanel* GUI_App::jusprin_chat_panel()
-{
-    return sidebar().jusprin_chat_panel();
 }
 
 GizmoObjectManipulation *GUI_App::obj_manipul()
