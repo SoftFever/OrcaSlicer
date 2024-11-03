@@ -144,9 +144,9 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
 }
 
 void JusPrinChatPanel::UpdatePresets() {
-    nlohmann::json printerPresetsJson = GetPresets(Preset::Type::TYPE_PRINTER);
-    nlohmann::json filamentPresetsJson = GetPresets(Preset::Type::TYPE_FILAMENT);
-    nlohmann::json printPresetsJson = GetPresets(Preset::Type::TYPE_PRINT);
+    nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
+    nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
+    nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
 
     nlohmann::json allPresetsJson = {
         {"printerPresets", printerPresetsJson},
@@ -160,14 +160,21 @@ void JusPrinChatPanel::UpdatePresets() {
     WebView::RunScript(m_browser, strJS1);
 }
 
+void JusPrinChatPanel::UpdatePlaterState() {
+    nlohmann::json platerStateJson = GetPlaterStateJson();
+    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "platerState", platerStateJson.dump());
+    WebView::RunScript(m_browser, strJS);
+    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerStateJson.dump());
+    WebView::RunScript(m_browser, strJS1);
+}
+
 void JusPrinChatPanel::reload() { m_browser->Reload(); }
 
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
-
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 
-nlohmann::json JusPrinChatPanel::GetPresets(Preset::Type type) {
+nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(type);
     if (!tab) {
         return nlohmann::json::array();
@@ -188,6 +195,34 @@ nlohmann::json JusPrinChatPanel::GetPresets(Preset::Type type) {
     }
 
     return PresetsToJSON(presets);
+}
+
+nlohmann::json JusPrinChatPanel::GetPlaterStateJson()
+{
+    nlohmann::json j = nlohmann::json::object();
+    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+
+    j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
+
+    j["modelObjects"] = nlohmann::json::array();
+
+    for (const ModelObject* object :  plater->model().objects) {
+        auto object_grid_config = &(object->config);
+
+        nlohmann::json obj;
+        obj["name"] = object->name;
+
+        int extruder_id = -1;  // Default extruder ID
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+        if (extruder_id_ptr) {
+            extruder_id = *extruder_id_ptr;
+        }
+        obj["extruderId"] = extruder_id;
+
+        j["modelObjects"].push_back(obj);
+    }
+
+    return j;
 }
 
 void JusPrinChatPanel::SendMessage(wxString  message)
@@ -235,6 +270,7 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 
     UpdateOAuthAccessToken();
     UpdatePresets();
+    UpdatePlaterState();
 }
 
 
@@ -391,33 +427,6 @@ void JusPrinChatPanel::FetchFilaments() {
     std::string json_str = PresetsToJSON({{&filament_profile.preset, true}});
     wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", json_str);
     WebView::RunScript(m_browser, strJS);
-}
-
-void JusPrinChatPanel::FetchUsedFilamentIds()
-{
-    Slic3r::Model&              model           = Slic3r::GUI::wxGetApp().model();
-    int                         object_count    = model.objects.size();
-    Slic3r::GUI::PartPlateList& partplate_list  = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
-    const DynamicPrintConfig*   plater_config   = Slic3r::GUI::wxGetApp().plater()->config();
-    const DynamicPrintConfig&   filament_config = *plater_config;
-
-    nlohmann::json j;
-    std::set<int>  ids;
-    for (int i = 0; i < object_count; i++) {
-        ModelObject* object             = model.objects[i];
-        auto         object_grid_config = &(object->config);
-        auto         plate_index        = partplate_list.find_instance_belongs(i, 0);
-        if (plate_index == -1) {
-            continue;
-        }
-
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            ids.insert(*extruder_id_ptr);
-        }
-    }
-    j["used_filiment_ids"] = ids;
-    SendMessage(j.dump());
 }
 
 }} // namespace Slic3r::GUI
