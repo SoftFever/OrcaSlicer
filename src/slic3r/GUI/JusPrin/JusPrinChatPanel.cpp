@@ -90,12 +90,12 @@ void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
 
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-    load_url();
+    reload();
 }
 
 void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
-    load_url();
+    reload();
 }
 
 void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)

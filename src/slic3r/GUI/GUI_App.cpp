@@ -3636,7 +3636,11 @@ void GUI_App::update_oauth_access_token() {
 
 void GUI_App::set_classic_mode(bool use_classic_mode) {
     app_config->set_bool("use_classic_mode", use_classic_mode);
+    app_config->save();
     update_ui_from_settings();
+    if (!use_classic_mode) {
+        sidebar().jusprin_chat_panel()->reload(); // This is so that the chat session is cleared
+    }
 }
 
 // TODO: Remove BBL login

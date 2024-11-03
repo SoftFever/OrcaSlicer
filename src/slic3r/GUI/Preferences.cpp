@@ -715,7 +715,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 #endif // __WXMSW__
 
         if (param == "use_classic_mode") {
-            Slic3r::GUI::wxGetApp().update_ui_from_settings();
+            Slic3r::GUI::wxGetApp().set_classic_mode(checkbox->GetValue());
         }
 
         if (param == "developer_mode") {
