@@ -69,11 +69,13 @@ JusPrinChatPanel::~JusPrinChatPanel()
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
-    action_handlers["update_presets"] = &JusPrinChatPanel::handle_update_presets;
     action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+
+    action_handlers["refresh_presets_state"] = &JusPrinChatPanel::handle_refresh_presets_state;
+    action_handlers["refresh_plater_state"] = &JusPrinChatPanel::handle_refresh_plater_state;
 }
 
 void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
@@ -84,8 +86,12 @@ void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
     wxGetApp().show_jusprin_login();
 }
 
-void JusPrinChatPanel::handle_update_presets(const nlohmann::json& params) {
-    UpdatePresets();
+void JusPrinChatPanel::handle_refresh_presets_state(const nlohmann::json& params) {
+    RefreshPresetsState();
+}
+
+void JusPrinChatPanel::handle_refresh_plater_state(const nlohmann::json& params) {
+    RefreshPlaterState();
 }
 
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
@@ -143,7 +149,7 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
     WebView::RunScript(m_browser, strJS);
 }
 
-void JusPrinChatPanel::UpdatePresets() {
+void JusPrinChatPanel::RefreshPresetsState() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
     nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
@@ -160,11 +166,11 @@ void JusPrinChatPanel::UpdatePresets() {
     WebView::RunScript(m_browser, strJS1);
 }
 
-void JusPrinChatPanel::UpdatePlaterState() {
-    nlohmann::json platerStateJson = GetPlaterStateJson();
-    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "platerState", platerStateJson.dump());
+void JusPrinChatPanel::RefreshPlaterState() {
+    nlohmann::json platerJson = GetPlaterJson();
+    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "plater", platerJson.dump());
     WebView::RunScript(m_browser, strJS);
-    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerStateJson.dump());
+    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerJson.dump());
     WebView::RunScript(m_browser, strJS1);
 }
 
@@ -197,7 +203,7 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     return PresetsToJSON(presets);
 }
 
-nlohmann::json JusPrinChatPanel::GetPlaterStateJson()
+nlohmann::json JusPrinChatPanel::GetPlaterJson()
 {
     nlohmann::json j = nlohmann::json::object();
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
@@ -224,6 +230,34 @@ nlohmann::json JusPrinChatPanel::GetPlaterStateJson()
 
     return j;
 }
+
+void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
+{
+    if (evt.GetURL().IsEmpty())
+        return;
+
+    wxString strJS = wxString::Format(
+        "if (typeof checkAndRedirectToChatServer === 'function') {"
+        "    checkAndRedirectToChatServer('%s');"
+        "}",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+    WebView::RunScript(m_browser, strJS);
+
+    // TODO: This callback is not triggered when a plate is added or removed
+    // TODO: This callback is triggered when an object is removed, but not when an object is cloned
+    wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
+
+    UpdateOAuthAccessToken();
+    RefreshPresetsState();
+    RefreshPlaterState();
+}
+
+void JusPrinChatPanel::OnPlaterChanged() {
+    reload();
+}
+
+
+// TODO: Clean up the code below this line
 
 void JusPrinChatPanel::SendMessage(wxString  message)
 {
@@ -253,28 +287,6 @@ void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__
                             << boost::format(": error loading page %1% %2% %3% %4%") % evt.GetURL() % evt.GetTarget() % e % evt.GetString();
 }
-
-void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
-{
-    if (evt.GetURL().IsEmpty())
-        return;
-
-    wxString strJS = wxString::Format(
-        "if (typeof checkAndRedirectToChatServer === 'function') {"
-        "    checkAndRedirectToChatServer('%s');"
-        "}",
-        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
-    WebView::RunScript(m_browser, strJS);
-    if (wxGetApp().plater() != nullptr)
-        wxGetApp().plater()->add_model_changed([this]() { SendMessage("model_changed"); });
-
-    UpdateOAuthAccessToken();
-    UpdatePresets();
-    UpdatePlaterState();
-}
-
-
-// TODO: Clean up the code below this line
 
 void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
