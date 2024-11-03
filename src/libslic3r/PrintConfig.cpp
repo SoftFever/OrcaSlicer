@@ -550,15 +550,15 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("machine_serial", coString);
-    def->label = L("Machine serial");
+    def->label = L("Serial:");
     def->tooltip = L("The 5M serial number");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("activation_code", coString);
-    def->label = L("Activation code");
-    def->tooltip = L("The 5M activation code");
+    def->label = L("Device ID");
+    def->tooltip = L("The 5M Device ID");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));

@@ -9607,11 +9607,11 @@ msgstr ""
 "parolanın aşağıdaki biçimdeki URL'ye girilmesiyle erişilebilir: https://"
 "username:password@your-octopi-address/"
 
-msgid "Machine serial"
-msgstr "5M serial"
+msgid "Read timeout"
+msgstr "Read timeout"
 
-msgid "Activation code"
-msgstr "Activation code"
+msgid "Device ID"
+msgstr "Aygıt Kimliği"
 
 msgid "Device UI"
 msgstr "Cihaz kullanıcı arayüzü"

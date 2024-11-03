@@ -9461,11 +9461,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Időtúllépés (másodperc)"
 
-msgid "Machine serial"
-msgstr "5M szériszám"
-
-msgid "Activation code"
-msgstr "Aktivációs kód"
+msgid "Device ID"
+msgstr "Eszköz ID"
 
 msgid "Device UI"
 msgstr "Eszköz UI"
