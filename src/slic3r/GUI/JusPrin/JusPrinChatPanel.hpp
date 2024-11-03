@@ -26,31 +26,36 @@ public:
 
 private:
     void load_url();
+    void update_mode();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
-    void update_mode();
+    void OnPlaterChanged();
 
     using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     std::map<std::string, MemberFunctionPtr> action_handlers;
 
     void init_action_handlers();
 
-    void handle_switch_to_classic_mode(const nlohmann::json& params);
-    void handle_show_login(const nlohmann::json& params);
-    void handle_update_presets(const nlohmann::json& params);
+    // Actions to trigger events in JusPrin
     void handle_select_preset(const nlohmann::json& params);
     void handle_add_printers(const nlohmann::json& params);
     void handle_add_filaments(const nlohmann::json& params);
+    void handle_switch_to_classic_mode(const nlohmann::json& params);
+    void handle_show_login(const nlohmann::json& params);
     void start_slice_all(const nlohmann::json& params);
+
+    // Actions to fetch info to be sent to the web page
+    void handle_refresh_presets_state(const nlohmann::json& params);
+    void handle_refresh_plater_state(const nlohmann::json& params);
 
 private:
     void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
-    nlohmann::json GetPlaterStateJson();
-    void UpdatePresets();
-    void UpdatePlaterState();
+    nlohmann::json GetPlaterJson();
+    void RefreshPresetsState();
+    void RefreshPlaterState();
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);
