@@ -36,9 +36,9 @@ Flashforge::Flashforge(DynamicPrintConfig* config)
     : m_host(config->opt_string("print_host"))
     , m_port("8898")
     , m_serial(config->opt_string("machine_serial"))
-    , m_activation_code(config->opt_string("activation_code"))
+    , m_printer_id(config->opt_string("printer_id"))
 {
-    BOOST_LOG_TRIVIAL(error) << boost::format("Flashforge: init  %1% %2% %3% %4%") % m_host % m_port % m_serial % m_activation_code;
+    BOOST_LOG_TRIVIAL(error) << boost::format("Flashforge: init  %1% %2% %3% %4%") % m_host % m_port % m_serial % m_printer_id;
 }
 
 const char* Flashforge::get_name() const { return "Flashforge"; }
@@ -60,7 +60,7 @@ bool Flashforge::test(wxString& msg) const
 {
     const char* name = get_name();
 
-    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: init test %2% %3% %4% %5%") % name % m_host % m_port % m_serial % m_activation_code;
+    BOOST_LOG_TRIVIAL(error) << boost::format("%1%: init test %2% %3% %4% %5%") % name % m_host % m_port % m_serial % m_printer_id;
 
     bool res = true;
     auto url = make_url("product");
@@ -69,7 +69,7 @@ bool Flashforge::test(wxString& msg) const
 
     auto http = Http::post(std::move(url));
     http.header("Accept", "application/json");
-    std::string body = (boost::format("{\"serialNumber\":\"%1%\",\"checkCode\":\"%2%\"}") % m_serial % m_activation_code).str();
+    std::string body = (boost::format("{\"serialNumber\":\"%1%\",\"checkCode\":\"%2%\"}") % m_serial % m_printer_id).str();
     BOOST_LOG_TRIVIAL(error) << boost::format("%1%: %2% with body %3%") % name % url % body;
 
     http.set_post_body(std::move(body));
@@ -132,7 +132,7 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
 
     auto http = Http::post(std::move(url));
     http.header("serialNumber", m_serial);
-    http.header("checkCode", m_activation_code);
+    http.header("checkCode", m_printer_id);
     http.header("printNow", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
     http.header("levelingBeforePrint", "false");
     std::uintmax_t filesize = boost::filesystem::file_size(upload_data.source_path.c_str());

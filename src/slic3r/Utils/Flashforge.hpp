@@ -34,7 +34,7 @@ private:
     std::string m_host;
     std::string m_port;
     std::string m_serial;
-    std::string m_activation_code;
+    std::string m_printer_id;
     std::string make_url(const std::string &path) const;
 };
 

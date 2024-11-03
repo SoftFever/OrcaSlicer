@@ -9125,8 +9125,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "设备 ID"
+msgid "Printer ID"
+msgstr "打印机 ID"
 
 msgid "Device UI"
 msgstr "设备用户界面"

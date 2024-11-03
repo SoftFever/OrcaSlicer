@@ -255,7 +255,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
 
-    option = m_optgroup->get_option("activation_code");
+    option = m_optgroup->get_option("printer_id");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
 
@@ -538,7 +538,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
 {
     m_optgroup->reload_config();
     m_optgroup->hide_field("machine_serial");
-    m_optgroup->hide_field("activation_code");
+    m_optgroup->hide_field("printer_id");
     const PrinterTechnology tech = Preset::printer_technology(*m_config);
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     bool supports_multiple_printers = false;
@@ -638,7 +638,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 m_optgroup->hide_field("printhost_apikey");
                 m_optgroup->hide_field("printhost_authorization_type");
                 m_optgroup->show_field("machine_serial");
-                m_optgroup->show_field("activation_code");
+                m_optgroup->show_field("printer_id");
             }
     }
     else {

@@ -9370,8 +9370,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Enhets-ID"
+msgid "Printer ID"
+msgstr "Skrivar-ID"
 
 msgid "Device UI"
 msgstr "Enhetens gränssnitt"

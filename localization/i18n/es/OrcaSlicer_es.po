@@ -9768,8 +9768,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Identificación del dispositivo"
+msgid "Printer ID"
+msgstr "Identificación de la impresora"
 
 msgid "Device UI"
 msgstr "IU de dispositivo"

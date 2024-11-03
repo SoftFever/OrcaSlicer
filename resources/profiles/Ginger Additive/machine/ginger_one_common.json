@@ -22,7 +22,7 @@
   "name": "ginger_one_common",
   "print_host": "192.168.0.167",
   "machine_serial":"",
-  "activation_code":"",
+  "printer_id":"",
   "printer_settings_id": "ginger_one_common",
   "retract_restart_extra": ["0.5"],
   "retraction_length": ["3"],

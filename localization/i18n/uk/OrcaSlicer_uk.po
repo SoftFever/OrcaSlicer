@@ -9653,8 +9653,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "ID пристрою"
+msgid "Printer ID"
+msgstr "Ідентифікатор принтера"
 
 msgid "Device UI"
 msgstr "Інтерфейс користувача"

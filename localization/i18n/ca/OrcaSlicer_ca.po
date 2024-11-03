@@ -9709,8 +9709,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "ID del dispositiu"
+msgid "Printer ID"
+msgstr "ID de la impressora"
 
 msgid "Device UI"
 msgstr "Interfície d'Usuari del dispositiu"

@@ -9610,8 +9610,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Aygıt Kimliği"
+msgid "Printer ID"
+msgstr "Yazıcı Kimliği"
 
 msgid "Device UI"
 msgstr "Cihaz kullanıcı arayüzü"

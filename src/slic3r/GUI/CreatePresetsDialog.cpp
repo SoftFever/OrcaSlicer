@@ -3469,7 +3469,7 @@ bool ExportConfigsDialog::earse_preset_fields_for_safe(Preset *preset)
     DynamicPrintConfig &config = preset->config;
     config.erase("print_host");
     config.erase("machine_serial");
-    config.erase("activation_code");
+    config.erase("printer_id");
     config.erase("print_host_webui");
     config.erase("printhost_apikey");
     config.erase("printhost_cafile");
