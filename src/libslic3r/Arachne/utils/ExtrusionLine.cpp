@@ -154,12 +154,13 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
                 Point intersection_point;
                 bool has_intersection = Line(previous_previous.p, previous.p).intersection_infinite(Line(current.p, next.p), &intersection_point);
                 const auto dist_greater = [](const Point& p1, const Point& p2, const int64_t threshold) {
-                    const auto squared_norm = (p1 - p2).cast<int64_t>().squaredNorm();
-                    if (squared_norm < 0) {
-                        // We have an overflow! Definitely too far away
+                    const auto vec = (p1 - p2).cwiseAbs().cast<u_int64_t>();
+                    if(vec.x() > threshold || vec.y() > threshold) {
+                        // If this condition is true, the distance is definitely greater than the threshold.
+                        // We don't need to calculate the squared norm at all, which avoid potential arithmetic overflow.
                         return true;
                     }
-                    return squared_norm > threshold;
+                    return vec.squaredNorm() > threshold;
                 };
                 if (!has_intersection
                     || Line::distance_to_infinite_squared(intersection_point, previous.p, current.p) > double(allowed_error_distance_squared)
