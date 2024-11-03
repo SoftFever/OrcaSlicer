@@ -143,7 +143,7 @@
     "preferred_orientation": "0",
     "print_host": "192.168.0.249",
     "machine_serial":"",
-    "activation_code":"",
+    "printer_id":"",
     "print_host_webui": "",
     "printable_area": [
         "0x0",

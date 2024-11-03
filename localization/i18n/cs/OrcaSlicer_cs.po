@@ -9404,8 +9404,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "ID zařízení"
+msgid "Printer ID"
+msgstr "ID tiskárny"
 
 msgid "Device UI"
 msgstr "Uživatelské rozhraní zařízení"

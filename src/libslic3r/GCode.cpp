@@ -4439,7 +4439,7 @@ void GCode::append_full_config(const Print &print, std::string &str)
         "compatible_prints"sv,
         "print_host"sv,
         "machine_serial"sv,
-        "activation_code"sv,
+        "printer_id"sv,
         "print_host_webui"sv,
         "printhost_apikey"sv,
         "printhost_cafile"sv,

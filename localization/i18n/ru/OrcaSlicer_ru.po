@@ -9819,8 +9819,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Идентификатор устройства"
+msgid "Printer ID"
+msgstr "Идентификатор принтера"
 
 msgid "Device UI"
 msgstr "URL-адрес хоста"

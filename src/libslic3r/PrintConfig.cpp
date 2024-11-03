@@ -556,9 +556,9 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("activation_code", coString);
-    def->label = L("Device ID");
-    def->tooltip = L("The 5M Device ID");
+    def = this->add("printer_id", coString);
+    def->label = L("Printer ID");
+    def->tooltip = L("The 5M Printer ID");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));

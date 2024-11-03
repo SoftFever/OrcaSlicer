@@ -19,7 +19,7 @@
   "name": "ginger G1 3.0 nozzle",
   "print_host": "192.168.1.39",
   "machine_serial":"",
-  "activation_code":"",
+  "printer_id":"",
   "printer_settings_id": "ginger G1 3.0 nozzle",
   "retract_before_wipe": ["20%"],
   "retract_restart_extra": ["5"],

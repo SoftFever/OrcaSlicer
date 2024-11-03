@@ -71,7 +71,7 @@
   "preferred_orientation": "0",
   "print_host": "http://10.0.1.200/",
   "machine_serial":"",
-  "activation_code":"",
+  "printer_id":"",
   "print_host_webui": "",
   "printable_area": ["0x0", "1000x0", "1000x1000", "0x1000"],
   "printable_height": "1000",

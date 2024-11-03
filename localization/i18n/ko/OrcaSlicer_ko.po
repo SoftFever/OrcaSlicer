@@ -9406,8 +9406,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "장치 ID"
+msgid "Printer ID"
+msgstr "프린터 ID"
 
 msgid "Device UI"
 msgstr "장치 UI"

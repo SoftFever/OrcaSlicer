@@ -9461,8 +9461,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Időtúllépés (másodperc)"
 
-msgid "Device ID"
-msgstr "Eszköz ID"
+msgid "Printer ID"
+msgstr "Nyomtató ID"
 
 msgid "Device UI"
 msgstr "Eszköz UI"

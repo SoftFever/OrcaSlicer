@@ -9451,8 +9451,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "设备 ID"
+msgid "Printer ID"
+msgstr "印表機 ID"
 
 msgid "Device UI"
 msgstr "設備使用者界面"

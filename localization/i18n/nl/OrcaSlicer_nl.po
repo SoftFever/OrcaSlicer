@@ -9594,8 +9594,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Apparaat-ID"
+msgid "Printer ID"
+msgstr "Printer-ID"
 
 msgid "Device UI"
 msgstr "UI van het apparaat"

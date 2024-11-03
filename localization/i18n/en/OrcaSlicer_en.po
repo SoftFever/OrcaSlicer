@@ -9349,8 +9349,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Device ID"
-msgstr "Device ID"
+msgid "Printer ID"
+msgstr "Printer ID"
 
 msgid "Device UI"
 msgstr "Device UI"

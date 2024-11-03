@@ -19,7 +19,7 @@
   "printer_model": "ginger G1",
   "print_host": "192.168.1.97",
   "machine_serial":"",
-  "activation_code":"",
+  "printer_id":"",
   "printer_settings_id": "ginger G1 1.2 nozzle",
   "retract_before_wipe": ["20%"],
   "retract_restart_extra": ["12"],
