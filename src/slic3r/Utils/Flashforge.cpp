@@ -23,10 +23,9 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "Http.hpp"
-#include "TCPConsole.hpp"
-#include "SerialMessage.hpp"
-#include "SerialMessageType.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
