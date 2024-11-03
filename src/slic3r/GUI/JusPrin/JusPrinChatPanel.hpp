@@ -21,6 +21,7 @@ class JusPrinChatPanel : public wxPanel
 public:
     JusPrinChatPanel(wxWindow* parent);
     virtual ~JusPrinChatPanel();
+    void reload();
     void UpdateOAuthAccessToken();
 
 private:
@@ -28,7 +29,6 @@ private:
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
-    void reload();
     void update_mode();
 
     using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
