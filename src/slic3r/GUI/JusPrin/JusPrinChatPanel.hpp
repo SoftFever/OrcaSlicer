@@ -47,9 +47,10 @@ private:
 private:
     void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
-    nlohmann::json GetPresets(Preset::Type type);
+    nlohmann::json GetPresetsJson(Preset::Type type);
+    nlohmann::json GetPlaterStateJson();
     void UpdatePresets();
-
+    void UpdatePlaterState();
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);
