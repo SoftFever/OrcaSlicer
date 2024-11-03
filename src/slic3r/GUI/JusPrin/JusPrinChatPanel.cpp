@@ -124,13 +124,23 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         return;
     }
 
+    try {
     std::string  name = payload.value("name", "");
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
     if (tab != nullptr) {
         tab->select_preset(name, false, std::string(), false);
+        }
+    } catch (const std::exception& e) {
+        // TODO: propogate the error to the web page
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: error selecting preset " << e.what();
     }
 
-    load_url();
+    RefreshPresetsState(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
+
+    // Start a few chat session when printer or filament preset changes to make things simpler for now
+    if (preset_type == Preset::Type::TYPE_PRINTER || preset_type == Preset::Type::TYPE_FILAMENT) {
+        reload();
+    }
 }
 void JusPrinChatPanel::load_url()
 {
@@ -160,7 +170,11 @@ void JusPrinChatPanel::RefreshPresetsState() {
         {"printProcessPresets", printPresetsJson}
     };
     wxString allPresetsStr = allPresetsJson.dump();
-    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "presets", allPresetsStr);
+    wxString strJS = wxString::Format(
+        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
+        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
+        "}",
+        "presets", allPresetsStr);
     WebView::RunScript(m_browser, strJS);
     wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", allPresetsStr);
     WebView::RunScript(m_browser, strJS1);
@@ -168,7 +182,11 @@ void JusPrinChatPanel::RefreshPresetsState() {
 
 void JusPrinChatPanel::RefreshPlaterState() {
     nlohmann::json platerJson = GetPlaterJson();
-    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('%s', %s)", "plater", platerJson.dump());
+    wxString strJS = wxString::Format(
+        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
+        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
+        "}",
+        "plater", platerJson.dump());
     WebView::RunScript(m_browser, strJS);
     wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerJson.dump());
     WebView::RunScript(m_browser, strJS1);
