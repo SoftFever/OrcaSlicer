@@ -9815,11 +9815,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Machine serial"
-msgstr "5M serial"
-
-msgid "Activation code"
-msgstr "Activation code"
+msgid "Device ID"
+msgstr "Идентификатор устройства"
 
 msgid "Device UI"
 msgstr "URL-адрес хоста"

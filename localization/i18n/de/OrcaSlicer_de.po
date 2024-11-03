@@ -9815,11 +9815,8 @@ msgstr "Gerät"
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Machine serial"
-msgstr "5M serial"
-
-msgid "Activation code"
-msgstr "ACtivation code"
+msgid "Device ID"
+msgstr "Geräte-ID"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"

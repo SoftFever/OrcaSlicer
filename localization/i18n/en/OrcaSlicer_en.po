@@ -9349,11 +9349,8 @@ msgstr ""
 msgid "Read timeout"
 msgstr "Read timeout"
 
-msgid "Machine serial"
-msgstr "5M serial"
-
-msgid "Activation code"
-msgstr "ACtivation code"
+msgid "Device ID"
+msgstr "Device ID"
 
 msgid "Device UI"
 msgstr "Device UI"
