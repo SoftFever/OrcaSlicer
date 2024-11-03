@@ -2023,6 +2023,7 @@ void Sidebar::update_ui_from_settings()
 #if 0
     p->object_list->apply_volumes_order();
 #endif
+    Layout();
 }
 
 bool Sidebar::show_object_list(bool show) const
