@@ -34,11 +34,19 @@
         <div class="error">
             <h2>Connection Error</h2>
             <p>Unable to connect to JusPrin server. Please try again later.</p>
-            <button onclick="checkAndRedirect()">Try Again</button>
+            <button onclick="tryAgin()">Try Again</button>
         </div>
     </div>
 
     <script>
+
+        tryAgin = function() {
+            if (window.wx) {
+                window.wx.postMessage(JSON.stringify({
+                    action: 'reload',
+                }));
+            } 
+        }
 
         function showError() {
             document.querySelector('.loading').style.display = 'none';
@@ -50,29 +58,29 @@
             document.querySelector('.error').style.display = 'none';
         }
 
-        function checkAndRedirectToChatServer(serverUrl) {
-            showLoading();
+        // function checkAndRedirectToChatServer(serverUrl) {
+        //     showLoading();
 
-            // Set a timeout to handle no response
-            const timeoutId = setTimeout(() => {
-                showError();
-            }, 5000); // 5 second timeout
+        //     // Set a timeout to handle no response
+        //     const timeoutId = setTimeout(() => {
+        //         showError();
+        //     }, 5000); // 5 second timeout
 
-            fetch(serverUrl + '/embedded_chat/', {
-                method: 'HEAD',
-                mode: 'no-cors'
-            })
-            .then(response => {
-                clearTimeout(timeoutId);
-                // Don't check response.ok when using no-cors
-                // Just redirect if we get any response
-                window.location.href = serverUrl + '/embedded_chat/';
-            })
-            .catch(() => {
-                clearTimeout(timeoutId);
-                showError();
-            });
-        }
+        //     fetch(serverUrl + '/embedded_chat/', {
+        //         method: 'HEAD',
+        //         mode: 'no-cors'
+        //     })
+        //     .then(response => {
+        //         clearTimeout(timeoutId);
+        //         // Don't check response.ok when using no-cors
+        //         // Just redirect if we get any response
+        //         window.location.href = serverUrl + '/embedded_chat/';
+        //     })
+        //     .catch(() => {
+        //         clearTimeout(timeoutId);
+        //         showError();
+        //     });
+        // }
     </script>
 </body>
 </html>
