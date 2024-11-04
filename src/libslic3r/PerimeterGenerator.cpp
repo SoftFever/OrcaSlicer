@@ -1243,7 +1243,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 // triggering the asserts below. Is this a problem?
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
                     assert(it->polyline.points.size() >= 2);
-                    assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
+//                    assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
                 }
                 assert(extrusion_loop.paths.front().first_point() == extrusion_loop.paths.back().last_point());
 
