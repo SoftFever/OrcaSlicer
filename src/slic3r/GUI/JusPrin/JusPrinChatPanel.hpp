@@ -69,6 +69,8 @@ private:
     long     m_zoomFactor;
     wxString m_apikey; // todo
 
+    void UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value);
+
 };
 
 }} // namespace Slic3r::GUI
