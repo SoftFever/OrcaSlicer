@@ -50,16 +50,14 @@ private:
     void handle_refresh_presets_state(const nlohmann::json& params);
     void handle_refresh_plater_state(const nlohmann::json& params);
 
-    void handle_reload(const nlohmann::json& params);
-
 private:
-    void           SendMessage(wxString message);
-    void           OnActionCallReceived(wxWebViewEvent& event);
+    void SendMessage(wxString message);
+    void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterJson();
-    void           RefreshPresetsState();
-    void           RefreshPlaterState();
-    void           ApplyConfig(const nlohmann::json& item);
+    void RefreshPresetsState();
+    void RefreshPlaterState();
+    void ApplyConfig(const nlohmann::json& item);
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);
@@ -68,8 +66,9 @@ private:
     void FetchUsedFilamentIds();
 
     wxWebView* m_browser;
-    long       m_zoomFactor;
-    wxString   m_apikey; // todo
+    long     m_zoomFactor;
+    wxString m_apikey; // todo
+
 };
 
 }} // namespace Slic3r::GUI
