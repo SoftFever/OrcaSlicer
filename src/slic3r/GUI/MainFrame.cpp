@@ -1482,10 +1482,8 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->model().objects.empty();
 }
 
-bool MainFrame::can_reslice() const
-{
-    return (m_plater != nullptr) && !m_plater->model().objects.empty();
-}
+bool MainFrame::can_reslice() const { return (m_plater != nullptr) && !m_plater->model().objects.empty(); }
+
 
 wxBoxSizer* MainFrame::create_side_tools()
 {
@@ -1532,17 +1530,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     //     });
     // });
 
-    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            //this->m_plater->select_view_3D("Preview");
-            m_plater->exit_gizmo();
-            m_plater->update(true, true);
-            if (m_slice_select == eSliceAll)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-            else
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-
-            this->m_tabpanel->SetSelection(tpPreview);
+    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { start_slicer_all();
         });
 
     m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -2911,7 +2899,7 @@ void MainFrame::init_menubar_as_editor()
             std::string url = "https://github.com/SoftFever/OrcaSlicer/wiki/Calibration";
             if (const std::string country_code = wxGetApp().app_config->get_country_code(); country_code == "CN") {
                 // Use gitee mirror for China users
-                url = "https://gitee.com/n0isyfox/orca-slicer-docs/wikis/%E6%A0%A1%E5%87%86/%E6%89%93%E5%8D%B0%E5%8F%82%E6%95%B0%E6%A0%A1%E5%87%86";
+                url = "https://gitee.com/n0isyfox/jus-prin-docs/wikis/%E6%A0%A1%E5%87%86/%E6%89%93%E5%8D%B0%E5%8F%82%E6%95%B0%E6%A0%A1%E5%87%86";
             }
             wxLaunchDefaultBrowser(url, wxBROWSER_NEW_WINDOW);
         }, "", nullptr,
@@ -3732,6 +3720,18 @@ void MainFrame::RunScript(wxString js)
         m_webview->RunScript(js);
 }
 
+void MainFrame::start_slicer_all() {
+    // this->m_plater->select_view_3D("Preview");
+    m_plater->exit_gizmo();
+    m_plater->update(true, true);
+    if (m_slice_select == eSliceAll)
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+    else
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+
+    this->m_tabpanel->SetSelection(tpPreview);
+}
+
 void MainFrame::technology_changed()
 {
     // update menu titles
@@ -3749,6 +3749,24 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
+
+    if (m_webview) {
+        m_webview->update_ui_from_settings();
+    }
+
+    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        if (!m_slice_btn->IsShown()) {
+            m_slice_btn->Show();
+            m_slice_option_btn->Show();
+            Layout();
+        }
+    } else {
+        if (m_slice_btn->IsShown()) {
+            m_slice_btn->Hide();
+            m_slice_option_btn->Hide();
+            Layout();
+        }
+    }
 }
 
 

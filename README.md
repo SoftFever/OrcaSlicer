@@ -1,5 +1,5 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/JusPrin.ico" width="100"> Orca Slicer</p> </h1>
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers. 
@@ -107,6 +107,19 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
   - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
+
+# How to package for distribution
+
+**Windows**: 
+
+- Install https://nsis.sourceforge.io/Download
+- Open Developer PowerShell for VS 2022.
+- `cd build`
+- `cpack`
+
+**MacOS**:
+
+- `hdiutil create -volname "JustPrin" -srcfolder JusPrin.app -ov -format UDZO  JustPrin.dmg`
 
 
 # Note: 

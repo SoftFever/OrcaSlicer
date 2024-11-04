@@ -3629,8 +3629,17 @@ void GUI_App::update_oauth_access_token() {
     if (mainframe && mainframe->m_webview) {
         mainframe->m_webview->update_oauth_access_token();
     }
-    if (jusprin_chat_panel()) {
-        jusprin_chat_panel()->UpdateOAuthAccessToken();
+    if (sidebar().jusprin_chat_panel()) {
+        sidebar().jusprin_chat_panel()->UpdateOAuthAccessToken();
+    }
+}
+
+void GUI_App::set_classic_mode(bool use_classic_mode) {
+    app_config->set_bool("use_classic_mode", use_classic_mode);
+    app_config->save();
+    update_ui_from_settings();
+    if (!use_classic_mode) {
+        sidebar().jusprin_chat_panel()->reload(); // This is so that the chat session is cleared
     }
 }
 
@@ -3927,11 +3936,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_set_classic_mode") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
-                    app_config->set("use_classic_mode", data_node.get<std::string>("classic_mode"));
-
-                    if(plater_){
-                        plater_->reset_window_layout();
-                    }
+                    bool      use_classic_mode = data_node.get<std::string>("classic_mode") == "true";
+                    set_classic_mode(use_classic_mode);
                 }
             }
         }
@@ -5973,11 +5979,6 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
-}
-
-JusPrinChatPanel* GUI_App::jusprin_chat_panel()
-{
-    return sidebar().jusprin_chat_panel();
 }
 
 GizmoObjectManipulation *GUI_App::obj_manipul()

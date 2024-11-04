@@ -130,8 +130,8 @@ endif (MINGW)
 
 if (NOT WIN32 AND NOT APPLE)
     # Binary name on unix like systems (Linux, Unix)
-    set_target_properties(OrcaSlicer PROPERTIES OUTPUT_NAME "orca-slicer")
-    set(SLIC3R_APP_CMD "orca-slicer")
+    set_target_properties(OrcaSlicer PROPERTIES OUTPUT_NAME "jus-prin")
+    set(SLIC3R_APP_CMD "jus-prin")
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/BuildLinuxImage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/BuildLinuxImage.sh @ONLY)
 endif ()
 
@@ -184,7 +184,7 @@ if (WIN32)
     endif()
     target_compile_definitions(JusPrin_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
     add_dependencies(JusPrin_app_gui JusPrin)
-    set_target_properties(JusPrin_app_gui PROPERTIES OUTPUT_NAME "orca-slicer")
+    set_target_properties(JusPrin_app_gui PROPERTIES OUTPUT_NAME "jus-prin")
     target_link_libraries(JusPrin_app_gui PRIVATE boost_headeronly)
 endif ()
 
@@ -232,7 +232,7 @@ else ()
     if (APPLE AND NOT CMAKE_MACOSX_BUNDLE)
         # On OSX, the name of the binary matches the name of the Application.
         add_custom_command(TARGET JusPrin POST_BUILD
-            COMMAND ln -sf JusPrin orca-slicer
+            COMMAND ln -sf JusPrin jus-prin
             WORKING_DIRECTORY "$<TARGET_FILE_DIR:JusPrin>"
             VERBATIM)
     else ()

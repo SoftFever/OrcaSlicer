@@ -140,6 +140,8 @@ class MainFrame : public DPIFrame
     // BBS
     wxBoxSizer* create_side_tools();
 
+
+
     // MenuBar items changeable in respect to printer technology
     enum MenuItems
     {                   //   FFF                  SLA
@@ -345,6 +347,8 @@ public:
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);
+
+    void start_slicer_all();
 
     //SoftFever
     void show_device(bool bBBLPrinter);

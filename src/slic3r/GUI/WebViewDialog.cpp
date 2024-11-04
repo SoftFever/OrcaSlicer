@@ -281,7 +281,6 @@ void WebViewPanel::UpdateState()
     //SetTitle(m_browser->GetCurrentTitle());
     m_url->SetValue(m_browser->GetCurrentURL());
 #endif //BBL_RELEASE_TO_PUBLIC
-    update_classic_mode();
     update_oauth_access_token();
 }
 
@@ -540,7 +539,7 @@ void WebViewPanel::update_mode()
     GetSizer()->Layout();
 }
 
-void WebViewPanel::update_classic_mode()
+void WebViewPanel::update_ui_from_settings()
 {
     wxString strJS = wxString::Format("SetClassicMode(%s)", wxGetApp().app_config->get("use_classic_mode"));
     RunScript(strJS);

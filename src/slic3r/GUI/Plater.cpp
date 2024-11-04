@@ -1139,8 +1139,6 @@ Sidebar::Sidebar(Plater *parent)
     p->jusprin_chat_panel = new JusPrinChatPanel(this);
     p->size_top->Add(p->jusprin_chat_panel, 1, wxEXPAND);
 
-    update_content();
-
     SetSizer(p->size_top);
     Layout();
 }
@@ -1879,18 +1877,6 @@ void Sidebar::update_dynamic_filament_list()
     dynamic_filament_list_1_based.update();
 }
 
-void Sidebar::update_content(){
-    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
-        p->size_top->Hide(p->config_sizer, true);
-        p->size_top->Show(p->jusprin_chat_panel, true);
-    }
-    else{
-        p->size_top->Hide(p->jusprin_chat_panel, true);
-        p->size_top->Show(p->config_sizer, true);
-    }
-    Layout();
-}
-
 ObjectList* Sidebar::obj_list()
 {
     // BBS
@@ -2024,9 +2010,20 @@ void Sidebar::update_ui_from_settings()
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
+
+    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
+        p->size_top->Hide(p->config_sizer, true);
+        p->size_top->Show(p->jusprin_chat_panel, true);
+    }
+    else{
+        p->size_top->Hide(p->jusprin_chat_panel, true);
+        p->size_top->Show(p->config_sizer, true);
+    }
+
 #if 0
     p->object_list->apply_volumes_order();
 #endif
+    Layout();
 }
 
 bool Sidebar::show_object_list(bool show) const
@@ -2285,6 +2282,7 @@ struct Plater::priv
     int m_cur_slice_plate;
     //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
     bool m_slice_all_only_has_gcode{ false };
+    FunModelChanged m_model_changed = nullptr;
 
     bool m_need_update{false};
     //BBS: add popup object table logic
@@ -3495,7 +3493,6 @@ void Plater::priv::collapse_sidebar(bool collapse)
 }
 
 void Plater::priv::update_sidebar(bool force_update) {
-    this->sidebar->update_content();
     auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
     if (!sidebar.IsOk() || this->current_panel == nullptr) {
         return;
@@ -3858,6 +3855,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //     }
                     // }
                     else if (load_config && (file_version > app_version)) {
+                        /*
                         if (config_substitutions.unrecogized_keys.size() > 0) {
                             wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
@@ -3888,6 +3886,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
+                        */
                     }
                     else if (!load_config) {
                         // reset config except color
@@ -4884,6 +4883,10 @@ void Plater::priv::object_list_changed()
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 
     wxGetApp().params_panel()->notify_object_config_changed();
+
+    if (m_model_changed != nullptr){
+        m_model_changed();
+    }
 }
 
 void Plater::priv::select_curr_plate_all()
@@ -8831,8 +8834,6 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::Show(bool show)
 {
-    if (wxGetApp().mainframe)
-        wxGetApp().mainframe->show_option(show);
     return wxPanel::Show(show);
 }
 
@@ -14543,6 +14544,7 @@ void Plater::update_title_dirty_status()
     p->update_title_dirty_status();
 }
 
+void Plater::add_model_changed(FunModelChanged on_model_changed){ p->m_model_changed = on_model_changed; }
 
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }

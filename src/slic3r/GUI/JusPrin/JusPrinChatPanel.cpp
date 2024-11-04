@@ -6,12 +6,13 @@
 #include <wx/sizer.h>
 #include <libslic3r/Model.hpp>
 #include <slic3r/GUI/PartPlate.hpp>
+#include <slic3r/GUI/MainFrame.hpp>
 
 
 namespace Slic3r { namespace GUI {
 
 
-std::string PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& presets)
+nlohmann::json PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& presets)
 {
     nlohmann::json j_array = nlohmann::json::array();
     for (const auto& [preset, is_selected] : presets) {
@@ -22,12 +23,14 @@ std::string PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& pre
         j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
         j_array.push_back(j);
     }
-    return j_array.dump();
+    return j_array;
 }
 
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
+    init_action_handlers();
+
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
     // Create the webview
@@ -39,7 +42,7 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
 
     m_browser->Bind(wxEVT_WEBVIEW_ERROR, &JusPrinChatPanel::OnError, this);
     m_browser->Bind(wxEVT_WEBVIEW_LOADED, &JusPrinChatPanel::OnLoaded, this);
-    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnScriptMessageReceived, this);
+    m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnActionCallReceived, this);
 
     topsizer->Add(m_browser, 1, wxEXPAND);
     SetSizer(topsizer);
@@ -63,13 +66,87 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
+void JusPrinChatPanel::init_action_handlers() {
+    action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
+    action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
+    action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
+    action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
+    action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
+    action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+
+    action_handlers["refresh_presets_state"] = &JusPrinChatPanel::handle_refresh_presets_state;
+    action_handlers["refresh_plater_state"] = &JusPrinChatPanel::handle_refresh_plater_state;
+}
+
+void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
+    wxGetApp().set_classic_mode(true);
+}
+
+void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
+    wxGetApp().show_jusprin_login();
+}
+
+void JusPrinChatPanel::handle_refresh_presets_state(const nlohmann::json& params) {
+    RefreshPresetsState();
+}
+
+void JusPrinChatPanel::handle_refresh_plater_state(const nlohmann::json& params) {
+    RefreshPlaterState();
+}
+
+void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+    reload();
+}
+
+void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
+    reload();
+}
+
+void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
+{
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+    if (payload.is_null()) {
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: missing payload parameter";
+        return;
+    }
+    Preset::Type preset_type;
+    std::string  type = payload.value("type", "");
+    if (type == "print") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "filament") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else if (type == "printer") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: invalid type parameter";
+        return;
+    }
+
+    try {
+    std::string  name = payload.value("name", "");
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        tab->select_preset(name, false, std::string(), false);
+        }
+    } catch (const std::exception& e) {
+        // TODO: propogate the error to the web page
+        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: error selecting preset " << e.what();
+    }
+
+    RefreshPresetsState(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
+
+    // Start a few chat session when printer or filament preset changes to make things simpler for now
+    if (preset_type == Preset::Type::TYPE_PRINTER || preset_type == Preset::Type::TYPE_FILAMENT) {
+        reload();
+    }
+}
 void JusPrinChatPanel::load_url()
 {
-    wxString url = wxString::Format("file://%s/web/jusprin/chat_config_test.html", from_u8(resources_dir()));
+    wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
-
-
     m_browser->LoadURL(url);
 }
 
@@ -82,31 +159,121 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
     WebView::RunScript(m_browser, strJS);
 }
 
+void JusPrinChatPanel::RefreshPresetsState() {
+    nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
+    nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
+    nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
+
+    nlohmann::json allPresetsJson = {
+        {"printerPresets", printerPresetsJson},
+        {"filamentPresets", filamentPresetsJson},
+        {"printProcessPresets", printPresetsJson}
+    };
+    wxString allPresetsStr = allPresetsJson.dump();
+    wxString strJS = wxString::Format(
+        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
+        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
+        "}",
+        "presets", allPresetsStr);
+    WebView::RunScript(m_browser, strJS);
+    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", allPresetsStr);
+    WebView::RunScript(m_browser, strJS1);
+}
+
+void JusPrinChatPanel::RefreshPlaterState() {
+    nlohmann::json platerJson = GetPlaterJson();
+    wxString strJS = wxString::Format(
+        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
+        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
+        "}",
+        "plater", platerJson.dump());
+    WebView::RunScript(m_browser, strJS);
+    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerJson.dump());
+    WebView::RunScript(m_browser, strJS1);
+}
+
 void JusPrinChatPanel::reload() { m_browser->Reload(); }
 
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
-
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 
-void JusPrinChatPanel::UpdatePrinterPresets() {
-    Tab* printer_tab = Slic3r::GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-    if (!printer_tab) {
-        return;
+nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(type);
+    if (!tab) {
+        return nlohmann::json::array();
     }
-    TabPresetComboBox* printer_combo = printer_tab->get_combo_box();
-    std::vector<std::pair<const Preset*, bool>> printer_presets;
-    for (unsigned int i = 0; i < printer_combo->GetCount(); i++) {
-        std::string preset_name = printer_combo->GetString(i).ToUTF8().data();
-        const Preset* printer_preset = printer_tab->m_presets->find_preset(preset_name, false);
-        if (printer_preset) {
-            printer_presets.push_back({printer_preset, printer_combo->GetSelection() == i});
+
+    TabPresetComboBox* combo = tab->get_combo_box();
+    std::vector<std::pair<const Preset*, bool>> presets;
+
+    for (unsigned int i = 0; i < combo->GetCount(); i++) {
+        std::string preset_name = combo->GetString(i).ToUTF8().data();
+
+        if (preset_name.substr(0, 5) == "-----") continue;   // Skip separator
+
+        const Preset* preset = tab->m_presets->find_preset(preset_name, false);
+        if (preset) {
+            presets.push_back({preset, combo->GetSelection() == i});
         }
     }
-    std::string json_str = PresetsToJSON(printer_presets);
-    wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('printerPresets', %s)", json_str);
-    WebView::RunScript(m_browser, strJS);
+
+    return PresetsToJSON(presets);
 }
+
+nlohmann::json JusPrinChatPanel::GetPlaterJson()
+{
+    nlohmann::json j = nlohmann::json::object();
+    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+
+    j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
+
+    j["modelObjects"] = nlohmann::json::array();
+
+    for (const ModelObject* object :  plater->model().objects) {
+        auto object_grid_config = &(object->config);
+
+        nlohmann::json obj;
+        obj["name"] = object->name;
+
+        int extruder_id = -1;  // Default extruder ID
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+        if (extruder_id_ptr) {
+            extruder_id = *extruder_id_ptr;
+        }
+        obj["extruderId"] = extruder_id;
+
+        j["modelObjects"].push_back(obj);
+    }
+
+    return j;
+}
+
+void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
+{
+    if (evt.GetURL().IsEmpty())
+        return;
+
+    wxString strJS = wxString::Format(
+        "if (typeof checkAndRedirectToChatServer === 'function') {"
+        "    checkAndRedirectToChatServer('%s');"
+        "}",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+    WebView::RunScript(m_browser, strJS);
+
+    // TODO: This callback is not triggered when a plate is added or removed
+    // TODO: This callback is triggered when an object is removed, but not when an object is cloned
+    wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
+
+    UpdateOAuthAccessToken();
+    RefreshPresetsState();
+    RefreshPlaterState();
+}
+
+void JusPrinChatPanel::OnPlaterChanged() {
+    reload();
+}
+
 
 // TODO: Clean up the code below this line
 
@@ -139,51 +306,16 @@ void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
                             << boost::format(": error loading page %1% %2% %3% %4%") % evt.GetURL() % evt.GetTarget() % e % evt.GetString();
 }
 
-void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
-{
-    if (evt.GetURL().IsEmpty())
-        return;
-
-    wxString strJS = wxString::Format(
-        "if (typeof checkAndRedirectToChatServer === 'function') {"
-        "    checkAndRedirectToChatServer('%s');"
-        "}",
-        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
-    WebView::RunScript(m_browser, strJS);
-
-    UpdateOAuthAccessToken();
-}
-
-void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
+void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
     wxString message = event.GetString();
-    std::string  jsonString = std::string(message.mb_str());
+    std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
 
-    if (action == "update_printer_presets")
-    {
-        UpdatePrinterPresets();
-        return;
-    }
-    if (action == "fetch_preset_bundle")
-    {
-        FetchPresetBundle();
-        return;
-    } else if (action == "fetch_filaments") {
-        FetchFilaments();
-        return;
-    } else if (action == "fetch_used_filament_ids") {
-        FetchUsedFilamentIds();
-        return;
-    } 
-    else if (action == "fetch_property") {
-        FetchProperty(Preset::Type::TYPE_PRINT);
-        return;
-    }
-
-    if (action == "jusprin_login_or_register") {
-        wxGetApp().show_jusprin_login();
+    auto it = action_handlers.find(action);
+    if (it != action_handlers.end()) {
+        (this->*(it->second))(jsonObject);
         return;
     }
 
@@ -211,6 +343,11 @@ void JusPrinChatPanel::OnScriptMessageReceived(wxWebViewEvent& event)
         ConfigProperty(preset_type, jsonObject);
     }
 }
+
+void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
+    Slic3r::GUI::wxGetApp().mainframe->start_slicer_all();
+}
+
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
@@ -320,33 +457,6 @@ void JusPrinChatPanel::FetchFilaments() {
     std::string json_str = PresetsToJSON({{&filament_profile.preset, true}});
     wxString strJS = wxString::Format("updateJusPrinEmbeddedChatState('selectedFilament', %s)", json_str);
     WebView::RunScript(m_browser, strJS);
-}
-
-void JusPrinChatPanel::FetchUsedFilamentIds()
-{
-    Slic3r::Model&              model           = Slic3r::GUI::wxGetApp().model();
-    int                         object_count    = model.objects.size();
-    Slic3r::GUI::PartPlateList& partplate_list  = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
-    const DynamicPrintConfig*   plater_config   = Slic3r::GUI::wxGetApp().plater()->config();
-    const DynamicPrintConfig&   filament_config = *plater_config;
-
-    nlohmann::json j;
-    std::set<int>  ids;
-    for (int i = 0; i < object_count; i++) {
-        ModelObject* object             = model.objects[i];
-        auto         object_grid_config = &(object->config);
-        auto         plate_index        = partplate_list.find_instance_belongs(i, 0);
-        if (plate_index == -1) {
-            continue;
-        }
-
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            ids.insert(*extruder_id_ptr);
-        }
-    }
-    j["used_filiment_ids"] = ids;
-    SendMessage(j.dump());
 }
 
 }} // namespace Slic3r::GUI

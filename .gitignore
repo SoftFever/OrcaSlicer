@@ -16,7 +16,7 @@ xs/assertlib*
 .vs/*
 local-lib
 /src/TAGS
-/.vscode/
+.vscode/
 build-linux/*
 deps/build*/*
 **/.DS_Store
