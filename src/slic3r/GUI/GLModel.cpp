@@ -446,7 +446,7 @@ void GLModel::init_from(const indexed_triangle_set& its)
     }
 
     if (its.vertices.empty() || its.indices.empty()){
-        assert(false);
+//        assert(false);
         return;
     }
 

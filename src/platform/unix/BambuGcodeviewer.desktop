@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Bambu GCode viewer
-Exec=orca-slicer --gcodeviewer %F
+Exec=jus-prin --gcodeviewer %F
 Icon=OrcaSlicer-gcodeviewer
 Terminal=false
 Type=Application

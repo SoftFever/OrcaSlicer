@@ -3312,7 +3312,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     auto m_main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicer.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/JusPrin.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     //top line
