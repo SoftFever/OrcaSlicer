@@ -34,7 +34,7 @@
         <div class="error">
             <h2>Connection Error</h2>
             <p>Unable to connect to JusPrin server. Please try again later.</p>
-            <button onclick="checkAndRedirect()">Try Again</button>
+            <button onclick="checkAndRedirectToChatServer()">Try Again</button>
         </div>
     </div>
 
@@ -50,15 +50,21 @@
             document.querySelector('.error').style.display = 'none';
         }
 
-        function checkAndRedirectToChatServer(serverUrl) {
+        function checkAndRedirectToChatServer() {
             showLoading();
+
+            if (!CHAT_SERVER_URL) {
+                setTimeout(checkAndRedirectToChatServer, 1000);
+                return;
+            }
 
             // Set a timeout to handle no response
             const timeoutId = setTimeout(() => {
+                console.error("Timeout");
                 showError();
             }, 5000); // 5 second timeout
 
-            fetch(serverUrl + '/embedded_chat/', {
+            fetch(CHAT_SERVER_URL + '/embedded_chat/', {
                 method: 'HEAD',
                 mode: 'no-cors'
             })
@@ -66,13 +72,16 @@
                 clearTimeout(timeoutId);
                 // Don't check response.ok when using no-cors
                 // Just redirect if we get any response
-                window.location.href = serverUrl + '/embedded_chat/';
+                window.location.href = CHAT_SERVER_URL + '/embedded_chat/';
             })
-            .catch(() => {
+            .catch((e) => {
+                console.error(e);
                 clearTimeout(timeoutId);
                 showError();
             });
         }
+
+        setTimeout(checkAndRedirectToChatServer, 100);
     </script>
 </body>
 </html>

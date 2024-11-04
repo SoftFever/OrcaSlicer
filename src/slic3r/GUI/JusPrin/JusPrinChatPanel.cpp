@@ -321,13 +321,8 @@ nlohmann::json JusPrinChatPanel::GetPlaterJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
-    if (evt.GetURL().IsEmpty())
-        return;
-
     wxString strJS = wxString::Format(
-        "if (typeof checkAndRedirectToChatServer === 'function') {"
-        "    checkAndRedirectToChatServer('%s');"
-        "}",
+        "var CHAT_SERVER_URL = '%s';",
         wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
     WebView::RunScript(m_browser, strJS);
 
