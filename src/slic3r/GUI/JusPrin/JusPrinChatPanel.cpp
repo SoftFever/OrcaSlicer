@@ -73,7 +73,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
-    action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
+    action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
 
     action_handlers["refresh_presets_state"] = &JusPrinChatPanel::handle_refresh_presets_state;
     action_handlers["refresh_plater_state"] = &JusPrinChatPanel::handle_refresh_plater_state;
@@ -208,6 +208,9 @@ void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
     }
 }
 
+void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
+    wxGetApp().mainframe->start_slicer_all();
+}
 
 void JusPrinChatPanel::load_url()
 {
@@ -318,8 +321,6 @@ nlohmann::json JusPrinChatPanel::GetPlaterJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
-    cout << "OnLoaded" << evt.GetURL() << endl;
-
     if (evt.GetURL().IsEmpty())
         return;
 
@@ -413,9 +414,6 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
     }
 }
 
-void JusPrinChatPanel::start_slice_all(const nlohmann::json& params) {
-    Slic3r::GUI::wxGetApp().mainframe->start_slicer_all();
-}
 
 void JusPrinChatPanel::ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject) {
     std::string key  = jsonObject["key"];
