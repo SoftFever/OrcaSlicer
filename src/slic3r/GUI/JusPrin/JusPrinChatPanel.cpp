@@ -70,6 +70,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
+    action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slice_all"] = &JusPrinChatPanel::start_slice_all;
@@ -125,10 +126,10 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
     }
 
     try {
-    std::string  name = payload.value("name", "");
-    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-    if (tab != nullptr) {
-        tab->select_preset(name, false, std::string(), false);
+        std::string  name = payload.value("name", "");
+        Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+        if (tab != nullptr) {
+            tab->select_preset(name, false, std::string(), false);
         }
     } catch (const std::exception& e) {
         // TODO: propogate the error to the web page
@@ -142,6 +143,72 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         reload();
     }
 }
+
+void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
+    nlohmann::json param_item = params.value("payload", nlohmann::json::object());
+    if (param_item.is_null()) {
+        BOOST_LOG_TRIVIAL(error) << "handle_apply_config: missing payload parameter";
+        return;
+    }
+
+    if (!param_item.is_array()) {
+        BOOST_LOG_TRIVIAL(error) << "handle_apply_config: payload is not an array";
+        return;
+    }
+
+    if (param_item.empty()) {
+        return;
+    }
+
+
+    std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
+
+    for (const auto& preset_type : preset_types) {
+        if (Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type)) {
+            tab->m_presets->discard_current_changes();
+        }
+    }
+
+    for (const auto& item : param_item) {
+        ApplyConfig(item);
+    }
+
+    for (const auto& preset_type : preset_types) {
+        if (Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type)) {
+            tab->reload_config();
+            tab->update();
+            tab->update_dirty();
+        }
+    }
+}
+
+void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
+    std::string  type = item.value("type", "");
+    Preset::Type preset_type;
+    if (type == "print") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "filament") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "handle_apply_config: invalid type parameter";
+        return;
+    }
+
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        try {
+            DynamicPrintConfig* config = tab->get_config();
+            if (!config) return;
+
+        ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Enable);
+            config->set_deserialize(item.value("key", ""), item["value"], context);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "handle_apply_config: error applying config " << e.what();
+        }
+    }
+}
+
+
 void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
@@ -251,6 +318,8 @@ nlohmann::json JusPrinChatPanel::GetPlaterJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
+    cout << "OnLoaded" << evt.GetURL() << endl;
+
     if (evt.GetURL().IsEmpty())
         return;
 
