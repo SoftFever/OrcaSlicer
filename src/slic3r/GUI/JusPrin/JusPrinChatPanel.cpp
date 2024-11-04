@@ -229,6 +229,16 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
     WebView::RunScript(m_browser, strJS);
 }
 
+void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value) {
+    wxString strJS = wxString::Format(
+        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
+        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
+        "}",
+        state_key, state_value);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
+    WebView::RunScript(m_browser, strJS);
+}
+
 void JusPrinChatPanel::RefreshPresetsState() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
@@ -240,26 +250,12 @@ void JusPrinChatPanel::RefreshPresetsState() {
         {"printProcessPresets", printPresetsJson}
     };
     wxString allPresetsStr = allPresetsJson.dump();
-    wxString strJS = wxString::Format(
-        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
-        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
-        "}",
-        "presets", allPresetsStr);
-    WebView::RunScript(m_browser, strJS);
-    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", allPresetsStr);
-    WebView::RunScript(m_browser, strJS1);
+    UpdateEmbeddedChatState("presets", allPresetsStr);
 }
 
 void JusPrinChatPanel::RefreshPlaterState() {
     nlohmann::json platerJson = GetPlaterJson();
-    wxString strJS = wxString::Format(
-        "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
-        "    window.updateJusPrinEmbeddedChatState('%s', %s);"
-        "}",
-        "plater", platerJson.dump());
-    WebView::RunScript(m_browser, strJS);
-    wxString strJS1 = wxString::Format("console.log(JSON.stringify(%s))", platerJson.dump());
-    WebView::RunScript(m_browser, strJS1);
+    UpdateEmbeddedChatState("plater", platerJson.dump());
 }
 
 void JusPrinChatPanel::reload() { m_browser->Reload(); }
