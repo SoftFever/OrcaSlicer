@@ -44,7 +44,7 @@ private:
     void handle_add_filaments(const nlohmann::json& params);
     void handle_switch_to_classic_mode(const nlohmann::json& params);
     void handle_show_login(const nlohmann::json& params);
-    void start_slice_all(const nlohmann::json& params);
+    void handle_start_slicer_all(const nlohmann::json& params);
 
     // Actions to fetch info to be sent to the web page
     void handle_refresh_presets_state(const nlohmann::json& params);
