@@ -4013,6 +4013,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 for (auto it = amsList.begin(); it != amsList.end(); it++) {
                                     ams_id_set.insert(it->first);
                                 }
+
                                 for (auto it = j_ams.begin(); it != j_ams.end(); it++) {
                                     if (!it->contains("id")) continue;
                                     std::string ams_id = (*it)["id"].get<std::string>();
@@ -4025,6 +4026,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         std::string info = (*it)["info"].get<std::string>();
                                         type_id = get_flag_bits(info, 0, 3);
                                         nozzle_id = get_flag_bits(info, 8, 3);
+                                    }
+
+                                    /*AMS without initialization*/
+                                    if (nozzle_id == 0x0E) {
+                                        continue;
                                     }
 
                                     ams_id_set.erase(ams_id);

@@ -1526,7 +1526,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxLEFT, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_sizer_options, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT| wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_sizer_options, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
