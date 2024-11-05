@@ -50,6 +50,7 @@ wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_VAMS_TRAY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_TEXT_MSG, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -323,6 +324,8 @@ public:
     void check_ip_address_failed(int result);
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
+    void update_test_msg_event(wxCommandEvent &evt);
+    void post_update_test_msg(wxString text, bool beconnect);
     void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
@@ -334,6 +337,7 @@ wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CHECK_IP_ADDRESS_LAYOUT, wxCommandEvent);
 
 
 }} // namespace Slic3r::GUI
