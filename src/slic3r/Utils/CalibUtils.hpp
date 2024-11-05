@@ -78,7 +78,7 @@ private:
 };
 
 extern void get_default_k_n_value(const std::string &filament_id, float &k, float &n);
-
 extern wxString get_nozzle_volume_type_name(NozzleVolumeType type);
+
 }
 }

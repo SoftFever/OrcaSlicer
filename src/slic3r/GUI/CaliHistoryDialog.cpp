@@ -849,7 +849,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         }
 
         m_new_result.extruder_id        = get_extruder_id(m_comboBox_extruder->GetSelection());
-        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_extruder->GetSelection());
+        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_nozzle_type->GetSelection());
     }
 
     auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];

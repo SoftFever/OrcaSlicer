@@ -1132,6 +1132,15 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         return 0;
     };
 
+    int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal;
+    if (obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+        MessageDialog dlg(nullptr, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."), _L("Warning"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+    }
+    else {
+        nozzle_volume_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+    }
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
@@ -1144,6 +1153,9 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
         for (auto cali_item : cali_history) {
             if (cali_item.filament_id == ams_filament_id) {
+                if (obj->is_multi_extruders() && (cali_item.extruder_id != extruder_id || cali_item.nozzle_volume_type != nozzle_volume_type)) {
+                    continue;
+                }
                 items.push_back(from_u8(cali_item.name));
                 m_pa_profile_items.push_back(cali_item);
             }
