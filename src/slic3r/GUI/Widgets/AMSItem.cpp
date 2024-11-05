@@ -67,7 +67,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
                 info.cali_idx      = it->second->cali_idx;
-                info.filament_id   = it->second->filament_setting_id;
+                info.filament_id   = it->second->setting_id;
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
                 } else {
