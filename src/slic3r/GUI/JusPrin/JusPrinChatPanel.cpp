@@ -80,6 +80,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
+    action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
 
     action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
     action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
@@ -218,6 +219,11 @@ void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
     wxGetApp().mainframe->start_slicer_all();
 }
 
+void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
+    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+    plater->export_gcode(false);
+}
+
 void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
@@ -346,12 +352,21 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     UpdateOAuthAccessToken();
     RefreshPresets();
     RefreshPlaterConfig();
+    AdvertiseSupportedAction();
 }
 
 void JusPrinChatPanel::OnPlaterChanged() {
     reload();
 }
 
+
+void JusPrinChatPanel::AdvertiseSupportedAction() {
+    nlohmann::json action_handlers_json = nlohmann::json::array();
+    for (const auto& [action, handler] : action_handlers) {
+        action_handlers_json.push_back(action);
+    }
+    UpdateEmbeddedChatState("supportedActions", action_handlers_json.dump());
+}
 
 // TODO: Clean up the code below this line
 
