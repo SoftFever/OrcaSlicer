@@ -304,6 +304,7 @@ public:
     // BBS
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
+    void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<Slic3r::ColorRGBA> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
 
@@ -878,10 +879,10 @@ private:
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id);
 
- Preset *get_printer_preset(MachineObject *obj);
-
+Preset *get_printer_preset(MachineObject *obj);
+wxArrayString get_all_camera_view_type();
 bool check_printer_initialized(MachineObject* obj);
-} // namespace GUI
+ } // namespace GUI
 } // namespace Slic3r
 
 #endif

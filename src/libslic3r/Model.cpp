@@ -270,22 +270,21 @@ Model Model::read_from_file(const std::string&                                  
         ObjInfo                 obj_info;
         result = load_obj(input_file.c_str(), &model, obj_info, message);
         if (result){
-            unsigned char first_extruder_id;
+            ObjDialogInOut in_out;
+            in_out.model = &model;
             if (obj_info.vertex_colors.size() > 0) {
-                std::vector<unsigned char> vertex_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.vertex_colors, false, vertex_filament_ids, first_extruder_id);
-                    if (vertex_filament_ids.size() > 0) {
-                        result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
-                    }
+                    in_out.input_colors      = std::move(obj_info.vertex_colors);
+                    in_out.is_single_color   = false;
+                    in_out.deal_vertex_color = true;
+                    objFn(in_out);
                 }
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
-                std::vector<unsigned char> face_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.face_colors, obj_info.is_single_mtl, face_filament_ids, first_extruder_id);
-                    if (face_filament_ids.size() > 0) {
-                        result = obj_import_face_color_deal(face_filament_ids, first_extruder_id, &model);
-                    }
+                    in_out.input_colors      = std::move(obj_info.face_colors);
+                    in_out.is_single_color   = obj_info.is_single_mtl;
+                    in_out.deal_vertex_color = false;
+                    objFn(in_out);
                 }
             } /*else if (obj_info.has_uv_png && obj_info.uvs.size() > 0) {
                 boost::filesystem::path full_path(input_file);
@@ -2999,6 +2998,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
             auto volume = obj->volumes[0];
             volume->config.set("extruder", first_extruder_id);
             auto face_count = volume->mesh().its.indices.size();
+            volume->mmu_segmentation_facets.reset();
             volume->mmu_segmentation_facets.reserve(face_count);
             if (volume->mesh().its.vertices.size() != vertex_filament_ids.size()) {
                 return false;
@@ -3010,9 +3010,6 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                 auto filament_id2 = vertex_filament_ids[face[2]];
                 if (filament_id0 <= 1 && filament_id1 <= 1 && filament_id2 <= 2) {
                     continue;
-                }
-                if (i == 0) {
-                    std::cout << "";
                 }
                 VertexColorCase vertex_color_case;
                 unsigned char iso_index;
@@ -3092,6 +3089,7 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             auto volume        = obj->volumes[0];
             volume->config.set("extruder", first_extruder_id);
             auto face_count    = volume->mesh().its.indices.size();
+            volume->mmu_segmentation_facets.reset();
             volume->mmu_segmentation_facets.reserve(face_count);
             if (volume->mesh().its.indices.size() != face_filament_ids.size()) { return false; }
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {

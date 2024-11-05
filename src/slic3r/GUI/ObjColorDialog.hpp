@@ -2,7 +2,9 @@
 #define _OBJ_COLOR_DIALOG_H_
 
 #include "GUI_Utils.hpp"
+#include "Camera.hpp"
 #include "GuiColor.hpp"
+#include "libslic3r/Format/OBJ.hpp"
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -18,13 +20,12 @@ class ObjColorPanel : public wxPanel
 {
 public:
     // BBS
-    ObjColorPanel(wxWindow *                            parent,
-                  std::vector<Slic3r::RGBA> &     input_colors,bool  is_single_color,
-                  const std::vector<std::string> &      extruder_colours,
-                  std::vector<unsigned char> &    filament_ids,
-                  unsigned char &                 first_extruder_id);
+    ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours);
+    ~ObjColorPanel();
     void msw_rescale();
     bool is_ok();
+    void send_new_filament_to_ui();
+    void cancel_paint_color();
     void update_filament_ids();
     struct ButtonState
     {
@@ -50,8 +51,13 @@ private:
     void deal_reset_btn();
     void deal_algo(char cluster_number,bool redraw_ui =false);
     void deal_default_strategy();
+    void deal_thumbnail();
+    void generate_thumbnail();
+    void set_view_angle_type(int);
 private:
     //view ui
+    Slic3r::ObjDialogInOut &  m_obj_in_out;
+    Slic3r::GUI::Camera::ViewAngleType m_camera_view_angle_type{Slic3r::GUI::Camera::ViewAngleType::Iso};
     wxScrolledWindow *        m_scrolledWindow = nullptr;
     wxPanel *                 m_page_simple  = nullptr;
     wxBoxSizer *              m_sizer        = nullptr;
@@ -71,7 +77,7 @@ private:
     int                     m_combox_icon_width;
     int                     m_combox_icon_height;
     wxGridSizer*            m_gridsizer = nullptr;
-    wxStaticText *            m_test      = nullptr;
+    wxButton *              m_image_button = nullptr;
     //data
     char                       m_last_cluster_number{-2};
     std::vector<Slic3r::RGBA>& m_input_colors;
@@ -83,6 +89,7 @@ private:
     int                   m_max_filament_index = 0;
     std::vector<wxColour> m_cluster_colours;//from_algo and show left
     bool                  m_can_add_filament{true};
+    bool                  m_deal_thumbnail_flag{false};
     std::vector<wxColour> m_new_add_colors;
     std::vector<wxColour> m_new_add_final_colors;
     //algo result
@@ -97,11 +104,7 @@ private:
 class ObjColorDialog : public Slic3r::GUI::DPIDialog
 {
 public:
-    ObjColorDialog(wxWindow *                         parent,
-                   std::vector<Slic3r::RGBA>&   input_colors, bool is_single_color,
-                   const std::vector<std::string> &   extruder_colours,
-                   std::vector<unsigned char>&        filament_ids,
-                   unsigned char &                 first_extruder_id);
+    ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours);
     wxBoxSizer* create_btn_sizer(long flags);
     void on_dpi_changed(const wxRect &suggested_rect) override;
 private:

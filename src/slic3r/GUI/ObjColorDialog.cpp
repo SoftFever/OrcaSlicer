@@ -15,7 +15,7 @@
 #include <wx/sizer.h>
 
 #include "libslic3r/ObjColorUtils.hpp"
-
+#include "libslic3r/Model.hpp"
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 
@@ -26,12 +26,12 @@ const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 370;
 const int COLOR_LABEL_WIDTH = 180;
-
+const int  IMAGE_SIZE_WIDTH = 300;
 #define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(400)
 #define FIX_SCROLL_HEIGTH         FromDIP(400)
 #define BTN_SIZE                  wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                   FromDIP(20)
-
+#define FIX_SCROLL_IMAGE_WIDTH FromDIP(270)
 static void update_ui(wxWindow* window)
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(window);
@@ -128,20 +128,15 @@ void ObjColorDialog::on_dpi_changed(const wxRect &suggested_rect)
     this->Refresh();
 };
 
-ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
-                               std::vector<Slic3r::RGBA> &     input_colors,
-                               bool                            is_single_color,
-                               const std::vector<std::string> &extruder_colours,
-                               std::vector<unsigned char> &    filament_ids,
-                               unsigned char &                 first_extruder_id)
+ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours)
     : DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _(L("Obj file Import color")),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxDEFAULT_DIALOG_STYLE /* | wxRESIZE_BORDER*/)
-    , m_filament_ids(filament_ids)
-    , m_first_extruder_id(first_extruder_id)
+    , m_filament_ids(in_out.filament_ids)
+    , m_first_extruder_id(in_out.first_extruder_id)
 {
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
@@ -149,7 +144,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, -1));
 
-    m_panel_ObjColor = new ObjColorPanel(this, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
+     m_panel_ObjColor = new ObjColorPanel(this, in_out, extruder_colours);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
@@ -173,13 +168,16 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
 
     if (this->FindWindowById(wxID_OK, this)) {
         this->FindWindowById(wxID_OK, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {// if OK button is clicked..
-              m_panel_ObjColor->update_filament_ids();
+              m_panel_ObjColor->send_new_filament_to_ui();
               EndModal(wxID_OK);
             }, wxID_OK);
     }
     if (this->FindWindowById(wxID_CANCEL, this)) {
         update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-        this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxCANCEL); });
+        this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            m_panel_ObjColor->cancel_paint_color();
+           EndModal(wxCANCEL);
+            });
     }
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
 
@@ -187,31 +185,27 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
-ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
-                             std::vector<Slic3r::RGBA>&       input_colors,
-                             bool                             is_single_color,
-                             const std::vector<std::string>&  extruder_colours,
-                             std::vector<unsigned char> &    filament_ids,
-                             unsigned char &                 first_extruder_id)
+ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize /*,wxBORDER_RAISED*/)
-    , m_input_colors(input_colors)
-    , m_filament_ids(filament_ids)
-    , m_first_extruder_id(first_extruder_id)
+    , m_obj_in_out(in_out)
+    , m_input_colors(in_out.input_colors)
+    , m_filament_ids(in_out.filament_ids)
+    , m_first_extruder_id(in_out.first_extruder_id)
 {
-    if (input_colors.size() == 0) { return; }
+    if (in_out.input_colors.size() == 0) { return; }
     for (const std::string& color : extruder_colours) {
         m_colours.push_back(wxColor(color));
     }
     //deal input_colors
-    m_input_colors_size = input_colors.size();
-    for (size_t i = 0; i < input_colors.size(); i++) {
-        if (color_is_equal(input_colors[i] , UNDEFINE_COLOR)) { // not define color range:0~1
-            input_colors[i]=convert_to_rgba( m_colours[0]);
+    m_input_colors_size = in_out.input_colors.size();
+    for (size_t i = 0; i < in_out.input_colors.size(); i++) {
+        if (color_is_equal(in_out.input_colors[i], UNDEFINE_COLOR)) { // not define color range:0~1
+            in_out.input_colors[i] = convert_to_rgba(m_colours[0]);
         }
     }
-    if (is_single_color && input_colors.size() >=1) {
-        m_cluster_colors_from_algo.emplace_back(input_colors[0]);
-        m_cluster_colours.emplace_back(convert_to_wxColour(input_colors[0]));
+    if (in_out.is_single_color && in_out.input_colors.size() >= 1) {
+        m_cluster_colors_from_algo.emplace_back(in_out.input_colors[0]);
+        m_cluster_colours.emplace_back(convert_to_wxColour(in_out.input_colors[0]));
         m_cluster_labels_from_algo.reserve(m_input_colors_size);
         for (size_t i = 0; i < m_input_colors_size; i++) {
             m_cluster_labels_from_algo.emplace_back(0);
@@ -236,7 +230,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
     // BBS: for tunning flush volumes
     {
         //color cluster results
-        wxBoxSizer *  specify_cluster_sizer               = new wxBoxSizer(wxHORIZONTAL);
+        wxBoxSizer *  specify_cluster_sizer       = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *specify_color_cluster_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Specify number of colors:"));
         specify_color_cluster_title->SetFont(Label::Head_14);
         specify_cluster_sizer->Add(specify_color_cluster_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
@@ -290,7 +284,48 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
         specify_cluster_sizer->Add(recommend_color_cluster_title, 0, wxALIGN_CENTER | wxALL, 0);
 
         m_sizer_simple->Add(specify_cluster_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
+        {//add image
+            wxImage image(IMAGE_SIZE_WIDTH, IMAGE_SIZE_WIDTH);
+            image.InitAlpha();
+            for (unsigned int r = 0; r < IMAGE_SIZE_WIDTH; ++r) {
+                for (unsigned int c = 0; c < IMAGE_SIZE_WIDTH; ++c) {
+                    image.SetRGB((int) c, (int) r, 0, 255, 0);
+                    image.SetAlpha((int) c, (int) r, 255);
+                }
+            }
+            auto      icon_sizer     = new wxBoxSizer(wxHORIZONTAL);
+            m_image_button  = new wxButton(m_page_simple, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH)),
+                                          wxBORDER_NONE | wxBU_AUTODRAW);
+            m_image_button->SetBitmap(image);
+            m_image_button->SetCanFocus(false);
+            icon_sizer->Add(m_image_button, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL,
+                            FromDIP(0)); // wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL
 
+            m_sizer_simple->Add(icon_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(0));
+            {//choose camera view angle type
+                auto combox_sizer = new wxBoxSizer(wxHORIZONTAL);
+                wxStaticText *combox_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Choose camera view angle:"));
+                combox_sizer->Add(combox_title, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL, FromDIP(0));
+
+                wxStaticText *space_title = new wxStaticText(m_page_simple, wxID_ANY, "  ");
+                combox_sizer->Add(space_title, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(0));
+
+                auto cur_combox = new ComboBox(m_page_simple, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(100), -1), 0, NULL, wxCB_READONLY);
+                wxArrayString choices  = get_all_camera_view_type();
+                for (size_t i = 0; i < choices.size(); i++) {
+                    cur_combox->Append(choices[i]);
+                }
+                cur_combox->SetSelection(0);
+                cur_combox->Bind(wxEVT_COMBOBOX, [this](auto &e) {
+                    set_view_angle_type(e.GetSelection());
+                    Layout();
+                    Fit();
+                });
+                combox_sizer->Add(cur_combox, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL, FromDIP(0));
+
+                m_sizer_simple->Add(combox_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(2));
+            }
+        }
         wxBoxSizer *  current_filaments_title_sizer  = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *current_filaments_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Current filament colors:"));
         current_filaments_title->SetFont(Label::Head_14);
@@ -334,6 +369,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
         m_sizer_simple->AddSpacer(10);
     }
     deal_default_strategy();
+    deal_thumbnail();
     //page_simple//page_advanced
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_page_simple, 0, wxEXPAND, 0);
@@ -341,6 +377,9 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
     m_sizer->SetSizeHints(this);
     SetSizer(m_sizer);
     this->Layout();
+}
+
+ObjColorPanel::~ObjColorPanel() {
 }
 
 void ObjColorPanel::msw_rescale()
@@ -367,7 +406,7 @@ bool ObjColorPanel::is_ok() {
     return true;
 }
 
-void ObjColorPanel::update_filament_ids()
+void ObjColorPanel::send_new_filament_to_ui()
 {
     if (m_is_add_filament) {
         for (auto c : m_new_add_final_colors) {
@@ -376,6 +415,17 @@ void ObjColorPanel::update_filament_ids()
             wxGetApp().sidebar().add_custom_filament(c);
         }
     }
+}
+
+void ObjColorPanel::cancel_paint_color() {
+    m_filament_ids.clear();
+    auto mo = m_obj_in_out.model->objects[0];
+    auto mv = mo->volumes[0];
+    mv->mmu_segmentation_facets.reset();
+}
+
+void ObjColorPanel::update_filament_ids()
+{
    //deal m_filament_ids
    m_filament_ids.clear();
    m_filament_ids.reserve(m_input_colors_size);
@@ -651,7 +701,8 @@ void ObjColorPanel::draw_table()
         m_gridsizer->Add(row_panel, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
     }
     m_scrolledWindow->SetSizer(m_gridsizer);
-    int totalHeight = row_height *(row+1) * 2;
+    const int fix_row     = 4;
+    int       totalHeight = row_height * (fix_row + 1) * 2;
     m_scrolledWindow->SetVirtualSize(MIN_OBJCOLOR_DIALOG_WIDTH, totalHeight);
     auto look = FIX_SCROLL_HEIGTH;
     if (totalHeight > FIX_SCROLL_HEIGTH) {
@@ -674,6 +725,9 @@ void ObjColorPanel::update_new_add_final_colors()
     } else {
         m_new_add_final_colors.resize(m_max_filament_index - m_colours.size());
     }
+    if (m_new_add_final_colors.size() > 0) {
+        m_is_add_filament = true;
+    }
 }
 
 void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
@@ -681,6 +735,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     if (m_last_cluster_number == cluster_number) {
         return;
     }
+    wxBusyCursor cursor;
     m_last_cluster_number = cluster_number;
     obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number);
 
@@ -702,6 +757,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     if (redraw_ui) {
         redraw_part_table();
         deal_default_strategy();
+        deal_thumbnail();
     }
 }
 
@@ -710,6 +766,76 @@ void ObjColorPanel::deal_default_strategy()
     deal_add_btn();
     deal_approximate_match_btn();
     m_warning_text->SetLabelText(_L("Note: The color has been selected, you can choose OK \nto continue or manually adjust it."));
+}
+
+void ObjColorPanel::deal_thumbnail() {
+    update_filament_ids();
+    // generate model volume
+    m_deal_thumbnail_flag= false;
+    if (m_obj_in_out.deal_vertex_color) {
+        if (m_obj_in_out.filament_ids.size() > 0) {
+            m_deal_thumbnail_flag = Model::obj_import_vertex_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model);
+        }
+    } else {
+        if (m_obj_in_out.filament_ids.size() > 0) {
+            m_deal_thumbnail_flag = Model::obj_import_face_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model);
+        }
+    }
+    generate_thumbnail();
+}
+
+void ObjColorPanel::generate_thumbnail()
+{
+    if (m_deal_thumbnail_flag && m_obj_in_out.model->objects.size() == 1) {
+        auto mo = m_obj_in_out.model->objects[0];
+        mo->add_instance();
+        std::vector<Slic3r::ColorRGBA> colors = GUI::wxGetApp().plater()->get_extruders_colors();
+        for (size_t i = 0; i < m_new_add_final_colors.size(); i++) {
+            Slic3r::ColorRGBA temp_color;
+            temp_color[0] = m_new_add_final_colors[i].Red() /255.f;
+            temp_color[1] = m_new_add_final_colors[i].Green() / 255.f;
+            temp_color[2] = m_new_add_final_colors[i].Blue() / 255.f;
+            temp_color[3] = m_new_add_final_colors[i].Alpha() / 255.f;
+            colors.emplace_back(temp_color);
+        }
+        auto mv = mo->volumes[0];
+        auto box = mo->bounding_box_approx();
+        if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
+            mv->translate(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
+        }
+        wxGetApp().plater()->update_obj_preview_thumbnail(mo, 0, 0, colors, (int)m_camera_view_angle_type);
+        mo->clear_instances();
+        // get thumbnail image
+        PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_plate(0);
+        auto &     data  = plate->obj_preview_thumbnail_data;
+        if (data.is_valid()) {
+            wxImage image(data.width, data.height);
+            image.InitAlpha();
+            for (unsigned int r = 0; r < data.height; ++r) {
+                unsigned int rr = (data.height - 1 - r) * data.width;
+                for (unsigned int c = 0; c < data.width; ++c) {
+                    unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
+                    image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
+                    image.SetAlpha((int) c, (int) r, px[3]);
+                }
+            }
+            image = image.Rescale(FromDIP(IMAGE_SIZE_WIDTH), FromDIP(IMAGE_SIZE_WIDTH));
+            m_image_button->SetBitmap(image);
+        }
+    }
+    else {
+#ifdef _WIN32
+        __debugbreak();
+#endif
+    }
+}
+
+void ObjColorPanel::set_view_angle_type(int value)
+{
+    if (value >= 0){
+        m_camera_view_angle_type = (Slic3r::GUI::Camera::ViewAngleType)value;
+        generate_thumbnail();
+    }
 }
 
 void ObjColorPanel::deal_add_btn()
@@ -749,7 +875,6 @@ void ObjColorPanel::deal_add_btn()
         deal_approximate_match_btn();
         m_warning_text->SetLabelText(_L("Warning: The count of newly added and \ncurrent extruders exceeds 16."));
     }
-    m_is_add_filament = true;
 }
 
 void ObjColorPanel::deal_reset_btn()

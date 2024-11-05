@@ -2145,17 +2145,22 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
                                   unsigned int            h,
                                   const ThumbnailsParams &thumbnail_params,
                                   Camera::EType           camera_type,
-                                  bool                    use_top_view,
+                                  Camera::ViewAngleType   camera_view_angle_type,
                                   bool                    for_picking,
                                   bool                    ban_light)
 {
-    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type, use_top_view, for_picking, ban_light);
+    ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
+    render_thumbnail(thumbnail_data, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
+                                  unsigned int              w,
+                                  unsigned int              h,
+                                  const ThumbnailsParams &  thumbnail_params,
+                                  ModelObjectPtrs &         model_objects,
                                   const GLVolumeCollection &volumes,
                                   Camera::EType             camera_type,
-                                  bool                      use_top_view,
+                                  Camera::ViewAngleType     camera_view_angle_type,
                                   bool                      for_picking,
                                   bool                      ban_light)
 {
@@ -2164,24 +2169,55 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
         shader = wxGetApp().get_shader("flat");
     else
         shader = wxGetApp().get_shader("thumbnail");
-    ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = wxGetApp().plater()->get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
     {
     case OpenGLManager::EFramebufferType::Arb:
         { render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
-                                     use_top_view, for_picking, ban_light);
+                                     camera_view_angle_type, for_picking, ban_light);
         break;
     }
     case OpenGLManager::EFramebufferType::Ext:
         { render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
-                                         use_top_view, for_picking, ban_light);
+                                         camera_view_angle_type, for_picking, ban_light);
         break;
     }
-    default:
-        { render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type);
+    default:{
+        render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
+                                camera_view_angle_type, for_picking, ban_light);
         break;
     }
+    }
+}
+
+void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_data,
+                                  std::vector<ColorRGBA> &           extruder_colors,
+                                  unsigned int                       w,
+                                  unsigned int                       h,
+                                  const ThumbnailsParams &           thumbnail_params,
+                                  ModelObjectPtrs &                  model_objects,
+                                  const GLVolumeCollection &         volumes,
+                                  Camera::EType                      camera_type,
+                                  Camera::ViewAngleType              camera_view_angle_type,
+                                  bool                               for_picking,
+                                  bool                               ban_light)
+{
+    GLShaderProgram *shader = wxGetApp().get_shader("thumbnail");
+    switch (OpenGLManager::get_framebuffers_type()) {
+        case OpenGLManager::EFramebufferType::Arb: {
+            render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
+                                         camera_type, camera_view_angle_type, for_picking, ban_light);
+            break;
+        }
+        case OpenGLManager::EFramebufferType::Ext: {
+            render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
+                                             camera_type, camera_view_angle_type, for_picking, ban_light);
+            break;
+        }
+        default: {
+            render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type, for_picking, ban_light);
+            break;
+        }
     }
 }
 
@@ -5950,55 +5986,59 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 
 void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking, bool ban_light)
+                                           GLShaderProgram *                  shader,
+                                           Camera::EType                      camera_type,
+                                           Camera::ViewAngleType              camera_view_angle_type,
+                                           bool                               for_picking,
+                                           bool                               ban_light)
 {
     //BBS modify visible calc function
-    int plate_idx = thumbnail_params.plate_id;
-    PartPlate* plate = partplate_list.get_plate(plate_idx);
-    BoundingBoxf3 plate_build_volume = plate->get_build_volume();
-    plate_build_volume.min(0) -= Slic3r::BuildVolume::SceneEpsilon;
-    plate_build_volume.min(1) -= Slic3r::BuildVolume::SceneEpsilon;
-    plate_build_volume.min(2) -= Slic3r::BuildVolume::SceneEpsilon;
-    plate_build_volume.max(0) += Slic3r::BuildVolume::SceneEpsilon;
-    plate_build_volume.max(1) += Slic3r::BuildVolume::SceneEpsilon;
-    plate_build_volume.max(2) += Slic3r::BuildVolume::SceneEpsilon;
-    /*if (m_config != nullptr) {
-        double h = m_config->opt_float("printable_height");
-        plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
-        plate_build_volume.max(2) = std::max(plate_build_volume.max(2), h);
-    }*/
+    static ColorRGBA                  curr_color;
+    static const std::array<float, 4> orange = {0.923f, 0.504f, 0.264f, 1.0f};
+    static const std::array<float, 4> gray   = {0.64f, 0.64f, 0.64f, 1.0f};
+    GLVolumePtrs                      visible_volumes;
+    BoundingBoxf3                     plate_build_volume;
+    if (thumbnail_params.use_plate_box) {
+        int           plate_idx          = thumbnail_params.plate_id;
+        PartPlate *   plate              = partplate_list.get_plate(plate_idx);
+        plate_build_volume = plate->get_build_volume();
+        plate_build_volume.min(0) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.min(1) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.min(2) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(0) += Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(1) += Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(2) += Slic3r::BuildVolume::SceneEpsilon;
+        /*if (m_config != nullptr) {
+            double h = m_config->opt_float("printable_height");
+            plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
+            plate_build_volume.max(2) = std::max(plate_build_volume.max(2), h);
+        }*/
 
-    auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
-        bool ret = v.printable;
-        if (plate_idx >= 0) {
-            bool contained = false;
-            BoundingBoxf3 plate_bbox = plate_build_volume;
-            plate_bbox.min(2) = -1e10;
-            const BoundingBoxf3& volume_bbox = v.transformed_convex_hull_bounding_box();
-            if (plate_bbox.contains(volume_bbox) && (volume_bbox.max(2) > 0)) {
-                contained = true;
+        auto is_visible = [plate_idx, plate_build_volume](const GLVolume &v) {
+            bool ret = v.printable;
+            if (plate_idx >= 0) {
+                bool          contained          = false;
+                BoundingBoxf3 plate_bbox         = plate_build_volume;
+                plate_bbox.min(2)                = -1e10;
+                const BoundingBoxf3 &volume_bbox = v.transformed_convex_hull_bounding_box();
+                if (plate_bbox.contains(volume_bbox) && (volume_bbox.max(2) > 0)) { contained = true; }
+                ret &= contained;
+            } else {
+                ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
             }
-            ret &= contained;
-        }
-        else {
-            ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
-        }
-        return ret;
-    };
+            return ret;
+        };
 
-    static ColorRGBA curr_color;
-
-    GLVolumePtrs visible_volumes;
-
-    for (GLVolume* vol : volumes.volumes) {
-        if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
-            if (is_visible(*vol)) {
-                visible_volumes.emplace_back(vol);
+        for (GLVolume *vol : volumes.volumes) {
+            if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
+                if (is_visible(*vol)) { visible_volumes.emplace_back(vol); }
             }
         }
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx %
+                                       visible_volumes.size() % shader % (int)camera_view_angle_type % for_picking;
+    } else {
+        visible_volumes = volumes.volumes;
     }
-
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx % visible_volumes.size() %shader %use_top_view %for_picking;
     //BoundingBoxf3 volumes_box = plate_build_volume;
     BoundingBoxf3 volumes_box;
     volumes_box.min.z() = 0;
@@ -6016,14 +6056,17 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     volumes_box.min.x() = volumes_box.min.x() - width * 0.01f;
     volumes_box.max.y() = volumes_box.max.y() + depth * 0.01f;
     volumes_box.min.y() = volumes_box.min.y() - depth * 0.01f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.01f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.01f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.02f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.02f;
 
     Camera camera;
     camera.set_type(camera_type);
     //BBS modify scene box to plate scene bounding box
     //plate_build_volume.min(2) = - plate_build_volume.max(2);
-    camera.set_scene_box(plate_build_volume);
+    if (thumbnail_params.use_plate_box) {
+        camera.set_scene_box(plate_build_volume);
+    }
+
     camera.set_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.apply_viewport();
 
@@ -6031,7 +6074,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //plate_box.min.z() = 0.0;
     //plate_box.max.z() = 0.0;
 
-    if (use_top_view) {
+    if (camera_view_angle_type == Camera::ViewAngleType::Top_Plate) {
         float center_x = (plate_build_volume.max(0) + plate_build_volume.min(0))/2;
         float center_y = (plate_build_volume.max(1) + plate_build_volume.min(1))/2;
         float distance_z = plate_build_volume.max(2) - plate_build_volume.min(2);
@@ -6046,13 +6089,17 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //camera.select_view("top");
     }
     else {
-        camera.select_view("iso");
+        camera.select_view(camera_view_angle_type);
         camera.zoom_to_box(volumes_box);
     }
 
     const Transform3d &view_matrix = camera.get_view_matrix();
-
-    camera.apply_projection(plate_build_volume);
+    if (thumbnail_params.use_plate_box) {
+        camera.apply_projection(plate_build_volume);
+    }
+    else {
+        camera.apply_projection(volumes_box);
+    }
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (!for_picking && (shader == nullptr)) {
@@ -6168,7 +6215,11 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
 void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking, bool ban_light)
+                                              GLShaderProgram *                  shader,
+                                              Camera::EType                      camera_type,
+                                              Camera::ViewAngleType              camera_view_angle_type,
+                                              bool                               for_picking,
+                                              bool                               ban_light)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -6221,8 +6272,8 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader,
-                                  camera_type, use_top_view, for_picking,ban_light);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
+                                  for_picking, ban_light);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -6277,7 +6328,11 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
 
 void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking, bool ban_light)
+                                                  GLShaderProgram *                  shader,
+                                                  Camera::EType                      camera_type,
+                                                  Camera::ViewAngleType              camera_view_angle_type,
+                                                  bool                               for_picking,
+                                                  bool                               ban_light)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -6329,7 +6384,8 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, use_top_view, for_picking,
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
+                                  for_picking,
                                   ban_light);
 
         if (multisample) {
@@ -6380,7 +6436,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
 }
 
 void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type,
-                                         bool                               use_top_view,
+                                         Camera::ViewAngleType              camera_view_angle_type,
                                          bool                               for_picking,
                                          bool                               ban_light)
 {
@@ -6398,7 +6454,8 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
     if (!thumbnail_data.is_valid())
         return;
 
-    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list,  model_objects, volumes, extruder_colors, shader, camera_type);
+    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type, for_picking,
+                              ban_light);
 
     glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
