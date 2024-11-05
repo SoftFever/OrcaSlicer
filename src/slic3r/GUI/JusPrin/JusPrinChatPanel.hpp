@@ -23,6 +23,7 @@ public:
     virtual ~JusPrinChatPanel();
     void reload();
     void UpdateOAuthAccessToken();
+    void RefreshPlaterStatus();
 
 private:
     void load_url();
@@ -45,19 +46,21 @@ private:
     void handle_switch_to_classic_mode(const nlohmann::json& params);
     void handle_show_login(const nlohmann::json& params);
     void handle_start_slicer_all(const nlohmann::json& params);
+    void handle_export_gcode(const nlohmann::json& params);
 
     // Actions to fetch info to be sent to the web page
-    void handle_refresh_presets_state(const nlohmann::json& params);
-    void handle_refresh_plater_state(const nlohmann::json& params);
+    void handle_refresh_presets(const nlohmann::json& params);
+    void handle_refresh_plater_config(const nlohmann::json& params);
 
 private:
     void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
-    nlohmann::json GetPlaterJson();
-    void RefreshPresetsState();
-    void RefreshPlaterState();
+    nlohmann::json GetPlaterConfigJson();
     void ApplyConfig(const nlohmann::json& item);
+    void RefreshPresets();
+    void RefreshPlaterConfig();
+    void AdvertiseSupportedAction();
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
     void FetchProperty(Preset::Type preset_type);
