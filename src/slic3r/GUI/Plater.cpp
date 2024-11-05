@@ -774,7 +774,7 @@ void Sidebar::priv::sync_extruder_list()
 
     std::string machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    std::string target_model_id  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     if (machine_print_name != target_model_id) {
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
                                             "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);
@@ -783,23 +783,26 @@ void Sidebar::priv::sync_extruder_list()
         }
     }
 
-    int left_4 = 0, right_4 = 0, left_1 = 0, right_1 = 0;
+    int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
         if (ams.second->nozzle == 0) {
             if (ams.second->type == 4) // N3S
-                ++right_1;
+                ++main_1;
             else
-                ++right_4;
+                ++main_4;
         } else if (ams.second->nozzle == 1) {
             if (ams.second->type == 4) // N3S
-                ++left_1;
+                ++deputy_1;
             else
-                ++left_4;
+                ++deputy_4;
         }
     }
-    AMSCountPopupWindow::SetAMSCount(0, left_4, left_1);
-    AMSCountPopupWindow::SetAMSCount(1, right_4, right_1);
+
+    int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
+    int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
+    AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
+    AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, m_left_ams_count);
     AMSCountPopupWindow::UpdateAMSCount(1, m_right_ams_count);
 }
