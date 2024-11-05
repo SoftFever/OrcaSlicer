@@ -1563,9 +1563,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_modelID->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
     m_input_modelID->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
-    auto models = DeviceManager::get_all_model_id();
-    for (int i = 0; i < models.size(); i++) {
-        m_input_modelID->Append(models[i]);
+    m_models_map = DeviceManager::get_all_model_id_with_name();
+    for (auto it = m_models_map.begin(); it != m_models_map.end(); ++it) {
+        m_input_modelID->Append(it->right);
         m_input_modelID->SetSelection(0);
     }
 
@@ -1883,7 +1883,12 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
     std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
     std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().ToStdString();
-    std::string str_model_id = m_input_modelID->GetStringSelection().ToStdString();
+    std::string str_model_id = "";
+
+    auto it = m_models_map.right.find(m_input_modelID->GetStringSelection().ToStdString());
+    if (it != m_models_map.right.end()) {
+        str_model_id = it->get_left();
+    }
 
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));

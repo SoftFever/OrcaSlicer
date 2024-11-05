@@ -314,6 +314,7 @@ public:
     int    m_result;
     int    current_input_index {0};
     std::shared_ptr<BBLStatusBarSend>  m_status_bar;
+    boost::bimaps::bimap<std::string, std::string> m_models_map;
 
     void switch_input_panel(int index);
     void on_cancel();

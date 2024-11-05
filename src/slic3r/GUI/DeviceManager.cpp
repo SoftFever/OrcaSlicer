@@ -5999,9 +5999,9 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
     return compatible_machine;
 }
 
-std::vector<std::string> DeviceManager::get_all_model_id()
+boost::bimaps::bimap<std::string, std::string> DeviceManager::get_all_model_id_with_name()
 {
-    std::vector<std::string> models;
+    boost::bimaps::bimap<std::string, std::string> models;
     std::vector<wxString> m_files;
 
     wxDir dir(Slic3r::resources_dir() + "/printers/");
@@ -6026,8 +6026,14 @@ std::vector<std::string> DeviceManager::get_all_model_id()
                 json_file >> jj;
                 if (jj.contains("00.00.00.00")) {
                     json const &printer = jj["00.00.00.00"];
-                    if (printer.contains("model_id")) {
-                        for (auto res : printer["model_id"]) models.emplace_back(res.get<std::string>());
+
+                    std::string model_id;
+                    std::string display_name;
+                    if (printer.contains("model_id")) {model_id = printer["model_id"].get<std::string>();}
+                    if (printer.contains("display_name")) {display_name = printer["display_name"].get<std::string>();}
+
+                    if (!model_id.empty() && !display_name.empty()) {
+                        models.left.insert(make_pair(model_id, display_name));
                     }
                 }
             }
