@@ -35,6 +35,16 @@ static std::string MachineBedTypeString[7] = {
 };
 
 
+wxString get_nozzle_volume_type_name(NozzleVolumeType type)
+{
+    if (NozzleVolumeType::nvtNormal == type) {
+        return _L("Normal");
+    } else if (NozzleVolumeType::nvtBigTraffic == type) {
+        return _L("BigTraffic");
+    }
+    return wxString();
+}
+
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {
     switch(cali_mode) {

@@ -232,6 +232,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
         if (nozzle_value > 0) {
             PACalibExtruderInfo cali_info;
             cali_info.nozzle_diameter = nozzle_value;
+            cali_info.use_nozzle_volume_type = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";

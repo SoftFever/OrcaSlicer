@@ -140,6 +140,7 @@ struct PACalibExtruderInfo
     NozzleVolumeType nozzle_volume_type;
     float            nozzle_diameter;
     std::string      filament_id = "";
+    bool             use_nozzle_volume_type{true};
 };
 
 struct PACalibTabInfo

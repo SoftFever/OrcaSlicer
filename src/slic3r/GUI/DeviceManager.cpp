@@ -194,6 +194,41 @@ void split_string(std::string s, std::vector<std::string>& v) {
     v.push_back(t);
 }
 
+wxString generate_nozzle_id(NozzleVolumeType nozzle_type, const std::string& diameter)
+{
+    // HS00-0.4
+    std::string nozzle_id = "H";
+    switch (nozzle_type) {
+    case NozzleVolumeType::nvtNormal: {
+        nozzle_id += "S";
+        break;
+    }
+    case NozzleVolumeType::nvtBigTraffic: {
+        nozzle_id += "H";
+        break;
+    }
+    default: break;
+    }
+    nozzle_id += "00";
+    nozzle_id += "-";
+    nozzle_id += diameter;
+    return nozzle_id;
+}
+
+NozzleVolumeType convert_to_nozzle_type(const std::string &str)
+{
+    if (str.size() < 8) {
+        assert(false);
+        return NozzleVolumeType::nvtNormal;
+    }
+    NozzleVolumeType res = NozzleVolumeType::nvtNormal;
+    if (str[1] == 'S')
+        res = NozzleVolumeType::nvtNormal;
+    else if (str[1] == 'H')
+        res = NozzleVolumeType::nvtBigTraffic;
+    return res;
+}
+
 PrinterArch get_printer_arch_by_str(std::string arch_str)
 {
     if (arch_str == "i3") {
@@ -2159,8 +2194,8 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
         j["print"]["filaments"][i]["ams_id"]               = pa_data.calib_datas[i].ams_id;
         j["print"]["filaments"][i]["slot_id"]              = pa_data.calib_datas[i].slot_id;
-        j["print"]["filaments"][i]["nozzle_volume_type"]   = int(pa_data.calib_datas[i].nozzle_volume_type);
-        j["print"]["filaments"][i]["nozzle_diameter"]      = pa_data.calib_datas[i].nozzle_diameter;
+        j["print"]["filaments"][i]["nozzle_id"]            = generate_nozzle_id(pa_data.calib_datas[i].nozzle_volume_type,to_string_nozzle_diameter(pa_data.calib_datas[i].nozzle_diameter)).ToStdString();
+        j["print"]["filaments"][i]["nozzle_diameter"]      = to_string_nozzle_diameter(pa_data.calib_datas[i].nozzle_diameter);
         j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
 
         if (i > 0) filament_ids += ",";
@@ -2199,7 +2234,8 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["cali_idx"] = pa_calib_values[i].cali_idx;
             j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
             j["print"]["filaments"][i]["extruder_id"] = pa_calib_values[i].extruder_id;
-            j["print"]["filaments"][i]["nozzle_volume_type"] = int(pa_calib_values[i].nozzle_volume_type);
+            j["print"]["filaments"][i]["nozzle_id"]   = generate_nozzle_id(pa_calib_values[i].nozzle_volume_type, to_string_nozzle_diameter(pa_calib_values[i].nozzle_diameter)).ToStdString();
+            j["print"]["filaments"][i]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_values[i].nozzle_diameter);
             j["print"]["filaments"][i]["ams_id"]      = pa_calib_values[i].ams_id;
             j["print"]["filaments"][i]["slot_id"]     = pa_calib_values[i].slot_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
@@ -2225,7 +2261,7 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["command"]         = "extrusion_cali_del";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["extruder_id"]     = pa_calib.extruder_id;
-    j["print"]["nozzle_volume_type"]     = int(pa_calib.nozzle_volume_type);
+    j["print"]["nozzle_id"]       = generate_nozzle_id(pa_calib.nozzle_volume_type, to_string_nozzle_diameter(pa_calib.nozzle_diameter)).ToStdString();
     j["print"]["filament_id"]     = pa_calib.filament_id;
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
@@ -2243,7 +2279,8 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["filament_id"]     = calib_info.filament_id;
     j["print"]["extruder_id"]     = calib_info.extruder_id;
-    j["print"]["nozzle_volume_type"]    = int(calib_info.nozzle_volume_type);
+    if (calib_info.use_nozzle_volume_type)
+        j["print"]["nozzle_id"] = generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();

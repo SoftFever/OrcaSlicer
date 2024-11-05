@@ -78,5 +78,6 @@ private:
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
+extern wxString get_nozzle_volume_type_name(NozzleVolumeType type);
 }
 }
