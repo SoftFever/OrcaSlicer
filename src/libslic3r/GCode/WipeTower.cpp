@@ -821,9 +821,6 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
     writer.speed_override_backup();
 	writer.speed_override(100);
 
-    Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
-    writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
-
     // Increase the extruder driver current to allow fast ramming.
     //BBS
 	//if (m_set_extruder_trimpot)
@@ -870,15 +867,23 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             }
         }
 
-        {
-            writer.travel(initial_position - Vec2f(0.5, 0.5));
-            writer.travel(initial_position);
-        }
-        toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+        Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
+        writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
         if (extrude_perimeter) {
             box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED) ? m_layer_info->toolchanges_depth() - m_layer_info->depth : 0.f), m_wipe_tower_width,
                                    m_layer_info->depth + m_perimeter_width);
+
+            Vec2f pos = initial_position;
+            switch (m_cur_layer_id % 4) {
+            case 0: pos = wt_box.ld; break;
+            case 1: pos = wt_box.rd; break;
+            case 2: pos = wt_box.ru; break;
+            case 3: pos = wt_box.lu; break;
+            default: break;
+            }
+            writer.set_initial_position(pos, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
+
             // align the perimeter
 
             Vec2f pos = initial_position;
@@ -907,7 +912,9 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             writer.travel(Vec2f(0, 0));
             writer.travel(initial_position);
         }
+
         toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
         ++ m_num_tool_changes;
     } else
@@ -997,9 +1004,9 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
     // now the wiping itself:
     for (int i = 0; true; ++i) {
         if (m_left_to_right)
-            writer.extrude(xr + 0.25f * m_perimeter_width, writer.y(), nozzle_change_speed);
+            writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), nozzle_change_speed);
         else
-            writer.extrude(xl - 0.25f * m_perimeter_width, writer.y(), nozzle_change_speed);
+            writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), nozzle_change_speed);
 
         if (writer.y() - float(EPSILON) > cleaning_box.lu.y())
             break; // in case next line would not fit
