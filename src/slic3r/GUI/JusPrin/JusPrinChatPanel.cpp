@@ -66,6 +66,12 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
+void JusPrinChatPanel::reload() { m_browser->Reload(); }
+
+void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
+
+void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
+
 void JusPrinChatPanel::init_action_handlers() {
     action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
@@ -74,9 +80,10 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
+    action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
 
-    action_handlers["refresh_presets_state"] = &JusPrinChatPanel::handle_refresh_presets_state;
-    action_handlers["refresh_plater_state"] = &JusPrinChatPanel::handle_refresh_plater_state;
+    action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
+    action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
 
 void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
@@ -87,12 +94,12 @@ void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
     wxGetApp().show_jusprin_login();
 }
 
-void JusPrinChatPanel::handle_refresh_presets_state(const nlohmann::json& params) {
-    RefreshPresetsState();
+void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {
+    RefreshPresets();
 }
 
-void JusPrinChatPanel::handle_refresh_plater_state(const nlohmann::json& params) {
-    RefreshPlaterState();
+void JusPrinChatPanel::handle_refresh_plater_config(const nlohmann::json& params) {
+    RefreshPlaterConfig();
 }
 
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
@@ -136,7 +143,7 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         BOOST_LOG_TRIVIAL(error) << "handle_select_preset: error selecting preset " << e.what();
     }
 
-    RefreshPresetsState(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
+    RefreshPresets(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
 
     // Start a few chat session when printer or filament preset changes to make things simpler for now
     if (preset_type == Preset::Type::TYPE_PRINTER || preset_type == Preset::Type::TYPE_FILAMENT) {
@@ -212,6 +219,11 @@ void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
     wxGetApp().mainframe->start_slicer_all();
 }
 
+void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
+    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+    plater->export_gcode(false);
+}
+
 void JusPrinChatPanel::load_url()
 {
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
@@ -226,6 +238,9 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
         "    window.setJusPrinEmbeddedChatOauthAccessToken('%s');"
         "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
+
     WebView::RunScript(m_browser, strJS);
 }
 
@@ -235,11 +250,13 @@ void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const 
         "    window.updateJusPrinEmbeddedChatState('%s', %s);"
         "}",
         state_key, state_value);
+
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
+
     WebView::RunScript(m_browser, strJS);
 }
 
-void JusPrinChatPanel::RefreshPresetsState() {
+void JusPrinChatPanel::RefreshPresets() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
     nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
@@ -253,16 +270,21 @@ void JusPrinChatPanel::RefreshPresetsState() {
     UpdateEmbeddedChatState("presets", allPresetsStr);
 }
 
-void JusPrinChatPanel::RefreshPlaterState() {
-    nlohmann::json platerJson = GetPlaterJson();
-    UpdateEmbeddedChatState("plater", platerJson.dump());
+void JusPrinChatPanel::RefreshPlaterConfig() {
+    nlohmann::json platerJson = GetPlaterConfigJson();
+    UpdateEmbeddedChatState("platerConfig", platerJson.dump());
 }
 
-void JusPrinChatPanel::reload() { m_browser->Reload(); }
+void JusPrinChatPanel::RefreshPlaterStatus() {
+    nlohmann::json j = nlohmann::json::object();
+    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
 
-void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
+    j["currentPlate"] = nlohmann::json::object();
+    j["currentPlate"]["gCodeCanExport"] = plater->get_partplate_list().get_curr_plate()->is_slice_result_ready_for_export();
 
-void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
+    UpdateEmbeddedChatState("platerStatus", j.dump());
+}
+
 
 nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(type);
@@ -287,12 +309,13 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     return PresetsToJSON(presets);
 }
 
-nlohmann::json JusPrinChatPanel::GetPlaterJson()
+nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
 {
     nlohmann::json j = nlohmann::json::object();
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
 
     j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
+    j["currentPlate"] = nlohmann::json::object();
 
     j["modelObjects"] = nlohmann::json::array();
 
@@ -327,14 +350,23 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
 
     UpdateOAuthAccessToken();
-    RefreshPresetsState();
-    RefreshPlaterState();
+    RefreshPresets();
+    RefreshPlaterConfig();
+    AdvertiseSupportedAction();
 }
 
 void JusPrinChatPanel::OnPlaterChanged() {
     reload();
 }
 
+
+void JusPrinChatPanel::AdvertiseSupportedAction() {
+    nlohmann::json action_handlers_json = nlohmann::json::array();
+    for (const auto& [action, handler] : action_handlers) {
+        action_handlers_json.push_back(action);
+    }
+    UpdateEmbeddedChatState("supportedActions", action_handlers_json.dump());
+}
 
 // TODO: Clean up the code below this line
 

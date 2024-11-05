@@ -75,15 +75,15 @@ namespace instance_check_internal
 				ret.should_send = false;
 			else
 				arguments.emplace_back(token);
-		} 
+		}
 		ret.cl_string = escape_strings_cstyle(arguments);
-		BOOST_LOG_TRIVIAL(debug) << "single instance: " << 
+		BOOST_LOG_TRIVIAL(debug) << "single instance: " <<
             (ret.should_send.has_value() ? (*ret.should_send ? "true" : "false") : "undefined") <<
 			". other params: " << ret.cl_string;
 		return ret;
 	}
 
-	
+
 
 #ifdef _WIN32
 
@@ -107,7 +107,7 @@ namespace instance_check_internal
 		std::wstring wndTextString(wndText);
 		if (wndTextString.find(L"OrcaSlicer") != std::wstring::npos && classNameString == L"wxWindowNR") {
 			//check if other instances has same instance hash
-			//if not it is not same version(binary) as this version 
+			//if not it is not same version(binary) as this version
 			HANDLE   handle = GetProp(hwnd, L"Instance_Hash_Minor");
 			uint64_t other_instance_hash = PtrToUint(handle);
 			uint64_t other_instance_hash_major;
@@ -146,12 +146,12 @@ namespace instance_check_internal
 			data_to_send.cbData = sizeof(TCHAR) * (wcslen(*command_line_args.get()) + 1);
 			data_to_send.lpData = *command_line_args.get();
 			SendMessage(l_bambu_studio_hwnd, WM_COPYDATA, 0, (LPARAM)&data_to_send);
-			return true;  
+			return true;
 		}
 	    return false;
 	}
 
-#else 
+#else
 
 	static bool get_lock(const std::string& name, const std::string& path)
 	{
@@ -201,7 +201,7 @@ namespace instance_check_internal
 	    	//	BOOST_LOG_TRIVIAL(error) << "success delete lockfile " << path;
 #ifdef __APPLE__
 	   		send_message_mac_closing(GUI::wxGetApp().get_instance_hash_string(),GUI::wxGetApp().get_instance_hash_string());
-#endif	    
+#endif
 		}
 	}
 
@@ -212,7 +212,7 @@ namespace instance_check_internal
 	{
 		//std::string v(version);
 		//std::replace(v.begin(), v.end(), '.', '-');
-		//if (!instance_check_internal::get_lock(v)) 
+		//if (!instance_check_internal::get_lock(v))
 		{
 			send_message_mac(message_text, version);
 			return true;
@@ -237,10 +237,10 @@ namespace instance_check_internal
 			dbus_uint32_t 	serial = 0;
 			const char* sigval = message_text.c_str();
 			//std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck";
-			std::string		interface_name = "io.obico.jusprint.InstanceCheck.Object" + version;
+			std::string		interface_name = "io.obico.jusprin.InstanceCheck.Object" + version;
 			std::string   	method_name = "AnotherInstance";
 			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
-			std::string		object_name = "/io/obico/jusprint/InstanceCheck/Object" + version;
+			std::string		object_name = "/io/obico/jusprin/InstanceCheck/Object" + version;
 
 
 			// initialise the error value
@@ -291,7 +291,7 @@ namespace instance_check_internal
 			BOOST_LOG_TRIVIAL(trace) << "DBus message sent.";
 
 			// free the message and close the connection
-			dbus_message_unref(msg);                                                                                                                                                                                    
+			dbus_message_unref(msg);
 			dbus_connection_unref(conn);
 			return true;
 		}
@@ -320,7 +320,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 				hashed_path = std::hash<std::string>{}(appimage_path.string());
 				appimage_env_valid = true;
 			}
-		} catch (std::exception &) {			
+		} catch (std::exception &) {
 		}
 		if (! appimage_env_valid)
 			BOOST_LOG_TRIVIAL(error) << "APPIMAGE environment variable was set, but it does not point to a valid file: " << appimage_env;
@@ -353,7 +353,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && *cla.should_send) {
 #endif
 		instance_check_internal::send_message(cla.cl_string, lock_name);
-		BOOST_LOG_TRIVIAL(error) << "Instance check: Another instance found. This instance will terminate. Lock file of current running instance is located at " << data_dir() << 
+		BOOST_LOG_TRIVIAL(error) << "Instance check: Another instance found. This instance will terminate. Lock file of current running instance is located at " << data_dir() <<
 #ifdef _WIN32
 			"\\cache\\"
 #else // mac & linx
@@ -363,7 +363,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 		return true;
 	}
 	BOOST_LOG_TRIVIAL(info) << "Instance check: Another instance not found or single-instance not set.";
-	
+
 	return false;
 }
 
@@ -378,7 +378,7 @@ void OtherInstanceMessageHandler::init(wxEvtHandler* callback_evt_handler)
 {
 	assert(!m_initialized);
 	assert(m_callback_evt_handler == nullptr);
-	if (m_initialized) 
+	if (m_initialized)
 		return;
 
 	m_initialized = true;
@@ -428,7 +428,7 @@ void OtherInstanceMessageHandler::shutdown(MainFrame* main_frame)
 	}
 }
 
-#ifdef _WIN32 
+#ifdef _WIN32
 void OtherInstanceMessageHandler::init_windows_properties(MainFrame* main_frame, size_t instance_hash)
 {
 	size_t       minor_hash = instance_hash & 0xFFFFFFFF;
@@ -487,7 +487,7 @@ namespace MessageHandlerInternal
 	}
 } //namespace MessageHandlerInternal
 
-void OtherInstanceMessageHandler::handle_message(const std::string& message) 
+void OtherInstanceMessageHandler::handle_message(const std::string& message)
 {
 	BOOST_LOG_TRIVIAL(info) << "message from other instance: " << message;
 
@@ -527,7 +527,7 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 }
 
 #ifdef __APPLE__
-void OtherInstanceMessageHandler::handle_message_other_closed() 
+void OtherInstanceMessageHandler::handle_message_other_closed()
 {
 	instance_check_internal::get_lock(wxGetApp().get_instance_hash_string() + ".lock", data_dir() + "/cache/");
 }
@@ -538,7 +538,7 @@ void OtherInstanceMessageHandler::handle_message_other_closed()
 namespace MessageHandlerDBusInternal
 {
 	//reply to introspect makes our DBus object visible for other programs like D-Feet
-	static void respond_to_introspect(DBusConnection *connection, DBusMessage *request) 
+	static void respond_to_introspect(DBusConnection *connection, DBusMessage *request)
 	{
     	DBusMessage *reply;
 	    const char  *introspection_data =
@@ -551,19 +551,19 @@ namespace MessageHandlerDBusInternal
 	        "       <arg name=\"data\" direction=\"out\" type=\"s\" />"
 	        "     </method>"
 	        "   </interface>"
-	        "   <interface name=\"io.obico.jusprint.InstanceCheck\">"
+	        "   <interface name=\"io.obico.jusprin.InstanceCheck\">"
 	        "     <method name=\"AnotherInstance\">"
 	        "       <arg name=\"data\" direction=\"in\" type=\"s\" />"
 	        "     </method>"
 	        "   </interface>"
 	        " </node>";
-	     
+
 	    reply = dbus_message_new_method_return(request);
 	    dbus_message_append_args(reply, DBUS_TYPE_STRING, &introspection_data, DBUS_TYPE_INVALID);
 	    dbus_connection_send(connection, reply, NULL);
 	    dbus_message_unref(reply);
 	}
-	//method AnotherInstance receives message from another OrcaSlicer instance 
+	//method AnotherInstance receives message from another OrcaSlicer instance
 	static void handle_method_another_instance(DBusConnection *connection, DBusMessage *request)
 	{
 	    DBusError     err;
@@ -589,15 +589,15 @@ namespace MessageHandlerDBusInternal
 	{
 		const char* interface_name = dbus_message_get_interface(message);
 	    const char* member_name    = dbus_message_get_member(message);
-	    std::string our_interface  = "io.obico.jusprint.InstanceCheck.Object" + wxGetApp().get_instance_hash_string();
+	    std::string our_interface  = "io.obico.jusprin.InstanceCheck.Object" + wxGetApp().get_instance_hash_string();
 	    BOOST_LOG_TRIVIAL(trace) << "DBus message received: interface: " << interface_name << ", member: " << member_name;
-	    if (0 == strcmp("org.freedesktop.DBus.Introspectable", interface_name) && 0 == strcmp("Introspect", member_name)) {		
+	    if (0 == strcmp("org.freedesktop.DBus.Introspectable", interface_name) && 0 == strcmp("Introspect", member_name)) {
 	        respond_to_introspect(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
 	    } else if (0 == strcmp(our_interface.c_str(), interface_name) && 0 == strcmp("AnotherInstance", member_name)) {
 	        handle_method_another_instance(connection, message);
 	        return DBUS_HANDLER_RESULT_HANDLED;
-	    } 
+	    }
 	    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 	}
 } //namespace MessageHandlerDBusInternal
@@ -609,21 +609,21 @@ void OtherInstanceMessageHandler::listen()
     int 				 name_req_val;
     DBusObjectPathVTable vtable;
     std::string 		 instance_hash  = wxGetApp().get_instance_hash_string();
-	std::string			 interface_name = "io.obico.jusprint.InstanceCheck.Object" + instance_hash;
-    std::string			 object_name 	= "/io/obico/jusprint/InstanceCheck/Object" + instance_hash;
+	std::string			 interface_name = "io.obico.jusprin.InstanceCheck.Object" + instance_hash;
+    std::string			 object_name 	= "/io/obico/jusprin/InstanceCheck/Object" + instance_hash;
 
     //BOOST_LOG_TRIVIAL(debug) << "init dbus listen " << interface_name << " " << object_name;
     dbus_error_init(&err);
 
     // connect to the bus and check for errors (use SESSION bus everywhere!)
     conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
-    if (dbus_error_is_set(&err)) { 
+    if (dbus_error_is_set(&err)) {
 	    BOOST_LOG_TRIVIAL(error) << "DBus Connection Error: "<< err.message;
 	    BOOST_LOG_TRIVIAL(error) << "Dbus Messages listening terminating.";
-        dbus_error_free(&err); 
+        dbus_error_free(&err);
         return;
     }
-    if (NULL == conn) { 
+    if (NULL == conn) {
 		BOOST_LOG_TRIVIAL(error) << "DBus Connection is NULL. Dbus Messages listening terminating.";
         return;
     }
@@ -631,9 +631,9 @@ void OtherInstanceMessageHandler::listen()
 	// request our name on the bus and check for errors
 	name_req_val = dbus_bus_request_name(conn, interface_name.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
 	if (dbus_error_is_set(&err)) {
-	    BOOST_LOG_TRIVIAL(error) << "DBus Request name Error: "<< err.message; 
+	    BOOST_LOG_TRIVIAL(error) << "DBus Request name Error: "<< err.message;
 	    BOOST_LOG_TRIVIAL(error) << "Dbus Messages listening terminating.";
-	    dbus_error_free(&err); 
+	    dbus_error_free(&err);
 	    dbus_connection_unref(conn);
 	    return;
 	}
@@ -651,7 +651,7 @@ void OtherInstanceMessageHandler::listen()
     // register new object - this is our access to DBus
     dbus_connection_try_register_object_path(conn, object_name.c_str(), &vtable, NULL, &err);
    	if ( dbus_error_is_set(&err) ) {
-   		BOOST_LOG_TRIVIAL(error) << "DBus Register object Error: "<< err.message; 
+   		BOOST_LOG_TRIVIAL(error) << "DBus Register object Error: "<< err.message;
 	    BOOST_LOG_TRIVIAL(error) << "Dbus Messages listening terminating.";
 	    dbus_connection_unref(conn);
 		dbus_error_free(&err);
@@ -661,7 +661,7 @@ void OtherInstanceMessageHandler::listen()
 	BOOST_LOG_TRIVIAL(trace) << "Dbus object "<< object_name <<" registered. Starting listening for messages.";
 
 	for (;;) {
-		// Wait for 1 second 
+		// Wait for 1 second
 		// Cancellable.
 		{
 			std::unique_lock<std::mutex> lck(m_thread_stop_mutex);
@@ -676,7 +676,7 @@ void OtherInstanceMessageHandler::listen()
 		//that is handled here with our own event loop above
 		dbus_connection_read_write_dispatch(conn, 0);
      }
-     
+
    	 dbus_connection_unref(conn);
 }
 #endif //BACKGROUND_MESSAGE_LISTENER
