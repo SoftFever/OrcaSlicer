@@ -1412,5 +1412,84 @@ GLModel::Geometry smooth_torus(unsigned int primary_resolution, unsigned int sec
     return data;
 }
 
+GLModel::Geometry init_plane_data(const indexed_triangle_set& its, const std::vector<int>& triangle_indices, float normal_offset)
+{
+    GLModel::Geometry init_data;
+    init_data.format = { GUI::GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    init_data.reserve_indices(3 * triangle_indices.size());
+    init_data.reserve_vertices(3 * triangle_indices.size());
+    unsigned int i = 0;
+    for (int idx : triangle_indices) {
+        Vec3f v0 = its.vertices[its.indices[idx][0]];
+        Vec3f v1 = its.vertices[its.indices[idx][1]];
+        Vec3f v2 = its.vertices[its.indices[idx][2]];
+        const Vec3f n = (v1 - v0).cross(v2 - v0).normalized();
+        if (std::abs(normal_offset) > 0.0) {
+            v0 = v0 + n * normal_offset;
+            v1 = v1 + n * normal_offset;
+            v2 = v2 + n * normal_offset;
+        }
+        init_data.add_vertex(v0, n);
+        init_data.add_vertex(v1, n);
+        init_data.add_vertex(v2, n);
+        init_data.add_triangle(i, i + 1, i + 2);
+        i += 3;
+    }
+
+    return init_data;
+}
+
+GLModel::Geometry init_torus_data(unsigned int       primary_resolution,
+                                  unsigned int       secondary_resolution,
+                                  const Vec3f &      center,
+                                  float              radius,
+                                  float              thickness,
+                                  const Vec3f &      model_axis,
+                                  const Transform3f &world_trafo)
+{
+    const unsigned int torus_sector_count   = std::max<unsigned int>(4, primary_resolution);
+    const unsigned int section_sector_count = std::max<unsigned int>(4, secondary_resolution);
+    const float        torus_sector_step    = 2.0f * float(M_PI) / float(torus_sector_count);
+    const float        section_sector_step  = 2.0f * float(M_PI) / float(section_sector_count);
+
+    GLModel::Geometry data;
+    data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    data.reserve_vertices(torus_sector_count * section_sector_count);
+    data.reserve_indices(torus_sector_count * section_sector_count * 2 * 3);
+
+    // vertices
+    const Transform3f local_to_world_matrix = world_trafo * Geometry::translation_transform(center.cast<double>()).cast<float>() *
+                                              Eigen::Quaternion<float>::FromTwoVectors(Vec3f::UnitZ(), model_axis);
+    for (unsigned int i = 0; i < torus_sector_count; ++i) {
+        const float section_angle = torus_sector_step * i;
+        const Vec3f radius_dir(std::cos(section_angle), std::sin(section_angle), 0.0f);
+        const Vec3f local_section_center = radius * radius_dir;
+        const Vec3f world_section_center = local_to_world_matrix * local_section_center;
+        const Vec3f local_section_normal = local_section_center.normalized().cross(Vec3f::UnitZ()).normalized();
+        const Vec3f world_section_normal = (Vec3f) (local_to_world_matrix.matrix().block(0, 0, 3, 3) * local_section_normal).normalized();
+        const Vec3f base_v               = thickness * radius_dir;
+        for (unsigned int j = 0; j < section_sector_count; ++j) {
+            const Vec3f v = Eigen::AngleAxisf(section_sector_step * j, world_section_normal) * base_v;
+            data.add_vertex(world_section_center + v, (Vec3f) v.normalized());
+        }
+    }
+
+    // triangles
+    for (unsigned int i = 0; i < torus_sector_count; ++i) {
+        const unsigned int ii      = i * section_sector_count;
+        const unsigned int ii_next = ((i + 1) % torus_sector_count) * section_sector_count;
+        for (unsigned int j = 0; j < section_sector_count; ++j) {
+            const unsigned int j_next = (j + 1) % section_sector_count;
+            const unsigned int i0     = ii + j;
+            const unsigned int i1     = ii_next + j;
+            const unsigned int i2     = ii_next + j_next;
+            const unsigned int i3     = ii + j_next;
+            data.add_triangle(i0, i1, i2);
+            data.add_triangle(i0, i2, i3);
+        }
+    }
+
+    return data;
+}
 } // namespace GUI
 } // namespace Slic3r

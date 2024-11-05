@@ -61,7 +61,8 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     out.reserve(m_gizmos.size());
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->get_sprite_id() == (unsigned int)MmuSegmentation)
+            if (m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
     }
     else {
@@ -158,7 +159,7 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::MeshBoolean):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg");
             break;
-        case(EType::Measure):
+        case (EType::Measure):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg");
             break;
         }
@@ -342,6 +343,8 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
 
 void GLGizmosManager::set_hover_id(int id)
 {
+	// Measure handles hover by itself
+    if (m_current == EType::Measure) { return; }
     if (!m_enabled || m_current == Undefined)
         return;
 
@@ -703,14 +706,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             }
             break;
         }
-        case WXK_BACK:
-        case WXK_DELETE:
-        {
-            if ((m_current == Cut || m_current == Measure) && gizmo_event(SLAGizmoEventType::Delete))
-                processed = true;
-
-            break;
-        }
+        //skip some keys when gizmo
         case 'A':
         case 'a':
         {
@@ -737,14 +733,12 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         //}
 
 
-        //case WXK_BACK:
-        //case WXK_DELETE:
-        //{
-        //    if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
-        //        processed = true;
-
-        //    break;
-        //}
+        case WXK_BACK:
+        case WXK_DELETE: {
+            if ((m_current == Cut || m_current == Measure) && gizmo_event(SLAGizmoEventType::Delete))
+                processed = true;
+            break;
+        }
         //case 'A':
         //case 'a':
         //{
@@ -845,7 +839,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             else if (keyCode == WXK_SHIFT)
                 gizmo_event(SLAGizmoEventType::ShiftUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
         }
-
 //        if (processed)
 //            m_parent.set_cursor(GLCanvas3D::Standard);
     }
