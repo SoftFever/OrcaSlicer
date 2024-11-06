@@ -112,7 +112,6 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-           codesign --force --options runtime --timestamp --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{inputs.arch}}/JusPrin/JusPrin.app/Contents/Resources/web/jusprin/node_modules/fsevents/fsevents.node
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{inputs.arch}}/JusPrin/JusPrin.app
           ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/JusPrin/Applications
           hdiutil create -volname "JusPrin" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/JusPrin -ov -format UDZO JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
