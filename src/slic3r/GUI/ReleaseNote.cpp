@@ -1740,7 +1740,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_step_icon_panel2->SetMinSize(wxSize(-1, m_tip2->GetBestSize().y));
     m_step_icon_panel2->SetMaxSize(wxSize(-1, m_tip2->GetBestSize().y));
 
-    
+
     m_sizer_msg->Layout();
 
     m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
@@ -1795,7 +1795,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
 <<<<<<< HEAD
-    
+
     switch_input_panel(0);
 =======
 >>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
@@ -1833,7 +1833,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     });
 }
 
-void InputIpAddressDialog::switch_input_panel(int index) 
+void InputIpAddressDialog::switch_input_panel(int index)
 {
     m_button_manual_setup->Hide();
     if (index == 0) {
@@ -1862,7 +1862,7 @@ void InputIpAddressDialog::on_cancel()
         delete m_thread;
         m_thread = nullptr;
     }
-    
+
     EndModal(wxID_CANCEL);
 }
 
@@ -1928,7 +1928,7 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              }
              wxCommandEvent e;
              on_text(e);
-         } 
+         }
 =======
          }
 

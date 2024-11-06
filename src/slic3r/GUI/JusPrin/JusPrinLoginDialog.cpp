@@ -145,7 +145,7 @@ void JusPrinLoginDialog::OnNavigationComplete(wxWebViewEvent& evt)
 void JusPrinLoginDialog::OnDocumentLoaded(wxWebViewEvent& evt)
 {
     wxString tmpUrl = evt.GetURL();
-    if (tmpUrl.Contains("jusprint.com")) {
+    if (tmpUrl.Contains("obico.io")) {
         m_networkOk = true;
     }
     UpdateState();
