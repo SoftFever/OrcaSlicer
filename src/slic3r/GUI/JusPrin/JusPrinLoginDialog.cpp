@@ -33,7 +33,7 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     m_networkOk = false;
 
     // Create the webview
-    m_browser = WebView::CreateWebView(this, m_jusprint_url);
+    m_browser = WebView::CreateWebView(this, "");
     if (m_browser == nullptr) {
         wxLogError("Could not create JusPrin login webview");
         return;
@@ -62,7 +62,8 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
     Move(tmpPT);
 
-    wxGetApp().UpdateDlgDarkUI(this);
+    m_browser->LoadURL(m_jusprint_url);
+   //wxGetApp().UpdateDlgDarkUI(this);
 }
 
 JusPrinLoginDialog::~JusPrinLoginDialog()
