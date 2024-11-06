@@ -659,6 +659,11 @@ bool GLGizmosManager::on_mouse(const wxMouseEvent &mouse_event)
         // &m_gizmos[m_current]->on_mouse != &GLGizmoBase::on_mouse &&
         m_gizmos[m_current]->on_mouse(mouse_event))
         return true;
+
+    if (mouse_event.RightUp() && m_current != EType::Undefined && !m_parent.is_mouse_dragging()) {
+        // Prevent default right context menu in gizmos
+        return true;
+    }
         
     return false;
 }

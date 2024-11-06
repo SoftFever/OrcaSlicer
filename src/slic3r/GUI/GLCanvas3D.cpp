@@ -4445,7 +4445,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif // ENABLE_RETINA_GL
 
-            if (!m_mouse.ignore_right_up) {
+            if (!m_mouse.ignore_right_up && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
                 //BBS post right click event
                 if (!m_hover_plate_idxs.empty()) {
                     post_event(RBtnPlateEvent(EVT_GLCANVAS_PLATE_RIGHT_CLICK, { logical_pos, m_hover_plate_idxs.front() }));
