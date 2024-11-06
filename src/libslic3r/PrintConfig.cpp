@@ -3330,6 +3330,7 @@ void PrintConfigDef::init_fff_params()
     				 "Allowed values: 1-5");
     def->min = 1;
     def->max = 5;
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 

@@ -494,10 +494,10 @@ void PressureEqualizer::output_gcode_line(const size_t line_idx)
     
     // Emit the line with lowered extrusion rates.
     // Orca:
-    // First, check if the change in volumetric extrusion rate is negligible.
+    // First, check if the change in volumetric extrusion rate is trivial (less than 10mm3/min -> 0.16mm3/sec (5mm/sec speed for a 0.25 mm nozzle).
     // Or if the line size is equal in length with the smallest segment.
     // If so, then emit the line as a single extrusion, i.e. dont split into segments.
-    if ( nSegments == 1 || delta_volumetric_rate == 0) {
+    if ( nSegments == 1 || delta_volumetric_rate < 10) {
         push_line_to_output(line_idx, line.feedrate() * line.volumetric_correction_avg(), comment);
     } else // The line needs to be split the line into segments and apply extrusion rate smoothing
     {
