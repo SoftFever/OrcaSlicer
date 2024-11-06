@@ -585,7 +585,6 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     is_ams_need_update = false;
     ams_insert_flag = false;
     ams_power_on_flag = false;
-    ams_support_use_ams = false;
     ams_calibrate_remain_flag = false;
     ams_humidity = 5;
 
@@ -3919,7 +3918,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 }
                                 if (jj["ams"].contains("tray_reading_bits")) {
                                     tray_reading_bits = stol(jj["ams"]["tray_reading_bits"].get<std::string>(), nullptr, 16);
-                                    ams_support_use_ams = true;
                                 }
                                 if (jj["ams"].contains("tray_is_bbl_bits")) {
                                     tray_is_bbl_bits = stol(jj["ams"]["tray_is_bbl_bits"].get<std::string>(), nullptr, 16);

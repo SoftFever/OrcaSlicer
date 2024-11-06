@@ -530,7 +530,6 @@ public:
     bool  ams_calibrate_remain_flag { false };
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_air_print_status { false };
-    bool  ams_support_use_ams { false };
     bool  ams_support_virtual_tray { true };
     int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
