@@ -141,7 +141,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
         info.ctype = tray.ctype;
         info.material_name = tray.get_display_filament_type();
         info.cali_idx    = tray.cali_idx;
-        info.filament_id = tray.filament_setting_id;
+        info.filament_id = tray.setting_id;
         if (!tray.color.empty()) {
             info.material_colour = AmsTray::decode_color(tray.color);
         }
