@@ -134,16 +134,16 @@ jobs:
           name: JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
-      - name: Deploy Mac release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
-        uses: WebFreak001/deploy-nightly@v3.1.0
-        with:
-          upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
-          release_id: 137995723
-          asset_path: ${{ github.workspace }}/JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_name: JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_content_type: application/octet-stream
-          max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+      # - name: Deploy Mac release
+      #   if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
+      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   with:
+      #     upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
+      #     release_id: 137995723
+      #     asset_path: ${{ github.workspace }}/JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+      #     asset_name: JusPrin_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+      #     asset_content_type: application/octet-stream
+      #     max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
 # Windows
       - name: setup MSVC
@@ -203,27 +203,27 @@ jobs:
           name: PDB
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
-      - name: Deploy Windows release portable
-        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.1.0
-        with:
-          upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
-          release_id: 137995723
-          asset_path: ${{ github.workspace }}/build/JusPrin_Windows_${{ env.ver }}_portable.zip
-          asset_name: JusPrin_Windows_${{ env.ver }}_portable.zip
-          asset_content_type: application/x-zip-compressed
-          max_releases: 1
+      # - name: Deploy Windows release portable
+      #   if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   with:
+      #     upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
+      #     release_id: 137995723
+      #     asset_path: ${{ github.workspace }}/build/JusPrin_Windows_${{ env.ver }}_portable.zip
+      #     asset_name: JusPrin_Windows_${{ env.ver }}_portable.zip
+      #     asset_content_type: application/x-zip-compressed
+      #     max_releases: 1
 
-      - name: Deploy Windows release installer
-        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.1.0
-        with:
-          upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
-          release_id: 137995723
-          asset_path: ${{ github.workspace }}/build/JusPrin_Windows_Installer_${{ env.ver }}.exe
-          asset_name: JusPrin_Windows_Installer_${{ env.ver }}.exe
-          asset_content_type: application/x-msdownload
-          max_releases: 1
+      # - name: Deploy Windows release installer
+      #   if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   with:
+      #     upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
+      #     release_id: 137995723
+      #     asset_path: ${{ github.workspace }}/build/JusPrin_Windows_Installer_${{ env.ver }}.exe
+      #     asset_name: JusPrin_Windows_Installer_${{ env.ver }}.exe
+      #     asset_content_type: application/x-msdownload
+      #     max_releases: 1
 
 # Ubuntu
       - name: Install dependencies
