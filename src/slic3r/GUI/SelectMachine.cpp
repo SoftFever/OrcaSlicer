@@ -2862,7 +2862,6 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
             img_use_ams_tip->Hide();
         }
     }
-
     if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
 }
 
