@@ -3086,8 +3086,8 @@ void GUI_App::Update_dark_mode_flag()
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
 {
 #ifdef __WINDOWS__
-    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
-    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
+ //   NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+ //   NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
 #endif
     update_dark_children_ui(dlg);
 }
@@ -3095,8 +3095,8 @@ void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
 void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
 {
 #ifdef __WINDOWS__
-    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
-    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
+   // NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+    //NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
 #endif
     update_dark_children_ui(dlg);
 }
@@ -3529,8 +3529,8 @@ void GUI_App::update_ui_from_settings()
         if (mainframe) {
 #ifdef __WINDOWS__
             mainframe->force_color_changed();
-            update_scrolls(mainframe);
-            update_scrolls(&mainframe->m_settings_dialog);
+            //update_scrolls(mainframe);
+            //update_scrolls(&mainframe->m_settings_dialog);
 #endif //_MSW_DARK_MODE
             update_dark_children_ui(mainframe);
         }

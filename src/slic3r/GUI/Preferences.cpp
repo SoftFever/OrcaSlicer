@@ -1190,8 +1190,8 @@ wxWindow* PreferencesDialog::create_general_page()
 
     //dark mode
 #ifdef _WIN32
-    auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
+ //   auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
+ //   auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
@@ -1257,8 +1257,8 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
 
 #ifdef _WIN32
-    sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
+//  sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
+// sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
