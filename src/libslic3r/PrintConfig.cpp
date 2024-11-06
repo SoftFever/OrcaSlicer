@@ -3322,16 +3322,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     
-    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
-    				 "Allowed values: 1-5");
-    def->min = 1;
+    				 "Allowed values: 0.5-5");
+    def->min = 0.5;
     def->max = 5;
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(3));
+    def->set_default_value(new ConfigOptionFloat(3.0));
+    
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
