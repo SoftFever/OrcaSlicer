@@ -3620,9 +3620,11 @@ wxString GUI_App::transition_tridid(int trid_id)
 }
 
 void GUI_App::show_jusprin_login() {
-    Slic3r::GUI::JusPrinLoginDialog login_dlg;
-    login_dlg.run();
-    update_oauth_access_token();
+    CallAfter([this] {
+        Slic3r::GUI::JusPrinLoginDialog login_dlg;
+        login_dlg.run();
+        update_oauth_access_token();
+    });
 }
 
 void GUI_App::update_oauth_access_token() {
