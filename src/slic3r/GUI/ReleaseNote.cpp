@@ -1892,8 +1892,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     Refresh();
     Layout();
     Fit();
-
-    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));  
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));
 }
 
 void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
@@ -1921,7 +1920,13 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
     detectResult detectData;
     auto result = -1;
     if (current_input_index == 0) {
+
+#ifdef __APPLE__
+        result = -3;
+#else
         result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+#endif
+
     } else {
         result = 0;
         detectData.dev_name = sn;
@@ -1973,8 +1978,13 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
     post_update_test_msg(wxEmptyString, true);
     post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
-  
+
+#ifdef __APPLE__
+    wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
+    wxPostEvent(this, event);
+#else
     closeTimer->Start(1000);
+#endif
 }
 
 void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
