@@ -129,6 +129,8 @@ protected:
 
     void on_device_connected(MachineObject* obj) override;
 
+    bool can_save_cali_result(const std::vector<PACalibResult> &new_pa_cali_results);
+
     bool                       m_show_result_dialog = false;
     std::vector<PACalibResult> m_calib_results_history;
     int                        cali_version = -1;

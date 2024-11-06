@@ -1974,6 +1974,10 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         }
         m_ams_id_to_extruder_id_map[stoi(info.ams_id)] = info.nozzle_id;
     }
+    if (obj->is_multi_extruders()) {
+        m_ams_id_to_extruder_id_map[VIRTUAL_TRAY_MAIN_ID] = 0;
+        m_ams_id_to_extruder_id_map[VIRTUAL_TRAY_DEPUTY_ID] = 1;
+    }
 
     // update for multi_exturder preview
     for (auto i = 0; i < 4; i++) {
