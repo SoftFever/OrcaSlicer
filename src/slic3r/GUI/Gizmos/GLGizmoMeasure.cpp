@@ -694,10 +694,10 @@ void GLGizmoMeasure::on_render()
                 reset_gripper_pick(GripperType::UNDEFINE, true);
 
                 m_curr_feature = curr_feature;
-                m_curr_feature->volume     = m_last_hit_volume;
-                m_curr_feature->world_tran = m_mesh_raycaster_map[m_last_hit_volume]->get_transform();
                 if (!m_curr_feature.has_value())
                     return;
+                m_curr_feature->volume     = m_last_hit_volume;
+                m_curr_feature->world_tran = m_mesh_raycaster_map[m_last_hit_volume]->get_transform();
 
                 switch (m_curr_feature->get_type()) {
                 default: { assert(false); break; }
