@@ -332,7 +332,8 @@ void DropDown::messureSize()
         wxSize size1 = text_off ? wxSize() : dc.GetMultiLineTextExtent(texts[i]);
         if (icons[i].IsOk()) {
             wxSize size2 = GetBmpSize(icons[i]);
-            if (size2.x > iconSize.x) iconSize = size2;
+            if (size2.x > iconSize.x)
+                iconSize = size2;
             if (!align_icon) {
                 size1.x += size2.x + (text_off ? 0 : 5);
             }
