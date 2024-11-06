@@ -149,6 +149,9 @@ protected:
 
     bool m_is_dark_mode = false;
 
+    bool render_combo(const std::string &label, const std::vector<std::string> &lines,
+        int &selection_idx, float label_width, float item_width);
+
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,

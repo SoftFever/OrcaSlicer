@@ -265,6 +265,10 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
             if (m_selected_features.first.feature.has_value()) {
                 reset_feature2_render();
                 const SelectedFeatures::Item item = detect_current_item();
+                if (!is_pick_meet_assembly_mode(item)) { // assembly deal
+                    m_selected_wrong_feature_waring_tip = true;
+                    return true;
+                }
                 m_selected_wrong_feature_waring_tip = false;
                 if (m_selected_features.first != item) {
                     bool processed = false;
@@ -329,6 +333,10 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
                 // 1st feature selection
                 reset_feature1_render();
                 const SelectedFeatures::Item item = detect_current_item();
+                if (!is_pick_meet_assembly_mode(item)) {//assembly deal
+                    m_selected_wrong_feature_waring_tip = true;
+                    return true;
+                }
                 m_selected_wrong_feature_waring_tip = false;
                 m_selected_features.first = item;
                 if (requires_sphere_raycaster_for_picking(item)) {
@@ -2035,6 +2043,79 @@ void GLGizmoMeasure::show_distance_xyz_ui()
 //{
 //}
 
+void GLGizmoMeasure::show_face_face_assembly_common() {
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 2 &&
+        m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
+        m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
+        auto &action                         = m_assembly_action;
+        auto  set_to_parallel_size           = m_imgui->calc_button_size(_L("Parallel")).x;
+        auto  set_to_center_coincidence_size = m_imgui->calc_button_size(_L("Center coincidence")).x;
+
+        m_imgui->disabled_begin(!(action.can_set_to_center_coincidence));
+        {
+            ImGui::PushItemWidth(set_to_center_coincidence_size);
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0) : ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                  m_is_dark_mode ? ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f) : ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                  m_is_dark_mode ? ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
+            if (m_imgui->button(_L("Center coincidence"))) {
+                set_to_center_coincidence(m_same_model_object);
+            }
+            ImGui::PopStyleColor(4);
+            ImGui::SameLine(set_to_center_coincidence_size + m_space_size * 2);
+        }
+        m_imgui->disabled_end();
+
+        m_imgui->disabled_begin(!action.can_set_to_parallel);
+        {
+            if (m_imgui->button(_L("Parallel"))) { set_to_parallel(m_same_model_object); }
+        }
+        m_imgui->disabled_end();
+    }
+}
+
+void GLGizmoMeasure::show_face_face_assembly_senior()
+{
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 2 &&
+        m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
+        m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
+        auto &action                         = m_assembly_action;
+        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
+        auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
+        auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
+        auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel_distance:")).x;
+
+        if (m_imgui->bbl_checkbox(_L("Flip by Face 2"), m_flip_volume_2)) {
+            set_to_reverse_rotation(m_same_model_object, 1);
+        }
+
+        if (action.has_parallel_distance) {
+            m_imgui->text(_u8L("Parallel_distance:"));
+            ImGui::SameLine(parallel_distance_size + m_space_size);
+            ImGui::PushItemWidth(m_input_size_max);
+            ImGui::BBLInputDouble("##parallel_distance_z", &m_buffered_parallel_distance, 0.0f, 0.0f, "%.2f");
+            if (m_last_active_item_imgui != m_current_active_imgui_id && std::abs(m_buffered_parallel_distance - action.parallel_distance) > EPSILON) {
+                set_parallel_distance(m_same_model_object, m_buffered_parallel_distance);
+            }
+        }
+        if (action.can_around_center_of_faces) {
+            m_imgui->text(_u8L("Rotate around center:"));
+            ImGui::SameLine(rotate_around_center_size + m_space_size);
+            ImGui::PushItemWidth(m_input_size_max);
+            ImGui::BBLInputDouble("##rotate_around_center", &m_buffered_around_center, 0.0f, 0.0f, "%.2f");
+            if (m_last_active_item_imgui != m_current_active_imgui_id && std::abs(m_buffered_around_center) > EPSILON) {
+                set_to_around_center_of_faces(m_same_model_object, m_buffered_around_center);
+                m_buffered_around_center = 0;
+            }
+            ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
+            m_imgui->text(_L("°"));
+        }
+    }
+}
+
 void GLGizmoMeasure::init_render_input_window()
 {
     m_use_inches        = wxGetApp().app_config->get_bool("use_inches");
@@ -2101,6 +2182,10 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
     ImGuiWrapper::pop_toolbar_style();
 }
 
+void GLGizmoMeasure::render_input_window_warning(bool same_model_object)
+{
+}
+
 void GLGizmoMeasure::remove_selected_sphere_raycaster(int id)
 {
     reset_gripper_pick(id == SEL_SPHERE_1_ID ? GripperType::SPHERE_1 : GripperType::SPHERE_2);
@@ -2110,9 +2195,11 @@ void GLGizmoMeasure::update_measurement_result()
 {
     if (!m_selected_features.first.feature.has_value()) {
         m_measurement_result = Measure::MeasurementResult();
+        m_assembly_action    = Measure::AssemblyAction();
     }
     else if (m_selected_features.second.feature.has_value()) {
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, *m_selected_features.second.feature, true);
+        m_assembly_action    = Measure::get_assembly_action(*m_selected_features.first.feature, *m_selected_features.second.feature);
         m_can_set_xyz_distance = Measure::can_set_xyz_distance(*m_selected_features.first.feature, *m_selected_features.second.feature);
         //update buffer
         const Measure::MeasurementResult &measure = m_measurement_result;
@@ -2126,6 +2213,9 @@ void GLGizmoMeasure::update_measurement_result()
         }
         if (wxGetApp().app_config->get_bool("use_inches")) m_distance = GizmoObjectManipulation::mm_to_in * m_distance;
         m_buffered_distance = m_distance;
+        if (m_assembly_action.has_parallel_distance) {
+            m_buffered_parallel_distance = m_assembly_action.parallel_distance;
+        }
     }
     else if (!m_selected_features.second.feature.has_value() && m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Circle)
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, Measure::SurfaceFeature(std::get<0>(m_selected_features.first.feature->get_circle())));
@@ -2396,6 +2486,202 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
             update_feature_by_tran(*m_selected_features.first.feature);
         }
         update_feature_by_tran(*m_selected_features.second.feature);
+    }
+}
+
+void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot, bool is_anti_parallel)
+{
+    if (m_hit_different_volumes.size() == 2) {
+        auto &action    = m_assembly_action;
+        auto  v         = m_hit_different_volumes[1];
+        auto  selection = const_cast<Selection *>(&m_parent.get_selection());
+        selection->setup_cache();
+        if (take_shot) {
+            wxGetApp().plater()->take_snapshot("RotateInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
+        }
+        selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
+        const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
+        const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+        if ((is_anti_parallel && normal1.dot(normal2) > -1 + 1e-3) ||
+            (is_anti_parallel == false && (normal1.dot(normal2) < 1 - 1e-3))) {
+            m_pending_scale ++;
+            Vec3d    axis;
+            double   angle;
+            Matrix3d rotation_matrix;
+            Geometry::rotation_from_two_vectors(normal2, -normal1, axis, angle, &rotation_matrix);
+            Transform3d r_m = (Transform3d) rotation_matrix;
+            if (same_model_object == false) {
+                auto new_rotation_tran = r_m * v->get_instance_transformation().get_rotation_matrix();
+                Vec3d rotation         = Geometry::extract_euler_angles(new_rotation_tran);
+                v->set_instance_rotation(rotation);
+                selection->rotate(v->object_idx(), v->instance_idx(), v->get_instance_transformation().get_matrix());
+            } else {
+                Geometry::Transformation world_tran(v->world_matrix());
+                auto        new_tran         = r_m * world_tran.get_rotation_matrix();
+                Transform3d volume_rotation_tran = v->get_instance_transformation().get_rotation_matrix().inverse() * new_tran;
+                Vec3d       rotation             = Geometry::extract_euler_angles(volume_rotation_tran);
+                v->set_volume_rotation(rotation);
+                selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), v->get_volume_transformation().get_matrix());
+            }
+            wxGetApp().plater()->canvas3D()->do_rotate("");
+            register_single_mesh_pick();
+            if (same_model_object) {
+                update_feature_by_tran(*m_selected_features.first.feature);
+            }
+            update_feature_by_tran(*m_selected_features.second.feature);
+        }
+    }
+}
+
+void GLGizmoMeasure::set_to_reverse_rotation(bool same_model_object, int feature_index)
+{
+    if (m_hit_different_volumes.size() == 2 && feature_index < 2) {
+        auto &action    = m_assembly_action;
+        auto  v         = m_hit_different_volumes[feature_index];
+        auto  selection = const_cast<Selection *>(&m_parent.get_selection());
+        selection->setup_cache();
+        wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
+
+        selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
+        m_pending_scale                 = 1;
+        Vec3d plane_normal,plane_center;
+        if (feature_index ==0) {//feature 1
+            const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
+            plane_normal                    = normal1;
+            plane_center                    = pt1;
+        }
+        else  { // feature 2
+            const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+            plane_normal                    = normal2;
+            plane_center                    = pt2;
+        }
+        auto  new_pt = Measure::get_one_point_in_plane(plane_center, plane_normal);
+        Vec3d axis   = (new_pt - plane_center).normalized();
+        if (axis.norm() < 0.1) {
+            throw;
+        }
+        if (same_model_object == false) {
+            Geometry::Transformation inMat(v->get_instance_transformation());
+            Geometry::Transformation outMat = Geometry::mat_around_a_point_rotate(inMat, plane_center, axis, PI);
+            selection->rotate(v->object_idx(), v->instance_idx(), outMat.get_matrix());
+        } else {
+            Geometry::Transformation inMat(v->world_matrix());
+            Geometry::Transformation outMat      = Geometry::mat_around_a_point_rotate(inMat, plane_center, axis, PI);
+            Transform3d volume_tran = v->get_instance_transformation().get_matrix().inverse() * outMat.get_matrix();
+            selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), volume_tran);
+        }
+        wxGetApp().plater()->canvas3D()->do_rotate("");
+        register_single_mesh_pick();
+        if (same_model_object == false) {
+            if (feature_index == 0) { // feature 1
+                update_feature_by_tran(*m_selected_features.first.feature);
+            } else { // feature 2
+                update_feature_by_tran(*m_selected_features.second.feature);
+            }
+        }
+        else {
+            update_feature_by_tran(*m_selected_features.first.feature);
+            update_feature_by_tran(*m_selected_features.second.feature);
+        }
+    }
+}
+
+void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float rotate_degree)
+{
+    if (m_hit_different_volumes.size() == 2 ) {
+        auto &action    = m_assembly_action;
+        auto  v         = m_hit_different_volumes[1];
+        auto  selection = const_cast<Selection *>(&m_parent.get_selection());
+        selection->setup_cache();
+        wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
+
+        selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
+        m_pending_scale = 1;
+
+        auto  radian = Geometry::deg2rad(rotate_degree);
+        Vec3d plane_normal, plane_center;
+        const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+        plane_normal                    = normal2;
+        plane_center                    = pt2;
+
+        if (same_model_object == false) {
+            Geometry::Transformation inMat(v->get_instance_transformation());
+            Geometry::Transformation outMat = Geometry::mat_around_a_point_rotate(inMat, plane_center, plane_normal, radian);
+            selection->rotate(v->object_idx(), v->instance_idx(), outMat.get_matrix());
+        } else {
+            Geometry::Transformation inMat(v->world_matrix());
+            Geometry::Transformation outMat      = Geometry::mat_around_a_point_rotate(inMat, plane_center, plane_normal, radian);
+            Transform3d              volume_tran = v->get_instance_transformation().get_matrix().inverse() * outMat.get_matrix();
+            selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), volume_tran);
+        }
+        wxGetApp().plater()->canvas3D()->do_rotate("");
+        register_single_mesh_pick();
+        if (same_model_object) {
+            update_feature_by_tran(*m_selected_features.first.feature);
+        }
+        update_feature_by_tran(*m_selected_features.second.feature);
+    }
+}
+
+void GLGizmoMeasure::set_to_center_coincidence(bool same_model_object) {
+    auto v = m_hit_different_volumes[1];
+    wxGetApp().plater()->take_snapshot("RotateThenMoveInMeasure", UndoRedo::SnapshotType::GizmoAction);
+    set_to_parallel(same_model_object, false,true);
+
+    const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
+    const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+    set_distance(same_model_object, pt1 - pt2, false);
+    m_set_center_coincidence = true;
+}
+
+void GLGizmoMeasure::set_parallel_distance(bool same_model_object, float dist)
+{
+    if (m_hit_different_volumes.size() == 2 && abs(dist) >= 0.0f) {
+        auto v         = m_hit_different_volumes[1];
+        auto selection = const_cast<Selection *>(&m_parent.get_selection());
+        selection->setup_cache();
+
+        wxGetApp().plater()->take_snapshot("SetParallelDistanceInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
+
+        selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
+        m_pending_scale = 1;
+
+        const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
+        const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+        Vec3d proj_pt2;
+        Measure::get_point_projection_to_plane(pt2, pt1, normal1, proj_pt2);
+        auto new_pt2 = proj_pt2 + normal1 * dist;
+
+        Vec3d displacement = new_pt2 - pt2;
+
+        if (same_model_object == false) {
+            selection->translate(v->object_idx(), v->instance_idx(), displacement);
+        } else {
+            selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
+        }
+        wxGetApp().plater()->canvas3D()->do_move("");
+        register_single_mesh_pick();
+        if (same_model_object) {
+            update_feature_by_tran(*m_selected_features.first.feature);
+        }
+        update_feature_by_tran(*m_selected_features.second.feature);
+    }
+}
+
+bool GLGizmoMeasure::is_pick_meet_assembly_mode(const SelectedFeatures::Item &item) {
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
+        if (m_assembly_mode == AssemblyMode::FACE_FACE && item.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
+            return true;
+        }
+        if (m_assembly_mode == AssemblyMode::POINT_POINT &&
+            (item.feature->get_type() == Measure::SurfaceFeatureType::Point||
+                item.feature->get_type() == Measure::SurfaceFeatureType::Circle)) {
+            return true;
+        }
+        return false;
+    }
+    else {
+        return true;
     }
 }
 

@@ -23,8 +23,8 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoEmboss.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSVG.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoMeasure.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoAssembly.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -62,6 +62,7 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         for (size_t i = 0; i < m_gizmos.size(); ++i)
             if (m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Assembly ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
     }
@@ -162,6 +163,9 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case (EType::Measure):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg");
             break;
+        case (EType::Assembly):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_assembly_dark.svg" : "toolbar_assembly.svg");
+            break;
         }
 
     }
@@ -200,6 +204,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoEmboss(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Emboss));
     m_gizmos.emplace_back(new GLGizmoSVG(m_parent));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
+    m_gizmos.emplace_back(new GLGizmoAssembly(m_parent, m_is_dark ? "toolbar_assembly_dark.svg" : "toolbar_assembly.svg", EType::Assembly));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
@@ -343,8 +348,8 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
 
 void GLGizmosManager::set_hover_id(int id)
 {
-	// Measure handles hover by itself
-    if (m_current == EType::Measure) { return; }
+	// Measure and assembly handles hover by itself
+    if (m_current == EType::Measure || m_current == EType::Assembly) { return; }
     if (!m_enabled || m_current == Undefined)
         return;
 
@@ -438,7 +443,9 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
     else if (m_current == MmuSegmentation)
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Measure)
-        return dynamic_cast<GLGizmoMeasure*>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+        return dynamic_cast<GLGizmoMeasure *>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == Assembly)
+        return dynamic_cast<GLGizmoAssembly *>(m_gizmos[Assembly].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Cut)
         return dynamic_cast<GLGizmoCut3D*>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MeshBoolean)
@@ -701,7 +708,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         case WXK_ESCAPE:
         {
             if (m_current != Undefined) {
-                if (m_current == Measure && gizmo_event(SLAGizmoEventType::Escape)) {
+                if ((m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Escape)) {
                     // do nothing
                 } else
                 //if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
@@ -740,7 +747,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
         case WXK_BACK:
         case WXK_DELETE: {
-            if ((m_current == Cut || m_current == Measure) && gizmo_event(SLAGizmoEventType::Delete))
+            if ((m_current == Cut || m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Delete))
                 processed = true;
             break;
         }
@@ -838,7 +845,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 processed = true;
             }
         }*/
-		if (m_current == Measure) { 
+        if (m_current == Measure || m_current == Assembly) {
             if (keyCode == WXK_CONTROL)
                 gizmo_event(SLAGizmoEventType::CtrlUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
             else if (keyCode == WXK_SHIFT)
@@ -925,8 +932,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 // force extra frame to automatically update window size
                 wxGetApp().imgui()->set_requires_extra_frame();
             }
-        }
-        else if (m_current == Measure) {
+        } else if (m_current == Measure || m_current == Assembly) {
             if (keyCode == WXK_CONTROL)
                 gizmo_event(SLAGizmoEventType::CtrlDown, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
             else if (keyCode == WXK_SHIFT)
