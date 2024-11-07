@@ -4916,55 +4916,56 @@ void GCodeProcessor::run_post_process()
                     if (m_print != nullptr)
                         m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
                 }
-            }
-            export_lines.insert_lines(
-                backtrace, cmd,
-                // line inserter
-                [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
-                    const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
-                                                                  m_extruder_temps_first_layer_config[tool_number]);
-                    // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
-                    // Prusa-Firmware-Buddy here
-                    /**
-                     * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
-                     *
-                     * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
-                     * so that the printer can start preheating the tool in advance.
-                     *
-                     * ## Parameters
-                     * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
-                     * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
-                     * The rest is same as M104
-                     */
-                    if (this->m_is_XL_printer) {
-                        std::string out = "M104.1 T" + std::to_string(tool_number);
-                        if (time_diffs.size() > 0)
-                            out += " P" + std::to_string(int(std::round(time_diffs[0])));
-                        if (time_diffs.size() > 1)
-                            out += " Q" + std::to_string(int(std::round(time_diffs[1])));
-                        out += " S" + std::to_string(temperature) + "\n";
-                        return out;
-                    } else {
-                        std::string comment = "preheat T" + std::to_string(tool_number) +
-                                              " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
-                        return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
-                    }
-                },
-                // line replacer
-                [this, tool_number](const std::string& line) {
-                    if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
-                        GCodeReader::GCodeLine gline;
-                        GCodeReader reader;
-                        reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
-
-                        float val;
-                        if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
-                            if (static_cast<int>(val) == tool_number)
-                                return std::string("; removed M104\n");
+                export_lines.insert_lines(
+                    backtrace, cmd,
+                    // line inserter
+                    [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
+                        const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
+                                                                    m_extruder_temps_first_layer_config[tool_number]);
+                        // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
+                        // Prusa-Firmware-Buddy here
+                        /**
+                        * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
+                        *
+                        * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
+                        * so that the printer can start preheating the tool in advance.
+                        *
+                        * ## Parameters
+                        * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
+                        * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
+                        * The rest is same as M104
+                        */
+                        if (this->m_is_XL_printer) {
+                            std::string out = "M104.1 T" + std::to_string(tool_number);
+                            if (time_diffs.size() > 0)
+                                out += " P" + std::to_string(int(std::round(time_diffs[0])));
+                            if (time_diffs.size() > 1)
+                                out += " Q" + std::to_string(int(std::round(time_diffs[1])));
+                            out += " S" + std::to_string(temperature) + "\n";
+                            return out;
+                        } else {
+                            std::string comment = "preheat T" + std::to_string(tool_number) +
+                                                " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
+                            return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
                         }
+                    },
+                    // line replacer
+                    [this, tool_number](const std::string& line) {
+                        if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
+                            GCodeReader::GCodeLine gline;
+                            GCodeReader reader;
+                            reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
+
+                            float val;
+                            if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
+                                if (static_cast<int>(val) == tool_number)
+                                    return std::string("; removed M104\n");
+                            }
+                        }
+                        return line;
                     }
-                    return line;
-                });
+                );
+            }
         }
     };
 
