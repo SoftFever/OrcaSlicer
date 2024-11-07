@@ -1,39 +1,38 @@
 
+<<<<<<< HEAD
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers.
+=======
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/kennethjiang/JusPrin/blob/main/resources/images/JusPrin.ico" width="100"> JusPrin</p> </h1>
 
+**Welcome to JusPrin, the first GenAI app for 3D printing!**
 
-Join our Discord community here:<br>
-<a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=7289DA&logoColor=white&labelColor=&style=for-the-badge" height="35" alt="discord logo"/> </a>
+Brought to you by the creator of [The Spaghetti Detective](https://www.thespaghettidetective.com/), JusPrin aims to revolutionize the 3D printing experience by eliminating the need for manual slicing. Imagine: **no confusing slicing parameters, no headaches over printing issues caused by incorrect settings. Just print.** That's the promise of JusPrin.
 
- <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3>
+## Table of Contents
 
-The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://www.orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
+- [Why JusPrin?](#why-jusprin)
+- [Download](#download)
+- [Getting Started](#getting-started)
+- [Known Issues](#known-issues)
+- [Feedback](#feedback)
+- [License](#license)
 
-Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
+## Why JusPrin?
 
-If you see the above sites in your searches, report them as spam or unsafe to the search engine. This small action will assist everyone.
+3D printing enthusiasts have relied on slicing tools to prepare models, often struggling with complex parameters and trial-and-error setups. JusPrin changes all of that by leveraging Generative AI to automatically select and optimize slicing settings based on your requirements. It’s designed to:
 
-We deeply value our OrcaSlicer community and appreciate all the social groups that support us. However, it is crucial to address the risk posed by any group that falsely claims to be official or misleads its members. If you encounter such a group or are part of one, please assist by encouraging the group owner to add a clear disclaimer or by alerting its members.
+- **Eliminate Complexity**: No need to tweak dozens of parameters. JusPrin’s AI takes care of it.
+- **Reduce Printing Issues**: By intelligently choosing settings, JusPrin minimizes common print failures and errors.
+- **Unlock Creative Solutions**: JusPrin sometimes surprises even us with creative combinations of slicing settings, pushing the boundaries of what’s possible in 3D printing.
 
+This is a beta version, and while it’s not perfect yet, it’s already showing exciting potential. JusPrin is available for **Windows** and **Mac (M1/M2/M3)**.
 
+## Download
 
-Thank you for your vigilance and support in keeping our community safe!
-
-# Main features
-- Auto-calibration for all printers
-- Sandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
-- [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
-- Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
-- Klipper support
-- More granular controls
-- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
-
-# Wiki
-The wiki below aims to provide a detailed explanation of the slicer settings, including how to maximize their use and how to calibrate and set up your printer.
-
+<<<<<<< HEAD
 Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
 
 **[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
@@ -47,8 +46,20 @@ Visit our GitHub Releases page for the latest stable version of Orca Slicer, rec
 ### Nightly Builds
 🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**
 Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
+=======
+📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
+Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
 
+## Getting Started
+>>>>>>> 7b52b5f7a (update readme)
 
+1. **Download and Install**: Install the appropriate version for your operating system.
+2. **Open JusPrin**: Launch the app. No complicated setup—just start creating.
+3. **Load a Model**: Upload your 3D model (STL, OBJ, or 3MF formats).
+4. **Just Print**: Tell JusBot your print requirements, even if you’re not exactly sure what they are. JusBot will guide you with suggestions based on your model and the AI's best estimations.
+5. **Enjoy the Magic**: Watch as JusPrin slices your model!
+
+<<<<<<< HEAD
 # How to install
 **Windows**:
 1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
@@ -111,9 +122,19 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
   - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
+=======
+## Feedback
 
-# How to package for distribution
+Your feedback is invaluable! If you encounter any issues or notice settings that don’t seem optimal, please let us know. Send your thoughts directly to Kenneth at [k@obico.io](mailto:k@obico.io).
 
+Every bit of feedback helps JusPrin become a better, smarter tool for everyone.
+
+## License
+>>>>>>> 7b52b5f7a (update readme)
+
+JusPrin is open-source software licensed under the GNU Affero General Public License, based on Orca Slicer.
+
+<<<<<<< HEAD
 **Windows**:
 
 - Install https://nsis.sourceforge.io/Download
@@ -178,6 +199,8 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 
 
 # License
+=======
+>>>>>>> 7b52b5f7a (update readme)
 Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
 
 Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
@@ -191,4 +214,3 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 Orca Slicer includes a pressure advance calibration pattern test adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
 
 The Bambu networking plugin is based on non-free libraries from BambuLab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
-
