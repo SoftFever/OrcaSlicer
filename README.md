@@ -1,5 +1,5 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/kennethjiang/JusPrin/blob/main/resources/images/JusPrin.ico" width="100"> JusPrin</p> </h1>
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/kennethjiang/JusPrin/blob/main/resources/images/JusPrin.ico" width="50"> JusPrin</p> </h1>
 
 **Welcome to JusPrin, the first GenAI app for 3D printing!**
 
