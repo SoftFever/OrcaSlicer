@@ -26,12 +26,11 @@ This is a beta version, and while it’s not perfect yet, it’s already showing
 
 ## Download
 
-📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
-Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
+📥 **[Download the Latest Stable Release](https://github.com/kennethjiang/JusPrin/releases/latest)** 
 
 ## Getting Started
 
-1. **Download and Install**: Install the appropriate version for your operating system.
+1. **Download**: Download the appropriate version for your operating system.
 2. **Open JusPrin**: Launch the app. No complicated setup—just start creating.
 3. **Load a Model**: Upload your 3D model (STL, OBJ, or 3MF formats).
 4. **Just Print**: Tell JusBot your print requirements, even if you’re not exactly sure what they are. JusBot will guide you with suggestions based on your model and the AI's best estimations.
