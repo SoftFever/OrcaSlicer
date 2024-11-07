@@ -94,7 +94,6 @@ public:
 
 public:
     void SendRecentList(int images);
-    // void SetLoginPanelVisibility(bool bshow);
     void SendDesignStaffpick(bool on);
     void OpenModelDetail(std::string id, NetworkAgent *agent);
     void SendLoginInfo();

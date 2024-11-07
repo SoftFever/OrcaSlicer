@@ -79,12 +79,6 @@ body
 {
 	border-right-width: 1px;
 	border-right-style: solid;
-	width: 376px;
-}
-
-.RightBoardInvisible #LeftBoard
-{
-	width: 100%;
 }
 
 #LoginArea
@@ -240,11 +234,6 @@ body
 #RightBoard
 {
 	overflow-y:auto;
-}
-
-.RightBoardInvisible #RightBoard
-{
-	display: none;
 }
 
 #ContentBoard
