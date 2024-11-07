@@ -22,7 +22,7 @@ Brought to you by the creator of [The Spaghetti Detective](https://www.thespaghe
 - **Reduce Printing Issues**: By intelligently choosing settings, JusPrin minimizes common print failures and errors.
 - **Unlock Creative Solutions**: JusPrin sometimes surprises even us with creative combinations of slicing settings, pushing the boundaries of what’s possible in 3D printing.
 
-This is a beta version, and while it’s not perfect yet, it’s already showing exciting potential. JusPrin is available for **Windows** and **Mac (M1/M2/M3)**.
+This is a beta version, and while it’s not perfect yet, it’s already showing exciting potential. JusPrin is available for **Windows** and **Mac**. Linux support is coming soon.
 
 ## Download
 
