@@ -2054,13 +2054,10 @@ void GLGizmoMeasure::show_face_face_assembly_common() {
         m_imgui->disabled_begin(!(action.can_set_to_center_coincidence));
         {
             ImGui::PushItemWidth(set_to_center_coincidence_size);
-            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0) : ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                                  m_is_dark_mode ? ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f) : ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                                  m_is_dark_mode ? ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_Text,
-                                  m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0 / 255.0, 150 / 255.0, 136 / 255.0, 1.0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(38 / 255.0f, 166 / 255.0f, 154 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0 / 255.0f, 137 / 255.0f, 123 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(254 / 255.0f, 254 / 255.0f, 254 / 255.0f, 1.00f));
             if (m_imgui->button(_L("Center coincidence"))) {
                 set_to_center_coincidence(m_same_model_object);
             }
@@ -2086,14 +2083,14 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
         auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
         auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
         auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
-        auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel_distance:")).x;
+        auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel distance:")).x;
 
         if (m_imgui->bbl_checkbox(_L("Flip by Face 2"), m_flip_volume_2)) {
             set_to_reverse_rotation(m_same_model_object, 1);
         }
 
         if (action.has_parallel_distance) {
-            m_imgui->text(_u8L("Parallel_distance:"));
+            m_imgui->text(_u8L("Parallel distance:"));
             ImGui::SameLine(parallel_distance_size + m_space_size);
             ImGui::PushItemWidth(m_input_size_max);
             ImGui::BBLInputDouble("##parallel_distance_z", &m_buffered_parallel_distance, 0.0f, 0.0f, "%.2f");
