@@ -16,8 +16,20 @@ add_library(imgui STATIC
     imstb_rectpack.h
     imstb_textedit.h
     imstb_truetype.h
+    # imgui Freetype
+    misc/freetype/imgui_freetype.h
+    misc/freetype/imgui_freetype.cpp
 )
 
 if(Boost_FOUND)
     target_link_libraries(imgui PRIVATE boost_headeronly)
 endif()
+
+find_package(Freetype REQUIRED)
+
+message("ft01 ${FREETYPE_INCLUDE_DIR_ft2build}")
+message("ft02 ${FREETYPE_INCLUDE_DIR_freetype2}")
+message("ft03 ${FREETYPE_INCLUDE_DIRS}")
+
+target_link_libraries(imgui PRIVATE ${FREETYPE_LIBRARIES})
+target_include_directories(imgui PRIVATE ${FREETYPE_INCLUDE_DIRS})

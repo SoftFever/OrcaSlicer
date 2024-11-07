@@ -24,6 +24,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/freetype/imgui_freetype.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
@@ -2646,6 +2647,10 @@ void ImGuiWrapper::init_font(bool compress)
 
     io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
     ImFontConfig cfg = ImFontConfig();
+#ifdef IMGUI_ENABLE_FREETYPE
+    cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+    cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
+#endif
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
