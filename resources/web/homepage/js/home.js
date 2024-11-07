@@ -78,40 +78,38 @@ function Set_RecentFile_MouseRightBtn_Event()
 
 }
 
-function SetLoginPanelVisibility(visible) {
-  var leftBoard = document.getElementById("LeftBoard");
-  if (visible) {
-    leftBoard.style.display = "block";
-  } else {
-    leftBoard.style.display = "none";
-  }
-}
-
-function SetHomePageVisibility(visible) {
-	var topContainer = document.getElementById("TopContainer");
-	if (visible) {
-		topContainer.classList.remove("RightBoardInvisible");
+function UpdateBoardsLayout() {
+  var loginArea = document.getElementById("LeftBoard");
+  var projectArea = document.getElementById("RightBoard");
+	var switchToClassicView = document.getElementById("switchToClassicView");
+	if (IsLogin) {
+		loginArea.style.display = "none";
+		projectArea.style.display = "block";
 	} else {
-		topContainer.classList.add("RightBoardInvisible");
+		if (ClassicMode) {
+			loginArea.style.display = "block";
+			projectArea.style.display = "block";
+			switchToClassicView.textContent = "Switch to AI-assisted mode";
+		} else {
+			loginArea.style.display = "block";
+			projectArea.style.display = "none";
+			switchToClassicView.textContent = "Switch to classic mode";
+		}
 	}
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+	UpdateBoardsLayout(); // Initial layout
+});
 
 function SetClassicMode(classic_mode) {
 	ClassicMode = classic_mode;
-	var switchToClassicView = document.getElementById("switchToClassicView");
-	if (classic_mode) {
-		SetHomePageVisibility(true);
-		switchToClassicView.textContent = "Switch to AI-assisted mode";
-	} else {
-		SetHomePageVisibility(false);
-		switchToClassicView.textContent = "Switch to classic mode";
-	}
+	UpdateBoardsLayout();
 }
 
 function SetLoginStatus(is_login) {
   IsLogin = is_login;
-	SetLoginPanelVisibility(!is_login);
-	SetHomePageVisibility(is_login);
+	UpdateBoardsLayout();
 }
 
 function HandleStudio( pVal )
@@ -150,8 +148,6 @@ function HandleStudio( pVal )
 
     m_HotModelList = pVal["hits"];
     ShowStaffPick(m_HotModelList);
-  } else if (data.cmd === "SetLoginPanelVisibility") {
-    SetLoginPanelVisibility(data.visible);
   }
 }
 
