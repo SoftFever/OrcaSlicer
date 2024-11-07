@@ -537,12 +537,11 @@ function OpenOneStaffPickModel( ModelID )
 
 
 function ToggleClassicMode() {
-	SetClassicMode(!ClassicMode);
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_set_classic_mode";
 	tSend['data']={};
-	tSend['data']['classic_mode']=ClassicMode;
+	tSend['data']['classic_mode']=!ClassicMode;
 
 	SendWXMessage( JSON.stringify(tSend) );
 }

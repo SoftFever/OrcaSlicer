@@ -98,7 +98,6 @@ public:
     wxString m_internal_developer_mode_def;
     wxString m_backup_interval_def;
     wxString m_iot_environment_def;
-    wxString m_use_classic_mode_def;
     SelectorHash      m_hash_selector;
     RadioSelectorList m_radio_group;
     // ComboBoxSelectorList    m_comxbo_group;

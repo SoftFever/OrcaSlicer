@@ -137,6 +137,11 @@ enum CameraMenuIDs {
     wxID_CAMERA_COUNT,
 };
 
+enum ModeMenuIDs {
+    wxID_MODE_CLASSIC,
+    wxID_MODE_AI,
+    wxID_MODE_COUNT,
+};
 
 class Tab;
 class ConfigWizard;
