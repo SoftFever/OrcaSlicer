@@ -4527,7 +4527,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     auto max_width = [](const std::vector<std::string>& items, const std::string& title, float extra_size = 0.0f) {
+        auto const imgui = wxGetApp().imgui();
+        imgui->push_bold_font();
         float ret = ImGui::CalcTextSize(title.c_str()).x;
+        imgui->pop_bold_font();
         for (const std::string& item : items) {
             ret = std::max(ret, extra_size + ImGui::CalcTextSize(item.c_str()).x);
         }
