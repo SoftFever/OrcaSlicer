@@ -9759,21 +9759,18 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::MultiExtruderPrintableError: {
-        int master_extruder_id = 0;  // main extruder is left or right
-        if (m_config->has("master_extruder_id"))
-            master_extruder_id = m_config->opt_int("master_extruder_id") - 1;
         for (auto error_iter = m_gcode_viewer.m_gcode_check_result.error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.end(); ++error_iter) {
             if (error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.begin()) {
                 text += "\n";
             }
-            int extruder_id = error_iter->first + 1;
+            int extruder_id = error_iter->first + 1; // change extruder id to 1 based
             std::string filaments;
             std::vector<int> slice_error_object_idxs;
             for (size_t i = 0; i < error_iter->second.size(); ++i) {
                 if (i > 0) {
                     filaments += ", ";
                 }
-                int filament_id = error_iter->second[i].first;
+                int filament_id = error_iter->second[i].first + 1; // change filament id to 1 based
                 int object_label_id = error_iter->second[i].second;
 
                 //ModelObject* object->instances[0]->get_labeled_id();
@@ -9797,7 +9794,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     }
                 }
             }
-            std::string extruder_name = extruder_id == master_extruder_id ? "Left extruder" : "Right extruder";
+            std::string extruder_name = extruder_id == 1 ? "Left extruder" : "Right extruder";
             if (error_iter->second.size() == 1) {
                 text += (boost::format(_u8L("Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
