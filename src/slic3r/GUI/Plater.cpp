@@ -2313,6 +2313,10 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
+    int get_current_slicing_plate_index() const
+    {
+        return (m_is_slicing && m_slice_all) ? m_cur_slice_plate : partplate_list.get_curr_plate_index();
+    }
 
     bool need_update() const { return m_need_update; }
     void set_need_update(bool need_update) { m_need_update = need_update; }
@@ -2554,7 +2558,7 @@ struct Plater::priv
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
     void actualize_slicing_warnings(const PrintBase &print);
-    void actualize_object_warnings(const PrintBase& print);
+    void actualize_object_warnings();
     // Displays dialog window with list of warnings.
     // Returns true if user clicks OK.
     // Returns true if current_warnings vector is empty without showning the dialog
@@ -5293,7 +5297,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         if (err.string.empty()) {
             this->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
-            notification_manager->set_all_slicing_errors_gray(true);
+            notification_manager->set_all_slicing_errors_gray(true, partplate_list.get_curr_plate_index());
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
@@ -5336,7 +5340,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         if (background_process.empty())
             process_validation_warning({});
         actualize_slicing_warnings(*this->background_process.current_print());
-        actualize_object_warnings(*this->background_process.current_print());
+        actualize_object_warnings();
         show_warning_dialog = false;
         process_completed_with_error = -1;
     }
@@ -6778,8 +6782,7 @@ void Plater::priv::on_slicing_began()
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
-    const auto& cur_plate_idx = m_slice_all ? m_cur_slice_plate : this->partplate_list.get_curr_plate_index();
-    auto& cur_plate_warnings = current_warnings[cur_plate_idx];
+    auto& cur_plate_warnings = current_warnings[get_current_slicing_plate_index()];
     for (auto& it : cur_plate_warnings) {
         if (warning.message_id == it.first.message_id) {
             if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
@@ -6801,13 +6804,13 @@ void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
     }
     ids.emplace_back(print.id());
     std::sort(ids.begin(), ids.end());
-    notification_manager->remove_slicing_warnings_of_released_objects(ids);
-    notification_manager->set_all_slicing_warnings_gray(true);
+    notification_manager->remove_slicing_warnings_of_released_objects(ids, print.get_plate_index());
+    notification_manager->set_all_slicing_warnings_gray(true, print.get_plate_index());
 }
-void Plater::priv::actualize_object_warnings(const PrintBase& print)
+void Plater::priv::actualize_object_warnings()
 {
     std::vector<ObjectID> ids;
-    for (const ModelObject* object : print.model().objects )
+    for (const ModelObject* object : model.objects )
     {
         ids.push_back(object->id());
     }
@@ -6816,11 +6819,13 @@ void Plater::priv::actualize_object_warnings(const PrintBase& print)
 }
 void Plater::priv::clear_warnings(const bool& clear_all_plates)
 {
-    notification_manager->close_slicing_errors_and_warnings();
-    if (clear_all_plates)
-        this->current_warnings.clear();
-    else
-        this->current_warnings.erase(this->partplate_list.get_curr_plate_index());
+    if (clear_all_plates) {
+        notification_manager->close_slicing_errors_and_warnings();
+        current_warnings.clear();
+    } else {
+        notification_manager->close_slicing_errors_and_warnings(get_current_slicing_plate_index());
+        current_warnings.erase(get_current_slicing_plate_index());
+    }
 }
 bool Plater::priv::warnings_dialog()
 {
@@ -13791,7 +13796,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
         if (err.string.empty()) {
             p->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
-            p->notification_manager->set_all_slicing_errors_gray(true);
+            p->notification_manager->set_all_slicing_errors_gray(true, p->partplate_list.get_curr_plate_index());
             p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
 
             // Pass a warning from validation and either show a notification,
@@ -14301,6 +14306,11 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
     }
 
     return;
+}
+
+int Plater::get_current_slicing_plate_index() const
+{
+    return p->get_current_slicing_plate_index();
 }
 
 #if ENABLE_ENVIRONMENT_MAP

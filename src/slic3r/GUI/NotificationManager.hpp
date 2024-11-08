@@ -210,17 +210,19 @@ public:
     void push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs);
 	// Creates Slicing Warning notification with a custom text and no fade out.
     void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level = NotificationLevel::WarningNotificationLevel);
-	// marks slicing errors as gray
-	void set_all_slicing_errors_gray(bool g);
-	// marks slicing warings as gray
-	void set_all_slicing_warnings_gray(bool g);
+    // marks slicing errors as gray for the specified plate
+    void set_all_slicing_errors_gray(bool g, int plate_id);
+    // marks slicing warings as gray for the specified plate
+    void set_all_slicing_warnings_gray(bool g, int plate_id);
 //	void set_slicing_warning_gray(const std::string& text, bool g);
 	// immediately stops showing slicing errors
 	void close_slicing_errors_and_warnings();
+    // close slicing errors for a specific plate index
+    void close_slicing_errors_and_warnings(int plate_idx);
 	void close_slicing_error_notification(const std::string& text);
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
-	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
+	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids, int plate_id);
 	// Object partially outside of the printer working space, cannot print. No fade out.
 	void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.
@@ -233,7 +235,7 @@ public:
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void set_simplify_suggestion_multiline(const ObjectID oid, bool bMulti);
 	// Close object warnings, whose ObjectID is not in the list.
-	// living_oids is expected to be sorted.
+	// living_oids is expected to be sorted and contain all ObjectIDs for the current project (all plates).
 	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
 	void remove_simplify_suggestion_with_id(const ObjectID oid);
 	// Called when the side bar changes its visibility, as the "slicing complete" notification supplements
@@ -582,6 +584,7 @@ private:
 		{}
 		ObjectID 	object_id;
 		int    		warning_step { 0 };
+	    int      	plate_id { 0 };
 	};
 
 	class PlaterWarningNotification : public PopNotification
