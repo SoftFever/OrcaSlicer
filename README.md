@@ -59,3 +59,5 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 Orca Slicer includes a pressure advance calibration pattern test adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
 
 The Bambu networking plugin is based on non-free libraries from BambuLab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
+
+**Special thank you to SoftFever's [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) that acts as a foundation for JusPrin!**
