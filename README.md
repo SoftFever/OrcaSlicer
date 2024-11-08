@@ -60,4 +60,4 @@ Orca Slicer includes a pressure advance calibration pattern test adapted from An
 
 The Bambu networking plugin is based on non-free libraries from BambuLab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
 
-**Special thank you to SoftFever's [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) that acts as a foundation for JusPrin!**
+**A heartfelt thank you to SoftFever's [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) for providing the foundation on which JusPrin is built!**
