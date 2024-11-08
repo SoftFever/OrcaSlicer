@@ -103,13 +103,18 @@ void JusPrinChatPanel::handle_refresh_plater_config(const nlohmann::json& params
 }
 
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
-    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-    reload();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+        reload();
+    });
 }
 
 void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
+    GUI::wxGetApp().CallAfter([this] {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
     reload();
+    });
+
 }
 
 void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
