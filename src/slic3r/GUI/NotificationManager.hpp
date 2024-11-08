@@ -220,6 +220,7 @@ public:
     // close slicing errors for a specific plate index
     void close_slicing_errors_and_warnings(int plate_idx);
 	void close_slicing_error_notification(const std::string& text);
+    void hide_slicing_notifications_from_other_plates(int current_plate_id);
 	// Release those slicing warnings, which refer to an ObjectID, which is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids, int plate_id);

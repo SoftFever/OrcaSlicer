@@ -2007,6 +2007,18 @@ void NotificationManager::close_slicing_error_notification(const std::string& te
 		}
 	}
 }
+void NotificationManager::hide_slicing_notifications_from_other_plates(int current_plate_id)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::SlicingWarning ||
+            notification->get_type() == NotificationType::SlicingSeriousWarning ||
+            notification->get_type() == NotificationType::SlicingError) {
+            if (auto oid_notif = dynamic_cast<ObjectIDNotification*>(notification.get())) {
+                oid_notif->hide(oid_notif->plate_id != current_plate_id);
+            }
+        }
+    }
+}
 void  NotificationManager::push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext/* = ""*/, std::function<bool(wxEvtHandler*)> callback/* = std::function<bool(wxEvtHandler*)>()*/)
 {
 	NotificationData data{ NotificationType::SimplifySuggestion, NotificationLevel::PrintInfoNotificationLevel, 0,  text, hypertext, callback };

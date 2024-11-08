@@ -2588,6 +2588,7 @@ struct Plater::priv
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
+    void on_all_plates_stats_selected(SimpleEvent& evt);
     void on_action_request_model_id(wxCommandEvent& evt);
     void on_action_download_project(wxCommandEvent& evt);
     void on_slice_button_status(bool enable);
@@ -3123,6 +3124,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
+        q->Bind(EVT_GLTOOLBAR_SELECT_ALL_PLATES_STATS, &priv::on_all_plates_stats_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent& evt) { q->print_job_finished(evt); });
@@ -7037,6 +7039,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     if (is_finished)
     {
+        if (m_slice_all)
+            preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         m_is_slicing = false;
         m_export_all = false;
@@ -7165,7 +7170,8 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         if (!m_is_publishing)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
-        preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+        // Orca: This call has been moved to the process complete function
+        // preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
     }
 }
 
@@ -7371,6 +7377,12 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+}
+
+void Plater::priv::on_all_plates_stats_selected(SimpleEvent& evt)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": received all plates stats selected event\n";
+    notification_manager->hide_slicing_notifications_from_other_plates(-1);
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
@@ -13626,6 +13638,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
     if ((!ret) && (p->background_process.can_switch_print()))
     {
+        get_notification_manager()->hide_slicing_notifications_from_other_plates(plate_index);
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
