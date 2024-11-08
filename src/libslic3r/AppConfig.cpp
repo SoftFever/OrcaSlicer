@@ -409,6 +409,14 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
+    if (get("enable_step_mesh_setting").empty()) {
+        set_bool("enable_step_mesh_setting", true);
+    }
+    if (get("linear_defletion", "angle_defletion").empty()) {
+        set("linear_defletion", "0.003");
+        set("angle_defletion", "0.5");
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");

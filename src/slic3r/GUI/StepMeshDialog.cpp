@@ -229,7 +229,9 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
 
     wxBoxSizer* bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->SetMinSize(wxSize(FromDIP(100), -1));
-
+    m_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+    bSizer_button->Add(m_checkbox, 0, wxALIGN_LEFT);
+    bSizer_button->AddStretchSpacer(1);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     m_button_ok = new Button(this, _L("OK"));
@@ -246,6 +248,12 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
         stop_task();
         if (validate_number_range(angle_input->GetTextCtrl()->GetValue(), 0.01, 1) &&
             validate_number_range(linear_input->GetTextCtrl()->GetValue(), 0.001, 0.1)) {
+            if (m_checkbox->IsChecked()) {
+                wxGetApp().app_config->set_bool("enable_step_mesh_setting", false);
+            }
+            wxGetApp().app_config->set("linear_defletion", std::to_string(get_linear_defletion()));
+            wxGetApp().app_config->set("angle_defletion", std::to_string(get_angle_defletion()));
+
             EndModal(wxID_OK);
         }
         SetFocusIgnoringChildren();
@@ -268,7 +276,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file)
         EndModal(wxID_CANCEL);
     });
 
-    bSizer->Add(bSizer_button, 0, wxALIGN_RIGHT | wxRIGHT| wxBOTTOM, LEFT_RIGHT_PADING);
+    bSizer->Add(bSizer_button, 1, wxEXPAND | wxALL, LEFT_RIGHT_PADING);
 
     this->SetSizer(bSizer);
     update_mesh_number_text();
