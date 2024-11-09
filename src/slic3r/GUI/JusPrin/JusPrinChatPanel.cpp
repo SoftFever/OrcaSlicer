@@ -82,6 +82,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
 
+    action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
     action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
     action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
@@ -94,6 +95,10 @@ void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         wxGetApp().show_jusprin_login();
     });
+}
+
+void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) {
+    UpdateOAuthAccessToken();
 }
 
 void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {

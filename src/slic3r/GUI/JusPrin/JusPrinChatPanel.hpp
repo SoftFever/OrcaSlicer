@@ -49,6 +49,7 @@ private:
     void handle_export_gcode(const nlohmann::json& params);
 
     // Actions to fetch info to be sent to the web page
+    void handle_refresh_oauth_token(const nlohmann::json& params);
     void handle_refresh_presets(const nlohmann::json& params);
     void handle_refresh_plater_config(const nlohmann::json& params);
 
