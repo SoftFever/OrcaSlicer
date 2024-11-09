@@ -91,7 +91,9 @@ void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& param
 }
 
 void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
-    wxGetApp().show_jusprin_login();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().show_jusprin_login();
+    });
 }
 
 void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {
@@ -221,12 +223,16 @@ void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
 }
 
 void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
-    wxGetApp().mainframe->start_slicer_all();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().mainframe->start_slicer_all();
+    });
 }
 
 void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
-    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
-    plater->export_gcode(false);
+    GUI::wxGetApp().CallAfter([this] {
+        Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+        plater->export_gcode(false);
+    });
 }
 
 void JusPrinChatPanel::load_url()
