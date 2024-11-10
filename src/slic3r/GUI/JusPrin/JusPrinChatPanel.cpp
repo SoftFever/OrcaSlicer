@@ -261,6 +261,10 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
 }
 
 void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value) {
+    if (!m_page_loaded) {
+        return;
+    }
+
     wxString strJS = wxString::Format(
         "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
         "    window.updateJusPrinEmbeddedChatState('%s', %s);"
@@ -356,6 +360,8 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
+    m_page_loaded = true;
+
     wxString strJS = wxString::Format(
         "var CHAT_SERVER_URL = '%s';",
         wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
@@ -408,7 +414,7 @@ void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
     case wxWEBVIEW_NAV_ERR_USER_CANCELLED: e = "wxWEBVIEW_NAV_ERR_USER_CANCELLED"; break;
     case wxWEBVIEW_NAV_ERR_OTHER: e = "wxWEBVIEW_NAV_ERR_OTHER"; break;
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                             << boost::format(": error loading page %1% %2% %3% %4%") % evt.GetURL() % evt.GetTarget() % e % evt.GetString();
 }
 
