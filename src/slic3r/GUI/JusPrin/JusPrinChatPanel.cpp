@@ -365,9 +365,6 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     // TODO: This callback is triggered when an object is removed, but not when an object is cloned
     wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
 
-    UpdateOAuthAccessToken();
-    RefreshPresets();
-    RefreshPlaterConfig();
     AdvertiseSupportedAction();
 }
 
