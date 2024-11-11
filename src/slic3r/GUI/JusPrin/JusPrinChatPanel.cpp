@@ -67,6 +67,8 @@ JusPrinChatPanel::~JusPrinChatPanel()
 }
 
 void JusPrinChatPanel::reload() {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " reload() called";
+
     m_chat_page_loaded = false;
     m_browser->Reload();
 }
@@ -245,6 +247,8 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
 
 void JusPrinChatPanel::load_url()
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " load_url() called";
+
     m_chat_page_loaded = false;
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
@@ -432,6 +436,9 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
     m_chat_page_loaded = true;  // If we received an action call, the chat page is loaded and javascript is ready
 
     wxString message = event.GetString();
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": action call received: %1%") % message;
+
     std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
