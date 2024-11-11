@@ -8450,12 +8450,23 @@ bool Plater::priv::check_ams_status_impl()
             }
         }
 
+        int left_4  = main_4;
+        int left_1  = main_1;
+        int right_4 = deputy_4;
+        int right_1 = deputy_1;
+        if (!obj->is_main_extruder_on_left()) {
+            left_4  = deputy_4;
+            left_1  = deputy_1;
+            right_4 = main_4;
+            right_1 = main_1;
+        }
+
         bool is_same_as_printer = false;
         if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
-            is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == main_4
-            && preset_bundle->extruder_ams_counts[0][1] == main_1
-            && preset_bundle->extruder_ams_counts[1][4] == deputy_4
-            && preset_bundle->extruder_ams_counts[1][1] == deputy_1;
+            is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == left_4
+            && preset_bundle->extruder_ams_counts[0][1] == left_1
+            && preset_bundle->extruder_ams_counts[1][4] == right_4
+            && preset_bundle->extruder_ams_counts[1][1] == right_1;
         }
 
         if (!is_same_as_printer) {
