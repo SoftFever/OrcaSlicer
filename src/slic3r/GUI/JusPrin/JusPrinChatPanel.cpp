@@ -360,6 +360,8 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
+
     m_page_loaded = true;
 
     wxString strJS = wxString::Format(
