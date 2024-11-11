@@ -66,7 +66,10 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
-void JusPrinChatPanel::reload() { m_browser->Reload(); }
+void JusPrinChatPanel::reload() {
+    m_chat_page_loaded = false;
+    m_browser->Reload();
+}
 
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
@@ -242,6 +245,7 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
 
 void JusPrinChatPanel::load_url()
 {
+    m_chat_page_loaded = false;
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
@@ -335,7 +339,6 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
 
     j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
-    j["currentPlate"] = nlohmann::json::object();
 
     j["modelObjects"] = nlohmann::json::array();
 
@@ -371,15 +374,10 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     }
 
     if (evt.GetURL().Contains(chat_server_url)) {
-        m_chat_page_loaded = true;
         // TODO: This callback is not triggered when a plate is added or removed
         // TODO: This callback is triggered when an object is removed, but not when an object is cloned
         wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
 
-        UpdateOAuthAccessToken();
-        RefreshPresets();
-        RefreshPlaterConfig();
-        RefreshPlaterStatus();
         AdvertiseSupportedAction();
     }
 
@@ -431,6 +429,8 @@ void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
 
 void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
+    m_chat_page_loaded = true;  // If we received an action call, the chat page is loaded and javascript is ready
+
     wxString message = event.GetString();
     std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
