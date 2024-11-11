@@ -29,6 +29,7 @@
     "nozzle_height": "4.2",
     "nozzle_type": "stainless_steel",
     "scan_first_layer": "0",
+    "support_air_filtration": "1",
     "upward_compatible_machine": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
