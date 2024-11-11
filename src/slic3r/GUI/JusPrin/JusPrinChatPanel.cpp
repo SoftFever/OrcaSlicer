@@ -261,7 +261,7 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
 }
 
 void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value) {
-    if (!m_page_loaded) {
+    if (!m_chat_page_loaded) {
         return;
     }
 
@@ -362,18 +362,27 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
 
-    m_page_loaded = true;
+    wxString chat_server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin");
+    if (evt.GetURL().Contains("jusprin_chat_preload.html")) {
+        wxString strJS = wxString::Format(
+            "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer();",
+            chat_server_url);
+        WebView::RunScript(m_browser, strJS);
+    }
 
-    wxString strJS = wxString::Format(
-        "var CHAT_SERVER_URL = '%s';",
-        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
-    WebView::RunScript(m_browser, strJS);
+    if (evt.GetURL().Contains(chat_server_url)) {
+        m_chat_page_loaded = true;
+        // TODO: This callback is not triggered when a plate is added or removed
+        // TODO: This callback is triggered when an object is removed, but not when an object is cloned
+        wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
 
-    // TODO: This callback is not triggered when a plate is added or removed
-    // TODO: This callback is triggered when an object is removed, but not when an object is cloned
-    wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
+        UpdateOAuthAccessToken();
+        RefreshPresets();
+        RefreshPlaterConfig();
+        RefreshPlaterStatus();
+        AdvertiseSupportedAction();
+    }
 
-    AdvertiseSupportedAction();
 }
 
 void JusPrinChatPanel::OnPlaterChanged() {
