@@ -1,6 +1,6 @@
 app-id: io.github.softfever.OrcaSlicer
 runtime: org.gnome.Platform
-runtime-version: "45"
+runtime-version: "46"
 sdk: org.gnome.Sdk
 command: entrypoint
 separate-locales: true
@@ -17,8 +17,6 @@ finish-args:
   # Allow OrcaSlicer to talk to other instances
   - --talk-name=io.github.softfever.OrcaSlicer.InstanceCheck.*
   - --system-talk-name=org.freedesktop.UDisks2
-  # set dark theme
-  - --env=BAMBU_STUDIO_DARK_THEME=false
 
 modules:
 
@@ -35,47 +33,6 @@ modules:
       - type: archive
         url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
         sha256: e305b9f07f52743ca481da0a4e0c76c35efd60adaf1b0694eb3bb021e2137e39
-
-  # xprop, xlib is needed to manipulate the X11 window and set _GTK_THEME_VARIANT dark on X11
-  # and paint the window dark when PRUSA_SLICER_DARK_THEME is true
-  # see: entrypoint & set-dark-theme-variant.py (originated from spotify client flatpak)
-  - name: xprop
-    sources:
-      - type: archive
-        url: http://mirrors.ircam.fr/pub/x.org/individual/app/xprop-1.2.5.tar.gz
-        sha256: b7bf6b6be6cf23e7966a153fc84d5901c14f01ee952fbd9d930aa48e2385d670
-  - name: python-flit_core
-    buildsystem: simple
-    build-commands:
-      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/c4/e6/c1ac50fe3eebb38a155155711e6e864e254ce4b6e17fe2429b4c4d5b9e80/flit_core-3.9.0.tar.gz
-        sha256: 72ad266176c4a3fcfab5f2930d76896059851240570ce9a98733b658cb786eba
-  - name: python-packaging
-    buildsystem: simple
-    build-commands:
-      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/51/65/50db4dda066951078f0a96cf12f4b9ada6e4b811516bf0262c0f4f7064d4/packaging-24.1.tar.gz
-        sha256: 026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002
-  - name: python-setuptools_scm
-    buildsystem: simple
-    build-commands:
-      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/57/38/930b1241372a9f266a7df2b184fb9d4f497c2cef2e016b014f82f541fe7c/setuptools_scm-6.0.1.tar.gz
-        sha256: d1925a69cb07e9b29416a275b9fadb009a23c148ace905b2fb220649a6c18e92
-  - name: python-xlib
-    buildsystem: simple
-    build-commands:
-      - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/86/f5/8c0653e5bb54e0cbdfe27bf32d41f27bc4e12faa8742778c17f2a71be2c0/python-xlib-0.33.tar.gz
-        sha256: 55af7906a2c75ce6cb280a584776080602444f75815a7aff4d287bb2d7018b32
 
   # For libOSMesa
   - name: mesa
@@ -162,6 +119,8 @@ modules:
         url: https://github.com/SoftFever/Orca-deps-wxWidgets
         branch: master
         path: ../
+      - type: patch
+        path: patches/0001-Enable-using-a-dark-theme-when-Gnome-dark-style-is-s.patch
     cleanup:
       - "*.la"
       - "*.a"
@@ -323,7 +282,6 @@ modules:
         install -Dm644 ${FLATPAK_ID}.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
         mv /app/share/applications/OrcaSlicer.desktop /app/share/applications/${FLATPAK_ID}.desktop
         desktop-file-edit --set-key=Exec --set-value="entrypoint %U" /app/share/applications/${FLATPAK_ID}.desktop
-        install -Dm755 set-dark-theme-variant.py /app/bin
         install -Dm755 entrypoint /app/bin
         install -Dm755 umount /app/bin
 
@@ -338,20 +296,14 @@ modules:
       # OrcaSlicer Source Archive
       - type: dir 
         path: ../
+      - type: patch
+        path: patches/libslic3r_missing_include.patch 
 
       # AppData metainfo for Gnome Software & Co.
       - type: file
         path: io.github.softfever.OrcaSlicer.metainfo.xml
 
-      # script to set dark theme variant
-      - type: file
-        path: set-dark-theme-variant.py
-
       # start-up script
-      # README: workaround for the following issues, also enables dark theme variant:
-      # SEE: https://github.com/flathub/com.bambulab.BambuStudio/issues/27
-      # SEE: https://github.com/flathub/com.bambulab.BambuStudio/issues/3
-      # SEE: https://github.com/prusa3d/PrusaSlicer/issues/2365
       - type: file
         path: entrypoint
 
