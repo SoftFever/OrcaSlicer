@@ -71,7 +71,7 @@ private:
 
     wxWebView* m_browser;
     long     m_zoomFactor;
-    bool m_page_loaded{false};
+    bool m_chat_page_loaded{false};
 
     void UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value);
 
