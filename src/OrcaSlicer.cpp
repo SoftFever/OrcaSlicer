@@ -2840,7 +2840,7 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if ((load_filament_count > 0) && m_print_config.option<ConfigOptionStrings>("filament_extruder_variant")) {
+        if (m_print_config.option<ConfigOptionStrings>("filament_extruder_variant")) {
             std::vector<int>& filament_self_indice = m_print_config.option<ConfigOptionInts>("filament_self_index", true)->values;
             int index_size = m_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->size();
             filament_self_indice.resize(index_size, 1);
