@@ -498,7 +498,9 @@ void PressureAdvanceWizard::update(MachineObject* obj)
             cali_version = obj->cali_version;
             PACalibExtruderInfo cali_info;
             cali_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
-            CalibUtils::emit_get_PA_calib_info(cali_info);
+            cali_info.use_extruder_id        = false;
+            cali_info.use_nozzle_volume_type = false;
+            CalibUtils::emit_get_PA_calib_infos(cali_info);
         }
     }
 }

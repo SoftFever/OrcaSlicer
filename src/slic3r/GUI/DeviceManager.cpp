@@ -207,7 +207,9 @@ wxString generate_nozzle_id(NozzleVolumeType nozzle_type, const std::string& dia
         nozzle_id += "H";
         break;
     }
-    default: break;
+    default:
+        nozzle_id += "H";
+        break;
     }
     nozzle_id += "00";
     nozzle_id += "-";
@@ -2282,7 +2284,8 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     j["print"]["command"]         = "extrusion_cali_get";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["filament_id"]     = calib_info.filament_id;
-    j["print"]["extruder_id"]     = calib_info.extruder_id;
+    if (calib_info.use_extruder_id)
+        j["print"]["extruder_id"] = calib_info.extruder_id;
     if (calib_info.use_nozzle_volume_type)
         j["print"]["nozzle_id"] = generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);

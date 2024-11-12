@@ -136,10 +136,11 @@ struct PACalibIndexInfo
 
 struct PACalibExtruderInfo
 {
-    int              extruder_id;
+    int              extruder_id = -1;
     NozzleVolumeType nozzle_volume_type;
     float            nozzle_diameter;
     std::string      filament_id = "";
+    bool             use_extruder_id{true};
     bool             use_nozzle_volume_type{true};
 };
 

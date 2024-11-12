@@ -45,9 +45,6 @@ public:
     static void emit_get_PA_calib_infos(const PACalibExtruderInfo &cali_info);
     static bool get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos);
 
-    static void emit_get_PA_calib_info(const PACalibExtruderInfo& cali_info);
-    static bool get_PA_calib_info(PACalibResult &pa_calib_info);
-
     static void set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
     static void select_PA_calib_result(const PACalibIndexInfo &pa_calib_info);
     static void delete_PA_calib_result(const PACalibIndexInfo &pa_calib_info);
