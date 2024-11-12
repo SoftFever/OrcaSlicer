@@ -80,6 +80,8 @@
                 showError();
             });
         }
+
+        window.wx.postMessage({ action: 'init_server_url_and_redirect' });
     </script>
 </body>
 </html>
