@@ -323,10 +323,16 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     TabPresetComboBox* combo = tab->get_combo_box();
     std::vector<std::pair<const Preset*, bool>> presets;
 
+    // It doesn't seem that PresetComboBox keeps a list of available presets. So we will have to go by the combo box text then look up the preset
     for (unsigned int i = 0; i < combo->GetCount(); i++) {
         std::string preset_name = combo->GetString(i).ToUTF8().data();
 
         if (preset_name.substr(0, 5) == "-----") continue;   // Skip separator
+
+        // Orca Slicer adds "* " to the preset name to indicate that it has been modified. But the underlying preset name is without the "* " prefix
+        if (preset_name.substr(0, 2) == "* ") {
+            preset_name = preset_name.substr(2);
+        }
 
         const Preset* preset = tab->m_presets->find_preset(preset_name, false);
         if (preset) {
