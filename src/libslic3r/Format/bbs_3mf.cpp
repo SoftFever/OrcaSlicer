@@ -4235,8 +4235,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 m_curr_plater->config.set_key_value("filament_map_mode", new ConfigOptionEnum<FilamentMapMode>(map_mode));
             }
             else if (key == FILAMENT_MAP_ATTR) {
-
-                m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(get_vector_from_string(value)));
+                if (m_curr_plater)
+                    m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(get_vector_from_string(value)));
             }
             else if (key == UNPRINTABLE_FILAMENT_MAP_ATTR)
             {
