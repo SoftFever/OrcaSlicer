@@ -5740,6 +5740,8 @@ void MachineObject::parse_new_info(json print)
                         nozzle_obj.nozzle_type = NozzleType::ntHardenedSteel;
                     }
                 } else {
+                    nozzle_obj.tool_type   = NozzleToolType::NONE_TOOLTYPE;
+                    nozzle_obj.nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
                     nozzle_obj.nozzle_type = NozzleType::ntUndefine;
                 }
 
