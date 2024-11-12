@@ -24,6 +24,7 @@
 #include <wx/wrapsizer.h>
 #include <wx/srchctrl.h>
 
+#include "boost/bimap/bimap.hpp"
 #include "AmsMappingPopup.hpp"
 #include "ReleaseNote.hpp"
 #include "GUI_Utils.hpp"
@@ -150,6 +151,57 @@ static int get_brightness_value(wxImage image) {
     return totalLuminance / num_none_transparent;
 }
 
+class PrintOptionItem : public wxPanel
+{
+public:
+    PrintOptionItem(wxWindow *parent, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    ~PrintOptionItem(){};
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void on_left_down(wxMouseEvent &evt);
+    void doRender(wxDC &dc);
+
+    ScalableBitmap m_selected_bk;
+    boost::bimaps::bimap<std::string, std::string> m_ops;
+    std::string selected_key;
+    std::string m_param;
+
+    void setValue(std::string value);
+    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+        m_ops = ops;
+        selected_key = "";
+        auto width  = ops.size() * FromDIP(56) + FromDIP(8);
+        auto height = FromDIP(22) + FromDIP(8);
+        SetMinSize(wxSize(width, height));
+        SetMaxSize(wxSize(width, height));
+        Refresh();
+    };
+    std::string getValue();
+};
+
+class PrintOption : public wxPanel
+{
+public:
+    PrintOption(wxWindow *parent, wxString title, wxString tips, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    ~PrintOption(){};
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
+
+    std::string m_param;
+    boost::bimaps::bimap<std::string, std::string> m_ops;
+    Label*   m_label{nullptr};
+    Label*   m_printoption_title{nullptr};
+    PrintOptionItem* m_printoption_item{nullptr};
+    void setValue(std::string value);
+    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+        m_ops = ops;
+        m_printoption_item->update_options(ops);
+    };
+    std::string getValue();
+    int getValueInt();
+};
+
 class ThumbnailPanel : public wxPanel
 {
 public:
@@ -185,6 +237,7 @@ private:
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
+    bool                                m_printer_update_options_layout {false};
     PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
@@ -198,8 +251,7 @@ private:
     Label* m_text_bed_type;
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::map<std::string, CheckBox *>   m_checkbox_list;
-    //std::map<std::string, bool>         m_checkbox_state_list;
+    std::map<std::string, PrintOption*>   m_checkbox_list;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -213,6 +265,9 @@ private:
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
+
+    boost::bimaps::bimap<std::string, std::string> ops_auto;
+    boost::bimaps::bimap<std::string, std::string> ops_no_auto;
 
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
@@ -238,10 +293,6 @@ protected:
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
     wxStaticBitmap*                     img_amsmapping_tip{nullptr};
     ThumbnailPanel*                     m_thumbnailPanel{ nullptr };
-    wxWindow*                           select_bed{ nullptr };
-    wxWindow*                           select_flow{ nullptr };
-    wxWindow*                           select_timelapse{ nullptr };
-    wxWindow*                           select_use_ams{ nullptr };
     wxPanel*                            m_panel_status{ nullptr };
     wxPanel*                            m_basic_panel;
     wxPanel*                            m_rename_normal_panel{nullptr};
@@ -385,13 +436,9 @@ public:
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(NozzleType type);
     wxString    format_text(wxString &m_msg);
-    wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
-    wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
-    wxImage *   LoadImageFromBlob(const unsigned char *data, int size);
     PrintDialogStatus  get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
-
 }} // namespace Slic3r::GUI
 
 #endif

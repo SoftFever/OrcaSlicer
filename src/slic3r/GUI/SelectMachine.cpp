@@ -41,13 +41,14 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 #define WRAP_GAP FromDIP(2)
 
 static wxString task_canceled_text = _L("Task canceled");
-
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
     _L("Bambu Engineering Plate"),
     _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bambu Textured PEI Plate")};
+    _L("Bambu Textured PEI Plate")
+};
+
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
 {
@@ -103,6 +104,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
+
+    ops_auto.left.insert(make_pair("auto", "Auto"));
+    ops_auto.left.insert(make_pair("on", "On"));
+    ops_auto.left.insert(make_pair("off", "Off"));
+
+    ops_no_auto.left.insert(make_pair("on", "On"));
+    ops_no_auto.left.insert(make_pair("off", "Off"));
 
     SetMinSize(wxSize(FromDIP(688), -1));
     SetMaxSize(wxSize(FromDIP(688), -1));
@@ -417,51 +425,81 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_filament_right_panel->Hide();
     m_filament_panel->Hide();
 
-
-
-
-
     m_statictext_ams_msg = new Label(this, wxEmptyString);
     m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(600), -1));
     m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(600), -1));
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
-
-
-    /*options*/
+    /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
-    auto m_stext_options_title = new Label(this, _L("Print Options"));
-    m_stext_options_title->SetFont(::Label::Body_14);
-    m_stext_options_title->SetForegroundColour(0x909090);
     auto m_split_options_line = new wxPanel(this, wxID_ANY);
     m_split_options_line->SetBackgroundColour(0xeeeeee);
     m_split_options_line->SetSize(wxSize(-1, FromDIP(1)));
     m_split_options_line->SetMinSize(wxSize(-1, FromDIP(1)));
     m_split_options_line->SetMaxSize(wxSize(-1, FromDIP(1)));
     sizer_split_options->Add(0, 0, 0, wxEXPAND, 0);
-    sizer_split_options->Add(m_stext_options_title, 0, wxALIGN_CENTER, 0);
-    sizer_split_options->Add(m_split_options_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_split_options->Add(m_split_options_line, 1, wxALIGN_CENTER, 0);
+
+    wxBoxSizer *sizer_advanced_options_title  = new wxBoxSizer(wxHORIZONTAL);
+    auto        advanced_options_title       = new Label(this, _L("Advanced Options"));
+    advanced_options_title->SetFont(::Label::Body_13);
+    advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
+    sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
+    sizer_advanced_options_title->Add(advanced_options_title, 0, wxRIGHT, 0);
+
+    m_sizer_options = new wxBoxSizer(wxVERTICAL);
 
 
-    m_sizer_options = new wxBoxSizer(wxHORIZONTAL);
-    select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
-    select_flow    = create_item_checkbox(_L("Flow Dynamics Calibration"), this, _L("Flow Dynamics Calibration"), "flow_cali");
-    select_timelapse = create_item_checkbox(_L("Timelapse"), this, _L("Timelapse"), "timelapse");
-    select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
+    auto option_timelapse           = new PrintOption(this, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
 
-    m_sizer_options->Add(select_bed, 0, wxLEFT | wxRIGHT, WRAP_GAP);
-    m_sizer_options->Add(select_flow, 0, wxLEFT | wxRIGHT, WRAP_GAP);
-    m_sizer_options->Add(select_timelapse, 0, wxLEFT | wxRIGHT, WRAP_GAP);
-    m_sizer_options->Add(select_use_ams, 0, wxLEFT | wxRIGHT, WRAP_GAP);
+    auto option_auto_bed_level      = new PrintOption(
+        this,
+        _L("Auto Bed Leveling"),
+        _L("Check heatbed flatness. Leveling makes extruded height uniform.\n*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."),
+        ops_auto,
+        "bed_leveling"
+    );
 
-    select_bed->Show(false);
-    select_flow->Show(false);
-    select_timelapse->Show(false);
-    select_use_ams->Show(false);
+    auto option_flow_dynamics_cali  = new PrintOption(
+            this,
+            _L("Flow Dynamics Calibration"),
+            _L("Find the best coefficient for dynamic flow calibration to enhance print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
+            ops_auto,
+            "flow_cali"
+        );
 
-    m_sizer_options->Layout();
+    auto option_nozzle_offset_cali_cali  = new PrintOption(
+        this,
+        _L("Nozzle Offset Calibration"),
+        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
+        ops_auto
+    );
 
+    auto option_use_ams             = new PrintOption(
+        this,
+        _L("Use AMS"),
+        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
+        ops_no_auto
+    );
+
+    m_sizer_options->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+
+    m_checkbox_list["timelapse"]     = option_timelapse;
+    m_checkbox_list["bed_leveling"]  = option_auto_bed_level;
+    m_checkbox_list["use_ams"]       = option_use_ams;
+    m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
+    m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
+
+    option_timelapse->Hide();
+    option_auto_bed_level->Hide();
+    option_flow_dynamics_cali->Hide();
+    option_nozzle_offset_cali_cali->Hide();
+    option_use_ams->Hide();
 
     m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE, 0);
 
@@ -611,7 +649,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
-    
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
@@ -622,9 +659,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_sizer_options, 0, wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_sizer_options, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
@@ -750,165 +787,75 @@ void SelectMachineDialog::popup_filament_backup()
     }
 }
 
-wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip)
-{
-    auto checkbox = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    checkbox->SetBackgroundColour(m_colour_def_color);
-
-    wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
-
-    auto check = new ::CheckBox(checkbox);
-
-    sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
-
-    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
-    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(7));
-
-    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    text->SetFont(::Label::Body_12);
-    text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
-    text->Wrap(-1);
-    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
-
-    enable_ams       = new ScalableBitmap(this, "enable_ams", 16);
-    img_use_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    sizer_checkbox->Add(img_use_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
-
-    img_use_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-        wxPoint img_pos = img_use_ams_tip->ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x, img_pos.y + img_use_ams_tip->GetRect().height);
-        m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
-        m_mapping_tip_popup.Popup();
-
-        if (m_mapping_tip_popup.ClientToScreen(wxPoint(0, 0)).y < img_pos.y) {
-            m_mapping_tip_popup.Dismiss();
-            popup_pos = wxPoint(img_pos.x, img_pos.y - m_mapping_tip_popup.GetRect().height);
-            m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
-            m_mapping_tip_popup.Popup();
-        }
-    });
-
-    img_use_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
-        m_mapping_tip_popup.Dismiss();
-        });
-
-    checkbox->SetSizer(sizer_checkbox);
-    checkbox->Layout();
-    sizer_checkbox->Fit(checkbox);
-
-    checkbox->SetToolTip(tooltip);
-    text->SetToolTip(tooltip);
-
-    text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent& event) {
-        check->SetValue(check->GetValue() ? false : true);
-        });
-
-    checkbox->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent& event) {
-        check->SetValue(check->GetValue() ? false : true);
-        });
-
-    m_checkbox_list["use_ams"] = check;
-    return checkbox;
-}
-
-wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
-{
-    auto checkbox = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    checkbox->SetBackgroundColour(m_colour_def_color);
-
-    wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
-
-    auto check = new ::CheckBox(checkbox);
-
-    sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
-
-    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    text->SetFont(::Label::Body_12);
-    text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
-    text->Wrap(-1);
-    text->SetMinSize(wxSize(FromDIP(140), -1));
-    text->SetMaxSize(wxSize(FromDIP(140), -1));
-
-    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
-    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(7));
-    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
-
-    checkbox->SetSizer(sizer_checkbox);
-    checkbox->Layout();
-    sizer_checkbox->Fit(checkbox);
-
-    check->SetToolTip(tooltip);
-    text->SetToolTip(tooltip);
-
-
-
-    check->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &e) {
-        //if (!m_checkbox_state_list[param]) {return;}
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            if (check->GetValue())
-                config->set_str("print", param, "0");
-            else
-                config->set_str("print", param, "1");
-        }
-        e.Skip();
-    });
-
-    checkbox->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent&) {
-        //if (!m_checkbox_state_list[param]) {return;}
-        check->SetValue(check->GetValue() ? false : true);
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            if (check->GetValue())
-                config->set_str("print", param, "1");
-            else
-                config->set_str("print", param, "0");
-        }
-        });
-
-    text->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &) {
-        //if (!m_checkbox_state_list[param]) {return;}
-        check->SetValue(check->GetValue() ? false : true);
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            if (check->GetValue())
-                config->set_str("print", param, "1");
-            else
-                config->set_str("print", param, "0");
-        }
-    });
-
-    //m_checkbox_state_list[param] = true;
-    m_checkbox_list[param] = check;
-    return checkbox;
-}
-
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
+    if (m_printer_update_options_layout) {
+        return;
+    }
+
+    // reset checkbox
+    m_checkbox_list["timelapse"]->Hide();
+    m_checkbox_list["bed_leveling"]->Hide();
+    m_checkbox_list["use_ams"]->Hide();
+    m_checkbox_list["flow_cali"]->Hide();
+    m_checkbox_list["nozzle_offset_cali"]->Hide();
+
+    if (obj->is_enable_np) {
+        m_checkbox_list["bed_leveling"]->update_options(ops_auto);
+        m_checkbox_list["flow_cali"]->update_options(ops_auto);
+    }
+    else {
+        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
+        m_checkbox_list["flow_cali"]->update_options(ops_auto);
+    }
+
     if (obj && obj->is_support_auto_flow_calibration) {
-        select_flow->Show();
+        m_checkbox_list["flow_cali"]->Show();
     } else {
-        select_flow->Hide();
+        m_checkbox_list["flow_cali"]->Hide();
     }
 
     if (obj && obj->is_support_auto_leveling) {
-        select_bed->Show();
+        m_checkbox_list["bed_leveling"]->Show();
     } else {
-        select_bed->Hide();
+        m_checkbox_list["bed_leveling"]->Hide();
     }
 
     if (obj && obj->is_support_timelapse && is_show_timelapse()) {
-        select_timelapse->Show();
+        m_checkbox_list["timelapse"]->Show();
         update_timelapse_enable_status();
     } else {
-        select_timelapse->Hide();
+        m_checkbox_list["timelapse"]->Hide();
     }
+
+    // load checkbox values from app config
+    AppConfig *config = wxGetApp().app_config;
+    if (config && config->get("print", "bed_leveling") == "0") {
+        m_checkbox_list["bed_leveling"]->setValue("off");
+    } else {
+        m_checkbox_list["bed_leveling"]->setValue("on");
+    }
+    if (config && config->get("print", "flow_cali") == "0") {
+        m_checkbox_list["flow_cali"]->setValue("off");
+    } else {
+        m_checkbox_list["flow_cali"]->setValue("on");
+    }
+    if (config && config->get("print", "timelapse") == "0") {
+        m_checkbox_list["timelapse"]->setValue("off");
+    } else {
+        m_checkbox_list["timelapse"]->setValue("on");
+    }
+
+    update_ams_check(obj);
+    update_flow_cali_check(obj);
 
     m_sizer_options->Layout();
     Layout();
     Fit();
+
+    if (obj->is_info_ready() && !m_printer_update_options_layout) {
+        m_printer_update_options_layout = true;
+    }
 }
 
 void SelectMachineDialog::prepare_mode(bool refresh_button)
@@ -1505,8 +1452,9 @@ bool SelectMachineDialog::has_tips(MachineObject* obj)
     if (!obj) return false;
 
     // must set to a status if return true
-    if (select_timelapse->IsShown() &&
-        m_checkbox_list["timelapse"]->GetValue()) {
+    if (m_checkbox_list["timelapse"]->IsShown() &&
+        (m_checkbox_list["timelapse"]->getValue() == "on"))
+    {
         if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             show_status(PrintDialogStatus::PrintStatusTimelapseNoSdcard);
             return true;
@@ -1957,7 +1905,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
-            if (obj_->get_printer_arch() == PrinterArch::ARCH_I3 && m_checkbox_list["timelapse"]->GetValue()) {
+            if (obj_->get_printer_arch() == PrinterArch::ARCH_I3 && (m_checkbox_list["timelapse"]->getValue() == "on")) {
                 confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
                 has_slice_warnings = true;
             }
@@ -2020,7 +1968,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-    if (has_prohibited_filament && obj_->has_ams() && m_checkbox_list["use_ams"]->GetValue()) {
+    if (has_prohibited_filament && obj_->has_ams() && (m_checkbox_list["use_ams"]->getValue() == "on")) {
         wxString tpu_tips = prohibited_error;
         show_errors(tpu_tips);
         return;
@@ -2221,7 +2169,7 @@ void SelectMachineDialog::on_send_print()
     std::string ams_mapping_array;
     std::string ams_mapping_array2;
     std::string ams_mapping_info;
-    if (m_checkbox_list["use_ams"]->GetValue())
+    if (m_checkbox_list["use_ams"]->getValue() == "on")
         get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
     else {
         json mapping_info_json = json::array();
@@ -2331,21 +2279,24 @@ void SelectMachineDialog::on_send_print()
     m_print_job->has_sdcard = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
 
 
-    bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
+    bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;
+    if (timelapse_option) {
+        timelapse_option = m_checkbox_list["timelapse"]->getValue() == "on";
+    }
 
     m_print_job->set_print_config(
         MachineBedTypeString[0],
-        m_checkbox_list["bed_leveling"]->GetValue(),
-        m_checkbox_list["flow_cali"]->GetValue(),
+        (m_checkbox_list["bed_leveling"]->getValue() == "on"),
+        (m_checkbox_list["flow_cali"]->getValue() == "on"),
         false,
         timelapse_option,
         true,
-        0, // TODO: Orca hack
-        0,
-        0);
+        m_checkbox_list["bed_leveling"]->getValueInt(),
+        m_checkbox_list["flow_cali"]->getValueInt(),
+        m_checkbox_list["nozzle_offset_cali"]->getValueInt());
 
     if (obj_->has_ams()) {
-        m_print_job->task_use_ams = m_checkbox_list["use_ams"]->GetValue();
+        m_print_job->task_use_ams = (m_checkbox_list["use_ams"]->getValue() == "on");
     } else {
         m_print_job->task_use_ams = false;
     }
@@ -2561,8 +2512,6 @@ void SelectMachineDialog::update_user_printer()
         if (!mobj->is_avaliable()) continue;
         if (!mobj->is_online()) continue;
         if (!mobj->is_lan_mode_printer()) continue;
-        /*if (mobj->is_in_printing()) {op->set_printer_state(PrinterState::BUSY);}*/
-
         if (!mobj->has_access_right()) {
             option_list[mobj->dev_name] = mobj;
             machine_list.push_back(mobj->dev_name);
@@ -2747,15 +2696,15 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if(!obj_) return;
 
-    update_ams_check(obj_);
     update_select_layout(obj_);
+
     if (!obj_
         || obj_->amsList.empty()
         || obj_->ams_exist_bits == 0
         || !obj_->is_support_filament_backup
         || !obj_->is_support_show_filament_backup
         || !obj_->ams_auto_switch_filament_flag
-        || !m_checkbox_list["use_ams"]->GetValue() ) {
+        || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
@@ -2781,6 +2730,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_ams_mapping_res  = false;
     m_ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
+    m_printer_update_options_layout = false;
 
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2820,7 +2770,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
         // reset the timelapse check status for I3 structure
         if (obj->get_printer_arch() == PrinterArch::ARCH_I3) {
-            m_checkbox_list["timelapse"]->SetValue(false);
+            m_checkbox_list["timelapse"]->setValue("off");
             AppConfig *config = wxGetApp().app_config;
             if (config) config->set_str("print", "timelapse", "0");
         }
@@ -2855,14 +2805,14 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
 {
     if (obj && obj->has_ams() && !obj->is_enable_np) {
-        select_use_ams->Show();
+        m_checkbox_list["use_ams"]->Show();
         if (obj->get_printer_ams_type() == "generic") {
             img_use_ams_tip->Show();
         } else {
             img_use_ams_tip->Hide();
         }
     }
-    if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
+    if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->setValue("on"); }
 }
 
 void SelectMachineDialog::update_show_status()
@@ -2944,14 +2894,14 @@ void SelectMachineDialog::update_show_status()
     // do ams mapping if no ams result
     bool clean_ams_mapping = false;
     if (m_ams_mapping_result.empty()) {
-        if (m_checkbox_list["use_ams"]->GetValue()) {
+        if (m_checkbox_list["use_ams"]->getValue() == "on") {
             do_ams_mapping(obj_);
         } else {
             clean_ams_mapping = true;
         }
     }
 
-    if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
+    if (!obj_->has_ams() || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
         clean_ams_mapping = true;
     }
 
@@ -3003,7 +2953,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     // no ams
-    if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
+    if (!obj_->has_ams() || ! (m_checkbox_list["use_ams"]->getValue() == "on")) {
         if (!has_tips(obj_)) {
             if (has_timelapse_warning()) {
                 show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
@@ -3015,7 +2965,7 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-    if (!m_checkbox_list["use_ams"]->GetValue()) {
+    if (!(m_checkbox_list["use_ams"]->getValue() == "on")) {
         m_ams_mapping_result.clear();
         sync_ams_mapping_result(m_ams_mapping_result);
 
@@ -3178,13 +3128,13 @@ void SelectMachineDialog::update_timelapse_enable_status()
     AppConfig *config = wxGetApp().app_config;
     if (!has_timelapse_warning()) {
         if (!config || config->get("print", "timelapse") == "0")
-            m_checkbox_list["timelapse"]->SetValue(false);
+            m_checkbox_list["timelapse"]->setValue("off");
         else
-            m_checkbox_list["timelapse"]->SetValue(true);
-        select_timelapse->Enable(true);
+            m_checkbox_list["timelapse"]->setValue("on");
+        m_checkbox_list["timelapse"]->Enable(true);
     } else {
-        m_checkbox_list["timelapse"]->SetValue(false);
-        select_timelapse->Enable(false);
+        m_checkbox_list["timelapse"]->setValue("off");
+        m_checkbox_list["timelapse"]->Enable(false);
         if (config) { config->set_str("print", "timelapse", "0"); }
     }
 }
@@ -3302,9 +3252,9 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_button_ensure->SetCornerRadius(FromDIP(12));
     m_status_bar->msw_rescale();
 
-    for (auto checkpire : m_checkbox_list) {
-        checkpire.second->Rescale();
-    }
+    //for (auto checkpire : m_checkbox_list) {
+    //    checkpire.second->Rescale();
+    //}
 
     for (auto material1 : m_materialList) {
         material1.second->item->msw_rescale();
@@ -3314,51 +3264,23 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
-wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int size)
-{
-    if (data != NULL) {
-        wxMemoryInputStream mi(data, size);
-        wxImage *           img = new wxImage(mi, wxBITMAP_TYPE_ANY);
-        if (img != NULL && img->IsOk()) return img;
-        // wxLogDebug( wxT("DB::LoadImageFromBlob error: data=%p size=%d"), data, size);
-        // caller is responsible for deleting the pointer
-        delete img;
-    }
-    return NULL;
-}
-
 void SelectMachineDialog::set_flow_calibration_state(bool state, bool show_tips)
 {
     if (!state) {
-        m_checkbox_list["flow_cali"]->SetValue(state);
-        auto tool_tip = _L("Caution to use! Flow calibration on Textured PEI Plate may fail due to the scattered surface.");
-        m_checkbox_list["flow_cali"]->SetToolTip(tool_tip);
+        m_checkbox_list["flow_cali"]->setValue(state ? "on" : "off");
         m_checkbox_list["flow_cali"]->Enable();
-        for (auto win : select_flow->GetWindowChildren()) {
-            win->SetToolTip(tool_tip);
-        }
-        //select_flow->SetToolTip(tool_tip);
     }
     else {
 
         AppConfig* config = wxGetApp().app_config;
         if (config && config->get("print", "flow_cali") == "0") {
-            m_checkbox_list["flow_cali"]->SetValue(false);
+            m_checkbox_list["flow_cali"]->setValue("off");
         }
         else {
-            m_checkbox_list["flow_cali"]->SetValue(true);
+            m_checkbox_list["flow_cali"]->setValue("on");
         }
 
         m_checkbox_list["flow_cali"]->Enable();
-        for (auto win : select_flow->GetWindowChildren()) {
-            win->SetToolTip( _L("Automatic flow calibration using Micro Lidar"));
-        }
-    }
-
-    if (!show_tips) {
-        for (auto win : select_flow->GetWindowChildren()) {
-            win->SetToolTip(wxEmptyString);
-        }
     }
 }
 
@@ -3437,37 +3359,6 @@ void SelectMachineDialog::set_default()
             show_status(PrintDialogStatus::PrintStatusNoUserLogin);
         }
     }
-    select_bed->Show();
-    select_flow->Show();
-
-    //reset checkbox
-    select_bed->Show(false);
-    select_flow->Show(false);
-    select_timelapse->Show(false);
-    select_use_ams->Show(false);
-
-    // load checkbox values from app config
-    AppConfig* config = wxGetApp().app_config;
-    if (config && config->get("print", "bed_leveling") == "0") {
-        m_checkbox_list["bed_leveling"]->SetValue(false);
-    }
-    else {
-        m_checkbox_list["bed_leveling"]->SetValue(true);
-    }
-    if (config && config->get("print", "flow_cali") == "0") {
-        m_checkbox_list["flow_cali"]->SetValue(false);
-    }
-    else {
-        m_checkbox_list["flow_cali"]->SetValue(true);
-    }
-    if (config && config->get("print", "timelapse") == "0") {
-        m_checkbox_list["timelapse"]->SetValue(false);
-    }
-    else {
-        m_checkbox_list["timelapse"]->SetValue(true);
-    }
-
-    m_checkbox_list["use_ams"]->SetValue(true);
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         reset_and_sync_ams_list();
@@ -3614,7 +3505,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ && obj_->has_ams() && m_checkbox_list["use_ams"]->GetValue() && obj_->dev_id == m_printer_last_select) {
+                if (obj_ && (m_checkbox_list["use_ams"]->getValue() == "on") && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
@@ -3944,13 +3835,12 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
     m_basic_panel->Layout();
     m_basic_panel->Fit();
 
-    // disable pei bed
-    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    //disable pei bed
+    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev_manager) return;
-    MachineObject *obj_       = dev_manager->get_selected_machine();
-    update_flow_cali_check(obj_);
-    wxSize         screenSize = wxGetDisplaySize();
-    auto           dialogSize = this->GetSize();
+    MachineObject* obj_ = dev_manager->get_selected_machine();
+    wxSize screenSize = wxGetDisplaySize();
+    auto dialogSize = this->GetSize();
 
 #ifdef __WINDOWS__
 
@@ -4054,7 +3944,7 @@ void SelectMachineDialog::set_default_from_sdcard()
 
                 if (obj_ &&
                     obj_->has_ams() &&
-                    m_checkbox_list["use_ams"]->GetValue() &&
+                    (m_checkbox_list["use_ams"]->getValue() == "on") &&
                     obj_->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
@@ -4313,6 +4203,244 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
 
  ThumbnailPanel::~ThumbnailPanel() {}
 
+ PrintOption::PrintOption(wxWindow *parent, wxString title, wxString tips, boost::bimaps::bimap<std::string, std::string> ops, std::string param)
+     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+ {
+#ifdef __WINDOWS__
+     SetDoubleBuffered(true);
+#endif //__WINDOWS__
+     Bind(wxEVT_PAINT, &PrintOption::OnPaint, this);
+
+     if (tips.IsEmpty()) {
+         SetMinSize(wxSize(-1, FromDIP(50)));
+         SetMaxSize(wxSize(-1, FromDIP(50)));
+     }
+     else {
+         SetMinSize(wxSize(-1, FromDIP(90)));
+         SetMaxSize(wxSize(-1, FromDIP(90)));
+     }
+
+     m_ops = ops;
+     m_param = param;
+
+     SetBackgroundColour(*wxWHITE);
+     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+     wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 
- }} // namespace Slic3r::GUI
+     m_printoption_title = new Label(this, title);
+     m_printoption_title->SetFont(Label::Head_13);
+     m_printoption_title->SetBackgroundColour(0xF8F8F8);
+
+     m_printoption_item = new PrintOptionItem(this, m_ops, param);
+
+     top_sizer->Add(m_printoption_title, 0, wxALIGN_CENTER, 0);
+     top_sizer->Add(0, 0, 1, wxEXPAND, 0);
+     top_sizer->Add(m_printoption_item, 0, wxALIGN_CENTER, 0);
+
+     m_label  = new Label(this, tips);
+     m_label->SetFont(::Label::Body_13);
+     m_label->SetForegroundColour(0x6B6B6B);
+     m_label->SetBackgroundColour(0xF8F8F8);
+
+     sizer->Add(top_sizer, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, FromDIP(12));
+     sizer->Add(0, 0, 1, wxTOP, FromDIP(4));
+     sizer->Add(m_label, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, FromDIP(12));
+     SetSizer(sizer);
+     Layout();
+     Fit();
+ }
+
+void PrintOption::OnPaint(wxPaintEvent &event)
+ {
+     wxPaintDC dc(this);
+     doRender(dc);
+ }
+
+void PrintOption::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void PrintOption::doRender(wxDC &dc)
+{
+    auto size = GetSize();
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.SetBrush(wxBrush(0xF8F8F8));
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
+}
+
+void PrintOption::setValue(std::string value)
+{
+    m_printoption_item->setValue(value);
+}
+
+std::string PrintOption::getValue()
+{
+    return m_printoption_item->getValue();
+}
+
+int PrintOption::getValueInt()
+{
+    if (m_printoption_item->getValue() == "off") {
+        return 0;
+    } else if (m_printoption_item->getValue() == "on") {
+        return 1;
+    } else if (m_printoption_item->getValue() == "auto") {
+        return 2;
+    } else {
+        return 2;
+    }
+}
+
+PrintOptionItem::PrintOptionItem(wxWindow *parent, boost::bimaps::bimap<std::string, std::string> ops, std::string param)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    m_ops = ops;
+    m_param = param;
+
+    Bind(wxEVT_PAINT, &PrintOptionItem::OnPaint, this);
+    auto width = ops.size() * FromDIP(56) + FromDIP(8);
+    auto height = FromDIP(22) + FromDIP(8);
+    SetMinSize(wxSize(width, height));
+    SetMaxSize(wxSize(width, height));
+    Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+    Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+    Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
+
+    m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
+}
+
+void PrintOptionItem::OnPaint(wxPaintEvent &event)
+{
+    wxPaintDC dc(this);
+    doRender(dc);
+}
+
+void PrintOptionItem::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void PrintOptionItem::on_left_down(wxMouseEvent &evt)
+{
+    auto pos  = ClientToScreen(evt.GetPosition());
+    auto rect = ClientToScreen(wxPoint(0, 0));
+    auto select_size = GetSize().x / m_ops.size();
+
+    int i = 0;
+    for (const auto& entry : m_ops.left) {
+        auto left_edge = rect.x + i * select_size;
+        auto right_edge = rect.x + (i + 1) * select_size;
+
+        if (pos.x > left_edge && pos.x < right_edge) {
+            selected_key = entry.get_left();
+        }
+        i++;
+    }
+    Refresh();
+
+    if (!m_param.empty()) {
+        AppConfig *config = wxGetApp().app_config;
+        if (selected_key == "on") {
+            config->set_str("print", m_param, "1");
+        } else if (selected_key == "off") {
+            config->set_str("print", m_param, "0");
+        }
+    }
+}
+
+void PrintOptionItem::doRender(wxDC &dc)
+{
+    auto size = GetSize();
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.SetBrush(wxBrush(0xEBEBEB));
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
+
+    auto left = FromDIP(4);
+
+    int selected = 0;
+    for (const auto &entry : m_ops.right) {
+        if (entry.second == selected_key) {
+            break;
+        }
+        selected++;
+    }
+
+    /*selected*/
+    auto selected_left = selected * FromDIP(50) + FromDIP(4);
+    dc.DrawBitmap(m_selected_bk.bmp(), selected_left, FromDIP(4));
+
+    for (auto it = m_ops.begin(); it != m_ops.end(); ++it) {
+        auto text_key      = it->get_left();
+        auto text_value    = it->get_right();
+        auto text_size = dc.GetTextExtent(text_value);
+
+        auto text_left = left + (FromDIP(50) - text_size.x) / 2;
+        auto text_top  = (size.y - text_size.y) / 2;
+
+        if (text_key == selected_key) {
+            dc.SetPen(wxPen(0x00AE42));
+            dc.SetTextForeground(0x00AE42);
+            dc.SetFont(::Label::Head_13);
+            dc.DrawText(text_value, wxPoint(text_left, text_top));
+        }
+        else {
+            dc.SetPen(wxPen(*wxBLACK));
+            dc.SetTextForeground(*wxBLACK);
+            dc.SetFont(::Label::Body_13);
+            dc.DrawText(text_value, wxPoint(text_left, text_top));
+        }
+
+        left += FromDIP(50);
+    }
+}
+
+void PrintOptionItem::setValue(std::string value)
+{
+    selected_key = value;
+    Refresh();
+}
+
+std::string PrintOptionItem::getValue()
+{
+    return selected_key;
+}
+
+}} // namespace Slic3r::GUI
