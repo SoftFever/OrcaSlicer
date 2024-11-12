@@ -2745,14 +2745,17 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
         if (m_print_error_dlg) { m_print_error_dlg->Hide();}
         if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->Hide(); }
     } else {
+        if (msg.IsEmpty()) { msg = _L("Unknow error."); }
         m_project_task_panel->show_error_msg(msg);
 
         if (!used_button.empty()) {
             BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-            if (m_print_error_dlg == nullptr) {
-                m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
+            if (m_print_error_dlg != nullptr) {
+                delete m_print_error_dlg;
+                m_print_error_dlg = nullptr;
             }
 
+            m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
             m_print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
@@ -2775,10 +2778,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             wxString show_time = now.Format("%H%M%d");
             wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
 
-            if (m_print_error_dlg_no_action == nullptr) {
-                m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+            if (m_print_error_dlg_no_action != nullptr) {
+                delete m_print_error_dlg_no_action;
+                m_print_error_dlg_no_action = nullptr;
             }
 
+            m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
             if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
             }
@@ -2835,7 +2840,7 @@ void StatusPanel::update_error_message()
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
+            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj, obj->print_error);
             if (wxGetApp().get_hms_query()->is_internal_error(obj, obj->print_error))
@@ -2846,7 +2851,7 @@ void StatusPanel::update_error_message()
             std::vector<int> used_button;
             wxString error_image_url = wxGetApp().get_hms_query()->query_print_image_action(obj, obj->print_error, used_button);
             // special case
-            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A") {
+            if (print_error_str == "0300-8003" || print_error_str == "0300-8002" || print_error_str == "0300-800A") {
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
             }
             show_error_message(obj, !error_msg.empty(), error_msg, print_error_str, error_image_url, used_button);

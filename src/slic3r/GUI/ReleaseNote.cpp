@@ -1027,7 +1027,7 @@ void PrintErrorDialog::update_text_image(const wxString& text, const wxString& e
             m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
         }
         else {
-            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(25)));
+            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(50)));
         }
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), FromDIP(340)));
