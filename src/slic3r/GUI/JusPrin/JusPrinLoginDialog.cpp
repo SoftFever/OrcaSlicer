@@ -16,12 +16,6 @@ using namespace nlohmann;
 
 namespace Slic3r { namespace GUI {
 
-#define JUSPRINT_LOGIN_TIMER_ID 10003
-
-BEGIN_EVENT_TABLE(JusPrinLoginDialog, wxDialog)
-    EVT_TIMER(JUSPRINT_LOGIN_TIMER_ID, JusPrinLoginDialog::OnTimer)
-END_EVENT_TABLE()
-
 JusPrinLoginDialog::JusPrinLoginDialog()
     : wxDialog((wxWindow*)(wxGetApp().mainframe), wxID_ANY, "JusPrin Login")
 {
@@ -33,7 +27,7 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     m_networkOk = false;
 
     // Create the webview
-    m_browser = WebView::CreateWebView(this, m_jusprint_url);
+    m_browser = WebView::CreateWebView(this, "");
     if (m_browser == nullptr) {
         wxLogError("Could not create JusPrin login webview");
         return;
@@ -62,32 +56,13 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
     Move(tmpPT);
 
-    wxGetApp().UpdateDlgDarkUI(this);
-}
-
-JusPrinLoginDialog::~JusPrinLoginDialog()
-{
-    if (m_timer) {
-        m_timer->Stop();
-        delete m_timer;
-        m_timer = nullptr;
-    }
+    m_browser->LoadURL(m_jusprint_url);
+   //wxGetApp().UpdateDlgDarkUI(this);
 }
 
 bool JusPrinLoginDialog::run()
 {
-    m_timer = new wxTimer(this, JUSPRINT_LOGIN_TIMER_ID);
-    m_timer->Start(8000);
-
     return (ShowModal() == wxID_OK);
-}
-
-void JusPrinLoginDialog::OnTimer(wxTimerEvent& event)
-{
-    m_timer->Stop();
-    if (!m_networkOk) {
-        ShowErrorPage();
-    }
 }
 
 void JusPrinLoginDialog::load_url(wxString& url)
@@ -145,7 +120,7 @@ void JusPrinLoginDialog::OnNavigationComplete(wxWebViewEvent& evt)
 void JusPrinLoginDialog::OnDocumentLoaded(wxWebViewEvent& evt)
 {
     wxString tmpUrl = evt.GetURL();
-    if (tmpUrl.Contains("jusprint.com")) {
+    if (tmpUrl.Contains("obico.io")) {
         m_networkOk = true;
     }
     UpdateState();
@@ -171,9 +146,6 @@ void JusPrinLoginDialog::OnFullScreenChanged(wxWebViewEvent& evt)
 void JusPrinLoginDialog::OnError(wxWebViewEvent& evt)
 {
     if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && !m_networkOk) {
-        if (m_timer) {
-            m_timer->Stop();
-        }
         ShowErrorPage();
     }
     UpdateState();

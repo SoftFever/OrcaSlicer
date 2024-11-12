@@ -19,8 +19,8 @@
 <script type="text/javascript" src="js/home.js"></script>
 </head>
 <body class="ZScrol" onLoad="OnInit()">
-<div id="TopContainer" class="RightBoardInvisible flex">
-<div id="LeftBoard" class="relative">
+<div id="TopContainer" class="flex w-full">
+<div id="LeftBoard" class="relative transition-all duration-300 flex-1 flex-shrink-0 basis-[30%]">
 
     <div class="bg-gray-100 flex text-center flex-col justify-evenly items-center h-full min-h-screen p-4">
 				<div>
@@ -49,7 +49,7 @@
     </button>
 </div>
 
-<div id="RightBoard">
+<div id="RightBoard" class="relative transition-all duration-300 flex-1 flex-shrink-0 basis-[70%]">
 <div id="ContentBoard" class="ZScrol" board="recent">
     <div style="height: 14px;"></div>
 	<div id="MenuArea">

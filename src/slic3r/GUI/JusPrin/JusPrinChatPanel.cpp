@@ -66,7 +66,12 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
-void JusPrinChatPanel::reload() { m_browser->Reload(); }
+void JusPrinChatPanel::reload() {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " reload() called";
+
+    m_chat_page_loaded = false;
+    m_browser->Reload();
+}
 
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
@@ -82,6 +87,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
 
+    action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
     action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
     action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
@@ -91,7 +97,13 @@ void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& param
 }
 
 void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
-    wxGetApp().show_jusprin_login();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().show_jusprin_login();
+    });
+}
+
+void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) {
+    UpdateOAuthAccessToken();
 }
 
 void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {
@@ -103,13 +115,18 @@ void JusPrinChatPanel::handle_refresh_plater_config(const nlohmann::json& params
 }
 
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
-    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-    reload();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+        reload();
+    });
 }
 
 void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
+    GUI::wxGetApp().CallAfter([this] {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
     reload();
+    });
+
 }
 
 void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
@@ -216,16 +233,23 @@ void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
 }
 
 void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
-    wxGetApp().mainframe->start_slicer_all();
+    GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().mainframe->start_slicer_all();
+    });
 }
 
 void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
-    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
-    plater->export_gcode(false);
+    GUI::wxGetApp().CallAfter([this] {
+        Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+        plater->export_gcode(false);
+    });
 }
 
 void JusPrinChatPanel::load_url()
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " load_url() called";
+
+    m_chat_page_loaded = false;
     wxString url = wxString::Format("file://%s/web/jusprin/jusprin_chat_preload.html", from_u8(resources_dir()));
     if (m_browser == nullptr)
         return;
@@ -245,6 +269,10 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
 }
 
 void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value) {
+    if (!m_chat_page_loaded) {
+        return;
+    }
+
     wxString strJS = wxString::Format(
         "if (typeof window.updateJusPrinEmbeddedChatState === 'function') {"
         "    window.updateJusPrinEmbeddedChatState('%s', %s);"
@@ -315,7 +343,6 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
 
     j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
-    j["currentPlate"] = nlohmann::json::object();
 
     j["modelObjects"] = nlohmann::json::array();
 
@@ -340,19 +367,24 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
-    wxString strJS = wxString::Format(
-        "var CHAT_SERVER_URL = '%s';",
-        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
-    WebView::RunScript(m_browser, strJS);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
 
-    // TODO: This callback is not triggered when a plate is added or removed
-    // TODO: This callback is triggered when an object is removed, but not when an object is cloned
-    wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
+    wxString chat_server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin");
+    if (evt.GetURL().Contains("jusprin_chat_preload.html")) {
+        wxString strJS = wxString::Format(
+            "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer();",
+            chat_server_url);
+        WebView::RunScript(m_browser, strJS);
+    }
 
-    UpdateOAuthAccessToken();
-    RefreshPresets();
-    RefreshPlaterConfig();
-    AdvertiseSupportedAction();
+    if (evt.GetURL().Contains(chat_server_url)) {
+        // TODO: This callback is not triggered when a plate is added or removed
+        // TODO: This callback is triggered when an object is removed, but not when an object is cloned
+        wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
+
+        AdvertiseSupportedAction();
+    }
+
 }
 
 void JusPrinChatPanel::OnPlaterChanged() {
@@ -395,13 +427,18 @@ void JusPrinChatPanel::OnError(wxWebViewEvent& evt)
     case wxWEBVIEW_NAV_ERR_USER_CANCELLED: e = "wxWEBVIEW_NAV_ERR_USER_CANCELLED"; break;
     case wxWEBVIEW_NAV_ERR_OTHER: e = "wxWEBVIEW_NAV_ERR_OTHER"; break;
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                             << boost::format(": error loading page %1% %2% %3% %4%") % evt.GetURL() % evt.GetTarget() % e % evt.GetString();
 }
 
 void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
+    m_chat_page_loaded = true;  // If we received an action call, the chat page is loaded and javascript is ready
+
     wxString message = event.GetString();
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": action call received: %1%") % message;
+
     std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
