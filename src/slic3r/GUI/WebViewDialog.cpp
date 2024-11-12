@@ -422,11 +422,6 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         Slic3r::GUI::wxGetApp().get_login_info();
 }
 
-// void WebViewPanel::SetLoginPanelVisibility(bool bshow)
-// {
-//     wxString strJS = wxString::Format("SetLoginPanelVisibility(%s)", bshow ? "true" : "false");
-//     RunScript(strJS);
-// }
 void WebViewPanel::SendRecentList(int images)
 {
     boost::property_tree::wptree req;
@@ -543,12 +538,14 @@ void WebViewPanel::update_ui_from_settings()
 {
     wxString strJS = wxString::Format("SetClassicMode(%s)", wxGetApp().app_config->get("use_classic_mode"));
     RunScript(strJS);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
 }
 
 void WebViewPanel::update_oauth_access_token()
 {
     wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "").empty() ? "false" : "true");
     RunScript(strJS);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
 }
 
 /**

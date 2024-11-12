@@ -189,6 +189,8 @@ function build_slicer() {
         resources_path=$(readlink ./JusPrin.app/Contents/Resources)
         rm ./JusPrin.app/Contents/Resources
         cp -R "$resources_path" ./JusPrin.app/Contents/Resources
+        # Otherwise apple notary will complain about ./JusPrin.app/Contents/Resources/web/jusprin/node_modules/fsevents.js
+        rm -rf ./JusPrin.app/Contents/Resources/web/jusprin/node_modules
         # delete .DS_Store file
         find ./JusPrin.app/ -name '.DS_Store' -delete
     )

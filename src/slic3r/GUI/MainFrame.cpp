@@ -2588,7 +2588,33 @@ void MainFrame::init_menubar_as_editor()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
+        m_menu_switch = viewMenu;
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
+
+        // Add separator before new mode options
+        viewMenu->AppendSeparator();
+
+        // Create radio items for UI modes
+        wxWindowID mode_id_base = wxWindow::NewControlId(wxID_MODE_COUNT);
+        m_mode_id_base          = mode_id_base;
+        auto ai_mode_item = append_menu_radio_item(viewMenu, wxID_MODE_AI + mode_id_base,
+            _L("AI-Assisted Mode"), _L("Switch to AI-Assisted Mode"),
+            [this](wxCommandEvent&) {
+                wxGetApp().set_classic_mode(false);
+            }, nullptr);
+
+        auto classic_mode_item = append_menu_radio_item(viewMenu, wxID_MODE_CLASSIC + mode_id_base,
+            _L("Classic Mode"), _L("Switch to Classic Mode"),
+            [this](wxCommandEvent&) {
+                wxGetApp().set_classic_mode(true);
+            }, nullptr);
+
+        // Set the check mark based on current mode
+        if (wxGetApp().app_config->get("use_classic_mode").compare("true") == 0)
+            viewMenu->Check(wxID_MODE_CLASSIC + mode_id_base, true);
+        else
+            viewMenu->Check(wxID_MODE_AI + mode_id_base, true);
+
         viewMenu->AppendSeparator();
 
         //BBS perspective view
@@ -3757,12 +3783,18 @@ void MainFrame::update_ui_from_settings()
     }
 
     if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        if (m_menu_switch != nullptr) {
+            m_menu_switch->Check(wxID_MODE_CLASSIC + m_mode_id_base, true);
+        }
         if (!m_slice_btn->IsShown()) {
             m_slice_btn->Show();
             m_slice_option_btn->Show();
             Layout();
         }
     } else {
+        if (m_menu_switch != nullptr) {
+            m_menu_switch->Check(wxID_MODE_AI + m_mode_id_base, true);
+        }
         if (m_slice_btn->IsShown()) {
             m_slice_btn->Hide();
             m_slice_option_btn->Hide();

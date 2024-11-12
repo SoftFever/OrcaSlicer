@@ -53,7 +53,7 @@
         function checkAndRedirectToChatServer() {
             showLoading();
 
-            if (!CHAT_SERVER_URL) {
+            if (typeof CHAT_SERVER_URL === 'undefined') {
                 setTimeout(checkAndRedirectToChatServer, 1000);
                 return;
             }
@@ -80,8 +80,6 @@
                 showError();
             });
         }
-
-        setTimeout(checkAndRedirectToChatServer, 100);
     </script>
 </body>
 </html>
