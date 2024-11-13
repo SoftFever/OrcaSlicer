@@ -1053,12 +1053,15 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
     }
     else {
         const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
-        if (item_type & itVolume)
-        {
-        const int volume_id = m_objects_model->GetVolumeIdByItem(item);
-        if (obj_idx < 0 || volume_id < 0)
-            return;
-        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+        if (item_type & itVolume){
+             const int ui_volume_idx = m_objects_model->GetVolumeIdByItem(item);
+             if (obj_idx < 0 || ui_volume_idx < 0)
+                return;
+             auto &ui_and_3d_volume_map = m_objects_model->get_ui_and_3d_volume_map();
+             if (ui_and_3d_volume_map.find(ui_volume_idx) == ui_and_3d_volume_map.end()) {
+                 return;
+             }
+             m_config = &(*m_objects)[obj_idx]->volumes[ui_and_3d_volume_map[ui_volume_idx]]->config;
         }
         else if (item_type & itLayer)
             m_config = &get_item_config(item);
