@@ -24,7 +24,7 @@
 	"default_jerk": "0",
 	"detect_narrow_internal_solid_infill": "1",
 	"detect_overhang_wall": "1",
-	"detect_thin_wall": "0",
+	"detect_thin_wall": "1",
 	"draft_shield": "disabled",
 	"elefant_foot_compensation": "0.15",
 	"enable_arc_fitting": "0",
@@ -130,7 +130,7 @@
 	"sparse_infill_density": "15%",
 	"sparse_infill_filament": "1",
 	"sparse_infill_line_width": "0.45",
-	"sparse_infill_pattern": "crosshatch",
+	"sparse_infill_pattern": "grid",
 
 	"spiral_mode": "0",
 	"staggered_inner_seams": "0",
