@@ -90,9 +90,9 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     auto  image_bitmap = create_scaled_bitmap("step_mesh_info", this, FromDIP(120));
 
-    wxPanel* overlay_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(image_bitmap.GetWidth()), FromDIP(image_bitmap.GetHeight())), wxTAB_TRAVERSAL);
+    wxPanel* overlay_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, image_bitmap.GetSize(), wxTAB_TRAVERSAL);
     overlay_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    wxStaticBitmap *image = new wxStaticBitmap(overlay_panel, wxID_ANY, image_bitmap, wxDefaultPosition, wxDefaultSize, 0);
+    wxStaticBitmap *image = new wxStaticBitmap(overlay_panel, wxID_ANY, image_bitmap, wxDefaultPosition, overlay_panel->GetSize(), 0);
 
     CenteredStaticText* text_1 = new CenteredStaticText (overlay_panel, wxID_ANY, _L("Smooth"),
                                                           wxPoint(overlay_panel->GetSize().GetWidth() / 6,
