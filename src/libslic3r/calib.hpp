@@ -59,7 +59,7 @@ public:
         int         slot_id = 0;
         int         bed_temp;
         ExtruderType        extruder_type{ExtruderType::etDirectDrive};
-        NozzleVolumeType    nozzle_volume_type = NozzleVolumeType::nvtNormal;
+        NozzleVolumeType    nozzle_volume_type = NozzleVolumeType::nvtStandard;
         int         nozzle_temp;
         float       nozzle_diameter;
         std::string filament_id;

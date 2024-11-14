@@ -208,11 +208,11 @@ wxString generate_nozzle_id(NozzleVolumeType nozzle_type, const std::string& dia
     // HS00-0.4
     std::string nozzle_id = "H";
     switch (nozzle_type) {
-    case NozzleVolumeType::nvtNormal: {
+    case NozzleVolumeType::nvtStandard: {
         nozzle_id += "S";
         break;
     }
-    case NozzleVolumeType::nvtBigTraffic: {
+    case NozzleVolumeType::nvtHighFlow: {
         nozzle_id += "H";
         break;
     }
@@ -230,13 +230,13 @@ NozzleVolumeType convert_to_nozzle_type(const std::string &str)
 {
     if (str.size() < 8) {
         assert(false);
-        return NozzleVolumeType::nvtNormal;
+        return NozzleVolumeType::nvtStandard;
     }
-    NozzleVolumeType res = NozzleVolumeType::nvtNormal;
+    NozzleVolumeType res = NozzleVolumeType::nvtStandard;
     if (str[1] == 'S')
-        res = NozzleVolumeType::nvtNormal;
+        res = NozzleVolumeType::nvtStandard;
     else if (str[1] == 'H')
-        res = NozzleVolumeType::nvtBigTraffic;
+        res = NozzleVolumeType::nvtHighFlow;
     return res;
 }
 
@@ -4916,7 +4916,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 if (it->contains("nozzle_id")) {
                                     pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
                                 } else {
-                                    pa_calib_result.nozzle_volume_type = NozzleVolumeType::nvtNormal;
+                                    pa_calib_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
                                 }
 
                                 if ((*it)["k_value"].is_number_float())

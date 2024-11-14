@@ -1263,7 +1263,7 @@ bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
     for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++){
         //exist field is not updated, wait add
         //if (it->exist < 3) return false;
-        std::string type_str = it->current_nozzle_flow_type ? "Big Traffic" : "Normal";
+        std::string type_str = it->current_nozzle_flow_type ? "High Flow" : "Standard";
         flow_type_of_machine.push_back(type_str);
     }
     //get the nozzle type of preset --> flow_types
@@ -1325,8 +1325,8 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     for (auto i = 0; i < used_extruders.size(); i++) {
         if (nozzle_volume_type_opt) {
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
-            if (nozzle_volume_type == NozzleVolumeType::nvtNormal) { used_extruders_flow[used_extruders[i]] = "Normal";}
-            else {used_extruders_flow[used_extruders[i]] = "Big Traffic";}
+            if (nozzle_volume_type == NozzleVolumeType::nvtStandard) { used_extruders_flow[used_extruders[i]] = "Standard";}
+            else {used_extruders_flow[used_extruders[i]] = "High Flow";}
         }
     }
 
@@ -1337,9 +1337,9 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     std::vector<std::string> flow_type_of_machine;
     for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
         if (it->current_nozzle_flow_type == NozzleFlowType::H_FLOW) {
-            flow_type_of_machine.push_back("Big Traffic");
+            flow_type_of_machine.push_back("High Flow");
         } else if (it->current_nozzle_flow_type == NozzleFlowType::S_FLOW){
-            flow_type_of_machine.push_back("Normal");
+            flow_type_of_machine.push_back("Standard");
         }
     }
 

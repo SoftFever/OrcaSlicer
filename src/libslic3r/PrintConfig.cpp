@@ -480,8 +480,8 @@ static const t_config_enum_values s_keys_map_ExtruderType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ExtruderType)
 
 static const t_config_enum_values s_keys_map_NozzleVolumeType = {
-    { "Normal",   nvtNormal },
-    { "Big Traffic", nvtBigTraffic }
+    { "Standard",  nvtStandard },
+    { "High Flow", nvtHighFlow }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleVolumeType)
 
@@ -4462,28 +4462,28 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Nozzle Volume Type");
     def->tooltip = ("Nozzle volume type");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
-    def->enum_values.push_back("Normal");
-    def->enum_values.push_back("Big Traffic");
-    def->enum_labels.push_back(L("Normal"));
-    def->enum_labels.push_back(L("Big Traffic"));
+    def->enum_values.push_back(L("Standard"));
+    def->enum_values.push_back(L("High Flow"));
+    def->enum_labels.push_back(L("Standard"));
+    def->enum_labels.push_back(L("High Flow"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtNormal });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 
     def = this->add("default_nozzle_volume_type", coEnums);
     def->label = L("Default Nozzle Volume Type");
     def->tooltip = ("Default Nozzle volume type for extruders in this printer");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
-    def->enum_values.push_back("Normal");
-    def->enum_values.push_back("Big Traffic");
-    def->enum_labels.push_back(L("Normal"));
-    def->enum_labels.push_back(L("Big Traffic"));
+    def->enum_values.push_back(L("Standard"));
+    def->enum_values.push_back(L("High Flow"));
+    def->enum_labels.push_back(L("Standard"));
+    def->enum_labels.push_back(L("High Flow"));
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtNormal });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 
     def = this->add("extruder_variant_list", coStrings);
     def->label = "Extruder variant list";
     def->tooltip = "Extruder variant list";
-    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def           = this->add("extruder_change_length", coFloats);
@@ -4508,7 +4508,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("printer_extruder_variant", coStrings);
     def->label = "Printer's extruder variant";
     def->tooltip = "Printer's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("master_extruder_id", coInt);
@@ -4525,7 +4525,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("print_extruder_variant", coStrings);
     def->label = "Print's extruder variant";
     def->tooltip = "Print's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     /*def = this->add("filament_extruder_id", coInts);
@@ -4537,7 +4537,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_extruder_variant", coStrings);
     def->label = "Filament's extruder variant";
     def->tooltip = "Filament's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_self_index", coInts);
@@ -7079,9 +7079,14 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else {
             opt_key = "wall_sequence";
         }
-    }
-    else if (opt_key == "extruder_type" && value == "DirectDrive") {
-        value = "Direct Drive";
+    } else if (opt_key == "nozzle_volume_type"
+        || opt_key == "default_nozzle_volume_type"
+        || opt_key == "printer_extruder_variant"
+        || opt_key == "print_extruder_variant"
+        || opt_key == "filament_extruder_variant"
+        || opt_key == "extruder_variant_list") {
+        ReplaceString(value, "Normal", "Standard");
+        ReplaceString(value, "Big Traffic", "High Flow");
     }
     else if(opt_key == "ensure_vertical_shell_thickness") {
         if(value == "1") {
@@ -8010,7 +8015,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& 
         if (extruder_id > 0 && extruder_id <= extruder_count) {
             variant_index.resize(1);
             ExtruderType extruder_type = ExtruderType::etDirectDrive; // TODO:Orca hack (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
-            NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal; // TODO:Orca hack (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
+            NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard; // TODO:Orca hack (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
             //variant index
             variant_index[0] = get_index_for_extruder(extruder_id, id_name, extruder_type, nozzle_volume_type, variant_name);
@@ -8029,7 +8034,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& 
             for (int e_index = 0; e_index < extruder_count; e_index++)
             {
                 ExtruderType extruder_type = ExtruderType::etDirectDrive; // TODO:Orca hack (ExtruderType)(opt_extruder_type->get_at(e_index));
-                NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal; // (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
+                NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard; // (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
 
                 //variant index
                 variant_index[e_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
@@ -9623,3 +9628,4 @@ bool is_XL_printer(const PrintConfig &cfg)
 #include <cereal/types/polymorphic.hpp>
 CEREAL_REGISTER_TYPE(Slic3r::DynamicPrintConfig)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Slic3r::DynamicConfig, Slic3r::DynamicPrintConfig)
+

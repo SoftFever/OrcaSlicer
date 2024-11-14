@@ -1133,7 +1133,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     };
 
     int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal;
+    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
     if (obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
         MessageDialog dlg(nullptr, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."), _L("Warning"), wxICON_WARNING | wxOK);
         dlg.ShowModal();

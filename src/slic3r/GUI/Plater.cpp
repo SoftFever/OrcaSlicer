@@ -758,8 +758,8 @@ public:
 void Sidebar::priv::sync_extruder_list()
 {
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtBigTraffic);
-    printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtNormal);
+    printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
+    printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj == nullptr) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);

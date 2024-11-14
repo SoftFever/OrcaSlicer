@@ -61,10 +61,10 @@ void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
 
 wxString get_nozzle_volume_type_name(NozzleVolumeType type)
 {
-    if (NozzleVolumeType::nvtNormal == type) {
-        return _L("Normal");
-    } else if (NozzleVolumeType::nvtBigTraffic == type) {
-        return _L("BigTraffic");
+    if (NozzleVolumeType::nvtStandard == type) {
+        return _L("Standard");
+    } else if (NozzleVolumeType::nvtHighFlow == type) {
+        return _L("High Flow");
     }
     return wxString();
 }

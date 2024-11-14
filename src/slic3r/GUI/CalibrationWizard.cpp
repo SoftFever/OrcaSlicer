@@ -420,7 +420,7 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
         }
         else {
             result.extruder_id = 0;
-            result.nozzle_volume_type = NozzleVolumeType::nvtNormal;
+            result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
         }
 
         obj->selected_cali_preset.push_back(result);

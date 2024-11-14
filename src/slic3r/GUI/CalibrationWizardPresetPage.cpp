@@ -485,7 +485,7 @@ CalibrationPresetPage::CalibrationPresetPage(
     m_cali_filament_mode = CalibrationFilamentMode::CALI_MODEL_SINGLE;
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
     m_extrder_types.resize(2, ExtruderType::etDirectDrive);
-    m_extruder_nozzle_types.resize(2, NozzleVolumeType::nvtBigTraffic);
+    m_extruder_nozzle_types.resize(2, NozzleVolumeType::nvtHighFlow);
 
     create_page(this);
 
@@ -661,7 +661,7 @@ void CalibrationPresetPage::init_selection_values()
         }
 
         for (size_t i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->SetSelection(int(NozzleVolumeType::nvtNormal));  // default for single extruder printer
+            m_comboBox_nozzle_volume_types[i]->SetSelection(int(NozzleVolumeType::nvtStandard));  // default for single extruder printer
         }
     }
 }
@@ -742,7 +742,7 @@ NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int extruder_id) 
     if (m_comboBox_nozzle_volume_types.size() > extruder_id)
         return NozzleVolumeType(m_comboBox_nozzle_volume_types[extruder_id]->GetSelection());
     else {
-        return NozzleVolumeType::nvtNormal;
+        return NozzleVolumeType::nvtStandard;
     }
 }
 

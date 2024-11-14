@@ -373,9 +373,9 @@ enum ExtruderType {
 };
 
 enum NozzleVolumeType {
-    nvtNormal = 0,
-    nvtBigTraffic,
-    nvtMaxNozzleVolumeType = nvtBigTraffic
+    nvtStandard = 0,
+    nvtHighFlow,
+    nvtMaxNozzleVolumeType = nvtHighFlow
 };
 
 enum FilamentMapMode {
