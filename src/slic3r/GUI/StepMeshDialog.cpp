@@ -90,30 +90,44 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     auto  image_bitmap = create_scaled_bitmap("step_mesh_info", this, FromDIP(120));
 
-    wxPanel* overlay_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, image_bitmap.GetSize(), wxTAB_TRAVERSAL);
-    overlay_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    wxStaticBitmap *image = new wxStaticBitmap(overlay_panel, wxID_ANY, image_bitmap, wxDefaultPosition, overlay_panel->GetSize(), 0);
+    // wxPanel* overlay_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, image_bitmap.GetSize(), wxTAB_TRAVERSAL);
+    // overlay_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // wxStaticBitmap *image = new wxStaticBitmap(overlay_panel, wxID_ANY, image_bitmap, wxDefaultPosition, overlay_panel->GetSize(), 0);
 
-    CenteredStaticText* text_1 = new CenteredStaticText (overlay_panel, wxID_ANY, _L("Smooth"),
-                                                          wxPoint(overlay_panel->GetSize().GetWidth() / 6,
-                                                                  overlay_panel->GetSize().GetHeight() / 2));
-    CenteredStaticText* text_2 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Rough"),
-                                                         wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
-                                                                 overlay_panel->GetSize().GetHeight() / 2));
-    CenteredStaticText* text_3 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Linear"),
-                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 2,
-                                                                overlay_panel->GetSize().GetHeight() * 1.3 / 3));
-    CenteredStaticText* text_4 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Angle"),
-                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 2,
-                                                                overlay_panel->GetSize().GetHeight() * 2 / 3));
-    CenteredStaticText* text_5 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("More faces"),
-                                                        wxPoint(overlay_panel->GetSize().GetWidth() / 6,
-                                                                overlay_panel->GetSize().GetHeight() * 2.8 / 3));
-    CenteredStaticText* text_6 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Fewer faces"),
-                                                        wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
-                                                                overlay_panel->GetSize().GetHeight() * 2.8 / 3));
+    // CenteredStaticText* text_1 = new CenteredStaticText (overlay_panel, wxID_ANY, _L("Smooth"),
+    //                                                       wxPoint(overlay_panel->GetSize().GetWidth() / 6,
+    //                                                               overlay_panel->GetSize().GetHeight() / 2));
+    // CenteredStaticText* text_2 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Rough"),
+    //                                                      wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
+    //                                                              overlay_panel->GetSize().GetHeight() / 2));
+    // CenteredStaticText* text_3 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Linear"),
+    //                                                     wxPoint(overlay_panel->GetSize().GetWidth() / 2,
+    //                                                             overlay_panel->GetSize().GetHeight() * 1.3 / 3));
+    // CenteredStaticText* text_4 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Reduce Angle"),
+    //                                                     wxPoint(overlay_panel->GetSize().GetWidth() / 2,
+    //                                                             overlay_panel->GetSize().GetHeight() * 2 / 3));
+    // CenteredStaticText* text_5 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("More faces"),
+    //                                                     wxPoint(overlay_panel->GetSize().GetWidth() / 6,
+    //                                                             overlay_panel->GetSize().GetHeight() * 2.8 / 3));
+    // CenteredStaticText* text_6 = new CenteredStaticText(overlay_panel, wxID_ANY, _L("Fewer faces"),
+    //                                                     wxPoint(overlay_panel->GetSize().GetWidth() * 5 / 6,
+    //                                                             overlay_panel->GetSize().GetHeight() * 2.8 / 3));
 
-    bSizer->Add(overlay_panel, 0, wxALIGN_CENTER | wxALL, 10);
+    // bSizer->Add(overlay_panel, 0, wxALIGN_CENTER | wxALL, 10);
+
+    wxBoxSizer* tips_sizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText* info = new wxStaticText(this, wxID_ANY, _L("Smaller linear and angular deflections result in higher-quality transformations but increase the transfer time."));
+    wxStaticText *tips = new wxStaticText(this, wxID_ANY, _L("See BambuLab Wiki"));
+    wxFont font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
+    font.SetUnderlined(true);
+    tips->SetFont(font);
+    tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/step");
+    });
+    info->Wrap(FromDIP(400));
+    tips_sizer->Add(info, 0, wxALIGN_LEFT);
+    tips_sizer->Add(tips, 0, wxALIGN_LEFT);
+    bSizer->Add(tips_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, LEFT_RIGHT_PADING);
 
     wxBoxSizer* linear_sizer = new wxBoxSizer(wxHORIZONTAL);
     //linear_sizer->SetMinSize(wxSize(MIN_DIALOG_WIDTH, -1));
