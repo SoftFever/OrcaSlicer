@@ -41,7 +41,7 @@
         "10"
     ],
     "activate_air_filtration":[
-         "0"
+         "1"
     ],
     "during_print_exhaust_fan_speed":[
          "0"

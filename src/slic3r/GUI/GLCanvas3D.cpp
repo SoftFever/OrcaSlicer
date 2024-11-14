@@ -3967,9 +3967,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
 		printf((format_mouse_event_debug_message(evt) + " - other\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
-	}
+    }
+    const int selected_object_idx      = m_selection.get_object_idx();
+    const int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
+    const bool mouse_in_layer_editing  = layer_editing_object_idx != -1 && m_layers_editing.bar_rect_contains(*this, pos(0), pos(1));
 
-    if (m_main_toolbar.on_mouse(evt, *this)) {
+    if (!mouse_in_layer_editing && m_main_toolbar.on_mouse(evt, *this)) {
         if (m_main_toolbar.is_any_item_pressed())
             m_gizmos.reset_all_states();
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
@@ -3979,14 +3982,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     //BBS: GUI refactor: GLToolbar
-    if (m_assemble_view_toolbar.on_mouse(evt, *this)) {
+    if (!mouse_in_layer_editing && m_assemble_view_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
         return;
     }
 
-    if (wxGetApp().plater()->get_collapse_toolbar().on_mouse(evt, *this)) {
+    if (!mouse_in_layer_editing && wxGetApp().plater()->get_collapse_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -4015,7 +4018,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     };
 
-    if (m_gizmos.on_mouse(evt)) {
+    if (!mouse_in_layer_editing && m_gizmos.on_mouse(evt)) {
         if (m_gizmos.is_running()) {
             _deactivate_arrange_menu();
             _deactivate_orient_menu();
@@ -4066,10 +4069,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
-
-    int selected_object_idx = m_selection.get_object_idx();
-    int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
-
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
@@ -4124,7 +4123,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         // If user pressed left or right button we first check whether this happened on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
-        if (layer_editing_object_idx != -1 && m_layers_editing.bar_rect_contains(*this, pos(0), pos(1))) {
+        if (mouse_in_layer_editing) {
             // A volume is selected and the mouse is inside the layer thickness bar.
             // Start editing the layer height.
             m_layers_editing.state = LayersEditing::Editing;
@@ -5940,7 +5939,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
             ColorRGBA new_color = adjust_color_for_rendering(curr_color);
             if (ban_light) {
-                new_color[3] = (255 - vol->extruder_id) / 255.0f;
+                new_color[3] =(255 - (vol->extruder_id -1))/255.0f;
             }
             vol->model.set_color(new_color);
             shader->set_uniform("volume_world_matrix", vol->world_matrix());

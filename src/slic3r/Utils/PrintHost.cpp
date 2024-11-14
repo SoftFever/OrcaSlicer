@@ -20,6 +20,7 @@
 #include "Repetier.hpp"
 #include "MKS.hpp"
 #include "ESP3D.hpp"
+#include "CrealityPrint.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
 #include "../GUI/MainFrame.hpp"
 #include "Obico.hpp"
@@ -60,6 +61,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htPrusaConnect: return new PrusaConnect(config);
             case htMKS:       return new MKS(config);
             case htESP3D:       return new ESP3D(config);
+            case htCrealityPrint:    return new CrealityPrint(config);
             case htObico:     return new Obico(config);
             case htFlashforge: return new Flashforge(config);
             case htSimplyPrint: return new SimplyPrint(config);

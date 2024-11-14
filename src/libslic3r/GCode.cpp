@@ -729,6 +729,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         gcode += gcodegen.writer().unlift(); // Make sure there is no z-hop (in most cases, there isn't).
 
         double current_z = gcodegen.writer().get_position().z();
+
+
         if (z == -1.) // in case no specific z was provided, print at current_z pos
             z = current_z;
 
@@ -741,7 +743,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                                              || !needs_toolchange // this is just finishing the tower with no toolchange
                                                              || is_ramming);
 
-        if (should_travel_to_tower) {
+        if (should_travel_to_tower || gcodegen.m_need_change_layer_lift_z) {
             // FIXME: It would be better if the wipe tower set the force_travel flag for all toolchanges,
             // then we could simplify the condition and make it more readable.
             gcode += gcodegen.retract();
@@ -767,10 +769,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             toolchange_gcode_str = gcodegen.set_extruder(new_extruder_id, tcr.print_z); // TODO: toolchange_z vs print_z
             if (gcodegen.config().enable_prime_tower) {
             deretraction_str += gcodegen.writer().travel_to_z(z, "restore layer Z");
-            Vec3d position{gcodegen.writer().get_position()};
-            position.z() = z;
-            gcodegen.writer().set_position(position);
-            deretraction_str += gcodegen.unretract();
+                Vec3d position{gcodegen.writer().get_position()};
+                position.z() = z;
+                gcodegen.writer().set_position(position);
+                deretraction_str += gcodegen.unretract();
             }
         }
 
@@ -1720,6 +1722,7 @@ namespace DoExport {
                 filament_stats_string_out += "\n" + out_filament_used_g.first;
             if (out_filament_cost.second)
                filament_stats_string_out += "\n" + out_filament_cost.first;
+            filament_stats_string_out += "\n";
         }
         return filament_stats_string_out;
     }
@@ -1802,6 +1805,8 @@ static BambuBedType to_bambu_bed_type(BedType type)
         bambu_bed_type = bbtHighTemperaturePlate;
     else if (type == btPTE)
         bambu_bed_type = bbtTexturedPEIPlate;
+    else if (type == btPCT)
+        bambu_bed_type = bbtCoolPlate;
 
     return bambu_bed_type;
 }
@@ -4513,12 +4518,11 @@ std::string GCode::change_layer(coordf_t print_z)
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
     }
-    else {
-        //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
-        m_need_change_layer_lift_z = true;
-    }
+
+    m_need_change_layer_lift_z = true;
 
     m_nominal_z = z;
+    m_writer.get_position().z() = z;
 
     // forget last wiping path as wiping after raising Z is pointless
     // BBS. Dont forget wiping path to reduce stringing.
@@ -6002,14 +6006,15 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
         if (m_spiral_vase) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i) {
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment + " travel_to_xy");
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
             }
         } else {
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto& dest2d = this->point_to_gcode(travel.points.back());
                 Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
+                gcode += m_writer.travel_to_xyz(dest3d, comment, m_need_change_layer_lift_z);
+                m_need_change_layer_lift_z = false;
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
                 // ratio at the last point
@@ -6018,21 +6023,23 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
                         // Lift to normal z at beginning
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                        gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
+                        gcode += m_writer.travel_to_xyz(dest3d, comment, m_need_change_layer_lift_z);
+                        m_need_change_layer_lift_z = false;
                     } else if (z != DBL_MAX && i == travel.size() - 1) {
                         // Apply z_ratio for the very last point
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), z);
-                        gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
+                        gcode += m_writer.travel_to_xyz(dest3d, comment);
                     } else {
                         // For all points in between, no z change
-                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment + " travel_to_xy");
+                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
                     }
                 }
             }
         }
         this->set_last_pos(travel.points.back());
     }
+
     return gcode;
 }
 
