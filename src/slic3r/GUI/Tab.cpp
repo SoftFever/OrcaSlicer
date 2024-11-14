@@ -5096,8 +5096,14 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
         // Orca: update presets for the selected printer
         if (m_type == Preset::TYPE_PRINTER && wxGetApp().app_config->get_bool("remember_printer_config")) {
-          m_preset_bundle->update_selections(*wxGetApp().app_config);
-          wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
+            m_preset_bundle->update_selections(*wxGetApp().app_config);
+            int extruders_count = m_preset_bundle->printers.get_edited_preset().config.opt<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            if (extruders_count > 1) {
+                // multi tool
+                wxGetApp().plater()->sidebar().on_filaments_change(extruders_count);
+            } else {
+                wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
+            }
         }
         load_current_preset();
 
@@ -6079,8 +6085,9 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 #ifdef __WXMSW__
     if (!m_show) return;
     // BBS: fix field control position
-    wxTheApp->CallAfter([this]() {
-        for (auto group : m_optgroups) {
+    auto groups = this->m_optgroups;
+    wxTheApp->CallAfter([groups]() {
+        for (auto group : groups) {
             if (group->custom_ctrl) group->custom_ctrl->fixup_items_positions();
         }
     });
