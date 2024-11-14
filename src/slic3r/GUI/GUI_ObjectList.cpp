@@ -1057,11 +1057,8 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
              const int ui_volume_idx = m_objects_model->GetVolumeIdByItem(item);
              if (obj_idx < 0 || ui_volume_idx < 0)
                 return;
-             auto &ui_and_3d_volume_map = m_objects_model->get_ui_and_3d_volume_map();
-             if (ui_and_3d_volume_map.find(ui_volume_idx) == ui_and_3d_volume_map.end()) {
-                 return;
-             }
-             m_config = &(*m_objects)[obj_idx]->volumes[ui_and_3d_volume_map[ui_volume_idx]]->config;
+             int volume_in3d_idx = m_objects_model->get_real_volume_index_in_3d(obj_idx,ui_volume_idx);
+             m_config            = &(*m_objects)[obj_idx]->volumes[volume_in3d_idx]->config;
         }
         else if (item_type & itLayer)
             m_config = &get_item_config(item);
@@ -3947,7 +3944,11 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
 
         int volume_idx{-1};
         auto& ui_and_3d_volume_map = m_objects_model->get_ui_and_3d_volume_map();
-        ui_and_3d_volume_map.clear();
+        for (auto item : ui_and_3d_volume_map) {
+            if (item.first == obj_idx) {
+                item.second.clear();
+            }
+        }
         int ui_volume_idx = 0;
         for (const ModelVolume *volume : object->volumes) {
             ++volume_idx;
@@ -3963,7 +3964,7 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
                 get_warning_icon_name(volume->mesh().stats()),
                 volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
-            ui_and_3d_volume_map[ui_volume_idx] = volume_idx;
+            ui_and_3d_volume_map[obj_idx][ui_volume_idx] = volume_idx;
             ui_volume_idx++;
             add_settings_item(vol_item, &volume->config.get());
 
@@ -4688,7 +4689,7 @@ void ObjectList::update_selections()
                 if (object(obj_idx)->volumes[vol_idx]->is_cut_connector())
                     sels.Add(m_objects_model->GetInfoItemByType(m_objects_model->GetItemById(obj_idx), InfoItemType::CutConnectors));
                 else {
-                    vol_idx = m_objects_model->get_real_volume_index_in_ui(vol_idx);
+                    vol_idx = m_objects_model->get_real_volume_index_in_ui(obj_idx,vol_idx);
                     sels.Add(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx));
                 }
             }
@@ -4795,7 +4796,7 @@ void ObjectList::update_selections_on_canvas()
 
         if (type == itVolume) {
             int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            vol_idx     = m_objects_model->get_real_volume_index_in_3d(vol_idx);
+            vol_idx                        = m_objects_model->get_real_volume_index_in_3d(obj_idx,vol_idx);
             std::vector<unsigned int> idxs = selection.get_volume_idxs_from_volume(obj_idx, std::max(instance_idx, 0), vol_idx);
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }

@@ -352,26 +352,30 @@ class ObjectDataViewModel :public wxDataViewModel
     wxDataViewCtrl*                             m_ctrl { nullptr };
     std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> assembly_name_list;
     std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> search_found_list;
-    std::map<int, int>                          m_ui_and_3d_volume_map;
+    std::map<int,std::map<int, int>>                                      m_ui_and_3d_volume_maps;
 
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
 
     void Init();
-    std::map<int, int> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_map; }
-    int                 get_real_volume_index_in_3d(int ui_value)
+    std::map<int, std::map<int, int>> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_maps; }
+    int   get_real_volume_index_in_3d(int ui_object_value, int ui_volume_value)
     {
-        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) { 
-            return m_ui_and_3d_volume_map[ui_value];
+        if (m_ui_and_3d_volume_maps.find(ui_object_value) != m_ui_and_3d_volume_maps.end()) {
+            auto cur_map = m_ui_and_3d_volume_maps[ui_object_value];
+            if (cur_map.find(ui_volume_value) != cur_map.end()) { return cur_map[ui_volume_value]; }
         }
-        return ui_value;
+        return ui_volume_value;
     }
-    int get_real_volume_index_in_ui(int _3d_value)
+    int get_real_volume_index_in_ui(int ui_object_value, int _3d_value)
     {
-        for (auto item: m_ui_and_3d_volume_map) {
-            if (item.second == _3d_value) {
-                return item.first;
+        if (m_ui_and_3d_volume_maps.find(ui_object_value) != m_ui_and_3d_volume_maps.end()) {
+            auto cur_map = m_ui_and_3d_volume_maps[ui_object_value];
+            for (auto item : cur_map) {
+                if (item.second == _3d_value) {
+                    return item.first;
+                }
             }
         }
         return _3d_value;
