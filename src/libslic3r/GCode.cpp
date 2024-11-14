@@ -723,6 +723,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         float wipe_tower_rotation = tcr.priming ? 0.f : alpha;
         Vec2f plate_origin_2d(m_plate_origin(0), m_plate_origin(1));
 
+        // Record the position that is about to wipe.
+        auto transformed_pos   = Eigen::Rotation2Df(wipe_tower_rotation) * tcr.start_pos + wipe_tower_offset;
+        gcodegen.m_next_wipe_x = transformed_pos(0);
+        gcodegen.m_next_wipe_y = transformed_pos(1);
+
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
@@ -6387,7 +6392,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     dyn_config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
 
     dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));
-
+    dyn_config.set_key_value("next_wipe_x", new ConfigOptionFloat(m_next_wipe_x));
+    dyn_config.set_key_value("next_wipe_y", new ConfigOptionFloat(m_next_wipe_y));
     int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
     float flush_unit = wipe_length / flush_count;
     int flush_idx = 0;
