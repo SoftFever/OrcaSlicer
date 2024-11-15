@@ -36,6 +36,10 @@ private:
     using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     std::map<std::string, MemberFunctionPtr> action_handlers;
 
+    // actions for preload.html only
+    void handle_init_server_url_and_redirect(const nlohmann::json& params);
+
+    // Actions for the chat page
     void init_action_handlers();
 
     // Actions to trigger events in JusPrin
