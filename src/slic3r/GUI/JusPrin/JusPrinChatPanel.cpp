@@ -78,6 +78,10 @@ void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetAp
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 
 void JusPrinChatPanel::init_action_handlers() {
+    // Actions for preload.html only
+    action_handlers["init_server_url_and_redirect"] = &JusPrinChatPanel::handle_init_server_url_and_redirect;
+
+    // Actions for the chat page
     action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
@@ -92,6 +96,15 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
 
+// Actions for preload.html only
+void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json& params) {
+    wxString strJS = wxString::Format(
+        "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer();",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+    WebView::RunScript(m_browser, strJS);
+}
+
+// Actions for the chat page
 void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
     wxGetApp().set_classic_mode(true);
 }
@@ -323,10 +336,16 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     TabPresetComboBox* combo = tab->get_combo_box();
     std::vector<std::pair<const Preset*, bool>> presets;
 
+    // It doesn't seem that PresetComboBox keeps a list of available presets. So we will have to go by the combo box text then look up the preset
     for (unsigned int i = 0; i < combo->GetCount(); i++) {
         std::string preset_name = combo->GetString(i).ToUTF8().data();
 
         if (preset_name.substr(0, 5) == "-----") continue;   // Skip separator
+
+        // Orca Slicer adds "* " to the preset name to indicate that it has been modified. But the underlying preset name is without the "* " prefix
+        if (preset_name.substr(0, 2) == "* ") {
+            preset_name = preset_name.substr(2);
+        }
 
         const Preset* preset = tab->m_presets->find_preset(preset_name, false);
         if (preset) {
@@ -370,13 +389,6 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
 
     wxString chat_server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin");
-    if (evt.GetURL().Contains("jusprin_chat_preload.html")) {
-        wxString strJS = wxString::Format(
-            "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer();",
-            chat_server_url);
-        WebView::RunScript(m_browser, strJS);
-    }
-
     if (evt.GetURL().Contains(chat_server_url)) {
         // TODO: This callback is not triggered when a plate is added or removed
         // TODO: This callback is triggered when an object is removed, but not when an object is cloned

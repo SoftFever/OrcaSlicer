@@ -39,7 +39,6 @@
     </div>
 
     <script>
-
         function showError() {
             document.querySelector('.loading').style.display = 'none';
             document.querySelector('.error').style.display = 'block';
@@ -80,6 +79,10 @@
                 showError();
             });
         }
+
+        setTimeout(() => {
+            window.wx.postMessage({ action: 'init_server_url_and_redirect' });
+        }, 100);    // Ugly workaround for error "undefined is not an object (evaluating window.wx.postMessage)"
     </script>
 </body>
 </html>
