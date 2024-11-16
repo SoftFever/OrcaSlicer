@@ -35,3 +35,6 @@ src/OrcaSlicer-doc/
 **/.flatpak-builder/
 resources/profiles/user/default
 *.code-workspace
+
+# ignore site build by mkdocs
+/site
