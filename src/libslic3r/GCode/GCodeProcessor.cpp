@@ -168,6 +168,18 @@ static int get_object_label_id(const std::string_view comment_1)
     return id;
 }
 
+static float get_z_height(const std::string_view comment_1)
+{
+    std::string comment(comment_1);
+    auto pos = comment.find(":");
+    std::string num_str = comment.substr(pos + 1);
+    float print_z = 0.0f;
+    try {
+        print_z = stof(num_str);
+    } catch (const std::exception &) {}
+    return print_z;
+}
+
 void GCodeProcessor::CachedPosition::reset()
 {
     std::fill(position.begin(), position.end(), FLT_MAX);
@@ -1517,7 +1529,7 @@ GCodeProcessor::GCodeProcessor()
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].line_m73_stop_mask = "M73 D%s\n";
 }
 
-bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int> &filament_map)
+bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int> &filament_map)
 {
     m_result.limit_filament_maps.clear();
     m_result.gcode_check_result.reset();
@@ -1529,18 +1541,23 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
         return ps;
     };
 
-
-    std::map<int, std::map<int, Points>>  gcode_path_pos; // object_id, filament_id, pos
+    struct GCodePosInfo
+    {
+        Points pos;
+        float max_print_z;
+    };
+    std::map<int, std::map<int, GCodePosInfo>> gcode_path_pos; // object_id, filament_id, pos
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         if (move.type == EMoveType::Extrude/* || move.type == EMoveType::Travel*/) {
             if (move.is_arc_move_with_interpolation_points()) {
                 for (int i = 0; i < move.interpolation_points.size(); i++) {
-                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
                 }
             }
             else {
-                gcode_path_pos[move.object_label_id][int(move.extruder_id)].emplace_back(to_2d(move.position.cast<double>()));
+                gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
             }
+            gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z, move.print_z);
         }
     }
 
@@ -1548,12 +1565,13 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
     Point plate_offset = Point(scale_(m_x_offset), scale_(m_y_offset));
     for (auto obj_iter = gcode_path_pos.begin(); obj_iter != gcode_path_pos.end(); ++obj_iter) {
         int object_label_id = obj_iter->first;
-        const std::map<int, Points>& path_pos = obj_iter->second;
+        const std::map<int, GCodePosInfo> &path_pos        = obj_iter->second;
         for (auto iter = path_pos.begin(); iter != path_pos.end(); ++iter) {
-            int         extruder_id = filament_map[iter->first] - 1;
-            Polygon     path_poly(iter->second);
+            int extruder_id = filament_map[iter->first] - 1;
+            Polygon     path_poly(iter->second.pos);
             BoundingBox bbox = path_poly.bounding_box();
 
+            // check printable area
             // Simplified use bounding_box, Accurate calculation is not efficient
             for (Polygon poly : unprintable_areas[extruder_id]) {
                 poly.translate(plate_offset);
@@ -1562,9 +1580,20 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
                     std::pair<int, int>         filament_to_object_id;
                     filament_to_object_id.first = iter->first;
                     filament_to_object_id.second = object_label_id;
-                    m_result.gcode_check_result.error_infos[extruder_id].push_back(filament_to_object_id);
+                    m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
                     valid = false;
                 }
+            }
+
+            // check printable height
+            if (iter->second.max_print_z > printable_heights[extruder_id]) {
+                m_result.gcode_check_result.error_code |= (1 << 1);
+                std::pair<int, int> filament_to_object_id;
+                filament_to_object_id.first  = iter->first;
+                filament_to_object_id.second = object_label_id;
+                m_result.gcode_check_result.print_height_error_infos[extruder_id].push_back(filament_to_object_id);
+                m_result.limit_filament_maps[iter->first] |= (1 << extruder_id);
+                valid = false;
             }
 
             for (int i = 0; i < unprintable_areas.size(); ++i) {
@@ -2833,6 +2862,12 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     // ; OBJECT_ID  end
     if (boost::starts_with(comment, " stop printing object")) {
         m_object_label_id = -1;
+        return;
+    }
+
+    // ; Z_HEIGHT:
+    if (boost::starts_with(comment, " Z_HEIGHT:")) {
+        m_print_z = get_z_height(comment);
         return;
     }
 
@@ -5386,7 +5421,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         path_type,
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[filament_id],
         m_interpolation_points,
-        m_object_label_id
+        m_object_label_id,
+        m_print_z
     });
 
     if (type == EMoveType::Seam) {

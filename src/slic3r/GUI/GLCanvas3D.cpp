@@ -2964,6 +2964,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
         _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
+        _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
         _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
     }
 
@@ -9706,7 +9707,9 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                 else if (warning == EWarning::GCodeConflict)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
                 else if (warning == EWarning::MultiExtruderPrintableError)
-                    show = m_gcode_viewer.has_data() && m_gcode_viewer.m_gcode_check_result.error_code != 0;
+                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.m_gcode_check_result.error_code & 1);
+                else if (warning == EWarning::MultiExtruderHeightOutside)
+                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.m_gcode_check_result.error_code & (1 << 1));
                 else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.filament_printable_reuslt.has_value();
             }
@@ -9723,7 +9726,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         PLATER_ERROR,
         SLICING_SERIOUS_WARNING,
         SLICING_ERROR,
-        SLICING_LIMIT_ERROR
+        SLICING_LIMIT_ERROR,
+        SLICING_HEIGHT_OUTSIDE
     };
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
@@ -9759,8 +9763,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::MultiExtruderPrintableError: {
-        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.end(); ++error_iter) {
-            if (error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.begin()) {
+        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.end(); ++error_iter) {
+            if (error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin()) {
                 text += "\n";
             }
             int extruder_id = error_iter->first + 1; // change extruder id to 1 based
@@ -9773,7 +9777,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 int filament_id = error_iter->second[i].first + 1; // change filament id to 1 based
                 int object_label_id = error_iter->second[i].second;
 
-                //ModelObject* object->instances[0]->get_labeled_id();
                 filaments += std::to_string(filament_id);
                 for (int object_idx = 0; object_idx < (int) m_model->objects.size(); ++object_idx) {
                     const ModelObject *model_object = m_model->objects[object_idx];
@@ -9809,6 +9812,63 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::SLICING_LIMIT_ERROR;
         break;
     }
+    case EWarning::MultiExtruderHeightOutside: {
+        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.print_height_error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.print_height_error_infos.end(); ++error_iter) {
+            if (error_iter != m_gcode_viewer.m_gcode_check_result.print_height_error_infos.begin()) {
+                text += "\n";
+            }
+            int              extruder_id = error_iter->first + 1; // change extruder id to 1 based
+            std::set<int>    filament_ids;
+            std::vector<int> slice_error_object_idxs;
+            for (size_t i = 0; i < error_iter->second.size(); ++i) {
+                int filament_id     = error_iter->second[i].first + 1; // change filament id to 1 based
+                int object_label_id = error_iter->second[i].second;
+                filament_ids.insert(filament_id);
+                for (int object_idx = 0; object_idx < (int) m_model->objects.size(); ++object_idx) {
+                    const ModelObject *model_object = m_model->objects[object_idx];
+                    for (int instance_idx = 0; instance_idx < (int) model_object->instances.size(); ++instance_idx) {
+                        const ModelInstance *model_instance = model_object->instances[instance_idx];
+                        auto                 expect_id      = model_instance->get_labeled_id();
+                        if (object_label_id == expect_id) {
+                            slice_error_object_idxs.emplace_back(object_idx);
+                        }
+                    }
+                }
+            }
+
+            std::string filaments;
+            int         index = 0;
+            for (auto filament_id : filament_ids) {
+                if (index == 0) {
+                    filaments += ", ";
+                }
+                filaments += std::to_string(filament_id);
+                ++index;
+            }
+
+            for (GLVolume *volume : m_gcode_viewer.m_shells.volumes.volumes) {
+                for (auto obj_idx : slice_error_object_idxs) {
+                    if (volume->object_idx() == obj_idx) {
+                        volume->slice_error = true;
+                        volume->selected    = true;
+                    }
+                }
+            }
+            std::string extruder_name = extruder_id == 1 ? "Left extruder" : "Right extruder";
+            if (error_iter->second.size() == 1) {
+                text += (boost::format(_u8L("Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
+            } else {
+                text += (boost::format(_u8L("Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
+            }
+        }
+        if (!text.empty()) {
+            text += "\n";
+            text += _u8L("Open wiki for more information.");
+        }
+        error = ErrorType::SLICING_LIMIT_ERROR;
+        break;
+    }
+
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
@@ -9865,9 +9925,15 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_LIMIT_ERROR:
         if (state)
-            notification_manager.push_slicing_limit_error_notification(text);
+            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
         else
-            notification_manager.close_slicing_limit_error_notification(text);
+            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationManager::NotificationLevel::ErrorNotificationLevel);
+        break;
+    case SLICING_HEIGHT_OUTSIDE:
+        if (state)
+            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
+        else
+            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationManager::NotificationLevel::ErrorNotificationLevel);
         break;
     default:
         break;

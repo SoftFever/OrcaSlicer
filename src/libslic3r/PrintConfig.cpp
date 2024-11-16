@@ -648,6 +648,15 @@ void PrintConfigDef::init_common_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 
+    def           = this->add("extruder_printable_height", coFloats);
+    def->label    = L("Printable height");
+    def->tooltip  = L("Maximum printable height which is limited by mechanism of printer");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comSimple;
+    def->set_default_value(new ConfigOptionFloatsNullable{100.0, 200.0});
+
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
     def->tooltip = L("Automatically orient stls on the Z-axis upon initial import.");
@@ -7278,6 +7287,7 @@ std::set<std::string> printer_extruder_options = {
     "nozzle_diameter",
     "default_nozzle_volume_type",
     "extruder_printable_area",
+    "extruder_printable_height",
     "min_layer_height",
     "max_layer_height"
 };

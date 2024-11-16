@@ -2679,6 +2679,11 @@ std::vector<std::vector<Vec2d>> Print::get_extruder_printable_area()
     return m_config.extruder_printable_area.values;
 }
 
+std::vector<double> Print::get_extruder_printable_height()
+{
+    return m_config.extruder_printable_height.values;
+}
+
 size_t Print::get_extruder_id(unsigned int filament_id) const
 {
     std::vector<int> filament_map = get_filament_maps();

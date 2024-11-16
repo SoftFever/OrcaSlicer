@@ -965,6 +965,7 @@ public:
 
     std::vector<Vec2d> get_printable_area();
     std::vector<std::vector<Vec2d>> get_extruder_printable_area();
+    std::vector<double> get_extruder_printable_height();
 
     bool                        enable_timelapse_print() const;
 

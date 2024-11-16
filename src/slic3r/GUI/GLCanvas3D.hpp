@@ -385,6 +385,7 @@ class GLCanvas3D
         ToolHeightOutside,
         TPUPrintableError,
         MultiExtruderPrintableError,      // after slice
+        MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer
     };
 

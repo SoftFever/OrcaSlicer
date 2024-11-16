@@ -1956,17 +1956,17 @@ void NotificationManager::close_general_error_notification(const std::string& te
 	}
 }
 
-void NotificationManager::push_slicing_limit_error_notification(const std::string &text)
+void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text)
 {
     set_all_slicing_errors_gray(false);
-    push_notification_data({NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text}, 0);
+    push_notification_data({type, level, 0, _u8L("Error:") + "\n" + text}, 0);
     set_slicing_progress_hidden();
 }
 
-void NotificationManager::close_slicing_limit_error_notification(const std::string &text)
+void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
 {
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-        if (notification->get_type() == NotificationType::BBLSliceLimitError) {
+        if (notification->get_type() == type && notification->get_data().level == level) {
             notification->close();
         }
     }

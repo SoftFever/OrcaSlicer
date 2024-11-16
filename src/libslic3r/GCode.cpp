@@ -1654,7 +1654,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             Polygons ploys = diff(printable_poly, Polygon::new_scale(e_printable_area));
             extruder_unprintable_polys.emplace_back(ploys);
         }
-        m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys, m_print->get_filament_maps());
+
+        m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys, m_print->get_extruder_printable_height(), m_print->get_filament_maps());
     }
 
     m_processor.finalize(true);
