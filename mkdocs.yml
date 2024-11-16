@@ -1,5 +1,6 @@
 site_name: OrcaSlicer WIKI
 site_description: OrcaSlicer Docs and reference
+repo_url: https://github.com/SoftFever/OrcaSlicer
 
 theme:
   name: material
