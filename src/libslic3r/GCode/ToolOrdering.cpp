@@ -1138,6 +1138,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     }
     else if (nozzle_nums == 1) {
         filament_maps = m_print->get_filament_maps();
+        filament_maps.resize(number_of_extruders, 1);
         bool invalid = std::any_of(filament_maps.begin(), filament_maps.end(), [](int value) { return value != 1; });
         if (invalid) {
             assert(false);
