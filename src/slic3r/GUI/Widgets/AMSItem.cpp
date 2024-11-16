@@ -918,6 +918,9 @@ void AMSLib::render_generic_text(wxDC &dc)
     if (m_info.material_name.empty()) {
         show_k_value = false;
     }
+    else if (m_obj && m_obj->is_multi_extruders() && m_info.cali_idx == -1) {
+        show_k_value = false;
+    }
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
         get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
     }

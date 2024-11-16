@@ -411,28 +411,42 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
     // Check if the input value is valid and save to m_calib_results
     save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
     if (is_valid) {
-        // Check for duplicate names
-        struct PACalibResult {
-            size_t operator()(const std::pair<std::string ,std::string>& item) const {
-                return std::hash<string>()(item.first) * std::hash<string>()(item.second);
-            }
-        };
-        std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
-        for (auto& result : m_calib_results) {
-            if (!set.insert({ result.second.name, result.second.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overwrite the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
+        std::vector<PACalibResult> to_save_result;
+        for (auto &result : m_calib_results) {
+            auto iter = std::find_if(to_save_result.begin(), to_save_result.end(), [this, &result](const PACalibResult &item) {
+                bool has_same_name = (item.name == result.second.name && item.filament_id == result.second.filament_id);
+                if (m_obj && m_obj->is_multi_extruders()) {
+                    has_same_name &= (item.extruder_id == result.second.extruder_id && item.nozzle_volume_type == result.second.nozzle_volume_type);
+                }
+                return has_same_name;
+            });
+
+            if (iter != to_save_result.end()) {
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overwrite the other results?"),
+                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
-                }
-                else {
+                } else {
                     break;
                 }
             }
         }
-        // Check for duplicate names from history
-        for (auto& result : m_history_results) {
-            if (!set.insert({ result.name, result.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to override the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxYES_NO);
+
+        for (auto &result : m_history_results) {
+            auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this, &result](const PACalibResult &item) {
+                bool has_same_name = (item.name == result.name && item.filament_id == result.filament_id);
+                if (m_obj && m_obj->is_multi_extruders()) {
+                    has_same_name &= (item.extruder_id == result.extruder_id && item.nozzle_volume_type == result.nozzle_volume_type);
+                }
+                return has_same_name;
+            });
+
+            if (iter != m_history_results.end()) {
+                 MessageDialog msg_dlg(nullptr,
+                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                          "is saved. Are you sure you want to override the historical result?"),
+                                                       result.name),
+                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
@@ -522,10 +536,52 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     }
 
     std::vector<std::pair<int, std::string>> preset_names;
+    int i = 1;
     for (auto &info : m_obj->selected_cali_preset) {
-        preset_names.push_back({info.tray_id, info.name});
+        std::string default_name;
+        // extruder _id
+        {
+            int extruder_id = 0;
+            if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
+                extruder_id = 0;
+            } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                extruder_id = 1;
+            } else {
+                int ams_id  = info.tray_id / 4;
+                extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+            }
+
+            if (extruder_id == 0) {
+                default_name += L("Right");
+            } else if (extruder_id == 1){
+                default_name += L("Left");
+            }
+        }
+
+        // nozzle_volume_type
+        {
+            default_name += "_";
+            if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
+                default_name += L("Standard");
+            }
+            else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
+                default_name += L("High Flow");
+            }
+        }
+
+        // filament_id
+        {
+            default_name += "_";
+            std::unordered_set<std::string> set;
+            default_name += get_default_name(info.name, CalibMode::Calib_PA_Line).ToUTF8().data();
+            if (!set.insert(default_name).second) {
+                default_name += "_" + std::to_string(i);
+                i++;
+            }
+        }
+
+        preset_names.push_back({info.tray_id, default_name});
     }
-    preset_names = default_naming(preset_names);
 
     bool left_first_add_item = true;
     bool right_first_add_item = true;
@@ -826,6 +882,40 @@ bool CaliPASaveManualPanel::Show(bool show) {
         if (m_obj) {
             if (!m_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(m_obj->selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
+                if (m_obj->is_multi_extruders()) {
+                    wxString recommend_name;
+                    CaliPresetInfo info = m_obj->selected_cali_preset[0];
+                    // extruder _id
+                    {
+                        int extruder_id = 0;
+                        if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
+                            extruder_id = 0;
+                        } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                            extruder_id = 1;
+                        } else {
+                            int ams_id  = info.tray_id / 4;
+                            extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+                        }
+
+                        if (extruder_id == 0) {
+                            recommend_name += L("Right");
+                        } else if (extruder_id == 1) {
+                            recommend_name += L("Left");
+                        }
+                    }
+
+                    // nozzle_volume_type
+                    {
+                        recommend_name += "_";
+                        if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
+                            recommend_name += L("Standard");
+                        } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
+                            recommend_name += L("High Flow");
+                        }
+                    }
+
+                    default_name = recommend_name + "_" + default_name;
+                }
                 set_default_name(default_name);
                 m_k_val->GetTextCtrl()->SetLabel("");
                 m_n_val->GetTextCtrl()->SetLabel("");

@@ -868,7 +868,11 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     // Check for duplicate names from history
     {
         auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this](const PACalibResult &item) {
-            return item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
+            bool has_same_name = item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
+            if (curr_obj && curr_obj->is_multi_extruders()) {
+                has_same_name &= (item.extruder_id == m_new_result.extruder_id && item.nozzle_volume_type == m_new_result.nozzle_volume_type);
+            }
+            return has_same_name;
         });
 
         if (iter != m_history_results.end()) {
