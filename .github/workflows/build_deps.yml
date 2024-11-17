@@ -66,7 +66,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
-            $Folder = ${{ github.workspace }}
+            $Folder = ${{ github.workspace }}/deps/build
             if (!(Test-Path -Path $Folder)) {
                 mkdir ${{ github.workspace }}/deps/build
                 mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
