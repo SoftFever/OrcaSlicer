@@ -5,7 +5,7 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "fan_cooling_layer_time": [
-        "100"
+        "60"
     ],
     "filament_max_volumetric_speed": [
         "12"
@@ -62,25 +62,25 @@
         "100"
     ],
     "overhang_fan_threshold": [
-        "50%"
+        "95%"
     ],
     "close_fan_the_first_x_layers": [
         "1"
     ],
-        "full_fan_speed_layer": [
+    "full_fan_speed_layer": [
         "3"
     ],
     "nozzle_temperature": [
         "220"
     ],
     "temperature_vitrification": [
-        "60"
+        "45"
     ],
     "nozzle_temperature_range_low": [
         "190"
     ],
     "nozzle_temperature_range_high": [
-        "230"
+        "240"
     ],
     "slow_down_min_speed": [
         "20"
@@ -90,5 +90,12 @@
     ],
     "additional_cooling_fan_speed": [
         "0"
+    ],
+    "dont_slow_down_outer_wall": [
+        "1"
+    ],
+    "enable_overhang_bridge_fan": [
+        "0"
     ]
+
 }

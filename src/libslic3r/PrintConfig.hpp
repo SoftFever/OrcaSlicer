@@ -42,7 +42,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htObico, htFlashforge, htSimplyPrint
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
 };
 
 enum AuthorizationType {
@@ -258,6 +258,7 @@ enum BedType {
     btEP,
     btPEI,
     btPTE,
+    btPCT,
     btCount
 };
 
@@ -324,6 +325,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
     case btPC:
         type_str = "cool_plate";
         break;
+    case btPCT:
+        type_str = "textured_cool_plate";
+        break;
     case btEP:
         type_str = "eng_plate";
         break;
@@ -346,6 +350,9 @@ static std::string get_bed_temp_key(const BedType type)
     if (type == btPC)
         return "cool_plate_temp";
 
+    if (type == btPCT)
+        return "textured_cool_plate_temp";
+
     if (type == btEP)
         return "eng_plate_temp";
 
@@ -362,6 +369,9 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
     if (type == btPC)
         return "cool_plate_temp_initial_layer";
+
+    if (type == btPCT)
+        return "textured_cool_plate_temp_initial_layer";
 
     if (type == btEP)
         return "eng_plate_temp_initial_layer";
@@ -1172,10 +1182,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
+    ((ConfigOptionInts,               textured_cool_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
+    ((ConfigOptionInts,               textured_cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
     ((ConfigOptionInts,               hot_plate_temp_initial_layer)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp_initial_layer))

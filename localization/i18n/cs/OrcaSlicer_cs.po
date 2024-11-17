@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
-"PO-Revision-Date: 2023-09-30 15:15+0200\n"
+"POT-Creation-Date: 2024-10-27 23:05+0800\n"
+"PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
 "Language: cs_CZ\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.5\n"
 
 msgid "Supports Painting"
 msgstr "Malování podpěr"
@@ -4342,7 +4342,7 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5801,6 +5801,9 @@ msgstr "Zamknout aktuální podložku"
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Přizpůsobit aktuální podložku"
 
@@ -5996,6 +5999,7 @@ msgstr "Opravte je prosím na kartách parametrů"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
+"3mf má následující úpravy G-kódu v předvolbách filamentu nebo tiskárny:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
@@ -6012,9 +6016,11 @@ msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"Potvrďte prosím, že G-kód v těchto předvolbách je bezpečný, aby nedošlo k "
+"poškození stroje!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Přizpůsobená Předvolba"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Názvy součástí v souboru kroku nejsou ve formátu UTF8!"
@@ -6335,6 +6341,13 @@ msgstr ""
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
+
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+"Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
+"kladné části."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -7686,6 +7699,14 @@ msgid ""
 msgstr ""
 "Toto je teplota podložky, když je Cool podložka. Hodnota 0 znamená, že "
 "filament nepodporuje tisk na Cool Podložku"
+
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering plate"
 msgstr "Engineering podložka"
@@ -9484,6 +9505,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Toto je teplota Podložky pro vrstvy kromě první. Hodnota 0 znamená, že "
@@ -9518,6 +9544,11 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Toto je teplota podložky první vrstvy. Hodnota 0 znamená filament "
@@ -9540,11 +9571,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Typy podložek podporované tiskárnou"
 
-msgid "Cool Plate"
-msgstr "Cool Podložka"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engineering Podložka"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
@@ -9853,7 +9890,9 @@ msgstr "Hranice obrácení převisu"
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every even layers regardless."
+"Value 0 enables reversal on every even layers regardless.\n"
+"When Detect overhang wall is not enabled, this option is ignored and "
+"reversal happens on every even layers regardless."
 msgstr ""
 
 msgid "Classic mode"
@@ -10478,7 +10517,7 @@ msgstr "Předstih tlaku (Klipper) AKA Lineární faktor předstihu (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10503,6 +10542,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -12644,18 +12684,20 @@ msgid "Enabled"
 msgstr "Povoleno"
 
 msgid "Skirt type"
-msgstr ""
+msgstr "Typ obrysu"
 
 msgid ""
 "Combined - single skirt for all objects, Per object - individual object "
 "skirt."
 msgstr ""
+"Kombinovaný - jeden obrys pro všechny objekty, Individuální - každý objekt "
+"má vlastní obrys."
 
 msgid "Combined"
-msgstr ""
+msgstr "Kombinovaný "
 
 msgid "Per object"
-msgstr ""
+msgstr "Individuální "
 
 msgid "Skirt loops"
 msgstr "Obrysové smyčky"
@@ -16273,6 +16315,9 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Cool Plate"
+#~ msgstr "Cool Podložka"
+
 #~ msgid "Reverse on odd"
 #~ msgstr "Obrátit na lichých"
 
@@ -16645,13 +16690,6 @@ msgstr ""
 
 #~ msgid "Failed to parse model informations."
 #~ msgstr "Nepodařilo se zpracovat informace o modelu."
-
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
-#~ msgstr ""
-#~ "Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
-#~ "kladné části."
 
 #, boost-format
 #~ msgid ""
