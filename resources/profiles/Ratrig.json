@@ -216,6 +216,10 @@
             "name": "RatRig Generic PLA-CF",
             "sub_path": "filament/RatRig Generic PLA-CF.json"
         },
+	{
+            "name": "RatRig Generic PCTG",
+            "sub_path": "filament/RatRig Generic PCTG.json"
+        },
         {
             "name": "RatRig Generic PETG",
             "sub_path": "filament/RatRig Generic PETG.json"
