@@ -2115,36 +2115,34 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
-            if (m_config.nozzle_diameter.size() > 1) {
-                std::vector<std::vector<unsigned int>> all_filaments;
-                for (print_object_instance_sequential_active = print_object_instances_ordering.begin(); print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                    tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                    for (const auto& layer_tool : tool_ordering.layer_tools()) {
-                        all_filaments.emplace_back(layer_tool.extruders);
-                    }
+            std::vector<std::vector<unsigned int>> all_filaments;
+            for (print_object_instance_sequential_active = print_object_instances_ordering.begin(); print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
+                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+                for (const auto& layer_tool : tool_ordering.layer_tools()) {
+                    all_filaments.emplace_back(layer_tool.extruders);
                 }
+            }
 
-                auto used_filaments = collect_sorted_used_filaments(all_filaments);
-                auto physical_unprintables = ToolOrdering::get_physical_unprintables(used_filaments, &m_config);
-                auto geometric_unprintables = ToolOrdering::get_geometrical_unprintables(get_unprintable_filament_ids(), &m_config);
+            auto used_filaments = collect_sorted_used_filaments(all_filaments);
+            auto physical_unprintables = ToolOrdering::get_physical_unprintables(used_filaments, &m_config);
+            auto geometric_unprintables = ToolOrdering::get_geometrical_unprintables(get_unprintable_filament_ids(), &m_config);
 
-                std::vector<int>filament_maps = this->get_filament_maps();
-                auto map_mode = get_filament_map_mode();
-                // get recommended filament map
-                if (map_mode == FilamentMapMode::fmmAuto) {
-                    filament_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config(), this, physical_unprintables, geometric_unprintables);
-                    std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
-                    update_filament_maps_to_config(filament_maps);
+            std::vector<int>filament_maps = this->get_filament_maps();
+            auto map_mode = get_filament_map_mode();
+            // get recommended filament map
+            if (map_mode == FilamentMapMode::fmmAuto) {
+                filament_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config(), this, physical_unprintables, geometric_unprintables);
+                std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
+                update_filament_maps_to_config(filament_maps);
+            }
+            // check map valid both in auto and mannual mode
+            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
+            if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config)) {
+                if (map_mode == FilamentMapMode::fmmManual) {
+                    throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
                 }
-                // check map valid both in auto and mannual mode
-                std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
-                if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config)) {
-                    if (map_mode == FilamentMapMode::fmmManual) {
-                        throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
-                    }
-                    else {
-                        throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
-                    }
+                else {
+                    throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
                 }
             }
 

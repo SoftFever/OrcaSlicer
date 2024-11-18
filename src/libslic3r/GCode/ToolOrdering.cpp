@@ -1102,57 +1102,37 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     std::vector<std::set<int>>geometric_unprintables = get_geometrical_unprintables(m_print->get_unprintable_filament_ids(), print_config);
     std::vector<std::set<int>>physical_unprintables = get_physical_unprintables(used_filaments, print_config);
 
-    if (nozzle_nums > 1) {
-        filament_maps = m_print->get_filament_maps();
-        map_mode = m_print->get_filament_map_mode();
-        // only check and map in sequence mode, in by object mode, we check the map in print.cpp
-        if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
-            if (map_mode == FilamentMapMode::fmmAuto) {
-                const PrintConfig* print_config = m_print_config_ptr;
-                if (!print_config && m_print_object_ptr) {
-                    print_config = &(m_print_object_ptr->print()->config());
-                }
-
-                filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
-
-                if (filament_maps.empty())
-                    return;
-                std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
-                m_print->update_filament_maps_to_config(filament_maps);
+    filament_maps = m_print->get_filament_maps();
+    map_mode = m_print->get_filament_map_mode();
+    // only check and map in sequence mode, in by object mode, we check the map in print.cpp
+    if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
+        if (map_mode == FilamentMapMode::fmmAuto) {
+            const PrintConfig* print_config = m_print_config_ptr;
+            if (!print_config && m_print_object_ptr) {
+                print_config = &(m_print_object_ptr->print()->config());
             }
-            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
-            if (!check_tpu_group(used_filaments, filament_maps, print_config)) {
-                if (map_mode == FilamentMapMode::fmmManual) {
-                    throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
-                }
-                else {
-                    throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
-                }
-            }
-        }
-        else {
-            // we just need to change the map to 0 based
-            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
-        }
-    }
-    else if (nozzle_nums == 1) {
-        filament_maps = m_print->get_filament_maps();
-        filament_maps.resize(number_of_extruders, 1);
-        bool invalid = std::any_of(filament_maps.begin(), filament_maps.end(), [](int value) { return value != 1; });
-        if (invalid) {
-            assert(false);
-            std::stringstream sstream;
-            for (size_t i = 0; i < filament_maps.size(); ++i) {
-                if (i != 0)
-                    sstream << " ";
-                sstream << filament_maps[i];
-            }
-            BOOST_LOG_TRIVIAL(error) << "The filament_map of single printer is invalid. filament_map = " << sstream.str();
-            std::fill(filament_maps.begin(), filament_maps.end(), 1);
+            filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
+
+            if (filament_maps.empty())
+                return;
+            std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
             m_print->update_filament_maps_to_config(filament_maps);
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
+
+        if (!check_tpu_group(used_filaments, filament_maps, print_config)) {
+            if (map_mode == FilamentMapMode::fmmManual) {
+                throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
+            }
+            else {
+                throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
+            }
+        }
+    }
+    else {
+        // we just need to change the map to 0 based
+        std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
     }
 
     std::vector<std::vector<unsigned int>>filament_sequences;
@@ -1173,7 +1153,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         first_layer_filaments = m_layer_tools[0].extruders;
 
     // other_layers_seq: the layer_idx and extruder_idx are base on 1
-    auto get_custom_seq = [&other_layers_seqs,&reorder_first_layer,&first_layer_filaments](int layer_idx, std::vector<int>& out_seq) -> bool {
+    auto get_custom_seq = [&other_layers_seqs, &reorder_first_layer, &first_layer_filaments](int layer_idx, std::vector<int>& out_seq) -> bool {
         if (!reorder_first_layer && layer_idx == 0) {
             out_seq.resize(first_layer_filaments.size());
             std::transform(first_layer_filaments.begin(), first_layer_filaments.end(), out_seq.begin(), [](auto item) {return item + 1; });
