@@ -263,6 +263,26 @@
         {
             "name": "RatRig PunkFil PETG",
             "sub_path": "filament/RatRig PunkFil PETG.json"
+        },
+	{
+            "name": "RatRig BigNozzle ABS",
+            "sub_path": "filament/RatRig BigNozzle ABS.json"
+        },
+	{
+            "name": "RatRig BigNozzle ASA",
+            "sub_path": "filament/RatRig BigNozzle ASA.json"
+        },
+	{
+            "name": "RatRig BigNozzle PLA",
+            "sub_path": "filament/RatRig BigNozzle PLA.json"
+        },
+	{
+            "name": "RatRig BigNozzle PETG",
+            "sub_path": "filament/RatRig BigNozzle PETG.json"
+        },
+	{
+            "name": "RatRig BigNozzle PCTG",
+            "sub_path": "filament/RatRig BigNozzle PCTG.json"
         }
     ],
     "machine_list": [
