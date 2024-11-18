@@ -416,7 +416,7 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
             int ams_id, slot_id, tray_id;
             get_tray_ams_and_slot_id(result.extruder_id, ams_id, slot_id, tray_id);
             result.extruder_id = preset_page->get_extruder_id(ams_id);
-            result.nozzle_volume_type = preset_page->get_nozzle_volume_type(ams_id);
+            result.nozzle_volume_type = preset_page->get_nozzle_volume_type(result.extruder_id);
         }
         else {
             result.extruder_id = 0;
@@ -847,6 +847,27 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
     if (!curr_obj)
         return false;
 
+    std::vector<PACalibResult> to_save_result;
+    for (auto &result : new_pa_cali_results) {
+        auto iter = std::find_if(to_save_result.begin(), to_save_result.end(), [this, &result](const PACalibResult &item) {
+            bool has_same_name = (item.name == result.name && item.filament_id == result.filament_id);
+            if (curr_obj && curr_obj->is_multi_extruders()) {
+                has_same_name &= (item.extruder_id == result.extruder_id && item.nozzle_volume_type == result.nozzle_volume_type);
+            }
+            return has_same_name;
+        });
+        if (iter != to_save_result.end()) {
+            MessageDialog msg_dlg(nullptr, wxString::Format(_L("Only one of the results with the same name: %s will be saved. Are you sure you want to override the other results?"), iter->name), wxEmptyString,
+                                  wxICON_WARNING | wxYES_NO);
+            if (msg_dlg.ShowModal() != wxID_YES) {
+                return false;
+            } else {
+                break;
+            }
+        }
+        to_save_result.push_back(result);
+    }
+
     std::string same_pa_names;
     for (auto new_pa_cali_result : new_pa_cali_results) {
         auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [this, &new_pa_cali_result](const PACalibResult &item) {
@@ -860,12 +881,12 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
 
         if (iter != curr_obj->pa_calib_tab.end()) {
             same_pa_names += new_pa_cali_result.name;
-            same_pa_names += ",";
+            same_pa_names += ", ";
         }
     }
 
     if (!same_pa_names.empty()) {
-        same_pa_names.pop_back();
+        same_pa_names.erase(same_pa_names.size() - 2);
         MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
                                                   "is saved. Are you sure you want to override the historical result?"), same_pa_names), wxEmptyString, wxICON_WARNING | wxYES_NO);
         if (msg_dlg.ShowModal() != wxID_YES)

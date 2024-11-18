@@ -61,7 +61,7 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
 static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
-    if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
         tray_name = "Ext";
     }
     else {
@@ -411,6 +411,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
     // Check if the input value is valid and save to m_calib_results
     save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
     if (is_valid) {
+        /*
         std::vector<PACalibResult> to_save_result;
         for (auto &result : m_calib_results) {
             auto iter = std::find_if(to_save_result.begin(), to_save_result.end(), [this, &result](const PACalibResult &item) {
@@ -443,8 +444,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
 
             if (iter != m_history_results.end()) {
                  MessageDialog msg_dlg(nullptr,
-                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                          "is saved. Are you sure you want to override the historical result?"),
+                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Are you sure you want to override the historical result?"),
                                                        result.name),
                                       wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
@@ -452,6 +452,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
                 }
             }
         }
+        */
 
         for (auto& result : m_calib_results) {
             out_result.push_back(result.second);
@@ -487,6 +488,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     for (auto &item : cali_result) {
         if (item.confidence == 0) {
             int tray_id = 4 * item.ams_id + item.slot_id;
+            if (item.ams_id == VIRTUAL_TRAY_MAIN_ID || item.ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                tray_id = item.ams_id;
+            }
             m_calib_results[tray_id] = item;
         }
     }
@@ -537,6 +541,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 
     std::vector<std::pair<int, std::string>> preset_names;
     int i = 1;
+    std::unordered_set<std::string> set;
     for (auto &info : m_obj->selected_cali_preset) {
         std::string default_name;
         // extruder _id
@@ -572,7 +577,6 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         // filament_id
         {
             default_name += "_";
-            std::unordered_set<std::string> set;
             default_name += get_default_name(info.name, CalibMode::Calib_PA_Line).ToUTF8().data();
             if (!set.insert(default_name).second) {
                 default_name += "_" + std::to_string(i);
@@ -585,7 +589,11 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 
     bool left_first_add_item = true;
     bool right_first_add_item = true;
-    for (auto &item : cali_result) {
+    std::vector<PACalibResult> sorted_cali_result   = cali_result;
+    std::sort(sorted_cali_result.begin(), sorted_cali_result.end(), [](const PACalibResult &left, const PACalibResult &right) {
+        return left.tray_id < right.tray_id;
+    });
+    for (auto &item : sorted_cali_result) {
         bool result_failed = false;
         if (item.confidence != 0) {
             result_failed = true;
