@@ -1650,6 +1650,8 @@ void TreeSupport::move_bounds_to_contact_nodes(std::vector<TreeSupport3D::Suppor
 
 void TreeSupport::generate()
 {
+    if (!is_tree(m_object_config->support_type.value)) return;
+
     if (m_support_params.support_style == smsTreeOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;

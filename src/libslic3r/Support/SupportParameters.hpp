@@ -163,6 +163,12 @@ struct SupportParameters {
                                                                                                           std::numeric_limits<double>::max();
 
         support_style = object_config.support_style;
+        if (support_style != smsDefault) {
+            if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
+            if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid || support_style == smsTreeOrganic) &&
+                !is_tree(object_config.support_type))
+                support_style = smsDefault;
+        }
         if (support_style == smsDefault) {
             if (is_tree(object_config.support_type)) {
                 // Orca: use organic as default
