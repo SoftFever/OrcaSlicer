@@ -483,6 +483,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         ops_no_auto
     );
 
+    option_use_ams->setValue("off");
     m_sizer_options->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
@@ -2697,6 +2698,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if(!obj_) return;
 
     update_select_layout(obj_);
+    update_ams_check(obj_);
 
     if (!obj_
         || obj_->amsList.empty()
@@ -2704,7 +2706,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         || !obj_->is_support_filament_backup
         || !obj_->is_support_show_filament_backup
         || !obj_->ams_auto_switch_filament_flag
-        || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
+        || m_checkbox_list["use_ams"]->getValue() != "on") {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
@@ -2804,15 +2806,28 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
 {
+    /*if (!obj) {return;}
+
+    if (obj->is_enable_np) {
+        m_checkbox_list["use_ams"]->Hide();
+        m_checkbox_list["use_ams"]->setValue("on");
+    }
+    else {
+        if (obj->has_ams()) {
+            m_checkbox_list["use_ams"]->Show();
+            m_checkbox_list["use_ams"]->setValue("on");
+        } else {
+            m_checkbox_list["use_ams"]->Hide();
+            m_checkbox_list["use_ams"]->setValue("off");
+        }
+    }*/
+
     if (obj && obj->has_ams() && !obj->is_enable_np) {
         m_checkbox_list["use_ams"]->Show();
-        if (obj->get_printer_ams_type() == "generic") {
-            img_use_ams_tip->Show();
-        } else {
-            img_use_ams_tip->Hide();
-        }
     }
-    if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->setValue("on"); }
+    if (obj && obj->is_enable_np) {
+        m_checkbox_list["use_ams"]->setValue("on");
+    }
 }
 
 void SelectMachineDialog::update_show_status()
@@ -2901,9 +2916,9 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (!obj_->has_ams() || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
-        clean_ams_mapping = true;
-    }
+    //if (!obj_->has_ams() || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
+    //    clean_ams_mapping = true;
+    //}
 
     if (clean_ams_mapping) {
         m_ams_mapping_result.clear();
@@ -2953,7 +2968,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     // no ams
-    if (!obj_->has_ams() || ! (m_checkbox_list["use_ams"]->getValue() == "on")) {
+    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
         if (!has_tips(obj_)) {
             if (has_timelapse_warning()) {
                 show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
@@ -2965,7 +2980,7 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-    if (!(m_checkbox_list["use_ams"]->getValue() == "on")) {
+    if (m_checkbox_list["use_ams"]->getValue() != "on") {
         m_ams_mapping_result.clear();
         sync_ams_mapping_result(m_ams_mapping_result);
 
@@ -3244,7 +3259,6 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
         if (img_amsmapping_tip)img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
     }
     enable_ams->msw_rescale();
-    img_use_ams_tip->SetBitmap(enable_ams->bmp());
 
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(12));
@@ -3505,7 +3519,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ && (m_checkbox_list["use_ams"]->getValue() == "on") && obj_->dev_id == m_printer_last_select) {
+                if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on" && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);

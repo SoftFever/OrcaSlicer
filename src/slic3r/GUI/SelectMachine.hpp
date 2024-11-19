@@ -327,7 +327,6 @@ protected:
     wxStaticBitmap *                    weightimg{nullptr};
     ScalableBitmap *                    print_weight{nullptr};
     ScalableBitmap *                    ams_mapping_help_icon{nullptr};
-    wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
     ThumbnailData                       m_cur_input_thumbnail_data;
