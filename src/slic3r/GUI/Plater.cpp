@@ -8496,6 +8496,8 @@ bool Plater::priv::check_ams_status_impl()
             dlg.Fit();
             if (dlg.ShowModal() == wxID_YES) {
                 GUI::wxGetApp().sidebar().sync_extruder_list();
+                wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                wxGetApp().mainframe->m_tabpanel->SetSelection(MainFrame::TabPosition::tpPreview);
                 return false;
             }
         }
@@ -14753,12 +14755,14 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 {
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-    int is_auto = evt.GetInt();
+    int value = evt.GetInt();
+    bool is_auto = value & 1;  //0000 means manual, 0001 means auto
+    bool need_slice = value & (1 << 1);  //0010 means from gcode view, 0000 means not from gcode view
     FilamentMapDialog filament_dlg(this,
         config(),
         curr_plate->get_filament_maps(),
         curr_plate->get_extruders(true),
-        is_auto==1,
+        is_auto,
         curr_plate->has_auto_filament_map_reslut()
     );
     if (filament_dlg.ShowModal() == wxID_OK) {
@@ -14782,9 +14786,14 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
                 need_invalidate = true;
         }
         if (need_invalidate) {
-            curr_plate->update_slice_result_valid_state(false);
-            set_plater_dirty(true);
-            update();
+            if (need_slice) {
+                wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+            }
+            else {
+                curr_plate->update_slice_result_valid_state(false);
+                set_plater_dirty(true);
+                update();
+            }
         }
     }
     return;
@@ -14952,7 +14961,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         if (!ret) {
             PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
             wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
-            evt.SetInt(curr_plate->get_filament_map_mode()==FilamentMapMode::fmmAuto);
+            evt.SetInt(curr_plate->get_filament_map_mode()==FilamentMapMode::fmmAuto ? 1 : 0);
             evt.SetEventObject(this);
             wxPostEvent(this, evt);
         } else {
