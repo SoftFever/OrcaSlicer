@@ -279,7 +279,12 @@ void Spoolman::update_visible_spool_statistics(bool clear_cache)
 
 bool Spoolman::is_server_valid()
 {
-    return !get_spoolman_json("info").empty();
+    bool res = false;
+    Http::get(get_spoolman_api_url() + "info").on_complete([&res](std::string, unsigned http_status) {
+        if (http_status == 200)
+            res = true;
+    }).perform_sync();
+    return res;
 }
 
 //---------------------------------
