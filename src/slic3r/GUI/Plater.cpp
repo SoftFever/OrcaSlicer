@@ -8432,6 +8432,17 @@ bool Plater::priv::check_ams_status_impl()
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
+        bool is_same_as_printer = true;
+        auto nozzle_volumes_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+        assert(obj->m_extder_data.extders.size() == 2 && nozzle_volumes_values.size() == 2);
+        if (obj->m_extder_data.extders.size() == 2 && nozzle_volumes_values.size() == 2) {
+            NozzleVolumeType right_nozzle_type = NozzleVolumeType(obj->m_extder_data.extders[0].current_nozzle_flow_type - 1);
+            NozzleVolumeType left_nozzle_type = NozzleVolumeType(obj->m_extder_data.extders[1].current_nozzle_flow_type - 1);
+            NozzleVolumeType preset_left_type  = NozzleVolumeType(nozzle_volumes_values[0]);
+            NozzleVolumeType preset_right_type  = NozzleVolumeType(nozzle_volumes_values[1]);
+            is_same_as_printer = (left_nozzle_type == preset_left_type && right_nozzle_type == preset_right_type);
+        }
+
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
         int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
@@ -8461,9 +8472,8 @@ bool Plater::priv::check_ams_status_impl()
             right_1 = main_1;
         }
 
-        bool is_same_as_printer = false;
         if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
-            is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == left_4
+            is_same_as_printer &= preset_bundle->extruder_ams_counts[0][4] == left_4
             && preset_bundle->extruder_ams_counts[0][1] == left_1
             && preset_bundle->extruder_ams_counts[1][4] == right_4
             && preset_bundle->extruder_ams_counts[1][1] == right_1;

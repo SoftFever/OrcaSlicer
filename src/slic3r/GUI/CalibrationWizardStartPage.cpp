@@ -147,7 +147,7 @@ void CalibrationPAStartPage::on_reset_page()
 
 void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
 {
-    //enable all button
+    // enable all button
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);

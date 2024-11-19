@@ -61,7 +61,7 @@ std::map<int, TrayInfo> get_cached_selected_filament_for_multi_extruder(MachineO
 
 bool is_pa_params_valid(const Calib_Params& params)
 {
-    if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
+    if (params.start <= MIN_PA_K_VALUE || params.end >= MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
         MessageDialog msg_dlg(nullptr,
             wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
             wxEmptyString, wxICON_WARNING | wxOK);
