@@ -195,6 +195,12 @@ public:
     // (print->config().print_sequence == PrintSequence::ByObject is false).
     ToolOrdering(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
 
+    void handle_dontcare_extruder(const std::vector<unsigned int>& first_layer_tool_order);
+    void handle_dontcare_extruder(unsigned int first_extruder);
+
+    void sort_and_build_data(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material = false);
+    void sort_and_build_data(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
+
     void    clear() {
         m_layer_tools.clear();
         m_stats_by_single_extruder.clear();
@@ -246,10 +252,6 @@ public:
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
-    void				reorder_extruders(unsigned int last_extruder_id);
-
-    // BBS
-    void                reorder_extruders(std::vector<unsigned int> tool_order_layer0);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
@@ -270,6 +272,7 @@ private:
     const PrintConfig*         m_print_config_ptr = nullptr;
     const PrintObject*         m_print_object_ptr = nullptr;
     Print*                     m_print;
+    bool                       m_sorted = false;
     bool                       m_is_BBL_printer = false;
 
     FilamentChangeStats        m_stats_by_single_extruder;

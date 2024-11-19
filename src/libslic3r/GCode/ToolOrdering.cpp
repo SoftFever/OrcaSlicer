@@ -218,6 +218,185 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
     return ret;
 }
 
+static void apply_first_layer_order(const DynamicPrintConfig* config, std::vector<unsigned int>& tool_order);
+
+void ToolOrdering::handle_dontcare_extruder(const std::vector<unsigned int>& tool_order_layer0)
+{
+    if(m_layer_tools.empty() || tool_order_layer0.empty())
+        return;
+
+    // Reorder the extruders of first layer
+    {
+        LayerTools& lt = m_layer_tools[0];
+        std::vector<unsigned int> layer0_extruders = lt.extruders;
+        lt.extruders.clear();
+        for (unsigned int extruder_id : tool_order_layer0) {
+            auto iter = std::find(layer0_extruders.begin(), layer0_extruders.end(), extruder_id);
+            if (iter != layer0_extruders.end()) {
+                lt.extruders.push_back(extruder_id);
+                *iter = (unsigned int)-1;
+            }
+        }
+
+        for (unsigned int extruder_id : layer0_extruders) {
+            if (extruder_id == 0)
+                continue;
+
+            if (extruder_id != (unsigned int)-1)
+                lt.extruders.push_back(extruder_id);
+        }
+
+        // all extruders are zero
+        if (lt.extruders.empty()) {
+            lt.extruders.push_back(tool_order_layer0[0]);
+        }
+    }
+
+    int last_extruder_id = m_layer_tools[0].extruders.back();
+    for (int i = 1; i < m_layer_tools.size(); i++) {
+        LayerTools& lt = m_layer_tools[i];
+
+        if (lt.extruders.empty())
+            continue;
+        if (lt.extruders.size() == 1 && lt.extruders.front() == 0)
+            lt.extruders.front() = last_extruder_id;
+        else {
+            if (lt.extruders.front() == 0)
+                // Pop the "don't care" extruder, the "don't care" region will be merged with the next one.
+                lt.extruders.erase(lt.extruders.begin());
+            // Reorder the extruders to start with the last one.
+            for (size_t i = 1; i < lt.extruders.size(); ++i)
+                if (lt.extruders[i] == last_extruder_id) {
+                    // Move the last extruder to the front.
+                    memmove(lt.extruders.data() + 1, lt.extruders.data(), i * sizeof(unsigned int));
+                    lt.extruders.front() = last_extruder_id;
+                    break;
+                }
+        }
+        last_extruder_id = lt.extruders.back();
+    }
+
+    // Reindex the extruders, so they are zero based, not 1 based.
+    for (LayerTools& lt : m_layer_tools){
+        for (unsigned int& extruder_id : lt.extruders) {
+            assert(extruder_id > 0);
+            --extruder_id;
+        }
+    }
+}
+
+void ToolOrdering::handle_dontcare_extruder(unsigned int last_extruder_id)
+{
+    if(m_layer_tools.empty())
+        return;
+    if(last_extruder_id == (unsigned int)-1){
+        // The initial print extruder has not been decided yet.
+        // Initialize the last_extruder_id with the first non-zero extruder id used for the print.
+        last_extruder_id = 0;
+        for (size_t i = 0; i < m_layer_tools.size() && last_extruder_id == 0; ++ i) {
+            const LayerTools &lt = m_layer_tools[i];
+            for (unsigned int extruder_id : lt.extruders)
+                if (extruder_id > 0) {
+                    last_extruder_id = extruder_id;
+                    break;
+                }
+        }
+        if (last_extruder_id == 0)
+            // Nothing to extrude.
+            return;
+    }else{
+        // 1 based idx
+        ++ last_extruder_id;
+    }
+
+    for (LayerTools &lt : m_layer_tools) {
+        if (lt.extruders.empty())
+            continue;
+        if (lt.extruders.size() == 1 && lt.extruders.front() == 0)
+            lt.extruders.front() = last_extruder_id;
+        else {
+            if (lt.extruders.front() == 0)
+                // Pop the "don't care" extruder, the "don't care" region will be merged with the next one.
+                lt.extruders.erase(lt.extruders.begin());
+            // Reorder the extruders to start with the last one.
+            for (size_t i = 1; i < lt.extruders.size(); ++ i)
+                if (lt.extruders[i] == last_extruder_id) {
+                    // Move the last extruder to the front.
+                    memmove(lt.extruders.data() + 1, lt.extruders.data(), i * sizeof(unsigned int));
+                    lt.extruders.front() = last_extruder_id;
+                    break;
+                }
+
+            if (lt == m_layer_tools[0]) {
+                // On first layer with wipe tower, prefer a soluble extruder
+                // at the beginning, so it is not wiped on the first layer.
+                if (m_print_config_ptr && m_print_config_ptr->enable_prime_tower) {
+                    for (size_t i = 0; i<lt.extruders.size(); ++i)
+                        if (m_print_config_ptr->filament_soluble.get_at(lt.extruders[i]-1)) { // 1-based...
+                            std::swap(lt.extruders[i], lt.extruders.front());
+                            break;
+                        }
+                }
+
+                // Then, if we specified the tool order, apply it now
+                apply_first_layer_order(m_print_full_config, lt.extruders);
+            }
+
+        }
+        last_extruder_id = lt.extruders.back();
+    }
+
+    // Reindex the extruders, so they are zero based, not 1 based.
+    for (LayerTools &lt : m_layer_tools){
+        for (unsigned int &extruder_id : lt.extruders) {
+            assert(extruder_id > 0);
+            -- extruder_id;
+        }
+    }
+}
+
+void ToolOrdering::sort_and_build_data(const Print& print, unsigned int first_extruder, bool prime_multi_material)
+{
+    // if first extruder is -1, we can decide the first layer tool order before doing reorder function
+    // so we shouldn't reorder first layer in reorder function
+    bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
+    reorder_extruders_for_minimum_flush_volume(reorder_first_layer);
+    m_sorted = true;
+
+    double max_layer_height = 0.;
+    double object_bottom_z = 0.;
+    for (const auto& object : print.objects()) {
+        for (const Layer* layer : object->layers()) {
+            if (layer->has_extrusions()) {
+                object_bottom_z = layer->print_z - layer->height;
+                break;
+            }
+        }
+        max_layer_height = std::max(max_layer_height, object->config().layer_height.value);
+    }
+
+    max_layer_height = calc_max_layer_height(print.config(), max_layer_height);
+
+    this->collect_extruder_statistics(prime_multi_material);
+
+    this->fill_wipe_tower_partitions(print.config(), object_bottom_z, max_layer_height);
+}
+
+void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int first_extruder, bool prime_multi_material)
+{
+    // if first extruder is -1, we can decide the first layer tool order before doing reorder function
+    // so we shouldn't reorder first layer in reorder function
+    bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
+    reorder_extruders_for_minimum_flush_volume(reorder_first_layer);
+    m_sorted = true;
+
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
+
+    this->collect_extruder_statistics(prime_multi_material);
+
+    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, max_layer_height);
+}
+
 
 // For the use case when each object is printed separately
 // (print->config().print_sequence == PrintSequence::ByObject is true).
@@ -232,6 +411,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     // Initialize the print layers for just a single object.
     {
+        // construct layer tools by z height
         std::vector<coordf_t> zs;
         zs.reserve(zs.size() + object.layers().size() + object.support_layers().size());
         for (auto layer : object.layers())
@@ -240,9 +420,8 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
             zs.emplace_back(layer->print_z);
         this->initialize_layers(zs);
     }
-    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
 
-    // Collect extruders reuqired to print the layers.
+    // Collect extruders reuqired to print the layers. Add dontcare extruders
     this->collect_extruders(object, std::vector<std::pair<double, unsigned int>>());
 
     // BBS
@@ -253,14 +432,14 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     }
 
     if (!first_layer_tool_order.empty()) {
-        this->reorder_extruders(first_layer_tool_order);
+        this->handle_dontcare_extruder(first_layer_tool_order);
     } else {
-        this->reorder_extruders(first_extruder);
+        this->handle_dontcare_extruder(first_extruder);
     }
 
-    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, max_layer_height);
-
     this->collect_extruder_statistics(prime_multi_material);
+
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
 
     this->mark_skirt_layers(object.print()->config(), max_layer_height);
 }
@@ -275,7 +454,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     m_print_config_ptr = &print.config();
 
     // Initialize the print layers for all objects and all layers.
-    coordf_t object_bottom_z = 0.;
     coordf_t max_layer_height = 0.;
     {
         std::vector<coordf_t> zs;
@@ -285,13 +463,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                 zs.emplace_back(layer->print_z);
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
-
-            // Find first object layer that is not empty and save its print_z
-            for (const Layer* layer : object->layers())
-                if (layer->has_extrusions()) {
-                    object_bottom_z = layer->print_z - layer->height;
-                    break;
-                }
 
             max_layer_height = std::max(max_layer_height, object->config().layer_height.value);
         }
@@ -323,14 +494,10 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
         first_layer_tool_order = generate_first_layer_tool_order(print);
     }
 
-    if (!first_layer_tool_order.empty()) {
-        this->reorder_extruders(first_layer_tool_order);
-    }
-    else {
-        this->reorder_extruders(first_extruder);
-    }
-
-    this->fill_wipe_tower_partitions(print.config(), object_bottom_z, max_layer_height);
+    if(!first_layer_tool_order.empty())
+        this->handle_dontcare_extruder(first_layer_tool_order);
+    else
+        this->handle_dontcare_extruder(first_extruder);
 
     this->collect_extruder_statistics(prime_multi_material);
 
@@ -600,149 +767,6 @@ bool ToolOrdering::check_tpu_group(const std::vector<unsigned int>&used_filament
     }
 
     return true;
-}
-
-// Reorder extruders to minimize layer changes.
-void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
-{
-    if (m_layer_tools.empty())
-        return;
-
-    if (last_extruder_id == (unsigned int)-1) {
-        // The initial print extruder has not been decided yet.
-        // Initialize the last_extruder_id with the first non-zero extruder id used for the print.
-        last_extruder_id = 0;
-        for (size_t i = 0; i < m_layer_tools.size() && last_extruder_id == 0; ++ i) {
-            const LayerTools &lt = m_layer_tools[i];
-            for (unsigned int extruder_id : lt.extruders)
-                if (extruder_id > 0) {
-                    last_extruder_id = extruder_id;
-                    break;
-                }
-        }
-        if (last_extruder_id == 0)
-            // Nothing to extrude.
-            return;
-    } else
-        // 1 based index
-        ++ last_extruder_id;
-
-    for (LayerTools &lt : m_layer_tools) {
-        if (lt.extruders.empty())
-            continue;
-        if (lt.extruders.size() == 1 && lt.extruders.front() == 0)
-            lt.extruders.front() = last_extruder_id;
-        else {
-            if (lt.extruders.front() == 0)
-                // Pop the "don't care" extruder, the "don't care" region will be merged with the next one.
-                lt.extruders.erase(lt.extruders.begin());
-            // Reorder the extruders to start with the last one.
-            for (size_t i = 1; i < lt.extruders.size(); ++ i)
-                if (lt.extruders[i] == last_extruder_id) {
-                    // Move the last extruder to the front.
-                    memmove(lt.extruders.data() + 1, lt.extruders.data(), i * sizeof(unsigned int));
-                    lt.extruders.front() = last_extruder_id;
-                    break;
-                }
-
-            if (lt == m_layer_tools[0]) {
-                // On first layer with wipe tower, prefer a soluble extruder
-                // at the beginning, so it is not wiped on the first layer.
-                if (m_print_config_ptr && m_print_config_ptr->enable_prime_tower) {
-                    for (size_t i = 0; i<lt.extruders.size(); ++i)
-                        if (m_print_config_ptr->filament_soluble.get_at(lt.extruders[i]-1)) { // 1-based...
-                            std::swap(lt.extruders[i], lt.extruders.front());
-                            break;
-                        }
-                }
-
-                // Then, if we specified the tool order, apply it now
-                apply_first_layer_order(m_print_full_config, lt.extruders);
-            }
-        }
-        last_extruder_id = lt.extruders.back();
-    }
-
-    // Reindex the extruders, so they are zero based, not 1 based.
-    for (LayerTools &lt : m_layer_tools)
-        for (unsigned int &extruder_id : lt.extruders) {
-            assert(extruder_id > 0);
-            -- extruder_id;
-        }
-
-    // reorder the extruders for minimum flush volume
-    reorder_extruders_for_minimum_flush_volume(true);
-}
-
-// BBS
-void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0)
-{
-    if (m_layer_tools.empty())
-        return;
-
-    if (tool_order_layer0.empty())
-        return;
-
-    // Reorder the extruders of first layer
-    {
-        LayerTools& lt = m_layer_tools[0];
-        std::vector<unsigned int> layer0_extruders = lt.extruders;
-        lt.extruders.clear();
-        for (unsigned int extruder_id : tool_order_layer0) {
-            auto iter = std::find(layer0_extruders.begin(), layer0_extruders.end(), extruder_id);
-            if (iter != layer0_extruders.end()) {
-                lt.extruders.push_back(extruder_id);
-                *iter = (unsigned int)-1;
-            }
-        }
-
-        for (unsigned int extruder_id : layer0_extruders) {
-            if (extruder_id == 0)
-                continue;
-
-            if (extruder_id != (unsigned int)-1)
-                lt.extruders.push_back(extruder_id);
-        }
-
-        // all extruders are zero
-        if (lt.extruders.empty()) {
-            lt.extruders.push_back(tool_order_layer0[0]);
-        }
-    }
-
-    int last_extruder_id = m_layer_tools[0].extruders.back();
-    for (int i = 1; i < m_layer_tools.size(); i++) {
-        LayerTools& lt = m_layer_tools[i];
-
-        if (lt.extruders.empty())
-            continue;
-        if (lt.extruders.size() == 1 && lt.extruders.front() == 0)
-            lt.extruders.front() = last_extruder_id;
-        else {
-            if (lt.extruders.front() == 0)
-                // Pop the "don't care" extruder, the "don't care" region will be merged with the next one.
-                lt.extruders.erase(lt.extruders.begin());
-            // Reorder the extruders to start with the last one.
-            for (size_t i = 1; i < lt.extruders.size(); ++i)
-                if (lt.extruders[i] == last_extruder_id) {
-                    // Move the last extruder to the front.
-                    memmove(lt.extruders.data() + 1, lt.extruders.data(), i * sizeof(unsigned int));
-                    lt.extruders.front() = last_extruder_id;
-                    break;
-                }
-        }
-        last_extruder_id = lt.extruders.back();
-    }
-
-    // Reindex the extruders, so they are zero based, not 1 based.
-    for (LayerTools& lt : m_layer_tools)
-        for (unsigned int& extruder_id : lt.extruders) {
-            assert(extruder_id > 0);
-            --extruder_id;
-        }
-
-    // reorder the extruders for minimum flush volume
-    reorder_extruders_for_minimum_flush_volume(false);
 }
 
 void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height)
