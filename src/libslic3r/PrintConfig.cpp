@@ -5993,6 +5993,12 @@ void PrintConfigDef::init_fff_params()
                      "volumes below.");
     def->set_default_value(new ConfigOptionFloats { 70., 70., 70., 70., 70., 70., 70., 70., 70., 70.  });
 
+    def           = this->add("prime_tower_outer_first", coBool);
+    def->label    = L("Outer first");
+    def->tooltip  = L("The prime tower print outer first");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("flush_into_infill", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into objects' infill");

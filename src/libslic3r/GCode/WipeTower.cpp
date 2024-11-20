@@ -601,7 +601,7 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
 
 // BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {
-    {100.f, 20.f}, {250.f, 40.f}
+    {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
 };
 
 WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool, const float wipe_tower_height) :
@@ -624,7 +624,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_wipe_volume(prime_volume),
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
     m_nozzle_change_length(config.extruder_change_length.get_at(0)),
-    m_is_multi_extruder(config.nozzle_diameter.size() > 1)
+    m_is_multi_extruder(config.nozzle_diameter.size() > 1),
+    m_is_print_outer_first(config.prime_tower_outer_first.value)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -870,7 +871,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
         Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
         writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
-        if (extrude_perimeter) {
+        if (extrude_perimeter && m_is_print_outer_first) {
             box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED) ? m_layer_info->toolchanges_depth() - m_layer_info->depth : 0.f), m_wipe_tower_width,
                                    m_layer_info->depth + m_perimeter_width);
 
@@ -903,6 +904,14 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
         }
 
         toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+
+        if (extrude_perimeter && !m_is_print_outer_first) {
+            box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED) ? m_layer_info->toolchanges_depth() - m_layer_info->depth : 0.f), m_wipe_tower_width,
+                                   m_layer_info->depth + m_perimeter_width);
+            // align the perimeter
+            wt_box = align_perimeter(wt_box);
+            writer.rectangle(wt_box);
+        }
 
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
         ++ m_num_tool_changes;
@@ -1010,8 +1019,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
 
     writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
 
-    m_depth_traversed += (nozzle_change_line_count - 1) *dy + m_perimeter_width;
-
+    m_depth_traversed += nozzle_change_line_count * dy;
 
     if (is_tpu_filament(m_current_tool))
     {

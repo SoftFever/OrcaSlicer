@@ -329,6 +329,7 @@ private:
     std::vector<int>   m_filament_map;
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
+    bool               m_is_print_outer_first{false};
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
