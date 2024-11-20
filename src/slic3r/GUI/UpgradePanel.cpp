@@ -12,6 +12,17 @@ namespace GUI {
 static const wxColour TEXT_NORMAL_CLR = wxColour(0, 150, 136);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
 
+static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {
+    {"N3F", "AMS 2 PRO"},
+    {"N3S", "AMS HT"},
+    {"O2L_PC", "Air Pump"},
+    {"O2L_10B", "Laser 10w"},
+    {"O2L_40B", "Laser 40w"},
+    {"O2L_PCM", "Cutting Module"},
+    {"O2L_ACM", "Active Cutting Module"},
+    {"O2L_UCM", "Ultrasonic Cutting Module"},
+};
+
 enum FIRMWARE_STASUS
 {
     UNKOWN,
@@ -136,16 +147,16 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ams_info_sizer->SetFlexibleDirection(wxHORIZONTAL);
     m_ams_info_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_ALL);
 
-    for (auto i = 0; i < 4; i++) {
-        auto amspanel = new AmsPanel(this, wxID_ANY);
-        m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
-        amspanel->Hide();
+    //for (auto i = 0; i < 4; i++) {
+    //    auto amspanel = new AmsPanel(this, wxID_ANY);
+    //    m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
+    //    amspanel->Hide();
 
-        /*AmsPanelItem item = AmsPanelItem();
-        item.id           = i;
-        item.item         = amspanel;*/
-        m_amspanel_list.Add(amspanel);
-    }
+    //    /*AmsPanelItem item = AmsPanelItem();
+    //    item.id           = i;
+    //    item.item         = amspanel;*/
+    //    m_amspanel_list.Add(amspanel);
+    //}
 
     m_ams_content_sizer->Add(m_ams_info_sizer, 0, wxEXPAND, 0);
     m_ams_sizer->Add(m_ams_content_sizer, 1, wxEXPAND, 0);
@@ -670,13 +681,27 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             show_ams(true);
             std::map<int, MachineObject::ModuleVersionInfo> ver_list = obj->get_ams_version();
 
-            AmsPanelHash::iterator iter = m_amspanel_list.begin();
+            if (obj->amsList.size() != m_amspanel_list.size()) {
+                int add_count = obj->amsList.size() - m_amspanel_list.size();
+                if (add_count > 0) {
+                    for (int i = 0; i < add_count; i++) {
+                        auto amspanel = new AmsPanel(this, wxID_ANY);
+                        m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
+                        m_amspanel_list.Add(amspanel);
+                    }
+                }
+                if (add_count < 0) {
+                    for (int i = 0; i < -add_count; i++) {
+                        m_amspanel_list.back()->Destroy();
+                        m_amspanel_list.pop_back();
+                    }
+                }
+            }
 
             for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
                 AmsPanel* amspanel = m_amspanel_list[i];
                 amspanel->Hide();
             }
-
 
             auto ams_index = 0;
             for (std::map<std::string, Ams*>::iterator iter = obj->amsList.begin(); iter != obj->amsList.end(); iter++) {
@@ -694,6 +719,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 }
 
                 auto ams_id = std::stoi(iter->second->id);
+                ams_id -= ams_id >= 128 ? 128 : 0;
 
                 size_t pos = it->second.name.find('/');
                 wxString ams_device_name = "AMS-%s";
@@ -701,6 +727,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 if (pos != std::string::npos) {
                     wxString result = it->second.name.substr(0, pos);
                     result.MakeUpper();
+                    if (auto str_it = ACCESSORY_DISPLAY_STR.find(result); str_it != ACCESSORY_DISPLAY_STR.end())
+                        result = str_it->second;
                     ams_device_name = result + "-%s";
                 }
 
