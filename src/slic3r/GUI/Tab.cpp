@@ -4315,9 +4315,6 @@ if (is_marlin_flavor)
                 optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
                 optgroup->append_single_option_line("retraction_length", "", extruder_idx);
                 optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-                optgroup->append_single_option_line("z_hop", "", extruder_idx);
-                optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
-                optgroup->append_single_option_line("travel_slope", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
                 optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -4326,10 +4323,13 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
                 optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-                optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement");
+                optgroup = page->new_optgroup(L("Z-Hop"), L"param_extruder_lift_enforcement");
+                optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop", "", extruder_idx);
+                optgroup->append_single_option_line("travel_slope", "", extruder_idx);
                 optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
                 optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
-                optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
                 optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change");
                 optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
