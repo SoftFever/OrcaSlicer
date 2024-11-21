@@ -738,7 +738,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool force_wall_direction     = config->opt_enum<WallDirection>("wall_direction") != WallDirection::Auto;
     bool allow_overhang_reverse   = !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
-    toggle_field("overhang_reverse_threshold", has_detect_overhang_wall);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
     toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
     bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");
@@ -747,6 +746,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         new_conf.set_key_value("overhang_reverse_threshold", new ConfigOptionFloatOrPercent(0,true));
         apply(config, &new_conf);
     }
+    toggle_field("overhang_reverse_threshold", has_detect_overhang_wall && !has_overhang_reverse_internal_only);
     toggle_line("timelapse_type", is_BBL_Printer);
 
 
