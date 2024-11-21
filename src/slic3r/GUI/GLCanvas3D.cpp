@@ -77,8 +77,6 @@
 
 #include <imguizmo/ImGuizmo.h>
 
-#pragma optimize("", off)
-
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR      = { 0.906f, 0.906f, 0.906f, 1.0f };
