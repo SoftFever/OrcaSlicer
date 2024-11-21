@@ -1,3 +1,4 @@
+// Needed since the CGAL headers are not self-contained.
 #include <boost/next_prior.hpp>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>

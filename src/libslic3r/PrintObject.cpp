@@ -8,8 +8,8 @@
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
 #include "PrintConfig.hpp"
-#include "SupportMaterial.hpp"
-#include "SupportSpotsGenerator.hpp"
+#include "Support/SupportMaterial.hpp"
+#include "Support/SupportSpotsGenerator.hpp"
 #include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
@@ -19,7 +19,6 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
-#include "TreeSupport.hpp"
 #include "format.hpp"
 
 #include <float.h>
@@ -139,6 +138,9 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions() const
 {
     std::vector<std::reference_wrapper<const PrintRegion>> out;
+    if(!m_shared_regions)
+        return out;
+        
     out.reserve(m_shared_regions->all_regions.size());
     for (const std::unique_ptr<Slic3r::PrintRegion> &region : m_shared_regions->all_regions)
         out.emplace_back(*region.get());
@@ -444,17 +446,6 @@ void PrintObject::prepare_infill()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
 
-    // Debugging output.
-#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
-    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
-        for (const Layer *layer : m_layers) {
-            LayerRegion *layerm = layer->m_regions[region_id];
-            layerm->export_region_slices_to_svg_debug("3_process_external_surfaces-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-final");
-        } // for each layer
-    } // for each region
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-
     // Detect, which fill surfaces are near external layers.
     // They will be split in internal and internal-solid surfaces.
     // The purpose is to add a configurable number of solid layers to support the TOP surfaces
@@ -465,6 +456,16 @@ void PrintObject::prepare_infill()
     // one perimeter. Example of this is the bridge over the benchy lettering.
     this->discover_horizontal_shells();
     m_print->throw_if_canceled();
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        for (const Layer *layer : m_layers) {
+            LayerRegion *layerm = layer->m_regions[region_id];
+            layerm->export_region_slices_to_svg_debug("5_discover_horizontal_shells-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("5_discover_horizontal_shells-final");
+        } // for each layer
+    } // for each region
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
@@ -478,12 +479,13 @@ void PrintObject::prepare_infill()
     this->process_external_surfaces();
     m_print->throw_if_canceled();
 
+    // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
             LayerRegion *layerm = layer->m_regions[region_id];
-            layerm->export_region_slices_to_svg_debug("7_discover_horizontal_shells-final");
-            layerm->export_region_fill_surfaces_to_svg_debug("7_discover_horizontal_shells-final");
+            layerm->export_region_slices_to_svg_debug("7_process_external_surfaces-final");
+            layerm->export_region_fill_surfaces_to_svg_debug("7_process_external_surfaces-final");
         } // for each layer
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
@@ -1063,6 +1065,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
+            || opt_key == "infill_combination_max_layer_height"
             || opt_key == "bottom_shell_thickness"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
@@ -2890,9 +2893,9 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
     if (opt_extruder)
         if (int extruder = opt_extruder->value; extruder != 0) {
             // Not a default extruder.
-            out.sparse_infill_filament      .value = extruder;
-            out.solid_infill_filament.value = extruder;
-            out.wall_filament   .value = extruder;
+            out.sparse_infill_filament.value = extruder;
+            out.solid_infill_filament.value  = extruder;
+            out.wall_filament.value          = extruder;
         }
     // 2) Copy the rest of the values.
     for (auto it = in.cbegin(); it != in.cend(); ++ it)
@@ -2963,12 +2966,15 @@ void PrintObject::generate_support_preview()
 
 void PrintObject::update_slicing_parameters()
 {
-    if (!m_slicing_params.valid)
-        m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->max_z(), this->object_extruders());
+    // Orca: updated function call for XYZ shrinkage compensation
+    if (!m_slicing_params.valid) {
+          m_slicing_params = SlicingParameters::create_from_config(this->print()->config(), m_config, this->model_object()->max_z(),
+                                                                   this->object_extruders(), this->print()->shrinkage_compensation());
+      }
 }
 
-SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)
+// Orca: XYZ shrinkage compensation has introduced the const Vec3d &object_shrinkage_compensation parameter to the function below
+SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, const Vec3d &object_shrinkage_compensation)
 {
 	PrintConfig         print_config;
 	PrintObjectConfig   object_config;
@@ -3003,7 +3009,7 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();
-    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
+    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders, object_shrinkage_compensation);
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
@@ -3011,10 +3017,11 @@ std::vector<unsigned int> PrintObject::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(this->all_regions().size() * 3);
-#if 0
+
+    //Orca: Collect extruders from all regions.
     for (const PrintRegion &region : this->all_regions())
         region.collect_object_printing_extruders(*this->print(), extruders);
-#else
+
     const ModelObject* mo = this->model_object();
     for (const ModelVolume* mv : mo->volumes) {
         std::vector<int> volume_extruders = mv->get_extruders();
@@ -3023,7 +3030,6 @@ std::vector<unsigned int> PrintObject::object_extruders() const
             extruders.push_back(extruder - 1);
         }
     }
-#endif
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -3046,7 +3052,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         // Must not be of even length.
         ((layer_height_profile.size() & 1) != 0 ||
             // Last entry must be at the top of the object.
-            std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max + slicing_parameters.object_print_z_min) > 1e-3))
+            std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_uncompensated_max + slicing_parameters.object_print_z_min) > 1e-3))
         layer_height_profile.clear();
 
     if (layer_height_profile.empty() || layer_height_profile[1] != slicing_parameters.first_object_layer_height) {
@@ -3412,6 +3418,11 @@ void PrintObject::combine_infill()
         double nozzle_diameter = std::min(
             this->print()->config().nozzle_diameter.get_at(region.config().sparse_infill_filament.value - 1),
             this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_filament.value - 1));
+        
+        //Orca: Limit combination of infill to up to infill_combination_max_layer_height
+        const double infill_combination_max_layer_height = region.config().infill_combination_max_layer_height.get_abs_value(nozzle_diameter);
+        nozzle_diameter = infill_combination_max_layer_height > 0 ? std::min(infill_combination_max_layer_height, nozzle_diameter) : nozzle_diameter;
+        
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {
@@ -3509,18 +3520,14 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
-    PrintObjectSupportMaterial support_material(this, m_slicing_params);
-    support_material.generate(*this);
-
-    if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
-        if (this->config().support_style.value == smsOrganic ||
-            // Orca: use organic as default
-            this->config().support_style.value == smsDefault) {
-            fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
-        } else {
-            TreeSupport tree_support(*this, m_slicing_params);
-            tree_support.generate();
-        }
+    if (is_tree(m_config.support_type.value)) {
+        TreeSupport tree_support(*this, m_slicing_params);
+        tree_support.throw_on_cancel = [this]() { this->throw_if_canceled(); };
+        tree_support.generate();
+    }
+    else {
+        PrintObjectSupportMaterial support_material(this, m_slicing_params);
+        support_material.generate(*this);
     }
 }
 

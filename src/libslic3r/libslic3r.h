@@ -61,6 +61,9 @@ static constexpr double SCALING_FACTOR_INTERNAL = 0.000001;
 static constexpr double SCALING_FACTOR_INTERNAL_LARGE_PRINTER = 0.00001;
 static constexpr double LARGE_BED_THRESHOLD = 2147;
 
+// Orca: maximum number of extruders is 64. For SEMM printers, it defines maximum filament number.
+static constexpr size_t MAXIMUM_EXTRUDER_NUMBER = 64;
+
 extern double SCALING_FACTOR;
 // for creating circles (for brim_ear)
 #define POLY_SIDES 24

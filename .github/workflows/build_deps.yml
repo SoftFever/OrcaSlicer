@@ -41,6 +41,10 @@ jobs:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
 
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
+
       - name: setup dev on Windows
         if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
@@ -72,7 +76,6 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake
             brew install automake texinfo ninja libtool
             brew list
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}

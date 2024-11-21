@@ -449,22 +449,6 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             });
     }
 
-    // SoftFever: ported from SuperSlicer
-    // filament shrink
-    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
-        if (pr.get()) {
-            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
-            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
-            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygons& polys : region_polys)
-                    for (ExPolygon& poly : polys)
-                        poly.scale(scale);
-            }
-        }
-    }
-
     return slices_by_region;
 }
 
@@ -1051,6 +1035,8 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    this->apply_conical_overhang();
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1070,7 +1056,6 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    this->apply_conical_overhang();
     m_print->throw_if_canceled();
 
     InterlockingGenerator::generate_interlocking_structure(this);
