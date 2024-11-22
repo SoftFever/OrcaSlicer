@@ -44,7 +44,7 @@ enum class InfoItemType;
 
 enum class NotificationType
 {
-	CustomNotification,
+	CustomNotification = 0,
         //	SlicingNotPossible,
 	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	// Obsolete by ExportFinished
@@ -150,6 +150,9 @@ enum class NotificationType
 	BBLPreviewOnlyMode,
     BBLPrinterConfigUpdateAvailable,
 	BBLUserPresetExceedLimit,
+    BBLSliceLimitError,
+    NotificationTypeCount
+
 };
 
 class NotificationManager
@@ -296,6 +299,8 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
+    void remove_notification_of_type(const NotificationType type);
+    void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
     void set_in_preview(bool preview);
 	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
@@ -407,7 +412,7 @@ private:
 		virtual void           render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
         virtual void bbl_render_block_notification(GLCanvas3D &canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
 		// close will dissapear notification on next render
-		virtual void           close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);}
+        virtual void close();
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
 		void                   append(const std::string& append_str);
@@ -425,7 +430,7 @@ private:
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		virtual bool           compare_text(const std::string& text) const;
-        void                   hide(bool h) { if (is_finished()) return; m_state = h ? EState::Hidden : EState::Unknown; }
+        void                    hide(bool h);
 		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
 		virtual bool           update_state(bool paused, const int64_t delta);
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
@@ -437,7 +442,9 @@ private:
         void set_Multiline(bool Multi) { m_multiline = Multi; }
 		virtual void on_change_color_mode(bool is_dark);
 		void set_scale(float scale) { m_scale = scale; }
-
+        typedef std::function<void(PopNotification*)> DeleteCallback;
+        void set_delete_callback(DeleteCallback);
+        bool is_valid_delete_callback();
 	protected:
 		// Call after every size change
 		virtual void init();
@@ -545,6 +552,7 @@ private:
 		std::string      error_start = "<Error>";
 		std::string      error_end = "</Error>";
 
+        DeleteCallback m_on_delete_callback;
 		// inner variables to position notification window, texts and buttons correctly
 
 		// all space without text
@@ -577,7 +585,7 @@ private:
 		float m_scale = 1.0f;
 	};
 
-
+    void close_and_delete_self(PopNotification*);
 
 	class ObjectIDNotification : public PopNotification
 	{
@@ -593,7 +601,7 @@ private:
 	{
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		void	     close()  override { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+        void close() override;
 		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
 		void         show()            { m_state = EState::Unknown; }
 	};
@@ -886,6 +894,7 @@ private:
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
+    PopNotification* m_to_delete_after_finish_render{nullptr};
 	// delayed waiting notifications, first is remaining time
 	std::vector<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here

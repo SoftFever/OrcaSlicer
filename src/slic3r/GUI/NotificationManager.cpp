@@ -178,6 +178,18 @@ void NotificationManager::PopNotification::on_change_color_mode(bool is_dark)
 	m_is_dark = is_dark;
 }
 
+void NotificationManager::PopNotification::set_delete_callback(DeleteCallback callback)
+{
+    m_on_delete_callback =callback;
+}
+
+bool NotificationManager::PopNotification::is_valid_delete_callback()
+{
+    if(m_on_delete_callback)
+       return true;
+    return false;
+}
+
 void NotificationManager::PopNotification::use_bbl_theme()
 {
     ensure_ui_inited();
@@ -408,6 +420,12 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 
 	if (fading_pop)
 		ImGui::PopStyleColor(3);
+}
+
+void NotificationManager::PopNotification::close()
+{
+    m_state = EState::ClosePending;
+    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
 }
 
 bool NotificationManager::PopNotification::push_background_color()
@@ -966,6 +984,12 @@ bool NotificationManager::PopNotification::compare_text(const std::string& text)
 	if (wt1.compare(wt2) == 0)
 		return true;
 	return false;
+}
+
+void NotificationManager::PopNotification::hide(bool h)
+{
+    if (is_finished()) return;
+    m_state = h ? EState::Hidden : EState::Unknown;
 }
 
 bool NotificationManager::PopNotification::update_state(bool paused, const int64_t delta)
@@ -2019,6 +2043,37 @@ void NotificationManager::close_notification_of_type(const NotificationType type
 		}
 	}
 }
+
+void NotificationManager::close_and_delete_self(PopNotification * self)
+{
+    for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
+        std::unique_ptr<PopNotification> &notification = *it;
+        if (notification.get() == self) {
+            m_pop_notifications.erase(it);
+            break;
+        }else
+            ++it;
+    }
+}
+
+void NotificationManager::remove_notification_of_type(const NotificationType type) {
+    for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
+        std::unique_ptr<PopNotification> &notification = *it;
+        if (notification->get_type() == type) {
+            it = m_pop_notifications.erase(it);
+            break;
+        } else
+            ++it;
+    }
+}
+
+void NotificationManager::clear_all()
+{
+    for (size_t i = 0; i < size_t(NotificationType::NotificationTypeCount); i++) {
+        remove_notification_of_type((NotificationType)i);
+    }
+}
+
 void NotificationManager::remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
@@ -2504,7 +2559,12 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 			return false;
 		}
 	}
-
+    if(!notification->is_valid_delete_callback()){
+        auto delete_self = [this](NotificationManager::PopNotification* it) {
+             m_to_delete_after_finish_render = it;
+        };
+        notification->set_delete_callback(delete_self);
+    }
 	bool retval = false;
 	if (this->activate_existing(notification.get())) {
 		if (m_initialized) { // ignore update action - it cant be initialized if canvas and imgui context is not ready
@@ -2578,6 +2638,10 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 			;// assert(i <= 1);
 		}
 	}
+    if (m_to_delete_after_finish_render) {
+        close_and_delete_self(m_to_delete_after_finish_render);
+        m_to_delete_after_finish_render = nullptr;
+    }
 	m_last_render = GLCanvas3D::timestamp_now();
 }
 
@@ -3052,5 +3116,13 @@ void NotificationManager::set_scale(float scale)
 }
 
 
-}//namespace GUI
-}//namespace Slic3r
+void NotificationManager::PlaterWarningNotification::close()
+{
+    if (is_finished())
+        return;
+    m_state = EState::Hidden;
+    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+    if(m_on_delete_callback)
+        m_on_delete_callback(this);
+}
+}}//namespace Slic3r
