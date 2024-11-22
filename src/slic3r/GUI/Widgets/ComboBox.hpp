@@ -9,10 +9,8 @@
 
 class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 {
-    std::vector<wxString>         texts;
-    std::vector<wxString>         tips;
-    std::vector<wxBitmap>         icons;
-    std::vector<void *>           datas;
+    typedef DropDown::Item Item;
+    std::vector<Item>      items;
 
     DropDown               drop;
     bool     drop_down = false;
@@ -36,6 +34,8 @@ public:
     int Append(const wxString &item, const wxBitmap &bitmap = wxNullBitmap);
 
     int Append(const wxString &item, const wxBitmap &bitmap, void *clientData);
+
+    int Append(const wxString &item, const wxBitmap &bitmap, const wxString &group, void *clientData = nullptr);
 
     unsigned int GetCount() const override;
 
@@ -62,6 +62,9 @@ public:
     wxString GetItemTooltip(unsigned int n) const;
     void     SetItemTooltip(unsigned int n, wxString const &value);
 
+    wxString GetItemAlias(unsigned int n) const;
+    void     SetItemAlias(unsigned int n, wxString const &value);
+
     wxBitmap GetItemBitmap(unsigned int n);
     void     SetItemBitmap(unsigned int n, wxBitmap const &bitmap);
     bool     is_drop_down(){return drop_down;}
@@ -77,7 +80,7 @@ protected:
 
     void *DoGetItemClientData(unsigned int n) const override;
     void  DoSetItemClientData(unsigned int n, void *data) override;
-    
+
     void OnEdit() override;
 
     void sendComboBoxEvent();

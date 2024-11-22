@@ -55,7 +55,8 @@ void TextInput::Create(wxWindow *     parent,
         text_ctrl = nullptr;
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
-    style &= ~wxRIGHT;
+    assert((style & wxRIGHT) == 0);
+    style &= ~wxALIGN_MASK;
     state_handler.attach({&label_color, & text_color});
     state_handler.update_binds();
     text_ctrl = new TextCtrl(this, wxID_ANY, text, {4, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
@@ -165,7 +166,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
     }
-    bool align_right = GetWindowStyle() & wxRIGHT;
+    bool align_right = GetWindowStyle() & wxALIGN_RIGHT;
     if (align_right)
         textPos.x += labelSize.x;
     if (text_ctrl) {
@@ -199,21 +200,26 @@ void TextInput::render(wxDC& dc)
     StaticBox::render(dc);
     int states = state_handler.states();
     wxSize size = GetSize();
-    bool   align_right = GetWindowStyle() & wxRIGHT;
+    bool   align_center = GetWindowStyle() & wxALIGN_CENTER_HORIZONTAL;
+    bool   align_right = GetWindowStyle() & wxALIGN_RIGHT;
     // start draw
     wxPoint pt = {5, 0};
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
+        if (align_center) {
+            if (pt.x * 2 + szIcon.x + 0 + labelSize.x < size.x)
+                pt.x = (size.x - (szIcon.x + 0 + labelSize.x)) / 2;
+        }
         dc.DrawBitmap(icon.bmp(), pt);
         pt.x += szIcon.x + 0;
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
         wxSize textSize = text_ctrl->GetSize();
-        if (align_right) {
-            if (pt.x + labelSize.x > size.x)
-                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
+        if (align_right || align_center) {
+            if (pt.x + labelSize.x + 5 > size.x)
+                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
             pt.y = (size.y - labelSize.y) / 2;
         } else {
             pt.x += textSize.x;
