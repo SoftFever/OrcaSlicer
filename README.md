@@ -134,11 +134,6 @@ Thank you! :)
 </a>
 </td>
 <td>
-<a href="https://phrozen3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="96" height="">
-</a>
-</td>
-<td>
 <a href="https://bigtree-tech.com/">
     <img src="SoftFever_doc\sponsor_logos\BigTreeTech.png" alt="BIGTREE TECH" width="96" height="">
 </a>
