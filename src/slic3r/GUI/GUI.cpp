@@ -328,6 +328,14 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 				new_val = wxString("\"") + values[val] + "\"" + " (" + from_u8(_utf8(labels[val])) + ")";
 			break;
 		}
+		case coEnums:
+		{
+			const std::vector<std::string>& labels = def->enum_labels;
+			const std::vector<std::string>& values = def->enum_values;
+			std::string val = conf_substitution.new_value->serialize();
+			new_val = wxString("\"") + from_u8(_utf8(val)) + "\"";
+			break;
+		}
 		case coBool:
 			new_val = conf_substitution.new_value->getBool() ? "true" : "false";
 			break;
