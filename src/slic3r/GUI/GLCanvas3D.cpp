@@ -590,7 +590,7 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 {
     this->update_slicing_parameters();
     PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
-    Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
+    Slic3r::adjust_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
     m_layers_texture.valid = false;
 }
 
