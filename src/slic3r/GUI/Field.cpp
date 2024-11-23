@@ -872,9 +872,9 @@ void TextCtrl::propagate_value()
 void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
     m_disable_change_event = !change_event;
     if (m_opt.nullable) {
-        if (boost::any_cast<wxString>(value) != _(L("N/A")))
+        const bool m_is_na_val = value.empty() || (boost::any_cast<wxString>(value) == _(L("N/A")));
+        if (!m_is_na_val)
             m_last_meaningful_value = value;
-
         text_ctrl()->SetValue(boost::any_cast<wxString>(value)); // BBS
     }
     else
