@@ -121,6 +121,7 @@ private:
     Pointfs m_shape;
     Pointfs m_exclude_area;
     std::vector<Pointfs> m_extruder_areas;
+    std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
     BoundingBoxf3 m_extended_bounding_box;
     mutable std::vector<BoundingBoxf3> m_exclude_bounding_box;
@@ -365,8 +366,9 @@ public:
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
-    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, Vec2d position, float height_to_lid, float height_to_rod);
+    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, Vec2d position, float height_to_lid, float height_to_rod);
     const std::vector<Pointfs>& get_extruder_areas() const { return m_extruder_areas; }
+    const std::vector<double>& get_extruder_heights() const { return m_extruder_heights; }
     bool contains(const Vec3d& point) const;
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
@@ -571,6 +573,7 @@ class PartPlateList : public ObjectBase
     Pointfs m_shape;
     Pointfs m_exclude_areas;
     std::vector<Pointfs> m_extruder_areas;
+    std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
     std::string m_logo_texture_filename;
@@ -830,7 +833,7 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::string& custom_texture, float height_to_lid, float height_to_rod);
+    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, const std::string& custom_texture, float height_to_lid, float height_to_rod);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);

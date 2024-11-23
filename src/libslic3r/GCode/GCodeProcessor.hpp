@@ -226,6 +226,7 @@ class Print;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area;
         std::vector<Pointfs> extruder_areas;
+        std::vector<double> extruder_heights;
         //BBS: add toolpath_outside
         bool toolpath_outside;
         //BBS: add object_label_enabled

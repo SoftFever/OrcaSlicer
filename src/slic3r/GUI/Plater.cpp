@@ -2953,7 +2953,7 @@ struct Plater::priv
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     //BBS: add bed exclude area
-    void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
+    void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, std::vector<Pointfs> extruder_areas,  std::vector<double> extruder_heights, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -5622,7 +5622,7 @@ void Plater::priv::update_print_volume_state()
 {
     //BBS: use the plate's bounding box instead of the bed's
     PartPlate* pp = partplate_list.get_curr_plate();
-    BuildVolume build_volume(pp->get_shape(), this->bed.build_volume().printable_height(), this->bed.build_volume().extruder_areas());
+    BuildVolume build_volume(pp->get_shape(), this->bed.build_volume().printable_height(), this->bed.build_volume().extruder_areas(), this->bed.build_volume().extruder_heights());
     this->model.update_print_volume_state(build_volume);
 }
 
@@ -8728,7 +8728,7 @@ bool Plater::priv::show_publish_dlg(bool show)
 }
 
 //BBS: add bed exclude area
-void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
+void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, std::vector<Pointfs> extruder_areas,  std::vector<double> extruder_heights, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
     //Orca: reduce resolution for large bed printer
     BoundingBoxf bed_size = get_extents(shape);
@@ -8739,7 +8739,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
 
     //BBS: add shape position
     Vec2d shape_position = partplate_list.get_current_shape_position();
-    bool new_shape = bed.set_shape(shape, printable_height, extruder_areas, custom_model, force_as_custom, shape_position);
+    bool new_shape = bed.set_shape(shape, printable_height, extruder_areas, extruder_heights, custom_model, force_as_custom, shape_position);
 
     float prev_height_lid, prev_height_rod;
     partplate_list.get_height_limits(prev_height_lid, prev_height_rod);
@@ -8763,11 +8763,11 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
 
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x() - Bed3D::Axes::DefaultTipRadius, max.y() - min.y() - Bed3D::Axes::DefaultTipRadius, z);
-        partplate_list.set_shapes(shape, exclude_areas, extruder_areas, custom_texture, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(shape, exclude_areas, extruder_areas, extruder_heights, custom_texture, height_to_lid, height_to_rod);
 
         Vec2d new_shape_position = partplate_list.get_current_shape_position();
         if (shape_position != new_shape_position)
-            bed.set_shape(shape, printable_height, extruder_areas, custom_model, force_as_custom, new_shape_position);
+            bed.set_shape(shape, printable_height, extruder_areas, extruder_heights, custom_model, force_as_custom, new_shape_position);
     }
 }
 
@@ -13880,14 +13880,15 @@ void Plater::set_bed_shape() const
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
         p->config->option<ConfigOptionFloat>("printable_height")->value,
         p->config->option<ConfigOptionPointsGroups>("extruder_printable_area")->values,
+        p->config->option<ConfigOptionFloatsNullable>("extruder_printable_height")->values,
         p->config->option<ConfigOptionString>("bed_custom_texture")->value.empty() ? texture_filename : p->config->option<ConfigOptionString>("bed_custom_texture")->value,
         p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
 //BBS: add bed exclude area
-void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
+void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, std::vector<Pointfs> extruder_areas, std::vector<double> extruder_heights, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
-    p->set_bed_shape(make_counter_clockwise(shape), exclude_area, printable_height, extruder_areas, custom_texture, custom_model, force_as_custom);
+    p->set_bed_shape(make_counter_clockwise(shape), exclude_area, printable_height, extruder_areas, extruder_heights, custom_texture, custom_model, force_as_custom);
 }
 
 void Plater::force_filament_colors_update()

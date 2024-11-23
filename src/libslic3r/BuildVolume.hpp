@@ -55,12 +55,13 @@ public:
     // Initialized to empty, all zeros, Invalid.
     BuildVolume() {}
     // Initialize from PrintConfig::printable_area and PrintConfig::printable_height
-    BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height, const std::vector<std::vector<Vec2d>> &extruder_areas);
+    BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height, const std::vector<std::vector<Vec2d>> &extruder_areas, const std::vector<double>& extruder_printable_heights);
 
     // Source data, unscaled coordinates.
     const std::vector<Vec2d>&   printable_area()         const { return m_bed_shape; }
     double                      printable_height()  const { return m_max_print_height; }
     const std::vector<std::vector<Vec2d>>& extruder_areas() const { return m_extruder_shapes; }
+    const std::vector<double>& extruder_heights() const { return m_extruder_printable_height; }
     const BuildSharedVolume& get_shared_volume() const { return m_shared_volume; }
 
     // Derived data
@@ -139,6 +140,7 @@ private:
     BuildSharedVolume m_shared_volume;  //used for rendering
     // Source definition of the print volume height (PrintConfig::printable_height)
     double              m_max_print_height { 0.f };
+    std::vector<double> m_extruder_printable_height;
 
     // Derived values.
     BuildVolume_Type                m_type { BuildVolume_Type::Invalid };

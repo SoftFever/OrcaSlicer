@@ -9,9 +9,11 @@
 
 namespace Slic3r {
 
-BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height, const std::vector<std::vector<Vec2d>> &extruder_areas) : m_bed_shape(printable_area), m_max_print_height(printable_height), m_extruder_shapes(extruder_areas)
+BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height, const std::vector<std::vector<Vec2d>> &extruder_areas, const std::vector<double>& extruder_printable_heights)
+    : m_bed_shape(printable_area), m_max_print_height(printable_height), m_extruder_shapes(extruder_areas), m_extruder_printable_height(extruder_printable_heights)
 {
     assert(printable_height >= 0);
+    assert(extruder_printable_heights.size() == extruder_areas.size());
 
     m_polygon     = Polygon::new_scale(printable_area);
     assert(m_polygon.is_counter_clockwise());
@@ -83,6 +85,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
         m_shared_volume.data[1] = m_bboxf.min.y();
         m_shared_volume.data[2] = m_bboxf.max.x();
         m_shared_volume.data[3] = m_bboxf.max.y();
+        m_shared_volume.zs[1] = m_bboxf.max.z();
         for (unsigned int index = 0; index < m_extruder_shapes.size(); index++)
         {
             std::vector<Vec2d>& extruder_shape = m_extruder_shapes[index];
@@ -97,7 +100,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                 return;
             }
 
-            if (extruder_shape == printable_area) {
+            if ((extruder_shape == printable_area)&&(extruder_printable_heights[index] == printable_height)) {
                 extruder_volume.same_with_bed = true;
                 extruder_volume.type = m_type;
                 extruder_volume.bbox = m_bbox;
@@ -110,7 +113,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                 double poly_area         = poly.area();
                 extruder_volume.bbox = get_extents(poly);
                 BoundingBoxf temp_bboxf = get_extents(extruder_shape);
-                extruder_volume.bboxf = BoundingBoxf3{ to_3d(temp_bboxf.min, 0.), to_3d(temp_bboxf.max, printable_height) };
+                extruder_volume.bboxf = BoundingBoxf3{ to_3d(temp_bboxf.min, 0.), to_3d(temp_bboxf.max, extruder_printable_heights[index]) };
 
                 if (extruder_shape.size() >= 4 && std::abs((poly_area - double(extruder_volume.bbox.size().x()) * double(extruder_volume.bbox.size().y()))) < sqr(SCALED_EPSILON))
                 {
@@ -161,11 +164,13 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                 m_shared_volume.data[2] = extruder_volume.bboxf.max.x();
             if (m_shared_volume.data[3] > extruder_volume.bboxf.max.y())
                 m_shared_volume.data[3] = extruder_volume.bboxf.max.y();
+            if (m_shared_volume.zs[1] > extruder_volume.bboxf.max.z())
+                m_shared_volume.zs[1] = extruder_volume.bboxf.max.z();
         }
 
         m_shared_volume.type = static_cast<int>(m_type);
         m_shared_volume.zs[0] = 0.f;
-        m_shared_volume.zs[1] = printable_height;
+        //m_shared_volume.zs[1] = printable_height;
     }
 
     BOOST_LOG_TRIVIAL(debug) << "BuildVolume printable_area clasified as: " << this->type_name();

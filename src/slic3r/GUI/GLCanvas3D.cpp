@@ -1386,6 +1386,18 @@ void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, st
             error_string += _u8L("Please solve the problem by moving them within the build volume.\n");
         }
         else {
+            error_string += _u8L("In the Filament manual-matching mode, Following filament->extruder maps: \n");
+            for (auto& filament: object_result.filaments)
+            {
+                error_string += std::to_string(filament) + "->" + std::to_string(object_result.filament_maps[filament]) + "\n";
+            }
+            error_string += "cannot be printed as they are placed in the unprintable area of the corresponding extruder. This may be caused by the following objects:\n";
+            for(ObjectFilamentInfo& object_filament: object_result.object_filaments)
+            {
+                error_string += object_filament.object->name;
+                error_string += "\n";
+            }
+            error_string += _u8L("Please solve the problem by moving them within the build volume.\n");
         }
     }
 }

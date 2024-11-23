@@ -3136,6 +3136,7 @@ int CLI::run(int argc, char **argv)
     std::vector<Pointfs> current_extruder_areas;
     //update part plate's size
     double print_height = m_print_config.opt_float("printable_height");
+    std::vector<double> current_extruder_print_heights;
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double clearance_radius = m_print_config.opt_float("extruder_clearance_radius");
@@ -3144,6 +3145,9 @@ int CLI::run(int argc, char **argv)
 
     if (m_print_config.opt<ConfigOptionPointsGroups>("extruder_printable_area")) {
         current_extruder_areas = m_print_config.opt<ConfigOptionPointsGroups>("extruder_printable_area")->values;
+    }
+    if (m_print_config.opt<ConfigOptionFloatsNullable>("extruder_printable_height")) {
+        current_extruder_print_heights = m_print_config.opt<ConfigOptionFloatsNullable>("extruder_printable_height")->values;
     }
     current_printable_width = current_printable_area[2].x() - current_printable_area[0].x();
     current_printable_depth = current_printable_area[2].y() - current_printable_area[0].y();
@@ -3195,7 +3199,7 @@ int CLI::run(int argc, char **argv)
         else {
             partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
         }
-        partplate_list.set_shapes(make_counter_clockwise(current_printable_area), current_exclude_area, current_extruder_areas, bed_texture, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(make_counter_clockwise(current_printable_area), current_exclude_area, current_extruder_areas, current_extruder_print_heights, bed_texture, height_to_lid, height_to_rod);
         //plate_stride = partplate_list.plate_stride_x();
     }
 
@@ -4915,7 +4919,7 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
                             % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
 #else
-                        BuildVolume build_volume(part_plate->get_shape(), print_height, part_plate->get_extruder_areas());
+                        BuildVolume build_volume(part_plate->get_shape(), print_height, part_plate->get_extruder_areas(), current_extruder_print_heights);
                         //model.update_print_volume_state(build_volume);
                         unsigned int count = model.update_print_volume_state(build_volume);
 

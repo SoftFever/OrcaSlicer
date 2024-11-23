@@ -69,6 +69,7 @@ struct ObjectFilamentInfo {
 struct ObjectFilamentResults {
     FilamentMapMode         mode;
     std::vector<int>        filaments; //filaments has conflicts
+    std::map<int, int>      filament_maps; //filament maps
     std::vector<ModelObject*> partly_outside_objects; //partly outside objects
 
     std::vector<ObjectFilamentInfo> object_filaments;

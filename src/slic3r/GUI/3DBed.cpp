@@ -251,8 +251,8 @@ void Bed3D::Axes::render()
 }
 
 //BBS: add part plate logic
-bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, std::vector<Pointfs> extruder_areas, const std::string& custom_model, bool force_as_custom,
-    const Vec2d& position, bool with_reset)
+bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, std::vector<Pointfs> extruder_areas, std::vector<double> extruder_heights, const std::string& custom_model, bool force_as_custom,
+    const Vec2d position, bool with_reset)
 {
     /*auto check_texture = [](const std::string& texture) {
         boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
@@ -289,7 +289,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position && m_extruder_shapes == extruder_areas)
+    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position && m_extruder_shapes == extruder_areas  && m_extruder_heights == extruder_heights)
         // No change, no need to update the UI.
         return false;
 
@@ -298,6 +298,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     m_position = position;
     m_bed_shape = printable_area;
     m_extruder_shapes = extruder_areas;
+    m_extruder_heights = extruder_heights;
     if ((position(0) != 0) || (position(1) != 0)) {
         Pointfs new_bed_shape;
         for (const Vec2d& p : m_bed_shape) {
@@ -313,10 +314,10 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
             }
             new_extruder_shapes.push_back(new_extruder_shape);
         }
-        m_build_volume = BuildVolume { new_bed_shape, printable_height, new_extruder_shapes };
+        m_build_volume = BuildVolume { new_bed_shape, printable_height, new_extruder_shapes, m_extruder_heights };
     }
     else
-        m_build_volume = BuildVolume { printable_area, printable_height, m_extruder_shapes };
+        m_build_volume = BuildVolume { printable_area, printable_height, m_extruder_shapes, m_extruder_heights };
     m_type = type;
     //m_texture_filename = texture_filename;
     m_model_filename = model_filename;
@@ -352,7 +353,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 //BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_bed_shape, m_build_volume.printable_height(), m_extruder_shapes, m_model_filename, false, position, false);
+    set_shape(m_bed_shape, m_build_volume.printable_height(), m_extruder_shapes, m_extruder_heights, m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)

@@ -1077,7 +1077,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
 
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
-    BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas());
+    BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas(), build_volume.extruder_heights());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     std::map<ModelObject*, std::map<int, std::set<int>>> objects_unprintable_filaments;
@@ -1287,6 +1287,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                         if (filament_maps[filament - 1] == extruder_id)
                         {
                             object_filament_info.manual_filaments.emplace(filament, extruder_id);
+                            object_results->filament_maps[filament] = extruder_id;
                             conflict_filaments_set.emplace(filament);
                         }
                     }

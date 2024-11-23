@@ -1009,6 +1009,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         //BBS: add bed exclude area
         Pointfs bed_exclude_area = Pointfs();
         std::vector<Pointfs> extruder_areas;
+        std::vector<double> extruder_heights;
         std::string texture;
         std::string model;
 
@@ -1030,8 +1031,10 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
             if (!gcode_result.extruder_areas.empty())
                 extruder_areas = gcode_result.extruder_areas;
+            if (!gcode_result.extruder_heights.empty())
+                extruder_heights = gcode_result.extruder_heights;
 
-            wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.printable_height, extruder_areas, texture, model, gcode_result.printable_area.empty());
+            wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.printable_height, extruder_areas, extruder_heights, texture, model, gcode_result.printable_area.empty());
         }
         /*else {
             // adjust printbed size in dependence of toolpaths bbox
