@@ -898,10 +898,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             writer.rectangle(wt_box);
         }
 
-        {
-            writer.travel(Vec2f(0, 0));
-            writer.travel(initial_position);
-        }
+        writer.travel(initial_position);
 
         toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
 
@@ -953,7 +950,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
                 wipe_depth               = b.required_depth;
                 purge_volume             = b.purge_volume;
                 if (has_tpu_filament())
-                    nozzle_change_line_count = ((b.nozzle_change_depth + WT_EPSILON) / m_perimeter_width + 1) / 2;
+                    nozzle_change_line_count = ((b.nozzle_change_depth + WT_EPSILON) / m_perimeter_width) / 2;
                 else
                     nozzle_change_line_count = (b.nozzle_change_depth + WT_EPSILON) / m_perimeter_width;
                 break;
@@ -1637,7 +1634,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
         double length                   = m_nozzle_change_length / e_flow;
         int    nozzle_change_line_count = length / (m_wipe_tower_width - m_perimeter_width) + 1;
         if (has_tpu_filament())
-            nozzle_change_depth = (2 * nozzle_change_line_count - 1) * m_perimeter_width;
+            nozzle_change_depth = (2 * nozzle_change_line_count) * m_perimeter_width;
         else
             nozzle_change_depth = nozzle_change_line_count * m_perimeter_width;
         depth += nozzle_change_depth;
