@@ -1119,6 +1119,7 @@ private:
         for (const Item& item : items_) {
             if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
         }
+        bool need_wipe_tower = extruders.size() > 1;
 
         std::vector<RawShape> objs,excludes;
         for (const Item &item : items_) {

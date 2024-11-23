@@ -67,6 +67,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     
@@ -483,7 +484,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->SetForegroundColour(wxColour(0x009688));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
+         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the terms and conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
          ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
          confirm_dlg.update_text(txt);
          confirm_dlg.CenterOnParent();

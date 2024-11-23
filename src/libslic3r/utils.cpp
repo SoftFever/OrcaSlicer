@@ -3,11 +3,18 @@
 
 #include <atomic>
 #include <locale>
+#include <ctime>
 #include <cstdarg>
 #include <stdio.h>
 
 #include "format.hpp"
+#include "Platform.hpp"
+#include "Time.hpp"
 #include "libslic3r.h"
+
+#ifdef __APPLE__
+#include "MacUtils.hpp"
+#endif
 
 #ifdef WIN32
 	#include <windows.h>
@@ -25,7 +32,6 @@
 	#ifdef __APPLE__
 		#include <mach/mach.h>
 		#include <libproc.h>
-        #include "MacUtils.hpp"
 	#endif
 	#ifdef __linux__
 		#include <sys/stat.h>
@@ -33,7 +39,6 @@
 		#include <sys/sendfile.h>
 		#include <dirent.h>
 		#include <stdio.h>
-        #include "Platform.hpp"
 	#endif
 #endif
 
@@ -54,6 +59,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 // We are using quite an old TBB 2017 U7, which does not support global control API officially.
 // Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
@@ -295,6 +301,9 @@ std::string debug_out_path(const char *name, ...)
 	static constexpr const char *SLIC3R_DEBUG_OUT_PATH_PREFIX = "out/";
     if (! debug_out_path_called.exchange(true)) {
 		std::string path = boost::filesystem::system_complete(SLIC3R_DEBUG_OUT_PATH_PREFIX).string();
+        if (!boost::filesystem::exists(path)) {
+            boost::filesystem::create_directory(path);
+		}
         printf("Debugging output files will be written to %s\n", path.c_str());
     }
 	char buffer[2048];
@@ -1483,6 +1492,8 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
     MD5_Init(&ctx);
     boost::nowide::ifstream ifs(filename, std::ios::binary);
     std::string                 buf(64 * 1024, 0);
+    const std::size_t &         size      = boost::filesystem::file_size(filename);
+    std::size_t                 left_size = size;
     while (ifs) {
         ifs.read(buf.data(), buf.size());
         int read_bytes = ifs.gcount();

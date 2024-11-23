@@ -4,14 +4,21 @@
 #include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
 #include "Line.hpp"
+#include "clipper.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <list>
+#include <map>
+#include <numeric>
+#include <set>
 #include <utility>
 #include <stack>
 #include <vector>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/log/trivial.hpp>
 
 #if defined(_MSC_VER) && defined(__clang__)
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
@@ -632,6 +639,22 @@ Transform3d Transformation::get_matrix_no_scaling_factor() const
     copy.reset_scaling_factor();
     return copy.get_matrix();
 }
+
+// Orca: Implement prusa's filament shrink compensation approach
+Transform3d Transformation::get_matrix_with_applied_shrinkage_compensation(const Vec3d &shrinkage_compensation) const {
+     const Transform3d shrinkage_trafo = Geometry::scale_transform(shrinkage_compensation);
+     const Vec3d trafo_offset         = this->get_offset();
+     const Vec3d trafo_offset_xy      = Vec3d(trafo_offset.x(), trafo_offset.y(), 0.);
+
+     Transformation copy(*this);
+     copy.set_offset(Axis::X, 0.);
+     copy.set_offset(Axis::Y, 0.);
+
+     Transform3d trafo_after_shrinkage    = (shrinkage_trafo * copy.get_matrix());
+     trafo_after_shrinkage.translation() += trafo_offset_xy;
+
+     return trafo_after_shrinkage;
+ }
 
 Transformation Transformation::operator * (const Transformation& other) const
 {

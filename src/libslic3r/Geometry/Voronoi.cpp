@@ -2,6 +2,7 @@
 
 #include "libslic3r/Arachne/utils/PolygonsSegmentIndex.hpp"
 #include "libslic3r/Geometry/VoronoiUtils.hpp"
+#include "libslic3r/Geometry/VoronoiUtilsCgal.hpp"
 #include "libslic3r/MultiMaterialSegmentation.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -146,6 +147,9 @@ void VoronoiDiagram::copy_to_local(voronoi_diagram_type &voronoi_diagram) {
             new_edge.prev(&m_edges[prev_edge_idx]);
         }
     }
+
+    m_voronoi_diagram.clear();
+    m_is_modified = true;
 }
 
 template<typename SegmentIterator>
@@ -345,9 +349,6 @@ VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram_by_rotation(const Segm
     // We have to clear all marked vertices because some algorithms expect that all vertices have a color equal to 0.
     for (vertex_type &vertex : m_vertices)
         vertex.color(0);
-
-    m_voronoi_diagram.clear();
-    m_is_modified = true;
 
     return issue_type;
 }

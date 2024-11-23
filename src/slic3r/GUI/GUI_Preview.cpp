@@ -6,6 +6,7 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
+#include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "OpenGLManager.hpp"
 #include "GLCanvas3D.hpp"
@@ -14,11 +15,19 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 
+#include <wx/listbook.h>
+#include <wx/notebook.h>
 #include <wx/glcanvas.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/choice.h>
+#include <wx/combo.h>
+#include <wx/combobox.h>
+#include <wx/checkbox.h>
 
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
 #include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
 #include "NotificationManager.hpp"
 
 #ifdef _WIN32
@@ -155,6 +164,12 @@ void View3D::center_selected()
 {
     if (m_canvas != nullptr)
         m_canvas->do_center();
+}
+
+void View3D::drop_selected()
+{
+    if (m_canvas != nullptr)
+        m_canvas->do_drop();
 }
 
 void View3D::center_selected_plate(const int plate_idx) {
@@ -527,6 +542,7 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent &event)
     const auto key = event.GetKeyCode();
 
     IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
+    IMSlider *m_moves_slider  = m_canvas->get_gcode_viewer().get_moves_slider();
     if (key == 'L') {
         if(!m_layers_slider->switch_one_layer_mode())
             event.Skip();

@@ -469,7 +469,7 @@ function ChooseDefaultFilament()
 		let OneFF=OneNode.getElementsByTagName("input")[0];
 		$(OneFF).prop("checked",false);
 		
-	    let filamentList=OneFF.getAttribute("filalist"); 
+	    let filamentList=GetFilamentShortname(OneFF.getAttribute("filalist")); 
 		//alert(filamentList);
 		let filamentArray=filamentList.split(';')
 		
@@ -562,7 +562,7 @@ function ReturnPreviewPage()
 	let nMode=m_ProfileItem["model"].length;
 	
 	if( nMode==1)
-		document.location.href="../3/index.html";
+		document.location.href="../1/index.html";
 	else
 		document.location.href="../21/index.html";	
 }
@@ -573,7 +573,7 @@ function GotoNetPluginPage()
 	let bRet=ResponseFilamentResult();
 	
 	if(bRet)
-		window.location.href="../5/index.html";
+		window.location.href="../4orca/index.html";
 }
 
 function FinishGuide()

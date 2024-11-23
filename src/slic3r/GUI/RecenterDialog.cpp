@@ -86,6 +86,8 @@ void RecenterDialog::OnPaint(wxPaintEvent& event){
 }
   
 void RecenterDialog::render(wxDC& dc) {
+    wxSize     size = GetSize();
+
     dc.SetFont(Label::Body_14);
     dc.SetTextForeground(text_color);
     wxPoint pos_start = wxPoint(BORDER, BORDER);

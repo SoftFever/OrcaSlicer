@@ -412,6 +412,7 @@ void TempInput::render(wxDC &dc)
     /*if (!text.IsEmpty()) {
         
     }*/
+    wxSize textSize = text_ctrl->GetSize();
     if (align_right) {
         if (pt.x + labelSize.x > size.x) text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
         pt.y = (size.y - labelSize.y) / 2;

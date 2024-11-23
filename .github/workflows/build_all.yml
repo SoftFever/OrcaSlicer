@@ -64,7 +64,7 @@ jobs:
     name: "Flatpak"
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-45
+      image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
     steps:
     # maybe i'm too dumb and fucked up to do CI. OH WELL :D -ppd
