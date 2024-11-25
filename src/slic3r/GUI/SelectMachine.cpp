@@ -4704,32 +4704,23 @@ bool SelectMachineDialog::Show(bool show)
     show_status(PrintDialogStatus::PrintStatusInit);
 
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
-    auto          cur_preset_name = preset_bundle.printers.get_edited_preset().name;
+    const auto& project_config = preset_bundle.project_config;
 
-    if (wxGetApp().app_config->has_section("user_bed_type_list")) {
-        std::string plate_name = "";
-        auto name = wxGetApp().app_config->get_section("user_bed_type_list");
-        for (auto it : name) {
-            if (it.first == cur_preset_name) {
-                plate_name = it.second;
-                break;
-            }
-        }
-        const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
-        if (bed_type_def != nullptr) {
-            for (auto it : bed_type_def->enum_labels) {
-                if (it.find(plate_name) != std::string::npos) {
-                    plate_name = it;
-                    break;
-                }
-            }
-        }
+    const t_config_enum_values &enum_keys_map = ConfigOptionEnum<BedType>::get_enum_values();
+    const ConfigOptionEnum<BedType>* bed_type=project_config.option<ConfigOptionEnum<BedType>>("curr_bed_type");
+    std::string plate_name;
+    for (auto& elem : enum_keys_map) {
+        if (elem.second == bed_type->value)
+            plate_name = elem.first;
+    }
+
+    if (plate_name.empty()) {
+        m_text_bed_type->Hide();
+    }
+    else {
         plate_name = "Plate: " + plate_name;
         m_text_bed_type->SetLabelText(plate_name);
         m_text_bed_type->Show();
-    }
-    else{
-        m_text_bed_type->Hide();
     }
 
     // set default value when show this dialog
