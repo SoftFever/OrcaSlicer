@@ -92,12 +92,19 @@ void GizmoObjectManipulation::update_ui_from_settings()
         update_buffered_value();
     }
 }
+void delete_negative_sign(Vec3d& value) {
+    for (size_t i = 0; i < value.size(); i++) {
+        if (abs(value[i]) < 0.001)
+            value[i] = 0.f;
+    }
+}
 
-void GizmoObjectManipulation::update_settings_value(const Selection& selection)
+void GizmoObjectManipulation::update_settings_value(const Selection &selection)
 {
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotate (relative)");
     m_new_rotation            = Vec3d::Zero();
+    m_new_absolute_rotation   = Vec3d::Zero();
     m_new_scale_label_string  = L("Scale ratios");
 
     ObjectList* obj_list = wxGetApp().obj_list();
@@ -105,7 +112,9 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_first_volume();
         m_new_position = volume->get_instance_offset();
-
+        auto rotation = volume->get_instance_transformation().get_rotation_by_quaternion();
+        m_new_absolute_rotation = rotation * (180. / M_PI);
+        delete_negative_sign(m_new_absolute_rotation);
         if (is_world_coordinates()) {//for move and rotate
             m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
             m_unscale_size = selection.get_unscaled_instance_bounding_box().size();
@@ -133,6 +142,9 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_title_string = L("Object Operations");
     } else if (selection.is_single_volume_or_modifier()) {
         const GLVolume *volume = selection.get_first_volume();
+        auto            rotation = volume->get_volume_transformation().get_rotation_by_quaternion();
+        m_new_absolute_rotation  = rotation * (180. / M_PI);
+        delete_negative_sign(m_new_absolute_rotation);
         if (is_world_coordinates()) {//for move and rotate
             const Geometry::Transformation trafo(volume->world_matrix());
             const Vec3d &offset = trafo.get_offset();
@@ -181,7 +193,7 @@ void GizmoObjectManipulation::update_buffered_value()
         m_buffered_position = this->m_new_position;
 
     m_buffered_rotation = this->m_new_rotation;
-
+    m_buffered_absolute_rotation = this->m_new_absolute_rotation;
     m_buffered_scale = this->m_new_scale;
 
     if (this->m_imperial_units)
@@ -206,6 +218,7 @@ void GizmoObjectManipulation::update_if_dirty()
         }
     };
     update_label(m_cache.move_label_string,   m_new_move_label_string);
+    update_label(m_cache.rotate_label_string, m_new_rotate_label_string);
     update_label(m_cache.rotate_label_string, m_new_rotate_label_string);
     update_label(m_cache.scale_label_string,  m_new_scale_label_string);
 
@@ -235,6 +248,7 @@ void GizmoObjectManipulation::update_if_dirty()
         update(m_cache.scale,    m_cache.scale_rounded,     m_new_scale);
         update(m_cache.size,     m_cache.size_rounded,      m_new_size);
         update(m_cache.rotation, m_cache.rotation_rounded,  m_new_rotation);
+        update(m_cache.absolute_rotation, m_cache.absolute_rotation_rounded, m_new_absolute_rotation);
     }
 
     update_reset_buttons_visibility();
@@ -275,6 +289,7 @@ void GizmoObjectManipulation::reset_settings_value()
 {
     m_new_position = Vec3d::Zero();
     m_new_rotation = Vec3d::Zero();
+    m_new_absolute_rotation = Vec3d::Zero();
     m_new_scale = Vec3d::Ones() * 100.;
     m_new_size = Vec3d::Zero();
     m_new_enabled = false;
@@ -343,6 +358,34 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
+    this->UpdateAndShow(true);
+}
+
+void GizmoObjectManipulation::change_absolute_rotation_value(int axis, double value) {
+    if (std::abs(m_cache.absolute_rotation_rounded(axis) - value) < EPSILON)
+        return;
+
+    Vec3d absolute_rotation = m_cache.absolute_rotation;
+    absolute_rotation(axis) = value;
+
+    Selection &selection = m_glcanvas.get_selection();
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    if (selection.is_single_full_instance())
+        transformation_type.set_independent();
+    if (is_local_coordinates())
+        transformation_type.set_local();
+    if (is_instance_coordinates())
+        transformation_type.set_instance();
+
+    selection.setup_cache();
+    auto diff_rotation = transformation_type.absolute() ? absolute_rotation : absolute_rotation - m_cache.absolute_rotation;
+    selection.rotate((M_PI / 180.0) * diff_rotation, transformation_type);
+    wxGetApp().plater()->take_snapshot("set absolute orientation", UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_rotate("");
+
+    m_cache.absolute_rotation               = absolute_rotation;
+    m_cache.absolute_rotation_rounded(axis) = DBL_MAX;
     this->UpdateAndShow(true);
 }
 
@@ -442,6 +485,8 @@ void GizmoObjectManipulation::on_change(const std::string &opt_key, int axis, do
         change_position_value(axis, new_value);
     else if (opt_key == "rotation")
         change_rotation_value(axis, new_value);
+    else if (opt_key == "absolute_rotation")
+        change_absolute_rotation_value(axis, new_value);
     else if (opt_key == "scale")
         change_scale_value(axis, new_value);
     else if (opt_key == "size")
@@ -578,9 +623,10 @@ void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
 
 }
 
-static const char* label_values[2][3] = {
+static const char* label_values[3][3] = {
 { "##position_x", "##position_y", "##position_z"},
-{ "##rotation_x", "##rotation_y", "##rotation_z"}
+{ "##rotation_x", "##rotation_y", "##rotation_z"},
+{ "##absolute_rotation_x", "##absolute_rotation_y", "##absolute_rotation_z"}
 };
 
 static const char* label_scale_values[2][3] = {
@@ -800,7 +846,6 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     Vec3d display_position = m_buffered_position;
 
     // Rotation
-    Vec3d rotation   = this->m_buffered_rotation;
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
@@ -949,7 +994,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     Vec3d display_position = m_buffered_position;
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-
+    Vec3d absolute_rotation = this->m_buffered_absolute_rotation;
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
@@ -967,33 +1012,41 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
-    if (m_show_reset_0_rotation) {
-        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
-        if (reset_zero_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(false); }
-        if (ImGui::IsItemHovered()) {
-            float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to real zeros.")).x + 3 * space_size;
-            imgui_wrapper->tooltip(_u8L("Reset current rotation to real zeros."), tooltip_size);
-        }
-    }
+
     index      = 1;
     index_unit = 1;
 
     // ImGui::PushItemWidth(unit_size * 2);
+    bool is_relative_input = false;
     ImGui::AlignTextToFramePadding();
     imgui_wrapper->text(_L("Rotate (relative)"));
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble(label_values[1][0], &rotation[0], 0.0f, 0.0f, "%.2f");
+    if (ImGui::BBLInputDouble(label_values[1][0], &rotation[0], 0.0f, 0.0f, "%.2f")) {
+        is_relative_input = true;
+    }
     ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble(label_values[1][1], &rotation[1], 0.0f, 0.0f, "%.2f");
+    if (ImGui::BBLInputDouble(label_values[1][1], &rotation[1], 0.0f, 0.0f, "%.2f")) {
+        is_relative_input = true;
+    }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble(label_values[1][2], &rotation[2], 0.0f, 0.0f, "%.2f");
+    if (ImGui::BBLInputDouble(label_values[1][2], &rotation[2], 0.0f, 0.0f, "%.2f")) {
+        is_relative_input = true;
+    }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("°"));
     m_buffered_rotation = rotation;
-    update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
+    if (is_relative_input) {
+        m_last_rotate_type = RotateType::Relative;
+    }
+    if (m_last_rotate_type == RotateType::Relative) {
+        bool is_valid = update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation) >= 0;
+        if (is_valid) {
+            m_last_rotate_type = RotateType::None;
+        }
+    }
 
     if (m_show_clear_rotation) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
@@ -1008,7 +1061,6 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
         ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
     }
-
     // send focus to m_glcanvas
     bool focued_on_text = false;
     for (int j = 0; j < 3; j++) {
@@ -1019,7 +1071,61 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
             break;
         }
     }
-    if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
+
+    index      = 1;
+    index_unit = 1;
+    ImGui::AlignTextToFramePadding();
+    imgui_wrapper->text(_L("Rotate (absolute)"));
+    ImGui::SameLine(caption_max + index * space_size);
+    ImGui::PushItemWidth(unit_size);
+    bool is_absolute_input = false;
+    if (ImGui::BBLInputDouble(label_values[2][0], &absolute_rotation[0], 0.0f, 0.0f, "%.2f")) {
+        is_absolute_input = true;
+    }
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
+    ImGui::PushItemWidth(unit_size);
+    if (ImGui::BBLInputDouble(label_values[2][1], &absolute_rotation[1], 0.0f, 0.0f, "%.2f")) {
+        is_absolute_input = true;
+    }
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    ImGui::PushItemWidth(unit_size);
+    if (ImGui::BBLInputDouble(label_values[2][2], &absolute_rotation[2], 0.0f, 0.0f, "%.2f")) {
+        is_absolute_input = true;
+    }
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
+    imgui_wrapper->text(_L("°"));
+    m_buffered_absolute_rotation = absolute_rotation;
+    if (is_absolute_input) {
+        m_last_rotate_type = RotateType::Absolute;
+    }
+    if (m_last_rotate_type == RotateType::Absolute) {
+        bool is_valid = update(current_active_id, "absolute_rotation", this->m_new_absolute_rotation, m_buffered_absolute_rotation) >= 0;
+        if (is_valid) {
+            m_last_rotate_type = RotateType::None;
+        }
+    }
+
+    if (m_show_reset_0_rotation) {
+        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
+        if (reset_zero_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(false); }
+        if (ImGui::IsItemHovered()) {
+            float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to real zeros.")).x + 3 * space_size;
+            imgui_wrapper->tooltip(_L("Reset current rotation to real zeros."), tooltip_size);
+        }
+    }
+    // send focus to m_glcanvas
+    bool absolute_focued_on_text = false;
+    for (int j = 0; j < 3; j++) {
+        unsigned int id = ImGui::GetID(label_values[2][j]);
+        if (current_active_id == id) {
+            m_glcanvas.handle_sidebar_focus_event(label_values[2][j] + 2, true);
+            absolute_focued_on_text = true;
+            break;
+        }
+    }
+    if (!focued_on_text  && !absolute_focued_on_text)
+        m_glcanvas.handle_sidebar_focus_event("", false);
+
     float get_cur_y       = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     float tip_caption_max = 0.f;
     float total_text_max  = 0.f;
