@@ -7102,7 +7102,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         || opt_key == "extruder_variant_list") {
         ReplaceString(value, "Normal", "Standard");
         ReplaceString(value, "Big Traffic", "High Flow");
-    } else if (opt_key == "nozzle_volume_type") {
+    }
+    else if (opt_key == "extruder_type") {
         ReplaceString(value, "DirectDrive", "Direct Drive");
     }
     else if(opt_key == "ensure_vertical_shell_thickness") {
