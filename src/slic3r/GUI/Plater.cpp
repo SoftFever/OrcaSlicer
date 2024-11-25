@@ -128,6 +128,7 @@
 #include "Widgets/RadioGroup.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticGroup.hpp"
 
 #include "GUI_ObjectTable.hpp"
 #include "libslic3r/Thread.hpp"
@@ -917,6 +918,8 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
 
         PlaterPresetComboBox* combo_printer = new PlaterPresetComboBox(p->m_panel_printer_content, Preset::TYPE_PRINTER);
+        combo_printer->SetBorderWidth(0);
+        combo_printer->ShowBadge(true);
         ScalableButton* edit_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "edit");
         edit_btn->SetToolTip(_L("Click to edit preset"));
         edit_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
@@ -1009,9 +1012,10 @@ Sidebar::Sidebar(Plater *parent)
         p->m_dual_extruder_sizer = new wxBoxSizer(wxHORIZONTAL);
 
         auto add_extruder = [this](int index, wxString const & title) {
-            wxStaticBox * static_box = new wxStaticBox(p->m_panel_printer_content, wxID_ANY, title);
+            StaticGroup *static_box = new StaticGroup(p->m_panel_printer_content, wxID_ANY, title);
             static_box->SetFont(Label::Body_10);
             static_box->SetForegroundColour("#909090");
+            static_box->ShowBadge(true);
             wxStaticBoxSizer *static_box_sizer = new wxStaticBoxSizer(static_box, wxVERTICAL);
             // AMS count
             wxBoxSizer * ams_count_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1357,6 +1361,7 @@ void Sidebar::create_printer_preset()
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
 {
     *combo = new PlaterPresetComboBox(p->m_panel_filament_content, Slic3r::Preset::TYPE_FILAMENT);
+    (*combo)->ShowBadge(true);
     (*combo)->set_filament_idx(filament_idx);
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
