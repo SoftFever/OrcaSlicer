@@ -149,4 +149,4 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 - *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)*
 - *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)
 - *The max flowrate test was inspired by Stefan(CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).
-- *chapgpt* ;)
+- *ChatGPT* ;)

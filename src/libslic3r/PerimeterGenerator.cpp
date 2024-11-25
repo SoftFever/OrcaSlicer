@@ -1222,6 +1222,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     smooth_overhang_level(paths);
                 }
 
+                if (overhangs_reverse) {
+                    for (const ExtrusionPath& path : paths) {
+                        if (path.role() == erOverhangPerimeter) {
+                            if (pg_extrusion.is_contour)
+                                steep_overhang_contour = true;
+                            else
+                                steep_overhang_hole = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
         else {
@@ -3113,11 +3124,15 @@ void PerimeterGenerator::process_arachne()
                 bringContoursToFront(ordered_extrusions);
                 std::vector<PerimeterGeneratorArachneExtrusion> reordered_extrusions;
                 
-                // Get searching thresholds. For an external perimeter we take the middle of the external perimeter width, split it in two, add the spacing to the internal perimeter and add half the internal perimeter width.
-                // This should get us to the middle of the internal perimeter. We then scale by 10% up for safety margin.
-                coord_t threshold_external = (this->ext_perimeter_flow.scaled_width()/2+this->ext_perimeter_flow.scaled_spacing()+this->perimeter_flow.scaled_width()/2) * 1.1;
-                // For the intenal perimeter threshold, the distance is the perimeter width plus the spacing, scaled by 10% for safety margin.
-                coord_t threshold_internal = (this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing()) * 1.1;
+                // Debug statement to print spacing values:
+                //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
+               
+                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by 3% to cover
+                // rounding errors
+                coord_t threshold_external = (this->ext_perimeter_flow.scaled_spacing()/2 + this->perimeter_flow.scaled_spacing()/2)*1.03;
+                
+                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by 3% to cover rounding errors.
+                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * 1.03;
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter
