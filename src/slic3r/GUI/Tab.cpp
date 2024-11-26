@@ -5087,7 +5087,7 @@ void Tab::load_current_preset()
                         object->config.assign_config(std::move(object_config));
                     }
                     for (ModelVolume* v : object->volumes) {
-                        if (v->is_model_part()) {
+                        if (v->is_model_part() || v->is_modifier()) {
                             DynamicPrintConfig volume_config = v->config.get();
                             if (!volume_config.empty()) {
                                 if (previous_extruder_count < new_extruder_count)
@@ -5097,6 +5097,18 @@ void Tab::load_current_preset()
                                 v->config.assign_config(std::move(volume_config));
                             }
                         }
+                    }
+
+                    for (auto &layer_config_it : object->layer_config_ranges) {
+                        ModelConfig& layer_model_config = layer_config_it.second;
+                        DynamicPrintConfig layer_config = layer_model_config.get();
+                        if (!layer_config.empty()) {
+                           if (previous_extruder_count < new_extruder_count)
+                               layer_config.update_values_from_single_to_multi_2(new_print_config, print_options_with_variant);
+                           else
+                               layer_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                           layer_model_config.assign_config(std::move(layer_config));
+                       }
                     }
                 }
             }

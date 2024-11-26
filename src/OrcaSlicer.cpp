@@ -3018,6 +3018,49 @@ int CLI::run(int argc, char **argv)
         m_models.emplace_back(std::move(m));
     }
 
+
+    //update the object config due to extruder count change
+    if ((machine_switch) && (new_extruder_count != current_extruder_count))
+    {
+        //process the object params here
+        size_t num_objects = m_models[0].objects.size();
+        for (int i = 0; i < num_objects; ++i) {
+            ModelObject* object = m_models[0].objects[i];
+            DynamicPrintConfig object_config = object->config.get();
+            if (!object_config.empty()) {
+                if (current_extruder_count < new_extruder_count)
+                    object_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
+                else
+                    object_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                object->config.assign_config(std::move(object_config));
+            }
+            for (ModelVolume* v : object->volumes) {
+                if (v->is_model_part() || v->is_modifier()) {
+                    DynamicPrintConfig volume_config = v->config.get();
+                    if (!volume_config.empty()) {
+                        if (current_extruder_count < new_extruder_count)
+                           volume_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
+                        else
+                           volume_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                        v->config.assign_config(std::move(volume_config));
+                    }
+                }
+            }
+
+            for (auto &layer_config_it : object->layer_config_ranges) {
+                ModelConfig& layer_model_config = layer_config_it.second;
+                DynamicPrintConfig layer_config = layer_model_config.get();
+                if (!layer_config.empty()) {
+                   if (current_extruder_count < new_extruder_count)
+                       layer_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
+                   else
+                       layer_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                   layer_model_config.assign_config(std::move(layer_config));
+               }
+            }
+       }
+   }
+
     //load custom gcodes into model if needed
     if ((custom_gcodes_map.size() > 0)&&(m_models.size() > 0))
     {
