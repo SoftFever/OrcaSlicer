@@ -1392,14 +1392,9 @@ int PartPlate::picking_id_component(int idx) const
 std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 {
 	std::vector<int> plate_extruders;
-	// if gcode.3mf file
-	if (m_model->objects.empty()) {
-		for (int i = 0; i < slice_filaments_info.size(); i++) {
-			plate_extruders.push_back(slice_filaments_info[i].id + 1);
-		}
-		return plate_extruders;
-	}
-
+    if (check_objects_empty_and_gcode3mf(plate_extruders)) {
+        return plate_extruders;
+    }
 	// if 3mf file
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
@@ -1631,17 +1626,25 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     return plate_extruders;
 }
 
+bool PartPlate::check_objects_empty_and_gcode3mf(std::vector<int> &result) const
+{
+    if (m_model->objects.empty()) {//objects is empty
+        if (wxGetApp().plater()->is_gcode_3mf()) { // if gcode.3mf file
+            for (int i = 0; i < slice_filaments_info.size(); i++) {
+                result.push_back(slice_filaments_info[i].id + 1);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gcode) const
 {
 	std::vector<int> plate_extruders;
-	// if gcode.3mf file
-	if (m_model->objects.empty()) {
-		for (int i = 0; i < slice_filaments_info.size(); i++) {
-			plate_extruders.push_back(slice_filaments_info[i].id + 1);
-		}
-		return plate_extruders;
-	}
-
+    if (check_objects_empty_and_gcode3mf(plate_extruders)) {
+        return plate_extruders;
+    }
 	// if 3mf file
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
@@ -1679,13 +1682,9 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 std::vector<int> PartPlate::get_used_extruders()
 {
 	std::vector<int> used_extruders;
-	// if gcode.3mf file
-	if (m_model->objects.empty()) {
-		for (int i = 0; i < slice_filaments_info.size(); i++) {
-			used_extruders.push_back(slice_filaments_info[i].id + 1);
-		}
-		return used_extruders;
-	}
+    if (check_objects_empty_and_gcode3mf(used_extruders)) {
+        return used_extruders;
+    }
 
 	GCodeProcessorResult* result = get_slice_result();
 	if (!result)
