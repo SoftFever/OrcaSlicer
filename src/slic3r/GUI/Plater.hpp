@@ -215,8 +215,6 @@ private:
     std::unique_ptr<priv> p;
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
-    ScalableButton* connection_btn = nullptr;
-    ScalableButton* ams_btn = nullptr;
 };
 
 class Plater: public wxPanel

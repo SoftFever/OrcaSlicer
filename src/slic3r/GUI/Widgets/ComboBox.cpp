@@ -42,7 +42,7 @@ ComboBox::ComboBox(wxWindow *parent,
     : drop(items)
 {
     if ((style & wxALIGN_MASK) == 0 && (style & wxCB_READONLY))
-        style |= wxALIGN_CENTER_HORIZONTAL;
+        style |= wxALIGN_RIGHT;
     text_off = style & CB_NO_TEXT;
     TextInput::Create(parent, "", value, (style & CB_NO_DROP_ICON) ? "" : "drop_down", pos, size,
                       style | wxTE_PROCESS_ENTER);
