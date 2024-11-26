@@ -861,6 +861,9 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     m_checkbox_list["nozzle_offset_cali"]->Hide();
 
     if (obj->is_enable_np) {
+        m_checkbox_list["nozzle_offset_cali"]->Show();
+        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
+        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->update_options(ops_auto);
         m_checkbox_list["flow_cali"]->update_options(ops_auto);
     }
@@ -4345,7 +4348,7 @@ void PrintOption::doRender(wxDC &dc)
     auto size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(0xF8F8F8));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
 }
 
 void PrintOption::setValue(std::string value)
