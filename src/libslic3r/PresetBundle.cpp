@@ -2175,6 +2175,12 @@ bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
     return true;
 }
 
+void PresetBundle::reset_default_nozzle_volume_type()
+{
+    Preset& current_printer = this->printers.get_edited_preset();
+    this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+}
+
 int PresetBundle::get_printer_extruder_count() const
 {
     const Preset& printer_preset = this->printers.get_edited_preset();
