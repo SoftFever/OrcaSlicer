@@ -881,6 +881,10 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     m_checkbox_list["flow_cali"]->Hide();
     m_checkbox_list["nozzle_offset_cali"]->Hide();
 
+    if (!obj) {
+        return;
+    }
+
     if (obj->is_enable_np) {
         m_checkbox_list["nozzle_offset_cali"]->Show();
         m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
@@ -923,7 +927,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["timelapse"]->setValue("on");
     }
 
-    update_ams_check(obj);
     update_flow_cali_check(obj);
     Layout();
     Fit();
@@ -2767,8 +2770,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if(!obj_) return;
 
-    update_select_layout(obj_);
-    update_ams_check(obj_);
+
+    if (!m_check_flag && obj_->is_info_ready()) {
+        update_select_layout(obj_);
+        update_ams_check(obj_);
+        m_check_flag = true;
+    }
 
     if (!obj_
         || obj_->amsList.empty()
@@ -2848,7 +2855,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
-        update_select_layout(obj);
+        m_check_flag = false;
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;
