@@ -110,6 +110,7 @@ filament_vendors = [
     'Justmaker',
     'Keene Village Plastics',
     'Kexcelled',
+    'LDO',
     'MakerBot',
     'MatterHackers',
     'MIKA3D',
