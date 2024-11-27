@@ -2198,10 +2198,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("filament_spoolman_enabled", coBools);
-    def->set_default_value(new ConfigOptionBools());
-    def->cli = ConfigOptionDef::nocli;
-
     def = this->add("filament_remaining_weight", coFloats);
     def->set_default_value(new ConfigOptionFloats());
     def->cli = ConfigOptionDef::nocli;
@@ -2217,13 +2213,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("spoolman_spool_id", coInt);
+    def = this->add("spoolman_spool_id", coInts);
     def->label = L("Spoolman ID");
     def->tooltip = L("The spool ID of this filament profile within your Spoolman instance. This will allow automatic spool switching when "
                      "using moonraker to track spool usage and one touch updating of this filament profile from the Spoolman properties. "
                      "Setting this to a value of 0 disables its functionality.");
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInt());
+    def->set_default_value(new ConfigOptionInts({ 0 }));
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);

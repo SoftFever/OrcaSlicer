@@ -407,6 +407,9 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
+    if (get("spoolman", "consumption_type").empty())
+        set_str("spoolman", "consumption_type", "weight");
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");

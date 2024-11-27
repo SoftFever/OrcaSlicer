@@ -36,6 +36,7 @@
 #include "nlohmann/json.hpp"
 
 #include "GCode/ConflictChecker.hpp"
+#include "slic3r/Utils/Spoolman.hpp"
 
 #include <codecvt>
 
@@ -3056,6 +3057,33 @@ Vec3d Print::shrinkage_compensation() const
     const double z_compensation  = 100.0 / z_shrinkage_percent;
 
     return { xy_compensation, xy_compensation, z_compensation };
+}
+
+std::vector<SpoolmanFilamentConsumptionEstimate> Print::get_spoolman_filament_consumption_estimates() const
+{
+    std::vector<SpoolmanFilamentConsumptionEstimate> spoolman_filament_consumption;
+
+    std::vector<int> filaments_with_spoolman_idxs;
+    for (int l = 0; l < m_config.spoolman_spool_id.size(); ++l) {
+        if (m_config.spoolman_spool_id.get_at(l) > 0)
+            filaments_with_spoolman_idxs.push_back(l);
+    }
+
+    // get used filament (meters and grams) from used volume in respect to the active extruder
+    auto get_used_filament_from_volume = [&](const int& extruder_id) {
+        // confirm the item exists in the stats map
+        if (m_print_statistics.filament_stats.count(extruder_id) <= 0)
+            return std::pair {0., 0.};
+
+        const double& volume = m_print_statistics.filament_stats.at(extruder_id);
+        return std::pair { volume / (PI * sqr(0.5 * m_config.filament_diameter.get_at(extruder_id))),
+                                          volume * m_config.filament_density.get_at(extruder_id) * 0.001 };
+    };
+
+    for (const auto& idx : filaments_with_spoolman_idxs)
+        spoolman_filament_consumption.emplace_back(idx, m_config, get_used_filament_from_volume(idx));
+
+    return spoolman_filament_consumption;
 }
 
 const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";

@@ -249,7 +249,7 @@ public:
     // works for filament and printer profiles. All other profiles return false
     bool spoolman_enabled() const {
         if (type == TYPE_FILAMENT)
-            return config.opt_int("spoolman_spool_id") > 0;
+            return config.opt_int("spoolman_spool_id", 0) > 0;
         if (type == TYPE_PRINTER)
             return config.opt_bool("spoolman_enabled");
         return false;

@@ -26,6 +26,8 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
+#include "Spoolman.hpp"
+
 #include <imgui/imgui_internal.h>
 
 static constexpr float GAP_WIDTH = 10.0f;
@@ -2085,6 +2087,19 @@ void NotificationManager::push_import_finished_notification(const std::string& p
     NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Model file downloaded.") + "\n" + path };
     push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
     set_slicing_progress_hidden();
+}
+
+void NotificationManager::push_spoolman_consumption_finished_notification()
+{
+    close_notification_of_type(NotificationType::SpoolmanConsumptionFinished);
+    auto callback = [](wxEvtHandler*) {
+        if (Spoolman::get_instance()->undo_use_spoolman_spools())
+            return true;
+        show_error(nullptr, _L("Failed to undo Spoolman filament consumption"));
+        return false;
+    };
+    NotificationData data {NotificationType::SpoolmanConsumptionFinished, NotificationLevel::RegularNotificationLevel, 0, _u8L("Spoolman consumption finished successfully.") + " ", _u8L("Undo"), callback };
+    push_notification_data(data, 0);
 }
 
 void NotificationManager::push_download_URL_progress_notification(size_t id, const std::string& text, std::function<bool(DownloaderUserAction, int)> user_action_callback)

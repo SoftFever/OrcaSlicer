@@ -50,6 +50,9 @@ class Spoolman
 
     bool m_initialized{false};
 
+    std::map<unsigned int, double> m_use_undo_buffer{};
+    std::string                    m_last_usage_type{};
+
     std::map<unsigned int, SpoolmanVendorShrPtr>   m_vendors{};
     std::map<unsigned int, SpoolmanFilamentShrPtr> m_filaments{};
     std::map<unsigned int, SpoolmanSpoolShrPtr>    m_spools{};
@@ -71,10 +74,21 @@ class Spoolman
     /// get all the spools from the api and store them
     /// \returns if succeeded
     bool pull_spoolman_spools();
-public:
+
     /// uses/consumes filament from the specified spool then updates the spool
+    /// \param usage_type The consumption metric to be used. Should be "length" or "weight". This will NOT be checked.
     /// \returns if succeeded
-    bool use_spoolman_spool(const unsigned int& spool_id, const double& weight_used);
+    bool use_spoolman_spool(const unsigned int& spool_id, const double& usage, const std::string& usage_type);
+public:
+    /// uses/consumes filament from multiple specified spools then updates them
+    /// \param data a map with the spool ID as the key and the amount to be consumed as the value
+    /// \param usage_type The consumption metric to be used. Should be "length" or "weight". This will be checked.
+    /// \returns if succeeded
+    bool use_spoolman_spools(const std::map<unsigned int, double>& data, const std::string& usage_type);
+
+    /// undo the previous use/consumption
+    /// \returns if succeeded
+    bool undo_use_spoolman_spools();
 
     static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
                                                             const Preset*              base_profile,
@@ -87,6 +101,9 @@ public:
     /// Update the statistics values for the visible filament profiles with spoolman enabled
     /// clear_cache should be set true if the update is due to a change in printer profile or other change that requires it
     static void update_visible_spool_statistics(bool clear_cache = false);
+
+    /// Update the statistics values for the filament profiles tied to the specified spool IDs
+    static void update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids);
 
     static bool is_server_valid();
 

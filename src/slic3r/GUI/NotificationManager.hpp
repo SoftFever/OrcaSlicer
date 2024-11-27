@@ -126,6 +126,8 @@ enum class NotificationType
 	NetfabbFinished,
 	// Short meesage to fill space between start and finish of export
 	ExportOngoing,
+    // A message showing that Spoolman filament consumption finished and allow a rollback of the action
+    SpoolmanConsumptionFinished,
     // Progressbar of download from prusaslicer://url
     URLDownload,
 	// BBS: Short meesage to fill space between start and finish of arranging
@@ -249,6 +251,8 @@ public:
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
+
+    void push_spoolman_consumption_finished_notification();
 
     // Download URL progress notif
     void push_download_URL_progress_notification(size_t id, const std::string& text, std::function<bool(DownloaderUserAction, int)> user_action_callback);

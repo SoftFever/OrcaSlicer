@@ -3712,7 +3712,7 @@ void TabFilament::toggle_options()
     }
 
     if (m_active_page->title() == L("Spoolman")) {
-        toggle_line("spoolman_update", m_config->opt_int("spoolman_spool_id") > 0);
+        toggle_line("spoolman_update", m_config->opt_int("spoolman_spool_id", 0) > 0);
         update_spoolman_statistics();
     }
 }

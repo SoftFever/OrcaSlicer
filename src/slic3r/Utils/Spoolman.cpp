@@ -152,10 +152,10 @@ bool Spoolman::pull_spoolman_spools()
     return true;
 }
 
-bool Spoolman::use_spoolman_spool(const unsigned int& spool_id, const double& weight_used)
+bool Spoolman::use_spoolman_spool(const unsigned int& spool_id, const double& usage, const std::string& usage_type)
 {
     pt::ptree tree;
-    tree.put("use_weight", weight_used);
+    tree.put("use_" + usage_type, usage);
 
     std::string endpoint = (boost::format("spool/%1%/use") % spool_id).str();
     tree = put_spoolman_json(endpoint, tree);
@@ -163,6 +163,46 @@ bool Spoolman::use_spoolman_spool(const unsigned int& spool_id, const double& we
         return false;
 
     get_spoolman_spool_by_id(spool_id)->update_from_json(tree);
+    return true;
+}
+
+bool Spoolman::use_spoolman_spools(const std::map<unsigned int, double>& data, const std::string& usage_type)
+{
+    if (!(usage_type == "length" || usage_type == "weight"))
+        return false;
+
+    std::vector<unsigned int> spool_ids;
+
+    for (auto& [spool_id, usage] : data) {
+        if (!use_spoolman_spool(spool_id, usage, usage_type))
+            return false;
+        spool_ids.emplace_back(spool_id);
+    }
+
+    update_specific_spool_statistics(spool_ids);
+
+    m_use_undo_buffer = data;
+    m_last_usage_type = usage_type;
+    return true;
+}
+
+bool Spoolman::undo_use_spoolman_spools()
+{
+    if (m_use_undo_buffer.empty() || m_last_usage_type.empty())
+        return false;
+
+    std::vector<unsigned int> spool_ids;
+
+    for (auto& [spool_id, usage] : m_use_undo_buffer) {
+        if (!use_spoolman_spool(spool_id, usage * -1, m_last_usage_type))
+            return false;
+        spool_ids.emplace_back(spool_id);
+    }
+
+    update_specific_spool_statistics(spool_ids);
+
+    m_use_undo_buffer.clear();
+    m_last_usage_type.clear();
     return true;
 }
 
@@ -192,7 +232,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
         // Check for presets with the same spool ID
         int visible(0), invisible(0);
         for (const auto& item : filaments()) { // count num of visible and invisible
-            if (item.config.opt_int("spoolman_spool_id") == spool->id) {
+            if (item.config.opt_int("spoolman_spool_id", 0) == spool->id) {
                 if (item.is_visible)
                     visible++;
                 else
@@ -241,7 +281,7 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
         result.messages.emplace_back("Preset is not a filament preset");
         return result;
     }
-    const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id");
+    const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id", 0);
     if (spool_id < 1) {
         result.messages.emplace_back(
             "Preset provided does not have a valid Spoolman spool ID"); // IDs below 1 are not used by spoolman and should be ignored
@@ -271,11 +311,33 @@ void Spoolman::update_visible_spool_statistics(bool clear_cache)
             if (item->is_user() && item->spoolman_enabled()) {
                 if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
-                                             << res.build_single_line_message() << "Spool ID: " << item->config.opt_int("spoolman_spool_id");
+                                             << res.build_single_line_message() << "Spool ID: " << item->config.opt_int("spoolman_spool_id", 0);
             }
         }
     }
 }
+
+void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids)
+{
+    PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
+    PresetCollection& printers      = preset_bundle->printers;
+    PresetCollection& filaments    = preset_bundle->filaments;
+
+    std::set spool_ids_set(spool_ids.begin(), spool_ids.end());
+    // make sure '0' is not a value
+    spool_ids_set.erase(0);
+
+    if (printers.get_edited_preset().spoolman_enabled() && is_server_valid()) {
+        for (auto item : filaments.get_visible()) {
+            if (item->is_user() && spool_ids_set.count(item->config.opt_int("spoolman_spool_id", 0)) > 0) {
+                if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
+                                             << res.build_single_line_message() << "Spool ID: " << item->config.opt_int("spoolman_spool_id", 0);
+            }
+        }
+    }
+}
+
 
 bool Spoolman::is_server_valid()
 {

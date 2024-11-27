@@ -2564,6 +2564,10 @@ struct Plater::priv
     // Returns true if current_warnings vector is empty without showning the dialog
     bool warnings_dialog();
 
+    // If Spoolman is active, the server is valid, and at least one Spoolman spool is used,
+    // a dialog will be show asking if the user would like to consume the estimated filament usage
+    void spoolman_consumption_dialog(const bool& all_plates);
+
     void on_action_add(SimpleEvent&);
     void on_action_add_plate(SimpleEvent&);
     void on_action_del_plate(SimpleEvent&);
@@ -6760,8 +6764,12 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
+    if (!m_export_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1)))
+        spoolman_consumption_dialog(m_export_all);
 #if 0
     //BBS: also export 3mf to the same directory for debugging
+    if (evt.GetString().empty())
+        return;
     std::string gcode_path_str(evt.GetString().ToUTF8().data());
     fs::path gcode_path(gcode_path_str);
 
@@ -6864,6 +6872,60 @@ bool Plater::priv::warnings_dialog()
     MessageDialog msg_window(this->q, from_u8(text), _L("Slicing Warnings"), wxYES_NO);
     const auto    res = msg_window.ShowModal();
     return res == wxID_YES;
+}
+
+void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
+{
+    if (!wxGetApp().preset_bundle->printers.get_edited_preset().spoolman_enabled())
+        return;
+    if (!Spoolman::is_server_valid())
+        return;
+
+    auto spoolman = Spoolman::get_instance();
+    const auto& consumption_type = wxGetApp().app_config->get("spoolman", "consumption_type");
+    std::string unit = consumption_type == "weight" ? "g" : consumption_type == "length" ? "mm" : "";
+
+    if (unit.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "The specified consumption type is not valid";
+        return;
+    }
+
+    std::map<unsigned, double> estimates;
+    std::map<unsigned, wxString> messages;
+
+    auto apply_estimates_from_plate = [&] (PartPlate* plate) {
+        for (const auto& est : plate->fff_print()->get_spoolman_filament_consumption_estimates()) {
+            auto& id = est.spoolman_spool_id;
+            if (consumption_type == "weight") {
+                estimates[id] += est.est_used_weight;
+            } else if (consumption_type == "length") {
+                estimates[id] += est.est_used_length;
+            } else return;
+            messages[id] = wxString::FromUTF8((boost::format("%1%: %2% %3%") % est.filament_name % double_to_string(estimates[id], 2) % unit).str());
+        }
+    };
+
+    if (all_plates)
+        for (const auto& plate : partplate_list.get_plate_list())
+            apply_estimates_from_plate(plate);
+    else
+        apply_estimates_from_plate(partplate_list.get_curr_plate());
+
+    if (estimates.empty()) return;
+
+    auto msg = _L("Would you like to consume the used filaments registered in Spoolman?") + "\n\n";
+    for (const auto& [id, message] : messages)
+        msg += message + "\n";
+
+    auto dlg = MessageDialog(nullptr, msg, _L("Spoolman Filament Consumption"), wxYES_NO);
+    if (dlg.ShowModal() == wxID_YES) {
+        if (spoolman->use_spoolman_spools(estimates, consumption_type)) {
+            notification_manager->push_spoolman_consumption_finished_notification();
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to consume filament from Spoolman";
+            show_error(nullptr, _L("Failed to consume filament from Spoolman"));
+        }
+    }
 }
 
 //BBS: add project slice logic
