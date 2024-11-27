@@ -315,8 +315,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->SetBorderWidth(0);
-    m_comboBox_printer->SetMinSize(wxSize(FromDIP(260), FromDIP(60)));
-    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(260), FromDIP(60)));
+    m_comboBox_printer->SetMinSize(wxSize(FromDIP(250), FromDIP(60)));
+    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
 
@@ -341,15 +341,15 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     bed_staticbox->SetMaxSize(wxSize(FromDIP(98), FromDIP(68)));
     bed_staticbox->SetBorderColor(wxColour(0xCECECE));
 
-    m_bed_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", this, 32));
-    m_bed_image->SetBackgroundColour(*wxGREEN);
+    m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", this, 32));
+    m_bed_image->SetBackgroundColour(*wxWHITE);
     m_bed_image->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
     m_bed_image->SetMaxSize(wxSize(FromDIP(32), FromDIP(32)));
 
     m_text_bed_type = new Label(bed_staticbox);
     m_text_bed_type->SetForegroundColour(0xCECECE);
-    m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), 0));
-    m_text_bed_type->SetFont(Label::Body_13);
+    m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), FromDIP(24)));
+    m_text_bed_type->SetFont(Label::Body_10);
 
     sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_bed_staticbox->Add(m_bed_image, 0, wxALIGN_CENTER, 0);
@@ -4130,8 +4130,7 @@ bool SelectMachineDialog::Show(bool show)
         m_text_bed_type->Hide();
     }
     else {
-        plate_name = "Plate: " + plate_name;
-        m_text_bed_type->SetLabelText(plate_name);
+        m_text_bed_type->SetLabelText(format_bed_name(plate_name));
         m_text_bed_type->Show();
     }
     // set default value when show this dialog
@@ -4144,6 +4143,28 @@ bool SelectMachineDialog::Show(bool show)
     Fit();
     CenterOnParent();
     return DPIDialog::Show(show);
+}
+
+wxString SelectMachineDialog::format_bed_name(std::string plate_name)
+{
+    wxString name;
+    if (plate_name == "Cool Plate") {
+        name = _L("Cool");
+        m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool", this, 32));
+    } else if (plate_name == "Engineering Plate") {
+        name = _L("Engineering");
+        m_bed_image->SetBitmap(create_scaled_bitmap("bed_engineering", this, 32));
+    } else if (plate_name == "High Temp Plate") {
+        name = _L("High Temp");
+        m_bed_image->SetBitmap(create_scaled_bitmap("bed_high_templ", this, 32));
+    } else if (plate_name == "Textured PEI Plate") {
+        name = "PEI";
+        m_bed_image->SetBitmap(create_scaled_bitmap("bed_pei", this, 32));
+    } else if (plate_name == "Supertack Plate") {
+        name = _L("Cool(Supertack)");
+        m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool_supertack", this, 32));
+    }
+    return name;
 }
 
 SelectMachineDialog::~SelectMachineDialog()

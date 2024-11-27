@@ -447,7 +447,7 @@ public:
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
-    bool do_ams_mapping(MachineObject* obj_);
+    bool     do_ams_mapping(MachineObject *obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(ExtderData data);
@@ -457,6 +457,7 @@ public:
     std::string get_print_status_info(PrintDialogStatus status);
 
     PrintFromType get_print_type() {return m_print_type;};
+    wxString    format_bed_name(std::string plate_name);
     wxString    format_steel_name(NozzleType type);
     wxString    format_text(wxString &m_msg);
     PrintDialogStatus  get_status() { return m_print_status; }
