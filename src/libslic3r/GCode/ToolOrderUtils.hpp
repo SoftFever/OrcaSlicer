@@ -1,24 +1,29 @@
 #ifndef TOOL_ORDER_UTILS_HPP
 #define TOOL_ORDER_UTILS_HPP
 
-#include<vector>
-#include<optional>
-#include<functional>
+#include <vector>
+#include <optional>
+#include <functional>
+#include <memory>
 
 namespace Slic3r {
 
 using FlushMatrix = std::vector<std::vector<float>>;
 
-class MaxFlow
+namespace MaxFlowGraph {
+    const int INF = std::numeric_limits<int>::max();
+    const int INVALID_ID = -1;
+}
+
+class MaxFlowSolver
 {
 private:
-    const int INF = std::numeric_limits<int>::max();
     struct Edge {
         int from, to, capacity, flow;
         Edge(int u, int v, int cap) :from(u), to(v), capacity(cap), flow(0) {}
     };
 public:
-    MaxFlow(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+    MaxFlowSolver(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
         const std::vector<int>& u_capacity = {},
@@ -29,7 +34,6 @@ public:
 private:
     void add_edge(int from, int to, int capacity);
 
-
     int total_nodes;
     int source_id;
     int sink_id;
@@ -39,40 +43,56 @@ private:
     std::vector<std::vector<int>>adj;
 };
 
-class MinCostMaxFlow
-{
-    const int INF = std::numeric_limits<int>::max();
-    struct Edge
-    {
-        int from, to, capacity, cost, flow;
-        Edge(int u, int v, int cap, int cst) : from(u), to(v), capacity(cap), cost(cst), flow(0) {}
-    };
 
+struct MinCostMaxFlow;
+
+class GeneralMinCostSolver
+{
 public:
-    MinCostMaxFlow(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+    GeneralMinCostSolver(const std::vector<std::vector<float>>& matrix_,
+        const std::vector<int>& u_nodes,
+        const std::vector<int>& v_nodes);
+
+    std::vector<int> solve();
+    ~GeneralMinCostSolver();
+private:
+    std::unique_ptr<MinCostMaxFlow> m_solver;
+};
+
+
+class MinFlushFlowSolver
+{
+public:
+    MinFlushFlowSolver(const std::vector<std::vector<float>>& matrix_,
+        const std::vector<int>& u_nodes,
+        const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {},
         const std::vector<int>& u_capacity = {},
         const std::vector<int>& v_capacity = {}
     );
     std::vector<int> solve();
-
+    ~MinFlushFlowSolver();
 private:
-    void add_edge(int from, int to, int capacity, int cost);
-    bool spfa(int source, int sink);
-    int get_distance(int idx_in_left, int idx_in_right);
-
-private:
-    std::vector<std::vector<float>> matrix;
-    std::vector<int> l_nodes;
-    std::vector<int> r_nodes;
-    std::vector<Edge> edges;
-    std::vector<std::vector<int>> adj;
-
-    int total_nodes;
-    int source_id;
-    int sink_id;
+    std::unique_ptr<MinCostMaxFlow> m_solver;
 };
+
+
+class MatchModeGroupSolver
+{
+public:
+    MatchModeGroupSolver(const std::vector<std::vector<float>>& matrix_,
+        const std::vector<int>& u_nodes,
+        const std::vector<int>& v_nodes,
+        const std::vector<int>& v_capacity,
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {});
+
+    std::vector<int> solve();
+    ~MatchModeGroupSolver();
+private:
+    std::unique_ptr<MinCostMaxFlow> m_solver;
+};
+
 
 std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,
                                               const std::vector<unsigned int> &curr_layer_extruders,

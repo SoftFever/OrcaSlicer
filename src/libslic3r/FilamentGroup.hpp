@@ -9,6 +9,7 @@
 #include <vector>
 #include <queue>
 #include "GCode/ToolOrderUtils.hpp"
+#include "FilamentGroupUtils.hpp"
 
 const static int DEFAULT_CLUSTER_SIZE = 16;
 
@@ -23,14 +24,9 @@ namespace Slic3r
         BestFit
     };
 
-    struct Color
-    {
-        unsigned char r = 0;
-        unsigned char g = 0;
-        unsigned char b = 0;
-        unsigned char a = 255;
-        Color(unsigned char r_ = 0, unsigned char g_ = 0, unsigned char b_ = 0, unsigned a_ = 255) :r(r_), g(g_), b(b_), a(a_) {}
-        Color(const std::string& hexstr);
+    enum FGMode {
+        FlushMode,
+        MatchMode
     };
 
     namespace FilamentGroupUtils
@@ -65,6 +61,7 @@ namespace Slic3r
             int prefer_level{ 0 };
             std::vector<int>group;
         };
+
         using MemoryedGroupHeap = std::priority_queue<MemoryedGroup, std::vector<MemoryedGroup>, std::greater<MemoryedGroup>>;
 
         void update_memoryed_groups(const MemoryedGroup& item,const double gap_threshold, MemoryedGroupHeap& groups);
@@ -72,19 +69,37 @@ namespace Slic3r
 
     struct FilamentGroupContext
     {
-        std::vector<FlushMatrix> flush_matrix;
-        std::vector<std::set<int>>physical_unprintables;
-        std::vector<std::set<int>>geometric_unprintables;
-        std::vector<int>max_group_size;
-        int total_filament_num;
-        int master_extruder_id;
+        struct ModelInfo {
+            std::vector<FlushMatrix> flush_matrix;
+            std::vector<std::vector<unsigned int>> layer_filaments;
+            std::vector<std::string> filament_colors;
+            std::vector<std::string> filament_types;
+            std::vector<std::set<int>> unprintable_filaments;
+        } model_info;
+
+        struct GroupInfo {
+            int total_filament_num;
+            double max_gap_threshold;
+            FGMode mode;
+            FGStrategy strategy;
+            bool ignore_ext_filament;  //wai gua filament
+        } group_info;
+
+        struct MachineInfo {
+            std::vector<int> max_group_size;
+            std::vector<std::vector<FilamentGroupUtils::FilamentInfo>> machine_filament_info;
+            std::vector<std::pair<std::set<int>, int>> extruder_group_size;
+            int master_extruder_id;
+        } machine_info;
     };
 
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<std::string>& used_filament_colors, const std::vector<std::vector<std::string>>& ams_filament_colros,const double color_delta_threshold = 20);
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<FilamentGroupUtils::Color>& used_filament_colors_, const std::vector<std::vector<FilamentGroupUtils::Color>>& ams_filament_colros_,const double color_delta_threshold = 20);
 
     bool optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, std::vector<int>& filament_map);
 
     bool can_swap_groups(const int extruder_id_0, const std::set<int>& group_0, const int extruder_id_1, const std::set<int>& group_1, const FilamentGroupContext& ctx);
+
+    std::vector<int> calc_filament_group_for_tpu(const std::set<int>& tpu_filaments, const int filament_nums, const int master_extruder_id);
 
     class FlushDistanceEvaluator
     {
@@ -99,19 +114,24 @@ namespace Slic3r
 
     class FilamentGroup
     {
-        using MemoryedGroupHeap = FilamentGroupUtils::MemoryedGroupHeap;
         using MemoryedGroup = FilamentGroupUtils::MemoryedGroup;
+        using MemoryedGroupHeap = FilamentGroupUtils::MemoryedGroupHeap;
     public:
-        FilamentGroup(const FilamentGroupContext& context);
-        std::vector<int> calc_filament_group(const std::vector<std::vector<unsigned int>>& layer_filaments, const FGStrategy& g_strategy = FGStrategy::BestFit, int* cost = nullptr);
+        explicit FilamentGroup(const FilamentGroupContext& ctx_) :ctx(ctx_) {}
     public:
-        std::vector<int> calc_filament_group_by_enum(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr);
-        std::vector<int> calc_filament_group_by_pam2(const std::vector<std::vector<unsigned int>>& layer_filaments, const std::vector<unsigned int>& used_filaments, const FGStrategy& g_strategy, int* cost = nullptr, int timeout_ms = 300);
-        void set_memory_threshold(double threshold) { memory_threshold = threshold; }
+        std::vector<int> calc_filament_group(int * cost = nullptr);
         std::vector<std::vector<int>> get_memoryed_groups()const { return m_memoryed_groups; }
+
+    public:
+        std::vector<int> calc_filament_group_for_match(int* cost = nullptr);
+        std::vector<int> calc_filament_group_for_flush(int* cost = nullptr);
+
     private:
-        FilamentGroupContext m_context;
-        double memory_threshold{ 0 };
+        std::vector<int> calc_min_flush_group(int* cost = nullptr);
+        std::vector<int> calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost = nullptr);
+        std::vector<int> calc_min_flush_group_by_pam2(const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300);
+    private:
+        FilamentGroupContext ctx;
         std::vector<std::vector<int>> m_memoryed_groups;
 
     public:

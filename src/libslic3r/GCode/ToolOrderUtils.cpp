@@ -7,8 +7,119 @@
 
 namespace Slic3r
 {
+    struct MinCostMaxFlow {
+    public:
+        struct Edge {
+            int from, to, capacity, cost, flow;
+            Edge(int u, int v, int cap, int cst) : from(u), to(v), capacity(cap), cost(cst), flow(0) {}
+        };
 
-    MaxFlow::MaxFlow(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+        std::vector<int> solve();
+        void add_edge(int from, int to, int capacity, int cost);
+        bool spfa(int source, int sink);
+        int get_distance(int idx_in_left, int idx_in_right);
+
+        std::vector<std::vector<float>> matrix;
+        std::vector<int> l_nodes;
+        std::vector<int> r_nodes;
+        std::vector<Edge> edges;
+        std::vector<std::vector<int>> adj;
+
+        int total_nodes{ -1 };
+        int source_id{ -1 };
+        int sink_id{ -1 };
+    };
+
+    std::vector<int> MinCostMaxFlow::solve()
+    {
+        while (spfa(source_id, sink_id));
+
+        std::vector<int>matching(l_nodes.size(), MaxFlowGraph::INVALID_ID);
+        // to get the match info, just traverse the left nodes and
+        // check the edges with flow > 0 and linked to right nodes
+        for (int u = 0; u < l_nodes.size(); ++u) {
+            for (int eid : adj[u]) {
+                Edge& e = edges[eid];
+                if (e.flow > 0 && e.to >= l_nodes.size() && e.to < l_nodes.size() + r_nodes.size())
+                    matching[e.from] = r_nodes[e.to - l_nodes.size()];
+            }
+        }
+
+        return matching;
+    }
+
+    void MinCostMaxFlow::add_edge(int from, int to, int capacity, int cost)
+    {
+        adj[from].emplace_back(edges.size());
+        edges.emplace_back(from, to, capacity, cost);
+        //also add reverse edge ,set capacity to zero,cost to negative
+        adj[to].emplace_back(edges.size());
+        edges.emplace_back(to, from, 0, -cost);
+    }
+
+    bool MinCostMaxFlow::spfa(int source, int sink)
+    {
+        std::vector<int>dist(total_nodes, MaxFlowGraph::INF);
+        std::vector<bool>in_queue(total_nodes, false);
+        std::vector<int>flow(total_nodes, MaxFlowGraph::INF);
+        std::vector<int>prev(total_nodes, 0);
+
+        std::queue<int>q;
+        q.push(source);
+        in_queue[source] = true;
+        dist[source] = 0;
+
+        while (!q.empty()) {
+            int now_at = q.front();
+            q.pop();
+            in_queue[now_at] = false;
+
+            for (auto eid : adj[now_at]) //traverse all linked edges
+            {
+                Edge& e = edges[eid];
+                if (e.flow<e.capacity && dist[e.to]>dist[now_at] + e.cost) {
+                    dist[e.to] = dist[now_at] + e.cost;
+                    prev[e.to] = eid;
+                    flow[e.to] = std::min(flow[now_at], e.capacity - e.flow);
+                    if (!in_queue[e.to]) {
+                        q.push(e.to);
+                        in_queue[e.to] = true;
+                    }
+                }
+            }
+        }
+
+        if (dist[sink] == MaxFlowGraph::INF)
+            return false;
+
+        int now_at = sink;
+        while (now_at != source) {
+            int prev_edge = prev[now_at];
+            edges[prev_edge].flow += flow[sink];
+            edges[prev_edge ^ 1].flow -= flow[sink];
+            now_at = edges[prev_edge].from;
+        }
+
+        return true;
+    }
+
+    int MinCostMaxFlow::get_distance(int idx_in_left, int idx_in_right)
+    {
+        if (l_nodes[idx_in_left] == -1) {
+            return 0;
+            //TODO: test more here
+            int sum = 0;
+            for (int i = 0; i < matrix.size(); ++i)
+                sum += matrix[i][idx_in_right];
+            sum /= matrix.size();
+            return -sum;
+        }
+
+        return matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+    }
+
+
+    MaxFlowSolver::MaxFlowSolver(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits,
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
         const std::vector<int>& u_capacity,
@@ -58,7 +169,7 @@ namespace Slic3r
         }
     }
 
-    void MaxFlow::add_edge(int from, int to, int capacity)
+    void MaxFlowSolver::add_edge(int from, int to, int capacity)
     {
         adj[from].emplace_back(edges.size());
         edges.emplace_back(from, to, capacity);
@@ -67,14 +178,14 @@ namespace Slic3r
         edges.emplace_back(to, from, 0);
     }
 
-    std::vector<int> MaxFlow::solve() {
+    std::vector<int> MaxFlowSolver::solve() {
         std::vector<int> augment;
         std::vector<int> previous(total_nodes, 0);
         while (1) {
             std::vector<int>(total_nodes, 0).swap(augment);
             std::queue<int> travel;
             travel.push(source_id);
-            augment[source_id] = INF;
+            augment[source_id] = MaxFlowGraph::INF;
             while (!travel.empty()) {
                 int from = travel.front();
                 travel.pop();
@@ -104,7 +215,7 @@ namespace Slic3r
             }
         }
 
-        std::vector<int> matching(l_nodes.size(), -1);
+        std::vector<int> matching(l_nodes.size(), MaxFlowGraph::INVALID_ID);
         // to get the match info, just traverse the left nodes and
         // check the edge with flow > 0 and linked to right nodes
         for (int u = 0; u < l_nodes.size(); ++u) {
@@ -117,7 +228,52 @@ namespace Slic3r
         return matching;
     }
 
-    MinCostMaxFlow::MinCostMaxFlow(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
+    GeneralMinCostSolver::~GeneralMinCostSolver()
+    {
+    }
+
+    GeneralMinCostSolver::GeneralMinCostSolver(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes)
+    {
+        m_solver = std::make_unique<MinCostMaxFlow>();
+        m_solver->matrix = matrix_;;
+        m_solver->l_nodes = u_nodes;
+        m_solver->r_nodes = v_nodes;
+
+        m_solver->total_nodes = u_nodes.size() + v_nodes.size() + 2;
+
+        m_solver->source_id =m_solver->total_nodes - 2;
+        m_solver->sink_id = m_solver->total_nodes - 1;
+
+        m_solver->adj.resize(m_solver->total_nodes);
+
+
+        // add edge from source to left nodes,cost to 0
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i)
+            m_solver->add_edge(m_solver->source_id, i, 1, 0);
+
+        // add edge from right nodes to sink,cost to 0
+        for (int i = 0; i < m_solver->r_nodes.size(); ++i)
+            m_solver->add_edge(m_solver->l_nodes.size() + i, m_solver->sink_id, 1, 0);
+
+        // add edge from left node to right nodes
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
+            int from_idx = i;
+            for (int j = 0; j < m_solver->r_nodes.size(); ++j) {
+                int to_idx = m_solver->l_nodes.size() + j;
+                m_solver->add_edge(from_idx, to_idx, 1, m_solver->get_distance(i, j));
+            }
+        }
+    }
+
+    std::vector<int> GeneralMinCostSolver::solve() {
+        return m_solver->solve();
+    }
+
+    MinFlushFlowSolver::~MinFlushFlowSolver()
+    {
+    }
+
+    MinFlushFlowSolver::MinFlushFlowSolver(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits,
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
         const std::vector<int>& u_capacity,
@@ -125,34 +281,35 @@ namespace Slic3r
     {
         assert(u_capacity.empty() || u_capacity.size() == u_nodes.size());
         assert(v_capacity.empty() || v_capacity.size() == v_nodes.size());
-        matrix = matrix_;
-        l_nodes = u_nodes;
-        r_nodes = v_nodes;
+        m_solver = std::make_unique<MinCostMaxFlow>();
+        m_solver->matrix = matrix_;;
+        m_solver->l_nodes = u_nodes;
+        m_solver->r_nodes = v_nodes;
 
-        total_nodes = u_nodes.size() + v_nodes.size() + 2;
+        m_solver->total_nodes = u_nodes.size() + v_nodes.size() + 2;
 
-        source_id = total_nodes - 2;
-        sink_id = total_nodes - 1;
+        m_solver->source_id =m_solver->total_nodes - 2;
+        m_solver->sink_id = m_solver->total_nodes - 1;
 
-        adj.resize(total_nodes);
+        m_solver->adj.resize(m_solver->total_nodes);
 
         // add edge from source to left nodes,cost to 0
-        for (int i = 0; i < l_nodes.size(); ++i) {
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
             int capacity = u_capacity.empty() ? 1 : u_capacity[i];
-            add_edge(source_id, i, capacity, 0);
+            m_solver->add_edge(m_solver->source_id, i, capacity, 0);
         }
         // add edge from right nodes to sink,cost to 0
-        for (int i = 0; i < r_nodes.size(); ++i) {
+        for (int i = 0; i < m_solver->r_nodes.size(); ++i) {
             int capacity = v_capacity.empty() ? 1 : v_capacity[i];
-            add_edge(l_nodes.size() + i, sink_id, capacity, 0);
+            m_solver->add_edge(m_solver->l_nodes.size() + i, m_solver->sink_id, capacity, 0);
         }
         // add edge from left node to right nodes
-        for (int i = 0; i < l_nodes.size(); ++i) {
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
             int from_idx = i;
             // process link limits, i can only link to link_limits
             if (auto iter = uv_link_limits.find(i); iter != uv_link_limits.end()) {
                 for (auto r_id : iter->second)
-                    add_edge(from_idx, l_nodes.size() + r_id, 1, get_distance(i, r_id));
+                    m_solver->add_edge(from_idx, m_solver->l_nodes.size() + r_id, 1, m_solver->get_distance(i, r_id));
                 continue;
             }
 
@@ -160,100 +317,64 @@ namespace Slic3r
             std::optional<std::vector<int>> unlink_limits;
             if (auto iter = uv_unlink_limits.find(i); iter != uv_unlink_limits.end())
                 unlink_limits = iter->second;
-            for (int j = 0; j < r_nodes.size(); ++j) {
+            for (int j = 0; j < m_solver->r_nodes.size(); ++j) {
                 if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
                     continue;
-                add_edge(from_idx, l_nodes.size() + j, 1, get_distance(i, j));
+                m_solver->add_edge(from_idx, m_solver->l_nodes.size() + j, 1, m_solver->get_distance(i, j));
             }
         }
     }
 
-    std::vector<int> MinCostMaxFlow::solve()
-    {
-        while (spfa(source_id, sink_id));
+    std::vector<int> MinFlushFlowSolver::solve() {
+        return m_solver->solve();
+    }
 
-        std::vector<int>matching(l_nodes.size(), -1);
-        // to get the match info, just traverse the left nodes and
-        // check the edges with flow > 0 and linked to right nodes
-        for (int u = 0; u < l_nodes.size(); ++u) {
-            for (int eid : adj[u]) {
-                Edge& e = edges[eid];
-                if (e.flow > 0 && e.to >= l_nodes.size() && e.to < l_nodes.size() + r_nodes.size())
-                    matching[e.from] = r_nodes[e.to - l_nodes.size()];
+    MatchModeGroupSolver::~MatchModeGroupSolver()
+    {
+    }
+
+    MatchModeGroupSolver::MatchModeGroupSolver(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes, const std::vector<int>& v_capacity, const std::unordered_map<int, std::vector<int>>& uv_unlink_limits)
+    {
+        assert(v_nodes.size() == v_capacity.size());
+        m_solver = std::make_unique<MinCostMaxFlow>();
+        m_solver->matrix = matrix_;;
+        m_solver->l_nodes = u_nodes;
+        m_solver->r_nodes = v_nodes;
+
+        m_solver->total_nodes = u_nodes.size() + v_nodes.size() + 2;
+
+        m_solver->source_id = m_solver->total_nodes - 2;
+        m_solver->sink_id = m_solver->total_nodes - 1;
+
+        m_solver->adj.resize(m_solver->total_nodes);
+
+
+        // add edge from source to left nodes,cost to 0
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i)
+            m_solver->add_edge(m_solver->source_id, i, 1, 0);
+
+        // add edge from right nodes to sink,cost to 0
+        for (int i = 0; i < m_solver->r_nodes.size(); ++i)
+            m_solver->add_edge(m_solver->l_nodes.size() + i, m_solver->sink_id, v_capacity[i], 0);
+
+        // add edge from left node to right nodes
+        for (int i = 0; i < m_solver->l_nodes.size(); ++i) {
+            int from_idx = i;
+
+            // process unlink limits, check whether i can link to j
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto iter = uv_unlink_limits.find(i); iter != uv_unlink_limits.end())
+                unlink_limits = iter->second;
+            for (int j = 0; j < m_solver->r_nodes.size(); ++j) {
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
+                m_solver->add_edge(from_idx, m_solver->l_nodes.size() + j, 1, m_solver->get_distance(i, j));
             }
         }
-
-        return matching;
     }
 
-    void MinCostMaxFlow::add_edge(int from, int to, int capacity, int cost)
-    {
-        adj[from].emplace_back(edges.size());
-        edges.emplace_back(from, to, capacity, cost);
-        //also add reverse edge ,set capacity to zero,cost to negative
-        adj[to].emplace_back(edges.size());
-        edges.emplace_back(to, from, 0, -cost);
-    }
-
-    bool MinCostMaxFlow::spfa(int source, int sink)
-    {
-        std::vector<int>dist(total_nodes, INF);
-        std::vector<bool>in_queue(total_nodes, false);
-        std::vector<int>flow(total_nodes, INF);
-        std::vector<int>prev(total_nodes, 0);
-
-        std::queue<int>q;
-        q.push(source);
-        in_queue[source] = true;
-        dist[source] = 0;
-
-        while (!q.empty()) {
-            int now_at = q.front();
-            q.pop();
-            in_queue[now_at] = false;
-
-            for (auto eid : adj[now_at]) //traverse all linked edges
-            {
-                Edge& e = edges[eid];
-                if (e.flow<e.capacity && dist[e.to]>dist[now_at] + e.cost) {
-                    dist[e.to] = dist[now_at] + e.cost;
-                    prev[e.to] = eid;
-                    flow[e.to] = std::min(flow[now_at], e.capacity - e.flow);
-                    if (!in_queue[e.to]) {
-                        q.push(e.to);
-                        in_queue[e.to] = true;
-                    }
-                }
-            }
-        }
-
-        if (dist[sink] == INF)
-            return false;
-
-        int now_at = sink;
-        while (now_at != source) {
-            int prev_edge = prev[now_at];
-            edges[prev_edge].flow += flow[sink];
-            edges[prev_edge ^ 1].flow -= flow[sink];
-            now_at = edges[prev_edge].from;
-        }
-
-        return true;
-    }
-
-    int MinCostMaxFlow::get_distance(int idx_in_left, int idx_in_right)
-    {
-        if (l_nodes[idx_in_left] == -1) {
-            return 0;
-            //TODO: test more here
-            int sum = 0;
-            for (int i = 0; i < matrix.size(); ++i)
-                sum += matrix[i][idx_in_right];
-            sum /= matrix.size();
-            return -sum;
-        }
-
-        return matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+    std::vector<int> MatchModeGroupSolver::solve() {
+        return m_solver->solve();
     }
 
     //solve the problem by searching the least flush of current filament

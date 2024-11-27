@@ -5,6 +5,7 @@
 #include "ClipperUtils.hpp"
 #include "ParameterUtils.hpp"
 #include "GCode/ToolOrderUtils.hpp"
+#include "FilamentGroupUtils.hpp"
 // #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
@@ -1032,6 +1033,7 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
 
 std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const Print* print, const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
 {
+    using namespace FilamentGroupUtils;
     if (!print_config || layer_filaments.empty())
         return std::vector<int>();
 
@@ -1074,73 +1076,48 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     // if mutli_extruder, calc group,otherwise set to 0
     if (extruder_nums == 2) {
         std::vector<std::string> extruder_ams_count_str = print_config->extruder_ams_count.values;
-        auto                     extruder_ams_counts    = get_extruder_ams_count(extruder_ams_count_str);
-        std::vector<int>         group_size             = {16, 16};
-        if (extruder_ams_counts.size() > 0) {
-            assert(extruder_ams_counts.size() == 2);
-            for (int i = 0; i < extruder_ams_counts.size(); ++i) {
-                group_size[i]         = 0;
-                const auto &ams_count = extruder_ams_counts[i];
-                for (auto iter = ams_count.begin(); iter != ams_count.end(); ++iter) { group_size[i] += iter->first * iter->second; }
-            }
-            // When the AMS count is 0, only external filament can be used, so set the capacity to 1.
-            for(auto& size: group_size)
-                if(size == 0)
-                    size = 1;
-        }
+        auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
+        std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, false);
 
-        FilamentGroupContext context;
-        {
-            context.flush_matrix = std::move(nozzle_flush_mtx);
-            context.geometric_unprintables = geometric_unprintables;
-            context.physical_unprintables = physical_unprintables;
-            context.max_group_size = std::move(group_size);
-            context.total_filament_num = (int)filament_nums;
-            context.master_extruder_id = print_config->master_extruder_id.value - 1; // transfer to 0 based idx
-        }
+        auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info());
+        std::vector<std::string> filament_types = print_config->filament_type.values;
+        std::vector<std::string> filament_colours = print_config->filament_colour.values;
+
         // speacially handle tpu filaments
         auto used_filaments = collect_sorted_used_filaments(layer_filaments);
         auto tpu_filaments = get_filament_by_type(used_filaments, print_config, "TPU");
+        FGMode fg_mode = print_config->filament_map_mode.value == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
+
+        std::vector<std::set<int>> ext_unprintable_filaments;
+        collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);  // TODO: throw exception if fail or set it to status
+
+        FilamentGroupContext context;
+        {
+            context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
+            context.model_info.unprintable_filaments = ext_unprintable_filaments;  // TODO:
+            context.model_info.layer_filaments = layer_filaments;
+            context.model_info.filament_colors = filament_colours;
+            context.model_info.filament_types = filament_types;
+
+            context.machine_info.machine_filament_info = machine_filament_info;
+            context.machine_info.max_group_size = std::move(group_size);
+            context.machine_info.master_extruder_id = print_config->master_extruder_id.value - 1; // switch to 0 based idx
+
+            context.group_info.total_filament_num = (int)(filament_nums);
+            context.group_info.max_gap_threshold = 0.01;
+            context.group_info.strategy = FGStrategy::BestCost;
+            context.group_info.mode = fg_mode;
+            context.group_info.ignore_ext_filament = false; // TODO:
+        }
+
 
         if (!tpu_filaments.empty()) {
-            for (size_t fidx = 0; fidx < filament_nums; ++fidx) {
-                if (tpu_filaments.count(fidx))
-                    ret[fidx] = context.master_extruder_id;
-                else
-                    ret[fidx] = 1 - context.master_extruder_id;
-            }
+            ret = calc_filament_group_for_tpu(tpu_filaments, context.group_info.total_filament_num, context.machine_info.master_extruder_id);
         }
         else {
             FilamentGroup fg(context);
-            fg.set_memory_threshold(0.02);
             fg.get_custom_seq = get_custom_seq;
-
-            ret = fg.calc_filament_group(layer_filaments, FGStrategy::BestCost);
-
-            // optimize for master extruder id
-            optimize_group_for_master_extruder(used_filaments, context, ret);
-
-            // optimize according to AMS filaments
-            std::vector<std::vector<int>>memoryed_maps{ ret };
-            {
-                auto tmp_maps = fg.get_memoryed_groups();
-                memoryed_maps.insert(memoryed_maps.end(), std::make_move_iterator(tmp_maps.begin()), std::make_move_iterator(tmp_maps.end()));
-            }
-
-            std::vector<std::string>used_colors;
-            for (size_t idx = 0; idx < used_filaments.size(); ++idx)
-                used_colors.emplace_back(print_config->filament_colour.get_at(used_filaments[idx]));
-
-            auto ams_filament_info = print->get_extruder_filament_info();
-            std::vector<std::vector<std::string>> ams_colors(extruder_nums);
-            for (size_t i = 0; i < ams_filament_info.size(); ++i) {
-                auto& arr = ams_filament_info[i];
-                std::vector<std::string>colors;
-                for (auto& item : arr)
-                    colors.emplace_back(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
-                ams_colors[i] = std::move(colors);
-            }
-            ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors, similar_color_threshold_de2000);
+            ret = fg.calc_filament_group();
         }
     }
 
