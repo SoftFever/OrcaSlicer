@@ -256,7 +256,6 @@ private:
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
-    bool                                m_printer_update_options_layout {false};
     PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
@@ -300,7 +299,9 @@ protected:
     AmsTutorialPopup                    m_mapping_tutorial_popup{ nullptr };
     MaterialHash                        m_materialList;
     Plater *                            m_plater{nullptr};
-    wxBoxSizer*                         m_sizer_options{ nullptr };
+    wxPanel *                           m_options_other {nullptr};
+    wxBoxSizer*                         m_sizer_options_timelapse{ nullptr };
+    wxBoxSizer*                         m_sizer_options_other{ nullptr };
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
 
     wxBoxSizer*                         m_sizer_main{ nullptr };
@@ -344,6 +345,7 @@ protected:
     wxTimer*                            m_refresh_timer{ nullptr };
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    wxStaticBitmap *                    m_advanced_options_icon{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};

@@ -502,16 +502,36 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto        advanced_options_title       = new Label(this, _L("Advanced Options"));
     advanced_options_title->SetFont(::Label::Body_13);
     advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
-    sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
-    sizer_advanced_options_title->Add(advanced_options_title, 0, wxRIGHT, 0);
 
-    m_sizer_options = new wxBoxSizer(wxVERTICAL);
+    m_advanced_options_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option1", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
+
+    sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
+    sizer_advanced_options_title->Add(advanced_options_title, 0, wxALIGN_CENTER, 0);
+    sizer_advanced_options_title->Add(m_advanced_options_icon, 0, wxALIGN_CENTER, 0);
+
+    advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
+    advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
+    advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (m_options_other->IsShown()) {
+            m_options_other->Hide();
+            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
+        } else {
+            m_options_other->Show();
+            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option2", this, 18));
+        }
+        Layout();
+        Fit();
+    });
+
+    m_options_other = new wxPanel(this);
+    m_sizer_options_timelapse = new wxBoxSizer(wxVERTICAL);
+    m_sizer_options_other = new wxBoxSizer(wxVERTICAL);
 
 
     auto option_timelapse           = new PrintOption(this, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
 
     auto option_auto_bed_level      = new PrintOption(
-        this,
+        m_options_other,
         _L("Auto Bed Leveling"),
         _L("Check heatbed flatness. Leveling makes extruded height uniform.\n*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."),
         ops_auto,
@@ -519,7 +539,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     );
 
     auto option_flow_dynamics_cali  = new PrintOption(
-            this,
+            m_options_other,
             _L("Flow Dynamics Calibration"),
             _L("Find the best coefficient for dynamic flow calibration to enhance print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
             ops_auto,
@@ -527,25 +547,29 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         );
 
     auto option_nozzle_offset_cali_cali  = new PrintOption(
-        this,
+        m_options_other,
         _L("Nozzle Offset Calibration"),
         _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
         ops_auto
     );
 
     auto option_use_ams             = new PrintOption(
-        this,
+        m_options_other,
         _L("Use AMS"),
         _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
         ops_no_auto
     );
 
     option_use_ams->setValue("off");
-    m_sizer_options->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_other->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_other->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+
+    m_options_other->SetSizer(m_sizer_options_other);
+    m_options_other->Layout();
+    m_options_other->Fit();
 
     m_checkbox_list["timelapse"]     = option_timelapse;
     m_checkbox_list["bed_leveling"]  = option_auto_bed_level;
@@ -721,7 +745,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_sizer_options, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_sizer_options_timelapse, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
@@ -849,10 +874,6 @@ void SelectMachineDialog::popup_filament_backup()
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    if (m_printer_update_options_layout) {
-        return;
-    }
-
     // reset checkbox
     m_checkbox_list["timelapse"]->Hide();
     m_checkbox_list["bed_leveling"]->Hide();
@@ -874,21 +895,14 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 
     if (obj && obj->is_support_auto_flow_calibration) {
         m_checkbox_list["flow_cali"]->Show();
-    } else {
-        m_checkbox_list["flow_cali"]->Hide();
     }
 
     if (obj && obj->is_support_auto_leveling) {
         m_checkbox_list["bed_leveling"]->Show();
-    } else {
-        m_checkbox_list["bed_leveling"]->Hide();
     }
-
     if (obj && obj->is_support_timelapse && is_show_timelapse()) {
         m_checkbox_list["timelapse"]->Show();
         update_timelapse_enable_status();
-    } else {
-        m_checkbox_list["timelapse"]->Hide();
     }
 
     // load checkbox values from app config
@@ -911,14 +925,8 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 
     update_ams_check(obj);
     update_flow_cali_check(obj);
-
-    m_sizer_options->Layout();
     Layout();
     Fit();
-
-    if (obj->is_info_ready() && !m_printer_update_options_layout) {
-        m_printer_update_options_layout = true;
-    }
 }
 
 void SelectMachineDialog::prepare_mode(bool refresh_button)
@@ -2794,7 +2802,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_ams_mapping_res  = false;
     m_ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
-    m_printer_update_options_layout = false;
 
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4097,6 +4104,8 @@ void SelectMachineDialog::sys_color_changed()
 bool SelectMachineDialog::Show(bool show)
 {
     if (show) {
+        m_options_other->Hide();
+        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
     } else {
         m_refresh_timer->Stop();
@@ -4496,21 +4505,23 @@ void PrintOptionItem::doRender(wxDC &dc)
     for (auto it = m_ops.begin(); it != m_ops.end(); ++it) {
         auto text_key      = it->get_left();
         auto text_value    = it->get_right();
-        auto text_size = dc.GetTextExtent(text_value);
-
-        auto text_left = left + (FromDIP(50) - text_size.x) / 2;
-        auto text_top  = (size.y - text_size.y) / 2;
 
         if (text_key == selected_key) {
             dc.SetPen(wxPen(0x00AE42));
             dc.SetTextForeground(0x00AE42);
             dc.SetFont(::Label::Head_13);
+            auto text_size = dc.GetTextExtent(text_value);
+            auto text_left = left + (FromDIP(50) - text_size.x) / 2;
+            auto text_top  = (size.y - text_size.y) / 2;
             dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
         else {
             dc.SetPen(wxPen(*wxBLACK));
             dc.SetTextForeground(*wxBLACK);
             dc.SetFont(::Label::Body_13);
+            auto text_size = dc.GetTextExtent(text_value);
+            auto text_left = left + (FromDIP(50) - text_size.x) / 2;
+            auto text_top  = (size.y - text_size.y) / 2;
             dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
 
