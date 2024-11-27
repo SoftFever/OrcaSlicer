@@ -779,17 +779,17 @@ public:
 
         wxSizer * sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(msg, 0, wxTOP | wxLEFT | wxRIGHT, FromDIP(10));
-        wxSizer * sizer2 = new wxBoxSizer(wxHORIZONTAL);
-        wxSizer *sizer21 = new wxBoxSizer(wxVERTICAL);
-        sizer21->Add(img4, 0, wxALIGN_CENTRE_HORIZONTAL);
-        sizer21->Add(txt4, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
-        sizer21->Add(val4, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
-        sizer2->Add(sizer21, 1);
-        wxSizer *sizer22 = new wxBoxSizer(wxVERTICAL);
-        sizer22->Add(img1, 0, wxALIGN_CENTRE_HORIZONTAL);
-        sizer22->Add(txt1, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
-        sizer22->Add(val1, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
-        sizer2->Add(sizer22, 1);
+            wxSizer * sizer2 = new wxBoxSizer(wxHORIZONTAL);
+                wxSizer *sizer21 = new wxBoxSizer(wxVERTICAL);
+                sizer21->Add(img4, 0, wxALIGN_CENTRE);
+                sizer21->Add(txt4, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
+                sizer21->Add(val4, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
+            sizer2->Add(sizer21, 1);
+                wxSizer *sizer22 = new wxBoxSizer(wxVERTICAL);
+                sizer22->Add(img1, 0, wxALIGN_CENTRE);
+                sizer22->Add(txt1, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
+                sizer22->Add(val1, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
+            sizer2->Add(sizer22, 1);
         sizer->Add(sizer2, 0, wxTOP | wxBOTTOM | wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         SetSizer(sizer);
 
