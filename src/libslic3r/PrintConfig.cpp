@@ -3718,6 +3718,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
+    def = this->add("retract_on_top_layer", coBools);
+    def->label = L("Retract on top layer");
+    def->tooltip = L("Force a retraction on top layer. Disabling could prevent clog on very slow patterns with small movements, like Hilbert curve");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools { true });
+
     def = this->add("retraction_length", coFloats);
     def->label = L("Length");
     def->full_label = L("Retraction Length");
@@ -5378,7 +5384,7 @@ void PrintConfigDef::init_fff_params()
         // BBS: floats
         "wipe_distance",
         // bools
-        "retract_when_changing_layer", "wipe",
+        "retract_when_changing_layer", "retract_on_top_layer", "wipe",
         // percents
         "retract_before_wipe",
         "long_retractions_when_cut",
@@ -5430,7 +5436,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
+        "retract_when_changing_layer", "retract_on_top_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
 
@@ -5443,6 +5449,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retract_on_top_layer",
         "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
@@ -5462,7 +5469,7 @@ void PrintConfigDef::init_filament_option_keys()
         "filament_diameter", "min_layer_height", "max_layer_height",
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
+        "retract_when_changing_layer", "retract_on_top_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"/*,"filament_seam_gap"*/
     };
 
@@ -5475,6 +5482,7 @@ void PrintConfigDef::init_filament_option_keys()
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retract_on_top_layer",
         "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
