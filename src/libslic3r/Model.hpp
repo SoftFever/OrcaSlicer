@@ -1535,9 +1535,10 @@ public:
                                 LoadStrategy                                            options,
                                 ImportStepProgressFn                                    stepFn,
                                 StepIsUtf8Fn                                            stepIsUtf8Fn,
-                                std::function<int(Slic3r::Step&, double&, double&)>     step_mesh_fn,
+                                std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                                 double                                                  linear_defletion,
-                                double                                                  angle_defletion);
+                                double                                                  angle_defletion,
+                                bool                                                    is_split_compound);
 
     //BBS: add part plate related logic
     // BBS: backup

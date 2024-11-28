@@ -40,6 +40,7 @@ extern bool load_step(const char *path, Model *model,
                       bool& is_cancel,
                       double linear_defletion = 0.003,
                       double angle_defletion = 0.5,
+                      bool isSplitCompound = false,
                       ImportStepProgressFn proFn = nullptr,
                       StepIsUtf8Fn isUtf8Fn = nullptr,
                       long& mesh_face_num = *(new long(-1)));
@@ -62,7 +63,7 @@ public:
     bool preprocess(const char* path, std::string &output_path);
     static bool isUtf8File(const char* path);
     static bool isUtf8(const std::string str);
-private: 
+private:
     static bool isGBK(const std::string str);
     static int preNum(const unsigned char byte);
     //BBS: default is UTF8 for most step file.

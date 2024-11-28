@@ -181,9 +181,10 @@ Model Model::read_from_step(const std::string&                                  
                             LoadStrategy                                            options,
                             ImportStepProgressFn                                    stepFn,
                             StepIsUtf8Fn                                            stepIsUtf8Fn,
-                            std::function<int(Slic3r::Step&, double&, double&)>     step_mesh_fn,
+                            std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                             double                                                  linear_defletion,
-                            double                                                  angle_defletion)
+                            double                                                  angle_defletion,
+                            bool                                                   is_split_compound)
 {
     Model model;
     bool result = false;
@@ -192,12 +193,12 @@ Model Model::read_from_step(const std::string&                                  
     Step step_file(input_file);
     step_file.load();
     if (step_mesh_fn) {
-        if (step_mesh_fn(step_file, linear_defletion, angle_defletion) == -1) {
+        if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
             Model empty_model;
             return empty_model;
         }
     }
-    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, stepFn, stepIsUtf8Fn);
+    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, is_split_compound, stepFn, stepIsUtf8Fn);
     if (is_cb_cancel) {
         Model empty_model;
         return empty_model;

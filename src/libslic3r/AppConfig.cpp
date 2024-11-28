@@ -416,6 +416,9 @@ void AppConfig::set_defaults()
         set("linear_defletion", "0.003");
         set("angle_defletion", "0.5");
     }
+    if (get("is_split_compound").empty()) {
+        set_bool("is_split_compound", false);
+    }
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");

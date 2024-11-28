@@ -29,11 +29,15 @@ public:
             return m_last_angle;
         }
     }
+    inline bool get_split_compound_value() {
+        return m_split_compound_checkbox->GetValue();
+    }
 private:
     Slic3r::Step& m_file;
     Button* m_button_ok = nullptr;
     Button* m_button_cancel = nullptr;
     wxCheckBox* m_checkbox = nullptr;
+    wxCheckBox* m_split_compound_checkbox = nullptr;
     wxString m_linear_last;
     wxString m_angle_last;
     wxStaticText* mesh_face_number_text;

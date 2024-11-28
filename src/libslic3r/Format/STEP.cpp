@@ -165,16 +165,21 @@ int StepPreProcessor::preNum(const unsigned char byte) {
     return num;
 }
 
-static void getNamedSolids(const TopLoc_Location& location, const std::string& prefix,
-                           unsigned int& id, const Handle(XCAFDoc_ShapeTool) shapeTool,
-                           const TDF_Label label, std::vector<NamedSolid>& namedSolids) {
+static void getNamedSolids(const TopLoc_Location& location,
+                           const std::string& prefix,
+                           unsigned int& id,
+                           const Handle(XCAFDoc_ShapeTool) shapeTool,
+                           const TDF_Label label,
+                           std::vector<NamedSolid>& namedSolids,
+                           bool isSplitCompound = false) {
     TDF_Label referredLabel{label};
     if (shapeTool->IsReference(label))
         shapeTool->GetReferredShape(label, referredLabel);
 
     std::string name;
     Handle(TDataStd_Name) shapeName;
-    if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName))
+    if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
+        label.FindAttribute(TDataStd_Name::GetID(), shapeName))
         name = TCollection_AsciiString(shapeName->Get()).ToCString();
 
     if (name == "" || !StepPreProcessor::isUtf8(name))
@@ -185,7 +190,7 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     TDF_LabelSequence components;
     if (shapeTool->GetComponents(referredLabel, components)) {
         for (Standard_Integer compIndex = 1; compIndex <= components.Length(); ++compIndex) {
-            getNamedSolids(localLocation, fullName, id, shapeTool, components.Value(compIndex), namedSolids);
+            getNamedSolids(localLocation, fullName, id, shapeTool, components.Value(compIndex), namedSolids, isSplitCompound);
         }
     } else {
         TopoDS_Shape shape;
@@ -196,11 +201,19 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
         int                      i = 0;
         switch (shape_type) {
         case TopAbs_COMPOUND:
+            if (!isSplitCompound) {
+                namedSolids.emplace_back(TopoDS::Compound(transform.Shape()), fullName);
+                break;
+            }
         case TopAbs_COMPSOLID:
-            for (explorer.Init(transform.Shape(), TopAbs_SOLID); explorer.More(); explorer.Next()) {
-                i++;
-                const TopoDS_Shape& currentShape = explorer.Current();
-                namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i));
+            if (!isSplitCompound) {
+                namedSolids.emplace_back(TopoDS::CompSolid(transform.Shape()), fullName);
+            } else {
+                for (explorer.Init(transform.Shape(), TopAbs_SOLID); explorer.More(); explorer.Next()) {
+                    i++;
+                    const TopoDS_Shape& currentShape = explorer.Current();
+                    namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i));
+                }
             }
             break;
         case TopAbs_SOLID:
@@ -218,6 +231,7 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
 bool load_step(const char *path, Model *model, bool& is_cancel,
                double linear_defletion/*=0.003*/,
                double angle_defletion/*= 0.5*/,
+               bool isSplitCompound,
                ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn, long& mesh_face_num)
 {
     bool cb_cancel = false;
@@ -266,7 +280,7 @@ bool load_step(const char *path, Model *model, bool& is_cancel,
                 return false;
             }
         }
-        getNamedSolids(TopLoc_Location{}, "", id, shapeTool, topLevelShapes.Value(iLabel), namedSolids);
+        getNamedSolids(TopLoc_Location{}, "", id, shapeTool, topLevelShapes.Value(iLabel), namedSolids, isSplitCompound);
     }
 
     std::vector<stl_file> stl;
