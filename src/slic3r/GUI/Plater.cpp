@@ -15322,9 +15322,9 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 {
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-    int value = evt.GetInt();
-    bool is_auto = value & 1;  //0000 means manual, 0001 means auto
-    bool need_slice = value & (1 << 1);  //0010 means from gcode view, 0000 means not from gcode view
+    int value = evt.GetInt(); //1 means from gcode view
+    bool force_manual = value == 1;  // If from gcode view, should display manual page
+    bool need_slice = value ==1;  // If from gcode view, should slice
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
@@ -15333,20 +15333,22 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     if (plate_filament_maps.size() != filament_colors.size())  // refine it later, save filament map to app config
         plate_filament_maps.resize(filament_colors.size(), 1);
 
+    FilamentMapMode display_mode = force_manual ? FilamentMapMode::fmmManual : plate_filament_map_mode;
+
     FilamentMapDialog filament_dlg(this,
-        config(),
+        filament_colors,
         plate_filament_maps,
         curr_plate->get_extruders(true),
-        plate_filament_map_mode < FilamentMapMode::fmmManual,
-        false
+        display_mode,
+        true
     );
 
     if (filament_dlg.ShowModal() == wxID_OK) {
         std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
-        std::vector<int> old_filament_maps = plate_filament_maps;
+        std::vector<int> old_filament_maps = curr_plate->get_filament_maps();
 
         FilamentMapMode  old_map_mode = plate_filament_map_mode;
-        FilamentMapMode  new_map_mode = filament_dlg.is_auto() ? fmmAutoForFlush : fmmManual;
+        FilamentMapMode  new_map_mode = filament_dlg.get_mode();
 
         bool need_invalidate = (old_map_mode != new_map_mode ||
                                 old_filament_maps != new_filament_maps);
@@ -15538,7 +15540,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         if (!ret) {
             PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
             wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
-            evt.SetInt(curr_plate->get_filament_map_mode() < FilamentMapMode::fmmManual ? 1 : 0);
+            evt.SetInt(0); // 0 means not from gcodeviewer
             evt.SetEventObject(this);
             wxPostEvent(this, evt);
         } else {

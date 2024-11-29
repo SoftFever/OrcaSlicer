@@ -1275,6 +1275,10 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
+    auto title_filament_group = create_item_title(_L("Filament Group"), page, _L("Filament Group"));
+    auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping."), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
+    auto item_pop_filament_group_mode = create_item_checkbox(_L("Pop up to select filament map mode."), page, _L("Pop up to select filament map mode"), 50, "pop_up_filament_map_mode");
+
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
@@ -1346,6 +1350,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
+
+    sizer_page->Add(title_filament_group, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_ignore_ext_filament, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(item_pop_filament_group_mode, 0, wxEXPAND, FromDIP(3));
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));

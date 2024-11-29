@@ -62,6 +62,7 @@
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
 #include "DailyTips.hpp"
+#include "FilamentMapDialog.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1578,20 +1579,7 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     sizer->Layout();
 
-    // m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
-    //     CallAfter([this] {
-    //         wxGetApp().open_publish_page_dialog();
-
-    //         if (!wxGetApp().getAgent()) {
-    //             BOOST_LOG_TRIVIAL(info) << "publish: no agent";
-    //             return;
-    //         }
-
-    //         // record
-    //         json j;
-    //         NetworkAgent* agent = GUI::wxGetApp().getAgent();
-    //     });
-    // });
+    m_filament_group_popup = new FilamentGroupPopup(m_slice_btn);
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1602,13 +1590,61 @@ wxBoxSizer* MainFrame::create_side_tools()
             //this->m_plater->select_view_3D("Preview");
             m_plater->exit_gizmo();
             m_plater->update(true, true);
-            if (m_slice_select == eSliceAll)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-            else
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
 
-            this->m_tabpanel->SetSelection(tpPreview);
+            bool slice = true;
+
+            auto full_config = wxGetApp().preset_bundle->full_config();
+            std::vector<int>g_filament_map = full_config.option<ConfigOptionInts>("filament_map")->values;
+            FilamentMapMode g_filament_map_mode = get_prefered_map_mode();
+            if (is_pop_up_required()) {
+                auto filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
+                g_filament_map.resize(filament_colors.size());
+                std::vector<int> filament_lists(filament_colors.size());
+                std::iota(filament_lists.begin(), filament_lists.end(), 1);
+
+                FilamentMapDialog filament_dlg(this,
+                    filament_colors,
+                    g_filament_map,
+                    filament_lists,
+                    FilamentMapMode::fmmManual,
+                    false
+                );
+                auto ret = filament_dlg.ShowModal();
+                if (ret == wxID_OK) {
+                    g_filament_map_mode = filament_dlg.get_mode();
+                    g_filament_map = filament_dlg.get_filament_maps();
+                }
+                else {
+                    slice = false;
+                }
+            }
+
+            if (slice) {
+                m_plater->set_global_filament_map_mode(g_filament_map_mode);
+                if (g_filament_map_mode == FilamentMapMode::fmmManual)
+                    m_plater->set_global_filament_map(g_filament_map);
+                if (m_slice_select == eSliceAll)
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+                else
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                this->m_tabpanel->SetSelection(tpPreview);
+            }
         });
+
+    m_slice_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) {
+        m_filament_group_popup->SetSize(wxSize(FromDIP(380),-1));
+        wxPoint pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
+        pos.y += m_slice_btn->GetRect().height * 1.25;
+        pos.x -= (m_slice_option_btn->GetRect().width + m_filament_group_popup->GetRect().width * 0.6);
+
+        m_filament_group_popup->SetPosition(pos);
+        m_filament_group_popup->tryPopup(m_plater->check_ams_status());
+        });
+
+    m_slice_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {
+        m_filament_group_popup->tryClose();
+        });
+
 
     m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -3869,6 +3905,7 @@ void MainFrame::technology_changed()
     if (int id = m_menubar->FindMenu(pt == ptFFF ? _omitL("Material Settings") : _L("Filament Settings")); id != wxNOT_FOUND)
         m_menubar->SetMenuLabel(id, pt == ptSLA ? _omitL("Material Settings") : _L("Filament Settings"));
 }
+
 
 //
 // Called after the Preferences dialog is closed and the program settings are saved.

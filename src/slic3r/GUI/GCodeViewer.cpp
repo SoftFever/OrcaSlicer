@@ -4410,7 +4410,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                 Plater *plater = wxGetApp().plater();
                 wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
                 evt.SetEventObject(plater);
-                evt.SetInt(0b0010); //0010 means from gcode view, manual mode
+                evt.SetInt(1); // 1 means from gcode viewer
                 wxPostEvent(plater, evt);
             }
         }

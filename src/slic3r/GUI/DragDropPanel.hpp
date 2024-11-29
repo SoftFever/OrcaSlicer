@@ -11,6 +11,9 @@
 
 
 namespace Slic3r { namespace GUI {
+
+wxColor Hex2Color(const std::string& str);
+
 class ColorPanel;
 class DragDropPanel : public wxPanel
 {

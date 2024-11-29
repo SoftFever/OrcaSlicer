@@ -1,0 +1,28 @@
+#ifndef CAPSULE_BUTTON_HPP
+#define CAPSULE_BUTTON_HPP
+
+#include "GUI.hpp"
+#include "wxExtensions.hpp"
+
+namespace Slic3r { namespace GUI {
+class CapsuleButton : public wxPanel
+{
+public:
+    CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &label, bool selected);
+    void Select(bool selected);
+protected:
+    void OnPaint(wxPaintEvent &event);
+private:
+    void OnEnterWindow(wxMouseEvent &event);
+    void OnLeaveWindow(wxMouseEvent &event);
+    void UpdateStatus();
+
+    wxBitmapButton *m_btn;
+    Label          *m_label;
+
+    bool m_hovered;
+    bool m_selected;
+};
+}} // namespace Slic3r::GUI
+
+#endif

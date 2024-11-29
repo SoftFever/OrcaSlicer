@@ -25,6 +25,8 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
+#include "FilamentGroupPopup.hpp"
+
 
 #include <boost/property_tree/ptree_fwd.hpp>
 
@@ -338,6 +340,7 @@ public:
 
     void        technology_changed();
 
+
     //BBS
     void        load_url(wxString url);
     void        load_printer_url(wxString url, wxString apikey = "");
@@ -393,6 +396,8 @@ public:
     SideButton* m_slice_option_btn{ nullptr };
     SideButton* m_print_btn{ nullptr };
     SideButton* m_print_option_btn{ nullptr };
+
+    FilamentGroupPopup* m_filament_group_popup{ nullptr };
     mutable bool          m_slice_enable{ true };
     mutable bool          m_print_enable{ true };
     bool get_enable_slice_status();

@@ -2,10 +2,13 @@
 #define slic3r_FilamentMapDialog_hpp_
 
 #include "GUI.hpp"
+#include "FilamentMapPanel.hpp"
 #include <wx/simplebook.h>
 #include <wx/dialog.h>
 #include <wx/timer.h>
 #include <vector>
+#include "SelectMachine.hpp"
+#include "CapsuleButton.hpp"
 
 class SwitchButton;
 class ScalableButton;
@@ -17,42 +20,52 @@ class DynamicPrintConfig;
 
 namespace GUI {
 class DragDropPanel;
+
 class FilamentMapDialog : public wxDialog
 {
+    enum PageType {
+        ptAuto,
+        ptManual,
+        ptDefault
+    };
 public:
     FilamentMapDialog(wxWindow *parent,
-        const DynamicPrintConfig *config,
+        const std::vector<std::string>& filament_color,
         const std::vector<int> &filament_map,
-        const std::vector<int> &extruders,
-        bool is_auto,
-        bool has_auto_result
+        const std::vector<int> &filaments,
+        const FilamentMapMode mode,
+        bool show_default=true
     );
 
-    bool is_auto() const;
+    FilamentMapMode get_mode();
     const std::vector<int>& get_filament_maps() const { return m_filament_map; }
 
+    int ShowModal();
+    void set_modal_btn_labels(const wxString& left_label, const wxString& right_label);
 private:
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
     void on_switch_mode(wxCommandEvent &event);
-    void on_switch_filaments(wxCommandEvent &event);
+
+    void update_panel_status(PageType page);
+
+ private:
+    FilamentMapManualPanel* m_manual_map_panel;
+    FilamentMapAutoPanel* m_auto_map_panel;
+    FilamentMapDefaultPanel* m_default_map_panel;
+
+    CapsuleButton* m_auto_btn;
+    CapsuleButton* m_manual_btn;
+    CapsuleButton* m_default_btn;
+
+    Button* m_ok_btn;
+    Button* m_cancel_btn;
+
+    PageType m_page_type;
 
 private:
-    wxStaticText * m_tip_text;
-    wxStaticText * m_below_tip_text;
-    SwitchButton * m_mode_switch_btn;
-    wxBoxSizer *   m_extruder_panel_sizer;
-    DragDropPanel* m_manual_left_panel;
-    DragDropPanel* m_manual_right_panel;
-    DragDropPanel* m_auto_left_panel;
-    DragDropPanel* m_auto_right_panel;
-    ScalableButton* m_switch_filament_btn;
-    ScalableButton* m_switch_filament_btn_auto; // for placeholder
-
-private:
-    const DynamicPrintConfig* m_config;
     std::vector<int> m_filament_map;
-    bool m_has_auto_result;
+    std::vector<std::string> m_filament_color;
 };
 
 }} // namespace Slic3r::GUI

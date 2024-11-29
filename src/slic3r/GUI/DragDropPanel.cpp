@@ -1,4 +1,5 @@
 #include "DragDropPanel.hpp"
+#include "Widgets/Label.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
 
 namespace Slic3r { namespace GUI {
@@ -8,6 +9,27 @@ struct CustomData
     int filament_id;
     unsigned char r, g, b;
 };
+
+
+wxColor Hex2Color(const std::string& str)
+{
+    if (str.empty() || (str.length() != 9 && str.length() != 7) || str[0] != '#')
+        throw std::invalid_argument("Invalid hex color format");
+
+    auto hexToByte = [](const std::string& hex)->unsigned char
+        {
+            unsigned int byte;
+            std::istringstream(hex) >> std::hex >> byte;
+            return static_cast<unsigned char>(byte);
+        };
+    auto r = hexToByte(str.substr(1, 2));
+    auto g = hexToByte(str.substr(3, 2));
+    auto b = hexToByte(str.substr(5, 2));
+    unsigned char a = 255;
+    if (str.size() == 9)
+        a = hexToByte(str.substr(7, 2));
+    return wxColor(r, g, b, a);
+}
 
 // Custom data object used to store information that needs to be backed up during drag and drop
 class ColorDataObject : public wxCustomDataObject
@@ -150,21 +172,24 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
     auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
     title_panel->SetSizer(title_sizer);
 
-    wxStaticText *staticText = new wxStaticText(this, wxID_ANY, label);
-    staticText->SetBackgroundColour(0xEEEEEE);
-    title_sizer->Add(staticText, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    Label* static_text = new Label(this, label);
+    static_text->SetFont(Label::Head_13);
+    static_text->SetBackgroundColour(0xEEEEEE);
+
+    title_sizer->Add(static_text, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer->Add(title_panel, 0, wxEXPAND);
     m_sizer->AddSpacer(20);
 
-    m_grid_item_sizer = new wxGridSizer(0, 5, FromDIP(10), 0);   // row = 0, col = 3,  10 10 is space
-    m_sizer->Add(m_grid_item_sizer);
+    m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(5),FromDIP(5));   // row = 0, col = 3,  10 10 is space
+    m_sizer->Add(m_grid_item_sizer, 1, wxEXPAND);
 
     // set droptarget
     auto drop_target = new ColorDropTarget(this);
     SetDropTarget(drop_target);
 
     SetSizer(m_sizer);
+    Layout();
     Fit();
 }
 
@@ -172,7 +197,7 @@ void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool u
 {
     ColorPanel *panel = new ColorPanel(this, color, filament_id);
     panel->SetMinSize(wxSize(FromDIP(32), FromDIP(40)));
-    m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(10));
+    m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER);
     m_filament_blocks.push_back(panel);
     if (update_ui) {
         m_filament_blocks.front()->Refresh();  // FIX BUG: STUDIO-8467
