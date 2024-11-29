@@ -61,9 +61,6 @@
     "fan_min_speed": [
         "0"
     ],
-    "overhang_fan_threshold": [
-        "45"
-    ],
     "overhang_fan_speed": [
         "70"
     ],
