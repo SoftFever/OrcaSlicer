@@ -248,6 +248,7 @@ public:
 
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
+    std::vector<int>    cal_most_used_extruder(const PrintConfig &config);
 
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);

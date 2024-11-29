@@ -2148,6 +2148,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
     std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
+    std::vector<int> extruder_count;
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
@@ -2156,6 +2157,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+            //get extruder count
+            std::vector<int> object_extruder_count = tool_ordering.cal_most_used_extruder(print.config());
+            if (extruder_count.empty())
+                extruder_count = object_extruder_count;
+            else
+                for (size_t extruder_id = 0; extruder_id < object_extruder_count.size(); extruder_id++)
+                    extruder_count[extruder_id] += object_extruder_count[extruder_id];
+
             tool_ordering.sort_and_build_data(*(*print_object_instance_sequential_active)->print_object,initial_extruder_id);
             if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
                 //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
@@ -2197,6 +2206,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
         tool_ordering = print.tool_ordering();
+        extruder_count = tool_ordering.cal_most_used_extruder(print.config());
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.
@@ -2275,6 +2285,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Update output variables after the extruders were initialized.
     m_placeholder_parser_integration.init(m_writer);
+
+    //set key for most used extruder
+    //count most used extruder
+    int max_count_extruder = 0;
+    for (int extruder_id = 1; extruder_id < extruder_count.size(); extruder_id++) {
+        if (extruder_count[extruder_id] >= extruder_count[max_count_extruder])
+            max_count_extruder = extruder_id;
+    }
+
+    this->placeholder_parser().set("most_used_physical_extruder_id", print.config().physical_extruder_map.values[max_count_extruder]);
     // Let the start-up script prime the 1st printing tool.
     this->placeholder_parser().set("initial_tool", initial_extruder_id);
     this->placeholder_parser().set("initial_extruder", initial_extruder_id);

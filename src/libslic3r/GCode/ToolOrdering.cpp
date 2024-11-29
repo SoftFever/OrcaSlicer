@@ -898,6 +898,27 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
     }
 }
 
+std::vector<int> ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
+{
+    // record
+    std::vector<int> extruder_count;
+    extruder_count.resize(config.nozzle_diameter.size(), 0);
+    for (LayerTools &layer_tools : m_layer_tools) {
+        std::vector<unsigned int> filaments = layer_tools.extruders;
+        std::set<int> layer_extruder_count;
+        //count once only
+        for (unsigned int &filament : filaments) {
+            layer_extruder_count.insert(config.filament_map.values[filament] - 1);
+        }
+
+        //record
+        for (int extruder_id : layer_extruder_count) {
+            extruder_count[extruder_id]++;
+        }
+    }
+    return extruder_count;
+}
+
 std::set<std::pair<std::vector<unsigned int>, std::vector<unsigned int>>> generate_combinations(const std::vector<unsigned int> &extruders)
 {
     int                                                                       n = extruders.size();
