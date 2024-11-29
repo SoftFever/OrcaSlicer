@@ -151,10 +151,16 @@ static int get_brightness_value(wxImage image) {
     return totalLuminance / num_none_transparent;
 }
 
+struct POItem
+{
+    std::string key;
+    wxString value;
+};
+
 class PrintOptionItem : public wxPanel
 {
 public:
-    PrintOptionItem(wxWindow *parent, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
     ~PrintOptionItem(){};
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
@@ -162,12 +168,12 @@ public:
     void doRender(wxDC &dc);
 
     ScalableBitmap m_selected_bk;
-    boost::bimaps::bimap<std::string, std::string> m_ops;
+    std::vector<POItem> m_ops;
     std::string selected_key;
     std::string m_param;
 
     void setValue(std::string value);
-    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+    void update_options(std::vector<POItem> ops){
         m_ops = ops;
         selected_key = "";
         auto width  = ops.size() * FromDIP(56) + FromDIP(8);
@@ -182,19 +188,19 @@ public:
 class PrintOption : public wxPanel
 {
 public:
-    PrintOption(wxWindow *parent, wxString title, wxString tips, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    PrintOption(wxWindow *parent, wxString title, wxString tips, std::vector<POItem> ops, std::string param = "");
     ~PrintOption(){};
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
 
     std::string m_param;
-    boost::bimaps::bimap<std::string, std::string> m_ops;
+    std::vector<POItem> m_ops;
     Label*   m_label{nullptr};
     Label*   m_printoption_title{nullptr};
     PrintOptionItem* m_printoption_item{nullptr};
     void setValue(std::string value);
-    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+    void update_options(std::vector<POItem> ops){
         m_ops = ops;
         m_printoption_item->update_options(ops);
     };
@@ -279,8 +285,8 @@ private:
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
     std::unique_ptr<Worker>             m_worker;
 
-    SendModeSwitchButton*               m_mode_print {nullptr};
-    SendModeSwitchButton*               m_mode_send {nullptr};
+    //SendModeSwitchButton*               m_mode_print {nullptr};
+    //SendModeSwitchButton*               m_mode_send {nullptr};
     wxStaticBitmap*                     m_printer_image{nullptr};
     wxStaticBitmap*                     m_bed_image{nullptr};
 
@@ -290,8 +296,8 @@ private:
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
 
-    boost::bimaps::bimap<std::string, std::string> ops_auto;
-    boost::bimaps::bimap<std::string, std::string> ops_no_auto;
+    std::vector<POItem> ops_auto;
+    std::vector<POItem> ops_no_auto;
 
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
@@ -438,7 +444,6 @@ public:
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
-    bool is_show_timelapse();
     bool has_timelapse_warning();
     void update_timelapse_enable_status();
     bool is_same_printer_model();

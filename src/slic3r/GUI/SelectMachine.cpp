@@ -105,12 +105,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    ops_auto.left.insert(make_pair("auto", "Auto"));
-    ops_auto.left.insert(make_pair("on", "On"));
-    ops_auto.left.insert(make_pair("off", "Off"));
+    ops_auto.push_back(POItem{"auto", "Auto"});
+    ops_auto.push_back(POItem{"on", "On"});
+    ops_auto.push_back(POItem{"off", "Off"});
 
-    ops_no_auto.left.insert(make_pair("on", "On"));
-    ops_no_auto.left.insert(make_pair("off", "Off"));
+    ops_no_auto.push_back(POItem{"on", "On"});
+    ops_no_auto.push_back(POItem{"off", "Off"});
 
     SetMinSize(wxSize(FromDIP(700), -1));
     SetMaxSize(wxSize(FromDIP(700), -1));
@@ -132,24 +132,24 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
 
     /*mode switch*/
-    auto m_sizer_mode_switch = new wxBoxSizer(wxHORIZONTAL);
-    m_mode_print = new SendModeSwitchButton(this, _L("Print"), true);
-    m_mode_send = new SendModeSwitchButton(this,_L("Save to printer"), false);
-    m_sizer_mode_switch->Add(m_mode_print, 0, wxALIGN_CENTER, 0);
-    m_sizer_mode_switch->Add(0, 0, 0, wxLEFT, FromDIP(8));
-    m_sizer_mode_switch->Add(m_mode_send,0, wxALIGN_CENTER, 0);
+    /* auto m_sizer_mode_switch = new wxBoxSizer(wxHORIZONTAL);
+     m_mode_print = new SendModeSwitchButton(this, _L("Print"), true);
+     m_mode_send = new SendModeSwitchButton(this,_L("Save to printer"), false);
+     m_sizer_mode_switch->Add(m_mode_print, 0, wxALIGN_CENTER, 0);
+     m_sizer_mode_switch->Add(0, 0, 0, wxLEFT, FromDIP(8));
+     m_sizer_mode_switch->Add(m_mode_send,0, wxALIGN_CENTER, 0);*/
 
-    m_mode_print->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        m_mode_print->setSelected(true);
-        m_mode_send->setSelected(false);
-        e.Skip();
-    });
+    //m_mode_print->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    //    m_mode_print->setSelected(true);
+    //    m_mode_send->setSelected(false);
+    //    e.Skip();
+    //});
 
-    m_mode_send->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        m_mode_print->setSelected(false);
-        m_mode_send->setSelected(true);
-        e.Skip();
-    });
+    //m_mode_send->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    //    m_mode_print->setSelected(false);
+    //    m_mode_send->setSelected(true);
+    //    e.Skip();
+    //});
 
     m_basic_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_basic_panel->SetBackgroundColour(*wxWHITE);
@@ -349,7 +349,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_text_bed_type = new Label(bed_staticbox);
     m_text_bed_type->SetForegroundColour(0xCECECE);
     m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), FromDIP(24)));
-    m_text_bed_type->SetFont(Label::Body_10);
 
     sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_bed_staticbox->Add(m_bed_image, 0, wxALIGN_CENTER, 0);
@@ -734,7 +733,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(11));
-    m_sizer_main->Add(m_sizer_mode_switch, 0, wxALIGN_CENTER, 0);
+    //m_sizer_main->Add(m_sizer_mode_switch, 0, wxALIGN_CENTER, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(15));
     m_sizer_main->Add(m_basic_panel, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
@@ -888,13 +887,36 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     if (obj->is_enable_np) {
         m_checkbox_list["nozzle_offset_cali"]->Show();
         m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
-        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->update_options(ops_auto);
         m_checkbox_list["flow_cali"]->update_options(ops_auto);
+
+        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+        m_checkbox_list["bed_leveling"]->setValue("auto");
+        m_checkbox_list["flow_cali"]->setValue("auto");
     }
     else {
         m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
         m_checkbox_list["flow_cali"]->update_options(ops_auto);
+
+        AppConfig *config = wxGetApp().app_config;
+        if (config && config->get("print", "bed_leveling") == "0") {
+            m_checkbox_list["bed_leveling"]->setValue("off");
+        } else {
+            m_checkbox_list["bed_leveling"]->setValue("on");
+        }
+        if (config && config->get("print", "flow_cali") == "0") {
+            m_checkbox_list["flow_cali"]->setValue("off");
+        } else {
+            m_checkbox_list["flow_cali"]->setValue("on");
+        }
+        if (config && config->get("print", "timelapse") == "0") {
+            m_checkbox_list["timelapse"]->setValue("off");
+        } else {
+            m_checkbox_list["timelapse"]->setValue("on");
+        }
+
+        update_timelapse_enable_status();
+        update_flow_cali_check(obj);
     }
 
     if (obj && obj->is_support_auto_flow_calibration) {
@@ -904,30 +926,10 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     if (obj && obj->is_support_auto_leveling) {
         m_checkbox_list["bed_leveling"]->Show();
     }
-    if (obj && obj->is_support_timelapse && is_show_timelapse()) {
+    if (obj && obj->is_support_timelapse) {
         m_checkbox_list["timelapse"]->Show();
-        update_timelapse_enable_status();
     }
 
-    // load checkbox values from app config
-    AppConfig *config = wxGetApp().app_config;
-    if (config && config->get("print", "bed_leveling") == "0") {
-        m_checkbox_list["bed_leveling"]->setValue("off");
-    } else {
-        m_checkbox_list["bed_leveling"]->setValue("on");
-    }
-    if (config && config->get("print", "flow_cali") == "0") {
-        m_checkbox_list["flow_cali"]->setValue("off");
-    } else {
-        m_checkbox_list["flow_cali"]->setValue("on");
-    }
-    if (config && config->get("print", "timelapse") == "0") {
-        m_checkbox_list["timelapse"]->setValue("off");
-    } else {
-        m_checkbox_list["timelapse"]->setValue("on");
-    }
-
-    update_flow_cali_check(obj);
     Layout();
     Fit();
 }
@@ -3230,50 +3232,6 @@ void SelectMachineDialog::update_timelapse_enable_status()
     }
 }
 
-
-bool SelectMachineDialog::is_show_timelapse()
-{
-    auto compare_version = [](const std::string &version1, const std::string &version2) -> bool {
-        int i = 0, j = 0;
-        int max_size = std::max(version1.size(), version2.size());
-        while (i < max_size || j < max_size) {
-            int v1 = 0, v2 = 0;
-            while (i < version1.size() && version1[i] != '.') v1 = 10 * v1 + (version1[i++] - '0');
-            while (j < version2.size() && version2[j] != '.') v2 = 10 * v2 + (version2[j++] - '0');
-            if (v1 > v2) return true;
-            if (v1 < v2) return false;
-            ++i;
-            ++j;
-        }
-        return false;
-    };
-
-    std::string standard_version = "2.2.0";
-    PartPlate *plate      = m_plater->get_partplate_list().get_curr_plate();
-    fs::path   gcode_path = plate->get_tmp_gcode_path();
-
-    std::string   line;
-    std::ifstream gcode_file;
-    gcode_file.open(gcode_path.string());
-    if (gcode_file.fail()) {
-    } else {
-        bool is_version = false;
-        while (gcode_file >> line) {
-            if (is_version) {
-                if (compare_version(standard_version, line)) {
-                    gcode_file.close();
-                    return false;
-                }
-                break;
-            }
-            if (line == "OrcaSlicer")
-                is_version = true;
-        }
-    }
-    gcode_file.close();
-    return true;
-}
-
 void SelectMachineDialog::reset_ams_material()
 {
     MaterialHash::iterator iter = m_materialList.begin();
@@ -4146,7 +4104,14 @@ bool SelectMachineDialog::Show(bool show)
         m_text_bed_type->Hide();
     }
     else {
-        m_text_bed_type->SetLabelText(format_bed_name(plate_name));
+        wxString name = format_bed_name(plate_name);
+        if (name.length() > 8) {
+            m_text_bed_type->SetFont(Label::Body_9);
+        }
+        else {
+            m_text_bed_type->SetFont(Label::Body_12);
+        }
+        m_text_bed_type->SetLabelText(name);
         m_text_bed_type->Show();
     }
     // set default value when show this dialog
@@ -4305,7 +4270,7 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
 
  ThumbnailPanel::~ThumbnailPanel() {}
 
- PrintOption::PrintOption(wxWindow *parent, wxString title, wxString tips, boost::bimaps::bimap<std::string, std::string> ops, std::string param)
+ PrintOption::PrintOption(wxWindow *parent, wxString title, wxString tips, std::vector<POItem> ops, std::string param)
      : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
 #ifdef __WINDOWS__
@@ -4411,7 +4376,7 @@ int PrintOption::getValueInt()
     }
 }
 
-PrintOptionItem::PrintOptionItem(wxWindow *parent, boost::bimaps::bimap<std::string, std::string> ops, std::string param)
+PrintOptionItem::PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
 #ifdef __WINDOWS__
@@ -4467,12 +4432,12 @@ void PrintOptionItem::on_left_down(wxMouseEvent &evt)
     auto select_size = GetSize().x / m_ops.size();
 
     int i = 0;
-    for (const auto& entry : m_ops.left) {
+    for (const auto& entry : m_ops) {
         auto left_edge = rect.x + i * select_size;
         auto right_edge = rect.x + (i + 1) * select_size;
 
         if (pos.x > left_edge && pos.x < right_edge) {
-            selected_key = entry.get_left();
+            selected_key = entry.key;
         }
         i++;
     }
@@ -4498,27 +4463,27 @@ void PrintOptionItem::doRender(wxDC &dc)
     auto left = FromDIP(4);
 
     int selected = 0;
-    for (const auto &entry : m_ops.right) {
-        if (entry.second == selected_key) {
+    for (const auto &entry : m_ops) {
+        if (entry.key == selected_key) {
             break;
         }
         selected++;
     }
 
     /*selected*/
-    auto selected_left = selected * FromDIP(50) + FromDIP(4);
+    auto selected_left = selected * FromDIP(56) + FromDIP(4);
     dc.DrawBitmap(m_selected_bk.bmp(), selected_left, FromDIP(4));
 
     for (auto it = m_ops.begin(); it != m_ops.end(); ++it) {
-        auto text_key      = it->get_left();
-        auto text_value    = it->get_right();
+        auto text_key      = it->key;
+        auto text_value    = it->value;
 
         if (text_key == selected_key) {
             dc.SetPen(wxPen(0x00AE42));
             dc.SetTextForeground(0x00AE42);
             dc.SetFont(::Label::Head_13);
             auto text_size = dc.GetTextExtent(text_value);
-            auto text_left = left + (FromDIP(50) - text_size.x) / 2;
+            auto text_left = left + (FromDIP(56) - text_size.x) / 2;
             auto text_top  = (size.y - text_size.y) / 2;
             dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
@@ -4527,12 +4492,12 @@ void PrintOptionItem::doRender(wxDC &dc)
             dc.SetTextForeground(*wxBLACK);
             dc.SetFont(::Label::Body_13);
             auto text_size = dc.GetTextExtent(text_value);
-            auto text_left = left + (FromDIP(50) - text_size.x) / 2;
+            auto text_left = left + (FromDIP(56) - text_size.x) / 2;
             auto text_top  = (size.y - text_size.y) / 2;
             dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
 
-        left += FromDIP(50);
+        left += FromDIP(56);
     }
 }
 
