@@ -11564,7 +11564,6 @@ msgstr ""
 msgid "Minimum speed for part cooling fan"
 msgstr "物件冷卻風扇的最小轉速"
 
-#, fuzzy
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
@@ -11607,11 +11606,10 @@ msgstr "您可以在這裡放置您的個人備註。 該文字將會加入 G �
 msgid "Host Type"
 msgstr "主機類型"
 
-#, fuzzy
 msgid ""
 "Orca Slicer can upload G-code files to a printer host. This field must "
 "contain the kind of the host."
-msgstr "切片軟體可以將 G-code 檔案上傳到列印設備。此欄位必須包含設備類型。"
+msgstr "Orca Slicer可以將 G-code 檔案上傳到列印設備。此欄位必須包含設備類型。"
 
 msgid "Nozzle volume"
 msgstr "噴嘴內腔體積"
@@ -11672,7 +11670,6 @@ msgstr "從切割區域到垃圾桶的起始和結束點。"
 msgid "Reduce infill retraction"
 msgstr "減小填充回抽"
 
-#, fuzzy
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen. This can reduce times of retraction for complex "
@@ -11692,17 +11689,14 @@ msgstr "檔案名稱格式"
 msgid "User can self-define the project file name when export"
 msgstr "使用者可以自訂匯出項目檔案的名稱。"
 
-#, fuzzy
 msgid "Make overhangs printable"
-msgstr "懸空可列印"
+msgstr "修改懸空成可列印"
 
-#, fuzzy
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "修改幾何形狀使得懸空部分無需支撐材料或者橋接列印。"
 
-#, fuzzy
 msgid "Make overhangs printable - Maximum angle"
-msgstr "懸空可列印的最大角度"
+msgstr "懸空可列印修改的最大角度"
 
 msgid ""
 "Maximum angle of overhangs to allow after making more steep overhangs "
@@ -11855,12 +11849,11 @@ msgstr "強制在換層時回抽。"
 msgid "Retraction Length"
 msgstr "回抽長度"
 
-#, fuzzy
 msgid ""
 "Some amount of material in extruder is pulled back to avoid ooze during long "
 "travel. Set zero to disable retraction"
 msgstr ""
-"擠出機中的一些材料會被拉回特定長度，避免空駛較長時軟化的線材滲出。設定為 0 表"
+"擠出機將材料拉回指定長度，避免空駛較長時軟化的線材滲出。設定為 0 表"
 "示關閉回抽。"
 
 msgid "Long retraction when cut(experimental)"
@@ -12174,15 +12167,14 @@ msgstr ""
 msgid "Wipe speed"
 msgstr "擦拭速度"
 
-#, fuzzy
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
 "configuration.If the value is expressed as a percentage (e.g. 80%), it will "
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
-"擦拭速度是根據此配置中指定的速度設定確定的。如果該值以百分比形式表示（例如 "
-"80%），則將根據上方的移動速度設定進行計算。該參數的預設值為 80%。"
+"擦拭速度是根據此配置中指定的速度設定。如果該值以百分比形式表示（例如 "
+"80%），則將根據空駛速度設定進行計算。該參數的預設值為 80%。"
 
 msgid "Skirt distance"
 msgstr "Skirt距離"
@@ -12292,7 +12284,6 @@ msgstr "內部實心填充的線寬。如果以%表示，它將以噴嘴直徑�
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "內部實心填充的速度，不是頂面和底面。"
 
-#, fuzzy
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
@@ -12447,9 +12438,8 @@ msgstr "奇偶"
 msgid "Close holes"
 msgstr "閉孔"
 
-#, fuzzy
 msgid "Z offset"
-msgstr "Z 軸偏移（Z offset）"
+msgstr "Z 偏移（Z offset）"
 
 msgid ""
 "This value will be added (or subtracted）from all the Z coordinates in the "
@@ -12475,19 +12465,15 @@ msgstr ""
 "普通（自動）和樹狀（自動）用於自動產生支撐體。如果選擇普通（手動）或樹狀（手"
 "動），僅會在支撐強制面上產生支撐。"
 
-#, fuzzy
 msgid "normal(auto)"
 msgstr "普通（自動）"
 
-#, fuzzy
 msgid "tree(auto)"
 msgstr "樹狀（自動）"
 
-#, fuzzy
 msgid "normal(manual)"
 msgstr "普通（手動）"
 
-#, fuzzy
 msgid "tree(manual)"
 msgstr "樹狀（手動）"
 
@@ -12500,9 +12486,8 @@ msgstr "模型和支撐之間 XY 分離距離"
 msgid "Pattern angle"
 msgstr "模式角度"
 
-#, fuzzy
 msgid "Use this setting to rotate the support pattern on the horizontal plane."
-msgstr "設定支撐圖案在水平面的旋轉角度。"
+msgstr "設定支撐圖形在水平面的旋轉角度。"
 
 msgid "On build plate only"
 msgstr "僅在列印板產生"
@@ -12539,7 +12524,6 @@ msgstr "支撐產生於模型表面時，支撐面底部和模型之間的z間�
 msgid "Support/raft base"
 msgstr "支撐/筏層主體"
 
-#, fuzzy
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
 "filament for support and current filament is used"
@@ -12567,11 +12551,10 @@ msgstr "使用圈形走線覆蓋頂部接觸面。預設關閉。"
 msgid "Support/raft interface"
 msgstr "支撐/筏層界面"
 
-#, fuzzy
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
 "for support interface and current filament is used"
-msgstr "列印支撐接觸面的線材。\"預設\"代表不指定特定的線材，並使用目前線材"
+msgstr "列印支撐界面的線材。\"預設\"代表不指定特定的線材，並使用目前線材"
 
 msgid "Top interface layers"
 msgstr "頂部接觸面層數"
@@ -12679,19 +12662,17 @@ msgstr "混合樹"
 msgid "Independent support layer height"
 msgstr "支撐獨立層高"
 
-#, fuzzy
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
 "support customizing z-gap and save print time.This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
-"支撐層使用與物件層獨立的層高。這是為了支援自訂 Ｚ間隙（z-gap）並且節省列印時"
+"支撐層使用與物件層獨立的層高。這是為了支援自訂Ｚ間隙（z-gap）並且節省列印時"
 "間。當換料塔被啟用時，這個選項將無效。"
 
 msgid "Threshold angle"
 msgstr "臨界值角度"
 
-#, fuzzy
 msgid ""
 "Support will be generated for overhangs whose slope angle is below the "
 "threshold."
