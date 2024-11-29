@@ -5881,8 +5881,8 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         ItemType type = m_objects_model->GetItemType(item);
         if (type & itVolume) {
             const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-
+            int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            vol_idx     = m_objects_model->get_real_volume_index_in_3d(obj_idx, vol_idx);
             if ((obj_idx < m_objects->size()) && (obj_idx < (*m_objects)[obj_idx]->volumes.size())) {
                 auto volume_type = (*m_objects)[obj_idx]->volumes[vol_idx]->type();
                 if (volume_type != ModelVolumeType::MODEL_PART && volume_type != ModelVolumeType::PARAMETER_MODIFIER)
@@ -5904,11 +5904,25 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
             }
         }
 
-        ModelConfig& config = get_item_config(item);
-        if (config.has("extruder"))
-            config.set("extruder", new_extruder);
-        else
-            config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+        if (type & itInfo && m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors) {
+            const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+            for (size_t i = 0; i < (*m_objects)[obj_idx]->volumes.size(); i++) {
+                auto mv = (*m_objects)[obj_idx]->volumes[i];
+                if (mv->is_cut_connector()) {
+                    ModelConfig &config = mv->config;
+                    if (config.has("extruder"))
+                        config.set("extruder", new_extruder);
+                    else
+                        config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+                }
+            }
+        } else {
+            ModelConfig &config = get_item_config(item);
+            if (config.has("extruder"))
+                config.set("extruder", new_extruder);
+            else
+                config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+        }
 
         // for object, clear all its part volume's extruder config
         if (type & itObject) {
