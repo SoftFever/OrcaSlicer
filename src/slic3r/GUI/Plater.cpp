@@ -332,7 +332,23 @@ struct ExtruderGroup : StaticGroup
     ScalableButton *  btn_edit     = nullptr;
     ComboBox *        combo_nozzle = nullptr;
     AMSPreview *      ams[4]       = {nullptr};
-    void              Rescale()
+    wxStaticText     *ams_not_installed_msg{nullptr};
+    ScalableButton   *up_down_btn{nullptr};
+    wxBoxSizer *hsizer_ams { nullptr };
+    bool              is_upward{false};
+    int               ams_n4 = 0;
+    int               ams_n1 = 0;
+
+    void set_ams_count(int n4, int n1)
+    {
+        ams_n4 = n4;
+        ams_n1 = n1;
+        update_ams();
+    }
+
+    void update_ams();
+
+    void Rescale()
     {
         if (btn_edit)
             btn_edit->msw_rescale();
@@ -845,8 +861,8 @@ public:
         if (ams_map.find(1) == ams_map.end()) {
             ams_map[1] = 0;
         }
-        std::string ams_info = std::to_string(ams_map[4]) + "/" + std::to_string(ams_map[1]);
-        //*extruder = from_u8(ams_info);
+
+        extruder->set_ams_count(ams_map[4], ams_map[1]);
     }
 };
 
@@ -893,11 +909,29 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         }
     }
 
-    wxBoxSizer * hsizer_ams = new wxBoxSizer(wxHORIZONTAL);
-    hsizer_ams->Add(label_ams, 1, wxALIGN_CENTER);
+    // AMS not installed message
+    ams_not_installed_msg = new wxStaticText(this, wxID_ANY, _L("Not installed"));
+    label_ams->SetFont(Label::Body_14);
+    label_ams->SetForegroundColour("#262E30");
+
+    // AMS group
+    for (size_t i = 0; i < 4; ++i) {
+        ams[i] = new AMSPreview(this, wxID_ANY, AMSinfo(), AMSModel::GENERIC_AMS);
+        ams[i]->Close();
+    }
+
+    hsizer_ams = new wxBoxSizer(wxHORIZONTAL);
+    hsizer_ams->SetMinSize(0, ams[0]->GetMinHeight());
+    hsizer_ams->Add(label_ams, 0, wxALIGN_CENTER);
     if (btn_edit)
         hsizer_ams->Add(btn_edit, 0, 0);
-    hsizer_ams->AddStretchSpacer(2);
+
+    up_down_btn = new ScalableButton(this, wxID_ANY, "dot");
+    up_down_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
+        is_upward = !is_upward;
+        update_ams();
+    });
+
     wxBoxSizer * hsizer_nozzle = new wxBoxSizer(wxHORIZONTAL);
     hsizer_nozzle->Add(label_nozzle, 2, wxALIGN_CENTER);
     hsizer_nozzle->Add(combo_nozzle, 3, wxEXPAND);
@@ -913,6 +947,80 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         vsizer->Add(hsizer_nozzle, 0, wxEXPAND | wxALL, FromDIP(4));
         this->sizer = vsizer;
     }
+
+    AMSCountPopupWindow::UpdateAMSCount(index < 0 ? 0 : index, this);
+}
+
+void ExtruderGroup::update_ams()
+{
+    int    display_capacity  = 8;
+    bool   display_front_ams = !is_upward;
+    size_t i                 = 0;
+    for (; i < ams_n4 && i < 4; ++i) {
+        display_capacity -= 4;
+        bool show_this_ams = (display_capacity >= 0) && display_front_ams;
+        show_this_ams |= (display_capacity < 0) && !display_front_ams;
+        if (show_this_ams) {
+            AMSinfo ams_info;
+            ams_info.ams_type = AMSModel::GENERIC_AMS;
+            for (size_t i = 0; i < 4; ++i) ams_info.cans.emplace_back(Caninfo());
+            ams[i]->Update(ams_info);
+            ams[i]->Refresh();
+            ams[i]->Open();
+        } else {
+            ams[i]->Close();
+        }
+    }
+
+    for (; i < ams_n4 + ams_n1 && i < 4; ++i) {
+        display_capacity -= 2;
+        bool show_this_ams = (display_capacity >= 0) && display_front_ams;
+        show_this_ams |= (display_capacity < 0) && !display_front_ams;
+        if (show_this_ams) {
+            AMSinfo ams_info;
+            ams_info.ams_type = AMSModel::N3S_AMS;
+            ams_info.cans.emplace_back(Caninfo());
+            ams[i]->Update(ams_info);
+            ams[i]->Refresh();
+            ams[i]->Open();
+        } else {
+            ams[i]->Close();
+        }
+    }
+
+    if (i == 0) {
+        ams_not_installed_msg->Show();
+        up_down_btn->Hide();
+        for (AMSPreview *a : ams) {
+            a->Close();
+        }
+    } else {
+        ams_not_installed_msg->Hide();
+        for (; i < 4; ++i) { ams[i]->Close(); }
+        if (display_capacity < 0) {
+            up_down_btn->Show();
+        } else {
+            up_down_btn->Hide();
+        }
+    }
+
+    while (hsizer_ams->GetItemCount() > 2)
+        hsizer_ams->Remove(2);
+    if (ams_not_installed_msg->IsShown()) {
+        hsizer_ams->AddStretchSpacer(1);
+        hsizer_ams->Add(ams_not_installed_msg, 0, wxALIGN_CENTER);
+        hsizer_ams->AddStretchSpacer(1);
+    }
+    for (size_t i = 0; i < 4; ++i) {
+        if (ams[i]->IsShown())
+            hsizer_ams->Add(this->ams[i], 0, wxLEFT, FromDIP(4));
+    }
+    if (up_down_btn->IsShown()) {
+        hsizer_ams->AddStretchSpacer(1);
+        hsizer_ams->Add(up_down_btn, 0, wxALIGN_CENTER);
+    }
+
+    sizer->Layout();
 }
 
 void Sidebar::priv::sync_extruder_list()

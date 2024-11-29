@@ -1718,6 +1718,7 @@ void AMSPreview::Close()
 void AMSPreview::Update(AMSinfo amsinfo)
 {
     m_amsinfo = amsinfo;
+    m_ams_item_type = amsinfo.ams_type;
 }
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
