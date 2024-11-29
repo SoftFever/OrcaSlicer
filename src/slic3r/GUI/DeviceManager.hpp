@@ -469,7 +469,8 @@ public:
         NO_SDCARD = 0,
         HAS_SDCARD_NORMAL = 1,
         HAS_SDCARD_ABNORMAL = 2,
-        SDCARD_STATE_NUM = 3
+        HAS_SDCARD_READONLY = 3,
+        SDCARD_STATE_NUM = 4
     };
 
     enum ActiveState {
@@ -912,7 +913,6 @@ public:
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
-    bool has_sdcard();
     bool is_timelapse();
     bool is_recording_enable();
     bool is_recording();
