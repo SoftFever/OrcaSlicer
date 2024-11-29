@@ -6,7 +6,7 @@
 	"instantiation": "true",
 	"inherits": "fdm_machine_common",
 	"printer_model": "Sovol SV06 Plus ACE",
-	"default_print_profile": "0.20mm Standard @Sovol SV06 Plus ACE",
+	"default_print_profile": "0.20mm Standard @Sovol SV06 Plus ACE - official",
 	"nozzle_diameter": [
 		"0.4"
 	],
