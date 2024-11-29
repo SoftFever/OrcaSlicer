@@ -2228,6 +2228,8 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 
     for (auto c : p->combos_filament)
         c->update();
+
+    p->combo_printer->update();
 }
 
 void Sidebar::sync_ams_list()
@@ -4929,33 +4931,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     machine_type = "C12";
 
                 if (printer_preset.get_current_printer_type(preset_bundle) != machine_type || !is_approx((float) preset_nozzle_diameter, machine_nozzle_diameter)) {
-                    auto get_printer_preset = [](MachineObject *obj, float nozzle_value) -> Preset * {
-                        if (!obj)
-                            return nullptr;
-
-                        Preset       *printer_preset = nullptr;
-                        PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
-                        for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
-                            // only use system printer preset
-                            if (!printer_it->is_system) continue;
-
-                            ConfigOption               *printer_nozzle_opt  = printer_it->config.option("nozzle_diameter");
-                            ConfigOptionFloatsNullable *printer_nozzle_vals = nullptr;
-                            if (printer_nozzle_opt) printer_nozzle_vals = dynamic_cast<ConfigOptionFloatsNullable *>(printer_nozzle_opt);
-                            std::string model_id = printer_it->get_current_printer_type(preset_bundle);
-
-                            std::string printer_type = obj->printer_type;
-                            if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit)
-                                printer_type = "C12";
-                            if (model_id.compare(printer_type) == 0 && printer_nozzle_vals && abs(printer_nozzle_vals->get_at(0) - nozzle_value) < 1e-3) {
-                                printer_preset = &(*printer_it);
-                            }
-                        };
-
-                        return printer_preset;
-                    };
-
-                    Preset *machine_preset = get_printer_preset(obj, machine_nozzle_diameter);
+                    Preset *machine_preset = get_printer_preset(obj);
                     if (machine_preset != nullptr) {
                         bool sync_printer_info = false;
                         if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
@@ -7201,8 +7177,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
+    wxString wx_name = combo->GetString(selection);
+    if (preset_type == Preset::TYPE_PRINTER) {
+        wx_name = combo->get_preset_item_name(selection); }
+
     std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type,
-        Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
+        Preset::remove_suffix_modified(wx_name.ToUTF8().data()));
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
@@ -12484,6 +12464,33 @@ void Plater::export_core_3mf()
     if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
     export_3mf(path_u8, SaveStrategy::Silence);
+}
+
+Preset *get_printer_preset(MachineObject *obj)
+{
+    if (!obj)
+        return nullptr;
+
+    Preset       *printer_preset = nullptr;
+    float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+    for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
+        // only use system printer preset
+        if (!printer_it->is_system)
+            continue;
+
+        ConfigOption               *printer_nozzle_opt  = printer_it->config.option("nozzle_diameter");
+        ConfigOptionFloatsNullable *printer_nozzle_vals = nullptr;
+        if (printer_nozzle_opt) printer_nozzle_vals = dynamic_cast<ConfigOptionFloatsNullable *>(printer_nozzle_opt);
+        std::string model_id = printer_it->get_current_printer_type(preset_bundle);
+
+        std::string printer_type = obj->printer_type;
+        if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit) printer_type = "C12";
+        if (model_id.compare(printer_type) == 0 && printer_nozzle_vals && abs(printer_nozzle_vals->get_at(0) - machine_nozzle_diameter) < 1e-3) {
+            printer_preset = &(*printer_it);
+        }
+    }
+    return printer_preset;
 }
 
 // Following lambda generates a combined mesh for export with normals pointing outwards.

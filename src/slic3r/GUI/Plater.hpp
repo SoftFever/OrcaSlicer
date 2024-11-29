@@ -861,6 +861,8 @@ private:
 };
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id);
+
+ Preset *get_printer_preset(MachineObject *obj);
 } // namespace GUI
 } // namespace Slic3r
 
