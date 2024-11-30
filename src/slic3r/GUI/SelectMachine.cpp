@@ -434,8 +434,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*filament area*/
     /*1 extruder*/
-    m_filament_panel = new wxPanel(this, wxID_ANY);
-    m_filament_panel->SetBackgroundColour(wxColour(0xf8f8f8));
+    m_filament_panel = new StaticBox(this);
+    m_filament_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_filament_panel->SetBorderWidth(0);
     m_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
     m_filament_panel->SetMaxSize(wxSize(FromDIP(637), -1));
     m_filament_panel_sizer = new wxBoxSizer(wxVERTICAL);
@@ -448,32 +449,61 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*left & right extruder*/
     m_sizer_filament_2extruder = new wxBoxSizer(wxHORIZONTAL);
-    m_filament_left_panel = new wxPanel(this, wxID_ANY);
-    m_filament_right_panel = new wxPanel(this, wxID_ANY);
-    m_filament_left_panel->SetBackgroundColour(wxColour(0xf8f8f8));
-    m_filament_right_panel->SetBackgroundColour(wxColour(0xf8f8f8));
-    m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), 180));
-    m_filament_left_panel->SetMaxSize(wxSize(FromDIP(315), 180));
-    m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), 180));
-    m_filament_right_panel->SetMaxSize(wxSize(FromDIP(315), 180));
+
+    m_filament_left_panel = new StaticBox(this);
+    m_filament_left_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_filament_left_panel->SetBorderWidth(0);
+    m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), -1));
+    m_filament_left_panel->SetMaxSize(wxSize(FromDIP(315), -1));
 
     m_filament_panel_left_sizer = new wxBoxSizer(wxVERTICAL);
+    auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Extruder"));
+    left_recommend_title1->SetFont(::Label::Head_13);
+    left_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+    auto left_recommend_title2 = new Label(m_filament_left_panel, _L("(Recommended filament)"));
+    left_recommend_title2->SetFont(::Label::Body_13);
+    left_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
+    left_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
+    left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
+    left_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
+    left_recommend_title_sizer->Add(left_recommend_title2, 0, wxALIGN_CENTER, 0);
+
     m_sizer_ams_mapping_left = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
-    m_filament_panel_left_sizer->Add(m_sizer_ams_mapping_left, 0, wxEXPAND | wxALL, FromDIP(10));
+    m_filament_panel_left_sizer->Add(left_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
+    m_filament_panel_left_sizer->Add(m_sizer_ams_mapping_left, 0, wxEXPAND|wxALL, FromDIP(10));
     m_filament_left_panel->SetSizer(m_filament_panel_left_sizer);
     m_filament_left_panel->Layout();
-    m_filament_left_panel->Fit();
+
+    m_filament_right_panel = new StaticBox(this);
+    m_filament_right_panel->SetBorderWidth(0);
+    m_filament_right_panel->SetBackgroundColour(wxColour(0xf8f8f8));
+    m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), -1));
+    m_filament_right_panel->SetMaxSize(wxSize(FromDIP(315), -1));
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
+    auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Extruder"));
+    right_recommend_title1->SetFont(::Label::Head_13);
+    right_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+
+    auto right_recommend_title2 = new Label(m_filament_right_panel, _L("(Recommended filament)"));
+    right_recommend_title2->SetFont(::Label::Body_13);
+    right_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
+    right_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
+    right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
+    right_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
+    right_recommend_title_sizer->Add(right_recommend_title2, 0, wxALIGN_CENTER, 0);
+
     m_sizer_ams_mapping_right = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
-    m_filament_panel_right_sizer->Add(m_sizer_ams_mapping_right, 0, wxEXPAND | wxALL, FromDIP(10));
+    m_filament_panel_right_sizer->Add(right_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
+    m_filament_panel_right_sizer->Add(m_sizer_ams_mapping_right, 0, wxEXPAND|wxALL, FromDIP(10));
     m_filament_right_panel->SetSizer(m_filament_panel_right_sizer);
     m_filament_right_panel->Layout();
-    m_filament_right_panel->Fit();
 
-    m_sizer_filament_2extruder->Add(m_filament_left_panel, 0, wxALIGN_CENTER, 0);
-    m_sizer_filament_2extruder->Add(0, 0, 0, wxLEFT, FromDIP(7));
-    m_sizer_filament_2extruder->Add(m_filament_right_panel, 0, wxALIGN_CENTER, 0);
+    m_sizer_filament_2extruder->Add(m_filament_left_panel, 0, wxEXPAND, 0);
+    m_sizer_filament_2extruder->Add( 0, 0, 1, wxEXPAND, 0);
+    m_sizer_filament_2extruder->Add(m_filament_right_panel, 0, wxEXPAND, 0);
     m_sizer_filament_2extruder->Layout();
 
 
@@ -490,7 +520,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
     auto m_split_options_line = new wxPanel(this, wxID_ANY);
-    m_split_options_line->SetBackgroundColour(0xeeeeee);
+    m_split_options_line->SetBackgroundColour(0xEEEEEE);
     m_split_options_line->SetSize(wxSize(-1, FromDIP(1)));
     m_split_options_line->SetMinSize(wxSize(-1, FromDIP(1)));
     m_split_options_line->SetMaxSize(wxSize(-1, FromDIP(1)));
@@ -736,11 +766,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_sizer_main->Add(m_sizer_mode_switch, 0, wxALIGN_CENTER, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(15));
     m_sizer_main->Add(m_basic_panel, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(14));
     m_sizer_main->Add(sizer_split_filament, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_filament_panel, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
+    m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -749,7 +779,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(18));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(18));
 
     show_print_failed_info(false);
 
@@ -3578,18 +3608,19 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
         m_sizer_ams_mapping_left->SetCols(4);
         m_sizer_ams_mapping_left->Layout();
-        //m_filament_panel_left_sizer->Layout();
+        m_filament_panel_left_sizer->Layout();
+        m_filament_left_panel->Layout();
 
         m_sizer_ams_mapping_right->SetCols(4);
         m_sizer_ams_mapping_right->Layout();
-        //m_filament_panel_right_sizer->Layout();
+        m_filament_panel_right_sizer->Layout();
+        m_filament_right_panel->Layout();
     }
     else
     {
         m_filament_left_panel->Hide();
         m_filament_right_panel->Hide();
         m_filament_panel->Show();
-        //m_filament_panel_left_sizer->Layout();
         m_sizer_ams_mapping->SetCols(8);
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();

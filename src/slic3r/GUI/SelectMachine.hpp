@@ -369,9 +369,9 @@ protected:
     std::vector<wxColour>               m_cur_colors_in_thumbnail;
     std::vector<bool>                   m_edge_pixels;
 
-    wxPanel*                            m_filament_panel;
-    wxPanel*                            m_filament_left_panel;
-    wxPanel*                            m_filament_right_panel;
+    StaticBox*                          m_filament_panel;
+    StaticBox*                          m_filament_left_panel;
+    StaticBox*                          m_filament_right_panel;
 
     wxBoxSizer*                         m_filament_panel_sizer;
     wxBoxSizer*                         m_filament_panel_left_sizer;
