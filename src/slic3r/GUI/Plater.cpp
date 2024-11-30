@@ -4915,7 +4915,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
         MachineObject *obj = dev->get_selected_machine();
-        if (obj) {
+        if (obj && obj->is_info_ready()) {
             if (obj->m_extder_data.extders.size() > 0) {
                 PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
                 Preset       &printer_preset = preset_bundle->printers.get_selected_preset();
