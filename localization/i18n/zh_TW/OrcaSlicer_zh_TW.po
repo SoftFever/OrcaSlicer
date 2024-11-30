@@ -762,7 +762,7 @@ msgid "Click to change text into object part."
 msgstr ""
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr "您無法變更模型最後一個實體部分的類型。"
+msgstr "你無法變更模型最後一個實體部分的類型。"
 
 msgctxt "EmbossOperation"
 msgid "Cut"
@@ -1362,7 +1362,7 @@ msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"系統記憶體耗盡，Orca Slicer 即將停止並且結束。這可能是個錯誤，希望您可以回報"
+"系統記憶體耗盡，Orca Slicer 即將停止並且結束。這可能是個錯誤，希望你可以回報"
 "此問題，我們非常感激。"
 
 msgid "Fatal error"
@@ -1372,7 +1372,7 @@ msgid ""
 "OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"遇到語系本地化錯誤，Orca Slicer 即將停止並且結束。希望您可以回報發生此問題的"
+"遇到語系本地化錯誤，Orca Slicer 即將停止並且結束。希望你可以回報發生此問題的"
 "具體狀況，我們非常感激。"
 
 msgid "Critical error"
@@ -1474,7 +1474,7 @@ msgstr "部分預設已被修改。"
 msgid ""
 "You can keep the modified presets to the new project, discard or save "
 "changes as new presets."
-msgstr "您可以保留尚未儲存修改的預設應用到新項目中，或者選擇忽略。"
+msgstr "你可以保留尚未儲存修改的預設應用到新項目中，或者選擇忽略。"
 
 msgid "User logged out"
 msgstr "使用者登出"
@@ -2045,7 +2045,7 @@ msgstr "刪除的負體積屬於切割物件的一部分"
 msgid ""
 "To save cut correspondence you can delete all connectors from all related "
 "objects."
-msgstr "為保證切割關係，您可以將所有關聯物件的連接件一起刪除。"
+msgstr "為保證切割關係，你可以將所有關聯物件的連接件一起刪除。"
 
 #, fuzzy
 msgid ""
@@ -2632,10 +2632,10 @@ msgid ""
 msgstr "匯入的 SLA 存檔不包含任何預設。目前的 SLA 預設被用作備用選項。"
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr "您無法在列印板上載入包含多部分物件的 SLA 項目"
+msgstr "你無法在列印板上載入包含多部分物件的 SLA 項目"
 
 msgid "Please check your object list before preset changing."
-msgstr "請在更改預設之前檢查您的物件清單。"
+msgstr "請在更改預設之前檢查你的物件清單。"
 
 msgid "Attention!"
 msgstr "注意！"
@@ -2758,10 +2758,10 @@ msgid "Setting Virtual slot information while printing is not supported"
 msgstr "不支援在列印時設定虛擬槽位資訊"
 
 msgid "Are you sure you want to clear the filament information?"
-msgstr "您確定要清除線材資訊嗎？"
+msgstr "你確定要清除線材資訊嗎？"
 
 msgid "You need to select the material type and color first."
-msgstr "您需要先選擇線材類型和顏色。"
+msgstr "你需要先選擇線材類型和顏色。"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
@@ -2823,7 +2823,7 @@ msgid ""
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
-"校準完成。如下圖中的範例，請在您的熱床上找到最均勻完整的擠出線，並將其左側的"
+"校準完成。如下圖中的範例，請在你的熱床上找到最均勻完整的擠出線，並將其左側的"
 "數值填入係數 K 欄位。"
 
 msgid "Save"
@@ -2962,7 +2962,7 @@ msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
 "information, leaving it blank for you to enter manually."
 msgstr ""
-"在插入一卷新線材時，AMS 將不會自動讀取線材資訊，預留一個空的線材資訊等待您手"
+"在插入一卷新線材時，AMS 將不會自動讀取線材資訊，預留一個空的線材資訊等待你手"
 "動輸入。"
 
 msgid "Power on update"
@@ -3020,7 +3020,7 @@ msgstr "校準"
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
 "software, check and retry."
-msgstr "插件下載失敗。請檢查您的防火牆設定和 VPN 軟體，檢查後重試。"
+msgstr "插件下載失敗。請檢查你的防火牆設定和 VPN 軟體，檢查後重試。"
 
 msgid ""
 "Failed to install the plug-in. Please check whether it is blocked or deleted "
@@ -3748,7 +3748,7 @@ msgid ""
 "control will not be activated. And the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
-"當您設定的設備內部溫度低於 40℃ 時，內部溫度控制將不會啟動。 且目標溫度將自動"
+"當你設定的設備內部溫度低於 40℃ 時，內部溫度控制將不會啟動。 且目標溫度將自動"
 "設定為 0℃。"
 
 msgid "Failed to start printing job"
@@ -5156,13 +5156,13 @@ msgid ""
 msgstr "已經完成了 MakeWorld 模型的列印，但評論資料同步失敗。"
 
 msgid "How do you like this printing file?"
-msgstr "您覺得這個列印檔案怎麼樣？"
+msgstr "你覺得這個列印檔案怎麼樣？"
 
 #, fuzzy
 msgid ""
 "(The model has already been rated. Your rating will overwrite the previous "
 "rating.)"
-msgstr "（此模型已被評價。您的評價將覆蓋先前的評價。）"
+msgstr "（此模型已被評價。你的評價將覆蓋先前的評價。）"
 
 msgid "Rate"
 msgstr "速率"
@@ -5342,7 +5342,7 @@ msgid ""
 "\n"
 "  error code: "
 msgstr ""
-"由於某些原因，您的評論結果無法上傳。如下：\n"
+"由於某些原因，你的評論結果無法上傳。如下：\n"
 "\n"
 "錯誤代碼： "
 
@@ -5356,15 +5356,15 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"您想重新導向到評價網頁嗎？"
+"你想重新導向到評價網頁嗎？"
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
 "webpage for rating?"
-msgstr "您的部分圖片上傳失敗。 要重定導向評價網頁嗎？"
+msgstr "你的部分圖片上傳失敗。 要重定導向評價網頁嗎？"
 
 msgid "You can select up to 16 images."
-msgstr "您最多可以選擇 16 張圖片。"
+msgstr "你最多可以選擇 16 張圖片。"
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
@@ -5569,7 +5569,7 @@ msgid ""
 msgstr "應用程式無法正常運行，因為 OpenGL 的版本低於 2.0。\n"
 
 msgid "Please upgrade your graphics card driver."
-msgstr "請升級您的顯示卡驅動。"
+msgstr "請升級你的顯示卡驅動。"
 
 msgid "Unsupported OpenGL version"
 msgstr "不支援的 OpenGL 版本"
@@ -5838,7 +5838,7 @@ msgid ""
 msgstr "該 3mf 的版本 %s 比 %s 的版本 %s 新，以下參數值無法識別："
 
 msgid "You'd better upgrade your software.\n"
-msgstr "建議升級您的軟體版本。\n"
+msgstr "建議升級你的軟體版本。\n"
 
 #, c-format, boost-format
 msgid ""
@@ -5962,7 +5962,7 @@ msgid ""
 "This action will break a cut correspondence.\n"
 "After that model consistency can't be guaranteed."
 msgstr ""
-"您正嘗試刪除切割物件的一部分，這將破壞切割對應關係，刪除之後，將無法再保證模"
+"你正嘗試刪除切割物件的一部分，這將破壞切割對應關係，刪除之後，將無法再保證模"
 "型的一致性。"
 
 msgid "The selected object couldn't be split."
@@ -6036,7 +6036,7 @@ msgstr ""
 
 #, fuzzy
 msgid "You can keep the modified presets to the new project or discard them"
-msgstr "您可以將修改後的預設檔保留到新專案項目中或者忽略這些修改"
+msgstr "你可以將修改後的預設檔保留到新專案項目中或者忽略這些修改"
 
 msgid "Creating a new project"
 msgstr "建立新專案"
@@ -6297,7 +6297,7 @@ msgid "Changing application language"
 msgstr "正在為應用程式切換語言"
 
 msgid "Changing the region will log out your account.\n"
-msgstr "修改區域會自動登出您的帳號。\n"
+msgstr "修改區域會自動登出你的帳號。\n"
 
 msgid "Region selection"
 msgstr "區域選擇"
@@ -6381,7 +6381,7 @@ msgid ""
 "In such case this settings will allow only one instance."
 msgstr ""
 "在 OSX 上，預設情況下總是只有一個應用程式實例在運行。但是卻允許從命令視窗執行"
-"同一應用程式的多個實例。當您設定了這個設定後將只允許一個實例執行。"
+"同一應用程式的多個實例。當你設定了這個設定後將只允許一個實例執行。"
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -7016,7 +7016,7 @@ msgid ""
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 msgstr ""
-"產生 G-code 時選擇的列印設備類型與目前選擇的列印設備不一致。建議您使用相同的"
+"產生 G-code 時選擇的列印設備類型與目前選擇的列印設備不一致。建議你使用相同的"
 "列印設備類型進行切片。"
 
 msgid ""
@@ -7052,7 +7052,7 @@ msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
-msgstr "如果您仍然想繼續列印，請滑鼠左鍵點擊 確定 按鈕。"
+msgstr "如果你仍然想繼續列印，請滑鼠左鍵點擊 確定 按鈕。"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -7166,9 +7166,9 @@ msgid ""
 "Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
-"感謝您購買 Bambu Lab 設備，使用 Bambu Lab 設備前，請閱讀一下條款，點擊同意使"
-"用您的 Bambu Lab 設備即表示您同意遵守隱私政策以及使用條款（統稱為 條款 ）。如"
-"果您不願遵守或不同意 Bambu Lab 隱私政策，請不要使用 Bambu Lab 設備和服務。"
+"感謝你購買 Bambu Lab 設備，使用 Bambu Lab 設備前，請閱讀一下條款，點擊同意使"
+"用你的 Bambu Lab 設備即表示你同意遵守隱私政策以及使用條款（統稱為 條款 ）。如"
+"果你不願遵守或不同意 Bambu Lab 隱私政策，請不要使用 Bambu Lab 設備和服務。"
 
 msgid "and"
 msgstr ""
@@ -7178,7 +7178,7 @@ msgstr "隱私協議"
 
 #, fuzzy
 msgid "We ask for your help to improve everyone's printer"
-msgstr "我們請求您的幫助來改善大家的列印設備"
+msgstr "我們請求你的幫助來改善大家的列印設備"
 
 msgid "Statement about User Experience Improvement Program"
 msgstr "關於使用者體驗改善計劃的聲明"
@@ -7199,10 +7199,10 @@ msgid ""
 msgstr ""
 "在 3D 列印社區，我們從彼此的成功和失敗中學習調整自己的切片參數和設定。%s 遵循"
 "同樣的原則，透過機器學習的方式從大量使用者列印的成功和失敗中獲取經驗，從而改"
-"善列印性能。我們正在透過向 %s 提供真實世界的資料來訓練他們變得更聰明。如果您"
-"願意，此服務將訪問您的錯誤日誌和使用日誌中的資訊，其中可能包括隱私政策中描述"
+"善列印性能。我們正在透過向 %s 提供真實世界的資料來訓練他們變得更聰明。如果你"
+"願意，此服務將訪問你的錯誤日誌和使用日誌中的資訊，其中可能包括隱私政策中描述"
 "的資料。我們不會收集任何可以直接或間接識別個人的個人資料，包括但不限於姓名、"
-"地址、支付資訊或電話號碼。啟用此服務即表示您同意這些條款和有關隱私政策的聲"
+"地址、支付資訊或電話號碼。啟用此服務即表示你同意這些條款和有關隱私政策的聲"
 "明。"
 
 msgid "Statement on User Experience Improvement Plan"
@@ -8488,7 +8488,7 @@ msgstr "區域網路連接失敗（傳送列印檔案）"
 
 msgid ""
 "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-msgstr "第1步，請確認 Orca Slicer 和您的列印設備在同一個區域網路上。"
+msgstr "第1步，請確認 Orca Slicer 和你的列印設備在同一個區域網路上。"
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
@@ -8890,7 +8890,7 @@ msgstr "雖然物件 %1% 本身符合列印體積，但最後一層超出了最�
 msgid ""
 "You might want to reduce the size of your model or change current print "
 "settings and retry."
-msgstr "您可能想要減小模型的尺寸或更改目前的列印設定並重試。"
+msgstr "你可能想要減小模型的尺寸或更改目前的列印設定並重試。"
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "有機樹支撐不支持可變層高。"
@@ -10341,7 +10341,7 @@ msgid "Filament notes"
 msgstr "線材備註"
 
 msgid "You can put your notes regarding the filament here."
-msgstr "您可以將有關線材的備註存放在這裡。"
+msgstr "你可以將有關線材的備註存放在這裡。"
 
 msgid "Required nozzle HRC"
 msgstr "噴嘴硬度要求"
@@ -11144,7 +11144,7 @@ msgid ""
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
-"啟用此選項可取得帶註釋的 G-code，其中每一行均由描述性文字進行解釋。 如果您從 "
+"啟用此選項可取得帶註釋的 G-code，其中每一行均由描述性文字進行解釋。 如果你從 "
 "SD 卡列印，檔案的額外容量可能會導致韌體速度變慢。"
 
 msgid "Infill combination"
@@ -11358,7 +11358,7 @@ msgstr ""
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
-msgstr "該 G-code 用於暫停列印。您可以在 gcode 預覽中插入暫停 G-code"
+msgstr "該 G-code 用於暫停列印。你可以在 gcode 預覽中插入暫停 G-code"
 
 msgid "This G-code will be used as a custom code"
 msgstr "該 G-code 是訂製化指令"
@@ -11601,7 +11601,7 @@ msgstr "設定備註"
 msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
-msgstr "您可以在這裡放置您的個人備註。 該文字將會加入 G 代碼標題註釋中。"
+msgstr "你可以在這裡放置你的個人備註。 該文字將會加入 G 代碼標題註釋中。"
 
 msgid "Host Type"
 msgstr "主機類型"
@@ -11765,7 +11765,7 @@ msgid ""
 "argument, and they can access the Orca Slicer config settings by reading "
 "environment variables."
 msgstr ""
-"如果您想透過自訂腳本處理輸出的 G-code，只需在此處列出它們的絕對路徑即可。 用"
+"如果你想透過自訂腳本處理輸出的 G-code，只需在此處列出它們的絕對路徑即可。 用"
 "分號分隔多個腳本。 腳本將傳遞 G-code 檔案的絕對路徑作為第一個參數，並且它們可"
 "以透過讀取環境變數來讀取 Orca Slicer 設定。"
 
@@ -12448,7 +12448,7 @@ msgid ""
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
 "該設定值將從輸出 G-code 中的所有 Z 座標增加（或 減少）。 它用於 Z 軸限位器位"
-"置的補償：例如，您的 Z 軸限位器實際上使噴嘴距離列印板高了 0.3 mm，請將其設定"
+"置的補償：例如，你的 Z 軸限位器實際上使噴嘴距離列印板高了 0.3 mm，請將其設定"
 "為 -0.3。"
 
 msgid "Enable support"
@@ -12681,33 +12681,29 @@ msgstr "將會為懸空角度低於臨界值的模型表面產生支撐。"
 msgid "Tree support branch angle"
 msgstr "樹狀支撐分支角度"
 
-#, fuzzy
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
 "tree support allowed to make.If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
-"此設定確定了允許樹狀支撐的最大懸垂角度。如果角度增加，可以更水平地列印分支，"
+"此設定決定樹狀支撐的最大分支角度。如果角度增加，可以更水平地列印分支，"
 "使它們可以到達更遠的地方。"
 
-#, fuzzy
 msgid "Preferred Branch Angle"
 msgstr "偏好樹狀分支角度"
 
 #. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
-#, fuzzy
 msgid ""
 "The preferred angle of the branches, when they do not have to avoid the "
 "model. Use a lower angle to make them more vertical and more stable. Use a "
 "higher angle for branches to merge faster."
 msgstr ""
-"樹狀分支的偏好角度，當它們不必避開模型時。 使用較低的角度使它們更垂直且更穩"
+"當樹狀分支不必避開模型時的偏好角度。 使用較低的角度使它們更垂直且更穩"
 "定。 使用更高的角度使分支合併得更快。"
 
 msgid "Tree support branch distance"
 msgstr "樹狀支撐分支距離"
 
-#, fuzzy
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "此設定確定了樹狀支撐的相鄰節點之間的距離。"
@@ -12758,7 +12754,6 @@ msgstr "有機樹狀支撐的分支末端直徑。"
 msgid "Tree support branch diameter"
 msgstr "樹狀支撐分支直徑"
 
-#, fuzzy
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "此設定確定了樹狀支撐節點的初始直徑。"
 
@@ -12776,9 +12771,8 @@ msgstr ""
 "樹狀分支直徑隨著向底部逐漸變粗的角度。 0 角度將導致分支在其長度上具有均勻的厚"
 "度。 一點角度可以增加有機樹支撐的穩定性。"
 
-#, fuzzy
 msgid "Branch Diameter with double walls"
-msgstr "分支直徑雙層牆"
+msgstr "分支雙層牆直徑"
 
 #. TRN PrintSettings: "Organic supports" > "Branch Diameter"
 msgid ""
@@ -12798,7 +12792,6 @@ msgstr ""
 msgid "Tree support with infill"
 msgstr "樹狀支撐產生填充"
 
-#, fuzzy
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support"
@@ -12889,7 +12882,6 @@ msgstr "頂部殼體層數"
 msgid "Top shell thickness"
 msgstr "頂部殼體厚度"
 
-#, fuzzy
 msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
 "calculated by top shell layers is thinner than this value. This can avoid "
@@ -13003,7 +12995,6 @@ msgstr ""
 "列印換料塔周長時使用的擠出機。設置為 0 將使用唯一的擠出機（盡量使用不可溶的材"
 "料）。"
 
-#, fuzzy
 msgid "Purging volumes - load/unload volumes"
 msgstr "清理量 - 進料/退料 量"
 
@@ -13015,7 +13006,6 @@ msgstr ""
 "可保存所需的體積，用於更改每個換料塔上工具所使用的 from/to 體積 。這些值用於"
 "簡化完全沖刷體積的建立。"
 
-#, fuzzy
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -13026,7 +13016,6 @@ msgstr ""
 "間，但是如果物件的內外牆是採用透明線材列印的，則可以從模型外觀上看到內部的混"
 "色廢料。該功能只有在啟用換料塔的時候才生效。"
 
-#, fuzzy
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
 "lower the amount of waste and decrease the print time. It will not take "
@@ -13035,7 +13024,6 @@ msgstr ""
 "多色列印換色後的廢料會被用來列印物件的支撐。這樣可以減少線材浪費和縮短列印時"
 "間。該功能只有在啟用換料塔的時候才生效。"
 
-#, fuzzy
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
@@ -13132,9 +13120,8 @@ msgstr "扭曲多邊形孔"
 msgid "Rotate the polyhole every layer."
 msgstr "依層旋轉多邊形孔"
 
-#, fuzzy
 msgid "G-code thumbnails"
-msgstr "G-code 縮圖尺寸"
+msgstr "G-code 縮圖"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
@@ -13285,13 +13272,11 @@ msgstr ""
 "此選項用於自動識別內部狹窄的實心填充。開啟後，將對狹窄實心區域使用同心填充加"
 "快列印速度。否則使用預設的直線填充。"
 
-#, fuzzy
 msgid "invalid value "
 msgstr "無效值"
 
-#, fuzzy
 msgid "Invalid value when spiral vase mode is enabled: "
-msgstr "花瓶模式時無效值："
+msgstr "值於花瓶模式無效："
 
 msgid "too large line width "
 msgstr "線寬過大"
@@ -13308,7 +13293,6 @@ msgstr "匯出最小尺寸的 3mf。"
 msgid "No check"
 msgstr "不檢查"
 
-#, fuzzy
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要執行任何有效性檢查，如 G-code 路徑衝突檢查。"
 
@@ -13334,11 +13318,9 @@ msgstr "繞 Y 旋轉"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "繞 Y 軸的旋轉角度（以度為單位）"
 
-#, fuzzy
 msgid "Data directory"
-msgstr "檔案路徑"
+msgstr "檔案目錄"
 
-#, fuzzy
 msgid ""
 "Load and store settings at the given directory. This is useful for "
 "maintaining different profiles or including configurations from a network "
@@ -13612,7 +13594,6 @@ msgstr ""
 msgid "The current extruder ID. The same as current_extruder."
 msgstr ""
 
-#, fuzzy
 msgid "Error in zip archive"
 msgstr "zip 檔案中存在錯誤"
 
@@ -13643,11 +13624,11 @@ msgstr "浮空懸臂"
 msgid "large overhangs"
 msgstr "大面積懸空"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
-msgstr "似乎物件 %s 有 %s。請重新調整物件的方向或啟用支撐。"
+msgstr "物件 %s 似乎有 %s。請重新調整物件的方向或啟用支撐。"
 
 msgid "Optimizing toolpath"
 msgstr "正在最佳化走線"
@@ -13655,14 +13636,12 @@ msgstr "正在最佳化走線"
 msgid "Slicing mesh"
 msgstr "正在切片網格"
 
-#, fuzzy
 msgid ""
 "No layers were detected. You might want to repair your STL file(s）or check "
 "their size or thickness and retry.\n"
 msgstr ""
-"沒有偵測到層。您可能需要修復 STL 檔案，或檢查模型尺寸、厚度等，之後再重試。\n"
+"沒有切到層次。你可能需要修復 STL 檔案，或檢查模型尺寸、厚度等，之後再重試。\n"
 
-#, fuzzy
 msgid ""
 "An object's XY size compensation will not be used because it is also color-"
 "painted.\n"
@@ -13671,9 +13650,9 @@ msgstr ""
 "物件的 XY 尺寸補償不會生效，因為在此物件上做過上色操作。\n"
 "XY 尺寸補償不能與上色功能一起使用。"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
-msgstr "支撐：正在產生 %d 層的走線路徑"
+msgstr "支撐：正在產生 %d 層的路徑"
 
 msgid "Support: detect overhangs"
 msgstr "支撐：正在偵測懸空面"
@@ -13690,19 +13669,18 @@ msgstr "支撐：正在產生多邊形"
 msgid "Support: generate toolpath"
 msgstr "支撐：正在產生走線路徑"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
 msgstr "支撐：正在產生 %d 層的多邊形"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "Support: fix holes at layer %d"
 msgstr "支撐：正在修補 %d 層的空洞"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撐：正在生長 %d 層的樹枝"
 
-#, fuzzy
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml）extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .stl、.obj 或 .amf（.xml）。"
@@ -13713,32 +13691,27 @@ msgstr "載入模型檔案失敗。"
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "無法讀取提供的檔案，因為該檔案為空。"
 
-#, fuzzy
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
 
 msgid "Canceled"
 msgstr "已取消"
 
-#, fuzzy
 msgid "load_obj: failed to parse"
-msgstr "載入物件：無法分析"
+msgstr "載入物件：解析失敗"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "載入物件材質：解析失敗"
 
-#, fuzzy
 msgid "The file contains polygons with more than 4 vertices."
-msgstr "該檔案包含頂點超過 4 個的多邊形。"
+msgstr "該檔案包含超過 4 個頂點的多邊形。"
 
-#, fuzzy
 msgid "The file contains polygons with less than 2 vertices."
-msgstr "該檔案包含頂點少於 2 個的多邊形。"
+msgstr "該檔案包含少於 2 個頂點的多邊形。"
 
 msgid "The file contains invalid vertex index."
 msgstr "檔案包含無效的頂點索引。"
 
-#, fuzzy
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "無法讀取此 OBJ 檔案，因為它是空的。"
 
@@ -13760,9 +13733,8 @@ msgstr "結果可由人眼讀取。"
 msgid "Auto-Calibration"
 msgstr "自動校準"
 
-#, fuzzy
 msgid "We would use Lidar to read the calibration result"
-msgstr "將使用微型雷射雷達來讀取校準結果。"
+msgstr "將使用雷射雷達來讀取校準結果。"
 
 msgid "Prev"
 msgstr "上一個"
@@ -13781,9 +13753,8 @@ msgstr "如何使用校準結果？"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
-msgstr "您可以在線材編輯中更改流量動態校準因子。"
+msgstr "你可以在線材編輯中更改流量動態校準因子。"
 
-#, fuzzy
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
@@ -13809,7 +13780,7 @@ msgstr "流量比例"
 msgid "Max Volumetric Speed"
 msgstr "最大體積速度"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
 "Start value: >= %.1f\n"
@@ -13819,8 +13790,8 @@ msgid ""
 msgstr ""
 "請輸入有效值：\n"
 "起始值：>= %.1f\n"
-"最終值：<= %.1f\n"
-"結束值：> 起始值\n"
+"終止值：<= %.1f\n"
+"終止值：> 起始值\n"
 "步距：>= %.3f）"
 
 msgid "The name cannot be empty."
@@ -13830,37 +13801,30 @@ msgstr "名稱不能為空。"
 msgid "The selected preset: %s is not found."
 msgstr ""
 
-#, fuzzy
 msgid "The name cannot be the same as the system preset name."
 msgstr "名稱不能與系統預設值名稱相同。"
 
-#, fuzzy
 msgid "The name is the same as another existing preset name"
 msgstr "該名稱與另一個現有預設值名稱相同。"
 
-#, fuzzy
 msgid "create new preset failed."
-msgstr "新增預設值失敗"
+msgstr "新增預設失敗"
 
-#, fuzzy
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
-msgstr "您確定要取消目前的校準並返回首頁嗎？"
+msgstr "你確定要取消目前的校準並返回首頁嗎？"
 
-#, fuzzy
 msgid "No Printer Connected!"
 msgstr "沒有連接列印設備！"
 
-#, fuzzy
 msgid "Printer is not connected yet."
 msgstr "列印設備尚未連接。"
 
 msgid "Please select filament to calibrate."
 msgstr "請選擇要校準的線材。"
 
-#, fuzzy
 msgid "The input value size must be 3."
-msgstr "輸入值大小必須為 3。"
+msgstr "輸入值必須為 3。"
 
 msgid ""
 "This machine type can only hold 16 history results per nozzle. You can "
@@ -13870,14 +13834,12 @@ msgid ""
 "Do you still want to continue the calibration?"
 msgstr ""
 
-#, fuzzy
 msgid "Connecting to printer..."
 msgstr "正在連接列印設備..."
 
 msgid "The failed test result has been dropped."
 msgstr "測試失敗的結果已被刪除。"
 
-#, fuzzy
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "動態流量校準的結果已儲存至列印設備。"
 
@@ -13900,7 +13862,6 @@ msgstr "內部錯誤"
 msgid "Please select at least one filament for calibration"
 msgstr "請至少選擇一種線材進行校準。"
 
-#, fuzzy
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "流量比例校準結果已儲存到預設值"
 
@@ -13910,7 +13871,6 @@ msgstr "最大體積速度校準結果已儲存到預設值"
 msgid "When do you need Flow Dynamics Calibration"
 msgstr "在什麼情況下需要進行動態流量校準"
 
-#, fuzzy
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
 "fully automated and the result will be saved into the printer for future "
@@ -13922,10 +13882,10 @@ msgid ""
 "filament setting."
 msgstr ""
 "我們現在已經為不同的列印線材新增了自動校準功能，該功能是完全自動化的，並且結"
-"果將儲存在列印設備中以供將來使用。您只需要在以下有限情況下進行校準：\n"
-"1. 如果您引入了不同品牌/型號的新列印線材，或者列印線材受潮；\n"
+"果將儲存在列印設備中以供將來使用。你只需要在以下有限情況下進行校準：\n"
+"1. 如果你引入了不同品牌/型號的新列印線材，或者列印線材受潮；\n"
 "2. 如果噴嘴磨損或更換了新的噴嘴；\n"
-"3. 如果您在列印線材設定中更改了最大體積速度或列印溫度。"
+"3. 如果你在列印線材設定中更改了最大體積速度或列印溫度。"
 
 msgid "About this calibration"
 msgstr "關於此校準"
@@ -13971,7 +13931,6 @@ msgstr ""
 "3. 表面品質差：列印的表面看起來粗糙或不均勻。\n"
 "4. 結構穩固性差：列印物件容易斷裂，或者沒有應有的穩固性。"
 
-#, fuzzy
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
 "PLA used in RC planes. These materials expand greatly when heated, and "
@@ -13980,7 +13939,6 @@ msgstr ""
 "此外，對於像用於遙控飛機的輕質發泡 PLA（LW-PLA）這樣的發泡線材，流量率校準非"
 "常重要。這些線材在加熱時會大幅膨脹，而校準提供了有用的流量率參考。"
 
-#, fuzzy
 msgid ""
 "Flow Rate Calibration measures the ratio of expected to actual extrusion "
 "volumes. The default setting works well in Bambu Lab printers and official "
@@ -13991,10 +13949,9 @@ msgid ""
 msgstr ""
 "流量率校準測量預期擠出體積與實際擠出體積之間的比率。預設設定在 Bambu Lab 列印"
 "設備和官方線材上表現良好，因為它們已經進行了預先校準和微調。對於普通的線材，"
-"通常情況下，您不需要執行流量率校準，除非在完成其他校準後仍然看到上述列出的缺"
+"通常情況下，你不需要執行流量率校準，除非在完成其他校準後仍然看到上述列出的缺"
 "陷。如需更多詳細資訊，請查閱 wiki 文章。"
 
-#, fuzzy
 msgid ""
 "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
 "directly measuring the calibration patterns. However, please be advised that "
@@ -14013,7 +13970,7 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
-"自動流量率校準採用 Bambu Lab 的微型雷射雷達技術，直接測量校準圖案。然而，請注"
+"自動流量率校準採用 Bambu Lab 的雷射雷達技術，直接測量校準圖案。然而，請注"
 "意，這種方法的功效和準確性可能會因特定類型的線材而受影響。特別是透明或半透"
 "明、帶有閃光顆粒或具有高反射表面的線材可能不適合這種校準，並可能產生不理想的"
 "結果。\n"
@@ -14026,7 +13983,7 @@ msgstr ""
 "程。"
 
 msgid "When you need Max Volumetric Speed Calibration"
-msgstr "當您需要最大體積速度校準時"
+msgstr "當你需要最大體積速度校準時"
 
 msgid "Over-extrusion or under extrusion"
 msgstr "過度擠壓或擠壓不足"
@@ -14043,21 +14000,19 @@ msgstr "耗材直徑不準確的線材"
 msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr "我們找到了最佳的流量動態校準因子。"
 
-#, fuzzy
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
 "failed test result would be dropped."
-msgstr "部分校準失敗！ 您可以清潔列印板並重試。 失敗的測試結果將不會儲存。"
+msgstr "部分校準失敗！ 你可以清潔列印板並重試。 失敗的測試結果將不會儲存。"
 
 msgid ""
 "*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
-msgstr "*我們建議您在名稱中加入品牌、材料、類型，甚至濕度水平。"
+msgstr "*我們建議你在名稱中加入品牌、材料、類型，甚至濕度水平。"
 
 msgid "Failed"
 msgstr "失敗"
 
-#, fuzzy
 msgid "Please enter the name you want to save to printer."
 msgstr "請輸入要儲存到列印設備的名稱。"
 
@@ -14070,7 +14025,7 @@ msgid ""
 msgstr ""
 
 msgid "Please find the best line on your plate"
-msgstr "請在您的列印板上找到最佳線條"
+msgstr "請在你的列印板上找到最佳線條"
 
 msgid "Please find the corner with perfect degree of extrusion"
 msgstr ""
@@ -14078,19 +14033,17 @@ msgstr ""
 msgid "Input Value"
 msgstr "輸入值"
 
-#, fuzzy
 msgid "Save to Filament Preset"
-msgstr "儲存到材料預設值"
+msgstr "儲存到材料預設"
 
-#, fuzzy
 msgid "Preset"
-msgstr "預設值"
+msgstr "預設"
 
 msgid "Record Factor"
 msgstr "記錄係數"
 
 msgid "We found the best flow ratio for you"
-msgstr "我們為您找到了最佳流量比"
+msgstr "我們為你找到了最佳流量比"
 
 msgid "Flow Ratio"
 msgstr "流量比"
@@ -14098,9 +14051,8 @@ msgstr "流量比"
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
 msgstr "請輸入一個有效值（0.0<流量比<2.0）"
 
-#, fuzzy
 msgid "Please enter the name of the preset you want to save."
-msgstr "請輸入要儲存的預設值的名稱。"
+msgstr "請輸入要儲存的預設名稱。"
 
 msgid "Calibration1"
 msgstr "校準 1"
@@ -14143,7 +14095,6 @@ msgstr "基於流量比的精細校準"
 msgid "Title"
 msgstr "標題"
 
-#, fuzzy
 msgid ""
 "A test model will be printed. Please clear the build plate and place it back "
 "to the hot bed before calibration."
@@ -14186,7 +14137,6 @@ msgstr "%s 與 %s 不相容"
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "不支援 TPU 進行流量動態自動校準。"
 
-#, fuzzy
 msgid "Connecting to printer"
 msgstr "正在連接列印設備"
 
@@ -14199,7 +14149,6 @@ msgstr ""
 msgid "Step value"
 msgstr ""
 
-#, fuzzy
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "噴嘴直徑已從列印設備設定中同步"
 
@@ -14344,17 +14293,15 @@ msgstr ""
 msgid "Filament type"
 msgstr "線材類型"
 
-#, fuzzy
 msgid "Start temp: "
 msgstr "起始溫度： "
 
 msgid "End temp: "
-msgstr "結束溫度"
+msgstr "終止溫度"
 
 msgid "Temp step: "
 msgstr "溫度步距"
 
-#, fuzzy
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
@@ -14363,8 +14310,8 @@ msgid ""
 msgstr ""
 "請輸入有效值：\n"
 "起始溫度：<= 350\n"
-"結束溫度：>= 170\n"
-"開始溫度 > 結束溫度 + 5）"
+"終止溫度：>= 170\n"
+"開始溫度 > 終止溫度 + 5）"
 
 msgid "Max volumetric speed test"
 msgstr "最大體積速度測試"
@@ -14378,7 +14325,6 @@ msgstr "結束流量"
 msgid "step: "
 msgstr "步距"
 
-#, fuzzy
 msgid ""
 "Please input valid values:\n"
 "start > 0 \n"
@@ -14419,7 +14365,6 @@ msgstr "結束回抽長度"
 msgid "mm/mm"
 msgstr ""
 
-#, fuzzy
 msgid "Send G-Code to printer host"
 msgstr "傳送 G-code 到列印設備"
 
@@ -14435,9 +14380,9 @@ msgstr "上傳到儲存單位"
 msgid "Switch to Device tab after upload."
 msgstr ""
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr "上傳的檔名不以 \"%s\" 結尾。確定要繼續嗎？"
+msgstr "上傳的檔名不是 \"%s\" 結尾。確定要繼續嗎？"
 
 msgid "Upload"
 msgstr "上傳"
@@ -14476,15 +14421,12 @@ msgstr "正在上傳"
 msgid "Cancelling"
 msgstr "取消中"
 
-#, fuzzy
 msgid "Error uploading to print host"
 msgstr "上傳到列印設備時發生錯誤"
 
-#, fuzzy
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "無法對所選零件執行布林運算"
 
-#, fuzzy
 msgid "Mesh Boolean"
 msgstr "布林運算"
 
@@ -15049,21 +14991,19 @@ msgstr ""
 msgid "Replace the BambuLab's device tab with print host webui"
 msgstr ""
 
-#, fuzzy
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
-"HTTPS CA 憑證檔案是可選的。 僅當您使用具有自帶簽名憑證的 HTTPS 時才需要它。"
+"HTTPS CA 憑證檔案是可選的。 僅當你使用具有自行簽證的 HTTPS 時才需要它。"
 
-#, fuzzy
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
 msgstr "憑證檔（*.crt, *.pem）|*.crt;*.pem|All files|*.*"
 
 msgid "Open CA certificate file"
 msgstr "開啟 CA憑證檔"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
@@ -15072,7 +15012,7 @@ msgstr "在此系統上，%s 使用系統憑證儲存庫或鑰匙圈中的 HTTPS
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
-msgstr "若要使用自訂 CA 憑證檔，請將您的 CA 憑證檔匯入到憑證儲存庫/鑰匙圈中。"
+msgstr "若要使用自訂 CA 憑證檔，請將你的 CA 憑證檔匯入到憑證儲存庫/鑰匙圈中。"
 
 msgid "Login/Test"
 msgstr ""
@@ -15492,7 +15432,7 @@ msgid ""
 "cutting tool?"
 msgstr ""
 "切割工具\n"
-"您知道嗎？您可以使用切割工具以任何角度和位置切割模型。"
+"你知道嗎？你可以使用切割工具以任何角度和位置切割模型。"
 
 #: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
@@ -15507,29 +15447,26 @@ msgid ""
 "Did you know that you can generate a timelapse video during each print?"
 msgstr ""
 "縮時錄影\n"
-"您知道嗎？您可以每次列印時產生一段縮時錄影。"
+"你知道嗎？你可以每次列印時產生一段縮時錄影。"
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
-#, fuzzy
 msgid ""
 "Auto-Arrange\n"
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
 "自動擺放\n"
-"您知道嗎？您可以自動擺放專案項目中的所有物件。"
+"你知道嗎？你可以自動擺放專案項目中的所有物件。"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
-#, fuzzy
 msgid ""
 "Auto-Orient\n"
 "Did you know that you can rotate objects to an optimal orientation for "
 "printing by a simple click?"
 msgstr ""
 "自動定向\n"
-"您知道嗎，您只需單擊滑鼠，即可將物件旋轉到適合的列印方向。"
+"你知道嗎，你只需單擊滑鼠，即可將物件旋轉到適合的列印方向。"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
-#, fuzzy
 msgid ""
 "Lay on Face\n"
 "Did you know that you can quickly orient a model so that one of its faces "
@@ -15537,18 +15474,17 @@ msgid ""
 "<b>F</b> key."
 msgstr ""
 "指定列印物件底部\n"
-"您知道嗎，您可以快速指定模型的底面，使其位於列印板上。選擇 \"選擇底面” 功能或"
+"你知道嗎，你可以快速指定模型的底面，使其位於列印板上。選擇 \"選擇底面” 功能或"
 "按<b>F</b>鍵。"
 
 #: resources/data/hints.ini: [hint:Object List]
-#, fuzzy
 msgid ""
 "Object List\n"
 "Did you know that you can view all objects/parts in a list and change "
 "settings for each object/part?"
 msgstr ""
 "物件清單\n"
-"您知道物件清單嗎？您可以在其中的查看所有物件/零件，並更改每個物件/零件的設"
+"你知道物件清單嗎？你可以在其中的查看所有物件/零件，並更改每個物件/零件的設"
 "定。"
 
 #: resources/data/hints.ini: [hint:Search Functionality]
@@ -15566,24 +15502,22 @@ msgid ""
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
-#, fuzzy
 msgid ""
 "Slicing Parameter Table\n"
 "Did you know that you can view all objects/parts on a table and change "
 "settings for each object/part?"
 msgstr ""
 "參數表格\n"
-"您知道嗎？您可以參數表格上的所有物件/零件，並更改每個物件/零件的設定。"
+"你知道嗎？你可以看參數表格上的所有物件/零件，並更改每個物件/零件的設定。"
 
 #: resources/data/hints.ini: [hint:Split to Objects/Parts]
-#, fuzzy
 msgid ""
 "Split to Objects/Parts\n"
 "Did you know that you can split a big object into small ones for easy "
 "colorizing or printing?"
 msgstr ""
 "分割成物件/零件\n"
-"您知道嗎，您可以把一個大物件分割成多個小物件/零件以便著色或列印。"
+"你知道嗎，你可以把一個大物件分割成多個小物件/零件以便著色或列印。"
 
 #: resources/data/hints.ini: [hint:Subtract a Part]
 msgid ""
@@ -15594,7 +15528,6 @@ msgid ""
 msgstr ""
 
 #: resources/data/hints.ini: [hint:STEP]
-#, fuzzy
 msgid ""
 "STEP\n"
 "Did you know that you can improve your print quality by slicing a STEP file "
@@ -15603,7 +15536,7 @@ msgid ""
 "lower resolution STL. Give it a try!"
 msgstr ""
 "STEP檔案\n"
-"您知道嗎，通過切片 STEP 檔案而不是 STL 檔案可以提高列印品質。\n"
+"你知道嗎，通過切片 STEP 檔案而不是 STL 檔案可以提高列印品質。\n"
 " Orca Slicer 支援切片 STEP 檔案，提供比低解析度 STL 更平滑的結果。試試看！"
 
 #: resources/data/hints.ini: [hint:Z seam location]
@@ -15614,7 +15547,7 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z接縫位置\n"
-"您知道嗎，您可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見的"
+"你知道嗎，你可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見的"
 "位置。這樣可以改善模型的整體外觀。試試看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
@@ -15625,11 +15558,10 @@ msgid ""
 "printed model by doing some fine-tuning."
 msgstr ""
 "流量微調\n"
-"你知道嗎，您可以微調流量，以獲得更好看的列印效果。根據線材的不同，可以通過進"
+"你知道嗎，你可以微調流量，以獲得更好看的列印效果。根據線材的不同，可以通過進"
 "行一些微調來提高列印模型的整體光潔度。"
 
 #: resources/data/hints.ini: [hint:Split your prints into plates]
-#, fuzzy
 msgid ""
 "Split your prints into plates\n"
 "Did you know that you can split a model that has a lot of parts into "
@@ -15637,7 +15569,7 @@ msgid ""
 "track of all the parts."
 msgstr ""
 "分類列印\n"
-"您知道嗎，您可以把一個有很多零件的模型安排到多個獨立的列印板，然後列印出來，"
+"你知道嗎，你可以把一個有很多零件的模型安排到多個獨立的列印板，然後列印出來，"
 "這將簡化對所有零件的管理。"
 
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
@@ -15648,7 +15580,7 @@ msgid ""
 "Layer Height option? Check it out!"
 msgstr ""
 "自適應層高度加速列印\n"
-"您知道嗎，您可以使用“自適應層高度”選項可以更快地列印模型。試試看！"
+"你知道嗎，你可以使用“自適應層高度”選項可以更快地列印模型。試試看！"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -15658,7 +15590,7 @@ msgid ""
 "model that actually need it."
 msgstr ""
 "自訂支撐\n"
-"您知道嗎，您可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐材料放置在實際需"
+"你知道嗎，你可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐材料放置在實際需"
 "要的模型截面上變得容易。"
 
 #: resources/data/hints.ini: [hint:Different types of supports]
@@ -15669,7 +15601,7 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "支撐類型\n"
-"您知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節耗材"
+"你知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節耗材"
 "並提高列印速度。試試看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]
@@ -15690,21 +15622,19 @@ msgid ""
 "the printing surface, it's recommended to use a brim?"
 msgstr ""
 "使用 Brim（裙邊）\n"
-"您知道嗎？當模型與熱床表面的接觸面積較小時，建議使用 brim（裙邊）以提高列印成"
+"你知道嗎？當模型與熱床表面的接觸面積較小時，建議使用 brim（裙邊）以提高列印成"
 "功率。"
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-#, fuzzy
 msgid ""
 "Set parameters for multiple objects\n"
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
 "為多個物件設定參數\n"
-"您知道嗎，可以同時為所有選取的物件設定切片參數。"
+"你知道嗎，你可以同時為所有選取的物件設定切片參數。"
 
 #: resources/data/hints.ini: [hint:Stack objects]
-#, fuzzy
 msgid ""
 "Stack objects\n"
 "Did you know that you can stack objects as a whole one?"
@@ -15713,7 +15643,6 @@ msgstr ""
 "你知道嗎？你可以把多個物件組合為一個整體。"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-#, fuzzy
 msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into "
@@ -15748,13 +15677,11 @@ msgid ""
 "probability of warping."
 msgstr ""
 
-#, fuzzy
 #~ msgid "Cool Plate"
 #~ msgstr "低溫列印板"
 
-#, fuzzy
 #~ msgid "Reverse on odd"
-#~ msgstr "反轉奇數層懸空方向"
+#~ msgstr "反轉奇數層方向"
 
 #, no-c-format, no-boost-format
 #~ msgid ""
@@ -15765,7 +15692,6 @@ msgstr ""
 #~ "判定懸空反轉需要的值（mm），可以是線寬的百分比。\n"
 #~ " 0 值則會在每個奇數層上啟用反向。"
 
-#, fuzzy
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
 #~ "Thus, reset the skirt layer to 1 to avoid that."
@@ -15860,7 +15786,6 @@ msgstr ""
 #~ msgid "Filter out gaps smaller than the threshold specified"
 #~ msgstr "忽略小於指定數值的間隙"
 
-#, fuzzy
 #~ msgid ""
 #~ "Enable this option for chamber temperature control. An M191 command will "
 #~ "be added before \"machine_start_gcode\"\n"
@@ -15873,11 +15798,9 @@ msgstr ""
 #~ msgid "Wipe tower extruder"
 #~ msgstr "換料塔擠出機"
 
-#, fuzzy
 #~ msgid "Printer local connection failed, please try again."
 #~ msgstr "列印設備區域網路連接失敗，請重試。"
 
-#, fuzzy
 #~ msgid ""
 #~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 #~ "\n"
@@ -15900,13 +15823,13 @@ msgstr ""
 #~ msgstr ""
 #~ "請從我們的wiki中找到流量動態校準的詳細資訊。\n"
 #~ "\n"
-#~ "通常情況下，校準是不必要的。當您開始單色/單線材列印，並在列印開始選單中勾"
-#~ "選了“流量動態校準”選項時，列印設備將按照舊的方式，在列印前校準絲料；當您開"
+#~ "通常情況下，校準是不必要的。當你開始單色/單線材列印，並在列印開始選單中勾"
+#~ "選了“流量動態校準”選項時，列印設備將按照舊的方式，在列印前校準絲料；當你開"
 #~ "始多色/多線材列印時，列印設備將在每次換絲料時使用預設的補償參數，這在大多"
 #~ "數情況下會產生良好的效果。\n"
 #~ "\n"
 #~ "請注意，有幾種情況會導致校準結果不可靠：使用紋理板進行校準；建模平台黏附效"
-#~ "果不好（請清洗建模平台或塗抹膠棒）... 您可以在我們的wiki中找到更多資訊。\n"
+#~ "果不好（請清洗建模平台或塗抹膠棒）... 你可以在我們的wiki中找到更多資訊。\n"
 #~ "\n"
 #~ "在我們的測試中，校準結果有約 10% 的波動，這可能導致每次校準的結果略有不"
 #~ "同。我們仍在調查根本原因，並通過新的更新進行改進。"
@@ -15916,7 +15839,7 @@ msgstr ""
 #~ "you want to overrides the other results?"
 #~ msgstr "相同名稱的結果只會儲存一個。確定要覆蓋其他結果嗎？"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
 #~ "Only one of the results with the same name is saved. Are you sure you "
@@ -15925,14 +15848,12 @@ msgstr ""
 #~ "已經存在一個具有相同名稱的校準結果：%s。相同名稱的結果只會儲存一個。確定要"
 #~ "覆蓋嗎？"
 
-#, fuzzy
 #~ msgid "Please find the cornor with perfect degree of extrusion"
-#~ msgstr "請在您的列印板上找到最接近完美的直角"
+#~ msgstr "請在你的列印板上找到最接近完美的直角"
 
 #~ msgid "V"
 #~ msgstr "版本："
 
-#, fuzzy
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
 #~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
@@ -15940,9 +15861,8 @@ msgstr ""
 #~ msgstr ""
 #~ "Orca Slicer 是基於 Bambulab 的 BambuStudio 開發，而 BambuStudio 源自於 "
 #~ "Prusa Research 的 PrusaSlicer。PrusaSlicer 源自於 Alessandro Ranellucci "
-#~ "的 Slic3r 和 RepRap 社裙"
+#~ "的 Slic3r 和 RepRap 社群"
 
-#, fuzzy
 #~ msgid "Export &Configs"
 #~ msgstr "匯出設定檔"
 
@@ -15984,7 +15904,6 @@ msgstr ""
 #~ msgid "Cabin humidity"
 #~ msgstr "AMS 內部濕度"
 
-#, fuzzy
 #~ msgid ""
 #~ "Green means that AMS humidity is normal, orange represent humidity is "
 #~ "high, red represent humidity is too high.(Hygrometer: lower the better.)"
@@ -15995,7 +15914,6 @@ msgstr ""
 #~ msgid "Desiccant status"
 #~ msgstr "乾燥劑狀態"
 
-#, fuzzy
 #~ msgid ""
 #~ "A desiccant status lower than two bars indicates that desiccant may be "
 #~ "inactive. Please change the desiccant.(The bars: higher the better.)"
@@ -16079,13 +15997,13 @@ msgstr ""
 #~ "You have changed some settings of preset \"%1%\". \n"
 #~ "Would you like to keep these changed settings (new value）after switching "
 #~ "preset?"
-#~ msgstr "您已經更改了預設 \"%1%\"，是否在切換後要保留這些更改的預設參數？"
+#~ msgstr "你已經更改了預設 \"%1%\"，是否在切換後要保留這些更改的預設參數？"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
 #~ "Would you like to keep these changed settings (new value）after switching "
 #~ "preset?"
-#~ msgstr "您已經更改了預設參數，是否在切換後要保留這些更改的預設參數？"
+#~ msgstr "你已經更改了預設參數，是否在切換後要保留這些更改的預設參數？"
 
 #~ msgid ""
 #~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
@@ -16198,7 +16116,7 @@ msgstr ""
 #~ "model. Read more in the documentation."
 #~ msgstr ""
 #~ "簡化模型\n"
-#~ "您知道嗎，您可以使用“簡化模型”功能減少模型的三角形數。在模型上單擊滑鼠右"
+#~ "你知道嗎，你可以使用“簡化模型”功能減少模型的三角形數。在模型上單擊滑鼠右"
 #~ "鍵，然後選擇“簡化模型”。"
 
 #, fuzzy
@@ -16209,7 +16127,7 @@ msgstr ""
 #~ "resizable holes directly in Orca Slicer. Read more in the documentation."
 #~ msgstr ""
 #~ "減去部分幾何體\n"
-#~ "您知道嗎，您可以使用負零件從另一個幾何體中減去另一個幾何體。例如，可以直接"
+#~ "你知道嗎，你可以使用負零件從另一個幾何體中減去另一個幾何體。例如，可以直接"
 #~ "在 Orca Slicer 中建立可輕鬆調整大小的孔。"
 
 #~ msgid "Filling bed "
@@ -16516,7 +16434,7 @@ msgstr ""
 #~ "slicing problems?"
 #~ msgstr ""
 #~ "修復模型\n"
-#~ "您知道嗎？您可以修復一個損壞的 3D 模型以避免諸多切片問題。"
+#~ "你知道嗎？你可以修復一個損壞的 3D 模型以避免諸多切片問題。"
 
 #, fuzzy
 #~ msgid ""
@@ -16646,7 +16564,7 @@ msgstr ""
 #~ msgstr "立即打分"
 
 #~ msgid "Please give a score for your favorite Bambu Market model."
-#~ msgstr "請為您喜歡的 Bambu 商城模型打分。"
+#~ msgstr "請為你喜歡的 Bambu 商城模型打分。"
 
 #~ msgid "Score"
 #~ msgstr "打分"
