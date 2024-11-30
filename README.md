@@ -120,6 +120,10 @@ If you're running Klipper, it's recommended to add the following configuration t
 resolution: 0.1
 ```
 
+# Note if building for a package manager
+
+If you're building this as a package for a package manager (`apt`, `brew`, `pacman`, `nix`, `chocolatey`, etc.) where the user is not going to be manually updating the software, you should disable the version check with `-DORCA_VERSION_CHECK_DEFAULT=OFF` flag to cmake
+
 # Supports
 **Orca Slicer** is an open-source project, and I'm deeply grateful to all my sponsors and backers.   
 Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.   

@@ -70,6 +70,13 @@ endif ()
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
 option(ORCA_TOOLS       "Build Orca tools" OFF)
+option(ORCA_VERSION_CHECK_DEFAULT "Whether to check for new versions on startup by default" ON)
+
+if (ORCA_VERSION_CHECK_DEFAULT)
+  add_definitions(-DORCA_VERSION_CHECK_DEFAULT=true)
+else ()
+  add_definitions(-DORCA_VERSION_CHECK_DEFAULT=false)
+endif ()
 
 if (IS_CROSS_COMPILE)
     message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
