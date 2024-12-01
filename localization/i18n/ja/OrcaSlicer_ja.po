@@ -289,7 +289,7 @@ msgid "Dowel"
 msgstr "Dowel"
 
 msgid "Snap"
-msgstr "Snap"
+msgstr "スナップ"
 
 msgid "Prism"
 msgstr "プリズム"
@@ -374,7 +374,7 @@ msgid "Change cut mode"
 msgstr "カットモード変更"
 
 msgid "Tolerance"
-msgstr "Tolerance"
+msgstr "公差"
 
 msgid "Drag"
 msgstr "Drag"
@@ -383,13 +383,13 @@ msgid "Draw cut line"
 msgstr ""
 
 msgid "Left click"
-msgstr "Left click"
+msgstr "左クリック"
 
 msgid "Add connector"
 msgstr "Add connector"
 
 msgid "Right click"
-msgstr "Right click"
+msgstr "右クリック"
 
 msgid "Remove connector"
 msgstr "Remove connector"
@@ -468,13 +468,13 @@ msgid "Reset cutting plane and remove connectors"
 msgstr "カット面をリセットし、コネクターを削除"
 
 msgid "Upper part"
-msgstr "Upper part"
+msgstr "上部パーツ"
 
 msgid "Lower part"
-msgstr "Lower part"
+msgstr "下部パーツ"
 
 msgid "Keep"
-msgstr "Keep"
+msgstr "残す"
 
 msgid "Flip"
 msgstr "Flip"
@@ -1278,7 +1278,7 @@ msgid "Center of edge"
 msgstr "Center of edge"
 
 msgid "Center of circle"
-msgstr "Center of circle"
+msgstr "円の中心"
 
 msgid "ShiftLeft mouse button"
 msgstr ""
@@ -1466,7 +1466,7 @@ msgid "Choose one file (3mf):"
 msgstr "ファイルを選択 (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr "1つ以上のファイルを選択してください (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "ファイルを選択 (3mf/step/stl/svg/obj/amf)"
@@ -1732,10 +1732,10 @@ msgid "Set as individual objects"
 msgstr "個別オブジェクトとして設定"
 
 msgid "Fill bed with copies"
-msgstr "Fill bed with copies"
+msgstr "コピーでビルドプレートを埋める"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "Fill the remaining area of bed with copies of the selected object"
+msgstr "選択したオブジェクトのコピーでビルドプレートの残りの領域を埋める"
 
 msgid "Printable"
 msgstr "造形可能"
@@ -1744,7 +1744,7 @@ msgid "Fix model"
 msgstr "モデルを修復"
 
 msgid "Export as one STL"
-msgstr "Export as one STL"
+msgstr "1つのSTLとしてエクスポート"
 
 msgid "Export as STLs"
 msgstr "Export as STLs"
@@ -1916,10 +1916,10 @@ msgid "arrange current plate"
 msgstr "現在のプレートをレイアウト"
 
 msgid "Reload All"
-msgstr ""
+msgstr "全て再読み込み"
 
 msgid "reload all from disk"
-msgstr ""
+msgstr "全てディスクから再読み込み"
 
 msgid "Auto Rotate"
 msgstr "自動回転"
@@ -2068,7 +2068,7 @@ msgstr ""
 "cut information first."
 
 msgid "Delete all connectors"
-msgstr "Delete all connectors"
+msgstr "全てのコネクターを削除"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "最後のソリッドパーツは削除できません。"
@@ -2205,13 +2205,13 @@ msgid "Mouse ear"
 msgstr ""
 
 msgid "Outer brim only"
-msgstr "Outer brim only"
+msgstr "外側ブリムのみ"
 
 msgid "Inner brim only"
-msgstr "Inner brim only"
+msgstr "内側ブリムのみ"
 
 msgid "Outer and inner brim"
-msgstr "Outer and inner brim"
+msgstr "外側および内側ブリム"
 
 msgid "No-brim"
 msgstr "ブリム無し"
@@ -2286,7 +2286,7 @@ msgid "Add Pause"
 msgstr "一時停止を追加"
 
 msgid "Insert a pause command at the beginning of this layer."
-msgstr "Insert a pause command at the beginning of this layer."
+msgstr "このレイヤーの先頭にポーズコマンドを挿入"
 
 msgid "Add Custom G-code"
 msgstr "カスタムG-codeを追加"
@@ -2298,13 +2298,13 @@ msgid "Add Custom Template"
 msgstr "カスタムテンプレートを追加"
 
 msgid "Insert template custom G-code at the beginning of this layer."
-msgstr "Insert template custom G-code at the beginning of this layer."
+msgstr "このレイヤーの先頭にテンプレートカスタムGコードを挿入"
 
 msgid "Filament "
 msgstr "フィラメント"
 
 msgid "Change filament at the beginning of this layer."
-msgstr "Change filament at the beginning of this layer."
+msgstr "このレイヤーの先頭でフィラメントを交換"
 
 msgid "Delete Pause"
 msgstr "Delete Pause"
@@ -2337,19 +2337,19 @@ msgid "code"
 msgstr "code"
 
 msgid "Failed to connect to cloud service"
-msgstr "Failed to connect to cloud service"
+msgstr "クラウドサービスへの接続に失敗しました。"
 
 msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr "Please click on the hyperlink above to view the cloud service status"
+msgstr "クラウドサービスのステータスを確認するには、上記のハイパーリンクをクリックしてください。"
 
 msgid "Failed to connect to the printer"
 msgstr "プリンターへ接続できませんでした"
 
 msgid "Connection to printer failed"
-msgstr "Connection to printer failed"
+msgstr "プリンターへの接続に失敗しました。"
 
 msgid "Please check the network connection of the printer and Orca."
-msgstr "Please check the network connection of the printer and Orca."
+msgstr "プリンターとOrcaのネットワーク接続を確認してください。"
 
 msgid "Connecting..."
 msgstr "接続中…"
@@ -8614,10 +8614,10 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "どこでプリンターのIPアドレスとアクセスコードを確認できますか？"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Step 3: Ping the IP address to check for packet loss and latency."
+msgstr "ステップ3: パケットロスとレイテンシを確認するために、IPアドレスに対してpingを実行します。"
 
 msgid "Test"
-msgstr "Test"
+msgstr "テスト"
 
 msgid "IP and Access Code Verified! You may close the window"
 msgstr "IP and Access Code Verified! You may close the window"
@@ -8887,13 +8887,13 @@ msgid "file open failed"
 msgstr "file open failed"
 
 msgid "file create failed"
-msgstr "file create failed"
+msgstr "ファイルの作成に失敗しました"
 
 msgid "file write failed"
-msgstr "file write failed"
+msgstr "ファイルの書き込みに失敗しました"
 
 msgid "file read failed"
-msgstr "file read failed"
+msgstr "ファイルの読み込みに失敗しました"
 
 msgid "file close failed"
 msgstr "file close failed"
@@ -9028,13 +9028,15 @@ msgid ""
 "Ooze prevention is only supported with the wipe tower when "
 "'single_extruder_multi_material' is off."
 msgstr ""
+"オーズ防止は、'single_extruder_multi_material'がオフの場合にのみ、 "
+"ワイプタワーと併用してサポートされます。"
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
-"The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
-"RepRapFirmware and Repetier G-code flavors."
+"プライムタワーは現在、Marlin、RepRap/Sprinter、RepRapFirmware、"
+"およびRepetierのGコード形式のみサポートされています。"
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "オブジェクト順で造形する場合、プライムタワーを利用できません"
@@ -15371,10 +15373,10 @@ msgid "Could not connect to Prusa Connect"
 msgstr "Prusaコネクトに接続できませんでした"
 
 msgid "Connection to Repetier works correctly."
-msgstr "Connection to Repetier is working correctly."
+msgstr "Repetierへの接続は正常に動作しています"
 
 msgid "Could not connect to Repetier"
-msgstr "Could not connect to Repetier"
+msgstr "Repetierに接続できませんでした。"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
 msgstr "Note: Repetier version 0.90.0 or higher is required."
@@ -15437,8 +15439,8 @@ msgid ""
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
-"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
-"height. This results in slightly visible layer lines but shorter print time."
+"0.2 mmノズルのデフォルトプロファイルと比較すると、レイヤー高さが大きくなっています。"
+"そのため、レイヤーラインがわずかに見えますが、印刷時間は短縮されます。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "

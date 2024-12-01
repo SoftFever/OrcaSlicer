@@ -1222,6 +1222,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     smooth_overhang_level(paths);
                 }
 
+                if (overhangs_reverse) {
+                    for (const ExtrusionPath& path : paths) {
+                        if (path.role() == erOverhangPerimeter) {
+                            if (pg_extrusion.is_contour)
+                                steep_overhang_contour = true;
+                            else
+                                steep_overhang_hole = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
         else {
