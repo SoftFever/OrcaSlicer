@@ -11989,7 +11989,7 @@ msgid ""
 "increased in a linear fashion over the specified number of layers."
 msgstr ""
 "Die ersten paar Schichten werden langsamer als normal gedruckt. Die "
-"Geschwindigkeitwird allmählich linear über die angegebene Anzahl von "
+"Geschwindigkeit wird allmählich linear über die angegebene Anzahl von "
 "Schichten erhöht."
 
 msgid "Initial layer nozzle temperature"
