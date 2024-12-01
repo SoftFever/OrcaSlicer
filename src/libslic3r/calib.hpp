@@ -32,7 +32,6 @@ struct Calib_Params
     double    start, end, step;
     bool      print_numbers;
 
-    bool      batch_mode;
     std::vector<double> accelerations;
     std::vector<double> speeds;
 

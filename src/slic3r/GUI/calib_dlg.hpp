@@ -29,7 +29,6 @@ protected:
 	virtual void on_start(wxCommandEvent& event);
 	virtual void on_extruder_type_changed(wxCommandEvent& event);
 	virtual void on_method_changed(wxCommandEvent& event);
-	virtual void on_batch_mode_changed(wxCommandEvent& event);
 
 protected:
 	bool m_bDDE;
@@ -42,7 +41,6 @@ protected:
 	TextInput* m_tiEndPA;
 	TextInput* m_tiPAStep;
 	CheckBox* m_cbPrintNum;
-	CheckBox* m_cbBatchMode;
 	TextInput* m_tiBMAccels;
 	TextInput* m_tiBMSpeeds;
 	Button* m_btnStart;

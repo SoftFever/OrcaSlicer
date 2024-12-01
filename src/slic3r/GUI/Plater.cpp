@@ -9417,6 +9417,8 @@ void Plater::calib_pa(const Calib_Params& params)
 
 void Plater::_calib_pa_pattern(const Calib_Params& params)
 {
+    std::vector<double> speeds{params.speeds};
+    std::vector<double> accels{params.accelerations};
     std::vector<size_t> object_idxs{};
     /* Set common parameters */
     DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -9436,9 +9438,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         accel = print_config.option<ConfigOptionFloat>("default_acceleration")->value;
     // Orca: Set all accelerations except first layer, as the first layer accel doesnt affect the PA test since accel
     // is set to the travel accel before printing the pattern.
-    if (params.batch_mode) {
+    if (accels.empty()) {
+        accels.assign({accel});
+    } else {
         // set max acceleration in case of batch mode to get correct test pattern size
-        accel = *std::max_element(params.accelerations.begin(), params.accelerations.end());
+        accel = *std::max_element(accels.begin(), accels.end());
     }
     print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
     
@@ -9494,6 +9498,9 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                                 print_config.get_abs_value("line_width", nozzle_diameter),
                             print_config.get_abs_value("layer_height"), 0);
     print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
+    if (speeds.empty()) {
+        speeds.assign({speed});
+    }
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
@@ -9523,7 +9530,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
      * We'll arrange this set of polygons, so we would know position of each test pattern and
      * could position test cubes later on
      *
-     * We'll take advantage of already existing cube: shale it up to test pattern size to use
+     * We'll take advantage of already existing cube: scale it up to test pattern size to use
      * as a reference for objects arrangement. Polygon is slightly oversized to add spaces between patterns.
      * That arrangement will be used to place 'handle cubes' for each test. */
     auto cube_bb = cube->raw_bounding_box();
@@ -9537,7 +9544,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         ap.all_objects_are_short = true;
         Points bedpts = arrangement::get_shrink_bedpts(&full_config, ap);
 
-        for(size_t i = 0; i < params.speeds.size() * params.accelerations.size(); i++) {
+        for(size_t i = 0; i < speeds.size() * accels.size(); i++) {
             arrangement::ArrangePolygon p;
             cube->instances[0]->get_arrange_polygon(&p);
             p.bed_idx = 0;
@@ -9558,8 +9565,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     for(size_t test_idx = 0; test_idx < arranged_items.size(); test_idx++) {
         const auto &ai = arranged_items[test_idx];
         size_t plate_idx = arranged_items[test_idx].bed_idx;
-        auto tspd = params.batch_mode ? params.speeds[test_idx % params.speeds.size()] : speed;
-        auto tacc = params.batch_mode ? params.accelerations[test_idx / params.speeds.size()] : accel;
+        auto tspd = speeds[test_idx % speeds.size()];
+        auto tacc = accels[test_idx / speeds.size()];
 
         /* make an own copy of anchor cube for each test */
         auto obj = test_idx == 0 ? cube : model().add_object(*cube);
