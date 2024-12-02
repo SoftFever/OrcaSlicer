@@ -176,6 +176,7 @@ enum LayerHeightEditActionType : unsigned int {
 };
 
 void adjust_layer_height_profile(
+    const ModelObject           &model_object,
     const SlicingParameters     &slicing_params,
     std::vector<coordf_t>       &layer_height_profile,
     coordf_t                     z,

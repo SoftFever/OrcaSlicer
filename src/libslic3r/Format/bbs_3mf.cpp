@@ -6813,7 +6813,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
 
-            std::string type = (volume->type() == ModelVolumeType::MODEL_PART)?"model":"other";
+            // Orca#7574: always use "model" type to follow the 3MF Core Specification:
+            // https://github.com/3MFConsortium/spec_core/blob/20c079eef39e45ed223b8443dc9f34cbe32dc2c2/3MF%20Core%20Specification.md#3431-item-element
+            // > Note: items MUST NOT reference objects of type "other", either directly or recursively.
+            // This won't break anything because when loading the file Orca (and Bambu) simply does not care about the actual object type at all (as long as it's one of "model" & "other");
+            // But PrusaSlicer requires the type to be "model".
+            std::string type = "model";
 
             output_buffer += "  <";
             output_buffer += OBJECT_TAG;
