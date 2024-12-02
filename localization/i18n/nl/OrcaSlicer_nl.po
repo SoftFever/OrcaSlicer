@@ -9591,9 +9591,6 @@ msgstr ""
 "indeling in de URL te plaatsen: https://username:password@your-octopi-"
 "address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Printer-ID"
 

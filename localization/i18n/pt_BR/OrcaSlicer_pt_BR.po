@@ -9653,9 +9653,6 @@ msgstr ""
 "básica ativada pode ser acessado colocando o nome de usuário e senha na URL "
 "no seguinte formato: https://username:password@your-octopi-address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "ID da impressora"
 

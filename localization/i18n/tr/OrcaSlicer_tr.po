@@ -9607,9 +9607,6 @@ msgstr ""
 "parolanın aşağıdaki biçimdeki URL'ye girilmesiyle erişilebilir: https://"
 "username:password@your-octopi-address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Yazıcı Kimliği"
 

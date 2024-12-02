@@ -9765,9 +9765,6 @@ msgstr ""
 "URL en el siguiente formato: https://nombredeusuario:"
 "contraseña@tudirecciondeoctopi/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Identificación de la impresora"
 

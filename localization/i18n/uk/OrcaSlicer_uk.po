@@ -9650,9 +9650,6 @@ msgstr ""
 "форматі: https://username:\n"
 "password@your-octopi-address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Ідентифікатор принтера"
 

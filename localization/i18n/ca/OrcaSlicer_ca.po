@@ -9706,9 +9706,6 @@ msgstr ""
 "l'autenticació bàsica activada per un nom d'usuari i contrasenya a la URL en "
 "el format següent: https://nomusuari:contrasenya@adreça-octopi/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "ID de la impressora"
 

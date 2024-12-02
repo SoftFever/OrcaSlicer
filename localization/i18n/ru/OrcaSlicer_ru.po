@@ -9816,9 +9816,6 @@ msgstr ""
 "получить, указав имя пользователя и пароль в поле URL-адрес в следующем "
 "формате: https://username:password@your-octopi-address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Идентификатор принтера"
 

@@ -9367,9 +9367,6 @@ msgstr ""
 "aktiverad genom att ange användarnamn och lösenord i URL:en i följande "
 "format: https://username:password@your-octopi-address/"
 
-msgid "Read timeout"
-msgstr "Read timeout"
-
 msgid "Printer ID"
 msgstr "Skrivar-ID"
 
