@@ -2141,20 +2141,28 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     ToolOrdering tool_ordering;
     unsigned int initial_extruder_id = (unsigned int)-1;
     //BBS: first non-support filament extruder
-    unsigned int initial_non_support_extruder_id;
+    unsigned int initial_non_support_extruder_id = (unsigned int) -1;
     unsigned int final_extruder_id   = (unsigned int)-1;
     bool         has_wipe_tower      = false;
     print.m_statistics_by_extruder_count.clear();
-
+    std::vector<int>                                    first_filaments;
+    std::vector<int>                                    first_non_support_filaments;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
     std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
     std::vector<int> extruder_count;
+    std::vector<const PrintInstance *>::const_iterator  first_has_extrude_print_object;
+    //resize
+    first_non_support_filaments.resize(print.config().nozzle_diameter.size(), -1);
+    first_filaments.resize(print.config().nozzle_diameter.size(), -1);
+
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
 //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
         // Find the 1st printing object, find its tool ordering and the initial extruder ID.
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
+        first_has_extrude_print_object          = print_object_instance_sequential_active;
+        bool find_fist_non_support_filament = false;
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
             //get extruder count
@@ -2166,32 +2174,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     extruder_count[extruder_id] += object_extruder_count[extruder_id];
 
             tool_ordering.sort_and_build_data(*(*print_object_instance_sequential_active)->print_object,initial_extruder_id);
-            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
+            if (!find_fist_non_support_filament && tool_ordering.first_extruder() != (unsigned int) -1) {
                 //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
-                initial_non_support_extruder_id = initial_extruder_id;
-                if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
-                    bool has_non_support_filament = false;
-                    for (unsigned int extruder : tool_ordering.all_extruders()) {
-                        if (!print.config().filament_is_support.get_at(extruder)) {
-                            has_non_support_filament = true;
-                            break;
-                        }
-                    }
-                    //BBS: find the non-support filament extruder of object
-                    if (has_non_support_filament)
-                        for (LayerTools layer_tools : tool_ordering.layer_tools()) {
-                            if (!layer_tools.has_object)
-                                continue;
-                            for (unsigned int extruder : layer_tools.extruders) {
-                                if (print.config().filament_is_support.get_at(extruder))
-                                    continue;
-                                initial_non_support_extruder_id = extruder;
-                                break;
-                            }
-                        }
+                if (initial_extruder_id == (unsigned int) -1) {
+                    initial_extruder_id = tool_ordering.first_extruder();
+                    first_has_extrude_print_object = print_object_instance_sequential_active;
                 }
 
-                break;
+                find_fist_non_support_filament = tool_ordering.cal_non_support_filaments(print.config(), initial_non_support_extruder_id, first_non_support_filaments, first_filaments);
             }
         }
         if (initial_extruder_id == static_cast<unsigned int>(-1))
@@ -2221,28 +2211,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
         if (initial_extruder_id != static_cast<unsigned int>(-1)) {
-            initial_non_support_extruder_id = initial_extruder_id;
-            if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
-                bool has_non_support_filament = false;
-                for (unsigned int extruder : tool_ordering.all_extruders()) {
-                    if (!print.config().filament_is_support.get_at(extruder)) {
-                        has_non_support_filament = true;
-                        break;
-                    }
-                }
-                //BBS: find the non-support filament extruder of object
-                if (has_non_support_filament)
-                    for (LayerTools layer_tools : tool_ordering.layer_tools()) {
-                        if (!layer_tools.has_object)
-                            continue;
-                        for (unsigned int extruder : layer_tools.extruders) {
-                            if (print.config().filament_is_support.get_at(extruder))
-                                continue;
-                            initial_non_support_extruder_id = extruder;
-                            break;
-                        }
-                    }
-            }
+            // BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
+            // check if has non support filaments
+            tool_ordering.cal_non_support_filaments(print.config(), initial_non_support_extruder_id, first_non_support_filaments, first_filaments);
         }
 
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
@@ -2296,9 +2267,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     this->placeholder_parser().set("most_used_physical_extruder_id", print.config().physical_extruder_map.values[max_count_extruder]);
     // Let the start-up script prime the 1st printing tool.
+    this->placeholder_parser().set("first_tools", new ConfigOptionInts(first_filaments));
+    this->placeholder_parser().set("first_filaments", new ConfigOptionInts(first_filaments));
     this->placeholder_parser().set("initial_tool", initial_extruder_id);
     this->placeholder_parser().set("initial_extruder", initial_extruder_id);
     //BBS
+    this->placeholder_parser().set("first_non_support_tools", new ConfigOptionInts(first_non_support_filaments));
+    this->placeholder_parser().set("first_non_support_filaments", new ConfigOptionInts(first_non_support_filaments));
     this->placeholder_parser().set("initial_no_support_tool", initial_non_support_extruder_id);
     this->placeholder_parser().set("initial_no_support_extruder", initial_non_support_extruder_id);
     this->placeholder_parser().set("current_extruder", initial_extruder_id);
@@ -2593,6 +2568,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Do all objects for each layer.
         if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
             size_t finished_objects = 0;
+            print_object_instance_sequential_active = first_has_extrude_print_object;
             const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
                 const PrintObject &object = *(*print_object_instance_sequential_active)->print_object;

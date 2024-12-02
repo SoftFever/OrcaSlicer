@@ -249,6 +249,12 @@ public:
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
     std::vector<int>    cal_most_used_extruder(const PrintConfig &config);
+    bool                cal_non_support_filaments(const PrintConfig &config,
+                                                  unsigned int &     first_non_support_filament,
+                                                  std::vector<int> & initial_non_support_filaments,
+                                                  std::vector<int> & initial_filaments);
+
+    bool                has_non_support_filament(const PrintConfig &config);
 
 private:
     void				initialize_layers(std::vector<coordf_t> &zs);

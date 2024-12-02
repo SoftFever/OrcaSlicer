@@ -919,6 +919,65 @@ std::vector<int> ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
     return extruder_count;
 }
 
+//BBS: find first non support filament
+bool ToolOrdering::cal_non_support_filaments(const PrintConfig &config,
+                                                         unsigned int &     first_non_support_filament,
+                                                         std::vector<int> & initial_non_support_filaments,
+                                                         std::vector<int> & initial_filaments)
+{
+    int find_count = 0;
+    int find_first_filaments_count = 0;
+    bool has_non_support = has_non_support_filament(config);
+    for (const LayerTools &layer_tool : m_layer_tools) {
+        if (!layer_tool.has_object)
+            continue;
+
+        for (const unsigned int &filament : layer_tool.extruders) {
+            //check first filament
+            if (!config.filament_map.values.empty() && initial_filaments[config.filament_map.values[filament] - 1] == -1) {
+                initial_filaments[config.filament_map.values[filament] - 1] = filament;
+                find_first_filaments_count++;
+            }
+
+            if (has_non_support) {
+                // check first non support filaments
+                if (config.filament_is_support.get_at(filament))
+                    continue;
+
+                if (first_non_support_filament == (unsigned int) -1) first_non_support_filament = filament;
+
+                // params missing, add protection
+                // filament map missing means single nozzle, no need to set initial_non_support_filaments
+                if (config.filament_map.values.empty())
+                    return true;
+
+                if (initial_non_support_filaments[config.filament_map.values[filament] - 1] == -1) {
+                    initial_non_support_filaments[config.filament_map.values[filament] - 1] = filament;
+                    find_count++;
+                }
+
+                if (find_count == initial_non_support_filaments.size())
+                    return true;
+            } else if (find_first_filaments_count == initial_filaments.size() || config.filament_map.values.empty()){
+                    return false;
+            }
+
+        }
+    }
+
+    return false;
+}
+
+bool ToolOrdering::has_non_support_filament(const PrintConfig &config) {
+    for (const unsigned int &filament : m_all_printing_extruders) {
+        if (!config.filament_is_support.get_at(filament)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::set<std::pair<std::vector<unsigned int>, std::vector<unsigned int>>> generate_combinations(const std::vector<unsigned int> &extruders)
 {
     int                                                                       n = extruders.size();
