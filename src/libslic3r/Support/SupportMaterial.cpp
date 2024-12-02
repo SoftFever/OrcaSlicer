@@ -1457,7 +1457,6 @@ static inline ExPolygons detect_overhangs(
                     // This is done to increase size of the supporting columns below, as they are calculated by 
                     // propagating these contact surfaces downwards.
                     diff_polygons = diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons);
-                    if (xy_expansion != 0) { diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS); }
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
@@ -1508,6 +1507,8 @@ static inline ExPolygons detect_overhangs(
 
             if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())
                 continue;
+
+            if (xy_expansion != 0) { diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS); }
 
             polygons_append(overhang_polygons, diff_polygons);
         } // for each layer.region
