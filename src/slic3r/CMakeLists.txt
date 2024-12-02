@@ -145,6 +145,8 @@ set(SLIC3R_GUI_SOURCES
     #GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp
     GUI/Gizmos/GLGizmoMeasure.hpp
+    GUI/Gizmos/GLGizmoAssembly.cpp
+    GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     #GUI/Gizmos/GLGizmoText.cpp
