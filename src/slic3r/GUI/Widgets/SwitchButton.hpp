@@ -8,6 +8,8 @@
 #include "Label.hpp"
 #include "Button.hpp"
 
+wxDECLARE_EVENT(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEvent);
+
 class SwitchButton : public wxBitmapToggleButton
 {
 public:
@@ -53,12 +55,16 @@ public:
 
 	bool switch_left{false};
     bool switch_right{false};
+    bool is_enable {true};
 
 public:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
     void on_left_down(wxMouseEvent &evt);
+    void Enable(){is_enable = true;Refresh();};
+    void Disable(){is_enable = false;Refresh();};
+    bool IsEnabled(){return is_enable;};
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

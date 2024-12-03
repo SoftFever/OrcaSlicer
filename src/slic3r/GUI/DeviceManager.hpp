@@ -141,6 +141,13 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+enum ExtruderSwitchState {
+    ES_IDLE = 0,
+    ES_BUSY,
+    ES_SWITCHING,
+    ES_SWITCHING_FAILED
+};
+
 enum AirDuctType {
     AIR_FAN_TYPE,
     AIR_DOOR_TYPE
@@ -218,6 +225,7 @@ struct ExtderData
     int current_extder_id{0};
     int target_extder_id{0};
     int total_extder_count {0};
+    int state;
     std::vector<Extder> extders;
 };
 
@@ -588,6 +596,7 @@ public:
     std::string dev_id;
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
+    bool        m_busy_for_select_extruder {false};
     int         subscribe_counter{3};
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
@@ -921,6 +930,7 @@ public:
     int  xcam_prompt_sound_hold_count = 0;
     int  xcam_filament_tangle_detect_count = 0;
     int  ams_print_option_count = 0;
+    int  nozzle_selected_count = 0;
 
     //supported features
     bool is_support_chamber_edit{false};
@@ -1019,6 +1029,7 @@ public:
     std::string parse_version();
     void parse_version_func();
     bool is_studio_cmd(int seq);
+
     /* command commands */
     int command_get_version(bool with_retry = true);
     int command_request_push_all(bool request_now = false);
@@ -1027,7 +1038,7 @@ public:
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow);
     int command_get_access_code();
-
+    int command_select_extruder(int id);
 
     /* command upgrade */
     int command_upgrade_confirm();
@@ -1051,6 +1062,7 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+    int command_set_nozzle_new(int nozzle_id, int temp);
     int command_set_chamber(int temp);
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);

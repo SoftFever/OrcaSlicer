@@ -9,6 +9,8 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
+wxDEFINE_EVENT(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEvent);
+
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
 	, m_on(this, "toggle_on", 16)
@@ -223,8 +225,12 @@ void SwitchBoard::render(wxDC &dc)
 
 void SwitchBoard::doRender(wxDC &dc)
 {
+    wxColour disable_color = wxColour(0xCECECE);
+
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(0xeeeeee));
+
+    if (is_enable) {dc.SetBrush(wxBrush(0xeeeeee));
+    } else {dc.SetBrush(disable_color);}
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 8);
 
 	/*left*/
@@ -245,7 +251,8 @@ void SwitchBoard::doRender(wxDC &dc)
 
 	/*right*/
     if (switch_right) {
-        dc.SetBrush(wxBrush(wxColour(0, 174, 66)));
+        if (is_enable) {dc.SetBrush(wxBrush(wxColour(0, 174, 66)));
+        } else {dc.SetBrush(disable_color);}
         dc.DrawRoundedRectangle(GetSize().x / 2, 0, GetSize().x / 2, GetSize().y, 8);
 	}
 
@@ -262,15 +269,25 @@ void SwitchBoard::doRender(wxDC &dc)
 
 void SwitchBoard::on_left_down(wxMouseEvent &evt)
 {
+    if (!is_enable) {
+        return;
+    }
+    int index = -1;
     auto pos = ClientToScreen(evt.GetPosition());
     auto rect = ClientToScreen(wxPoint(0, 0));
 
     if (pos.x > 0 && pos.x < rect.x + GetSize().x / 2) {
         switch_left = true;
         switch_right = false;
+        index = 1;
     } else {
         switch_left  = false;
         switch_right = true;
+        index = 0;
     }
     Refresh();
+
+    wxCommandEvent event(wxCUSTOMEVT_SELECT_NOZZLE_POS);
+    event.SetInt(index);
+    wxPostEvent(this, event);
 }
