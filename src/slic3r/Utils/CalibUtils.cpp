@@ -218,6 +218,40 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
     return true;
 }
 
+static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, const CalibInfo& calib_info)
+{
+    int extruder_count = 1;
+    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    if (nozzle_diameters_opt != nullptr) {
+        extruder_count = (int)(nozzle_diameters_opt->size());
+    }
+    std::vector<int>& nozzle_volume_types =  dynamic_cast<ConfigOptionEnumsGeneric*>(config.option("nozzle_volume_type", true))->values;
+    nozzle_volume_types.clear();
+    nozzle_volume_types.resize(extruder_count, (int)calib_info.nozzle_volume_type);
+
+    std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts*>(config.option("physical_extruder_map", true))->values;
+    int extruder_id = calib_info.extruder_id;
+    for (size_t index = 0; index < extruder_count; ++index) {
+        if (physical_extruder_maps[index] == extruder_id)
+        {
+            extruder_id = index + 1;
+        }
+    }
+
+    int num_filaments = 1;
+    auto filament_colour_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("filament_colour"));
+    if (filament_colour_opt != nullptr) {
+        num_filaments = (int)(filament_colour_opt->size());
+    }
+    std::vector<int>& filament_maps = config.option<ConfigOptionInts>("filament_map", true)->values;
+    filament_maps.clear();
+    filament_maps.resize(num_filaments, extruder_id);
+
+    config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmManual;
+
+}
+
+
 CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
 {
     if (name == "pa_line_calib_mode") {
@@ -615,6 +649,8 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
+    init_multi_extruder_params_for_cali(full_config, calib_info);
+
     Calib_Params params;
     params.mode = CalibMode::Calib_Flow_Rate;
     if (!process_and_store_3mf(&model, full_config, params, error_message))
@@ -722,6 +758,8 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
+    init_multi_extruder_params_for_cali(full_config, calib_info);
+
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
@@ -794,6 +832,8 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     full_config.apply(print_config);
     full_config.apply(filament_config);
     full_config.apply(printer_config);
+
+    init_multi_extruder_params_for_cali(full_config, calib_info);
 
     process_and_store_3mf(&model, full_config, params, error_message);
     if (!error_message.empty())
@@ -871,6 +911,8 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
+    init_multi_extruder_params_for_cali(full_config, calib_info);
+
     process_and_store_3mf(&model, full_config, new_params, error_message);
     if (!error_message.empty())
         return;
@@ -928,6 +970,8 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
+    init_multi_extruder_params_for_cali(full_config, calib_info);
+
     process_and_store_3mf(&model, full_config, params, error_message);
     if (!error_message.empty())
         return;
@@ -978,6 +1022,8 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     full_config.apply(print_config);
     full_config.apply(filament_config);
     full_config.apply(printer_config);
+
+    init_multi_extruder_params_for_cali(full_config, calib_info);
 
     process_and_store_3mf(&model, full_config, params, error_message);
     if (!error_message.empty())
@@ -1146,9 +1192,11 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
                    partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
                 break;
             }
-            default:
-                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+            default:{
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": framebuffer_type: others");
+                Slic3r::GUI::GLCanvas3D::render_thumbnail_legacy(*thumbnail_data, thumbnail_width, thumbnail_height, thumbnail_params, partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
                 break;
+            }
         }
         thumbnails.push_back(thumbnail_data);
     }
