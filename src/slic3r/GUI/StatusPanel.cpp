@@ -4589,10 +4589,12 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
         // do not update when timeout > 0
         set_hold_count(this->m_switch_lamp_timeout);
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
+        obj->command_set_chamber_light2(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
     } else {
         m_switch_lamp->SetValue(false);
         set_hold_count(this->m_switch_lamp_timeout);
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
+        obj->command_set_chamber_light2(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
     }
 }
 

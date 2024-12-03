@@ -2074,10 +2074,23 @@ int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, i
     j["system"]["led_off_time"] = off_time;
     j["system"]["loop_times"] = loops;
     j["system"]["interval_time"] = interval;
-
     return this->publish_json(j.dump());
 }
 
+
+int MachineObject::command_set_chamber_light2(LIGHT_EFFECT effect, int on_time /*= 500*/, int off_time /*= 500*/, int loops /*= 1*/, int interval /*= 1000*/)
+{
+    json j;
+    j["system"]["command"]       = "ledctrl";
+    j["system"]["led_node"]      = "chamber_light2";
+    j["system"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"]      = light_effect_str(effect);
+    j["system"]["led_on_time"]   = on_time;
+    j["system"]["led_off_time"]  = off_time;
+    j["system"]["loop_times"]    = loops;
+    j["system"]["interval_time"] = interval;
+    return this->publish_json(j.dump());
+}
 
 int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
 {
