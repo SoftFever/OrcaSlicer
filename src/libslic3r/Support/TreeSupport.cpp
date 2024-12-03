@@ -2032,8 +2032,7 @@ void TreeSupport::draw_circles()
                             area = offset_ex({ node.overhang }, scale_(m_ts_data->m_xy_distance));
                         }
                         area = diff_clipped(area, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
-                        if (node.type == ePolygon)
-                            area_poly = area;
+                        if (node.type == ePolygon) append(area_poly, area);
                     }
                     else {
                         Polygon circle(branch_circle);
