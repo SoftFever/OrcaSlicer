@@ -2700,18 +2700,7 @@ void TabPrintModel::build()
 
     for (auto p : m_pages) {
         for (auto g : p->m_optgroups) {
-            auto & lines = const_cast<std::vector<Line>&>(g->get_lines());
-            for (auto & l : lines) {
-                auto & opts = const_cast<std::vector<Option>&>(l.get_options());
-                opts.erase(std::remove_if(opts.begin(), opts.end(), [this](auto & o) {
-                    return !has_key(o.opt.opt_key);
-                }), opts.end());
-                l.undo_to_sys = true;
-            }
-            lines.erase(std::remove_if(lines.begin(), lines.end(), [](auto & l) {
-                return l.get_options().empty();
-            }), lines.end());
-            // TODO: remove items from g->m_options;
+            g->remove_option_if([this](auto &key) { return !has_key(key); });
             g->have_sys_config = [this] { m_back_to_sys = true; return true; };
         }
         p->m_optgroups.erase(std::remove_if(p->m_optgroups.begin(), p->m_optgroups.end(), [](auto & g) {

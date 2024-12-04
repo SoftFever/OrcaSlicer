@@ -199,6 +199,7 @@ public:
 
 	bool				is_activated() { return sizer != nullptr; }
 
+	void remove_option_if(std::function<bool(std::string const &)> const & comp);
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
