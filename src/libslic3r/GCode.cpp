@@ -572,12 +572,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             }
         }
 
-        std::string nozzle_change_gcode_trans;
-        if (!tcr.nozzle_change_result.gcode.empty()) {
-            nozzle_change_gcode_trans = transform_gcode(tcr.nozzle_change_result.gcode, tcr.start_pos, wipe_tower_offset, wipe_tower_rotation);
-        }
-
-        // BBS: increase toolchange count
+        //BBS: increase toolchange count
         gcodegen.m_toolchange_count++;
 
         // BBS: should be placed before toolchange parsing
@@ -588,6 +583,23 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // Otherwise, leave control to the user completely.
         std::string toolchange_gcode_str;
         std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
+
+        std::string nozzle_change_gcode_trans;
+        if (!tcr.nozzle_change_result.gcode.empty()) {
+            // move to start_pos before nozzle change
+            std::string start_pos_str;
+            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
+                                               "Move to nozzle change start pos");
+            check_add_eol(start_pos_str);
+            nozzle_change_gcode_trans += start_pos_str;
+            nozzle_change_gcode_trans += gcodegen.unretract();
+            nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
+            gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
+            gcodegen.m_wipe.reset_path();
+            for (const Vec2f &wipe_pt : tcr.nozzle_change_result.wipe_path)
+                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
+            nozzle_change_gcode_trans += gcodegen.retract(true, false);
+        }
 
         std::string prefix_gcode = lift_gcode_after_printing_object;
         if (gcodegen.config().nozzle_diameter.size() > 1) {
