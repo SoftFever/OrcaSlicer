@@ -1,6 +1,7 @@
+#include <chrono>
 #include <math.h>
 
-
+#include "format.hpp"
 #include "ClipperUtils.hpp"
 #include "Fill/FillBase.hpp"
 #include "I18N.hpp"
@@ -223,6 +224,7 @@ static void draw_contours_and_nodes_to_svg
 
     // draw layer nodes
     svg.draw(layer_pts, "green", coord_t(scale_(0.1)));
+    for (SupportNode *node : layer_nodes) { svg.draw({node->overhang}, "green", 0.5); }
 
     // lower layer points
     layer_pts.clear();
@@ -231,13 +233,13 @@ static void draw_contours_and_nodes_to_svg
     }
     svg.draw(layer_pts, "black", coord_t(scale_(0.1)));
 
-    // higher layer points
-    layer_pts.clear();
-    for (SupportNode* node : layer_nodes) {
-        if(node->parent)
-            layer_pts.push_back(node->parent->position);
-    }
-    svg.draw(layer_pts, "blue", coord_t(scale_(0.1)));
+    //// higher layer points
+    //layer_pts.clear();
+    //for (SupportNode* node : layer_nodes) {
+    //    if(node->parent)
+    //        layer_pts.push_back(node->parent->position);
+    //}
+    //svg.draw(layer_pts, "blue", coord_t(scale_(0.1)));
 }
 
 static void draw_layer_mst
@@ -2063,6 +2065,12 @@ void TreeSupport::draw_circles()
                             if(!tmp.empty())
                                 circle = tmp[0];
                         }
+                        area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+                        // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+
+                        if (!area.empty()) has_circle_node = true;
+                        if (node.need_extra_wall) need_extra_wall = true;
+
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
                         if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only && !node.is_sharp_tail) {
@@ -3328,6 +3336,7 @@ void TreeSupport::generate_contact_points()
             if (!curr_nodes.empty()) nonempty_layers++;
             for (auto node : curr_nodes) { all_nodes.emplace_back(node->position(0), node->position(1), scale_(node->print_z)); }
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
+            if (!curr_nodes.empty())
             draw_contours_and_nodes_to_svg(debug_out_path("init_contact_points_%.2f.svg", bottom_z), layer->loverhangs,layer->lslices_extrudable, m_ts_data->m_layer_outlines_below[layer_nr],
                 contact_nodes[layer_nr], contact_nodes[layer_nr - 1], { "overhang","lslices","outlines_below"});
 #endif
