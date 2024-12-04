@@ -2272,11 +2272,24 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     this->placeholder_parser().set("most_used_physical_extruder_id", print.config().physical_extruder_map.values[max_count_extruder]);
     // Let the start-up script prime the 1st printing tool.
+
+    auto match_physical_extruder_for_each_filament = [](std::vector<int> &filaments, const FullPrintConfig &config) {
+        // match the filament to the physical extruder
+        std::vector<int> physicial_first_filaments;
+        physicial_first_filaments.resize(filaments.size());
+        for (int extruder_id = 0; extruder_id < filaments.size(); extruder_id++) {
+            physicial_first_filaments[config.physical_extruder_map.get_at(extruder_id)] = filaments[extruder_id];
+        }
+        filaments = physicial_first_filaments;
+    };
+    match_physical_extruder_for_each_filament(first_filaments, m_config);
     this->placeholder_parser().set("first_tools", new ConfigOptionInts(first_filaments));
     this->placeholder_parser().set("first_filaments", new ConfigOptionInts(first_filaments));
     this->placeholder_parser().set("initial_tool", initial_extruder_id);
     this->placeholder_parser().set("initial_extruder", initial_extruder_id);
     //BBS
+    match_physical_extruder_for_each_filament(first_non_support_filaments, m_config);
+
     this->placeholder_parser().set("first_non_support_tools", new ConfigOptionInts(first_non_support_filaments));
     this->placeholder_parser().set("first_non_support_filaments", new ConfigOptionInts(first_non_support_filaments));
     this->placeholder_parser().set("initial_no_support_tool", initial_non_support_extruder_id);
