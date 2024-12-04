@@ -28,6 +28,7 @@ namespace GUI {
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
+#define EMMC_STORAGE "emmc"
 
 constexpr int timeout_period = 15000; // ms
 
@@ -558,12 +559,14 @@ std::string SendToPrinterDialog::get_storage_selected()
     return "";
 }
 
-void SendToPrinterDialog::update_storage_list(std::vector<std::string> storages)
+void SendToPrinterDialog::update_storage_list(const std::vector<std::string>& storages)
 {
+    m_storage_sizer->Clear();
     m_storage_radioBox.clear();
     m_storage_panel->DestroyChildren();
 
     for (int i=0; i < storages.size(); i++) {
+        if (storages[i] == EMMC_STORAGE) continue;
         RadioBox* radiobox = new RadioBox(m_storage_panel);
         Label* storage_text = new Label(m_storage_panel, storages[i]);
         radiobox->SetLabel(storages[i]);
@@ -574,16 +577,16 @@ void SendToPrinterDialog::update_storage_list(std::vector<std::string> storages)
             radiobox->SetValue(true);
         });
 
-        if (m_storage_radioBox.size() > 0) {
-            m_storage_sizer->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(6));
-            auto radio = m_storage_radioBox.front();
-            radio->SetValue(true);
-        }
-
         m_storage_sizer->Add(radiobox, 0, wxALIGN_CENTER, 0);
         m_storage_sizer->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(6));
         m_storage_sizer->Add(storage_text, 0, wxALIGN_CENTER,0);
-        m_storage_radioBox.push_back(radiobox);
+        m_storage_radioBox.push_back(radiobox);     
+    }
+
+    if (m_storage_radioBox.size() > 0) {
+        m_storage_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(6));
+        auto radio = m_storage_radioBox.front();
+        radio->SetValue(true);
     }
 
     m_storage_panel->Layout();
@@ -727,7 +730,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
 
         if (m_task_timer && m_task_timer->IsRunning()) {
             m_task_timer->Stop();
-             m_task_timer.reset();
+            m_task_timer.reset();
         }
     }
 
@@ -770,6 +773,10 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         m_worker->cancel_all();
         if (m_file_sys) {
             m_file_sys->CancelUploadTask();
+            if (m_task_timer && m_task_timer->IsRunning()) {
+                m_task_timer->Stop();
+                m_task_timer.reset();
+            }
         }
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
@@ -825,7 +832,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		fs::path default_output_file_path = boost::filesystem::path(default_output_file.c_str());
 		file_name = default_output_file_path.filename().string();
     }*/
-    if (obj_->is_lan_mode_printer()) {
+    if (!obj_->is_lan_mode_printer()) {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
             PrintPrepareData print_data;
@@ -1087,6 +1094,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
             dev->set_selected_machine(m_printer_last_select, true);
             if (m_file_sys) m_file_sys.reset();
         }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
+            m_ability_list.clear();
             update_storage_list(std::vector<std::string>());
             dev->set_selected_machine(m_printer_last_select, true);
             if (m_file_sys) m_file_sys.reset();
@@ -1466,11 +1474,17 @@ void SendToPrinterDialog::Enable_Send_Button(bool en)
             m_button_ensure->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
             m_button_ensure->SetBorderColor(wxColour(0x90, 0x90, 0x90));
         }
+        if (!m_storage_radioBox.empty()) {
+            update_storage_list(std::vector<std::string>());
+        }
     } else {
         if (!m_button_ensure->IsEnabled()) {
             m_button_ensure->Enable();
             m_button_ensure->SetBackgroundColor(btn_bg_enable);
             m_button_ensure->SetBorderColor(btn_bg_enable);
+        }
+        if (!m_ability_list.empty()) {
+            update_storage_list(m_ability_list);
         }
     }
 }
@@ -1602,6 +1616,7 @@ bool SendToPrinterDialog::Show(bool show)
 
     // set default value when show this dialog
     if (show) {
+        m_ability_list.clear();
         update_storage_list(std::vector<std::string>());
         wxGetApp().reset_to_active();
         set_default();

@@ -164,7 +164,7 @@ public:
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void on_change_color_mode() { wxGetApp().UpdateDlgDarkUI(this); }
-    void update_storage_list(std::vector<std::string> storages);
+    void update_storage_list(const std::vector<std::string>& storages);
     std::string get_storage_selected();
 
     wxString format_text(wxString& m_msg);
