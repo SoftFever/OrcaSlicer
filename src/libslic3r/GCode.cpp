@@ -2234,6 +2234,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         final_extruder_id = tool_ordering.last_extruder();
         assert(final_extruder_id != (unsigned int)-1);
     }
+
+    //could not find non support filmanet, use fisrt print filament
+    if (initial_non_support_extruder_id == (unsigned int) -1)
+        initial_non_support_extruder_id = initial_extruder_id;
+
     print.throw_if_canceled();
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
