@@ -15740,6 +15740,11 @@ void Plater::set_need_update(bool need_update)
 //BBS: add popup logic for table object
 bool Plater::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
 {
+    if (dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER))->m_extruders_count > 1) {
+        MessageDialog dlg(this, _L("Currently, the object configuration form cannot be used with multiple extruders."), _L("Not available"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        return false;
+    }
     return p->PopupObjectTable(object_id, volume_id, position);
 }
 
