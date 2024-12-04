@@ -12,7 +12,6 @@
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
-    "printer_structure": "i3",
     "default_filament_profile": [
         "Anker Generic PLA+"
     ],
