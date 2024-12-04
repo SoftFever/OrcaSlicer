@@ -3326,9 +3326,14 @@ void TabFilament::build()
         optgroup->append_single_option_line("activate_chamber_temp_control", "chamber-temperature");
 
         optgroup->append_separator();
-
-
         optgroup = page->new_optgroup(L("Print temperature"), L"param_extruder_temp");
+        for (int zone = 10; zone > 0; zone--) {
+            std::string zone_str = std::to_string(zone);
+            line                 = {L("Zone " + zone_str), L("Zone " + zone_str + " temperature when printing")};
+            line.append_option(optgroup->get_option("multi_zone_" + zone_str + "_initial_layer"));
+            line.append_option(optgroup->get_option("multi_zone_" + zone_str + "_temperature"));
+            optgroup->append_line(line);
+        }
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
@@ -3625,6 +3630,18 @@ void TabFilament::toggle_options()
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
         toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
+
+        bool is_multi_zone = cfg.opt_bool("multi_zone");
+        if (is_multi_zone) {
+            int zone_count = cfg.opt_int("multi_zone_number");
+            for (int zone = 10; zone > 0; zone--) {
+                std::string zone_str = std::to_string(zone);
+                toggle_line("multi_zone_" + zone_str + "_initial_layer", zone <= zone_count);
+                toggle_line("multi_zone_" + zone_str + "_temperature", zone <= zone_count);
+            }
+        }
+        toggle_line("nozzle_temperature_initial_layer", !is_multi_zone);
+        toggle_line("nozzle_temperature", !is_multi_zone);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
@@ -3745,6 +3762,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("multi_zone");
+        optgroup->append_single_option_line("multi_zone_number");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
@@ -4500,8 +4519,12 @@ void TabPrinter::toggle_options()
             toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "multi_zone", "multi_zone_number", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
+
+        auto cfg           = m_preset_bundle->printers.get_edited_preset().config;
+        bool is_multi_zone = cfg.opt_bool("multi_zone");
+        toggle_line("multi_zone_number", is_multi_zone);
     }
 
     if (m_active_page->title() == L("Multimaterial")) {
