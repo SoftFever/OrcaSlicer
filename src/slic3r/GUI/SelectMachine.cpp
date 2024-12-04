@@ -916,9 +916,8 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     m_checkbox_list["flow_cali"]->Hide();
     m_checkbox_list["nozzle_offset_cali"]->Hide();
 
-    if (!obj) {
-        return;
-    }
+    if (!obj) {return;}
+    AppConfig *config = wxGetApp().app_config;
 
     if (obj->is_enable_np) {
         m_checkbox_list["nozzle_offset_cali"]->Show();
@@ -934,25 +933,26 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
         m_checkbox_list["flow_cali"]->update_options(ops_auto);
 
-        AppConfig *config = wxGetApp().app_config;
         if (config && config->get("print", "bed_leveling") == "0") {
             m_checkbox_list["bed_leveling"]->setValue("off");
         } else {
             m_checkbox_list["bed_leveling"]->setValue("on");
         }
+
         if (config && config->get("print", "flow_cali") == "0") {
             m_checkbox_list["flow_cali"]->setValue("off");
         } else {
             m_checkbox_list["flow_cali"]->setValue("on");
         }
-        if (config && config->get("print", "timelapse") == "0") {
-            m_checkbox_list["timelapse"]->setValue("off");
-        } else {
-            m_checkbox_list["timelapse"]->setValue("on");
-        }
 
         update_timelapse_enable_status();
         update_flow_cali_check(obj);
+    }
+
+    if (config && config->get("print", "timelapse") == "0") {
+        m_checkbox_list["timelapse"]->setValue("off");
+    } else {
+        m_checkbox_list["timelapse"]->setValue("on");
     }
 
     if (obj && obj->is_support_auto_flow_calibration) {

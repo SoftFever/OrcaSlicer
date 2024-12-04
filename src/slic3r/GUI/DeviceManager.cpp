@@ -1977,6 +1977,19 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_ams_change_filament2(int ams_id, int slot_id, int old_temp, int new_temp)
+{
+    json j;
+    j["print"]["command"]     = "ams_change_filament";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["target"]      = ams_id == VIRTUAL_TRAY_MAIN_ID?VIRTUAL_TRAY_DEPUTY_ID:slot_id;
+    j["print"]["curr_temp"]   = old_temp;
+    j["print"]["tar_temp"]    = new_temp;
+    j["print"]["ams_id"]      = ams_id;
+    j["print"]["slot_id"]     = slot_id;
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag)
 {
     json j;
@@ -5805,6 +5818,9 @@ void MachineObject::parse_new_info(json print)
 
             extder_data.current_extder_id         = get_flag_bits(extruder["state"].get<int>(), 4, 4);
             extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 4);
+            extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 3);
+
+            extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 4);
 
             for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
 

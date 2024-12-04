@@ -30,6 +30,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
+#include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
 
@@ -446,6 +447,7 @@ protected:
     wxBoxSizer*     m_ams_list;
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
+    bool            m_show_filament_group{ false };
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
@@ -470,6 +472,10 @@ protected:
 
     wxPanel *       m_machine_ctrl_panel;
     PrintingTaskPanel *       m_project_task_panel;
+
+    FilamentLoad* m_filament_step;
+    Button *m_button_retry {nullptr};
+    StaticBox* m_filament_load_box;
 
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
@@ -523,8 +529,10 @@ public:
     int skip_print_error = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
+    wxBoxSizer* create_filament_group(wxWindow* parent);
 
     void show_ams_group(bool show = true);
+    void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
 
@@ -616,8 +624,6 @@ protected:
     void axis_ctrl_e_hint(bool up_down);
 
     void on_nozzle_selected(wxCommandEvent &event);
-
-	void on_start_unload(wxCommandEvent &event);
     /* temp control */
     void on_bed_temp_kill_focus(wxFocusEvent &event);
     void on_bed_temp_set_focus(wxFocusEvent &event);
@@ -683,7 +689,7 @@ protected:
     void update_ams(MachineObject* obj);
     void update_ams_insert_material(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(bool is_curr_tray_selected);
+    void update_ams_control_state(std::string ams_id, std::string slot_id);
     void update_cali(MachineObject* obj);
     void update_calib_bitmap();
 

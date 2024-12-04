@@ -1343,10 +1343,15 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     auto temp_axis_ctrl_sizer = create_temp_axis_group(parent);
     auto m_ams_ctrl_sizer = create_ams_group(parent);
+    auto m_filament_load_sizer = create_filament_group(parent);
 
-    bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALL | wxEXPAND, FromDIP(4));
-    bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(10));
-    bSizer_control->Add(m_ams_ctrl_sizer, 0, wxALL | wxEXPAND, FromDIP(4));
+    bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
+    bSizer_control->Add(temp_axis_ctrl_sizer,   0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
+    bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
+    bSizer_control->Add(m_ams_ctrl_sizer,       0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
+    bSizer_control->Add(m_filament_load_sizer,  0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(8));
+    bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(4));
+
     bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);
 
     return bSizer_right;
@@ -1623,7 +1628,6 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-    //m_button_unload->Show();
 
     m_tempCtrl_nozzle->Enable(true);
     m_tempCtrl_nozzle_deputy->Enable(true);
@@ -1841,21 +1845,6 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
 
-    /*m_button_unload = new Button(panel, _L("Unload"));
-
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_unload->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_unload->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_unload->SetTextColor(abort_text);
-    m_button_unload->SetFont(Label::Body_10);
-    m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(12));
-    bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));*/
     m_extruder_label = new ::Label(panel, _L("Extruder"));
     m_extruder_label->SetFont(::Label::Body_13);
     m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
@@ -1913,15 +1902,97 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
+wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto sizer_box = new wxBoxSizer(wxVERTICAL);
+
+    m_filament_load_box = new StaticBox(parent);
+
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
+
+    m_filament_load_box->SetBackgroundColor(box_colour);
+    m_filament_load_box->SetBorderColor(box_border_colour);
+    m_filament_load_box->SetCornerRadius(5);
+    m_filament_load_box->SetMinSize(wxSize(FromDIP(586), -1));
+    m_filament_load_box->SetMaxSize(wxSize(FromDIP(586), -1));
+    m_filament_load_box->SetBackgroundColour(*wxWHITE);
+
+    m_filament_step = new FilamentLoad(m_filament_load_box, wxID_ANY);
+    m_filament_step->SetDoubleBuffered(true);
+    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(586), FromDIP(215))));
+    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(586), FromDIP(215))));
+    m_filament_step->SetBackgroundColour(*wxWHITE);
+
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+
+    m_button_retry = new Button(m_filament_load_box, _L("Retry"));
+    m_button_retry->SetFont(Label::Body_13);
+    m_button_retry->SetBorderColor(btn_bd_white);
+    m_button_retry->SetTextColor(btn_text_white);
+    m_button_retry->SetMinSize(wxSize(FromDIP(80), FromDIP(31)));
+    m_button_retry->SetBackgroundColor(btn_bg_white);
+
+    m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        wxCommandEvent evt(EVT_AMS_RETRY);
+        evt.SetEventObject(this);
+        wxPostEvent(m_parent, evt);
+    });
+
+
+    sizer_box->Add(m_filament_step, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP|wxLEFT|wxRIGHT, FromDIP(10));
+    sizer_box->Add(0, 0, 0, wxTOP, FromDIP(5));
+    sizer_box->Add(m_button_retry, 0, wxLEFT, FromDIP(28));
+    sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_filament_load_box->SetBackgroundColour(*wxWHITE);
+    m_filament_load_box->SetSizer(sizer_box);
+    m_filament_load_box->Layout();
+    m_filament_load_box->Fit();
+    sizer->Add(m_filament_load_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(10));
+    return sizer;
+}
+
 void StatusBasePanel::show_ams_group(bool show)
 {
-    m_ams_control->Show(true);
-    m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode();
-    if (m_show_ams_group != show) {
+    if (m_ams_control->IsShown() != show) {
+        m_ams_control->Show(show);
+        m_ams_control->show_noams_mode();
+    }
+
+    if (m_ams_control_box->IsShown() != show) {
+        m_ams_control_box->Show(show);
+    }
+
+    if (m_show_ams_group != show)
+    {
+        m_show_ams_group = show;
+        m_ams_control->Layout();
+        m_ams_control->Fit();
+        Layout();
         Fit();
     }
-    m_show_ams_group = show;
+}
+
+void StatusBasePanel::show_filament_load_group(bool show)
+{
+    if (m_filament_load_box->IsShown() != show) {
+        m_filament_load_box->Show(show);
+    }
+
+    if (m_filament_step->IsShown() != show) {
+        m_filament_step->Show(show);
+    }
+
+    if (m_show_filament_group != show ) {
+        m_show_filament_group = show;
+        Layout();
+        Fit();
+    }
 }
 
 void StatusPanel::update_camera_state(MachineObject* obj)
@@ -2011,7 +2082,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     , m_fan_control_popup(new FanControlPopup(this))
 {
     init_scaled_buttons();
-    //m_buttons.push_back(m_button_unload);
     m_buttons.push_back(m_bpButton_z_10);
     m_buttons.push_back(m_bpButton_z_1);
     m_buttons.push_back(m_bpButton_z_down_1);
@@ -2086,7 +2156,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_e_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
     m_nozzle_btn_panel->Connect(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEventHandler(StatusPanel::on_nozzle_selected), NULL, this);
 
-    //m_button_unload->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
@@ -2153,8 +2222,7 @@ StatusPanel::~StatusPanel()
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
     m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
-    //m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
-    //
+
     // remove warning dialogs
     if (m_print_error_dlg != nullptr)
         delete m_print_error_dlg;
@@ -2176,8 +2244,6 @@ StatusPanel::~StatusPanel()
 void StatusPanel::init_scaled_buttons()
 {
     m_project_task_panel->init_scaled_buttons();
-    //m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    //m_button_unload->SetCornerRadius(FromDIP(12));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
@@ -2626,7 +2692,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
 
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_extruder_label->SetForegroundColour(DISCONNECT_TEXT_COL);
-        //m_button_unload->Enable(false);
         m_switch_speed->SetValue(false);
     } else {
         m_switch_speed->Enable();
@@ -2654,7 +2719,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
 
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        //m_button_unload->Enable();
         m_switch_speed->SetValue(true);
     }
 
@@ -3006,16 +3070,17 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
 
-
         m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);
+        show_filament_load_group(false);
         m_ams_control->show_auto_refill(false);
     }
     else {
-
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
+        m_filament_step->SetAmsModel(ams_mode, ams_mode);
         show_ams_group(true);
-        m_ams_control->show_auto_refill(true); 
+        show_filament_load_group(true);
+        m_ams_control->show_auto_refill(true);
     }
 
 
@@ -3042,18 +3107,6 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     std::string dev_id = obj->dev_id;
     ExtderData data = obj->m_extder_data;
-    //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
-    //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
-    //    m_ams_control->UpdateAms(ams_info, false);
-    //    // select current ams
-    //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
-
-    //    last_tray_exist_bits  = obj->tray_exist_bits;
-    //    last_ams_exist_bits   = obj->ams_exist_bits;
-    //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
-    //    last_read_done_bits   = obj->tray_read_done_bits;
-    //    last_ams_version      = obj->ams_version;
-    //}
 
     // must select a current can
     m_ams_control->UpdateAms(ams_info, false);
@@ -3073,120 +3126,208 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID) ) {
-         m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    if (!obj->is_enable_np) {
+
+        if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        } else {
+            if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
+                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+            } else if (obj->m_tray_now != "255") {
+                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+            } else {
+                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+        }
+
+        if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
+            m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_slot[0].get_color());
+        } else {
+            m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+        }
     }
     else {
-        if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
-            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+
+        /*right*/
+        if (obj->m_extder_data.extders.size() > 0) {
+            auto ext = obj->m_extder_data.extders[MAIN_NOZZLE_ID];
+            if (ext.ext_has_filament) {
+                if (ext.snow.slot_id == std::to_string(MAIN_NOZZLE_ID) || ext.snow.slot_id == std::to_string(MAIN_NOZZLE_ID)) {
+                    m_ams_control->SetAmsStep(ext.star.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                } else {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                }
+                m_ams_control->SetExtruder(true, true, ext.snow.ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+            } else {
+                m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                m_ams_control->SetExtruder(false, true, ext.snow.ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+            }
         }
-        else if (obj->m_tray_now != "255") {
-            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+
+        /*left*/
+        if (obj->m_extder_data.extders.size() > 1) {
+            auto ext = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID];
+            if (ext.ext_has_filament) {
+                if (ext.snow.slot_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.slot_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                } else {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                }
+                m_ams_control->SetExtruder(true, true, ext.snow.ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+            } else {
+                m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                m_ams_control->SetExtruder(false, true, ext.snow.ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+            }
         }
-        else {
-            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        }
+
+
+        //m_ams_control->SetAmsStep(std::to_string(VIRTUAL_TRAY_MAIN_ID), "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+        //m_ams_control->SetExtruder(true, true, std::to_string(VIRTUAL_TRAY_MAIN_ID), *wxRED);
     }
 
-    // set segment 3
-    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_slot[0].get_color());
-    } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
-       
-    }
+    bool ams_loading_state = false;
+    auto ams_status_sub = obj->ams_status_sub;
 
-    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+    int vt_tray_id = VIRTUAL_TRAY_DEPUTY_ID;
+    /*if (obj->is_enable_np) {
+        if (obj->m_extder_data.current_loading_extder_id == MAIN_NOZZLE_ID || obj->m_extder_data.current_loading_extder_id == DEPUTY_NOZZLE_ID) {
+            ams_loading_state = true;
+        }
+    } else if(obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE){
+        ams_loading_state = true;
+    }*/
+
+
+    if (ams_loading_state) {
         update_filament_step();
-
-        if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_MAIN_ID) && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_MAIN_ID) || obj->m_tray_now != "255")) {
+        m_filament_step->updateID(std::atoi(obj->m_ams_id.c_str()), std::atoi(obj->m_tray_id.c_str()));
+        if (obj->m_tray_tar == std::to_string(vt_tray_id) && (obj->m_tray_now != std::to_string(vt_tray_id) || obj->m_tray_now != "255")) {
             // wait to heat hotend
-            if (obj->ams_status_sub == 0x02) {
+            if (ams_status_sub == 0x02) {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
             }
-            else if (obj->ams_status_sub == 0x05) {
-                m_ams_control->SetFilamentStep(FilamentStep::STEP_FEED_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+            else if (ams_status_sub == 0x05) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             }
-            else if (obj->ams_status_sub == 0x06) {
+            else if (ams_status_sub == 0x06) {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
             }
-            else if (obj->ams_status_sub == 0x07) {
+            else if (ams_status_sub == 0x07) {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             }
             else {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+                ams_loading_state = false;
             }
         } else {
             // wait to heat hotend
-            if (obj->ams_status_sub == 0x02) {
+            if (ams_status_sub == 0x02) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else if (obj->ams_status_sub == 0x03) {
+            } else if (ams_status_sub == 0x03) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else if (obj->ams_status_sub == 0x04) {
+            } else if (ams_status_sub == 0x04) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else if (obj->ams_status_sub == 0x05) {
+            } else if (ams_status_sub == 0x05) {
                 if (!obj->is_ams_unload()) {
                     if(m_is_load_with_temp){
                         m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }else{
                         m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }
-                    
+
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else if (obj->ams_status_sub == 0x06) {
+            } else if (ams_status_sub == 0x06) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else if (obj->ams_status_sub == 0x07) {
+            } else if (ams_status_sub == 0x07) {
                 if (!obj->is_ams_unload()) {
                     if (m_is_load_with_temp) {
                         m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }else{
                         m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             }
-            else if (obj->ams_status_sub == 0x08) {
+            else if (ams_status_sub == 0x08) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-            } else {
+            }
+            else if (ams_status_sub == 0x0B) {
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                } else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                }
+            }
+            else {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                ams_loading_state = false;
             }
         }
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        ams_loading_state = false;
     } else {
         m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        ams_loading_state = false;
     }
-    
+
+    show_filament_load_group(ams_loading_state);
 
     for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ams_it++) {
         std::string ams_id = ams_it->first;
@@ -3205,36 +3346,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         } catch (...) {}
     }
 
-    bool is_curr_tray_selected = false;
-    if (!curr_ams_id.empty() && !curr_can_id.empty() && (curr_ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID)) ) {
-        if (curr_can_id == obj->m_tray_now) {
-            is_curr_tray_selected = true;
-        }
-        else {
-            std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
-            if (it == obj->amsList.end()) {
-                BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
-                return;
-            }
-            auto tray_it = it->second->trayList.find(curr_can_id);
-            if (tray_it == it->second->trayList.end()) {
-                BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
-                return;
-            }
-
-            if (!tray_it->second->is_exists) {
-                is_curr_tray_selected = true;
-            }
-        }
-    }else if (curr_ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
-        if (curr_ams_id == obj->m_tray_now) {
-            is_curr_tray_selected = true;
-        }
-    }else {
-        is_curr_tray_selected = true;
-    }
-        
-    update_ams_control_state(is_curr_tray_selected);
+    update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
 void StatusPanel::update_ams_insert_material(MachineObject* obj) {
@@ -3249,48 +3361,71 @@ void StatusPanel::update_ams_insert_material(MachineObject* obj) {
 }
 
 
-void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
+void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
+    return;
     // set default value to true
     bool enable[ACTION_BTN_COUNT];
-    enable[ACTION_BTN_CALI] = true;
     enable[ACTION_BTN_LOAD] = true;
     enable[ACTION_BTN_UNLOAD] = true;
 
-    if (obj->is_in_printing()) {
-        if (obj->is_in_extrusion_cali()) {
-            enable[ACTION_BTN_LOAD] = false;
-            enable[ACTION_BTN_UNLOAD] = false;
-            enable[ACTION_BTN_CALI] = true;
+    if (obj->is_enable_np) {
+        if (obj->is_in_printing() && !obj->can_resume()) {
+            if (!obj->can_resume() || obj->is_in_extrusion_cali()) {
+                enable[ACTION_BTN_LOAD]   = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+            }
         }
         else {
-            enable[ACTION_BTN_CALI] = false;
+            /*switch now*/
+            bool in_switch_filament = false;
+            for ( auto ext : obj->m_extder_data.extders) {
+                if (ext.ams_stat == AmsStatusMain::AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+                    in_switch_filament = true;
+                }
+            }
+
+            if (in_switch_filament) {
+                enable[ACTION_BTN_LOAD]   = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+            }
+
+            if (ams_id.empty() || slot_id.empty()) {
+                enable[ACTION_BTN_LOAD]   = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+            }
+            else if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                //todo
+            } else {
+                for (auto ext : obj->m_extder_data.extders) {
+                    if (ext.snow.ams_id == ams_id && ext.snow.slot_id == slot_id) {
+                        enable[ACTION_BTN_LOAD]   = false;
+                    }
+                }
+
+                /*empty*/
+                std::map<std::string, Ams *>::iterator it = obj->amsList.find(ams_id);
+                if (it == obj->amsList.end()) {
+                    enable[ACTION_BTN_LOAD] = false;
+
+                } else {
+                    auto tray_it = it->second->trayList.find(slot_id);
+
+                    if (tray_it == it->second->trayList.end()) { enable[ACTION_BTN_LOAD] = false; }
+
+                    if (!tray_it->second->is_exists) { enable[ACTION_BTN_LOAD] = false; }
+                }
+            }
+
         }
-    }
-    else {
-        enable[ACTION_BTN_CALI] = true;
+    } else {
     }
 
-    if (obj->is_in_printing() && !obj->can_resume()) {
-        enable[ACTION_BTN_LOAD] = false;
-        enable[ACTION_BTN_UNLOAD] = false;
-    }
+    //if (!obj->is_filament_at_extruder()) {
+    //    enable[ACTION_BTN_UNLOAD] = false;
+    //}
 
-    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-        enable[ACTION_BTN_LOAD] = false;
-        enable[ACTION_BTN_UNLOAD] = false;
-    }
-
-    // select current
-    if (is_curr_tray_selected) {
-        enable[ACTION_BTN_LOAD] = false;
-    }
-
-    if (!obj->is_filament_at_extruder()) {
-        enable[ACTION_BTN_UNLOAD] = false;
-    }
-    
-    if (obj->ams_exist_bits == 0) {
+    /*if (obj->ams_exist_bits == 0) {
         if (obj->is_in_printing()) {
             if (!obj->can_resume()) {
                 enable[ACTION_BTN_LOAD] = false;
@@ -3307,10 +3442,10 @@ void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
                 }
             }
         }
-        
+
     }
     else {
-        if (obj->is_in_printing() /*&& obj->can_resume() && obj->m_tray_now != std::to_string(VIRTUAL_TRAY_MAIN_ID) */) {
+        if (obj->is_in_printing()) {
 
             if (!obj->can_resume()) {
                 enable[ACTION_BTN_LOAD] = false;
@@ -3326,7 +3461,7 @@ void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
                     else if (!m_ams_control->GetCurrentCan(m_ams_control->GetCurentAms()).empty()) {
                         enable[ACTION_BTN_LOAD] = false;
                         enable[ACTION_BTN_UNLOAD] = false;
-                    } 
+                    }
                 }
                 else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
                     if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
@@ -3342,13 +3477,9 @@ void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
                     enable[ACTION_BTN_LOAD] = false;
                     enable[ACTION_BTN_UNLOAD] = false;
                 }
-            } 
+            }
         }
-    }
-
-//    if (obj->m_tray_now == "255") {
-//        enable[ACTION_BTN_UNLOAD] = false;
-//    }
+    }*/
 
     m_ams_control->SetActionState(enable);
 }
@@ -3835,11 +3966,6 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
     }
 }
 
-void StatusPanel::on_start_unload(wxCommandEvent &event)
-{
-    if (obj) obj->command_ams_change_filament(false, "255", "255");
-}
-
 void StatusPanel::on_set_bed_temp()
 {
     if (!obj) {return;}
@@ -3934,7 +4060,8 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
 
 void StatusPanel::update_filament_step()
 {
-    m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+    //m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+    m_filament_step->UpdateStepCtrl(obj->is_filament_at_extruder());
     if (!obj->is_filament_at_extruder()) {
         m_is_load_with_temp = true;
     }
@@ -4326,7 +4453,6 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
         std::string curr_selected_ams_id = std::to_string(event.GetInt());
 
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
-            //update_ams_control_state(curr_ams_id, true);
             return;
         } else {
             std::string curr_can_id = event.GetString().ToStdString();
@@ -4803,6 +4929,7 @@ void StatusPanel::set_default()
     m_switch_printing_fan_timeout = 0;
     m_switch_cham_fan_timeout = 0;
     m_show_ams_group = false;
+    m_show_filament_group = false;
     reset_printing_values();
 
     m_bitmap_timelapse_img->Hide();
@@ -4817,8 +4944,11 @@ void StatusPanel::set_default()
     m_ams_control->Hide();
     m_ams_control_box->Hide();
     m_ams_control->Reset();
+    m_filament_step->Hide();
     error_info_reset();
+#ifndef __WXGTK__
     SetFocus();
+#endif
 }
 
 void StatusPanel::show_status(int status)
