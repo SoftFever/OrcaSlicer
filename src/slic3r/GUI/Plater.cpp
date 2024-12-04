@@ -1205,8 +1205,8 @@ Sidebar::Sidebar(Plater *parent)
         ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", 48);
         p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
+        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
-        combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
 
         p->btn_connect_printer = new ScalableButton(p->panel_printer_preset, wxID_ANY, "monitor_signal_strong");

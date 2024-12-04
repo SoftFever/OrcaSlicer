@@ -72,7 +72,7 @@ namespace GUI {
  **/
 
 PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size, PresetBundle* preset_bundle/* = nullptr*/) :
-    ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, preset_type == Preset::TYPE_PRINTER ? (wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL) : wxCB_READONLY),
+    ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, wxCB_READONLY),
     m_type(preset_type),
     m_last_selected(wxNOT_FOUND),
     m_em_unit(em_unit(this)),
