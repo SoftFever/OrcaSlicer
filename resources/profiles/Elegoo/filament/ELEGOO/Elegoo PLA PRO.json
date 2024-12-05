@@ -1,0 +1,12 @@
+{
+    "type": "filament",
+    "name": "Elegoo PLA PRO",
+    "inherits": "Elegoo PLA @base",
+    "from": "system",
+    "setting_id": "EPLAPRO00",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "compatible_printers": []
+}

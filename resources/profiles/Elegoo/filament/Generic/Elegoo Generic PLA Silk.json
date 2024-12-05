@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "name": "Elegoo Generic PLA Silk",
+    "inherits": "Elegoo Generic PLA Silk @base",
+    "from": "system",
+    "setting_id": "EGPLAS00",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "7.5"
+    ],
+    "filament_retraction_length": [
+        "0.5"
+    ],
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.4 nozzle",
+        "Elegoo Centauri Carbon 0.6 nozzle",
+        "Elegoo Centauri Carbon 0.8 nozzle"
+    ]
+}
