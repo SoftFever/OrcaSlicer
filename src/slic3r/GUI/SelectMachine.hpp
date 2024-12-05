@@ -473,6 +473,11 @@ public:
     PrintDialogStatus  get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
+
+
+
+wxDECLARE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
+
 }} // namespace Slic3r::GUI
 
 #endif

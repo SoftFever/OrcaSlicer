@@ -30,6 +30,7 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
@@ -588,6 +589,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
         ops_no_auto
     );
+
+    option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto& e) {
+        m_ams_mapping_result.clear();
+        sync_ams_mapping_result(m_ams_mapping_result);
+    });
 
     option_use_ams->setValue("off");
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
@@ -2914,26 +2920,19 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
 {
-    /*if (!obj) {return;}
+    if (!obj) {return;}
 
-    if (obj->is_enable_np) {
-        m_checkbox_list["use_ams"]->Hide();
-        m_checkbox_list["use_ams"]->setValue("on");
-    }
-    else {
+    if (!obj->is_enable_np) {
         if (obj->has_ams()) {
             m_checkbox_list["use_ams"]->Show();
             m_checkbox_list["use_ams"]->setValue("on");
-        } else {
+        }
+        else {
             m_checkbox_list["use_ams"]->Hide();
             m_checkbox_list["use_ams"]->setValue("off");
         }
-    }*/
-
-    if (obj && obj->has_ams() && !obj->is_enable_np) {
-        m_checkbox_list["use_ams"]->Show();
-    }
-    if (obj && obj->is_enable_np) {
+    }else{
+        m_checkbox_list["use_ams"]->Hide();
         m_checkbox_list["use_ams"]->setValue("on");
     }
 }
@@ -3023,10 +3022,6 @@ void SelectMachineDialog::update_show_status()
             clean_ams_mapping = true;
         }
     }
-
-    //if (!obj_->has_ams() || !(m_checkbox_list["use_ams"]->getValue() == "on")) {
-    //    clean_ams_mapping = true;
-    //}
 
     if (clean_ams_mapping) {
         m_ams_mapping_result.clear();
@@ -4472,7 +4467,6 @@ void PrintOptionItem::on_left_down(wxMouseEvent &evt)
         }
         i++;
     }
-    Refresh();
 
     if (!m_param.empty()) {
         AppConfig *config = wxGetApp().app_config;
@@ -4482,6 +4476,13 @@ void PrintOptionItem::on_left_down(wxMouseEvent &evt)
             config->set_str("print", m_param, "0");
         }
     }
+
+    wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
+    event.SetString(selected_key);
+    event.SetEventObject(GetParent());
+    wxPostEvent(GetParent(), event);
+
+    Refresh();
 }
 
 void PrintOptionItem::doRender(wxDC &dc)
