@@ -882,19 +882,39 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_fan_speed", coInts);
     def->label = L("Fan speed for overhang");
-    def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
-                     "Forcing cooling for overhang and bridge can get better quality for these part");
+    def->tooltip = L("Force part cooling fan to be this speed when printing overhang wall which is large than overhang threshold. "
+                     "Forcing cooling for overhang or external wall can get better quality for these parts");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
 
+    def = this->add("overhang_fan_speed_max", coInts);
+    def->label = L("Maximum fan speed for overhang");
+    def->tooltip = L("Force part cooling fan to be this speed when printing overhang wall which is about 100%. "
+                     "Forcing cooling for overhang or external wall can get better quality for these parts");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts { 100 });
+
+    def = this->add("bridge_fan_speed", coInts);
+    def->label = L("Fan speed for bridge");
+    def->tooltip = L("Force part cooling fan to be this speed when printing bridge. "
+                     "Forcing cooling for bridge can get better quality for these parts");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
-    def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
+    def->tooltip = L("Force cooling fan speed to be interpolated between fan speed for overhang and fan speed for bridges (and rounded to 10%) when overhang value goes from threshold up to bridge. "
                      "Expressed as percentage which indicates how much width of the line without support from lower layer. "
-                     "0% means forcing cooling for all outer wall no matter how much overhang degree");
+                     "0% means forcing cooling for all outer wall no matter how much overhang degree. ");
     def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
@@ -6132,8 +6152,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "prime_tower_brim_width";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
-    } else if (opt_key == "bridge_fan_speed") {
-        opt_key = "overhang_fan_speed";
     } else if (opt_key == "infill_extruder") {
         opt_key = "sparse_infill_filament";
     }else if (opt_key == "solid_infill_extruder") {
