@@ -3766,7 +3766,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
-        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("pellet_modded_printer");
         optgroup->append_single_option_line("multi_zone");
         optgroup->append_single_option_line("multi_zone_number");
         optgroup->append_single_option_line("bbl_use_printhost");
