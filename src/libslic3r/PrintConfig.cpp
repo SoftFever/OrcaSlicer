@@ -1933,37 +1933,19 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
-    /*
-        Large format printers with print volumes in the order of 1m^3 generally use pellets for printing.
-        The overall tech is very similar to FDM printing. 
-        It is FDM printing, but instead of filaments, it uses pellets.
-
-        The difference here is that where filaments have a filament_diameter that is used to calculate 
-        the volume of filament ingested, pellets have a particular flow_coefficient that is empirically 
-        devised for that particular pellet.
-
-        pellet_flow_coefficient is basically a measure of the packing density of a particular pellet.
-        Shape, material and density of an individual pellet will determine the packing density and
-        the only thing that matters for 3d printing is how much of that pellet material is extruded by 
-        one turn of whatever feeding mehcanism/gear your printer uses. You can emperically derive that
-        for your own pellets for a particular printer model.
-
-        We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it 
-        does already with very minor adjustments.
-
-        filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )
-
-        sqrt just makes the relationship between flow_coefficient and volume linear.
-
-        higher packing density -> more material extruded by single turn -> higher pellet_flow_coefficient -> treated as if a filament of larger diameter is being used
-        All other calculations remain the same for slicing.
-    */
-
-    def = this->add("pellet_flow_coefficient", coFloats);
-    def->label = L("Pellet flow coefficient");
-    def->tooltip = L("Pellet flow coefficient is empirically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
-    def->min = 0;
-    def->set_default_value(new ConfigOptionFloats{ 0.4157 });
+    def          = this->add("extruder_rotation_distance", coFloat);
+    def->label   = L("Extruder rotation distance");
+    def->tooltip = L("Extruder rotation distance (mm³)");
+    def->sidetext = L("mm³");
+    def->min     = 0;
+    def->set_default_value(new ConfigOptionFloat(0));    
+    
+    def          = this->add("mixing_stepper_rotation_distance", coFloat);
+    def->label   = L("Mixing stepper rotation distance");
+    def->tooltip = L("Mixing stepper rotation distance (mm³)");
+    def->sidetext = L("mm³");
+    def->min     = 0;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage (XY)");
