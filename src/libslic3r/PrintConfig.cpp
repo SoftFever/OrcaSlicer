@@ -3332,6 +3332,13 @@ void PrintConfigDef::init_fff_params()
     def->max = 5;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
+    
+    def = this->add("extrusion_rate_smoothing_external_perimeter_only", coBool);
+    def->label = L("Apply only on external features");
+    def->tooltip = L("Applies extrusion rate smoothing only on external perimeters and overhangs. This can help reduce artefacts due to sharp speed transitions on externally visible "
+                     "overhangs without impacting the print speed of features that will not be visible to the user.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
