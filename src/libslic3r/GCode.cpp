@@ -575,37 +575,40 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         //BBS: increase toolchange count
         gcodegen.m_toolchange_count++;
 
+        std::string toolchange_gcode_str;
+
         // BBS: should be placed before toolchange parsing
         std::string toolchange_retract_str = gcodegen.retract(true, false);
         check_add_eol(toolchange_retract_str);
 
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
-        std::string toolchange_gcode_str;
         std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
+        // add nozzle change gcode into change filament gcode
+        {
+            std::string nozzle_change_gcode_trans;
+            if (!tcr.nozzle_change_result.gcode.empty()) {
+                // move to start_pos before nozzle change
+                std::string start_pos_str;
+                start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
+                    "Move to nozzle change start pos");
+                check_add_eol(start_pos_str);
+                nozzle_change_gcode_trans += start_pos_str;
+                nozzle_change_gcode_trans += gcodegen.unretract();
+                nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
+                gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
+                gcodegen.m_wipe.reset_path();
+                for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
+                    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
+                nozzle_change_gcode_trans += gcodegen.retract(true, false);
+            }
 
-        std::string nozzle_change_gcode_trans;
-        if (!tcr.nozzle_change_result.gcode.empty()) {
-            // move to start_pos before nozzle change
-            std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
-                                               "Move to nozzle change start pos");
-            check_add_eol(start_pos_str);
-            nozzle_change_gcode_trans += start_pos_str;
-            nozzle_change_gcode_trans += gcodegen.unretract();
-            nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
-            gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
-            gcodegen.m_wipe.reset_path();
-            for (const Vec2f &wipe_pt : tcr.nozzle_change_result.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            nozzle_change_gcode_trans += gcodegen.retract(true, false);
+            std::string prefix_gcode = lift_gcode_after_printing_object;
+            if (gcodegen.config().nozzle_diameter.size() > 1) {
+                prefix_gcode += nozzle_change_gcode_trans;
+            }
+            change_filament_gcode = prefix_gcode + change_filament_gcode;
         }
-
-        std::string prefix_gcode = lift_gcode_after_printing_object;
-        if (gcodegen.config().nozzle_diameter.size() > 1) {
-            prefix_gcode += nozzle_change_gcode_trans;
-        }
-        change_filament_gcode = prefix_gcode + change_filament_gcode;
 
         if (! change_filament_gcode.empty()) {
             DynamicConfig config;
@@ -691,11 +694,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             check_add_eol(toolchange_gcode_str);
 
-            // retract before toolchange
-            toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
-            // BBS
+            //BBS
             {
-                // BBS: current position and fan_speed is unclear after interting change_filament_gcode
+                //BBS: current position and fan_speed is unclear after interting change_filament_gcode
                 check_add_eol(toolchange_gcode_str);
                 toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
                 gcodegen.writer().set_current_position_clear(false);
@@ -709,15 +710,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             }
 
             // move to start_pos for wiping after toolchange
-            std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed,
-                                               "Move to start pos");
+            std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Move to start pos");
             check_add_eol(start_pos_str);
             toolchange_gcode_str += start_pos_str;
-
-            // unretract before wiping
-            toolchange_gcode_str += gcodegen.unretract();
-            check_add_eol(toolchange_gcode_str);
         }
 
         std::string toolchange_command;
@@ -728,6 +723,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         else {
             // We have informed the m_writer about the current extruder_id, we can ignore the generated G-code.
         }
+
+        // do unretract after setting current extruder_id
+        std::string toolchange_unretract_str = gcodegen.unretract();
+        check_add_eol(toolchange_unretract_str);
+
+        toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str + toolchange_unretract_str;
 
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
         gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_filament_id));
