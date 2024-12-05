@@ -3,65 +3,57 @@
 
 namespace Slic3r { namespace GUI {
 
+struct CustomData
+{
+    int filament_id;
+    unsigned char r, g, b;
+};
+
 // Custom data object used to store information that needs to be backed up during drag and drop
-class ColorDataObject : public wxDataObjectSimple
+class ColorDataObject : public wxCustomDataObject
 {
 public:
-    ColorDataObject(wxPanel *color_block = nullptr, wxPanel *parent = nullptr, const wxColour &color = *wxBLACK, int filament_id = 0)
-        : wxDataObjectSimple(wxDF_PRIVATE)
-        , m_parent(parent)
-        , m_source_block(color_block)
-        , m_color(color)
-        , m_filament_id(filament_id) {}
+    ColorDataObject(const wxColour &color = *wxBLACK, int filament_id = 0)
+        : wxCustomDataObject(wxDataFormat("application/customize_format"))
+    {
+        std::memset(&m_data, 0, sizeof(m_data));
+        set_custom_data_filament_id(filament_id);
+        set_custom_data_color(color);
+    }
 
-    wxColour GetColor() const { return m_color; }
-    void     SetColor(const wxColour &color) { m_color = color; }
+    wxColour GetColor() const { return wxColor(m_data.r, m_data.g, m_data.b); }
+    void     SetColor(const wxColour &color) { set_custom_data_color(color); }
 
-    int      GetFilament() const { return m_filament_id; }
-    void     SetFilament(int label) { m_filament_id = label; }
+    int      GetFilament() const { return m_data.filament_id; }
+    void     SetFilament(int label) { set_custom_data_filament_id(label); }
 
-    wxPanel *GetParent() const { return m_parent; }
-    void     SetParent(wxPanel * parent) { m_parent = parent; }
+    void set_custom_data_filament_id(int filament_id) {
+        m_data.filament_id = filament_id;
+    }
 
-    wxPanel *GetSourceBlock() const { return m_source_block; }
-    void     SetSourceBlock(wxPanel *source_block) { m_source_block = source_block; }
+    void set_custom_data_color(const wxColor& color) {
+        m_data.r           = color.Red();
+        m_data.g           = color.Green();
+        m_data.b           = color.Blue();
+    }
 
-    virtual size_t GetDataSize() const override { return sizeof(m_color) + sizeof(int) + sizeof(m_parent) + sizeof(m_source_block); }
+    virtual size_t GetDataSize() const override { return sizeof(m_data); }
     virtual bool   GetDataHere(void *buf) const override
     {
         char *ptr = static_cast<char *>(buf);
-        wxColour *  colorBuf = static_cast<wxColour *>(buf);
-        *colorBuf            = m_color;
-
-        std::memcpy(ptr + sizeof(m_color), &m_filament_id, sizeof(int));
-
-        wxPanel **panelBuf = reinterpret_cast<wxPanel **>(static_cast<char *>(buf) + sizeof(m_color) + sizeof(int));
-        *panelBuf          = m_parent;
-
-        wxPanel **blockBuf = reinterpret_cast<wxPanel **>(static_cast<char *>(buf) + sizeof(m_color) + sizeof(int) + sizeof(m_parent));
-        *blockBuf          = m_source_block;
+        std::memcpy(buf, &m_data, sizeof(m_data));
         return true;
     }
     virtual bool SetData(size_t len, const void *buf) override
     {
         if (len == GetDataSize()) {
-            const char *ptr = static_cast<const char *>(buf);
-            m_color         = *static_cast<const wxColour *>(buf);
-
-            std::memcpy(&m_filament_id, ptr + sizeof(m_color), sizeof(int));
-
-            m_parent = *reinterpret_cast<wxPanel *const *>(static_cast<const char *>(buf) + sizeof(m_color) + sizeof(int));
-
-            m_source_block = *reinterpret_cast<wxPanel *const *>(static_cast<const char *>(buf) + sizeof(m_color) + sizeof(int) + sizeof(m_parent));
+            std::memcpy(&m_data, buf, sizeof(m_data));
             return true;
         }
         return false;
     }
 private:
-    int m_filament_id;
-    wxColour m_color;
-    wxPanel *m_parent;
-    wxPanel *m_source_block;
+    CustomData m_data;
 };
 
 ///////////////   ColorPanel  start ////////////////////////
@@ -100,12 +92,10 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
 class ColorDropSource : public wxDropSource
 {
 public:
-    ColorDropSource(wxPanel *parent, wxPanel *color_block, const wxColour &color, int filament_id) : wxDropSource()
+    ColorDropSource(wxPanel *parent, wxPanel *color_block, const wxColour &color, int filament_id) : wxDropSource(parent)
     {
         m_data.SetColor(color);
         m_data.SetFilament(filament_id);
-        m_data.SetParent(parent);
-        m_data.SetSourceBlock(color_block);
         SetData(m_data);  // Set drag source data
     }
 
@@ -138,15 +128,6 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (!GetData())
         return wxDragNone;
-
-    if (m_data->GetParent() == m_panel) {
-        return wxDragNone;
-    }
-
-    DragDropPanel *  parent_panel = dynamic_cast<DragDropPanel *>(m_data->GetParent());
-    ColorPanel *   color_block  = dynamic_cast<ColorPanel *>(m_data->GetSourceBlock());
-    assert(parent_panel && color_block);
-    parent_panel->RemoveColorBlock(color_block);
 
     ColorDataObject *dataObject = dynamic_cast<ColorDataObject *>(GetDataObject());
     m_panel->AddColorBlock(m_data->GetColor(), m_data->GetFilament());
@@ -221,7 +202,9 @@ void DragDropPanel::DoDragDrop(ColorPanel *panel, const wxColour &color, int fil
         return;
 
     ColorDropSource source(this, panel, color, filament_id);
-    source.DoDragDrop(wxDrag_CopyOnly);
+    if (source.DoDragDrop(wxDrag_CopyOnly) == wxDragResult::wxDragCopy) {
+        this->RemoveColorBlock(panel);
+    }
 }
 
 std::vector<int> DragDropPanel::GetAllFilaments() const
