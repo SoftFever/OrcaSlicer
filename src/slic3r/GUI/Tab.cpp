@@ -3632,14 +3632,15 @@ void TabFilament::toggle_options()
         toggle_line("filament_diameter", !is_pellet_printer);
 
         bool is_multi_zone = cfg.opt_bool("multi_zone");
-        if (is_multi_zone) {
-            int zone_count = cfg.opt_int("multi_zone_number");
-            for (int zone = 10; zone > 0; zone--) {
-                std::string zone_str = std::to_string(zone);
-                toggle_line("multi_zone_" + zone_str + "_initial_layer", zone <= zone_count);
-                toggle_line("multi_zone_" + zone_str + "_temperature", zone <= zone_count);
-            }
+        int  zone_count    = is_multi_zone ? cfg.opt_int("multi_zone_number") : 0;
+
+        for (int zone = 10; zone > 0; zone--) {
+            std::string zone_str = std::to_string(zone);
+            bool        toggle   = is_multi_zone && zone <= zone_count;
+            toggle_line("multi_zone_" + zone_str + "_initial_layer", toggle);
+            toggle_line("multi_zone_" + zone_str + "_temperature", toggle);
         }
+
         toggle_line("nozzle_temperature_initial_layer", !is_multi_zone);
         toggle_line("nozzle_temperature", !is_multi_zone);
     }

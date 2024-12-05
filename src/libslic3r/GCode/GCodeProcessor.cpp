@@ -4967,7 +4967,7 @@ void GCodeProcessor::run_post_process()
                     } else {
                         std::string comment = "preheat T" + std::to_string(tool_number) +
                                               " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
-                        return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
+                        return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, -1, comment);
                     }
                 },
                 // line replacer

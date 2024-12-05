@@ -1317,7 +1317,29 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoint,               bed_mesh_probe_distance))
     ((ConfigOptionFloat,               adaptive_bed_mesh_margin))
 
-
+    //Multi zone temps
+    ((ConfigOptionBool,                multi_zone))
+    ((ConfigOptionInt,                 multi_zone_number))
+    ((ConfigOptionInts,                multi_zone_1_temperature))
+    ((ConfigOptionInts,                multi_zone_1_initial_layer))
+    ((ConfigOptionInts,                multi_zone_2_temperature))
+    ((ConfigOptionInts,                multi_zone_2_initial_layer))
+    ((ConfigOptionInts,                multi_zone_3_temperature))
+    ((ConfigOptionInts,                multi_zone_3_initial_layer))
+    ((ConfigOptionInts,                multi_zone_4_temperature))
+    ((ConfigOptionInts,                multi_zone_4_initial_layer))
+    ((ConfigOptionInts,                multi_zone_5_temperature))
+    ((ConfigOptionInts,                multi_zone_5_initial_layer))
+    ((ConfigOptionInts,                multi_zone_6_temperature))
+    ((ConfigOptionInts,                multi_zone_6_initial_layer))
+    ((ConfigOptionInts,                multi_zone_7_temperature))
+    ((ConfigOptionInts,                multi_zone_7_initial_layer))
+    ((ConfigOptionInts,                multi_zone_8_temperature))
+    ((ConfigOptionInts,                multi_zone_8_initial_layer))
+    ((ConfigOptionInts,                multi_zone_9_temperature))
+    ((ConfigOptionInts,                multi_zone_9_initial_layer))
+    ((ConfigOptionInts,                multi_zone_10_temperature))
+    ((ConfigOptionInts,                multi_zone_10_initial_layer))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.
