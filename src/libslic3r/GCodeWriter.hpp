@@ -65,6 +65,8 @@ public:
     // printed with the same extruder.
     std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
+    std::string add_rotation_volume(unsigned int extruder_id, double value);
+    std::string add_rotation_volume(const std::string& name, double value);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     // SoftFever NOTE: the returned speed is mm/minute
     double      get_current_speed() const { return m_current_speed;}

@@ -6280,6 +6280,14 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
             m_pa_processor->resetPreviousPA(m_config.pressure_advance.get_at(extruder_id));
         }
 
+        if (m_config.use_extruder_rotation_volume.value) {
+            gcode += m_writer.add_rotation_volume(extruder_id, m_config.extruder_rotation_volume.get_at(extruder_id));
+            if (m_config.use_active_pellet_feeding.value) {
+                gcode += m_writer.add_rotation_volume(m_config.active_feeder_motor_name.get_at(extruder_id),
+                                                      m_config.mixing_stepper_rotation_volume.get_at(extruder_id));
+            }
+        }
+
         gcode += m_writer.toolchange(extruder_id);
         return gcode;
     }
@@ -6484,6 +6492,14 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
 
     if (m_config.enable_pressure_advance.get_at(extruder_id)) {
         gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
+    }
+
+    if (m_config.use_extruder_rotation_volume.value) {
+        gcode += m_writer.add_rotation_volume(extruder_id, m_config.extruder_rotation_volume.get_at(extruder_id));
+        if (m_config.use_active_pellet_feeding.value) {
+            gcode += m_writer.add_rotation_volume(m_config.active_feeder_motor_name.get_at(extruder_id),
+                m_config.mixing_stepper_rotation_volume.get_at(extruder_id));
+        }
     }
 
     return gcode;
