@@ -92,7 +92,7 @@ std::string GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, GCodeFlavor flavor, bool wait, int tool, std::string comment){
+std::string GCodeWriter::set_temperature(unsigned int temperature, GCodeFlavor flavor, bool wait, int tool, int zone, std::string comment){
     if (wait && (flavor == gcfMakerWare || flavor == gcfSailfish))
         return "";
 
@@ -107,12 +107,23 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, GCodeFlavor f
         } else {
             code = "M104";
         }
-        if(comment.empty())
-            comment = "set nozzle temperature";
+        if (comment.empty()) {
+            if (zone != -1) {
+                comment = "set zone" + std::to_string(zone) + " temperature";
+            } else {
+                comment = "set nozzle temperature";
+            }
+        }
     }
 
     std::ostringstream gcode;
     gcode << code << " ";
+
+    //add zone if present 
+    if (zone != -1) {
+        gcode << "Z" << zone << " ";
+    }
+
     if (flavor == gcfMach3 || flavor == gcfMachinekit) {
         gcode << "P";
     } else {
@@ -134,12 +145,12 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, GCodeFlavor f
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool, int zone) const
 {
     // set tool to -1 to make sure we won't emit T parameter for single extruder or SEMM
     if (!this->multiple_extruders || m_single_extruder_multi_material)
         tool = -1;
-    return set_temperature(temperature, this->config.gcode_flavor, wait, tool);
+    return set_temperature(temperature, this->config.gcode_flavor, wait, tool, zone);
 }
 
 // BBS
