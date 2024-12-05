@@ -4437,7 +4437,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //         for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                     //     }
                     // } 
-                    else if (load_config && (file_version > app_version)) {
+                    else if (load_config && (file_version.maj() == app_version.maj()) && (file_version.min() > app_version.min())) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
                             wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, found following unrecognized keys:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
