@@ -784,9 +784,11 @@ public:
         txt1->SetForegroundColour(0x6B6B6B);
         int ams4 = 0, ams1 = 0;
         GetAMSCount(index, ams4, ams1);
-        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
-        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 8, ams1);
+        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4 - ams1, ams4);
+        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4 - ams4, ams1);
         auto event_handler = [index, val4, val1, extruder](auto &evt) {
+            val4->SetRange(0, 4 - val1->GetValue());
+            val1->SetRange(0, 4 - val4->GetValue());
             SetAMSCount(index, val4->GetValue(), val1->GetValue());
             UpdateAMSCount(index, extruder);
         };
@@ -954,6 +956,10 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
 void ExtruderGroup::update_ams()
 {
     int    display_capacity  = 8;
+
+    if (ams_n4 * 4 + ams_n1 * 2 <= 8)
+        is_upward = false;
+
     bool   display_front_ams = !is_upward;
     size_t i                 = 0;
     for (; i < ams_n4 && i < 4; ++i) {
