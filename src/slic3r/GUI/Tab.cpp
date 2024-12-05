@@ -1412,19 +1412,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-
-    if (opt_key == "pellet_flow_coefficient") 
+    if (m_preset_bundle->printers.get_edited_preset().config.opt_bool("pellet_modded_printer")) 
     {
-        double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
+        double double_value = sqrt(4 / PI);
         m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
 	}
-
-    if (opt_key == "filament_diameter") {
-        double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
-        m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
-    }
-    
-
+ 
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
         wxGetApp().sidebar().show_SEMM_buttons(bSEMM);
@@ -3303,7 +3296,8 @@ void TabFilament::build()
 
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("extruder_rotation_distance");
+        optgroup->append_single_option_line("mixing_stepper_rotation_distance");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3628,7 +3622,6 @@ void TabFilament::toggle_options()
         toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
-        toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
 
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
