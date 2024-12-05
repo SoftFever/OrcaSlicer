@@ -1912,14 +1912,14 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("extruder_rotation_distance", coFloat);
     def->label   = L("Extruder rotation distance");
-    def->tooltip = L("Extruder rotation distance (mm³)");
+    def->tooltip = L("This setting determines how much filament volume is extruded per full rotation of the extruder stepper motor. It is critical for accurate filament flow control, ensuring consistent extrusion during 3D printing.");
     def->sidetext = L("mm³");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(0));    
     
     def          = this->add("mixing_stepper_rotation_distance", coFloat);
     def->label   = L("Mixing stepper rotation distance");
-    def->tooltip = L("Mixing stepper rotation distance (mm³)");
+    def->tooltip = L("This parameter is used in 3D printers with mixing extruders to calculate the volume of material pushed per step of the mixing motor. It ensures precise control of the filament");
     def->sidetext = L("mm³");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(0));
