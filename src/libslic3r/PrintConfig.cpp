@@ -549,6 +549,22 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("spoolman_enabled", coBool);
+    def->label = L("Spoolman Support");
+    def->tooltip = L("Enables spool management features powered by a Spoolman server instance");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool());
+
+    def = this->add("spoolman_host", coString);
+    def->label = L("Spoolman Host");
+    def->tooltip = L("Points to where you Spoolman instance is hosted. "
+                     "You can either provide just the port to use the same URL as your printer "
+                     "or provide the full address in the format of <host>:<port>.");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString("8000"));
+
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");
     def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");
@@ -2182,11 +2198,32 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_spoolman_enabled", coBools);
+    def->set_default_value(new ConfigOptionBools());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("filament_remaining_weight", coFloats);
+    def->set_default_value(new ConfigOptionFloats());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("filament_remaining_length", coFloats);
+    def->set_default_value(new ConfigOptionFloats());
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("filament_vendor", coStrings);
     def->label = L("Vendor");
     def->tooltip = L("Vendor of filament. For show only");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_spool_id", coInt);
+    def->label = L("Spoolman ID");
+    def->tooltip = L("The spool ID of this filament profile within your Spoolman instance. This will allow automatic spool switching when "
+                     "using moonraker to track spool usage and one touch updating of this filament profile from the Spoolman properties. "
+                     "Setting this to a value of 0 disables its functionality.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInt());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);

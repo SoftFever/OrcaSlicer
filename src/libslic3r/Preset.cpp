@@ -495,7 +495,7 @@ void Preset::remove_files()
 }
 
 //BBS: add logic for only difference save
-void Preset::save(DynamicPrintConfig* parent_config)
+void Preset::save(const DynamicPrintConfig* parent_config)
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
@@ -845,7 +845,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_unloading_speed", "filament_unloading_speed_start", "filament_toolchange_delay", "filament_cooling_moves", "filament_stamping_loading_speed", "filament_stamping_distance",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
     "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut", "idle_temperature"
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut", "idle_temperature",
+    "spoolman_spool_id"
     };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -869,7 +870,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types", "travel_slope", "retract_lift_enforce","support_chamber_temp_control","support_air_filtration","printer_structure",
     "best_object_pos","head_wrap_detect_zone",
     "host_type", "print_host", "printhost_apikey", "bbl_use_printhost",
-    "print_host_webui",
+    "print_host_webui", "spoolman_enabled", "spoolman_host",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails", "thumbnails_format",
     "use_firmware_retraction", "use_relative_e_distances", "printer_notes",
@@ -2184,7 +2185,7 @@ bool PresetCollection::clone_presets_for_filament(Preset const *const &     pres
 {
     std::vector<Preset const *> const presets = {preset};
     return clone_presets(presets, failures, [&filament_name, &filament_id, &dynamic_config, &compatible_printers](Preset &preset, Preset::Type &type) {
-        preset.name        = filament_name + " @" + compatible_printers;
+        preset.name        = filament_name + (compatible_printers.empty() ? "" : (" @" + compatible_printers));
         if (type == Preset::TYPE_FILAMENT) {
             preset.config.apply_only(dynamic_config, {"filament_vendor", "compatible_printers", "filament_type"},true);
 
@@ -2465,7 +2466,7 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
             it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected))
 	        return it_preset->name;
         }
-		
+
     return alias;
 }
 
