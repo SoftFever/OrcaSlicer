@@ -549,6 +549,20 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("machine_serial", coString);
+    def->label = L("Serial:");
+    def->tooltip = L("The 5M serial number");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("printer_id", coString);
+    def->label = L("Printer ID");
+    def->tooltip = L("The 5M Printer ID");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");
     def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");
