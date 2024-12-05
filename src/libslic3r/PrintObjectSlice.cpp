@@ -1259,14 +1259,15 @@ void PrintObject::apply_conical_overhang() {
         auto upper_poly = upper_layer->merged(float(SCALED_EPSILON));
         upper_poly = union_ex(upper_poly);
 
+        // Merge layer for the same reason
+        auto current_poly = layer->merged(float(SCALED_EPSILON));
+        current_poly = union_ex(current_poly);
+
         // Avoid closing up of recessed holes in the base of a model.
         // Detects when a hole is completely covered by the layer above and removes the hole from the layer above before
         // adding it in.
         // This should have no effect any time a hole in a layer interacts with any polygon in the layer above
         if (scaled_max_hole_area > 0.0) {
-            // Merge layer for the same reason
-            auto current_poly = layer->merged(float(SCALED_EPSILON));
-            current_poly = union_ex(current_poly);
 
             // Now go through all the holes in the current layer and check if they intersect anything in the layer above
             // If not, then they're the top of a hole and should be cut from the layer above before the union
@@ -1301,10 +1302,25 @@ void PrintObject::apply_conical_overhang() {
             }
 
             // Calculate the scaled upper poly that belongs to current region
-            auto p = intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly);
-            // And now union it
+            auto p = union_ex(intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly));
+
+            // Remove all islands that have already been fully covered by current layer
+            p.erase(std::remove_if(p.begin(), p.end(), [&current_poly](const ExPolygon& ex) {
+                return diff_ex(ex, current_poly).empty();
+            }), p.end());
+
+            // And now union it with current region
             ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
             layer->m_regions[region_id]->slices.set(union_ex(layer_polygons, p), stInternal);
+
+            // Then remove it from all other regions, to avoid overlapping regions
+            for (size_t other_region = 0; other_region < this->num_printing_regions(); ++other_region) {
+                if (other_region == region_id) {
+                    continue;
+                }
+                ExPolygons s = to_expolygons(layer->m_regions[other_region]->slices.surfaces);
+                layer->m_regions[other_region]->slices.set(diff_ex(s, p, ApplySafetyOffset::Yes), stInternal);
+            }
         }
         //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
     }
