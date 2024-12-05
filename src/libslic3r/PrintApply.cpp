@@ -222,7 +222,8 @@ static t_config_option_keys print_config_diffs(
     const PrintConfig        &current_config,
     const DynamicPrintConfig &new_full_config,
     DynamicPrintConfig       &filament_overrides,
-    int plate_index)
+    int                      plate_index,
+    std::vector<int>&        filament_maps)
 {
     const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
     const std::string               filament_prefix       = "filament_";
@@ -236,26 +237,9 @@ static t_config_option_keys print_config_diffs(
             //FIXME This may happen when executing some test cases.
             continue;
         const ConfigOption *opt_new_filament = std::binary_search(extruder_retract_keys.begin(), extruder_retract_keys.end(), opt_key) ? new_full_config.option(filament_prefix + opt_key) : nullptr;
-        if (opt_new_filament != nullptr && ! opt_new_filament->is_nil()) {
-            // An extruder retract override is available at some of the filament presets.
-            bool overriden = opt_new->overriden_by(opt_new_filament);
-            if (overriden || *opt_old != *opt_new) {
-                auto opt_copy = opt_new->clone();
-                if (!((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
-                    && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)) // ugly code, remove it later if firmware supports
-                    opt_copy->apply_override(opt_new_filament);
-                bool changed = *opt_old != *opt_copy;
-                if (changed)
-                    print_diff.emplace_back(opt_key);
-                if (changed || overriden) {
-                    if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
-                        && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)
-                        continue;
-                    // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
-                    filament_overrides.set_key_value(opt_key, opt_copy);
-                } else
-                    delete opt_copy;
-            }
+
+        if (opt_new_filament != nullptr) {
+            compute_filament_override_value(opt_key, opt_old, opt_new, opt_new_filament, new_full_config, print_diff, filament_overrides, filament_maps);
         } else if (*opt_new != *opt_old) {
             //BBS: add plate_index logic for wipe_tower_x/wipe_tower_y
             if (!opt_key.compare("wipe_tower_x") || !opt_key.compare("wipe_tower_y")) {
@@ -1154,11 +1138,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     m_ori_full_print_config = new_full_config;
     new_full_config.update_values_to_printer_extruders_for_multiple_filaments(new_full_config, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+    std::vector<int> filament_maps =  new_full_config.option<ConfigOptionInts>("filament_map")->values;
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
     //BBS: add plate index
-    t_config_option_keys print_diff       = print_config_diffs(m_config, new_full_config, filament_overrides, this->m_plate_index);
+    t_config_option_keys print_diff       = print_config_diffs(m_config, new_full_config, filament_overrides, this->m_plate_index, filament_maps);
     t_config_option_keys full_config_diff = full_print_config_diffs(m_full_print_config, new_full_config, this->m_plate_index);
     // Collect changes to object and region configs.
     t_config_option_keys object_diff      = m_default_object_config.diff(new_full_config);

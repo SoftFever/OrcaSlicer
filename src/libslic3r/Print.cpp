@@ -2651,8 +2651,26 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps)
         m_full_print_config = m_ori_full_print_config;
         m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
 
+        const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
+        const std::string               filament_prefix       = "filament_";
+        t_config_option_keys            print_diff;
+        DynamicPrintConfig              filament_overrides;
+        for (auto& opt_key: extruder_retract_keys)
+        {
+            const ConfigOption *opt_new_filament = m_full_print_config.option(filament_prefix + opt_key);
+            const ConfigOption *opt_new_machine = m_full_print_config.option(opt_key);
+            const ConfigOption *opt_old_machine = m_config.option(opt_key);
+
+            if (opt_new_filament)
+                compute_filament_override_value(opt_key, opt_old_machine, opt_new_machine, opt_new_filament, m_full_print_config, print_diff, filament_overrides, f_maps);
+        }
+
         t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
         m_config.apply_only(m_full_print_config, keys, true);
+        if (!print_diff.empty()) {
+            m_placeholder_parser.apply_config(filament_overrides);
+            m_config.apply(filament_overrides);
+        }
     }
     m_has_auto_filament_map_result = true;
 }

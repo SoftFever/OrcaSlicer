@@ -8553,6 +8553,41 @@ void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfi
     return;
 }
 
+void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
+    t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_maps)
+{
+    bool is_nil = opt_new_filament->is_nil();
+
+    // ugly code, for these params, we should ignore the value in filament params
+    ConfigOptionBoolsNullable opt_long_retraction_default;
+    if (opt_key == "long_retractions_when_cut" && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament) {
+        auto ptr = dynamic_cast<const ConfigOptionBoolsNullable*>(opt_new_filament);
+        for (size_t idx = 0; idx < ptr->values.size(); ++idx)
+            opt_long_retraction_default.values.push_back(ptr->nil_value());
+        opt_new_filament = &opt_long_retraction_default;
+    }
+
+    ConfigOptionFloatsNullable opt_retraction_distance_default;
+    if (opt_key == "retraction_distances_when_cut" && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament) {
+        auto ptr = dynamic_cast<const ConfigOptionFloatsNullable*>(opt_new_filament);
+        for (size_t idx = 0; idx < ptr->values.size(); ++idx)
+            opt_long_retraction_default.values.push_back(ptr->nil_value());
+        opt_new_filament = &opt_retraction_distance_default;
+    }
+
+    auto opt_copy = opt_new_machine->clone();
+    opt_copy->apply_override(opt_new_filament, f_maps);
+    bool changed = *opt_old_machine != *opt_copy;
+
+    if (changed) {
+        diff_keys.emplace_back(opt_key);
+        filament_overrides.set_key_value(opt_key, opt_copy);
+    }
+    else
+        delete opt_copy;
+}
+
+
 //BBS: pass map to recording all invalid valies
 //FIXME localize this function.
 std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool under_cli)
