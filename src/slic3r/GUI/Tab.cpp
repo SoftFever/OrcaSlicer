@@ -1411,13 +1411,18 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             og_freq_chng_params->set_value("brim", val);
         }
     }
-
-    if (m_preset_bundle->printers.get_edited_preset().config.opt_bool("pellet_modded_printer")) 
-    {
-        double double_value = sqrt(4 / PI);
-        m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
-	}
  
+    if (opt_key == "pellet_flow_coefficient") 
+    {
+        double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
+        m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
+    }
+
+    if (opt_key == "filament_diameter") {
+        double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
+        m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
+    }
+
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
         wxGetApp().sidebar().show_SEMM_buttons(bSEMM);
@@ -3296,8 +3301,9 @@ void TabFilament::build()
 
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
-        optgroup->append_single_option_line("extruder_rotation_distance");
-        optgroup->append_single_option_line("mixing_stepper_rotation_distance");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("extruder_rotation_distance", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("mixing_stepper_rotation_distance", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3617,7 +3623,13 @@ void TabFilament::toggle_options()
         toggle_line("adaptive_pressure_advance_bridges", has_adaptive_pa && pa);
 
         bool is_pellet_printer = cfg.opt_bool("pellet_modded_printer");
+        toggle_line("pellet_flow_coefficient", is_pellet_printer);
         toggle_line("filament_diameter", !is_pellet_printer);
+        toggle_line("extruder_rotation_distance", is_pellet_printer);
+        toggle_line("mixing_stepper_rotation_distance", is_pellet_printer);
+        if (is_pellet_printer) {
+            m_config->set_key_value("filament_diameter", new ConfigOptionFloats{sqrt(4 / PI)});
+        }
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
@@ -3737,7 +3749,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
-        optgroup->append_single_option_line("pellet_modded_printer");
+        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
