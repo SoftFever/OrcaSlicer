@@ -822,6 +822,11 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_max_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
+    "multi_zone_1_initial_layer", "multi_zone_1_temperature", "multi_zone_2_initial_layer", "multi_zone_2_temperature",
+    "multi_zone_3_initial_layer", "multi_zone_3_temperature", "multi_zone_4_initial_layer", "multi_zone_4_temperature",
+    "multi_zone_5_initial_layer", "multi_zone_5_temperature", "multi_zone_6_initial_layer", "multi_zone_6_temperature",
+    "multi_zone_7_initial_layer", "multi_zone_7_temperature", "multi_zone_8_initial_layer", "multi_zone_8_temperature",
+    "multi_zone_9_initial_layer", "multi_zone_9_temperature", "multi_zone_10_initial_layer", "multi_zone_10_temperature",
     // BBS
     "cool_plate_temp", "textured_cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     // "bed_type",
@@ -876,7 +881,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
     "z_offset",
-    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "support_multi_bed_types","bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut"
+    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "multi_zone", "multi_zone_number", "support_multi_bed_types","bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut"
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {

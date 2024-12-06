@@ -3750,41 +3750,108 @@ LayerResult GCode::process_layer(
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
-      if (print.is_BBL_printer()) {
+        if (print.is_BBL_printer()) {
         // BBS: open powerlost recovery
         {
-          gcode += "; open powerlost recovery\n";
-          gcode += "M1003 S1\n";
+            gcode += "; open powerlost recovery\n";
+            gcode += "M1003 S1\n";
         }
         // BBS: open first layer inspection at second layer
         if (print.config().scan_first_layer.value) {
-          // BBS: retract first to avoid droping when scan model
-          gcode += this->retract();
-          gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
-          gcode += "M400 P100\n";
-          gcode += this->unretract();
+            // BBS: retract first to avoid droping when scan model
+            gcode += this->retract();
+            gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
+            gcode += "M400 P100\n";
+            gcode += this->unretract();
         }
-      }
-      // Reset acceleration at sencond layer
-      // Orca: only set once, don't need to call set_accel_and_jerk
-      if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
+        }
+        // Reset acceleration at sencond layer
+        // Orca: only set once, don't need to call set_accel_and_jerk
+        if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
         gcode += m_writer.set_print_acceleration((unsigned int) floor(m_config.default_acceleration.value + 0.5));
-      }
+        }
 
-      if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
         gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
-      }
+        }
 
-        // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
-        // nozzle_temperature_initial_layer vs. temperature settings.
-        for (const Extruder &extruder : m_writer.extruders()) {
-            if ((print.config().single_extruder_multi_material.value || m_ooze_prevention.enable) &&
-                extruder.id() != m_writer.extruder()->id())
-                // In single extruder multi material mode, set the temperature for the current extruder only.
-                continue;
-            int temperature = print.config().nozzle_temperature.get_at(extruder.id());
-            if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id());
+        if (print.config().multi_zone.value) {
+            // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
+            // nozzle_temperature_initial_layer vs. temperature settings.
+            for (const Extruder& extruder : m_writer.extruders()) {
+                if ((print.config().single_extruder_multi_material.value || m_ooze_prevention.enable) &&
+                    extruder.id() != m_writer.extruder()->id())
+                    // In single extruder multi material mode, set the temperature for the current extruder only.
+                    continue;
+
+                // Set temperature foreach zone in multi-zone mode
+                for (int zone = print.config().multi_zone_number.value; zone > 0; zone--) {
+                    std::string key         = "multi_zone_" + std::to_string(zone) + "_temperature";
+                    //TODO: change this switch with something smart 
+                    int temperature = 0; 
+                    int temperature_initaial_layer = 0; 
+                    switch (zone) {
+                        case 1: 
+                            temperature                = print.config().multi_zone_1_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_1_initial_layer.get_at(extruder.id());
+                            break;
+                        case 2: 
+                            temperature                = print.config().multi_zone_2_temperature.get_at(extruder.id()); 
+                            temperature_initaial_layer = print.config().multi_zone_2_initial_layer.get_at(extruder.id());
+                            break;
+                        case 3: 
+                            temperature                = print.config().multi_zone_3_temperature.get_at(extruder.id()); 
+                            temperature_initaial_layer = print.config().multi_zone_3_initial_layer.get_at(extruder.id());
+                            break;
+                        case 4: 
+                            temperature                = print.config().multi_zone_4_temperature.get_at(extruder.id()); 
+                            temperature_initaial_layer = print.config().multi_zone_4_initial_layer.get_at(extruder.id());
+                            break;
+                        case 5: 
+                            temperature                = print.config().multi_zone_5_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_5_initial_layer.get_at(extruder.id());
+                            break; 
+                        case 6: 
+                            temperature                = print.config().multi_zone_6_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_6_initial_layer.get_at(extruder.id());
+                            break;
+                        case 7: 
+                            temperature                = print.config().multi_zone_7_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_7_initial_layer.get_at(extruder.id());
+                            break;
+                        case 8: 
+                            temperature                = print.config().multi_zone_8_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_8_initial_layer.get_at(extruder.id());
+                            break;
+                        case 9: 
+                            temperature                = print.config().multi_zone_9_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_9_initial_layer.get_at(extruder.id());
+                            break;
+                        case 10:
+                            temperature                = print.config().multi_zone_10_temperature.get_at(extruder.id());
+                            temperature_initaial_layer = print.config().multi_zone_10_initial_layer.get_at(extruder.id());
+                            break;
+                    }
+
+
+                    if (temperature > 0 && temperature != temperature_initaial_layer)
+                        gcode += m_writer.set_temperature(temperature, false, extruder.id(), zone);
+                }
+
+            }
+        }
+        else {
+            // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
+            // nozzle_temperature_initial_layer vs. temperature settings.
+            for (const Extruder& extruder : m_writer.extruders()) {
+                if ((print.config().single_extruder_multi_material.value || m_ooze_prevention.enable) &&
+                    extruder.id() != m_writer.extruder()->id())
+                    // In single extruder multi material mode, set the temperature for the current extruder only.
+                    continue;
+                int temperature = print.config().nozzle_temperature.get_at(extruder.id());
+                if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
+                    gcode += m_writer.set_temperature(temperature, false, extruder.id());
+            }
         }
 
         // BBS

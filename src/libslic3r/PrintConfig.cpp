@@ -2537,6 +2537,28 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
+    
+    for (int zone = 1; zone <= 10; zone++) {
+        std::string zone_str = std::to_string(zone);
+
+        def             = this->add("multi_zone_" + zone_str + "_initial_layer", coInts);
+        def->label      = L("Initial layer");
+        def->full_label = L("Initial layer Zone " + zone_str + " temperature");
+        def->tooltip    = L("Zone " + zone_str + " temperature to print initial layer when using this filament");
+        def->sidetext   = L("°C");
+        def->min        = 0;
+        def->max        = max_temp;
+        def->set_default_value(new ConfigOptionInts{200});
+
+        def             = this->add("multi_zone_" + zone_str + "_temperature", coInts);
+        def->label      = L("Other layers");
+        def->tooltip    = L("Zone " + zone_str + " temperature for layers after the initial one");
+        def->sidetext   = L("°C");
+        def->full_label = L("Zone " + zone_str + " temperature");
+        def->min        = 0;
+        def->max        = max_temp;
+        def->set_default_value(new ConfigOptionInts{200});
+    }
 
     def = this->add("full_fan_speed_layer", coInts);
     def->label = L("Full fan speed at layer");
@@ -2813,6 +2835,20 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this option if your printer uses pellets instead of filaments");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
+    
+    def          = this->add("multi_zone", coBool);
+    def->label   = L("Multi heating zone");
+    def->tooltip = L("Enable this option if your printer uses multi heating zone");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def          = this->add("multi_zone_number", coInt);
+    def->label   = L("Zones");
+    def->tooltip = L("Number of heating zones");
+    def->mode    = comSimple;
+    def->min     = 1;
+    def->max     = 10;  
+    def->set_default_value(new ConfigOptionInt(1));	
 
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
