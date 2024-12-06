@@ -75,19 +75,38 @@ public:
     bool is_internal_contour() const;
 };
 
-// Thanks Cura developers for this function.
-static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
-{
-    std::unique_ptr<noise::module::Module> noise;
-    if(cfg.use_noise) {
+static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinConfig& cfg) {
+    if (cfg.noise_type == NoiseType::Perlin) {
         auto perlin_noise = noise::module::Perlin();
         perlin_noise.SetFrequency(1 / cfg.noise_scale);
         perlin_noise.SetOctaveCount(cfg.noise_octaves);
         perlin_noise.SetPersistence(cfg.noise_persistence);
-        noise = std::make_unique<noise::module::Perlin>(perlin_noise);
+        return std::make_unique<noise::module::Perlin>(perlin_noise);
+    } else if (cfg.noise_type == NoiseType::Billow) {
+        auto billow_noise = noise::module::Billow();
+        billow_noise.SetFrequency(1 / cfg.noise_scale);
+        billow_noise.SetOctaveCount(cfg.noise_octaves);
+        billow_noise.SetPersistence(cfg.noise_persistence);
+        return std::make_unique<noise::module::Billow>(billow_noise);
+    } else if (cfg.noise_type == NoiseType::RidgedMulti) {
+        auto ridged_multi_noise = noise::module::RidgedMulti();
+        ridged_multi_noise.SetFrequency(1 / cfg.noise_scale);
+        ridged_multi_noise.SetOctaveCount(cfg.noise_octaves);
+        return std::make_unique<noise::module::RidgedMulti>(ridged_multi_noise);
+    } else if (cfg.noise_type == NoiseType::Voronoi) {
+        auto voronoi_noise = noise::module::Voronoi();
+        voronoi_noise.SetFrequency(1 / cfg.noise_scale);
+        voronoi_noise.SetDisplacement(1.0);
+        return std::make_unique<noise::module::Voronoi>(voronoi_noise);
     } else {
-        noise = std::make_unique<UniformNoise>();
+        return std::make_unique<UniformNoise>();
     }
+}
+
+// Thanks Cura developers for this function.
+static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
+{
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
 
     const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
@@ -131,16 +150,7 @@ static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const Fu
 // Thanks Cura developers for this function.
 static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg)
 {
-    std::unique_ptr<noise::module::Module> noise;
-    if(cfg.use_noise) {
-        auto perlin_noise = noise::module::Perlin();
-        perlin_noise.SetFrequency(1 / cfg.noise_scale);
-        perlin_noise.SetOctaveCount(cfg.noise_octaves);
-        perlin_noise.SetPersistence(cfg.noise_persistence);
-        noise = std::make_unique<noise::module::Perlin>(perlin_noise);
-    } else {
-        noise = std::make_unique<UniformNoise>();
-    }
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
 
     const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
@@ -1895,7 +1905,7 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
             scaled<coord_t>(region_config.fuzzy_skin_thickness.value),
             scaled<coord_t>(region_config.fuzzy_skin_point_distance.value),
             region_config.fuzzy_skin_first_layer,
-            region_config.fuzzy_skin_use_noise,
+            region_config.fuzzy_skin_noise_type,
             region_config.fuzzy_skin_scale,
             region_config.fuzzy_skin_octaves,
             region_config.fuzzy_skin_persistence
