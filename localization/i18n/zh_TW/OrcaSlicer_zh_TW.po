@@ -1,13 +1,14 @@
 # Copyright (C）2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
+# REVISED Victor Lin, 2024
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-09-11 22:56+0800\n"
-"PO-Revision-Date: 2024-10-14 22:14+0800\n"
+"PO-Revision-Date: 2024-12-07 22:14+0800\n"
 "Last-Translator: lin-ycv <victorlin@gapps.ntust.edu.tw>\n"
 "Language-Team: \n"
 "Language: zh_TW\n"
@@ -177,7 +178,7 @@ msgstr "水平"
 msgid "Remove painted color"
 msgstr "移除已繪製的顏色"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "上色：線材 %1% "
 
@@ -248,11 +249,9 @@ msgstr "設定方向"
 msgid "Set Scale"
 msgstr "設定縮放"
 
-#, fuzzy
 msgid "Reset Position"
 msgstr "重設位置"
 
-#, fuzzy
 msgid "Reset Rotation"
 msgstr "重設旋轉"
 
@@ -260,7 +259,7 @@ msgid "World coordinates"
 msgstr "世界坐標"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "物件坐標"
 
 msgid "°"
 msgstr "°"
@@ -276,16 +275,16 @@ msgid "uniform scale"
 msgstr "等比例縮放"
 
 msgid "Planar"
-msgstr ""
+msgstr "平面"
 
 msgid "Dovetail"
-msgstr ""
+msgstr "鳩尾榫"
 
 msgid "Auto"
 msgstr "自動"
 
 msgid "Manual"
-msgstr ""
+msgstr "手動"
 
 msgid "Plug"
 msgstr "插銷"
@@ -297,10 +296,10 @@ msgid "Snap"
 msgstr ""
 
 msgid "Prism"
-msgstr ""
+msgstr "錐體"
 
 msgid "Frustum"
-msgstr "錐體"
+msgstr "截頭圓錐"
 
 msgid "Square"
 msgstr "正方形"
@@ -315,7 +314,7 @@ msgid "Place on cut"
 msgstr "切割面貼其於列印底板"
 
 msgid "Flip upside down"
-msgstr ""
+msgstr "倒轉"
 
 msgid "Connectors"
 msgstr "連接件"
@@ -662,7 +661,6 @@ msgstr "Shift + 滑鼠上移或下移"
 msgid "Rotate text"
 msgstr "旋轉文字"
 
-#, fuzzy
 msgid "Text shape"
 msgstr "新增文字"
 
@@ -1346,7 +1344,6 @@ msgstr "列印參數"
 msgid "Filament"
 msgstr "線材"
 
-#, fuzzy
 msgid "Machine"
 msgstr "列印設備"
 
@@ -2931,7 +2928,7 @@ msgid ""
 "material type, and color)"
 msgstr ""
 "如果 AMS 中有兩個相同的線材，則會啟用 AMS 備用線材自動切換功能。\n"
-"（目前支援同品牌、同材質、同顏色的耗材自動切換）"
+"（目前支援同品牌、同材質、同顏色的線材自動切換）"
 
 msgid "DRY"
 msgstr "乾"
@@ -9921,7 +9918,7 @@ msgid ""
 msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
-msgstr "使用該耗材列印結束時的結尾 G-code"
+msgstr "使用該線材列印結束時的結尾 G-code"
 
 msgid "Ensure vertical shell thickness"
 msgstr "確保垂直外殼厚度"
@@ -10418,9 +10415,9 @@ msgid ""
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
 msgstr ""
-"冷卻後耗材會收縮的百分比（如果測量的長度是 94mm 而不是 100mm，則為是收縮率為 "
+"冷卻後線材會收縮的百分比（如果測量的長度是 94mm 而不是 100mm，則為是收縮率為 "
 "94%）\n"
-"補償將按比例縮放 xy 軸該補償僅考慮牆壁所使用的耗材\n"
+"補償將按比例縮放 xy 軸該補償僅考慮牆壁所使用的線材\n"
 "請確保物體之間有足夠的間距，因為補償是在邊界檢查之後進行"
 
 msgid "Shrinkage (Z)"
@@ -10512,7 +10509,7 @@ msgid ""
 "object, Orca Slicer will always prime this amount of material into the wipe "
 "tower to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
-"換色後，新載入的線材在噴嘴內的確切位置可能未知，耗材壓力可能還不穩定。在沖刷"
+"換色後，新載入的線材在噴嘴內的確切位置可能未知，線材壓力可能還不穩定。在沖刷"
 "列印頭到填充或作為擠出廢料之前，將始終將這些的線材沖刷到換料塔中以產生連續的"
 "填充或穩定的擠出廢料。"
 
@@ -13995,7 +13992,7 @@ msgid "material with significant thermal shrinkage/expansion, such as..."
 msgstr "具有顯著熱收縮/膨脹的材料，例如..."
 
 msgid "materials with inaccurate filament diameter"
-msgstr "耗材直徑不準確的線材"
+msgstr "線材直徑不準確的線材"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr "我們找到了最佳的流量動態校準因子。"
@@ -15601,7 +15598,7 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "支撐類型\n"
-"你知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節耗材"
+"你知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節線材"
 "並提高列印速度。試試看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]
@@ -15612,7 +15609,7 @@ msgid ""
 "the best results."
 msgstr ""
 "列印絲綢線材\n"
-"你知道嗎，絲綢耗材需要特別考慮才能成功列印。為了獲得最佳效果，通常建議使用較"
+"你知道嗎，絲綢線材需要特別考慮才能成功列印。為了獲得最佳效果，通常建議使用較"
 "高的溫度和較低的速度。"
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
@@ -15725,7 +15722,7 @@ msgstr ""
 #~ msgstr "有限"
 
 #~ msgid "Shrinkage"
-#~ msgstr "耗材收縮率"
+#~ msgstr "線材收縮率"
 
 #, fuzzy
 #~ msgid ""
@@ -15947,19 +15944,16 @@ msgstr ""
 #~ msgid "Initialize failed (No Camera Device)!"
 #~ msgstr "初始化失敗（沒有攝影機）"
 
-#, fuzzy
 #~ msgid ""
 #~ "Printer is busy downloading, Please wait for the downloading to finish."
 #~ msgstr "列印設備正忙於下載，請等待下載完成。"
 
-#, fuzzy
 #~ msgid "Initialize failed (Not supported on the current printer version)!"
 #~ msgstr "初始化失敗（目前列印設備的版本不支援）！"
 
 #~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
 #~ msgstr "初始化失敗（在區域網路模式中不可存取）！"
 
-#, fuzzy
 #~ msgid "Initialize failed (Missing LAN ip of printer)!"
 #~ msgstr "初始化失敗（未找到列印設備的區域網路地址）！"
 
@@ -15979,18 +15973,16 @@ msgstr ""
 #~ msgid "Load failed [%d]"
 #~ msgstr "載入失敗 [%d]"
 
-#, fuzzy
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "無法從列印設備獲取模型資訊。"
 
 #~ msgid "Failed to parse model informations."
 #~ msgstr "解析模型資訊失敗。"
 
-#, fuzzy
 #~ msgid ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be exported."
-#~ msgstr "無法對模型網格執行布林運算。只有正面部分將被導出。"
+#~ msgstr "無法對網格模型執行布林運算。只有正面部分將被導出。"
 
 #, boost-format
 #~ msgid ""
@@ -16010,11 +16002,9 @@ msgstr ""
 #~ "thickness (top+bottom solid layers)"
 #~ msgstr "在斜面表面附近增加實心填充，以保證垂直外殼厚度（頂部+底部實心層）"
 
-#, fuzzy
 #~ msgid "Configuration package updated to "
 #~ msgstr "設定檔已更新到"
 
-#, fuzzy
 #~ msgid ""
 #~ "Improve shell precision by adjusting outer wall spacing. This also "
 #~ "improves layer consistency."
@@ -16031,7 +16021,6 @@ msgstr ""
 #~ msgid "No sparse layers (EXPERIMENTAL)"
 #~ msgstr "無稀疏層（实验性功能）"
 
-#, fuzzy
 #~ msgid "The Config can not be loaded."
 #~ msgstr "設定檔無法載入。"
 
@@ -16119,7 +16108,6 @@ msgstr ""
 #~ "你知道嗎，你可以使用“簡化模型”功能減少模型的三角形數。在模型上單擊滑鼠右"
 #~ "鍵，然後選擇“簡化模型”。"
 
-#, fuzzy
 #~ msgid ""
 #~ "Subtract a Part\n"
 #~ "Did you know that you can subtract one mesh from another using the "
@@ -16149,17 +16137,15 @@ msgstr ""
 #~ msgid "Please heat the nozzle to above 170 degree before loading filament."
 #~ msgstr "請在進料前把噴嘴升溫到 170℃"
 
-#, fuzzy
 #~ msgid "Show g-code window"
 #~ msgstr "顯示 G-code 視窗"
 
-#, fuzzy
 #~ msgid "If enabled, g-code window will be displayed."
 #~ msgstr "如果啟用，將顯示 G-Code 視窗。"
 
-#, fuzzy, c-format
+#, c-format
 #~ msgid "Density of internal sparse infill, 100% means solid throughout"
-#~ msgstr "內部稀疏填充密度，100%% 表示整體實心"
+#~ msgstr "內部填充密度，100% 表示整體實心"
 
 #~ msgid "Tree support wall loops"
 #~ msgstr "樹狀支撐外牆層數"
@@ -16183,15 +16169,12 @@ msgstr ""
 #~ msgid "Check cloud service status"
 #~ msgstr "檢查雲端服務狀態"
 
-#, fuzzy
 #~ msgid "Please input a valid value (K in 0~0.5)"
 #~ msgstr "請輸入有效的數值（K 值的範圍為 0~0.5）"
 
-#, fuzzy
 #~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 #~ msgstr "請輸入有效的數值（K 值的範圍為 0~0.5, N 值的範圍為 0.6~2.0）"
 
-#, fuzzy
 #~ msgid "Export all objects as STL"
 #~ msgstr "匯出所有物件為 STL"
 
@@ -16201,11 +16184,9 @@ msgstr ""
 #~ msgid "Incompatible 3mf"
 #~ msgstr "不相容的 3mf"
 
-#, fuzzy
 #~ msgid "Add/Remove printers"
 #~ msgstr "新增/刪除列印設備"
 
-#, fuzzy
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
@@ -16215,7 +16196,6 @@ msgstr ""
 #~ msgid "%s is not supported by AMS."
 #~ msgstr "AMS 不支援 %s 。"
 
-#, fuzzy
 #~ msgid "Don't remind me of this version again"
 #~ msgstr "不要再提醒我這個版本"
 
@@ -16251,35 +16231,27 @@ msgstr ""
 #~ msgid "inner-outer-inner/infill"
 #~ msgstr "內牆/外牆/內牆/填充"
 
-#, fuzzy
 #~ msgid "Export 3MF"
 #~ msgstr "匯出 3MF"
 
-#, fuzzy
 #~ msgid "Export project as 3MF."
-#~ msgstr "匯出項目為 3MF。"
+#~ msgstr "匯出專案為 3MF。"
 
-#, fuzzy
 #~ msgid "Export slicing data"
 #~ msgstr "匯出切片資料"
 
-#, fuzzy
 #~ msgid "Export slicing data to a folder."
 #~ msgstr "匯出切片資料到資料夾"
 
-#, fuzzy
 #~ msgid "Load slicing data"
 #~ msgstr "匯入切片資料"
 
-#, fuzzy
 #~ msgid "Load cached slicing data from directory"
-#~ msgstr "從目錄匯入快取的切片資料"
+#~ msgstr "從目錄匯入切片資料的快取"
 
-#, fuzzy
 #~ msgid "Export STL"
 #~ msgstr "匯出 STL 檔案"
 
-#, fuzzy
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "將物件匯出為多個 STL 檔案"
 
@@ -16292,23 +16264,18 @@ msgstr ""
 #~ msgid "Show command help."
 #~ msgstr "顯示命令行幫助。"
 
-#, fuzzy
 #~ msgid "Update the configs values of 3mf to latest."
 #~ msgstr "將 3mf 的設定值更新為最新值。"
 
-#, fuzzy
 #~ msgid "Load default filaments"
 #~ msgstr "載入預設列印線材"
 
-#, fuzzy
 #~ msgid "Load first filament as default for those not loaded"
-#~ msgstr "載入第一個列印線材為預設線材"
+#~ msgstr "載入第一個列印線材為預設代替未能載入的線材"
 
-#, fuzzy
 #~ msgid "max triangle count per plate for slicing."
 #~ msgstr "切片時每個列印板的最大三角形數。"
 
-#, fuzzy
 #~ msgid "max slicing time per plate in seconds."
 #~ msgstr "每個列印板的最大切片時間（秒）。"
 
@@ -16324,11 +16291,9 @@ msgstr ""
 #~ msgid "Output the model's information."
 #~ msgstr "輸出模型的資訊。"
 
-#, fuzzy
 #~ msgid "Export Settings"
 #~ msgstr "匯出設定"
 
-#, fuzzy
 #~ msgid "Export settings to a file."
 #~ msgstr "匯出設定檔到檔案。"
 
@@ -16365,19 +16330,15 @@ msgstr ""
 #~ msgid "Scale the model by a float factor"
 #~ msgstr "根據因子縮放模型"
 
-#, fuzzy
 #~ msgid "Load General Settings"
 #~ msgstr "載入一般設定"
 
-#, fuzzy
 #~ msgid "Load process/machine settings from the specified file"
 #~ msgstr "從指定檔案載入列印參數/設備設定"
 
-#, fuzzy
 #~ msgid "Load Filament Settings"
 #~ msgstr "載入線材設定"
 
-#, fuzzy
 #~ msgid "Load filament settings from the specified file list"
 #~ msgstr "從指定檔案清單載入線材設定"
 
@@ -16406,7 +16367,6 @@ msgstr ""
 #~ msgid "Debug level"
 #~ msgstr "除錯等級"
 
-#, fuzzy
 #~ msgid ""
 #~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 #~ "trace\n"
@@ -16414,11 +16374,10 @@ msgstr ""
 #~ "設定除錯日誌等級。0：fatal， 1：error， 2：warning， 3：info， 4：debug， "
 #~ "5：trace\n"
 
-#, fuzzy, boost-format
+#, boost-format
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "未找到選定的預設值：%1%。"
 
-#, fuzzy
 #~ msgid ""
 #~ "3D Scene Operations\n"
 #~ "Did you know how to control view and object/part selection with mouse and "
@@ -16427,7 +16386,6 @@ msgstr ""
 #~ "3D 場景操作\n"
 #~ "如何在 3D 場景中使用滑鼠和觸碰面板進行視角控制和物件/零件選擇"
 
-#, fuzzy
 #~ msgid ""
 #~ "Fix Model\n"
 #~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
@@ -16436,7 +16394,6 @@ msgstr ""
 #~ "修復模型\n"
 #~ "你知道嗎？你可以修復一個損壞的 3D 模型以避免諸多切片問題。"
 
-#, fuzzy
 #~ msgid ""
 #~ "When need to print with the printer door opened\n"
 #~ "Opening the printer door can reduce the probability of extruder/hotend "
@@ -16444,7 +16401,7 @@ msgstr ""
 #~ "temperature. More info about this in the Wiki."
 #~ msgstr ""
 #~ "當需要打開印表機門進行列印時\n"
-#~ "當列印較低溫度的耗材時，打開印表機門可以減少擠出機或熱端堵塞的可能性。 有"
+#~ "當列印較低溫度的線材時，打開印表機門可以減少擠出機或熱端堵塞的可能性。 有"
 #~ "關此內容的更多信息，請參見 Wiki。"
 
 #~ msgid "Embedded"
@@ -16460,9 +16417,8 @@ msgstr ""
 #~ msgid "Online Models"
 #~ msgstr "線上模型"
 
-#, fuzzy
 #~ msgid "Show online staff-picked models on the home page"
-#~ msgstr "在首頁上顯示工作人員推薦的線上模型"
+#~ msgstr "在首頁上顯示推薦的模型"
 
 #, c-format
 #~ msgid ""
