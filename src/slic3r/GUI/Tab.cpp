@@ -1411,7 +1411,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             og_freq_chng_params->set_value("brim", val);
         }
     }
- 
+
+
     if (opt_key == "pellet_flow_coefficient") 
     {
         double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
@@ -1422,6 +1423,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
         m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
     }
+
 
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
