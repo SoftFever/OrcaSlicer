@@ -416,8 +416,6 @@ protected:
     int             m_temp_bed_timeout {0};
     TempInput *     m_tempCtrl_chamber;
     int             m_temp_chamber_timeout {0};
-    bool             m_current_support_cham_fan{true};
-    bool             m_current_support_aux_fan{true};
     FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
     FanSwitchButton *m_switch_printing_fan;
@@ -560,7 +558,7 @@ protected:
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
 
-    FanControlPopup* m_fan_control_popup{nullptr};
+    FanControlPopupNew* m_fan_control_popup{nullptr};
 
     ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
 

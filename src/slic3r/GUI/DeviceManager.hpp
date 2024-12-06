@@ -230,29 +230,30 @@ struct ExtderData
     std::vector<Extder> extders;
 };
 
-struct AirDuctFan
+struct AirMode
 {
-    //Fan and door may use the same mode_id, but they are different, they need to be distinguished by the m_type field
-    AirDuctType type;   //Type of part, fan or door
-    bool use_new_protocol{ false };
-    int id;             //the id of fan or air door
-    int func{ 0 };      //UI display, fan or door
-    int current_speed{0};
-    int target_speed{0};
+    int              id{-1};
+    std::vector<int> ctrl;
+    // If the fan is off, it cannot be controlled and is displayed as off
+    std::vector<int> off;
+    // If the fan is not off or ctrl, it will be displayed as auto
 };
 
-struct AirDuct
+struct AirParts
 {
-    int airduct_id{ 0 };    //Determine the UI display content, click radonbutton to switch
-    std::vector<bool> fans_ctrl;   //Control status of each (fan) / (air door)
-    std::vector<AirDuctFan> fans_list;  //Fan or air door s
+    int         type{ 0 };
+    int         id{ 0 };
+    int         func{ 0 };
+    int         state{ 0 };// 100%
+    int         range_start{ 0 };// 100%
+    int         range_end{ 0 };// 100%
 };
 
 struct AirDuctData
 {
-    int curren_duct{0};
-    std::vector<bool> ducts_ctrl;   //Control status of each duct
-    std::vector<AirDuct> airducts;
+    int curren_mode{ 0 };
+    std::vector<AirMode> modes;
+    std::vector<AirParts> parts;
 };
 
 struct RatingInfo {
@@ -420,21 +421,24 @@ enum HMSMessageLevel {
 };
 
 
-enum FAN_func_e {
-    FAN_FUNC_PART_COOLING = 0,
-    FAN_FUNC_AUX_COOLING,
-    FAN_FUNC_EXHAUST,
-    FAN_FUNC_FILTER,
-    FAN_FUNC_HEATING
+enum AIR_FUN {
+    FAN_HEAT_BREAK_0_IDX      = 0,
+    FAN_COOLING_0_AIRDOOR     = 1,
+    FAN_REMOTE_COOLING_0_IDX  = 2,
+    FAN_CHAMBER_0_IDX         = 3,
+    FAN_HEAT_BREAK_1_IDX      = 4,
+    FAN_MC_BOARD_0_IDX        = 5,
+    FAN_INNNER_LOOP_FAN_0_IDX = 6,
+    FAN_TOTAL_COUNT           = 7
 };
 
-enum AIR_DOOR_func_e {
+enum AIR_DOOR {
     AIR_DOOR_FUNC_CHAMBER = 0,
     AIR_DOOR_FUNC_INNERLOOP,
     AIR_DOOR_FUNC_TOP
 };
 
-enum AIR_DUCT_mode_e {
+enum AIR_DUCT {
     AIR_DUCT_NONE = -1,
     AIR_DUCT_COOLING_FILT = 0,
     AIR_DUCT_HEATING_INTERNAL_FILT,
@@ -491,8 +495,9 @@ private:
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
-
 public:
+
+    typedef std::function<void(const json &)> CommandCallBack;
 
     enum LIGHT_EFFECT {
         LIGHT_EFFECT_ON,
@@ -738,7 +743,7 @@ public:
 
     //new fan data
     AirDuctData m_air_duct_data;
-    void converse_to_duct();    //Convert the data to duct type to make the newand old protocols consistent
+    void converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun); // Convert the data to duct type to make the newand old protocols consistent
 
     /* signals */
     std::string wifi_signal;
@@ -1001,6 +1006,9 @@ public:
     boost::thread* get_slice_info_thread { nullptr };
     boost::thread* get_model_task_thread { nullptr };
 
+    /* key: sequence id, value: callback */
+    std::map<std::string, CommandCallBack> m_callback_list;
+
     bool is_makeworld_subtask();
 
 
@@ -1052,10 +1060,9 @@ public:
     int command_auto_leveling();
     int command_go_home();
     int command_go_home2();
-    int command_control_fan(FanType fan_type, bool on_off); //Old protocol
-    int command_control_fan_val(FanType fan_type, int val); //Old protocol
-    int command_control_fan(int fan_id, bool on_off); //New protocol
-    int command_control_fan_val(int fan_id, int val); //New protocol
+    int command_control_fan(int fan_type, int val);   // Old protocol
+    int command_control_fan_new(int fan_id, int val, const CommandCallBack &cb); // New protocol
+    int command_control_air_duct(int mode_id, const CommandCallBack& cb);
     int command_task_abort();
     /* cancelled the job_id */
     int command_task_cancel(std::string job_id);
@@ -1177,7 +1184,7 @@ public:
     bool m_firmware_thread_started { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
-    std::string get_string_from_fantype(FanType type);
+    std::string get_string_from_fantype(int type);
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
@@ -1208,6 +1215,7 @@ public:
     void update_printer_preset_name();
     void check_ams_filament_valid();
 
+    int command_handle_response(const json &response);
 };
 
 class DeviceManager

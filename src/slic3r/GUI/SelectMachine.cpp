@@ -131,26 +131,25 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-
     /*mode switch*/
-    /* auto m_sizer_mode_switch = new wxBoxSizer(wxHORIZONTAL);
+     /*auto m_sizer_mode_switch = new wxBoxSizer(wxHORIZONTAL);
      m_mode_print = new SendModeSwitchButton(this, _L("Print"), true);
      m_mode_send = new SendModeSwitchButton(this,_L("Save to printer"), false);
      m_sizer_mode_switch->Add(m_mode_print, 0, wxALIGN_CENTER, 0);
      m_sizer_mode_switch->Add(0, 0, 0, wxLEFT, FromDIP(8));
-     m_sizer_mode_switch->Add(m_mode_send,0, wxALIGN_CENTER, 0);*/
+     m_sizer_mode_switch->Add(m_mode_send,0, wxALIGN_CENTER, 0);
 
-    //m_mode_print->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-    //    m_mode_print->setSelected(true);
-    //    m_mode_send->setSelected(false);
-    //    e.Skip();
-    //});
+    m_mode_print->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        m_mode_print->setSelected(true);
+        m_mode_send->setSelected(false);
+        e.Skip();
+    });
 
-    //m_mode_send->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-    //    m_mode_print->setSelected(false);
-    //    m_mode_send->setSelected(true);
-    //    e.Skip();
-    //});
+    m_mode_send->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        m_mode_print->setSelected(false);
+        m_mode_send->setSelected(true);
+        e.Skip();
+    });*/
 
     m_basic_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_basic_panel->SetBackgroundColour(*wxWHITE);

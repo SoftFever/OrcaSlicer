@@ -286,7 +286,10 @@ void FanSwitchButton::render(wxDC& dc)
     dc.DrawText(fan_txt, pt);
     pt.y = size.y / 2 + FromDIP(3);
     wxString fan_num_txt = GetLabel();
-    dc.SetFont(::Label::Body_11);
+
+
+    dc.SetFont(::Label::Body_12);
+    dc.SetTextForeground(0x6b6b6b);
     dc.DrawText(fan_num_txt, pt);
 
 

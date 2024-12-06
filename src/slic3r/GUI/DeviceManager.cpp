@@ -1815,40 +1815,17 @@ int MachineObject::command_go_home2()
 }
 
 // Old protocol
-int MachineObject::command_control_fan(FanType fan_type, bool on_off)
-{
-    std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
-    return this->publish_gcode(gcode);
-}
-
-
-
-// Old protocol
-int MachineObject::command_control_fan_val(FanType fan_type, int val)
+int MachineObject::command_control_fan(int fan_type, int val)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (val)).str();
     return this->publish_gcode(gcode);
 }
 
 // New protocol
-int MachineObject::command_control_fan(int fan_id, bool on_off)
-{
-    BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(switch on/of status), fan_id = " << fan_id;
-    json j;
-    j["print"]["command"] = "set_fan";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["fan_index"] = fan_id;
-
-    // wait add, set on or off
-    j["print"]["speed"] = 50;
-    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_fan, command info need to update, to set on or off status.";
-    return this->publish_json(j.dump());
-}
-
-// New protocol
-int MachineObject::command_control_fan_val(int fan_id, int val)
+int MachineObject::command_control_fan_new(int fan_id, int val, const CommandCallBack &cb)
 {
     BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(set speed), fan_id = " << fan_id;
+    m_callback_list[std::to_string(m_sequence_id)] = cb;
     json j;
     j["print"]["command"] = "set_fan";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1859,6 +1836,17 @@ int MachineObject::command_control_fan_val(int fan_id, int val)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_control_air_duct(int mode_id, const CommandCallBack &cb)
+{
+    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_air_duct, set air duct, d = " << mode_id;
+    m_callback_list[std::to_string(m_sequence_id)] = cb;
+    json j;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["command"] = "set_airduct";
+    j["print"]["modeId"] = mode_id;
+
+    return this->publish_json(j.dump());
+}
 
 int MachineObject::command_task_abort()
 {
@@ -3671,7 +3659,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 big_fan2_speed = 0;
                             }
                         }
-                        converse_to_duct();
+
                         if (jj.contains("heatbreak_fan_speed")) {
                             heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                         }
@@ -3691,35 +3679,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         catch (...) {
                             ;
                         }
-                    }
-
-                    //new fan data
-                    if (jj.contains("airduct")) {
-                        m_air_duct_data.airducts.clear();
-                        m_air_duct_data.curren_duct = jj["airduct"]["cur"].get<int>();
-                        m_air_duct_data.ducts_ctrl.push_back(jj["airduct"]["ctrl"].get<int>());
-                        for (auto it_airduct = jj["airduct"]["info"].begin(); it_airduct != jj["airduct"]["info"].end(); it_airduct++) {
-                            AirDuct air_duct;
-                            air_duct.airduct_id = (*it_airduct)["id"].get<int>();
-                            air_duct.fans_ctrl.push_back((*it_airduct)["ctrl"].get<int>());
-                            for (auto it_fan = (*it_airduct)["info"].begin(); it_fan != (*it_airduct)["info"].end(); it_airduct++) {
-                                AirDuctFan fan;
-                                fan.use_new_protocol = true;
-                                auto type = (*it_fan)["type"].get<unsigned>();
-                                fan.id = std::log2(type >> 4);
-                                if (type & 0x01) fan.type = AIR_DOOR_TYPE;
-                                else if (type & 0x10) fan.type = AIR_FAN_TYPE;
-
-                                fan.func = (*it_fan)["func"].get<int>();
-
-                                unsigned speed = (*it_fan)["speed"].get<unsigned>();
-                                fan.current_speed = (speed) & 0xFFFF;
-                                fan.target_speed = (speed >> 16) & 0xFFFF;
-                                air_duct.fans_list.push_back(fan);
-                            }
-                            m_air_duct_data.airducts.push_back(air_duct);
-                        }
-                        BOOST_LOG_TRIVIAL(trace) << "New protocol of fans, dir duct num = " << m_air_duct_data.airducts.size();
                     }
 
                     try {
@@ -5033,6 +4992,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         } catch (...) {}
                     }
                 }
+                command_handle_response(jj);
             }
         }
 
@@ -5447,14 +5407,14 @@ bool MachineObject::is_firmware_info_valid()
     return m_firmware_valid;
 }
 
-std::string MachineObject::get_string_from_fantype(FanType type)
+std::string MachineObject::get_string_from_fantype(int type)
 {
     switch (type) {
-    case FanType::COOLING_FAN:
+    case 1:
         return "cooling_fan";
-    case FanType::BIG_COOLING_FAN:
+    case 2:
         return "big_cooling_fan";
-    case FanType::CHAMBER_FAN:
+    case 3:
         return "chamber_fan";
     default:
         return "";
@@ -5462,32 +5422,45 @@ std::string MachineObject::get_string_from_fantype(FanType type)
     return "";
 }
 
-void MachineObject::converse_to_duct() {
-    AirDuct duct;
-    duct.airduct_id = -1;
-    AirDuctFan part_fan;
-    part_fan.type = AIR_FAN_TYPE;
-    part_fan.id = 1;
-    part_fan.func = int(FAN_func_e::FAN_FUNC_PART_COOLING);
-    part_fan.current_speed = cooling_fan_speed;
-    duct.fans_list.push_back(part_fan);
+void MachineObject::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun)
+{
+    m_air_duct_data.modes.clear();
+    m_air_duct_data.parts.clear();
+    m_air_duct_data.curren_mode = -1; //def mode
 
-    AirDuctFan aux_fan;
-    aux_fan.type = AIR_FAN_TYPE;
-    aux_fan.id = 2;
-    aux_fan.func = int(FAN_func_e::FAN_FUNC_AUX_COOLING);
-    aux_fan.current_speed = big_fan1_speed;
-    duct.fans_list.push_back(aux_fan);
 
-    AirDuctFan chamber_fan;
-    chamber_fan.type = AIR_FAN_TYPE;
-    chamber_fan.id = 3;
-    chamber_fan.func = int(FAN_func_e::FAN_FUNC_EXHAUST);
-    chamber_fan.current_speed = cooling_fan_speed;
-    duct.fans_list.push_back(chamber_fan);
-    this->m_air_duct_data.airducts.clear();
-    this->m_air_duct_data.airducts.push_back(duct);
-    this->m_air_duct_data.curren_duct = -1;
+    if (is_suppt_part_fun) { 
+        AirParts part_fan;
+        part_fan.type           = int(AirDuctType::AIR_FAN_TYPE);
+        part_fan.id             = int(AIR_FUN::FAN_COOLING_0_AIRDOOR);
+        part_fan.func           = int(AIR_FUN::FAN_COOLING_0_AIRDOOR);
+        part_fan.state          = 0;
+        part_fan.range_start    = 0;
+        part_fan.range_end      = 100;
+        m_air_duct_data.parts.push_back(part_fan);
+    }
+
+    if (is_suppt_aux_fun) {
+        AirParts aux_fan;
+        aux_fan.type            = int(AirDuctType::AIR_FAN_TYPE);
+        aux_fan.id              = int(AIR_FUN::FAN_REMOTE_COOLING_0_IDX);
+        aux_fan.func            = int(AIR_FUN::FAN_REMOTE_COOLING_0_IDX);
+        aux_fan.state           = 0;
+        aux_fan.range_start     = 0;
+        aux_fan.range_end       = 100;
+        m_air_duct_data.parts.push_back(aux_fan);
+    }
+
+    if (is_suppt_aux_fun) {
+        AirParts chamber_fan;
+        chamber_fan.type            = int(AirDuctType::AIR_FAN_TYPE);
+        chamber_fan.id              = int(AIR_FUN::FAN_CHAMBER_0_IDX);
+        chamber_fan.func            = int(AIR_FUN::FAN_CHAMBER_0_IDX);
+        chamber_fan.state           = 0;
+        chamber_fan.range_start     = 0;
+        chamber_fan.range_end       = 100;
+        m_air_duct_data.parts.push_back(chamber_fan);
+    }
 }
 
 AmsTray MachineObject::parse_vt_tray(json vtray)
@@ -5739,6 +5712,46 @@ void MachineObject::parse_new_info(json print)
     /*device*/
     if (print.contains("device")) {
         json const& device = print["device"];
+
+        //new fan data
+        if (device.contains("airduct")) {
+            m_air_duct_data.curren_mode = -1;
+            m_air_duct_data.modes.clear();
+            m_air_duct_data.parts.clear();
+
+            m_air_duct_data.curren_mode = device["airduct"]["modeCur"].get<int>();
+
+            for (auto it_mode = device["airduct"]["modeList"].begin(); it_mode != device["airduct"]["modeList"].end(); it_mode++) {
+                AirMode mode;
+                mode.id = (*it_mode)["modeId"].get<int>();
+
+                for (auto it_mode_ctrl = (*it_mode)["ctrl"].begin(); it_mode_ctrl != (*it_mode)["ctrl"].end(); it_mode_ctrl++) {
+                    mode.ctrl.push_back((*it_mode_ctrl).get<int>() >> 4);
+                }
+
+                for (auto it_mode_off = (*it_mode)["off"].begin(); it_mode_off != (*it_mode)["off"].begin(); *it_mode_off++) {
+                    mode.off.push_back((*it_mode_off).get<int>() >> 4);
+                }
+
+                m_air_duct_data.modes.push_back(mode);
+            }
+
+            for (auto it_part = device["airduct"]["parts"].begin(); it_part != device["airduct"]["parts"].end(); it_part++) {
+
+                int state = (*it_part)["state"].get<int>();
+                int range = (*it_part)["range"].get<int>();
+
+                AirParts part;
+                part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 3);
+                part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 12);
+                part.func        = (*it_part)["func"].get<int>();
+                part.state       = get_flag_bits(state, 0, 8);
+                part.range_start = get_flag_bits(range, 0, 15);
+                part.range_end   = get_flag_bits(range, 16, 15);
+
+                m_air_duct_data.parts.push_back(part);
+            }
+        }
 
         if (device.contains("type")) {
             int type = device["type"]; //FDM:1<<0 Laser:1<< Cut:1<<2
@@ -6195,6 +6208,23 @@ void MachineObject::check_ams_filament_valid()
             data.checked_filament.insert(filament_id);
         }
     }
+}
+
+int MachineObject::command_handle_response(const json &response)
+{
+    if (!response.contains("sequence_id")) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ", error reponse.";
+        return -1;
+    }
+
+    std::string  reply = response["sequence_id"].get<std::string>();
+    auto it    = m_callback_list.find(reply);
+    if (it != m_callback_list.end()) {
+        it->second(response);
+        m_callback_list.erase(it);
+    }
+
+    return 0;
 }
 
 bool DeviceManager::EnableMultiMachine = false;
