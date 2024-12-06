@@ -1938,20 +1938,20 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pellet_flow_coefficient", coFloats);
     def->label = L("Pellet flow coefficient");
-    def->tooltip = L("Pellet flow coefficient is empirically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
+    def->tooltip = L("A value representing the extrusion capacity of pellets, influenced by factors such as shape, material, and viscosity. It determines how much material is extruded per turn and is converted to an equivalent filament diameter for volumetric calculations.");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
     def          = this->add("extruder_rotation_distance", coFloat);
     def->label   = L("Extruder rotation distance");
-    def->tooltip = L("This setting determines how much filament volume is extruded per full rotation of the extruder stepper motor. It is critical for accurate filament flow control, ensuring consistent extrusion during 3D printing.");
+    def->tooltip = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
     def->sidetext = L("mm³");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(456));    
     
     def          = this->add("mixing_stepper_rotation_distance", coFloat);
     def->label   = L("Mixing stepper rotation distance");
-    def->tooltip = L("This parameter is used in 3D printers with mixing extruders to calculate the volume of material pushed per step of the mixing motor. It ensures precise control of the filament");
+    def->tooltip = L("The value controlling how much material is actively fed into the extruder by the feeding mechanism. Used for fine-tuning the material flow in multi-material or pellet-based printing.");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(6000));
 
