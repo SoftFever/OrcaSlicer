@@ -16,7 +16,7 @@ struct FuzzySkinConfig
     coord_t       thickness;
     coord_t       point_distance;
     bool          fuzzy_first_layer;
-    bool          use_noise;
+    NoiseType     noise_type;
     double        noise_scale;
     int           noise_octaves;
     double        noise_persistence;
@@ -27,7 +27,7 @@ struct FuzzySkinConfig
             && thickness == r.thickness
             && point_distance == r.point_distance
             && fuzzy_first_layer == r.fuzzy_first_layer
-            && use_noise == r.use_noise
+            && noise_type == r.noise_type
             && noise_scale == r.noise_scale
             && noise_octaves == r.noise_octaves
             && noise_persistence == r.noise_persistence;
@@ -46,7 +46,7 @@ template<> struct hash<Slic3r::FuzzySkinConfig>
         boost::hash_combine(seed, std::hash<coord_t>{}(c.thickness));
         boost::hash_combine(seed, std::hash<coord_t>{}(c.point_distance));
         boost::hash_combine(seed, std::hash<bool>{}(c.fuzzy_first_layer));
-        boost::hash_combine(seed, std::hash<bool>{}(c.use_noise));
+        boost::hash_combine(seed, std::hash<Slic3r::NoiseType>{}(c.noise_type));
         boost::hash_combine(seed, std::hash<double>{}(c.noise_scale));
         boost::hash_combine(seed, std::hash<int>{}(c.noise_octaves));
         boost::hash_combine(seed, std::hash<double>{}(c.noise_persistence));

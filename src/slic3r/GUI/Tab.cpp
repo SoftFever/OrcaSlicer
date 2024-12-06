@@ -2349,7 +2349,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
-        optgroup->append_single_option_line("fuzzy_skin_use_noise");
+        optgroup->append_single_option_line("fuzzy_skin_noise_type");
         optgroup->append_single_option_line("fuzzy_skin_scale");
         optgroup->append_single_option_line("fuzzy_skin_octaves");
         optgroup->append_single_option_line("fuzzy_skin_persistence");

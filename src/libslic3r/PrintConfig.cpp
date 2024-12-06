@@ -123,6 +123,15 @@ static t_config_enum_values s_keys_map_FuzzySkinType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
 
+static t_config_enum_values s_keys_map_NoiseType {
+    { "classic",        int(NoiseType::Classic) },
+    { "perlin",         int(NoiseType::Perlin) },
+    { "billow",         int(NoiseType::Billow) },
+    { "ridgedmulti",    int(NoiseType::RidgedMulti) },
+    { "voronoi",        int(NoiseType::Voronoi) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
+
 static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
     { "zig-zag",            ipRectilinear },
@@ -2606,12 +2615,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
 
-    def = this->add("fuzzy_skin_use_noise", coBool);
-    def->label = L("Use Perlin noise for fuzzy skin");
+    def = this->add("fuzzy_skin_noise_type", coEnum);
+    def->label = L("Fuzzy skin noise type");
     def->category = L("Others");
-    def->tooltip = L("Use Perlin noise to generate fuzzy skin. If disabled, the naive random generator will be used instead");
+    def->tooltip = L("Noise type to use for fuzzy skin generation");
+    def->enum_keys_map = &ConfigOptionEnum<NoiseType>::get_enum_values();
+    def->enum_values.push_back("classic");
+    def->enum_values.push_back("perlin");
+    def->enum_values.push_back("billow");
+    def->enum_values.push_back("ridgedmulti");
+    def->enum_values.push_back("voronoi");
+    def->enum_labels.push_back(L("Classic"));
+    def->enum_labels.push_back(L("Perlin"));
+    def->enum_labels.push_back(L("Billow"));
+    def->enum_labels.push_back(L("Ridged Multifractal"));
+    def->enum_labels.push_back(L("Voronoi"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(0));
+    def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
 
     def = this->add("fuzzy_skin_scale", coFloat);
     def->label = L("Fuzzy skin noise scale");
