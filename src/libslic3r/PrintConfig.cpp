@@ -2618,7 +2618,12 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_noise_type", coEnum);
     def->label = L("Fuzzy skin noise type");
     def->category = L("Others");
-    def->tooltip = L("Noise type to use for fuzzy skin generation");
+    def->tooltip = L("Noise type to use for fuzzy skin generation.\n"
+                     "Classic: Classic uniform random noise.\n"
+                     "Perlin: Perlin noise, which gives a more consistent texture.\n"
+                     "Billow: Similar to perlin noise, but clumpier.\n"
+                     "Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+                     "Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture.");
     def->enum_keys_map = &ConfigOptionEnum<NoiseType>::get_enum_values();
     def->enum_values.push_back("classic");
     def->enum_values.push_back("perlin");
@@ -2634,9 +2639,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
 
     def = this->add("fuzzy_skin_scale", coFloat);
-    def->label = L("Fuzzy skin noise scale");
+    def->label = L("Fuzzy skin feature size");
     def->category = L("Others");
-    def->tooltip = L("The base size of the Perlin noise, in mm. Higher values will result in larger features.");
+    def->tooltip = L("The base size of the coherent noise features, in mm. Higher values will result in larger features.");
     def->sidetext = L("mm");
     def->min = 0.1;
     def->max = 500;
@@ -2646,7 +2651,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_octaves", coInt);
     def->label = L("Fuzzy Skin Noise Octaves");
     def->category = L("Others");
-    def->tooltip = L("The number of octaves of perlin noise to use. Higher values increase the detail of the noise, but also increase computation time.");
+    def->tooltip = L("The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time.");
     def->min = 1;
     def->max = 10;
     def->mode = comAdvanced;
@@ -2655,7 +2660,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_persistence", coFloat);
     def->label = L("Fuzzy skin noise persistence");
     def->category = L("Others");
-    def->tooltip = L("The decay rate for higher octaves of the Perlin noise. Lower values will result in smoother noise.");
+    def->tooltip = L("The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise.");
     def->min = 0.01;
     def->max = 1;
     def->mode = comAdvanced;
