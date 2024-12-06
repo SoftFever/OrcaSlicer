@@ -2295,14 +2295,26 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         }
     }
 
+    auto get_ams_name = [](int ams_id, int slot_id)->std::string {
+        if (ams_id >= 0 && ams_id < 26) {
+            char slot_name = slot_id + '1';
+            return std::string(1, 'A' + ams_id) + std::string(1, slot_name);
+        } else if (ams_id >= 128 && ams_id < 153) {
+            return "HT-" + std::string(1, 'A' + (ams_id - 128));
+        } else {
+            assert(false);
+        }
+        return std::string();
+    };
+
     auto list = obj->amsList;
     for (auto ams : list) {
-        char n = ams.first.front() - '0' + 'A';
+        int ams_id   = std::stoi(ams.first);
         int extruder = ams.second->nozzle ? 0 : 0x10000; // Main (first) extruder at right
         for (auto tray : ams.second->trayList) {
-            char t = tray.first.front() - '0' + '1';
-            filament_ams_list.emplace(extruder + ((n - 'A') * 4 + t - '1'),
-                build_tray_config(*tray.second, std::string(1, n) + std::string(1, t)));
+            int  slot_id = std::stoi(tray.first);
+            filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
+                build_tray_config(*tray.second, get_ams_name(ams_id, slot_id)));
         }
     }
     return filament_ams_list;

@@ -460,6 +460,15 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         set_label_marker(Append(separator(dual_extruder ? L("Left filaments") : L("AMS filaments")), wxNullBitmap));
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
+
+        int icon_width = 24;
+        for (auto &entry : m_preset_bundle->filament_ams_list) {
+            auto &      tray        = entry.second;
+            auto  name = tray.opt_string("tray_name", 0u);
+            if (name.size() > 3)
+                icon_width = 32;
+        }
+
         for (auto &entry : m_preset_bundle->filament_ams_list) {
             if (dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
@@ -485,7 +494,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = tray.opt_string("filament_colour", 0u);
             auto name = tray.opt_string("tray_name", 0u);
-            wxBitmap bmp(*get_extruder_color_icon(color, name, 24, 16));
+            wxBitmap bmp(*get_extruder_color_icon(color, name, icon_width, 16));
             int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
             //validate_selection(id->value == selected); // can not select
         }
