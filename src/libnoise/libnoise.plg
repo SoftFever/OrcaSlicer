@@ -1,0 +1,136 @@
+--------------------Configuration: libnoise - Win32 Release--------------------
+Begining build with project "C:\dev\src\noise\libnoise.dsp", at root.
+Active configuration is Win32 (x86) Dynamic-Link Library (based on Win32 (x86) Dynamic-Link Library)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"win32/Release/libnoise.pch" /YX /Fo"win32/Release/" /Fd"win32/Release/" /FD /c "
+			"OLE Type Library Maker" with flags "/nologo /D "NDEBUG" /mktyplib203 /o NUL /win32 "
+			"Win32 Resource Compiler" with flags "/l 0x409 /fo"win32/Release/noise.res" /d "NDEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"win32/Release/libnoise.bsc" "
+			"COFF Linker for 80x86" with flags "kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /incremental:no /pdb:"win32/Release/libnoise.pdb" /machine:I386 /def:".\src\win32\libnoise.def" /out:"win32/Release/libnoise.dll" /implib:"win32/Release/libnoise.lib" "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating command line "rc.exe /l 0x409 /fo"win32/Release/noise.res" /i "src\win32" /d "NDEBUG" "C:\dev\src\noise\src\win32\noise.rc"" 
+Creating temp file "C:\DOCUME~1\jas\LOCALS~1\Temp\RSP2AB7.tmp" with contents </nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"win32/Release/libnoise.pch" /YX /Fo"win32/Release/" /Fd"win32/Release/" /FD /c 
+"C:\dev\src\noise\src\module\abs.cpp"
+"C:\dev\src\noise\src\module\add.cpp"
+"C:\dev\src\noise\src\module\billow.cpp"
+"C:\dev\src\noise\src\module\blend.cpp"
+"C:\dev\src\noise\src\module\cache.cpp"
+"C:\dev\src\noise\src\module\checkerboard.cpp"
+"C:\dev\src\noise\src\module\clamp.cpp"
+"C:\dev\src\noise\src\module\const.cpp"
+"C:\dev\src\noise\src\module\curve.cpp"
+"C:\dev\src\noise\src\module\cylinders.cpp"
+"C:\dev\src\noise\src\module\displace.cpp"
+"C:\dev\src\noise\src\module\exponent.cpp"
+"C:\dev\src\noise\src\module\invert.cpp"
+"C:\dev\src\noise\src\module\max.cpp"
+"C:\dev\src\noise\src\module\min.cpp"
+"C:\dev\src\noise\src\module\modulebase.cpp"
+"C:\dev\src\noise\src\module\multiply.cpp"
+"C:\dev\src\noise\src\module\perlin.cpp"
+"C:\dev\src\noise\src\module\power.cpp"
+"C:\dev\src\noise\src\module\ridgedmulti.cpp"
+"C:\dev\src\noise\src\module\rotatepoint.cpp"
+"C:\dev\src\noise\src\module\scalebias.cpp"
+"C:\dev\src\noise\src\module\scalepoint.cpp"
+"C:\dev\src\noise\src\module\select.cpp"
+"C:\dev\src\noise\src\module\spheres.cpp"
+"C:\dev\src\noise\src\module\terrace.cpp"
+"C:\dev\src\noise\src\module\translatepoint.cpp"
+"C:\dev\src\noise\src\module\turbulence.cpp"
+"C:\dev\src\noise\src\module\voronoi.cpp"
+"C:\dev\src\noise\src\model\cylinder.cpp"
+"C:\dev\src\noise\src\model\line.cpp"
+"C:\dev\src\noise\src\model\plane.cpp"
+"C:\dev\src\noise\src\model\sphere.cpp"
+"C:\dev\src\noise\src\win32\dllmain.cpp"
+"C:\dev\src\noise\src\latlon.cpp"
+"C:\dev\src\noise\src\noisegen.cpp"
+>
+Creating command line "cl.exe @C:\DOCUME~1\jas\LOCALS~1\Temp\RSP2AB7.tmp" 
+Creating temp file "C:\DOCUME~1\jas\LOCALS~1\Temp\RSP2AB8.tmp" with contents <kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /incremental:no /pdb:"win32/Release/libnoise.pdb" /machine:I386 /def:".\src\win32\libnoise.def" /out:"win32/Release/libnoise.dll" /implib:"win32/Release/libnoise.lib" 
+.\win32\Release\abs.obj
+.\win32\Release\add.obj
+.\win32\Release\billow.obj
+.\win32\Release\blend.obj
+.\win32\Release\cache.obj
+.\win32\Release\checkerboard.obj
+.\win32\Release\clamp.obj
+.\win32\Release\const.obj
+.\win32\Release\curve.obj
+.\win32\Release\cylinders.obj
+.\win32\Release\displace.obj
+.\win32\Release\exponent.obj
+.\win32\Release\invert.obj
+.\win32\Release\max.obj
+.\win32\Release\min.obj
+.\win32\Release\modulebase.obj
+.\win32\Release\multiply.obj
+.\win32\Release\perlin.obj
+.\win32\Release\power.obj
+.\win32\Release\ridgedmulti.obj
+.\win32\Release\rotatepoint.obj
+.\win32\Release\scalebias.obj
+.\win32\Release\scalepoint.obj
+.\win32\Release\select.obj
+.\win32\Release\spheres.obj
+.\win32\Release\terrace.obj
+.\win32\Release\translatepoint.obj
+.\win32\Release\turbulence.obj
+.\win32\Release\voronoi.obj
+.\win32\Release\cylinder.obj
+.\win32\Release\line.obj
+.\win32\Release\plane.obj
+.\win32\Release\sphere.obj
+.\win32\Release\dllmain.obj
+.\win32\Release\latlon.obj
+.\win32\Release\noisegen.obj
+.\win32\Release\noise.res>
+Creating command line "link.exe @C:\DOCUME~1\jas\LOCALS~1\Temp\RSP2AB8.tmp" 
+Compiling resources...
+Compiling...
+abs.cpp
+add.cpp
+billow.cpp
+blend.cpp
+cache.cpp
+checkerboard.cpp
+clamp.cpp
+const.cpp
+curve.cpp
+cylinders.cpp
+displace.cpp
+exponent.cpp
+invert.cpp
+max.cpp
+min.cpp
+modulebase.cpp
+multiply.cpp
+perlin.cpp
+power.cpp
+ridgedmulti.cpp
+rotatepoint.cpp
+scalebias.cpp
+scalepoint.cpp
+select.cpp
+spheres.cpp
+terrace.cpp
+translatepoint.cpp
+turbulence.cpp
+voronoi.cpp
+cylinder.cpp
+line.cpp
+plane.cpp
+sphere.cpp
+dllmain.cpp
+latlon.cpp
+noisegen.cpp
+Linking...
+   Creating library win32/Release/libnoise.lib and object win32/Release/libnoise.exp
+
+
+
+libnoise.dll - 0 error(s), 0 warning(s)
