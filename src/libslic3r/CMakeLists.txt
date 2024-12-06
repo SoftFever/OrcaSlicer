@@ -578,6 +578,7 @@ target_link_libraries(libslic3r
     JPEG::JPEG
     qoi
     opencv_world
+    libnoise
     )
 
 if(NOT SLIC3R_STATIC)

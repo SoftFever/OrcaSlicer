@@ -2606,6 +2606,41 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
 
+    def = this->add("fuzzy_skin_use_noise", coBool);
+    def->label = L("Use Perlin noise for fuzzy skin");
+    def->category = L("Others");
+    def->tooltip = L("Use Perlin noise to generate fuzzy skin. If disabled, the naive random generator will be used instead");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    def = this->add("fuzzy_skin_scale", coFloat);
+    def->label = L("Fuzzy skin noise scale");
+    def->category = L("Others");
+    def->tooltip = L("The base size of the Perlin noise, in mm. Higher values will result in larger features.");
+    def->sidetext = L("mm");
+    def->min = 0.1;
+    def->max = 500;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("fuzzy_skin_octaves", coInt);
+    def->label = L("Fuzzy Skin Noise Octaves");
+    def->category = L("Others");
+    def->tooltip = L("The number of octaves of perlin noise to use. Higher values increase the detail of the noise, but also increase computation time.");
+    def->min = 1;
+    def->max = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(4));
+
+    def = this->add("fuzzy_skin_persistence", coFloat);
+    def->label = L("Fuzzy skin noise persistence");
+    def->category = L("Others");
+    def->tooltip = L("The decay rate for higher octaves of the Perlin noise. Lower values will result in smoother noise.");
+    def->min = 0.01;
+    def->max = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");

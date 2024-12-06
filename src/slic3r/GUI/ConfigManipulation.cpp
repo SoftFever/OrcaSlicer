@@ -706,8 +706,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
-    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer"})
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_use_noise"})
         toggle_line(el, has_fuzzy_skin);
+    
+    bool fuzzy_skin_use_noise = config->opt_bool("fuzzy_skin_use_noise");
+    for (auto el : { "fuzzy_skin_scale", "fuzzy_skin_octaves", "fuzzy_skin_persistence"})
+        toggle_line(el, has_fuzzy_skin && fuzzy_skin_use_noise);
     
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",

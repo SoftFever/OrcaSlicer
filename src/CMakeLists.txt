@@ -18,6 +18,7 @@ add_subdirectory(libigl)
 add_subdirectory(hints)
 add_subdirectory(mcut)
 add_subdirectory(qoi)
+add_subdirectory(libnoise)
 
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
