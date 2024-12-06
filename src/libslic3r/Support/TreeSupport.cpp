@@ -2853,7 +2853,7 @@ void TreeSupport::drop_nodes()
                     }
                 }
                 auto              next_collision = get_collision(0, obj_layer_nr_next);
-                const bool   to_buildplate  = !is_inside_ex(next_collision, next_layer_vertex);
+                const bool   to_buildplate  = !is_inside_ex(m_ts_data->m_layer_outlines[obj_layer_nr_next], next_layer_vertex);
                 SupportNode *     next_node     = m_ts_data->create_node(next_layer_vertex, node.distance_to_top + 1, obj_layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
                 // don't increase radius if next node will collide partially with the object (STUDIO-7883)
