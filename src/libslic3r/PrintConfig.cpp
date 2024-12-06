@@ -527,6 +527,10 @@ std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::st
     std::vector<std::map<int, int>> extruder_ams_counts;
     for (const std::string& str : strs) {
         std::map<int, int> ams_count_info;
+        if (str.empty()) {
+            extruder_ams_counts.emplace_back(ams_count_info);
+            continue;
+        }
         std::vector<std::string> ams_infos;
         boost::algorithm::split(ams_infos, str, boost::algorithm::is_any_of("|"));
         for (const std::string& ams_info : ams_infos) {

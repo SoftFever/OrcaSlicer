@@ -453,10 +453,12 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
             // This is only possible if other is of DynamicConfig type.
             if (auto n = opt_key.find('#'); n != std::string::npos) {
                 auto opt_key2 = opt_key.substr(0, n);
-                auto my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(this->option(opt_key2, true));
+                auto my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(this->option(opt_key2));
+                auto other_opt = other.option(opt_key2);
+                if (my_opt2 == nullptr && other_opt)
+                    my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(other_opt->clone());
                 if (my_opt2) {
                     int index = std::atoi(opt_key.c_str() + n + 1);
-                    auto other_opt = other.option(opt_key2);
                     if (other_opt)
                         my_opt2->set_at(other_opt, index, index);
                     continue;
