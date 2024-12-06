@@ -378,6 +378,8 @@ struct Sidebar::priv
     ComboBox *      combo_printer_bed = nullptr;
     // Printer - sync
     Button *btn_sync_printer;
+    std::shared_ptr<int> counter_sync_printer = std::make_shared<int>();
+    wxTimer *            timer_sync_printer = new wxTimer();
     // Printer - ams
     ExtruderGroup *left_extruder = nullptr;
     ExtruderGroup *right_extruder = nullptr;
@@ -385,6 +387,8 @@ struct Sidebar::priv
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
     void layout_printer(bool isBBL, bool isDual);
+
+    void flush_printer_sync(bool restart = false);
 
     PlaterPresetComboBox *combo_print = nullptr;
     std::vector<PlaterPresetComboBox*> combos_filament;
@@ -510,6 +514,17 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     vsizer_printer->GetItem(1)->GetSizer()->GetItem(1)->Show(isDual);
     vsizer_printer->GetItem(1)->Show(isBBL && isDual);
     vsizer_printer->GetItem(2)->Show(isBBL && !isDual);
+}
+
+void Sidebar::priv::flush_printer_sync(bool restart)
+{
+    if (restart) {
+        *counter_sync_printer = 6;
+        timer_sync_printer->Start(500);
+    }
+    btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? 0xF8F8F8 : 0x00AE42);
+    if (--*counter_sync_printer <= 0)
+        timer_sync_printer->Stop();
 }
 
 Sidebar::priv::~priv()
@@ -1316,11 +1331,17 @@ Sidebar::Sidebar(Plater *parent)
                 std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
         btn_sync->SetBackgroundColor(btn_sync_bg_col);
         btn_sync->SetBorderColor(btn_sync_bd_col);
+        btn_sync->SetCanFocus(false);
         btn_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
         btn_sync->SetMinSize(PRINTER_PANEL_SIZE);
         btn_sync->SetMaxSize(PRINTER_PANEL_SIZE);
         btn_sync->SetVertical();
-        btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { p->sync_extruder_list(); });
+        btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+            p->sync_extruder_list();
+        });
+        p->timer_sync_printer->Bind(wxEVT_TIMER, [this] (wxTimerEvent & e) {
+            p->flush_printer_sync();
+        });
         p->btn_sync_printer = btn_sync;
 
         p->left_extruder  = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left"));
