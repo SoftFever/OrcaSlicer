@@ -3629,9 +3629,6 @@ void TabFilament::toggle_options()
         toggle_line("filament_diameter", !is_pellet_printer);
         toggle_line("extruder_rotation_distance", is_pellet_printer);
         toggle_line("mixing_stepper_rotation_distance", is_pellet_printer);
-        if (is_pellet_printer) {
-            m_config->set_key_value("filament_diameter", new ConfigOptionFloats{sqrt(4 / PI)});
-        }
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
