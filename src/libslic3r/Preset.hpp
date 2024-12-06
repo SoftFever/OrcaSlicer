@@ -319,6 +319,17 @@ public:
     BedType get_default_bed_type(PresetBundle *preset_bundle);
     bool has_cali_lines(PresetBundle* preset_bundle);
 
+
+    static double convert_pellet_flow_to_filament_diameter(double pellet_flow_coefficient)
+    {
+        return sqrt(4 / (PI * pellet_flow_coefficient)); 
+    }
+
+    static double convert_filament_diameter_to_pellet_flow(double filament_diameter)
+    {
+        return 4 / (pow(filament_diameter, 2) * PI); 
+    }
+
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();
     // Printer options contain the nozzle options.
