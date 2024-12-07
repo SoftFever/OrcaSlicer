@@ -332,7 +332,7 @@ msgstr "形狀"
 #. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
-msgstr ""
+msgstr "深度"
 
 msgid "Groove"
 msgstr "溝槽"
@@ -356,21 +356,26 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
+"點擊翻轉切割面\n"
+"拖曳移動切割面"
 
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
+"點擊翻轉切割面"  
+"拖曳移動切割面"
+"右鍵點擊零件切換為另一側"
 
 msgid "Move cut plane"
-msgstr ""
+msgstr "移動切割面"
 
 msgid "Mode"
 msgstr "模式"
 
 msgid "Change cut mode"
-msgstr ""
+msgstr "變更切割模式"
 
 msgid "Tolerance"
 msgstr "公差"
@@ -379,7 +384,7 @@ msgid "Drag"
 msgstr "拖拉"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "畫切割線"
 
 msgid "Left click"
 msgstr "滑鼠左鍵"
@@ -409,7 +414,7 @@ msgid "Cut"
 msgstr "切割"
 
 msgid "Rotate cut plane"
-msgstr ""
+msgstr "旋轉切割面"
 
 msgid "Remove connectors"
 msgstr "刪除所有連接件"
@@ -433,10 +438,10 @@ msgid "Cancel"
 msgstr "取消"
 
 msgid "Build Volume"
-msgstr ""
+msgstr "列印體積"
 
 msgid "Flip cut plane"
-msgstr ""
+msgstr "翻轉切割面"
 
 msgid "Groove change"
 msgstr ""
@@ -446,13 +451,13 @@ msgstr "重設"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr ""
+msgstr "編輯"
 
 msgid "Cut position"
-msgstr ""
+msgstr "切割位置"
 
 msgid "Reset cutting plane"
-msgstr ""
+msgstr "重設切割面"
 
 msgid "Edit connectors"
 msgstr "編輯連接件"
@@ -461,10 +466,10 @@ msgid "Add connectors"
 msgstr "新增連接件"
 
 msgid "Reset cut"
-msgstr ""
+msgstr "重設切割"
 
 msgid "Reset cutting plane and remove connectors"
-msgstr ""
+msgstr "重設切割面且移除連接件"
 
 msgid "Upper part"
 msgstr "上半部分"
@@ -501,16 +506,16 @@ msgstr[0] ""
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
+msgstr[0] "%1$d連接件在物件外"
 
 msgid "Some connectors are overlapped"
 msgstr "存在連接件相互重疊"
 
 msgid "Select at least one object to keep after cutting."
-msgstr ""
+msgstr "切割後保留至少一個物件。"
 
 msgid "Cut plane is placed out of object"
-msgstr ""
+msgstr "切割面在物件外"
 
 msgid "Cut plane with groove is invalid"
 msgstr ""
@@ -522,16 +527,16 @@ msgid "Cut by Plane"
 msgstr "用平面分割"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "切科後產生非流形邊，是否要修復?"
 
 msgid "Repairing model object"
 msgstr "修復模型物件"
 
 msgid "Cut by line"
-msgstr ""
+msgstr "用線切割"
 
 msgid "Delete connector"
-msgstr ""
+msgstr "刪除連接件"
 
 msgid "Mesh name"
 msgstr "Mesh名"
@@ -666,17 +671,17 @@ msgstr "新增文字"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr ""
+msgstr "文字旋轉"
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr ""
+msgstr "文字移動"
 
 msgid "Set Mirror"
 msgstr "設定鏡像"
 
 msgid "Embossed text"
-msgstr ""
+msgstr "浮雕文字"
 
 msgid "Enter emboss gizmo"
 msgstr ""
@@ -688,16 +693,16 @@ msgid "Embossing actions"
 msgstr ""
 
 msgid "Emboss"
-msgstr ""
+msgstr "浮雕"
 
 msgid "NORMAL"
-msgstr ""
+msgstr "正常"
 
 msgid "SMALL"
-msgstr ""
+msgstr "小"
 
 msgid "ITALIC"
-msgstr ""
+msgstr "斜體"
 
 msgid "SWISS"
 msgstr ""
@@ -717,13 +722,13 @@ msgstr "高級"
 msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
-msgstr ""
+msgstr "文字與字體不相容，請選擇其他的字體"
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "浮雕文字不能僅包含空白字元。"
 
 msgid "Text contains character glyph (represented by '?'）unknown by font."
-msgstr ""
+msgstr "文字包含字型無法識別的字形（以 '?' 表示）。"
 
 msgid "Text input doesn't show font skew."
 msgstr ""
@@ -767,13 +772,13 @@ msgid "Cut"
 msgstr "切割"
 
 msgid "Click to change part type into negative volume."
-msgstr ""
+msgstr "點擊將零件類型變更為負體積。"
 
 msgid "Modifier"
 msgstr "修改器"
 
 msgid "Click to change part type into modifier."
-msgstr ""
+msgstr "點擊將零件類型變更為修改器"
 
 msgid "Change Text Type"
 msgstr ""
@@ -1685,7 +1690,7 @@ msgid "Stanford Bunny"
 msgstr "斯坦福兔子"
 
 msgid "Orca String Hell"
-msgstr ""
+msgstr "Orca 拉絲測試"
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
@@ -2909,7 +2914,7 @@ msgstr "使用掛在機箱背部的線材列印"
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
-msgstr "當目前線材用完時，列印機將按照以下順序繼續列印。"
+msgstr "當目前線材用完時，列印設備將按照以下順序繼續列印。"
 
 msgid "Group"
 msgstr "組"
@@ -14670,19 +14675,19 @@ msgid "The nozzle diameter is not found, please reselect."
 msgstr ""
 
 msgid "The printer preset is not found, please reselect."
-msgstr ""
+msgstr "未找到列印設備預設設定，請重新選擇。"
 
 msgid "Printer Preset"
-msgstr ""
+msgstr "列印設備預設設定"
 
 msgid "Filament Preset Template"
-msgstr ""
+msgstr "線材預設設定模板"
 
 msgid "Deselect All"
-msgstr ""
+msgstr "取消全選"
 
 msgid "Process Preset Template"
-msgstr ""
+msgstr "處理預設設定模板"
 
 msgid "Back Page 1"
 msgstr ""
@@ -14691,14 +14696,16 @@ msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
+"尚未選擇要基於哪個列印設備預設設定來創建，請選擇列印設備的廠商和型號。"
 
 msgid ""
 "You have entered an illegal input in the printable area section on the first "
 "page. Please check before creating it."
 msgstr ""
+"在第一頁的可列印區域部分輸入了無效的設定，請在創建前檢查。"
 
 msgid "The custom printer or model is not entered, please enter it."
-msgstr ""
+msgstr "未輸入自訂列印設備或型號，請輸入。"
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -14709,60 +14716,68 @@ msgid ""
 "reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
+"創建的列印設備預設設定已經有相同名稱的預設設定。是否要覆蓋它？\n"
+"\t是：覆蓋相同名稱的列印設備預設設定，並重新創建名稱相同的線材和處理預設設定，"
+"名稱不同的線材和處理預設設定將被保留。\n  "
+"\t取消：不創建預設設定，返回創建界面。"
 
 msgid "You need to select at least one filament preset."
-msgstr ""
+msgstr "需要至少選擇一個線材預設設定。"
 
 msgid "You need to select at least one process preset."
-msgstr ""
+msgstr "需要至少選擇一個處理預設設定。"
 
 msgid "Create filament presets failed. As follows:\n"
-msgstr ""
+msgstr "創建線材預設設定失敗，原因如下：\n"
 
 msgid "Create process presets failed. As follows:\n"
-msgstr ""
+msgstr "創建處理預設設定失敗，原因如下：\n"
 
 msgid "Vendor is not find, please reselect."
-msgstr ""
+msgstr "未找到廠商，請重新選擇。"
 
 msgid "Current vendor has no models, please reselect."
-msgstr ""
+msgstr "當前廠商沒有可用的型號，請重新選擇。"
 
 msgid ""
 "You have not selected the vendor and model or entered the custom vendor and "
 "model."
 msgstr ""
+"您尚未選擇廠商和型號，或未輸入自訂的廠商和型號。"
 
 msgid ""
 "There may be escape characters in the custom printer vendor or model. Please "
 "delete and re-enter."
 msgstr ""
+"自訂列印設備廠商或型號中可能包含轉義字符。請刪除後重新輸入。"
 
 msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
+"自訂列印設備廠商或型號的所有輸入為空格。請重新輸入。"
 
 msgid "Please check bed printable shape and origin input."
-msgstr ""
+msgstr "請檢查熱床可列印區域形狀和原點設定。"
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
+"尚未選擇要更換噴嘴的列印設備，請選擇。"
 
 msgid "Create Printer Successful"
-msgstr ""
+msgstr "列印設備創建成功"
 
 msgid "Create Filament Successful"
-msgstr ""
+msgstr "線材創建成功"
 
 msgid "Printer Created"
-msgstr ""
+msgstr "列印設備創建完成"
 
 msgid "Please go to printer settings to edit your presets"
-msgstr ""
+msgstr "請前往列印設備設定編輯您的預設設定"
 
 msgid "Filament Created"
-msgstr ""
+msgstr "線材創建完成"
 
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
@@ -14770,6 +14785,8 @@ msgid ""
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"如果需要，請前往線材設定編輯您的預設設定。\n  "
+"請注意，噴嘴溫度、熱床溫度和最大體積速度對列印品質有重大影響，請小心設置。"
 
 msgid ""
 "\n"
@@ -14779,42 +14796,46 @@ msgid ""
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
+"\n"
+"\n"
+"Orca 偵測到您的使用者預設設定同步功能未啟用，這可能會導致設備頁面上的線材設定無法成功。"
+"請點擊「同步使用者預設設定」以啟用同步功能。"
 
 msgid "Printer Setting"
-msgstr ""
+msgstr "列印設備設定"
 
 msgid "Printer config bundle(.orca_printer)"
-msgstr ""
+msgstr "列印機配置包 (.orca_printer)"
 
 msgid "Filament bundle(.orca_filament)"
-msgstr ""
+msgstr "線材包 (.orca_filament)"
 
 msgid "Printer presets(.zip)"
-msgstr ""
+msgstr "列印設備預設設定檔 (.zip)"
 
 msgid "Filament presets(.zip)"
-msgstr ""
+msgstr "線材預設設定檔 (.zip)"
 
 msgid "Process presets(.zip)"
-msgstr ""
+msgstr "處理預設設定檔 (.zip)"
 
 msgid "initialize fail"
-msgstr ""
+msgstr "初始化失敗"
 
 msgid "add file fail"
-msgstr ""
+msgstr "添加檔案失敗。"
 
 msgid "add bundle structure file fail"
-msgstr ""
+msgstr "添加捆綁結構檔案失敗"
 
 msgid "finalize fail"
-msgstr ""
+msgstr "失敗"
 
 msgid "open zip written fail"
-msgstr ""
+msgstr "打開 zip 檔案失敗"
 
 msgid "Export successful"
-msgstr ""
+msgstr "匯出成功"
 
 #, c-format, boost-format
 msgid ""
@@ -14823,132 +14844,147 @@ msgid ""
 "If not, a time suffix will be added, and you can modify the name after "
 "creation."
 msgstr ""
+"當前目錄中已存在 '%s' 資料夾。您是否要清除它並重新建立？\n"
+"如果不想清除，將會加上時間後綴，並且你可以在建立後修改名稱。"
 
 msgid ""
 "Printer and all the filament&&process presets that belongs to the printer. \n"
 "Can be shared with others."
 msgstr ""
+"列印設備及所有屬於該列印設備的線材和處理預設設定。 \n"
+"可以與他人分享。"
 
 msgid ""
 "User's filament preset set. \n"
 "Can be shared with others."
 msgstr ""
+"使用者的線材預設設定。 \n"
+"可以與他人分享。"
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
+"僅顯示對列印設備、線材和處理預設設定有變更的列印設備名稱。"
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
+msgstr "僅顯示對線材預設設定有變更的線材名稱。"
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
+"只有具有使用者列印設備預設設定的列印設備名稱會顯示，您選擇的每個預設設定將以 zip 檔案格式匯出。"
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
+"只有具有使用者線材預設設定的線材名稱會顯示，\n"
+"您選擇的每個線材名稱中的所有使用者線材預設設定將以 zip 檔案格式匯出。"
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
+"只有具有變更過處理預設設定的列印設備名稱會顯示，\n"
+"您選擇的每個列印設備名稱中的所有使用者處理預設設定將以 zip 檔案格式匯出。"
 
 msgid "Please select at least one printer or filament."
-msgstr ""
+msgstr "請至少選擇一個列印設備或線材。"
 
 msgid "Please select a type you want to export"
-msgstr ""
+msgstr "請選擇您要匯出的類型"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "創建臨時資料夾失敗，請再次嘗試匯出配置。"
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "編輯線材"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "此線材下的線材預設設定"
 
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
-msgstr ""
+msgstr "注意：如果此線材下的唯一預設設定被刪除，退出對話框後該線材將被刪除。"
 
 msgid "Presets inherited by other presets can not be deleted"
-msgstr ""
+msgstr "被其他預設設定繼承的預設設定無法刪除"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
 msgstr[0] ""
 
 msgid "Delete Preset"
-msgstr ""
+msgstr "刪除預設設定"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr ""
+msgstr "確定要刪除選定的預設設定嗎？"
 
 msgid "Delete preset"
-msgstr ""
+msgstr "刪除預設設定"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ 新增預設設定"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "刪除線材"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament "
 "information for that slot."
 msgstr ""
+"所有屬於此線材的預設設定將被刪除。\n"
+"如果您正在列印設備上使用此線材，請重新設置該插槽的線材資訊。"
 
 msgid "Delete filament"
-msgstr ""
+msgstr "刪除線材"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "新增預設設定"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "為新列印設備新增預設設定"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "從線材複製預設設定"
 
 msgid "The filament choice not find filament preset, please reselect it"
-msgstr ""
+msgstr "未找到該線材的預設設定，請重新選擇。"
 
 msgid "[Delete Required]"
 msgstr ""
 
 msgid "Edit Preset"
-msgstr ""
+msgstr "編輯預設設定"
 
 msgid "For more information, please check out Wiki"
-msgstr ""
+msgstr "如需更多資訊，請查看 Wiki。"
 
 msgid "Collapse"
 msgstr "摺疊"
 
 msgid "Daily Tips"
-msgstr ""
+msgstr "每日提示"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "記錄的噴嘴：%.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"預設的噴嘴直徑與記錄的噴嘴直徑不一致。您最近有更換噴嘴嗎？"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "*使用 %s 材料和 %s 列印可能會導致噴嘴損壞。"
 
 #, fuzzy
 msgid "Need select printer"
@@ -14967,26 +15003,26 @@ msgid "Physical Printer"
 msgstr "實體列印設備"
 
 msgid "Print Host upload"
-msgstr "打印主機上傳"
+msgstr "列印主機上傳"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr "無法獲得有效的打印機主機參考資料"
+msgstr "無法獲得有效的列印設備主機參考資料"
 
 msgid "Success!"
 msgstr "成功！"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "確定要登出嗎？"
 
 #, fuzzy
 msgid "Refresh Printers"
 msgstr "重新整理列印設備"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "在設備選項卡中查看列印主機的 Web UI"
 
 msgid "Replace the BambuLab's device tab with print host webui"
-msgstr ""
+msgstr "將 BambuLab 的設備選項卡替換為列印主機的 Web UI"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -15012,14 +15048,14 @@ msgid ""
 msgstr "若要使用自訂 CA 憑證檔，請將你的 CA 憑證檔匯入到憑證儲存庫/鑰匙圈中。"
 
 msgid "Login/Test"
-msgstr ""
+msgstr "登入/測試"
 
 msgid "Connection to printers connected via the print host failed."
-msgstr "經由打印主機連接的打印機連接失敗。"
+msgstr "經由列印主機連接的列印設備連接失敗。"
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr "打印主機類型不符：%s"
+msgstr "列印主機類型不符：%s"
 
 msgid "Connection to AstroBox works correctly."
 msgstr "與 AstroBox 的連接工作正常。"
@@ -15057,13 +15093,14 @@ msgstr "無法連接到 FlashAir"
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
-msgstr "注意：FlashAir 需要韌體為 2.00.02 或更新版本並啟動上傳功能。"
+msgstr ""
+"注意：FlashAir 需要韌體為 2.00.02 或更新版本並啟動上傳功能。"
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "成功連接到 MKS。"
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "無法連接到 MKS"
 
 msgid "Connection to OctoPrint works correctly."
 msgstr "與 OctoPrint 的連接工作正常。"
@@ -15087,28 +15124,28 @@ msgid "Could not connect to PrusaLink"
 msgstr "無法連接到 PrusaLink"
 
 msgid "Storages found"
-msgstr ""
+msgstr "找到存儲空間"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : read only"
-msgstr ""
+msgstr "%1% : 唯讀"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : no free space"
-msgstr ""
+msgstr "%1%：沒有可用空間"
 
 #. TRN %1% = host
 #, boost-format
 msgid "Upload has failed. There is no suitable storage found at %1%."
-msgstr ""
+msgstr "上傳失敗。未找到適當的存儲位置在 %1%。"
 
 msgid "Connection to Prusa Connect works correctly."
-msgstr ""
+msgstr "成功連接到 Prusa Connect。"
 
 msgid "Could not connect to Prusa Connect"
-msgstr ""
+msgstr "無法連接到 Prusa Connect。"
 
 msgid "Connection to Repetier works correctly."
 msgstr "與 Repetier 的連接工作正常。"
@@ -15143,7 +15180,7 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
-"主機打印機例舉失敗。\n"
+"主機列印設備例舉失敗。\n"
 "訊息內容：“%1%”\n"
 "錯誤碼：“%2%”"
 
@@ -15151,30 +15188,39 @@ msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"它具有較小的層高，產生幾乎可以忽略不計的層線並具有較高的列印品質。"
+"適用於大多數一般的列印情況。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較低的速度和加速度，"
+"且稀疏填充圖案為 Gyroid。因此，列印品質大幅提高，但列印時間大幅延長。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有略大的層高，"
+"產生幾乎可以忽略不計的層線，並略微縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較大的層高，產生略微可見的層線，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生幾乎不可見的層線並提高列印品質，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15182,12 +15228,16 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層線、較低的速度和加速度，"
+"且稀疏填充圖案為 Gyroid。因此，產生幾乎不可見的層線並大幅提高列印品質，但列印時間會大大延長。"
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生最小的層線並提高列印品質，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15195,35 +15245,46 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層線、較低的速度和加速度，"
+"且稀疏填充圖案為 Gyroid。因此，產生最小的層線並大幅提高列印品質，但列印時間會大大延長。"
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"它具有一般的層高，產生一般的層線和列印品質。適用於大多數一般的列印情況。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有更多的牆壁圈層和較高的稀疏填充密度。"
+"因此，列印物品的強度更高，但會增加耗材使用量並延長列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較大的層高，"
+"產生更明顯的層線並降低列印品質，但列印時間略微縮短。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較大的層高，"
+"產生更明顯的層線並降低列印品質，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生較不明顯的層線並提高列印品質，但列印時間較長。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15231,12 +15292,16 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較小的層高、較低的速度和加速度，"
+"且稀疏填充圖案為 Gyroid。因此，產生較不明顯的層線，並且列印品質大幅提高，但列印時間會大大延長。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生幾乎可以忽略不計的層線，並提高列印品質，但列印時間較長。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15244,64 +15309,84 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較小的層高、較低的速度和加速度，"
+"且稀疏填充圖案為 Gyroid。因此，產生幾乎可以忽略不計的層線，"
+"並且列印品質大幅提高，但列印時間會大大延長。"
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"與 0.4 毫米噴嘴的預設配置相比，該配置具有較小的層高，產生幾乎可以忽略不計的層線，但列印時間較長。"
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"它具有較大的層高，產生明顯的層線，並且列印品質和列印時間屬於普通水平。"
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"與 0.6 毫米噴嘴的預設配置相比，該配置具有更多的牆壁圈層和較高的稀疏填充密度。"
+"因此，列印物品的強度更高，但會增加耗材使用量並延長列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"與 0.6 毫米噴嘴的預設配置相比，該配置具有較大的層高，"
+"產生較為明顯的層線並降低列印品質，但在某些情況下會縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"與 0.6 毫米噴嘴的預設配置相比，該配置具有較大的層高，"
+"產生更明顯的層線並顯著降低列印品質，但在某些情況下會縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"與 0.6 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生較不明顯的層線並略微提高列印品質，但列印時間較長。"
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"與 0.6 毫米噴嘴的預設配置相比，該配置具有較小的層高，"
+"產生較不明顯的層線並提高列印品質，但列印時間較長。"
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"它具有非常大的層高，產生明顯的層線、較低的列印品質和一般的列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"與0.8mm噴嘴的預設配置相比，該配置具有較大的層高，產生非常明顯的層線並顯著降低列印品質，"
+"但在某些情況下會縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"與0.8mm噴嘴的預設配置相比，該配置具有更大的層高，產生極為明顯的層線並顯著降低列印品質，"
+"但在某些情況下會大幅縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -15309,51 +15394,55 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"與0.8mm噴嘴的預設配置相比，該配置具有略小的層高，產生略少但仍明顯的層線，"
+"並略微提高列印品質，但在某些情況下會延長列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"與0.8mm噴嘴的預設配置相比，該配置具有較小的層高，從而產生較少但仍明顯的層線，"
+"並略微提高列印品質，但在某些情況下會延長列印時間。"
 
 msgid "Connected to Obico successfully!"
-msgstr ""
+msgstr "成功連接到 Obico！"
 
 msgid "Could not connect to Obico"
-msgstr ""
+msgstr "無法連接到 Obico"
 
 msgid "Connected to SimplyPrint successfully!"
-msgstr ""
+msgstr "成功連接到 SimplyPrint！"
 
 msgid "Could not connect to SimplyPrint"
-msgstr ""
+msgstr "無法連接到 SimplyPrint"
 
 msgid "Internal error"
-msgstr ""
+msgstr "內部錯誤"
 
 msgid "Unknown error"
-msgstr ""
+msgstr "未知錯誤"
 
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
+msgstr "SimplyPrint 帳戶未連結。請前往連接選項進行設置。"
 
 msgid "Connection to Flashforge works correctly."
-msgstr ""
+msgstr "成功連接到 Flashforge"
 
 msgid "Could not connect to Flashforge"
-msgstr ""
+msgstr "無法連接到 Flashforge"
 
 msgid "The provided state is not correct."
-msgstr ""
+msgstr "提供的狀態不正確。"
 
 msgid "Please give the required permissions when authorizing this application."
-msgstr ""
+msgstr "授權此應用程式時，請提供所需的權限。"
 
 msgid "Something unexpected happened when trying to log in, please try again."
-msgstr ""
+msgstr "嘗試登入時發生了意外錯誤，請再試一次。"
 
 msgid "User cancelled."
-msgstr ""
+msgstr "使用者取消"
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15361,6 +15450,8 @@ msgid ""
 "Did you know that turning on precise wall can improve precision and layer "
 "consistency?"
 msgstr ""
+"精確牆壁\n"
+"你知道啟用精確牆壁可以提高精度和層次一致性嗎？"
 
 #: resources/data/hints.ini: [hint:Sandwich mode]
 msgid ""
@@ -15369,12 +15460,16 @@ msgid ""
 "precision and layer consistency if your model doesn't have very steep "
 "overhangs?"
 msgstr ""
+"三明治模式\n"
+"如果模型沒有非常陡峭的懸垂部分，可以使用三明治模式（內-外-內）來提高精度和層次一致性"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
 "Chamber temperature\n"
 "Did you know that OrcaSlicer supports chamber temperature?"
 msgstr ""
+"機內溫控\n"
+"你知道 OrcaSlicer 支援機內溫度控制嗎？"
 
 #: resources/data/hints.ini: [hint:Calibration]
 msgid ""
@@ -15382,24 +15477,32 @@ msgid ""
 "Did you know that calibrating your printer can do wonders? Check out our "
 "beloved calibration solution in OrcaSlicer."
 msgstr ""
+"校準\n"
+"你知道校準列印設備可以帶來奇效嗎？快來看看我們在 OrcaSlicer 中的校準解決方案。"
 
 #: resources/data/hints.ini: [hint:Auxiliary fan]
 msgid ""
 "Auxiliary fan\n"
 "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
 msgstr ""
+"輔助風扇\n"
+"你知道 OrcaSlicer 支援輔助零件冷卻風扇嗎？"
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
 "Air filtration/Exhaust Fan\n"
 "Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
+"空氣過濾/排風扇\n"
+"你知道 OrcaSlicer 支援空氣過濾/排風扇嗎？"
 
 #: resources/data/hints.ini: [hint:G-code window]
 msgid ""
 "G-code window\n"
 "You can turn on/off the G-code window by pressing the <b>C</b> key."
 msgstr ""
+"G-code 視窗\n"
+"你可以按 <b>C</b> 鍵開啟/關閉 G-code 視窗。"
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
@@ -15407,6 +15510,8 @@ msgid ""
 "You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
+"切換工作區\n"
+"你可以按 <b>Tab</b> 鍵在 <b>準備</b> 和 <b>預覽</b> 工作區之間切換。"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15414,6 +15519,8 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"如何使用鍵盤快捷鍵\n"
+"你知道 Orca Slicer 提供了廣泛的鍵盤快捷鍵和 3D 場景操作嗎？"
 
 #: resources/data/hints.ini: [hint:Reverse on odd]
 msgid ""
@@ -15421,6 +15528,8 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve "
 "the surface quality of your overhangs?"
 msgstr ""
+"奇數反向\n"
+"你知道 <b>奇數反向</b> 功能可以顯著改善懸垂部分的表面品質嗎？"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -15437,6 +15546,8 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"修復模型\n"
+"你知道可以修復損壞的 3D 模型，以避免在 Windows 系統上出現大量切片問題嗎？"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -15490,6 +15601,8 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca "
 "Slicer setting?"
 msgstr ""
+"搜尋功能\n"
+"你知道可以使用搜尋工具快速找到特定的設定嗎？"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -15497,6 +15610,8 @@ msgid ""
 "Did you know that you can reduce the number of triangles in a mesh using the "
 "Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
+"簡化模型\n"
+"你知道可以使用簡化網格功能來減少網格中的三角形數量嗎？右鍵點擊模型並選擇簡化模型。"
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -15523,6 +15638,9 @@ msgid ""
 "part modifier? That way you can, for example, create easily resizable holes "
 "directly in Orca Slicer."
 msgstr ""
+"減去零件\n"
+"你知道可以使用負零件修飾器從一個網格中減去另一個網格嗎？"
+"這樣，你可以在 Orca Slicer 中輕鬆創建可調整大小的孔洞。"
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -15665,6 +15783,9 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+"需要在開啟列印設備門的情況下列印\n"
+"你知道當列印低溫耗材且機身溫度較高時，開啟列印設備門可以減少擠出機/熱端堵塞的機率嗎？"
+"更多資訊請參閱Wiki。"
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -15673,6 +15794,8 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+"避免翹曲\n"
+"你知道當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以降低翹曲的機率嗎？"
 
 #~ msgid "Cool Plate"
 #~ msgstr "低溫列印板"
@@ -16450,7 +16573,7 @@ msgstr ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "
 #~ "open the front door of printer before printing to avoid nozzle clog."
 #~ msgstr ""
-#~ "熱床溫度超過了線材的軟化溫度。請在列印前打開３Ｄ列印機前門以防堵頭。"
+#~ "熱床溫度超過了線材的軟化溫度。請在列印前打開３Ｄ列印設備前門以防堵頭。"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "軟化溫度"
@@ -16508,7 +16631,7 @@ msgstr ""
 #~ "circulation or reduce the temperature of the hot bed"
 #~ msgstr ""
 #~ "熱床溫度超過了線材的軟化溫度，線材軟化可能造成噴頭堵塞。\n"
-#~ "請保持３Ｄ列印機在列印過程中敞開，保證空氣流通或降低熱床溫度"
+#~ "請保持３Ｄ列印設備在列印過程中敞開，保證空氣流通或降低熱床溫度"
 
 #~ msgid "Total Time Estimation"
 #~ msgstr "總時間預估"
