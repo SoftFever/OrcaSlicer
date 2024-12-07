@@ -439,6 +439,8 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
     set_label_marker(Append(separator(L("My Printer")), wxNullBitmap));
     m_first_printer_idx = GetCount();
     for (auto iter = machine_list.begin(); iter != machine_list.end(); ++iter) {
+        Preset* printer_preset = get_printer_preset(iter->second);
+        printer_preset->is_visible = true;
         int item_id = Append(from_u8(iter->second->dev_name), wxNullBitmap, &m_first_printer_idx + std::distance(machine_list.begin(), iter));
     }
     m_last_printer_idx = GetCount();
