@@ -1,6 +1,12 @@
 FROM docker.io/ubuntu:22.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
 
+# Declare build arguments
+ARG USER=root
+ARG UID=0
+ARG GID=0
+ARG NCORES=1
+
 # Disable interactive package configuration
 RUN apt-get update && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -9,7 +15,8 @@ RUN apt-get update && \
 RUN echo deb-src http://archive.ubuntu.com/ubuntu \
     $(cat /etc/*release | grep VERSION_CODENAME | cut -d= -f2) main universe>> /etc/apt/sources.list 
 
-RUN apt-get update && apt-get install  -y \
+# Install dependencies
+RUN apt-get update && apt-get install -y \
     autoconf \
     build-essential \
     cmake \
@@ -53,12 +60,13 @@ RUN apt-get update && apt-get install  -y \
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
 ENV LC_ALL=en_US.utf8
-RUN locale-gen $LC_ALL
+RUN locale-gen "$LC_ALL"
 
 # Set this so that Orca Slicer doesn't complain about
 # the CA cert path on every startup
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
+# Copy project files
 COPY ./ OrcaSlicer
 
 WORKDIR OrcaSlicer
@@ -83,13 +91,12 @@ RUN ./BuildLinux.sh -i
 # to keep permissions the same.  Just in case, defaults
 # are root.
 SHELL ["/bin/bash", "-l", "-c"]
-ARG USER=root
-ARG UID=0
-ARG GID=0
-RUN [[ "$UID" != "0" ]] \
-  && groupadd -f -g $GID $USER \
-  && useradd -u $UID -g $GID $USER
 
-# Using an entrypoint instead of CMD because the binary
-# accepts several command line arguments.
+# Create user if not root
+RUN if [ "$UID" != "0" ]; then \
+      groupadd -f -g "$GID" "$USER" && \
+      useradd -u "$UID" -g "$GID" "$USER"; \
+    fi
+
+# Set entrypoint
 ENTRYPOINT ["/OrcaSlicer/build/package/bin/orca-slicer"]
