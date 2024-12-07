@@ -1919,7 +1919,7 @@ void GUI_App::init_app_config()
         // On macOS, the executable is inside the .app bundle.
         _app_folder = _app_folder.parent_path().parent_path().parent_path();
 #endif
-        boost::filesystem::path app_data_dir_path = _app_folder / "data_dir";
+        boost::filesystem::path app_data_dir_path = _app_folder / "data";
         if (boost::filesystem::exists(app_data_dir_path)) {
             set_data_dir(app_data_dir_path.string());
         }
