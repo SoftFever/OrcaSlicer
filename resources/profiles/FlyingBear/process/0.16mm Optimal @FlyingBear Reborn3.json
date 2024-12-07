@@ -5,7 +5,8 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common",
-    
+
+    "inner_wall_acceleration": "3000",
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
     "top_shell_layers": "6",

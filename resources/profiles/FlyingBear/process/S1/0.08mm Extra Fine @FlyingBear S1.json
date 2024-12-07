@@ -6,7 +6,8 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common_S1",
-
+	
+    "inner_wall_acceleration": "3000",
     "bottom_shell_layers": "7",
     "overhang_1_4_speed": "50",
     "overhang_2_4_speed": "30",
