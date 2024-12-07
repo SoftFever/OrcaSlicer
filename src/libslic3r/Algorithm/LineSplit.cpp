@@ -264,7 +264,7 @@ SplittedLine do_split_line(const ClipperZUtils::ZPath& path, const ExPolygons& c
             }
             for (const auto segment : node) {
                 for (const ClipperZUtils::ZPoint& sp : *segment) {
-                    assert(!is_clip(sp.z()));
+                    assert(!is_clip(sp));
                     result.emplace_back(to_point(sp), true, sp.z());
                 }
                 result.back().clipped = false; // Mark the end of the clipped line
