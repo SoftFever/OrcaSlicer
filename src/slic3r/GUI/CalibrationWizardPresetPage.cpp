@@ -1806,8 +1806,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
-            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
-            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
+            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
+            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
 
             m_main_extruder_on_left = false;
         }
@@ -1823,8 +1823,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
-            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
-            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
+            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
+            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
 
             m_main_extruder_on_left = true;
         }

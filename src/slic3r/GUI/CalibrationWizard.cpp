@@ -414,7 +414,7 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
 
         if (obj->is_multi_extruders()) {
             int ams_id, slot_id, tray_id;
-            get_tray_ams_and_slot_id(result.extruder_id, ams_id, slot_id, tray_id);
+            get_tray_ams_and_slot_id(result.tray_id, ams_id, slot_id, tray_id);
             result.extruder_id = preset_page->get_extruder_id(ams_id);
             result.nozzle_volume_type = preset_page->get_nozzle_volume_type(result.extruder_id);
         }
@@ -1201,9 +1201,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         }
 
         wxString wx_err_string;
-        std::string error_message;
-        CalibUtils::calib_flowrate_X1C(calib_infos, error_message);
-        wx_err_string = from_u8(error_message);
+        CalibUtils::calib_flowrate_X1C(calib_infos, wx_err_string);
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();

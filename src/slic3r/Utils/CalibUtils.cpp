@@ -418,8 +418,11 @@ void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& 
     if (obj_ == nullptr)
         return;
 
-    if (calib_infos.calib_datas.size() > 0)
+    if (calib_infos.calib_datas.size() > 0) {
+        if (!check_printable_status_before_cali(obj_, calib_infos, error_message))
+            return;
         obj_->command_start_pa_calibration(calib_infos, mode);
+    }
 }
 
 void CalibUtils::emit_get_PA_calib_results(float nozzle_diameter)
@@ -517,7 +520,7 @@ void CalibUtils::delete_PA_calib_result(const PACalibIndexInfo& pa_calib_info)
     obj_->command_delete_pa_calibration(pa_calib_info);
 }
 
-void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message)
+void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, wxString& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -527,8 +530,11 @@ void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::strin
     if (obj_ == nullptr)
         return;
 
-    if (calib_infos.calib_datas.size() > 0)
+    if (calib_infos.calib_datas.size() > 0) {
+         if (!check_printable_status_before_cali(obj_, calib_infos, error_message))
+            return;
         obj_->command_start_flow_ratio_calibration(calib_infos);
+    }
     else {
         BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: auto | send info | cali_datas is empty.";
     }
@@ -563,6 +569,21 @@ bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>&
 
 bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message)
 {
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    if (!check_printable_status_before_cali(obj_, calib_info, error_message))
+        return false;
+
     if (pass != 1 && pass != 2)
         return false;
 
@@ -656,19 +677,6 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        error_message = _L("Need select printer");
-        return false;
-    }
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) {
-        error_message = _L("Need select printer");
-        return false;
-    }
-
-
     send_to_print(calib_info, error_message, pass);
     return true;
 }
@@ -730,6 +738,21 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
 
 bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_message)
 {
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    if (!check_printable_status_before_cali(obj_, calib_info, error_message))
+        return false;
+
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_PA_Line && params.mode != CalibMode::Calib_PA_Pattern)
         return false;
@@ -762,19 +785,6 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
 
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
-
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        error_message = _L("Need select printer");
-        return false;
-    }
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) {
-        error_message = _L("Need select printer");
-        return false;
-    }
-
 
     send_to_print(calib_info, error_message);
     return true;
@@ -1052,6 +1062,97 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
         }
     }
     return false;
+}
+
+bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message)
+{
+    if (!obj) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    float diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    bool  is_multi_extruder = obj->is_multi_extruders();
+    std::vector<NozzleFlowType> nozzle_volume_types;
+    if (is_multi_extruder) {
+        for (const Extder& extruder : obj->m_extder_data.extders) {
+            nozzle_volume_types.emplace_back(extruder.current_nozzle_flow_type);
+        }
+    }
+
+    for (const auto &cali_info : cali_infos.calib_datas) {
+        if (!is_approx(cali_info.nozzle_diameter, diameter)) {
+            error_message = _L("The selected diameter is inconsistent with the printer diameter.");
+            return false;
+        }
+
+        if (is_multi_extruder) {
+            if (nozzle_volume_types[cali_info.extruder_id] == NozzleFlowType::NONE_FLOWTYPE) {
+                wxString name = _L("left");
+                if (cali_info.extruder_id == 0) {
+                    name = _L("right");
+                }
+                error_message = wxString::Format("The nozzle type of the %s extruder is not set. Please set it first and then start calibration.", name);
+                return false;
+            }
+
+            if (NozzleVolumeType(nozzle_volume_types[cali_info.extruder_id] - 1) != cali_info.nozzle_volume_type) {
+                wxString name = _L("left");
+                if (cali_info.extruder_id == 0) {
+                    name = _L("right");
+                }
+                error_message = wxString::Format("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
+                                                 "Please synchronize the printer information first and then start calibration.", name);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, const CalibInfo& cali_info, wxString& error_message)
+{
+    if (!obj) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    const ConfigOptionFloatsNullable *nozzle_diameter_config = cali_info.printer_prest->config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    float nozzle_diameter = nozzle_diameter_config->values[0];
+
+    float diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    bool  is_multi_extruder = obj->is_multi_extruders();
+    std::vector<NozzleFlowType> nozzle_volume_types;
+    if (is_multi_extruder) {
+        for (const Extder& extruder : obj->m_extder_data.extders) {
+            nozzle_volume_types.emplace_back(extruder.current_nozzle_flow_type);
+        }
+    }
+
+    if (!is_approx(nozzle_diameter, diameter)) {
+        error_message = _L("The selected diameter is inconsistent with the printer diameter.");
+        return false;
+    }
+
+    if (is_multi_extruder) {
+        if (nozzle_volume_types[cali_info.extruder_id] == NozzleFlowType::NONE_FLOWTYPE) {
+            wxString name = _L("left");
+            if (cali_info.extruder_id == 0) { name = _L("right"); }
+            error_message = wxString::Format("The nozzle type of the %s extruder is not set. Please set it first and then start calibration.", name);
+            return false;
+        }
+
+        if (NozzleVolumeType(nozzle_volume_types[cali_info.extruder_id] - 1) != cali_info.nozzle_volume_type) {
+            wxString name = _L("left");
+            if (cali_info.extruder_id == 0) { name = _L("right"); }
+            error_message = wxString::Format("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
+                                             "Please synchronize the printer information first and then start calibration.",
+                                             name);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)

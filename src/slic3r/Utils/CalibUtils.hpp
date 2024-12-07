@@ -51,7 +51,7 @@ public:
     static void select_PA_calib_result(const PACalibIndexInfo &pa_calib_info);
     static void delete_PA_calib_result(const PACalibIndexInfo &pa_calib_info);
 
-    static void calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message);
+    static void calib_flowrate_X1C(const X1CCalibInfos& calib_infos, wxString& error_message);
     static void emit_get_flow_ratio_calib_results(float nozzle_diameter);
     static bool get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult> &flow_ratio_calib_results);
     static bool calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message);
@@ -71,6 +71,9 @@ public:
     static bool validate_input_name(wxString name);
     static bool validate_input_k_value(wxString k_text, float* output_value);
     static bool validate_input_flow_ratio(wxString flow_ratio, float* output_value);
+
+    static bool check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message);
+    static bool check_printable_status_before_cali(const MachineObject *obj, const CalibInfo &cali_info, wxString &error_message);
 
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
