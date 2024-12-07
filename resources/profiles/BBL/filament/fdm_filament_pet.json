@@ -49,6 +49,12 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
+    "supertack_plate_temp": [
+        "70"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "70"
+    ],
     "temperature_vitrification": [
         "70"
     ],

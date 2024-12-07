@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFB02",
     "instantiation": "false",
+    "description": "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: ASA Aero Printing Guide.",
     "fan_cooling_layer_time": [
         "30"
     ],
@@ -25,9 +26,6 @@
     ],
     "filament_max_volumetric_speed": [
         "12"
-    ],
-    "filament_retract_before_wipe": [
-        "nil"
     ],
     "filament_retraction_length": [
         "1.5"
@@ -58,5 +56,8 @@
     ],
     "slow_down_layer_time": [
         "5"
+    ],
+    "filament_scarf_seam_type": [
+        "none"
     ]
 }

@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFL99",
     "instantiation": "false",
+    "description": "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.",
     "filament_flow_ratio": [
         "0.98"
     ],

@@ -64,6 +64,12 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
     "slow_down_layer_time": [
         "4"
     ],

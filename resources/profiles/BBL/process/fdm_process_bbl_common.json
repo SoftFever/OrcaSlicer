@@ -59,6 +59,7 @@
     "tree_support_branch_diameter": "2",
     "tree_support_branch_angle": "45",
     "tree_support_wall_count": "0",
+    "max_bridge_length": "0",
     "top_surface_pattern": "monotonicline",
     "top_surface_acceleration": "2000",
     "top_surface_speed": "200",

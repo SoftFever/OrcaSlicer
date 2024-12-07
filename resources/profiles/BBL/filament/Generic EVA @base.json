@@ -38,9 +38,6 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-    "filament_type": [
-        "EVA"
-    ],
     "hot_plate_temp": [
         "55"
     ],
