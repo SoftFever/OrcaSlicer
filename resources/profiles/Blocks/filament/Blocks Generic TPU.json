@@ -1,0 +1,31 @@
+{
+    "type": "filament",
+    "filament_id": "BSFI003",
+    "setting_id": "BSSI003",
+    "name": "Blocks Generic TPU",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "15"
+    ],
+    "compatible_printers": [
+        "BLOCKS Pro S100 0.4 nozzle",
+        "BLOCKS Pro S100 0.6 nozzle",
+        "BLOCKS Pro S100 0.8 nozzle",
+        "BLOCKS Pro S100 1.0 nozzle",
+        "BLOCKS Pro S100 1.2 nozzle",
+        "BLOCKS Pro S100",
+        "BLOCKS RD50 V2 0.4 nozzle",
+        "BLOCKS RD50 V2 0.6 nozzle",
+        "BLOCKS RD50 V2 0.8 nozzle",
+        "BLOCKS RD50 V2",
+        "BLOCKS RF50 0.4 nozzle",
+        "BLOCKS RF50 0.6 nozzle",
+        "BLOCKS RF50 0.8 nozzle",
+        "BLOCKS RF50"
+    ]
+}

@@ -96,12 +96,6 @@
     ],
     "enable_overhang_bridge_fan": [
         "0"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift"
-    ],
-    "filament_wipe_distance": [
-        "2"
     ]
 
 }
