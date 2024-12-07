@@ -3302,9 +3302,9 @@ void TabFilament::build()
 
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
-        optgroup->append_single_option_line("pellet_flow_coefficient"' "Pellet-modded-printer");
-        optgroup->append_single_option_line("extruder_rotation_volume"' "Pellet-modded-printer");
-        optgroup->append_single_option_line("mixing_stepper_rotation_volume"' "Pellet-modded-printer");
+        optgroup->append_single_option_line("pellet_flow_coefficient", "Pellet-modded-printer");
+        optgroup->append_single_option_line("extruder_rotation_volume", "Pellet-modded-printer");
+        optgroup->append_single_option_line("mixing_stepper_rotation_volume", "Pellet-modded-printer");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3755,9 +3755,9 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
-        optgroup->append_single_option_line("pellet_modded_printer"' "Pellet-modded-printer");
-        optgroup->append_single_option_line("use_extruder_rotation_volume"' "Pellet-modded-printer");
-        optgroup->append_single_option_line("use_active_pellet_feeding"' "Pellet-modded-printer");
+        optgroup->append_single_option_line("pellet_modded_printer", "Pellet-modded-printer");
+        optgroup->append_single_option_line("use_extruder_rotation_volume", "Pellet-modded-printer");
+        optgroup->append_single_option_line("use_active_pellet_feeding", "Pellet-modded-printer");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
@@ -4360,7 +4360,7 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
 
                 optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-                optgroup->append_single_option_line("active_feeder_motor_name"' "Pellet-modded-printer", extruder_idx);
+                optgroup->append_single_option_line("active_feeder_motor_name", "Pellet-modded-printer", extruder_idx);
     #if 0
                 //optgroup = page->new_optgroup(L("Preview"), -1, true);
 
