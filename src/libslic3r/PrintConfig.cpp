@@ -143,7 +143,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
     { "lightning",          ipLightning },
-    { "crosshatch",         ipCrossHatch}
+    { "crosshatch",         ipCrossHatch},
+    { "quartercubic",       ipQuarterCubic}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2249,6 +2250,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("crosshatch");
+    def->enum_values.push_back("quartercubic");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2267,6 +2269,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
+    def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
