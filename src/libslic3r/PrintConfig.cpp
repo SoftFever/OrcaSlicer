@@ -1965,15 +1965,15 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
-    def          = this->add("extruder_rotation_distance", coFloat);
-    def->label   = L("Extruder rotation distance");
+    def          = this->add("extruder_rotation_volume", coFloat);
+    def->label   = L("Extruder rotation volume");
     def->tooltip = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
     def->sidetext = L("mm³");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(456));    
     
-    def          = this->add("mixing_stepper_rotation_distance", coFloat);
-    def->label   = L("Mixing stepper rotation distance");
+    def          = this->add("mixing_stepper_rotation_volume", coFloat);
+    def->label   = L("Mixing stepper rotation volume");
     def->tooltip = L("The value controlling how much material is actively fed into the extruder by the feeding mechanism. Used for fine-tuning the material flow in multi-material or pellet-based printing.");
     def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(6000));
@@ -2885,6 +2885,25 @@ void PrintConfigDef::init_fff_params()
     def->min     = 1;
     def->max     = 10;  
     def->set_default_value(new ConfigOptionInt(1));	
+
+    def          = this->add("use_extruder_rotation_volume", coBool);
+    def->label   = L("Use extruder rotation volume");
+    def->tooltip = L("Use extruder rotation volume instead of the pellet flow coefficent");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(true));
+    
+    def          = this->add("active_feeder_motor_name", coString);
+    def->label   = L("Active feeder motor name");
+    def->tooltip = "Name that identify the feeder motor";
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+        
+    def          = this->add("use_active_pellet_feeding", coBool);
+    def->label   = L("Use forded pellet feeding");
+    def->tooltip = L("Enable this option if your printer has active pellet feeding");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");

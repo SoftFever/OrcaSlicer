@@ -1424,7 +1424,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
     }
 
-
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
         wxGetApp().sidebar().show_SEMM_buttons(bSEMM);
@@ -3304,8 +3303,8 @@ void TabFilament::build()
         // Orca: New section to focus on flow rate and PA to declutter general section
         optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("extruder_rotation_distance", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("mixing_stepper_rotation_distance", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("extruder_rotation_volume", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("mixing_stepper_rotation_volume", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3643,9 +3642,16 @@ void TabFilament::toggle_options()
 
         for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
-            
-        toggle_line("extruder_rotation_distance", is_pellet_printer);
-        toggle_line("mixing_stepper_rotation_distance", is_pellet_printer);
+
+        toggle_line("extruder_rotation_volume", is_pellet_printer);
+        toggle_line("mixing_stepper_rotation_volume", is_pellet_printer);
+
+        bool use_active_pellet_feeding = cfg.opt_bool("use_active_pellet_feeding");
+        toggle_line("mixing_stepper_rotation_volume", is_pellet_printer && use_active_pellet_feeding);
+
+        bool use_extruder_rotation_volume = cfg.opt_bool("use_extruder_rotation_volume");
+        toggle_line("extruder_rotation_volume", is_pellet_printer && use_extruder_rotation_volume);
+        toggle_line("pellet_flow_coefficient", is_pellet_printer && !use_extruder_rotation_volume);
         if (is_pellet_printer) {
             m_config->set_key_value("filament_diameter", new ConfigOptionFloats{sqrt(4 / PI)});
         }
@@ -3663,6 +3669,7 @@ void TabFilament::toggle_options()
         toggle_line("nozzle_temperature_initial_layer", !is_multi_zone);
         toggle_line("nozzle_temperature", !is_multi_zone);
     }
+
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
 
@@ -3782,8 +3789,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("multi_zone");
-        optgroup->append_single_option_line("multi_zone_number");
+        optgroup->append_single_option_line("use_extruder_rotation_volume", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("use_active_pellet_feeding", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("multi_zone", "pellet-flow-coefficient");
+        optgroup->append_single_option_line("multi_zone_number", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
@@ -4385,6 +4394,8 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
 
+                optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+                optgroup->append_single_option_line("active_feeder_motor_name", "pellet-flow-coefficient", extruder_idx);
     #if 0
                 //optgroup = page->new_optgroup(L("Preview"), -1, true);
 
@@ -4539,8 +4550,13 @@ void TabPrinter::toggle_options()
             toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "multi_zone", "multi_zone_number", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "multi_zone", "multi_zone_number", "use_extruder_rotation_volume", "use_active_pellet_feeding", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
+
+        bool is_pellet_printer = m_config->opt_bool("pellet_modded_printer");
+        auto gcf               = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        toggle_line("use_active_pellet_feeding", is_pellet_printer && gcf == gcfKlipper);
+        toggle_line("use_extruder_rotation_volume", is_pellet_printer && gcf == gcfKlipper);
 
         auto cfg           = m_preset_bundle->printers.get_edited_preset().config;
         bool is_multi_zone = cfg.opt_bool("multi_zone");
@@ -4642,6 +4658,12 @@ void TabPrinter::toggle_options()
         //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
         
         toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
+
+        bool is_pellet_printer = m_config->opt_bool("pellet_modded_printer");
+        bool use_active_pellet_feeding = m_config->opt_bool("use_active_pellet_feeding");
+        auto gcf               = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        toggle_option("active_feeder_motor_name", is_pellet_printer && gcf == gcfKlipper && use_active_pellet_feeding, i);
+        toggle_line("active_feeder_motor_name#0", is_pellet_printer && gcf == gcfKlipper && use_active_pellet_feeding);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
