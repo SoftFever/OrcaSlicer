@@ -22,6 +22,10 @@
   }, {
     "name": "0.2mm Fast @Co Print ChromaSet 0.4",
     "sub_path": "process/0.2mm Fast @Co Print ChromaSet 0.4.json"
+  },
+  {
+    "name": "process test",
+    "sub_path": "process/process test.json"
   }
   ],
   "filament_list": [
@@ -29,6 +33,10 @@
 			"name": "fdm_filament_common",
 			"sub_path": "filament/fdm_filament_common.json"
 		},
+    {
+      "name": "filament_pla_test",
+      "sub_path": "filament/filament_pla_test.json"
+    },
 		{
 			"name": "fdm_filament_pla",
 			"sub_path": "filament/fdm_filament_pla.json"

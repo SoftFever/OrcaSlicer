@@ -74,7 +74,7 @@
     "xy_contour_compensation": "0",
     "resolution": "0.012",
     "wall_generator": "classic",
-    "wall_sequence": "inner wall/outer wall",
+    "wall_sequence": "inner-outer wall",
     "print_flow_ratio": "1",
     "top_shell_layers": "4",
     "internal_bridge_flow": "0.9031",

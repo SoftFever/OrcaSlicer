@@ -12,7 +12,7 @@
 		"0.4"
 	],
     "retract_before_wipe": [
-        "70%"
+        "0%"
     ],
 	"printable_area": [
 		"0x0",
@@ -23,7 +23,7 @@
 	"printable_height": "345",
 	"gcode_flavor": "klipper",
     "retraction_length": [
-        "1"
+        "0.5"
     ],
     "machine_max_speed_e": [
         "20"
@@ -71,10 +71,13 @@
         "0.5"
     ],
 	"z_hop": [
-        "0.2"
+        "0"
+    ],
+    "filament_z_hop_types": [
+        "nil"
     ],
 	"retraction_speed": [
-        "30"
+        "60"
     ],
 	"deretraction_speed": [
         "30"
@@ -134,7 +137,7 @@
         "25"
     ],
     "retract_when_changing_layer": [
-        "1"
+        "0"
     ],
     "extra_loading_move": [
         "0"
