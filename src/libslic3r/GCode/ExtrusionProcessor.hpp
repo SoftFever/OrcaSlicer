@@ -426,6 +426,12 @@ public:
                 float final_speed;
                 if (distance <= speed_sections.front().first) {
                     final_speed = original_speed;
+                    if (distance >0){
+                    	float t = distance / speed_sections.front().first;
+                    		  t           = std::clamp(t, 0.0f, 1.0f);
+                    		final_speed = (1.0f - t) * original_speed + t * speed_sections.front().second;
+                    	printf("distance %f, speed_sections.front().first %f, original speed %f, t %f, final_speed %f \n", distance, speed_sections.front().first, original_speed, final_speed);
+                    }
                 } else if (distance >= speed_sections.back().first) {
                     final_speed = speed_sections.back().second;
                 } else {
@@ -438,7 +444,7 @@ public:
                     t           = std::clamp(t, 0.0f, 1.0f);
                     final_speed = (1.0f - t) * speed_sections[section_idx].second + t * speed_sections[section_idx + 1].second;
                 }
-                return round(final_speed);
+                return final_speed;
             };
             
             float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
