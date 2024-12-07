@@ -10,7 +10,7 @@ Join our Discord community here:<br>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
-Please be aware that "orcaslicer.net" is NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
+Please be aware that "**orcaslicer.net**" or "**orcaslicer.info**" are NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
 
 The only official platforms for OrcaSlicer are our GitHub project page and the  <a href="https://discord.gg/P4VE9UY9gJ">official Discord channel</a> .
 
@@ -131,11 +131,6 @@ Thank you! :)
 <td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
-</a>
-</td>
-<td>
-<a href="https://phrozen3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="96" height="">
 </a>
 </td>
 <td>
