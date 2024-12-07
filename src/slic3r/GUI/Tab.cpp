@@ -3628,13 +3628,13 @@ void TabFilament::toggle_options()
         toggle_line("filament_diameter", !is_pellet_printer);
         toggle_line("extruder_rotation_volume", is_pellet_printer);
         toggle_line("mixing_stepper_rotation_volume", is_pellet_printer);
+        toggle_line("pellet_flow_coefficient", is_pellet_printer);
 
         bool use_active_pellet_feeding = cfg.opt_bool("use_active_pellet_feeding");
         toggle_line("mixing_stepper_rotation_volume", is_pellet_printer && use_active_pellet_feeding);
 
         bool use_extruder_rotation_volume = cfg.opt_bool("use_extruder_rotation_volume");
         toggle_line("extruder_rotation_volume", is_pellet_printer && use_extruder_rotation_volume);
-        toggle_line("pellet_flow_coefficient", is_pellet_printer && !use_extruder_rotation_volume);
     }
 
     if (m_active_page->title() == L("Setting Overrides"))
