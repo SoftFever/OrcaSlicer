@@ -76,5 +76,4 @@ jobs:
       with:
         bundle: orcaslicer.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
-        cache-key: flatpak-builder-${{ github.sha }}
-        cache: false
+        cache: true
