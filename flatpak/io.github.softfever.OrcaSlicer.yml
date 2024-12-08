@@ -138,31 +138,26 @@ modules:
 
   - name: orca_deps
     buildsystem: simple
-    build-options:
-      env:
-        # Keep downloads in a persistent location
-        DEP_DOWNLOAD_DIR: /app/external-packages
     build-commands:
       # start build
       - |
         mkdir deps/build && cd deps/build
         cmake ../ \
           -DDEP_WX_GTK3=ON \
-          -DDEP_DOWNLOAD_DIR=/app/external-packages \
+          -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
           -DCMAKE_PREFIX_PATH=/app \
           -DDESTDIR=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
           -DFLATPAK=ON \
           -DCMAKE_INSTALL_PREFIX=/app
         cmake --build . 
-        # Don't remove external-packages
+        rm -r /run/build/orca_deps/external-packages
     
     cleanup:
       - /app/include
       - "*.a"
       - "*.la"
       - /app/lib/cmake
-      - /app/external-packages  # Clean up after build instead
     
     sources:
       # -
