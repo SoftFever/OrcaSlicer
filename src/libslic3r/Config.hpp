@@ -602,6 +602,8 @@ public:
         if (cnt < 1)
             return false;
 
+        std::vector<T> default_value = this->values;
+
         if (this->values.empty())
             this->values.resize(rhs_vec->size());
         else
@@ -610,7 +612,7 @@ public:
         assert(default_index.size() == rhs_vec->size());
 
         bool modified = false;
-        std::vector<T> default_value = this->values;
+
         for (size_t i = 0; i < rhs_vec->size(); ++i) {
             if (!rhs_vec->is_nil(i)) {
                 this->values[i] = rhs_vec->values[i];
