@@ -264,7 +264,7 @@ enum BedType {
 
 // BBS
 enum LayerSeq {
-    flsAuto, 
+    flsAuto,
     flsCutomize
 };
 
@@ -870,7 +870,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
     ((ConfigOptionBool,               precise_z_height))
-        
+
     ((ConfigOptionBool, interlocking_beam))
     ((ConfigOptionFloat,interlocking_beam_width))
     ((ConfigOptionFloat,interlocking_orientation))
@@ -1039,8 +1039,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     GCodeConfig,
 
-    ((ConfigOptionString,              before_layer_change_gcode)) 
-    ((ConfigOptionString,              printing_by_object_gcode)) 
+    ((ConfigOptionString,              before_layer_change_gcode))
+    ((ConfigOptionString,              printing_by_object_gcode))
     ((ConfigOptionFloats,              deretraction_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))
@@ -1056,7 +1056,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              adaptive_pressure_advance_bridges))
     //
     ((ConfigOptionFloat,               fan_kickstart))
-    ((ConfigOptionBool,                fan_speedup_overhangs))
     ((ConfigOptionFloat,               fan_speedup_time))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))
@@ -1076,7 +1075,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
 
-    ((ConfigOptionFloat,               time_cost)) 
+    ((ConfigOptionFloat,               time_cost))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionString,              time_lapse_gcode))
 
@@ -1309,7 +1308,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
-    
+
     // Orca: support adaptive bed mesh
     ((ConfigOptionFloat,               preferred_orientation))
     ((ConfigOptionPoint,               bed_mesh_min))
