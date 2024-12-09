@@ -5164,6 +5164,11 @@ int CLI::run(int argc, char **argv)
                                 print_fff->set_extruder_filament_info(extruder_filament_info);
                             }
                         }
+
+                        //set filament_map
+                        std::vector<int>& final_filament_maps = new_print_config.option<ConfigOptionInts>("filament_map", true)->values;
+                        if (final_filament_maps.size() < filament_count)
+                            final_filament_maps.resize(filament_count, 1);
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
