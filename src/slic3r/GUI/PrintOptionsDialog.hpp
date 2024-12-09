@@ -52,8 +52,8 @@ protected:
     std::map<NozzleType, wxString> nozzle_type_map;
     std::map<NozzleType, int> nozzle_type_selection_map;
 
-    //std::map<NozzleFlowType, wxString> nozzle_flow_map;
-    //std::map<NozzleFlowType, int> nozzle_flow_selection_map;
+    std::map<NozzleFlowType, wxString> nozzle_flow_map;
+    std::map<NozzleFlowType, int> nozzle_flow_selection_map;
 
     std::map<int, float> nozzle_stainless_diameter_map;
     std::map<int, float> nozzle_hard_diameter_map;
@@ -65,7 +65,7 @@ public:
     void update_machine_obj(MachineObject* obj_);
     bool Show(bool show) override;
 };
- 
+
 
 class PrintOptionsDialog : public DPIDialog
 {
@@ -108,7 +108,7 @@ public:
 
     MachineObject *obj { nullptr };
 
-    std::vector<int> last_stage_list_info; 
+    std::vector<int> last_stage_list_info;
     int              m_state{0};
     void             update_options(MachineObject *obj_);
     void             update_machine_obj(MachineObject *obj_);

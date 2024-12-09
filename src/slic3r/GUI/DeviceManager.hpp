@@ -1045,7 +1045,7 @@ public:
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
-    int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow);
+    int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
     int command_select_extruder(int id);
 

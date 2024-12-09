@@ -2106,7 +2106,7 @@ int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float dia
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow)
+int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter)
 {
     nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
     BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle2, nozzle_type = " << nozzle_type << " diameter = " << diameter;
@@ -2114,8 +2114,9 @@ int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, 
     j["print"]["command"]         = "set_nozzle";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["id"]              = id;
-    j["print"]["type"]            = "type";
+    j["print"]["type"]            = nozzle_type;
     j["print"]["diameter"]        = diameter;
+    j["print"]["wear"]            = 0;
     return this->publish_json(j.dump());
 }
 
