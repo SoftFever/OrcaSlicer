@@ -867,6 +867,15 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
     m_layers_slider->init_texture();
 
     m_gl_data_initialized = true;
+
+    // set to color print by default if use multi extruders
+    if (m_nozzle_nums > 1) {
+        m_view_type_sel = (int)EViewType::Summary;
+        set_view_type(EViewType::Summary);
+    } else {
+        m_view_type_sel = (int)EViewType::FeatureType;
+        set_view_type(EViewType::FeatureType);
+    }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
@@ -1068,15 +1077,6 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
 
-    // set to color print by default if use multi extruders
-    if (m_nozzle_nums > 1) {
-        m_view_type_sel = (int) EViewType::Summary;
-        set_view_type(EViewType::Summary);
-    }
-    else {
-        m_view_type_sel = (int) EViewType::FeatureType;
-        set_view_type(EViewType::FeatureType);
-    }
 
     bool only_gcode_3mf = false;
     PartPlate* current_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
