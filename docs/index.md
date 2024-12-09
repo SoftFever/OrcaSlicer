@@ -8,6 +8,15 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 !!! note ""
     The Wiki is work in progress so bear with us while we get it up and running!
 
+## Main features
+- Auto-calibration for all printers
+- Sandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
+- [Precise wall](print-settings/quality/precise-wall.md)
+- Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
+- Klipper support
+- More granular controls
+- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
+
 ## Print Settings, Tips and Tricks (Work In Progress)
 The below sections provide a detailed settings explanation as well as tips and tricks in setting these for optimal print results.
 
@@ -30,6 +39,8 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Adaptive Bed Mesh](./printer-settings/adaptive-bed-mesh.md)
 - [Using different bed types in Orca](./printer-settings/bed-types.md)
 - [Pellet Printers (pellet flow coefficient)](./printer-settings/pellet-flow-coefficient.md)
+- [Exclude Object](printer-settings/exclude-object.md)
+- [Gcode Arc](printer-settings/gcode-arc.md)
 
 ## Printer Calibration
 !!! note ""
@@ -42,3 +53,4 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [How to build Orca Slicer](./developer-reference/How-to-build.md)
 - [Localization and translation guide](./developer-reference/Localization_guide.md)
 - [Developer Reference](./developer-reference/dev-ref.md)
+- [build Docs](developer-reference/build-docs.md)

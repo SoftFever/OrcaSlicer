@@ -1,6 +1,5 @@
 site_name: OrcaSlicer WIKI
 site_description: OrcaSlicer Docs and reference
-repo_url: https://github.com/SoftFever/OrcaSlicer
 
 theme:
   name: material
@@ -78,12 +77,19 @@ nav:
     - Adaptive Bed Mesh: printer-settings/adaptive-bed-mesh.md
     - Different Bed Types: printer-settings/bed-types.md
     - Pellet Printers: printer-settings/pellet-flow-coefficient.md
+    - Exclude Object: printer-settings/exclude-object.md
+    - Gcode Arc: printer-settings/gcode-arc.md
 
   - Printer Calibration: 
     - Calibration: calibration/calibration.md
     - Adaptive Pressure Advance: calibration/adaptive-pressure-advance.md
   
+  - Common Issue:
+    - Common Issue: common-issue/common-issue.md
+    - Common Quesion: common-issue/common-quesion.md
+
   - Developer Reference:
     - For Developers: developer-reference/dev-ref.md
     - Build Orca Slicer: developer-reference/How-to-build.md
     - Localization: developer-reference/Localization_guide.md
+    - Build Docs: developer-reference/build-docs.md
