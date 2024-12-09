@@ -871,6 +871,8 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
             out_result.nozzle_diameter = m_obj->selected_cali_preset[0].nozzle_diameter;
             out_result.filament_id = m_obj->selected_cali_preset[0].filament_id;
             out_result.setting_id = m_obj->selected_cali_preset[0].setting_id;
+            out_result.extruder_id = m_obj->selected_cali_preset[0].extruder_id;
+            out_result.nozzle_volume_type    = m_obj->selected_cali_preset[0].nozzle_volume_type;
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual: obj->selected_cali_preset is empty";
