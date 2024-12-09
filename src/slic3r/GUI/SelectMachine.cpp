@@ -50,6 +50,20 @@ static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     _L("Bambu Textured PEI Plate")
 };
 
+static std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type)
+{
+    if (nozzle_volume_type == NozzleVolumeType::nvtStandard) {
+        return "standard_flow";
+    }
+    else if (nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
+        return "high_flow";
+    }
+    else {
+        assert(false);
+        return "";
+    }
+}
+
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
 {
@@ -1239,28 +1253,34 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
     if (invalid_count == m_ams_mapping_result.size()) {
         return false;
     } else {
-
         json mapping_v0_json    = json::array();
         json mapping_v1_json    = json::array();
-
         json mapping_info_json  = json::array();
 
+        /* get filament maps */
+        std::vector<int> filament_maps;
+        Plater* plater = wxGetApp().plater();
+        if (plater) {
+            PartPlate* curr_plate = plater->get_partplate_list().get_curr_plate();
+            if (curr_plate) {
+                filament_maps = curr_plate->get_filament_maps();
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
+        }
+
         for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
-
             int tray_id = -1;
-
             json mapping_item_v1;
             mapping_item_v1["ams_id"] = 0xff;
             mapping_item_v1["slot_id"] = 0xff;
-
             json mapping_item;
             mapping_item["ams"] = tray_id;
             mapping_item["targetColor"] = "";
             mapping_item["filamentId"] = "";
             mapping_item["filamentType"] = "";
-
-
-
             for (int k = 0; k < m_ams_mapping_result.size(); k++) {
                 if (m_ams_mapping_result[k].id == i) {
                     tray_id = m_ams_mapping_result[k].tray_id;
@@ -1269,6 +1289,10 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
                     if (it != nullptr) {
                         mapping_item["filamentId"] = it->filament_id;
+                    }
+                    /* nozzle id */
+                    if (i >= 0 && i < filament_maps.size()) {
+                        mapping_item["nozzleId"] = convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]);
                     }
                     //convert #RRGGBB to RRGGBBAA
                     mapping_item["sourceColor"]     = m_filaments[k].color;
@@ -1279,7 +1303,6 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     }
 
                     /*new ams mapping data*/
-
                     try
                     {
                         if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
@@ -1325,11 +1348,11 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
         BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_diameters is nullptr";
         return false;
     }
-    //auto opt_nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    //if (opt_nozzle_volume_type == nullptr) {
-    //    BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_volume_type is nullptr";
-    //    return false;
-    //}
+    auto opt_nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    if (opt_nozzle_volume_type == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_volume_type is nullptr";
+        return false;
+    }
     json nozzle_item;
     /* only o1d two nozzles has build_nozzles info now */
     if (opt_nozzle_diameters->size() != 2) {
@@ -1349,9 +1372,9 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
             continue;
         }
         nozzle_item["type"] = nullptr;
-        //if (i >= 0 && i < opt_nozzle_volume_type->size()) {
-            nozzle_item["flowSize"] = "standard_flow"; // TODO: Orca hack
-        //}
+        if (i >= 0 && i < opt_nozzle_volume_type->size()) {
+            nozzle_item["flowSize"] = get_nozzle_volume_type_cloud_string((NozzleVolumeType)opt_nozzle_volume_type->get_at(i));
+        }
         if (i >= 0 && i < opt_nozzle_diameters->size()) {
             nozzle_item["diameter"] = opt_nozzle_diameters->get_at(i);
         }
@@ -1465,6 +1488,21 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
         }
     }
     return true;
+}
+
+int SelectMachineDialog::convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id)
+{
+    if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_LEFT) {
+        return (int)CloudTaskNozzleId::NOZZLE_LEFT;
+    }
+    else if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_RIGHT) {
+        return (int)CloudTaskNozzleId::NOZZLE_RIGHT;
+    }
+    else {
+        /* unsupported nozzle id */
+        assert(false);
+        return nozzle_id;
+    }
 }
 
 void SelectMachineDialog::prepare(int print_plate_idx)
@@ -2381,7 +2419,7 @@ void SelectMachineDialog::on_send_print()
         m_print_job->task_ams_mapping2 = "";
         m_print_job->task_ams_mapping_info = "";
     }
-
+    
     /* build nozzles info for multi extruders printers */
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
         BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";

@@ -513,6 +513,15 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
+{
+    if (nozzle_volume_type > nvtMaxNozzleVolumeType) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported NozzleVolumeType=%1%") % nozzle_volume_type;
+        return "";
+    }
+    return s_keys_names_NozzleVolumeType[nozzle_volume_type];
+}
+
 std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string>& strs)
 {
     std::vector<std::map<int, int>> extruder_ams_counts;

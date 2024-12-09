@@ -385,6 +385,8 @@ enum FilamentMapMode {
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
+std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;

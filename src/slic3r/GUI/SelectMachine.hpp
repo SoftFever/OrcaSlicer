@@ -113,6 +113,12 @@ enum class CloudTaskNozzleId : int
     NOZZLE_LEFT     = 1,
 };
 
+enum class FilamentMapNozzleId : int
+{
+    NOZZLE_LEFT     = 1,
+    NOZZLE_RIGHT    = 2,
+};
+
 enum class ConfigNozzleIdx : int
 {
     NOZZLE_LEFT      = 0,
@@ -463,6 +469,7 @@ public:
     bool can_hybrid_mapping(ExtderData data);
     void auto_supply_with_ext(std::vector<AmsTray> slots);
     bool is_nozzle_type_match(ExtderData data);
+    int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     std::string get_print_status_info(PrintDialogStatus status);
 
