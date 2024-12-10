@@ -1736,7 +1736,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
-        wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
+        wxString msg_text = _L("External storage needs to be inserted before printing via LAN.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
+        wxString msg_text = _L("External storage is not available or is in read-only mode.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -1746,7 +1751,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
-        wxString msg_text = _L("An SD card needs to be inserted before printing.");
+        wxString msg_text = _L("External storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1785,8 +1790,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    }else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
-        wxString msg_text = _L("An SD card needs to be inserted to record timelapse.");
+    } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
+        wxString msg_text = _L("External storage needs to be inserted to record timelapse.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -2419,7 +2424,7 @@ void SelectMachineDialog::on_send_print()
         m_print_job->task_ams_mapping2 = "";
         m_print_job->task_ams_mapping_info = "";
     }
-    
+
     /* build nozzles info for multi extruders printers */
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
         BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";
@@ -3103,6 +3108,10 @@ void SelectMachineDialog::update_show_status()
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             show_status(PrintDialogStatus::PrintStatusLanModeNoSdcard);
+            return;
+        } else if (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL
+            || obj_->get_sdcard_state() ==  MachineObject::SdcardState::HAS_SDCARD_READONLY) {
+            show_status(PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable);
             return;
         }
     }
@@ -4266,6 +4275,7 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
     case PrintStatusSending: return "PrintStatusSending";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusLanModeNoSdcard: return "PrintStatusLanModeNoSdcard";
+    case PrintStatusLanModeSDcardNotAvailable: return "PrintStatusLanModeSDcardNotAvailable";
     case PrintStatusNoSdcard: return "PrintStatusNoSdcard";
     case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
     case PrintStatusTimelapseNoSdcard: return "PrintStatusTimelapseNoSdcard";

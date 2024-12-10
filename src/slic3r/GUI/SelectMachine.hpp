@@ -83,6 +83,7 @@ enum PrintDialogStatus {
     PrintStatusSending,
     PrintStatusSendingCanceled,
     PrintStatusLanModeNoSdcard,
+    PrintStatusLanModeSDcardNotAvailable,
     PrintStatusNoSdcard,
     PrintStatusTimelapseNoSdcard,
     PrintStatusNotOnTheSameLAN,
