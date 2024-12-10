@@ -288,6 +288,7 @@ public:
     BuildVolume_Type get_build_volume_type() const;
 
     //BBS: add only gcode mode
+    bool is_gcode_3mf() { return m_exported_file; }
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
 
@@ -824,7 +825,7 @@ private:
 
     wxString m_last_loaded_gcode;
     //BBS: add only gcode mode
-    bool m_only_gcode { false };
+    bool m_only_gcode { false };//just for .gcode file not for .gcode.3mf
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project { false };
