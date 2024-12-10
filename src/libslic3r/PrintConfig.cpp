@@ -8221,6 +8221,9 @@ void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& 
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%")
                         %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (e_index+1);
                     assert(false);
+                    //for some updates happens in a invalid state(caused by popup window)
+                    //we need to avoid crash
+                    variant_index[e_index] = 0;
                 }
             }
         }
@@ -8374,6 +8377,9 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%")
                     %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index+1) %filament_maps[f_index];
                 assert(false);
+                //for some updates happens in a invalid state(caused by popup window)
+                //we need to avoid crash
+                variant_index[f_index] = 0;
             }
         }
 
