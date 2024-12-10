@@ -22,9 +22,11 @@ public:
     JusPrinChatPanel(wxWindow* parent);
     virtual ~JusPrinChatPanel();
     void reload();
-    void UpdateOAuthAccessToken();
-    void RefreshPlaterStatus();
 
+    void UpdateOAuthAccessToken();
+    void RefreshPresets();
+    void RefreshPlaterConfig();
+    void RefreshPlaterStatus();
 private:
     void load_url();
     void update_mode();
@@ -56,15 +58,12 @@ private:
     void handle_refresh_oauth_token(const nlohmann::json& params);
     void handle_refresh_presets(const nlohmann::json& params);
     void handle_refresh_plater_config(const nlohmann::json& params);
-
 private:
     void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterConfigJson();
     void ApplyConfig(const nlohmann::json& item);
-    void RefreshPresets();
-    void RefreshPlaterConfig();
     void AdvertiseSupportedAction();
 
     void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
