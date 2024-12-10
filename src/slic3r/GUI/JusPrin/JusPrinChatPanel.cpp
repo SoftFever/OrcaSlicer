@@ -166,7 +166,7 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         std::string  name = payload.value("name", "");
         Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
         if (tab != nullptr) {
-            tab->m_presets->discard_current_changes();
+            tab->discard_current();
             tab->select_preset(name, false, std::string(), false);
         }
     } catch (const std::exception& e) {
