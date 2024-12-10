@@ -424,7 +424,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 amount of retraction. In other words, how far do we move in XY at wipe_speed
                 for the time needed to consume retraction_length at retraction_speed?  */
             // BBS
-            double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().filament() ->extruder_id()));
+            double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().filament()->id()));
 
             /*  Take the stored wipe path and replace first point with the current actual position
                 (they might be different, for example, in case of loop clipping).  */
@@ -1636,10 +1636,10 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
 
     bool activate_long_retraction_when_cut = false;
-    for (const auto& extruder : m_writer.extruders())
+    for (const auto& filament : m_writer.extruders())
         activate_long_retraction_when_cut |= (
-            m_config.long_retractions_when_cut.get_at(extruder.extruder_id())
-         && m_config.retraction_distances_when_cut.get_at(extruder.extruder_id()) > 0
+            m_config.long_retractions_when_cut.get_at(filament.id())
+         && m_config.retraction_distances_when_cut.get_at(filament.id()) > 0
             );
 
     m_processor.result().long_retraction_when_cut = activate_long_retraction_when_cut;
@@ -2301,8 +2301,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->placeholder_parser().set("initial_no_support_extruder", initial_non_support_extruder_id);
     this->placeholder_parser().set("current_extruder", initial_extruder_id);
     //Orca: set the key for compatibilty
-    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
-    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
+    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
+    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(initial_extruder_id));
     this->placeholder_parser().set("temperature", new ConfigOptionInts(print.config().nozzle_temperature));
 
 
@@ -4758,10 +4758,10 @@ std::string GCode::change_layer(coordf_t print_z)
         gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
     //BBS
     coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
-    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
-        LiftType lift_type = this->to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
+    if (FILAMENT_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
+        LiftType lift_type = this->to_lift_type(ZHopType(FILAMENT_CONFIG(z_hop_types)));
         //BBS: force to use SpiralLift when change layer if lift type is auto
-        gcode += this->retract(false, false, ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
+        gcode += this->retract(false, false, ZHopType(FILAMENT_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
     }
 
     m_writer.add_object_change_labels(gcode);
@@ -5027,7 +5027,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     // BBS
-    if (m_wipe.enable && EXTRUDER_CONFIG(wipe)) {
+    if (m_wipe.enable && FILAMENT_CONFIG(wipe)) {
         m_wipe.path = Polyline();
         for (ExtrusionPath &path : paths) {
             //BBS: Don't need to save duplicated point into wipe path
@@ -5112,7 +5112,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     }
 
     // BBS
-    if (m_wipe.enable && EXTRUDER_CONFIG(wipe)) {
+    if (m_wipe.enable && FILAMENT_CONFIG(wipe)) {
         m_wipe.path = Polyline();
         for (ExtrusionPath &path : multipath.paths) {
             //BBS: Don't need to save duplicated point into wipe path
@@ -5148,7 +5148,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     m_multi_flow_segment_path_average_mm3_per_mm = 0;
     //    description += ExtrusionEntity::role_to_string(path.role());
     std::string gcode = this->_extrude(path, description, speed);
-    if (m_wipe.enable && EXTRUDER_CONFIG(wipe)) {
+    if (m_wipe.enable && FILAMENT_CONFIG(wipe)) {
         m_wipe.path = std::move(path.polyline);
         m_wipe.path.reverse();
     }
@@ -6353,7 +6353,7 @@ LiftType GCode::to_lift_type(ZHopType z_hop_types) {
 
 bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType& lift_type)
 {
-    if (travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
+    if (travel.length() < scale_(FILAMENT_CONFIG(retraction_minimum_travel))) {
         // skip retraction if the move is shorter than the configured threshold
         return false;
     }
@@ -6432,11 +6432,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
     if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter) {
-        if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
+        if (ZHopType(FILAMENT_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
             lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
         }
         else {
-            lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
+            lift_type = to_lift_type(ZHopType(FILAMENT_CONFIG(z_hop_types)));
         }
         return true;
     }
@@ -6466,11 +6466,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         return false;
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
-    if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
+    if (ZHopType(FILAMENT_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
         lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
     }
     else {
-        lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
+        lift_type = to_lift_type(ZHopType(FILAMENT_CONFIG(z_hop_types)));
     }
     return true;
 }
@@ -6483,7 +6483,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
         return gcode;
 
     // wipe (if it's enabled for this extruder and we have a stored wipe path and no-zero wipe distance)
-    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(EXTRUDER_CONFIG(wipe_distance)) > SCALED_EPSILON) {
+    if (FILAMENT_CONFIG(wipe) && m_wipe.has_path() && scale_(FILAMENT_CONFIG(wipe_distance)) > SCALED_EPSILON) {
         Wipe::RetractionValues wipeRetractions = m_wipe.calculateWipeRetractionLengths(*this, toolchange);
         gcode += toolchange ? m_writer.retract_for_toolchange(true,wipeRetractions.retractLengthBeforeWipe) : m_writer.retract(true, wipeRetractions.retractLengthBeforeWipe);
         gcode += m_wipe.wipe(*this,wipeRetractions.retractLengthDuringWipe, toolchange, is_last_retraction);
