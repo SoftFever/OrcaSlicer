@@ -531,7 +531,7 @@ bool MachineObject::is_lan_mode_printer() const
 PrinterSeries MachineObject::get_printer_series() const
 {
     std::string series =  DeviceManager::get_printer_series(printer_type);
-    if (series == "series_x1")
+    if (series == "series_x1" || series == "series_o")
         return PrinterSeries::SERIES_X1;
     else if (series == "series_p1p")
         return PrinterSeries::SERIES_P1P;

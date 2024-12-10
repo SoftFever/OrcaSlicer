@@ -632,8 +632,10 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 {
     bool has_hub_model = false;
 
+    bool is_o_series = DeviceManager::get_printer_series(obj->printer_type) == "series_o";
+
     //hub
-    if (!obj->online_ahb || obj->module_vers.find("ahb") == obj->module_vers.end())
+    if (!obj->online_ahb || obj->module_vers.find("ahb") == obj->module_vers.end() || is_o_series)
         m_ahb_panel->Hide();
     else {
         has_hub_model = true;
@@ -946,7 +948,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     
     //ext
     auto ext_module = obj->module_vers.find("ext");
-    if (ext_module == obj->module_vers.end())
+    if (ext_module == obj->module_vers.end() || is_o_series)
         show_ext(false);
     else {
         wxString sn_text = ext_module->second.sn;
