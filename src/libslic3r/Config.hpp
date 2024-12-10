@@ -618,7 +618,10 @@ public:
                 this->values[i] = rhs_vec->values[i];
                 modified        = true;
             } else {
-                this->values[i] = default_value[default_index[i]-1];
+                if ((i < default_index.size()) && (default_index[i] - 1 < default_value.size()))
+                    this->values[i] = default_value[default_index[i] - 1];
+                else
+                    this->values[i] = default_value[0];
             }
         }
         return modified;
