@@ -2197,10 +2197,11 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(wxEVT_WEBREQUEST_STATE, &StatusPanel::on_webrequest_state, this);
 
     Bind(wxCUSTOMEVT_SET_TEMP_FINISH, [this](wxCommandEvent e) {
-        int id = e.GetInt();
+        int  id   = e.GetInt();
         if (id == m_tempCtrl_bed->GetType()) {
             on_set_bed_temp();
         } else if (id == m_tempCtrl_nozzle->GetType()) {
+
             if (e.GetString() == wxString::Format("%d", MAIN_NOZZLE_ID)) {
                 on_set_nozzle_temp(MAIN_NOZZLE_ID);
             } else if (e.GetString() == wxString::Format("%d", DEPUTY_NOZZLE_ID)) {
@@ -2226,6 +2227,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
+    m_tempCtrl_nozzle_deputy->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
+    m_tempCtrl_nozzle_deputy->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
     m_tempCtrl_chamber->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_kill_focus), NULL, this);
     m_tempCtrl_chamber->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_set_focus), NULL, this);
     m_switch_lamp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);
@@ -2291,6 +2294,10 @@ StatusPanel::~StatusPanel()
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
+
+    m_tempCtrl_nozzle_deputy->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
+    m_tempCtrl_nozzle_deputy->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
+
     m_switch_lamp->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);
     /*m_switch_nozzle_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
     m_switch_printing_fan->Disconnect(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
@@ -2880,24 +2887,28 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
     } else {
-        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[MAIN_NOZZLE_ID].target_temp); }
+        if (!nozzle_temp_input) {
+            m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[MAIN_NOZZLE_ID].target_temp);
+        }
     }
 
     if (m_temp_nozzle_deputy_timeout > 0) {
         m_temp_nozzle_deputy_timeout--;
     }
     else {
-        if (!nozzle_temp_input && nozzle_num >= 2) { m_tempCtrl_nozzle_deputy->SetTagTemp((int)obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].target_temp); }
+        if (!nozzle_temp_input && nozzle_num >= 2) {
+            m_tempCtrl_nozzle_deputy->SetTagTemp((int)obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].target_temp);
+        }
     }
 
-    if ((obj->m_extder_data.extders[0].target_temp - obj->m_extder_data.extders[0].temp) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->m_extder_data.extders[MAIN_NOZZLE_ID].target_temp - obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
     }
 
     if (nozzle_num >= 2 && obj->m_extder_data.extders.size() > 1){
-        if ((obj->m_extder_data.extders[1].target_temp - obj->m_extder_data.extders[1].temp) >= TEMP_THRESHOLD_VAL) {
+        if ((obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].target_temp - obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].temp) >= TEMP_THRESHOLD_VAL) {
             m_tempCtrl_nozzle_deputy->SetIconActive();
         }
         else {
@@ -2940,17 +2951,18 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_extruderImage[select_index]->update(ExtruderState::FILLED_LOAD, ExtruderState::FILLED_UNLOAD);
 
         /*current*/
-        if (obj->m_extder_data.current_extder_id == 0xf) {
-            m_extruderImage[select_index]->setExtruderUsed("");
-            m_nozzle_btn_panel->updateState("");
-        } else if (obj->m_extder_data.current_extder_id == MAIN_NOZZLE_ID) {
-            m_extruderImage[select_index]->setExtruderUsed("right");
-            m_nozzle_btn_panel->updateState("right");
-        } else if (obj->m_extder_data.current_extder_id == DEPUTY_NOZZLE_ID) {
-            m_extruderImage[select_index]->setExtruderUsed("left");
-            m_nozzle_btn_panel->updateState("left");
+        if (obj->flag_update_nozzle) {
+            if (obj->m_extder_data.current_extder_id == 0xf) {
+                m_extruderImage[select_index]->setExtruderUsed("");
+                m_nozzle_btn_panel->updateState("");
+            } else if (obj->m_extder_data.current_extder_id == MAIN_NOZZLE_ID) {
+                m_extruderImage[select_index]->setExtruderUsed("right");
+                m_nozzle_btn_panel->updateState("right");
+            } else if (obj->m_extder_data.current_extder_id == DEPUTY_NOZZLE_ID) {
+                m_extruderImage[select_index]->setExtruderUsed("left");
+                m_nozzle_btn_panel->updateState("left");
+            }
         }
-        Layout();
     } else {
         m_nozzle_btn_panel->Hide();
         m_extruder_book->SetSelection(m_nozzle_num);
@@ -3185,24 +3197,19 @@ void StatusPanel::update_ams(MachineObject *obj)
                 m_ams_control->SetExtruder(false, true, ext.snow.ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
             }
         }
-
-
-        //m_ams_control->SetAmsStep(std::to_string(VIRTUAL_TRAY_MAIN_ID), "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-        //m_ams_control->SetExtruder(true, true, std::to_string(VIRTUAL_TRAY_MAIN_ID), *wxRED);
     }
 
     bool ams_loading_state = false;
     auto ams_status_sub = obj->ams_status_sub;
 
     int vt_tray_id = VIRTUAL_TRAY_DEPUTY_ID;
-    /*if (obj->is_enable_np) {
-        if (obj->m_extder_data.current_loading_extder_id == MAIN_NOZZLE_ID || obj->m_extder_data.current_loading_extder_id == DEPUTY_NOZZLE_ID) {
+    if (obj->is_enable_np) {
+        if (obj->m_extder_data.current_busy_for_loading) {
             ams_loading_state = true;
         }
-    } else if(obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE){
+    } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         ams_loading_state = true;
-    }*/
-
+    }
 
     if (ams_loading_state) {
         update_filament_step();
@@ -3369,7 +3376,6 @@ void StatusPanel::update_ams_insert_material(MachineObject* obj) {
 
 void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
-    return;
     // set default value to true
     bool enable[ACTION_BTN_COUNT];
     enable[ACTION_BTN_LOAD] = true;
@@ -3385,10 +3391,13 @@ void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_
         else {
             /*switch now*/
             bool in_switch_filament = false;
-            for ( auto ext : obj->m_extder_data.extders) {
-                if (ext.ams_stat == AmsStatusMain::AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+
+            if (obj->is_enable_np) {
+                if (obj->m_extder_data.current_busy_for_loading) {
                     in_switch_filament = true;
                 }
+            } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+                in_switch_filament = true;
             }
 
             if (in_switch_filament) {
@@ -4022,7 +4031,7 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
         if (nozzle_id == DEPUTY_NOZZLE_ID) {
             wxString str = m_tempCtrl_nozzle_deputy->GetTextCtrl()->GetValue();
             if (str.ToLong(&nozzle_temp) && obj) {
-                // set_hold_count(m_temp_nozzle_deputy_timeout);
+                set_hold_count(m_temp_nozzle_deputy_timeout);
                 if (nozzle_temp > m_tempCtrl_nozzle_deputy->get_max_temp()) {
                     nozzle_temp = m_tempCtrl_nozzle_deputy->get_max_temp();
                     m_tempCtrl_nozzle_deputy->SetTagTemp(wxString::Format("%d", nozzle_temp));
@@ -4066,7 +4075,6 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
 
 void StatusPanel::update_filament_step()
 {
-    //m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
     m_filament_step->UpdateStepCtrl(obj->is_filament_at_extruder());
     if (!obj->is_filament_at_extruder()) {
         m_is_load_with_temp = true;
@@ -4672,7 +4680,7 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
         m_fan_control_popup->Destroy();
         m_fan_control_popup = nullptr;
     }
-    
+
     if (!obj)
         return;
 
@@ -4860,7 +4868,7 @@ void StatusPanel::on_xyz_abs(wxCommandEvent &event)
 void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
 {
     if (obj) {
-        obj->m_extder_data.current_extder_id = event.GetInt();
+        obj->flag_update_nozzle = false;
         auto nozzle_id = event.GetInt();obj->command_select_extruder(nozzle_id);
     }
 }
@@ -4935,6 +4943,7 @@ void StatusPanel::set_default()
     speed_lvl_timeout = 0;
     m_switch_lamp_timeout = 0;
     m_temp_nozzle_timeout = 0;
+    m_temp_nozzle_deputy_timeout = 0;
     m_temp_bed_timeout = 0;
     m_temp_chamber_timeout = 0;
     m_switch_nozzle_fan_timeout = 0;

@@ -226,6 +226,7 @@ struct ExtderData
     int target_extder_id{0};
     int total_extder_count {0};
     int current_loading_extder_id {-1};
+    bool current_busy_for_loading{false};
     ExtruderSwitchState switch_extder_state;
     std::vector<Extder> extders;
 };
@@ -937,6 +938,7 @@ public:
     int  xcam_filament_tangle_detect_count = 0;
     int  ams_print_option_count = 0;
     int  nozzle_selected_count = 0;
+    bool flag_update_nozzle = {true};
 
     //supported features
     bool is_support_chamber_edit{false};

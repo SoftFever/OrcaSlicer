@@ -45,10 +45,11 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
         m_filament_load_steps->Idle();
         m_filament_unload_steps->Idle();
         m_filament_vt_load_steps->Idle();
-        this->Hide();
+        if (IsShown()) {Hide(); }
         return;
     }
-    this->Show();
+
+    if (!IsShown()) {Show();}
     wxString step_str = wxEmptyString;
     if (item_idx < FilamentStep::STEP_COUNT) {
         step_str = FILAMENT_CHANGE_STEP_STRING[item_idx];
@@ -58,36 +59,36 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
     if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
         step_control = m_filament_load_steps;
         if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            if (this->GetSelection() != 0) {
-                this->SetSelection(0);
+            if (GetSelection() != 0) {
+                SetSelection(0);
             }
             m_filament_load_steps->SelectItem(m_filament_load_steps->GetItemUseText(step_str));
         }
         else {
             m_filament_load_steps->Idle();
-            this->Hide();
-            this->Layout();
+            Hide();
+            Layout();
         }
     }
     else if (f_type == FilamentStepType::STEP_TYPE_UNLOAD) {
         step_control = m_filament_unload_steps;
         if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
             if (GetSelection() != 1) {
-                this->SetSelection(1);
-                this->Layout();
+                SetSelection(1);
+                Layout();
             }
             m_filament_unload_steps->SelectItem(m_filament_unload_steps->GetItemUseText(step_str));
         }
         else {
             m_filament_unload_steps->Idle();
-            this->Hide();
-            this->Layout();
+            Hide();
+            Layout();
         }
     }
     else if (f_type == FilamentStepType::STEP_TYPE_VT_LOAD) {
         step_control = m_filament_vt_load_steps;
-        this->SetSelection(2);
-        this->Layout();
+        SetSelection(2);
+        Layout();
         if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
             if (item_idx == STEP_CONFIRM_EXTRUDED) {
                 m_filament_vt_load_steps->SelectItem(2);
@@ -98,8 +99,8 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
         }
         else {
             m_filament_vt_load_steps->Idle();
-            this->Hide();
-            this->Layout();
+            Hide();
+            Layout();
         }
     }
     else {
@@ -110,8 +111,8 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
         }
         else {
             m_filament_load_steps->Idle();
-            this->Hide();
-            this->Layout();
+            Hide();
+            Layout();
         }
     }
 
@@ -130,7 +131,7 @@ void FilamentLoad::UpdateStepCtrl(bool is_extrusion_exist) {
 
     is_extrusion = true;    //Forgot what it means, need to update dynamically
 
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS) {
+    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::N3F_AMS) {
         if (is_extrusion) {
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);

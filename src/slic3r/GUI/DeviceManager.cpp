@@ -1648,8 +1648,6 @@ int MachineObject::command_select_extruder(int id)
 {
     BOOST_LOG_TRIVIAL(info) << "select_extruder";
 
-    nozzle_selected_count = HOLD_COUNT_MAX;
-
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "select_extruder";
@@ -1906,8 +1904,6 @@ int MachineObject::command_set_nozzle(int temp)
 int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
 {
     BOOST_LOG_TRIVIAL(info) << "set_nozzle_temp";
-
-    nozzle_selected_count = HOLD_COUNT_MAX;
 
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
@@ -5430,7 +5426,7 @@ void MachineObject::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_f
     m_air_duct_data.curren_mode = -1; //def mode
 
 
-    if (is_suppt_part_fun) { 
+    if (is_suppt_part_fun) {
         AirParts part_fan;
         part_fan.type           = int(AirDuctType::AIR_FAN_TYPE);
         part_fan.id             = int(AIR_FUN::FAN_COOLING_0_AIRDOOR);
@@ -5834,7 +5830,12 @@ void MachineObject::parse_new_info(json print)
             extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 4);
             extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 3);
 
+            if (extder_data.switch_extder_state != ExtruderSwitchState::ES_SWITCHING && extder_data.target_extder_id == extder_data.current_extder_id) {
+                flag_update_nozzle = true;
+            }
+
             extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 4);
+            extder_data.current_busy_for_loading  = get_flag_bits(extruder["state"].get<int>(), 19);
 
             for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
 
