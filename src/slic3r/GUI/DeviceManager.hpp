@@ -872,7 +872,6 @@ public:
     //bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
-    bool is_support_filament_setting_inprinting{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
     bool is_support_command_homing { false };// fun[32]

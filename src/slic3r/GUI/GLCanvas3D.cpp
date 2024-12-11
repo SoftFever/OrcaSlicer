@@ -9722,6 +9722,17 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ObjectLimited:
         text = object_limited_text;
         break;
+    case EWarning::FilamentUnPrintableOnFirstLayer: {
+        std::string             warning;
+        const std::vector<int> &conflict_filament = m_gcode_viewer.filament_printable_reuslt.conflict_filament;
+        auto                    iter              = conflict_filament.begin();
+        for (int filament : conflict_filament) {
+            warning += std::to_string(filament + 1);
+            warning += " ";
+        }
+        text  = (boost::format(_u8L("filaments %s cannot be printed directly on the surface of this plate.")) % warning).str();
+        error = ErrorType::SLICING_ERROR;
+        break;
     }
     //BBS: this may happened when exit the app, plater is null
     if (!wxGetApp().plater())
