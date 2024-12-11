@@ -1,6 +1,13 @@
 {
 	"name": "OrcaSlicer",
-	"image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-20.04",
+	"build": {
+	"dockerfile": "Dockerfile",
+		"args": {
+			"PLATFORM": "linux/amd64",
+			"BASE_IMAGE": "mcr.microsoft.com/devcontainers/cpp:ubuntu-20.04"
+		},
+		"options": ["--platform=linux/amd64"]
+	},
 	"runArgs": ["--env-file", "/tmp/devcontainer.env"],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
