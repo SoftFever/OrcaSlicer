@@ -71,10 +71,16 @@ jobs:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
     steps:
-    # maybe i'm too dumb and fucked up to do CI. OH WELL :D -ppd
-    - name: "Remove unneeded stuff to free disk space"
-      run:
-        sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
+    - name: free disk space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
