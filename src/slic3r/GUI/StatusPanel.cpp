@@ -3074,19 +3074,14 @@ void StatusPanel::update_ams(MachineObject *obj)
         obj->check_ams_filament_valid();
     }
     if (obj->is_enable_np && obj->amsList.size() > 0) { ams_mode = AMSModel(obj->amsList.begin()->second->type); }
-    if (!obj
-        || !obj->is_connected()
-        || obj->amsList.empty()
-        || obj->ams_exist_bits == 0) {
-        if (!obj || !obj->is_connected()) {
-            last_tray_exist_bits = -1;
-            last_ams_exist_bits = -1;
-            last_tray_is_bbl_bits = -1;
-            last_read_done_bits = -1;
-            last_reading_bits = -1;
-            last_ams_version = -1;
-            BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
-        }
+    if (!obj || !obj->is_connected()) {
+        last_tray_exist_bits  = -1;
+        last_ams_exist_bits   = -1;
+        last_tray_is_bbl_bits = -1;
+        last_read_done_bits   = -1;
+        last_reading_bits     = -1;
+        last_ams_version      = -1;
+        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
 
         m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);
@@ -3098,7 +3093,14 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_filament_step->SetAmsModel(ams_mode, ams_mode);
         show_ams_group(true);
         show_filament_load_group(true);
-        m_ams_control->show_auto_refill(true);
+
+        if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
+            m_ams_control->show_auto_refill(false);
+            m_ams_control->enable_ams_setting(false);
+        } else {
+            m_ams_control->show_auto_refill(true);
+            m_ams_control->enable_ams_setting(true);
+        }
     }
 
 

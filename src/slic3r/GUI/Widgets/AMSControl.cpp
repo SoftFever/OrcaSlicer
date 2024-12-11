@@ -996,6 +996,11 @@ void AMSControl::show_auto_refill(bool show)
     m_amswin->Fit();
 }
 
+void AMSControl::enable_ams_setting(bool en)
+{
+    m_button_ams_setting->Enable(en);
+}
+
 void AMSControl::show_vams(bool show)
 {
     m_panel_virtual->Show(show);
