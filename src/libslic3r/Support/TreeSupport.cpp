@@ -3092,9 +3092,11 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
         if (contact_nodes[layer_nr].empty()) continue;
         SupportNode *node1 = contact_nodes[layer_nr].front();
-        auto         it    = z_heights.lower_bound(node1->print_z + EPSILON);
-        if (it == z_heights.end()) it = std::prev(it);
-        int layer_nr2 = std::distance(z_heights.begin(), it);
+        auto         it    = std::min_element(layer_heights.begin(), layer_heights.end(), [node1](const LayerHeightData &l1, const LayerHeightData &l2) {
+            return std::abs(l1.print_z - node1->print_z) < std::abs(l2.print_z - node1->print_z);
+        });
+        if (it == layer_heights.end()) it = std::prev(it);
+        int layer_nr2 = std::distance(layer_heights.begin(), it);
         contact_nodes2[layer_nr2].insert(contact_nodes2[layer_nr2].end(), contact_nodes[layer_nr].begin(), contact_nodes[layer_nr].end());
     }
     contact_nodes = contact_nodes2;
@@ -3118,7 +3120,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
                 if (accum_height > node1->height - EPSILON) break;
             }
         }
-        BOOST_LOG_TRIVIAL(debug) << format("plan_layer_heights adjust node's height %d %.2f: (%.3f,%d)->(%.3f,%.3f,%d)", layer_nr, node1->print_z,
+        BOOST_LOG_TRIVIAL(debug) << format("plan_layer_heights adjust node's height print_z[%d]=%.2f: (%.3f,%d)->(%.3f,%.3f,%d)", layer_nr, node1->print_z,
             node1->height, node1->distance_to_top, new_height, accum_height, -num_layers);
         for (SupportNode *node : contact_nodes[layer_nr]) {
             node->height          = new_height;
