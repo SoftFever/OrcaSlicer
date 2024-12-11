@@ -5181,11 +5181,6 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     return !canceled;
 }
 
-void Tab::discard_current() {
-    m_preset_bundle->prints.discard_current_changes();
-    m_preset_bundle->filaments.discard_current_changes();
-}
-
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
 bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer)
