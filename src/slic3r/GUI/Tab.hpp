@@ -329,7 +329,6 @@ public:
     // Select a new preset, possibly delete the current one.
 	bool		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "", bool force_select = false);
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false);
-    void discard_current();
 
     virtual void    clear_pages();
     virtual void    update_description_lines();
