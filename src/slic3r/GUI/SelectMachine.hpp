@@ -370,7 +370,6 @@ protected:
     ScalableBitmap *                    print_weight{nullptr};
     ScalableBitmap *                    ams_mapping_help_icon{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
-    ScalableBitmap *                    enable_ams{nullptr};
     ThumbnailData                       m_cur_input_thumbnail_data;
     ThumbnailData                       m_cur_no_light_thumbnail_data;
     ThumbnailData                       m_preview_thumbnail_data;//when ams map change
