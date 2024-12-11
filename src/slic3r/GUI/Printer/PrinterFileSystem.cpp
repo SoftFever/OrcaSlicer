@@ -54,7 +54,7 @@ static std::map<int, std::string> error_messages = {
      {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
      {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
      {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
-     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card.")},
+     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage.")},
      {PrinterFileSystem::API_VERSION_UNSUPPORT, L("The firmware version of the printer is too low. Please update the firmware and try again.")},
      {PrinterFileSystem::FILE_EXIST, L("The file already exists, do you want to replace it?")},
      {PrinterFileSystem::STORAGE_SPACE_NOT_ENOUGH, L("Insufficient storage space, please clear the space and try again.")},

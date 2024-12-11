@@ -440,12 +440,12 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     m_waiting_enable = false;
     if (!m_local_proto && !m_remote_proto) {
         m_waiting_support = true;
-        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in current firmware. Please update the printer firmware."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in storage is not supported in current firmware. Please update the printer firmware."));
         fs->SetUrl("0");
         return;
     }
     if (!m_sdcard_exist) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage."));
         fs->SetUrl("0");
         return;
     }
@@ -478,7 +478,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     if (m_lan_mode) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in LAN Only Mode."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in storage is not supported in LAN Only Mode."));
         fs->SetUrl("0");
         return;
     }

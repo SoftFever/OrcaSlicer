@@ -176,7 +176,7 @@ void SendToPrinterDialog::on_rename_enter()
 }
 
 SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer SD card"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer storage"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
 {
 #ifdef __WINDOWS__
@@ -580,7 +580,7 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string>& st
         m_storage_sizer->Add(radiobox, 0, wxALIGN_CENTER, 0);
         m_storage_sizer->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(6));
         m_storage_sizer->Add(storage_text, 0, wxALIGN_CENTER,0);
-        m_storage_radioBox.push_back(radiobox);     
+        m_storage_radioBox.push_back(radiobox);
     }
 
     if (m_storage_radioBox.size() > 0) {
@@ -1435,7 +1435,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
 	}
 	else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
-		wxString msg_text = _L("An SD card needs to be inserted before send to printer SD card.");
+		wxString msg_text = _L("Storage needs to be inserted before send to printer.");
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
@@ -1447,7 +1447,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     }
     else if (status == PrintDialogStatus::PrintStatusNotSupportedSendToSDCard) {
-        wxString msg_text = _L("The printer does not support sending to printer SD card.");
+        wxString msg_text = _L("The printer does not support sending to printer storage.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

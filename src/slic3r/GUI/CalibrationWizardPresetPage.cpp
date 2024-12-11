@@ -1568,12 +1568,12 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard) {
-        wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
+        wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(true);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusNoSdcard) {
-        wxString msg_text = _L("An SD card needs to be inserted before printing.");
+        wxString msg_text = _L("Storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }

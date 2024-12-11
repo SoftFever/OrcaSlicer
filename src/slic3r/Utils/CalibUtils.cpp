@@ -1374,12 +1374,12 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     }
 
     else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
-        error_message = _L("An SD card needs to be inserted before printing.");
+        error_message = _L("Storage needs to be inserted before printing.");
         return;
     }
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-            error_message = _L("An SD card needs to be inserted before printing via LAN.");
+            error_message = _L("Storage needs to be inserted before printing via LAN.");
             return;
         }
     }
