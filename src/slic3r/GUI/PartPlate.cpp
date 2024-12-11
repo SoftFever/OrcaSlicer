@@ -5818,16 +5818,16 @@ bool PartPlateList::init_extruder_only_area_info()
     bool   is_zh       = wxGetApp().app_config->get("language") == "zh_CN";
     Vec4f  base_left(-6.f, -75.f, 12.f, 150.f);
     if (is_zh) {
-		base_left = Vec4f(-5.5f, -60.f, 10.f, 120.f);
-	}
+		base_left = Vec4f(-5.5f, -76.f, 12.f, 150.f);
+    }
     base_left[0]   = base_left[0] * left_x_rate + left_only_rect.x + left_only_rect.w / 2.f;
     base_left[1]   = base_left[1] * left_y_rate + left_only_rect.y + left_only_rect.h / 2.f;
     base_left[2]   = base_left[2] * left_x_rate;
     base_left[3]   = base_left[3] * left_y_rate;
     Vec4f   base_right(-5.5f, -75.f, 12.f, 150.f);
     if (is_zh) {
-		base_right = Vec4f(-4.5f, -60.f, 10.f, 120.f);
-	}
+        base_right = Vec4f(-4.5f, -76.f, 12.f, 150.f);
+    }
     float right_x_rate = right_only_rect.w / base_width;
     float right_y_rate = right_only_rect.h / base_height;
     base_right[0]                   = base_right[0] * right_x_rate + right_only_rect.x + right_only_rect.w / 2.f;
