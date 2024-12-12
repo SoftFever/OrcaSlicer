@@ -21,7 +21,6 @@ class JusPrinChatPanel : public wxPanel
 public:
     JusPrinChatPanel(wxWindow* parent);
     virtual ~JusPrinChatPanel();
-    void reload();
 
     void UpdateOAuthAccessToken();
     void RefreshPresets();
