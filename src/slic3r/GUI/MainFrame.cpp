@@ -1499,12 +1499,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
-    m_ai_assisted_mode_label = new Label(this, _L("AI Assisted"));
-    auto bgColor                = wxColour("#2D2D30");
-    m_ai_assisted_mode_label->SetBackgroundColour(bgColor); 
+    m_ai_assisted_mode_label = new Label(this, _L("AI Assisted Mode"));
+    m_ai_assisted_mode_label->SetBackgroundColour(wxColour("#3B4446"));
     m_ai_assisted_mode_label->SetForegroundColour(wxColour(206, 206, 206));
     m_ai_assisted_mode_switch = new SwitchButton(this, wxID_ANY);
-    m_ai_assisted_mode_switch->SetBackgroundColour(bgColor); // TODO: Match parent background Not working
+    m_ai_assisted_mode_switch->SetBackgroundColour(wxColour("#3B4446"));
 
     update_side_button_style();
     // m_publish_btn->Hide();
@@ -1520,7 +1519,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(m_ai_assisted_mode_label, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(m_ai_assisted_mode_switch, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
 
     sizer->Layout();
 
