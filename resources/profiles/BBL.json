@@ -738,12 +738,12 @@
             "sub_path": "filament/Generic PLA-CF @base.json"
         },
         {
-            "name": "Bambu PLA-CF @base",
-            "sub_path": "filament/Bambu PLA-CF @base.json"
-        },
-        {
             "name": "Generic SBS @base",
             "sub_path": "filament/Generic SBS @base.json"
+        },
+        {
+            "name": "Bambu PLA-CF @base",
+            "sub_path": "filament/Bambu PLA-CF @base.json"
         },
         {
             "name": "Bambu Support For PLA @base",
@@ -1406,10 +1406,6 @@
             "sub_path": "filament/Generic PLA @BBL A1M.json"
         },
         {
-            "name": "Generic SBS",
-            "sub_path": "filament/Generic SBS.json"
-        },
-        {
             "name": "Generic PLA @BBL A1M 0.2 nozzle",
             "sub_path": "filament/Generic PLA @BBL A1M 0.2 nozzle.json"
         },
@@ -1452,6 +1448,10 @@
         {
             "name": "Generic PLA-CF @BBL A1",
             "sub_path": "filament/Generic PLA-CF @BBL A1.json"
+        },
+        {
+            "name": "Generic SBS",
+            "sub_path": "filament/Generic SBS.json"
         },
         {
             "name": "Bambu PLA-CF @BBL X1C 0.8 nozzle",
