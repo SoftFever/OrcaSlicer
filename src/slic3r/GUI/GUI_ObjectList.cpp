@@ -6050,6 +6050,26 @@ void ObjectList::toggle_printable_state()
     wxGetApp().plater()->reload_paint_after_background_process_apply();
 }
 
+void ObjectList::enable_layers_editing()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty())
+        return;
+
+    wxDataViewItem frst_item = sels[0];
+
+    ItemType type = m_objects_model->GetItemType(frst_item);
+    if (!(type & itObject))
+        return;
+    //take_snapshot("");
+
+    auto view3d = wxGetApp().plater()->get_view3D_canvas3D();
+    if (view3d != nullptr && m_objects_model->IsVariableHeight(frst_item)){
+        view3d->enable_layers_editing(true);
+    }
+}
+
 ModelObject* ObjectList::object(const int obj_idx) const
 {
     if (obj_idx < 0)

@@ -874,6 +874,7 @@ public:
     bool is_support_air_print_detection{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
+    bool is_support_filament_setting_inprinting{false};
     bool is_support_command_homing { false };// fun[32]
 
     bool installed_upgrade_kit{false};
