@@ -65,13 +65,6 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
-void JusPrinChatPanel::reload() {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " reload() called";
-
-    m_chat_page_loaded = false;
-    m_browser->Reload();
-}
-
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
@@ -129,14 +122,14 @@ void JusPrinChatPanel::handle_refresh_plater_config(const nlohmann::json& params
 void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-        reload();
+        RefreshPresets();
     });
 }
 
 void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
     wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
-    reload();
+        RefreshPresets();
     });
 
 }
@@ -178,7 +171,7 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 
     // Start a few chat session when printer or filament preset changes to make things simpler for now
     if (preset_type == Preset::Type::TYPE_PRINTER || preset_type == Preset::Type::TYPE_FILAMENT) {
-        reload();
+        RefreshPresets();
     }
 }
 
@@ -401,7 +394,7 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 }
 
 void JusPrinChatPanel::OnPlaterChanged() {
-    reload();
+    RefreshPlaterConfig();
 }
 
 
