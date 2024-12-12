@@ -863,14 +863,6 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 
 	// draw exclude area
 	glsafe(::glDepthMask(GL_FALSE));
-
-	if (m_selected) {
-		glsafe(::glColor4fv(select_color.data()));
-	}
-	else {
-		glsafe(::glColor4fv(unselect_color.data()));
-	}
-
 	m_exclude_triangles.set_color(m_selected ? select_color : unselect_color);
     m_exclude_triangles.render();
 	glsafe(::glDepthMask(GL_TRUE));
@@ -889,11 +881,14 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	glsafe(::glDepthMask(GL_TRUE));
 }*/
 
-void PartPlate::render_grid(bool bottom) {
+void PartPlate::render_grid(bool bottom)
+{
+    GLShaderProgram *shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
 	//glsafe(::glEnable(GL_MULTISAMPLE));
 	// draw grid
-	glsafe(::glLineWidth(1.0f * m_scale_factor));
-
     ColorRGBA color;
 	if (bottom)
         color = LINE_BOTTOM_COLOR;
@@ -904,31 +899,37 @@ void PartPlate::render_grid(bool bottom) {
             color = m_partplate_list->m_is_dark ? LINE_TOP_DARK_COLOR : LINE_TOP_COLOR;
 	}
     m_gridlines.set_color(color);
+    shader->set_uniform("width", 0.2f);
+    shader->set_uniform("gap_size", 0.0f);
     m_gridlines.render();
 
-	glsafe(::glLineWidth(2.0f * m_scale_factor));
     m_gridlines_bolder.set_color(color);
+    shader->set_uniform("width", 1.0f);
     m_gridlines_bolder.render();
 }
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
+    GLShaderProgram *shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
+    shader->set_uniform("width", 2.0f);
+    shader->set_uniform("gap_size", 0.0f);
+
 	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
-		glsafe(::glLineWidth(3.0f * m_scale_factor));
         m_height_limit_common.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
         m_height_limit_common.render();
 
 		if ((mode == HEIGHT_LIMIT_BOTTOM) || (mode == HEIGHT_LIMIT_BOTH)) {
-			glsafe(::glLineWidth(3.0f * m_scale_factor));
             m_height_limit_bottom.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
             m_height_limit_bottom.render();
 		}
 
 		// draw upper limit
 		if ((mode == HEIGHT_LIMIT_TOP) || (mode == HEIGHT_LIMIT_BOTH)){
-            glsafe(::glLineWidth(3.0f * m_scale_factor));
             m_height_limit_top.set_color(HEIGHT_LIMIT_TOP_COLOR);
             m_height_limit_top.render();
 		}
@@ -2728,12 +2729,12 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
     glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
-        glsafe(::glEnable(GL_BLEND));
-        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         shader->set_uniform("view_model_matrix", view_matrix);
         shader->set_uniform("projection_matrix", projection_matrix);
@@ -2744,12 +2745,21 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
 
             render_exclude_area(force_background_color);
         }
+        shader->stop_using();
+    }
+
+    shader = wxGetApp().get_shader("dashed_thick_lines");
+    if (shader != nullptr) {
+        shader->start_using();
+
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        const std::array<int, 4> &viewport = wxGetApp().plater()->get_camera().get_viewport();
+        shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
 
         render_grid(bottom);
 
         render_height_limit(mode);
-
-        glsafe(::glDisable(GL_BLEND));
 
         // if (with_label) {
         //	render_label(canvas);
@@ -2757,6 +2767,8 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
 
         shader->stop_using();
     }
+
+    glsafe(::glDisable(GL_BLEND));
 
     if (!bottom && m_selected && !force_background_color) {
         if (m_partplate_list)
