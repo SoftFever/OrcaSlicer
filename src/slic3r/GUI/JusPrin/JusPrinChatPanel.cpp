@@ -128,7 +128,7 @@ void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
 
 void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
-    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
         RefreshPresets();
     });
 
