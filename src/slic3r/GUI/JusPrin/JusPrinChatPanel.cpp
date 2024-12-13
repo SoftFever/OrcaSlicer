@@ -82,6 +82,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
+    action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
 
     action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
     action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
@@ -249,6 +250,13 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->export_gcode(false);
+    });
+}
+
+void JusPrinChatPanel::handle_auto_orient_object(const nlohmann::json& params) {
+    GUI::wxGetApp().CallAfter([this] {
+        Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+        plater->orient();
     });
 }
 
