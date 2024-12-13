@@ -2290,6 +2290,15 @@ int MachineObject::command_axis_control(std::string axis, double unit, double in
     return this->publish_gcode(cmd);
 }
 
+int MachineObject::command_extruder_control(int nozzle_id, double val)
+{
+    json j;
+    j["print"]["command"]     = "set_extrusion_length";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["extruder_index"] = nozzle_id;
+    j["print"]["length"] = (int)val;
+    return this->publish_json(j.dump());
+}
 
 bool MachineObject::is_support_command_calibration()
 {

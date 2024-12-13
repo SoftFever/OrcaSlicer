@@ -1111,6 +1111,7 @@ public:
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
 
+    int command_extruder_control(int nozzle_id, double val);
     // calibration printer
     bool is_support_command_calibration();
     int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise);

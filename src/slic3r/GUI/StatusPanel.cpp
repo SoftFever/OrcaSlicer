@@ -3964,8 +3964,14 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
-            obj->command_axis_control("E", 1.0, -10.0f, 900);
+        auto current_nozzle_id = obj->m_extder_data.current_extder_id;
+        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+            if (obj->is_enable_np) {
+                obj->command_extruder_control(current_nozzle_id, -10.0f);
+            } else {
+                obj->command_axis_control("E", 1.0, -10.0f, 900);
+            }
+
         else
             axis_ctrl_e_hint(true);
     }
@@ -3974,8 +3980,13 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
-            obj->command_axis_control("E", 1.0, 10.0f, 900);
+        auto current_nozzle_id = obj->m_extder_data.current_extder_id;
+        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+            if (obj->is_enable_np) {
+                obj->command_extruder_control(current_nozzle_id, 10.0f);
+            } else {
+                obj->command_axis_control("E", 1.0, 10.0f, 900);
+            }
         else
             axis_ctrl_e_hint(false);
     }
