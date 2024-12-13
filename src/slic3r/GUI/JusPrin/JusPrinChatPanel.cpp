@@ -406,20 +406,6 @@ void JusPrinChatPanel::AdvertiseSupportedAction() {
     UpdateEmbeddedChatState("supportedActions", action_handlers_json.dump());
 }
 
-// TODO: Clean up the code below this line
-
-void JusPrinChatPanel::SendMessage(wxString  message)
-{
-    wxString script = wxString::Format(R"(
-    // Check if window.fetch exists before overriding
-    if (window.onGUIMessage) {
-        window.onGUIMessage('%s');
-    }
-)",
-                                       message);
-    WebView::RunScript(m_browser, script);
-}
-
 
 void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
