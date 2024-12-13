@@ -26,13 +26,13 @@ public:
     void RefreshPresets();
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
+
 private:
     void load_url();
     void update_mode();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
-    void OnPlaterChanged();
 
     using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     std::map<std::string, MemberFunctionPtr> action_handlers;
@@ -58,18 +58,11 @@ private:
     void handle_refresh_presets(const nlohmann::json& params);
     void handle_refresh_plater_config(const nlohmann::json& params);
 private:
-    void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterConfigJson();
     void ApplyConfig(const nlohmann::json& item);
     void AdvertiseSupportedAction();
-
-    void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
-    void FetchProperty(Preset::Type preset_type);
-    void FetchPresetBundle();
-    void FetchFilaments();
-    void FetchUsedFilamentIds();
 
     wxWebView* m_browser;
     long     m_zoomFactor;
