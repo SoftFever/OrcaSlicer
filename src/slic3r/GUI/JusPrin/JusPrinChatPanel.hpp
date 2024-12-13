@@ -26,13 +26,13 @@ public:
     void RefreshPresets();
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
+
 private:
     void load_url();
     void update_mode();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
-    void OnPlaterChanged();
 
     using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     std::map<std::string, MemberFunctionPtr> action_handlers;

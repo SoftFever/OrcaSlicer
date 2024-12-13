@@ -384,19 +384,10 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 
     wxString chat_server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin");
     if (evt.GetURL().Contains(chat_server_url)) {
-        // TODO: This callback is not triggered when a plate is added or removed
-        // TODO: This callback is triggered when an object is removed, but not when an object is cloned
-        wxGetApp().plater()->add_model_changed([this]() { OnPlaterChanged(); });
-
         AdvertiseSupportedAction();
     }
 
 }
-
-void JusPrinChatPanel::OnPlaterChanged() {
-    RefreshPlaterConfig();
-}
-
 
 void JusPrinChatPanel::AdvertiseSupportedAction() {
     nlohmann::json action_handlers_json = nlohmann::json::array();

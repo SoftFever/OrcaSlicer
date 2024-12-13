@@ -206,7 +206,6 @@ class Plater: public wxPanel
 {
 public:
     using fs_path = boost::filesystem::path;
-    using FunModelChanged = std::function<void()>;
 
     Plater(wxWindow *parent, MainFrame *main_frame);
     Plater(Plater &&) = delete;
@@ -663,8 +662,6 @@ public:
     bool need_update() const;
     void set_need_update(bool need_update);
     void update_title_dirty_status();
-
-    void add_model_changed(FunModelChanged on_model_changed);
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
