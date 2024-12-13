@@ -65,12 +65,6 @@ private:
     void ApplyConfig(const nlohmann::json& item);
     void AdvertiseSupportedAction();
 
-    void ConfigProperty(Preset::Type preset_type, const nlohmann::json& jsonObject);
-    void FetchProperty(Preset::Type preset_type);
-    void FetchPresetBundle();
-    void FetchFilaments();
-    void FetchUsedFilamentIds();
-
     wxWebView* m_browser;
     long     m_zoomFactor;
     bool m_chat_page_loaded{false};
