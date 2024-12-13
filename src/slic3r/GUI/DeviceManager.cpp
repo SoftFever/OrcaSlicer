@@ -4017,15 +4017,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (!it->contains("id")) continue;
                                     std::string ams_id = (*it)["id"].get<std::string>();
 
-                                    int nozzle_id = 0; // Default nozzle id
+                                    int nozzle_id = MAIN_NOZZLE_ID; // Default nozzle id
                                     int type_id = 1;   // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 
-                                    if (it->contains("nozzle")) {
-                                        nozzle_id = (*it)["nozzle"].get<int>();
-                                    }
-
-                                    if (it->contains("type")) {
-                                        type_id = (*it)["type"].get<int>();
+                                    /*ams info*/
+                                    if (it->contains("info")) {
+                                        std::string info = (*it)["info"].get<std::string>();
+                                        type_id = get_flag_bits(info, 0, 3);
+                                        nozzle_id = get_flag_bits(info, 8, 3);
                                     }
 
                                     ams_id_set.erase(ams_id);
