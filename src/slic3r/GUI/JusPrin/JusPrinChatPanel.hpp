@@ -58,7 +58,6 @@ private:
     void handle_refresh_presets(const nlohmann::json& params);
     void handle_refresh_plater_config(const nlohmann::json& params);
 private:
-    void SendMessage(wxString message);
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterConfigJson();
