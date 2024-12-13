@@ -1537,6 +1537,8 @@ wxBoxSizer* MainFrame::create_side_tools()
     //     });
     // });
 
+    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { start_slicer_all();
+        });
     m_ai_assisted_mode_switch->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& event) {
         wxGetApp().set_classic_mode(!m_ai_assisted_mode_switch->GetValue());
     });
