@@ -5,6 +5,7 @@
 #include <wx/dataview.h>
 #include <vector>
 #include <map>
+#include <functional>
 
 #include "ExtraRenderers.hpp"
 
@@ -341,6 +342,10 @@ class ObjectDataViewModel :public wxDataViewModel
     std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> search_found_list;
     std::map<int, int>                          m_ui_and_3d_volume_map;
 
+    // Simple callback with no parameters
+    using ObjectsListCallback = std::function<void()>;
+    ObjectsListCallback m_objects_list_callback{nullptr};
+
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
@@ -349,7 +354,7 @@ public:
     std::map<int, int> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_map; }
     int                 get_real_volume_index_in_3d(int ui_value)
     {
-        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) { 
+        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) {
             return m_ui_and_3d_volume_map[ui_value];
         }
         return ui_value;
@@ -520,6 +525,31 @@ public:
 
     void        sys_color_changed();
 
+    // Callback for when the objects list changes
+    void set_objects_list_callback(ObjectsListCallback cb) {
+        m_objects_list_callback = std::move(cb);
+    }
+
+    // Helper to notify changes
+    void notify_list_changed() {
+        if (m_objects_list_callback) {
+            m_objects_list_callback();
+        }
+    }
+
+    // Wrap the original methods in wxDataViewModel
+    bool ItemAdded(const wxDataViewItem& parent, const wxDataViewItem& item) {
+        bool result = wxDataViewModel::ItemAdded(parent, item);
+        notify_list_changed();
+        return result;
+    }
+
+    bool ItemDeleted(const wxDataViewItem& parent, const wxDataViewItem& item) {
+        bool result = wxDataViewModel::ItemDeleted(parent, item);
+        notify_list_changed();
+        return result;
+    }
+
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
     wxDataViewItem  AddInstanceRoot(const wxDataViewItem& parent_item);
@@ -530,8 +560,9 @@ private:
 
     void UpdateBitmapForNode(ObjectDataViewModelNode *node);
     void UpdateBitmapForNode(ObjectDataViewModelNode* node, const std::string& warning_icon_name, bool has_lock);
-};
 
+
+};
 
 }
 }
