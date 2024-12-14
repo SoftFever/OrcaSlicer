@@ -2123,19 +2123,19 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
-        optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
-        optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("infill_anchor_max");
+        optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
         optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
@@ -2320,8 +2320,8 @@ void TabPrint::build()
 
 page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
-        optgroup->append_single_option_line("skirt_type");
         optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("skirt_type");
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_start_angle");
@@ -4333,9 +4333,6 @@ if (is_marlin_flavor)
                 optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
                 optgroup->append_single_option_line("retraction_length", "", extruder_idx);
                 optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-                optgroup->append_single_option_line("z_hop", "", extruder_idx);
-                optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
-                optgroup->append_single_option_line("travel_slope", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
                 optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -4345,10 +4342,13 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
                 optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-                optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement");
+                optgroup = page->new_optgroup(L("Z-Hop"), L"param_extruder_lift_enforcement");
+                optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
+                optgroup->append_single_option_line("z_hop", "", extruder_idx);
+                optgroup->append_single_option_line("travel_slope", "", extruder_idx);
                 optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
                 optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
-                optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
                 optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change");
                 optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
