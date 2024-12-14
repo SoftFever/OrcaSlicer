@@ -263,6 +263,7 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
 void JusPrinChatPanel::handle_auto_orient_object(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+        plater->set_prepare_state(Job::PREPARE_STATE_MENU);
         plater->orient();
     });
 }
