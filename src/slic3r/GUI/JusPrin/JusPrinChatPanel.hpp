@@ -21,6 +21,7 @@ class JusPrinChatPanel : public wxPanel
 public:
     JusPrinChatPanel(wxWindow* parent);
     virtual ~JusPrinChatPanel();
+    void reload();
 
     void UpdateOAuthAccessToken();
     void RefreshPresets();
@@ -58,7 +59,7 @@ private:
     void handle_refresh_oauth_token(const nlohmann::json& params);
     void handle_refresh_presets(const nlohmann::json& params);
     void handle_refresh_plater_config(const nlohmann::json& params);
-private:
+
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterConfigJson();
@@ -70,6 +71,8 @@ private:
     bool m_chat_page_loaded{false};
 
     void UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value);
+
+    void RunScriptInBrowser(const wxString& script);
 
 };
 
