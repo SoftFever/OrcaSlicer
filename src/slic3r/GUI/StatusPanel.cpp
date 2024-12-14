@@ -2256,6 +2256,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
+    Bind(EVT_AMS_SWITCH, &StatusPanel::on_ams_switch, this);
     Bind(EVT_AMS_FILAMENT_BACKUP, &StatusPanel::on_ams_filament_backup, this);
     Bind(EVT_AMS_SETTINGS, &StatusPanel::on_ams_setting_click, this);
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
@@ -3025,23 +3026,6 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 void StatusPanel::update_extruder_status(MachineObject* obj)
 {
     if (!obj) return;
-    //wait add
-
-    /*if (obj->is_filament_at_extruder()) {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            tmp = m_bitmap_extruder_filled_load;
-        }
-        else {
-            tmp = m_bitmap_extruder_filled_unload;
-        }
-    }
-    else {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_load);
-        } else {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_unload);
-        }
-    }*/
 }
 
 void StatusPanel::update_ams(MachineObject *obj)
@@ -3125,14 +3109,14 @@ void StatusPanel::update_ams(MachineObject *obj)
     for (auto slot : obj->vt_slot) {
         AMSinfo info;
         info.parse_ext_info(obj, slot);
-        //if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT; TODO: Orca hack
+        if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
         ext_info.push_back(info);
     }
     std::string dev_id = obj->dev_id;
     ExtderData  data   = obj->m_extder_data;
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, false);
+    m_ams_control->UpdateAms(ams_info, ext_info, data, dev_id, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -3147,57 +3131,57 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_MAIN_ID)) is_vt_tray = true;
 
     // set segment 1, 2
-    if (!obj->is_enable_np) {
-        if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
-            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        } else {
-            if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
-                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-            } else if (obj->m_tray_now != "255") {
-                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
-            } else {
-                m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-            }
-        }
+    //if (!obj->is_enable_np) {
+    //    if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
+    //        m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //    } else {
+    //        /*if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
+    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
+    //                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+    //        } else if (obj->m_tray_now != "255") {
+    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
+    //                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+    //        } else {
+    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
+    //                                      AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //        }*/
+    //        if () {
 
-        if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
-            m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_slot[0].get_color());
-        } else {
-            m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
-        }
-    } else {
+    //        }
+    //    }
+
+    //    m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id);
+    //} else {
         /*right*/
         if (obj->m_extder_data.extders.size() > 0) {
             auto ext = obj->m_extder_data.extders[MAIN_NOZZLE_ID];
             if (ext.ext_has_filament) {
-                if (ext.snow.slot_id == std::to_string(MAIN_NOZZLE_ID) || ext.snow.slot_id == std::to_string(MAIN_NOZZLE_ID)) {
-                    m_ams_control->SetAmsStep(ext.star.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                if (ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
                 } else {
                     m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
                 }
-                m_ams_control->SetExtruder(true, true, ext.snow.ams_id, m_ams_control->GetCanColour(ext.snow.ams_id, ext.snow.slot_id));
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-                m_ams_control->SetExtruder(false, true, ext.snow.ams_id, m_ams_control->GetCanColour(ext.snow.ams_id, ext.snow.slot_id));
             }
+            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
         }
 
         /*left*/
         if (obj->m_extder_data.extders.size() > 1) {
             auto ext = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID];
             if (ext.ext_has_filament) {
-                if (ext.snow.slot_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.slot_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                if (ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                     m_ams_control->SetAmsStep(ext.snow.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
                 } else {
                     m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
                 }
-                m_ams_control->SetExtruder(true, true, ext.snow.ams_id, m_ams_control->GetCanColour(ext.snow.ams_id, ext.snow.slot_id));
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-                m_ams_control->SetExtruder(false, true, ext.snow.ams_id, m_ams_control->GetCanColour(ext.snow.ams_id, ext.snow.slot_id));
             }
+            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
         }
-    }
+    //}
 
     bool ams_loading_state = false;
     auto ams_status_sub    = obj->ams_status_sub;
@@ -4177,6 +4161,40 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
     on_ams_load_curr();
     if (m_print_error_dlg) {
         m_print_error_dlg->on_hide();
+    }
+}
+
+void StatusPanel::on_ams_switch(SimpleEvent &event)
+{
+    if(obj){
+        if (obj->m_extder_data.extders.size() > 0) {
+            auto ext = obj->m_extder_data.extders[MAIN_NOZZLE_ID];
+            if (ext.ext_has_filament) {
+                if (ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                } else {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                }
+            } else {
+                m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+        }
+
+        /*left*/
+        if (obj->m_extder_data.extders.size() > 1) {
+            auto ext = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID];
+            if (ext.ext_has_filament) {
+                if (ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.snow.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                } else {
+                    m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                }
+            } else {
+                m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            }
+            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+        }
     }
 }
 
