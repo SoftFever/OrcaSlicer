@@ -54,11 +54,16 @@ int HMSQuery::download_hms_related(std::string hms_type, json* receive_json, std
     std::string query_params = HMSQuery::build_query_params(lang);
     std::string url;
     if (hms_type.compare(QUERY_HMS_INFO) == 0) {
-        url = (boost::format("https://%1%/query.php?%2%&v=%3%&d=%4%") % hms_host % query_params % local_version % dev_type).str();
+        url = (boost::format("https://%1%/query.php?%2%") % hms_host % query_params).str();
     }
     else if (hms_type.compare(QUERY_HMS_ACTION) == 0) {
-        url = (boost::format("https://%1%/hms/GetActionImage.php?v=%2%&d=%3%") % hms_host % local_version % dev_type).str();
+        url = (boost::format("https://%1%/hms/GetActionImage.php?") % hms_host).str();
     }
+
+    if (!local_version.empty()) { url += (url.find('?') != std::string::npos ? "&" : "?") + (boost::format("v=%1%") % local_version).str(); }
+
+    if (!dev_type.empty()) { url += (url.find('?') != std::string::npos ? "&" : "?") + (boost::format("d=%1%") % dev_type).str(); }
+
 
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
     Slic3r::Http http = Slic3r::Http::get(url);
@@ -355,19 +360,24 @@ wxString HMSQuery::query_print_error_url_action(int print_error, std::string dev
 
 int HMSQuery::check_hms_info(std::string dev_type)
 {
-    boost::thread check_thread = boost::thread([this, dev_type] {
-        download_hms_related(QUERY_HMS_INFO, &m_hms_info_json, dev_type);
-        download_hms_related(QUERY_HMS_ACTION, &m_hms_action_json, dev_type);
+    std::vector<std::string> dev_sn;
+    dev_sn.push_back("00M");
+    dev_sn.push_back("00W");
+    dev_sn.push_back("03W");
+    dev_sn.push_back("01P");
+    dev_sn.push_back("01S");
+    dev_sn.push_back("030");
+    dev_sn.push_back("039");
+    dev_sn.push_back("094");
+
+    boost::thread check_thread = boost::thread([this, dev_type, dev_sn] {
+        for (auto sn : dev_sn) {
+            download_hms_related(QUERY_HMS_INFO, &m_hms_info_json, sn);
+            download_hms_related(QUERY_HMS_ACTION, &m_hms_action_json, sn);
+        }
         return 0;
     });
     return 0;
-}
-
-void HMSQuery::check_hms_info_from_local(std::string dev_type)
-{
-    std::string local_version = "0";
-    load_from_local(local_version, QUERY_HMS_INFO, &m_hms_info_json, dev_type);
-    load_from_local(local_version, QUERY_HMS_ACTION, &m_hms_action_json, dev_type);
 }
 
 std::string get_hms_wiki_url(std::string error_code)

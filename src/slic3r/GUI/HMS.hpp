@@ -33,7 +33,6 @@ protected:
 public:
 	HMSQuery() {}
     int  check_hms_info(std::string dev_type = "00M");
-    void check_hms_info_from_local(std::string dev_type);
     wxString           query_hms_msg(std::string long_error_code);
     bool query_print_error_msg(int print_error, wxString &error_msg);
     wxString query_print_error_url_action(int print_error, std::string dev_id, std::vector<int>& button_action);

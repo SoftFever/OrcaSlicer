@@ -6675,21 +6675,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
 
-    /*update hms file*/
-    try {
-        Slic3r::GUI::wxGetApp().CallAfter([=] {
-            if (Slic3r::GUI::wxGetApp().get_hms_query()) {
-                std::string dev_type = dev_id.substr(0, 3);
-                if (!Slic3r::GUI::wxGetApp().get_hms_query()->check_local_file(dev_type)) {
-                    Slic3r::GUI::wxGetApp().get_hms_query()->check_hms_info(dev_type);
-                }
-                else {
-                    Slic3r::GUI::wxGetApp().get_hms_query()->check_hms_info_from_local(dev_type);
-                }
-            };
-        });
-    } catch (...) {}
-
     // disconnect last
     auto last_selected = my_machine_list.find(selected_machine);
     if (last_selected != my_machine_list.end()) {
