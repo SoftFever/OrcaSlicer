@@ -3641,9 +3641,8 @@ void GUI_App::set_classic_mode(bool use_classic_mode) {
     app_config->save();
     update_ui_from_settings();
     if (!use_classic_mode) {
-        // We don't know what users might have changed in the presets or plater config, so we refresh them when switching from classic mode
-        sidebar().jusprin_chat_panel()->RefreshPresets();
-        sidebar().jusprin_chat_panel()->RefreshPlaterConfig();
+        // It is still a good idea to reload the chat panel when switched from classic mode. Otherwise there are too many edge cases to handle
+        sidebar().jusprin_chat_panel()->reload();
     }
 }
 

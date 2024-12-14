@@ -2620,7 +2620,7 @@ void MainFrame::init_menubar_as_editor()
             }, nullptr);
 
         // Set the check mark based on current mode
-        if (wxGetApp().app_config->get("use_classic_mode").compare("true") == 0)
+        if (wxGetApp().app_config->get_bool("use_classic_mode"))
             viewMenu->Check(wxID_MODE_CLASSIC + mode_id_base, true);
         else
             viewMenu->Check(wxID_MODE_AI + mode_id_base, true);

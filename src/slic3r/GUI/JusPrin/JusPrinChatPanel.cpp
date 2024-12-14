@@ -65,6 +65,13 @@ JusPrinChatPanel::~JusPrinChatPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
+void JusPrinChatPanel::reload() {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " reload() called";
+
+    m_chat_page_loaded = false;
+    m_browser->Reload();
+}
+
 void JusPrinChatPanel::update_mode() { m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode")); }
 
 void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
@@ -278,9 +285,7 @@ void JusPrinChatPanel::UpdateOAuthAccessToken() {
         "}",
         wxGetApp().app_config->get_with_default("jusprin_server", "access_token", ""));
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
-
-    WebView::RunScript(m_browser, strJS);
+    RunScriptInBrowser(strJS);
 }
 
 void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value) {
@@ -294,9 +299,7 @@ void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const 
         "}",
         state_key, state_value);
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
-
-    WebView::RunScript(m_browser, strJS);
+    RunScriptInBrowser(strJS);
 }
 
 void JusPrinChatPanel::RefreshPresets() {
@@ -423,6 +426,15 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
         (this->*(it->second))(jsonObject);
         return;
     }
+}
+
+void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
+    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << script;
+    WebView::RunScript(m_browser, script);
 }
 
 }} // namespace Slic3r::GUI
