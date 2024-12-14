@@ -13052,7 +13052,7 @@ msgid ""
 "Force a retraction on top layer. Disabling could prevent clog on very slow "
 "patterns with small movements, like Hilbert curve"
 msgstr ""
-"Włącz wymuszanie retrakcji na ostatniej warstwie. Wyłączenie tej opcji może "
+"Włącz wymuszanie retrakcji na górnej warstwie. Wyłączenie tej opcji może "
 "prowadzić do gromadzenia się materiału i zatkania dyszy, zwłaszcza przy "
 "drukowaniu skomplikowanych i wolnych wzorów, takich jak krzywa Hilberta."
 
