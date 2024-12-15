@@ -1138,9 +1138,6 @@ Sidebar::Sidebar(Plater *parent)
 
     p->jusprin_chat_panel = new JusPrinChatPanel(this);
     p->size_top->Add(p->jusprin_chat_panel, 1, wxEXPAND);
-    p->m_object_list->GetModel()->set_objects_list_callback([]() {
-        wxGetApp().sidebar().jusprin_chat_panel()->RefreshPlaterConfig();
-    });
 
     SetSizer(p->size_top);
     Layout();
@@ -4885,6 +4882,10 @@ void Plater::priv::object_list_changed()
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 
     wxGetApp().params_panel()->notify_object_config_changed();
+
+    // TODO: This callback is not triggered when a plate is added or removed
+    // TODO: This callback is triggered when an object is removed, but not when an object is cloned
+    wxGetApp().sidebar().jusprin_chat_panel()->RefreshPlaterConfig();
 }
 
 void Plater::priv::select_curr_plate_all()
