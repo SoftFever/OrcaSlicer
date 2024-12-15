@@ -258,8 +258,18 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
 void JusPrinChatPanel::handle_auto_orient_object(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
-        plater->set_prepare_state(Job::PREPARE_STATE_MENU);
-        plater->orient();
+
+        // This call often happens when snapshots are suppressed. We need to wait until snapshots are not suppressed so that it can be undone.
+        for (int i = 0; i < 100; i++) {
+            if (!plater->inside_snapshot_capture()) {
+                plater->set_prepare_state(Job::PREPARE_STATE_MENU);
+                plater->orient();
+                return;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        BOOST_LOG_TRIVIAL(warning) << "Auto orient cancelled - snapshots still suppressed after 100 attempts";
     });
 }
 
