@@ -73,7 +73,7 @@ private:
     void UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value);
 
     void RunScriptInBrowser(const wxString& script);
-
+    void DiscardCurrentPresetChanges();
 };
 
 }} // namespace Slic3r::GUI
