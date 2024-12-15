@@ -25,8 +25,6 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
-#include "slic3r/GUI/JusPrin/JusPrinLoginDialog.hpp"
-#include "slic3r/GUI/JusPrin/JusPrinChatPanel.hpp"
 
 #include <mutex>
 #include <stack>
@@ -83,7 +81,6 @@ class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
-class JusPrinChatPanel;
 
 
 enum FileType

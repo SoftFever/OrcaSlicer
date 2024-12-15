@@ -162,12 +162,12 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         return;
     }
 
+    DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
+
     try {
         std::string  name = payload.value("name", "");
         Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
         if (tab != nullptr) {
-            tab->m_preset_bundle->prints.discard_current_changes();
-            tab->m_preset_bundle->filaments.discard_current_changes();
             tab->select_preset(name, false, std::string(), false);
         }
     } catch (const std::exception& e) {
@@ -199,18 +199,13 @@ void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
         return;
     }
 
-
-    std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
-
-    for (const auto& preset_type : preset_types) {
-        if (Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type)) {
-            tab->m_presets->discard_current_changes();
-        }
-    }
+    DiscardCurrentPresetChanges();
 
     for (const auto& item : param_item) {
         ApplyConfig(item);
     }
+
+    std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
 
     for (const auto& preset_type : preset_types) {
         if (Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type)) {
@@ -436,6 +431,14 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << script;
     WebView::RunScript(m_browser, script);
+}
+
+void JusPrinChatPanel::DiscardCurrentPresetChanges() {
+    Slic3r::GUI::wxGetApp().CallAfter([this] {
+        wxGetApp().preset_bundle->printers.discard_current_changes();
+        wxGetApp().preset_bundle->filaments.discard_current_changes();
+        wxGetApp().preset_bundle->prints.discard_current_changes();
+    });
 }
 
 }} // namespace Slic3r::GUI
