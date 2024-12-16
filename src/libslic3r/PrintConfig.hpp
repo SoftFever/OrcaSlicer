@@ -262,6 +262,7 @@ enum OverhangFanThreshold {
 // BBS
 enum BedType {
     btDefault = 0,
+    btSuperTack,
     btPC,
     btEP,
     btPEI,
@@ -330,6 +331,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
     std::string type_str;
 
     switch (type) {
+    case btSuperTack:
+        type_str = "supertack_plate";
+        break;
     case btPC:
         type_str = "cool_plate";
         break;
@@ -355,6 +359,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
 
 static std::string get_bed_temp_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp";
+
     if (type == btPC)
         return "cool_plate_temp";
 
@@ -375,6 +382,9 @@ static std::string get_bed_temp_key(const BedType type)
 
 static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp_initial_layer";
+
     if (type == btPC)
         return "cool_plate_temp_initial_layer";
 
@@ -1196,9 +1206,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
     ((ConfigOptionInts,               textured_cool_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp_initial_layer))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               textured_cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
