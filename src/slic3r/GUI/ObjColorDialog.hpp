@@ -9,6 +9,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/msgdlg.h>
+#include "Widgets/SpinInput.hpp"
 class Button;
 class Label;
 class ComboBox;
@@ -58,7 +59,7 @@ private:
     wxPanel *                 m_page_simple  = nullptr;
     wxBoxSizer *              m_sizer        = nullptr;
     wxBoxSizer *              m_sizer_simple = nullptr;
-    wxTextCtrl *m_color_cluster_num_by_user_ebox{nullptr};
+    SpinInput *                m_color_cluster_num_by_user_ebox{nullptr};
     wxStaticText *             m_warning_text{nullptr};
     Button *    m_quick_approximate_match_btn{nullptr};
     Button *    m_quick_add_btn{nullptr};

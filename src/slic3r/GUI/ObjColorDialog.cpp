@@ -259,15 +259,14 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
         specify_color_cluster_title->SetFont(Label::Head_14);
         specify_cluster_sizer->Add(specify_color_cluster_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
-        m_color_cluster_num_by_user_ebox = new wxTextCtrl(m_page_simple, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(25), -1), wxTE_PROCESS_ENTER);
+        m_color_cluster_num_by_user_ebox = new SpinInput(m_page_simple, "", wxEmptyString, wxDefaultPosition, wxSize(FromDIP(45), -1), wxTE_PROCESS_ENTER);
         m_color_cluster_num_by_user_ebox->SetValue(std::to_string(m_color_cluster_num_by_algo).c_str());
         {//event
             auto on_apply_color_cluster_text_modify = [this](wxEvent &e) {
-                wxString str        = m_color_cluster_num_by_user_ebox->GetValue();
-                int      number = wxAtoi(str);
+                int number = m_color_cluster_num_by_user_ebox->GetValue();
                 if (number > m_color_num_recommend || number < g_min_cluster_color) {
-                    number = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
-                    str    = wxString::Format(("%d"), number);
+                    number   = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
+                    auto str = wxString::Format(("%d"), number);
                     m_color_cluster_num_by_user_ebox->SetValue(str);
                     MessageDialog dlg(nullptr, wxString::Format(_L("The color count should be in range [%d, %d]."), g_min_cluster_color, m_color_num_recommend),
                                       _L("Warning"), wxICON_WARNING | wxOK);
@@ -278,18 +277,16 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_color_cluster_text_modify);
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_color_cluster_text_modify);
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent &) {
-                wxString str        = m_color_cluster_num_by_user_ebox->GetValue();
-                int    number = wxAtof(str);
+                int number = m_color_cluster_num_by_user_ebox->GetValue();
                 if (number > m_color_num_recommend || number < g_min_cluster_color) {
-                    number = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
-                    str    = wxString::Format(("%d"), number);
+                    number   = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
+                    auto str = wxString::Format(("%d"), number);
                     m_color_cluster_num_by_user_ebox->SetValue(str);
-                    m_color_cluster_num_by_user_ebox->SetInsertionPointEnd();
+                    // m_color_cluster_num_by_user_ebox->SetInsertionPointEnd();
                 }
                 if (m_last_cluster_num != number) {
                     deal_algo(number, true);
                     Layout();
-                    //Fit();
                     Refresh();
                     Update();
                     m_last_cluster_num = number;
