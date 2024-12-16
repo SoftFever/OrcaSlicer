@@ -2703,6 +2703,8 @@ int CLI::run(int argc, char **argv)
                     old_variant_count[k] = old_variant_count[k] + 1;
                 }
             }
+            if (load_filament_count == 0)
+                filament_variant_count = old_variant_count;
         }
         for (int index = 0; index < load_filaments_config.size(); index++) {
             DynamicPrintConfig&  config = load_filaments_config[index];
