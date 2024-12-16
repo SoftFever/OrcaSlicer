@@ -972,9 +972,6 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f))
         .append("; Nozzle change start\n");
 
-    writer.speed_override_backup();
-    writer.speed_override(100);
-
     box_coordinates cleaning_box(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width,
                                  (new_filament_id != (unsigned int) (-1) ? wipe_depth + m_depth_traversed - m_perimeter_width : m_wipe_tower_depth - m_perimeter_width));
 
