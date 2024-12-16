@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "libslic3r/Point.hpp"
+#include <unordered_set>
 
 namespace Slic3r
 {
@@ -146,6 +147,13 @@ public:
                                    bool is_finish,
                                    float purge_volume) const;
 
+    ToolChangeResult construct_block_tcr(WipeTowerWriter& writer,
+                                   bool priming,
+                                   size_t filament_id,
+                                   bool is_finish,
+                                   float purge_volume) const;
+
+
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
@@ -164,7 +172,7 @@ public:
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<ToolChangeResult>> &result);
 
-	WipeTower::ToolChangeResult only_generate_out_wall();
+	WipeTower::ToolChangeResult only_generate_out_wall(bool is_new_mode = false);
 
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
@@ -268,6 +276,7 @@ public:
 
     struct FilamentParameters {
         std::string 	    material = "PLA";
+        int                 category;
         bool                is_soluble = false;
         // BBS
         bool                is_support = false;
@@ -288,6 +297,55 @@ public:
         float               nozzle_diameter;
         float               filament_area;
     };
+
+
+	void set_used_filament_ids(const std::vector<int> &used_filament_ids) { m_used_filament_ids = used_filament_ids; };
+    void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
+	std::vector<int> m_used_filament_ids;
+    std::vector<int> m_filament_categories;
+
+	struct WipeTowerBlock
+    {
+        int              block_id{0};
+        int              filament_category{0};
+        std::vector<float>      layer_depths;
+        float            depth{0};
+        float            start_depth{0};
+        float            cur_depth{0};
+		int              last_filament_change_id{-1};
+        int              last_nozzle_change_id{-1};
+	};
+
+	struct BlockDepthInfo
+    {
+        int category{-1};
+        float depth{0};
+        float nozzle_change_depth{0};
+	};
+
+	std::vector<std::vector<BlockDepthInfo>> m_all_layers_depth;
+	std::vector<WipeTowerBlock> m_wipe_tower_blocks;
+    int                  m_last_block_id;
+
+	// help function
+    WipeTowerBlock& get_block_by_category(int filament_category);
+    void add_depth_to_block(int filament_id, int filament_category, float depth, bool is_nozzle_change = false);
+	int get_filament_category(int filament_id);
+	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
+	void reset_block_status();
+    int get_wall_filament_for_all_layer();
+	// for generate new wipe tower
+    void generate_new(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
+
+	void plan_tower_new();
+	void generate_wipe_tower_blocks();
+    void update_start_depth_for_blocks();
+
+    ToolChangeResult tool_change_new(size_t new_tool);
+    NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id);
+    ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
+    ToolChangeResult   finish_block(int filament_id, bool extrude_perimeter = true, bool extrude_fill = true);
+    void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length);
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -374,6 +432,7 @@ private:
     bool            m_current_layer_finished = false;
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
+	float           m_tpu_fixed_spacing = 2;
 
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 

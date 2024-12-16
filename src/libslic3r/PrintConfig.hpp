@@ -1211,6 +1211,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                fan_speedup_overhangs))
     ((ConfigOptionFloat,               fan_speedup_time))
     ((ConfigOptionFloats,              filament_diameter))
+    ((ConfigOptionInts,              filament_category))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
