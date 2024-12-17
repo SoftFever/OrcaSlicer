@@ -32,20 +32,20 @@ public:
         ComboBox*   bitmap_combox{nullptr};
         bool      is_map{false};//int id{0};
     };
+    typedef std::function<void()> LayoutChanggeCallback;
+    void set_layout_callback(LayoutChanggeCallback);
+    void do_layout_callback();
 private:
     wxBoxSizer *create_approximate_match_btn_sizer(wxWindow *parent);
     wxBoxSizer *create_add_btn_sizer(wxWindow *parent);
     wxBoxSizer *create_reset_btn_sizer(wxWindow *parent);
     wxBoxSizer *create_extruder_icon_and_rgba_sizer(wxWindow *parent, int id, const wxColour& color);
     std::string get_color_str(const wxColour &color);
-    void create_result_button_sizer(wxWindow *parent, int id);
-    wxBoxSizer *create_color_icon_and_rgba_sizer(wxWindow *parent, int id, const wxColour& color);
-    void update_color_icon_and_rgba_sizer(int id, const wxColour &color);
+    wxBoxSizer *create_color_icon_map_rgba_sizer(wxWindow *parent, int id, const wxColour &color);//for display map
     ComboBox* CreateEditorCtrl(wxWindow *parent,int id);
-    void draw_table();
+    void draw_new_table();
     void update_new_add_final_colors();
     void show_sizer(wxSizer *sizer, bool show);
-    void redraw_part_table();
     void deal_approximate_match_btn();
     void deal_add_btn();
     void deal_reset_btn();
@@ -58,12 +58,12 @@ private:
     //view ui
     Slic3r::ObjDialogInOut &  m_obj_in_out;
     Slic3r::GUI::Camera::ViewAngleType m_camera_view_angle_type{Slic3r::GUI::Camera::ViewAngleType::Iso};
-    wxScrolledWindow *        m_scrolledWindow = nullptr;
     wxPanel *                 m_page_simple  = nullptr;
     wxBoxSizer *              m_sizer        = nullptr;
     wxBoxSizer *              m_sizer_simple = nullptr;
     SpinInput *                m_color_cluster_num_by_user_ebox{nullptr};
     wxStaticText *             m_warning_text{nullptr};
+    wxGridSizer *              m_new_grid_sizer{nullptr};
     Button *    m_quick_approximate_match_btn{nullptr};
     Button *    m_quick_add_btn{nullptr};
     Button *    m_quick_reset_btn{nullptr};
@@ -71,13 +71,14 @@ private:
     std::vector<wxButton*> m_color_cluster_icon_list;//need modeify
     std::vector<wxStaticText*> m_color_cluster_text_list;//need modeify
     std::vector<wxGridSizer*> m_row_sizer_list;         // control show or not
+    std::vector<wxBoxSizer *> m_row_col_boxsizer_list;
     std::vector<ButtonState*> m_result_icon_list;
     int                       m_last_cluster_num{-1};
     const int               m_combox_width{50};
     int                     m_combox_icon_width;
     int                     m_combox_icon_height;
-    wxGridSizer*            m_gridsizer = nullptr;
     wxButton *              m_image_button = nullptr;
+    LayoutChanggeCallback   m_layout_callback;
     //data
     char                       m_last_cluster_number{-2};
     std::vector<Slic3r::RGBA>& m_input_colors;
@@ -107,8 +108,11 @@ public:
     ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours);
     wxBoxSizer* create_btn_sizer(long flags);
     void on_dpi_changed(const wxRect &suggested_rect) override;
+    void update_layout();
 private:
     ObjColorPanel*  m_panel_ObjColor  = nullptr;
+    wxBoxSizer *                      m_main_sizer     = nullptr;
+    wxBoxSizer *                      m_buttons_sizer   = nullptr;
     std::unordered_map<int, Button *> m_button_list;
     std::vector<unsigned char>&      m_filament_ids;
     unsigned char &                  m_first_extruder_id;
