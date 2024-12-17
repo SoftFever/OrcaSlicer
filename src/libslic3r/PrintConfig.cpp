@@ -2853,7 +2853,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("use_extruder_rotation_volume", coBool);
     def->label   = L("Use extruder rotation volume");
-    def->tooltip = L("Use extruder rotation volume instead of the pellet flow coefficent");
+    def->tooltip = L("Enable extruder rotation volume in material settings");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
     
