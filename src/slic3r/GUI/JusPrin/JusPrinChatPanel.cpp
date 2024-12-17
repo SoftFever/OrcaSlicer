@@ -298,6 +298,15 @@ void JusPrinChatPanel::UpdateEmbeddedChatState(const wxString& state_key, const 
     RunScriptInBrowser(strJS);
 }
 
+void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxString& params) {
+    wxString strJS = wxString::Format(
+        "if (typeof window.callJusPrinEmbeddedChatMethod === 'function') {"
+        "    window.callJusPrinEmbeddedChatMethod('%s', %s);"
+        "}",
+        method, params);
+    RunScriptInBrowser(strJS);
+}
+
 void JusPrinChatPanel::RefreshPresets() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
@@ -355,6 +364,14 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
     }
 
     return PresetsToJSON(presets);
+}
+
+void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "autoOrient";
+    j["data"] = nlohmann::json::object();
+    j["data"]["status"] = canceled ? "canceled" : "completed";
+    CallEmbeddedChatMethod("eventReceived", j.dump());
 }
 
 nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()

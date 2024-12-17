@@ -192,6 +192,7 @@ void OrientJob::process(Ctl &ctl)
         ctl.was_canceled() ? _u8L("Orienting canceled.")
         : _u8L(ss.str().c_str()));
     wxGetApp().plater()->show_status_message(ctl.was_canceled() ? "Orienting canceled." : ss.str());
+    wxGetApp().plater()->sidebar().jusprin_chat_panel()->SendAutoOrientEvent(ctl.was_canceled());
 }
 
 OrientJob::OrientJob() : m_plater{wxGetApp().plater()} {}
