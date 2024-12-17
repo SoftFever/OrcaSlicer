@@ -1965,18 +1965,19 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
-    def          = this->add("extruder_rotation_volume", coFloat);
-    def->label   = L("Extruder rotation volume");
-    def->tooltip = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
+    def           = this->add("extruder_rotation_volume", coFloats);
+    def->label    = L("Extruder rotation volume");
+    def->tooltip  = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
     def->sidetext = L("mm³");
-    def->min     = 0;
-    def->set_default_value(new ConfigOptionFloat(456));    
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloats{456});    
     
-    def          = this->add("mixing_stepper_rotation_volume", coFloat);
-    def->label   = L("Mixing stepper rotation volume");
-    def->tooltip = L("The value controlling how much material is actively fed into the extruder by the feeding mechanism. Used for fine-tuning the material flow in multi-material or pellet-based printing.");
-    def->min     = 0;
-    def->set_default_value(new ConfigOptionFloat(6000));
+    def           = this->add("mixing_stepper_rotation_volume", coFloats);
+    def->label    = L("Mixing stepper rotation volume");
+    def->tooltip  = L("The value controlling how much material is actively fed into the extruder by the feeding mechanism. Used for fine-tuning the material flow in multi-material or pellet-based printing.");
+    def->sidetext = L("mm³");
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloats{6000});
 
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage (XY)");
@@ -2856,11 +2857,11 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
     
-    def          = this->add("active_feeder_motor_name", coString);
+    def          = this->add("active_feeder_motor_name", coStrings);
     def->label   = L("Active feeder motor name");
     def->tooltip = "Name that identify the feeder motor";
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionStrings());
 
         
     def          = this->add("use_active_pellet_feeding", coBool);
