@@ -27,6 +27,7 @@ public:
     void RefreshPresets();
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
+    void SendAutoOrientEvent(bool canceled);
 
 private:
     void load_url();
@@ -71,6 +72,7 @@ private:
     bool m_chat_page_loaded{false};
 
     void UpdateEmbeddedChatState(const wxString& state_key, const wxString& state_value);
+    void CallEmbeddedChatMethod(const wxString& method, const wxString& params);
 
     void RunScriptInBrowser(const wxString& script);
     void DiscardCurrentPresetChanges();
