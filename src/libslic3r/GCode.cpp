@@ -1566,6 +1566,35 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         result->filename = path;
     }
 
+    std::vector<int> filaments_with_spoolman_idxs;
+    for (int l = 0; l < print->config().filament_density.size(); ++l) {
+        if (print->config().filament_spoolman_enabled.get_at(l))
+            filaments_with_spoolman_idxs.push_back(l);
+    }
+
+    if (!filaments_with_spoolman_idxs.empty()) {
+        // get used filament (meters and grams) from used volume in respect to the active extruder
+        auto get_used_filament_from_volume = [&](int extruder_id) {
+            double volume = print->m_print_statistics.filament_stats[extruder_id];
+            std::pair<double, double> ret = { volume / (PI * sqr(0.5 * print->config().filament_diameter.get_at(extruder_id))),
+                                              volume * print->config().filament_density.get_at(extruder_id) * 0.001 };
+            return ret;
+        };
+        
+        for (const auto& item : filaments_with_spoolman_idxs) {
+            auto [est_used_length, est_used_weight] = get_used_filament_from_volume(item);
+            double remaining_length   = print->config().filament_remaining_length.get_at(item);
+            double remaining_weight   = print->config().filament_remaining_weight.get_at(item);
+
+            if (est_used_length > remaining_length || est_used_weight > remaining_weight) {
+                std::string filament_name = print->config().filament_settings_id.get_at(item);
+                std::string msg = boost::str(boost::format(_("Filament %1% does not have enough material for the print. Used: %2$.2f m, %3$.2f g, Remaining: %4$.2f m, %5$.2f g")) %
+                                             filament_name % (est_used_length * 0.001) % est_used_weight % (remaining_length * 0.001) % remaining_weight);
+                print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, msg, PrintStateBase::SlicingNotificationType::SlicingNotEnoughFilament);
+            }
+        }
+    }
+
     //BBS: add some log for error output
     BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp;
 
