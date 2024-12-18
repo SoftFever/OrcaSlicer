@@ -83,6 +83,9 @@ private:
 	// Maximum segment length to split a long segment if the initial and the final flow rate differ.
 	// Smaller value means a smoother transition between two different flow rates.
     float                           m_max_segment_length;
+    
+    // Apply ERS only on external perimeters and overhangs
+    bool                           m_extrusion_rate_smoothing_external_perimeter_only;
 
     // Indicate if extrude set speed block was opened using the tag ";_EXTRUDE_SET_SPEED"
     // or not (not opened, or it was closed using the tag ";_EXTRUDE_END").
