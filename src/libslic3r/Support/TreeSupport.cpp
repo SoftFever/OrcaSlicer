@@ -2158,22 +2158,22 @@ void TreeSupport::draw_circles()
                 }
                 auto &area_groups = ts_layer->area_groups;
                 for (auto& expoly : ts_layer->base_areas) {
-                    if (area(expoly) < SQ(scale_(1))) continue;
+                    //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::BaseType, max_layers_above_base);
                     area_groups.back().need_infill = overlaps({ expoly }, area_poly);
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                 }
                 for (auto& expoly : ts_layer->roof_areas) {
-                    if (area(expoly) < SQ(scale_(1))) continue;
+                    //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::RoofType, max_layers_above_roof);
                     area_groups.back().interface_id = interface_id;
                 }
                 for (auto &expoly : ts_layer->floor_areas) {
-                    if (area(expoly) < SQ(scale_(1))) continue;
+                    //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::FloorType, 10000);
                 }
                 for (auto &expoly : ts_layer->roof_1st_layer) {
-                    if (area(expoly) < SQ(scale_(1))) continue;
+                    //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::Roof1stLayer, max_layers_above_roof1);
                 }
 
