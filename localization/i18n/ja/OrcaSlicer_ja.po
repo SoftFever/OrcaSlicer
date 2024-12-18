@@ -9278,6 +9278,9 @@ msgstr ""
 "ホスト名、IPアドレス、URLを入力してください。ユーザ名とパスワードがある場合、"
 "下記形式を参照してください https://username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "プリンターID"
+
 msgid "Device UI"
 msgstr "Device UI"
 
