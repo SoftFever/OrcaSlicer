@@ -31,6 +31,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 
 #include <Shiny/Shiny.h>
 

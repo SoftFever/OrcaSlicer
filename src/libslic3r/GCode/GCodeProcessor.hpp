@@ -272,6 +272,7 @@ class Print;
         static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
+        static const std::string External_Purge_Tag;
     public:
         enum class ETags : unsigned char
         {
