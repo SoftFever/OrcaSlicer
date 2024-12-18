@@ -599,7 +599,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto option_use_ams             = new PrintOption(
         m_options_other,
         _L("Use AMS"),
-        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
+        wxEmptyString,
         ops_no_auto
     );
 
@@ -610,10 +610,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     option_use_ams->setValue("off");
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
+    m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
 
     m_options_other->SetSizer(m_sizer_options_other);
     m_options_other->Layout();
