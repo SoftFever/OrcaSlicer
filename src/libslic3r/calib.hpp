@@ -31,6 +31,10 @@ struct Calib_Params
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
     bool      print_numbers;
+
+    std::vector<double> accelerations;
+    std::vector<double> speeds;
+
     CalibMode mode;
 };
 
@@ -249,16 +253,17 @@ class CalibPressureAdvancePattern : public CalibPressureAdvance
 
 public:
     CalibPressureAdvancePattern(
-        const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
+        const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     double handle_xy_size() const { return m_handle_xy_size; };
     double handle_spacing() const { return m_handle_spacing; };
+    Vec3d handle_pos_offset() const;
     double print_size_x() const { return object_size_x() + pattern_shift(); };
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
     double flow_val() const;
 
-    void generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
+    CustomGCode::Info generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     void set_start_offset(const Vec3d &offset);
     Vec3d get_start_offset();
@@ -266,6 +271,7 @@ public:
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
+    double accel_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_acceleration")->value; }
     double line_width_first_layer() const
     {
         // TODO: FIXME: find out current filament/extruder?
@@ -281,9 +287,9 @@ protected:
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
-    void refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const Model &model, const Vec3d &origin);
-    void _refresh_starting_point(const Model &model);
-    void _refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin);
+    void refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
+    void _refresh_starting_point(const ModelObject &object);
+    void _refresh_writer(bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     double    height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
     double    height_z_offset() const { return m_config.option<ConfigOptionFloat>("z_offset")->value; };
@@ -319,7 +325,7 @@ private:
     bool               m_is_start_point_fixed = false;
 
     const double m_handle_xy_size{5};
-    const double m_handle_spacing{2};
+    const double m_handle_spacing{1.2};
     const int    m_num_layers{4};
 
     const double m_wall_side_length{30.0};
