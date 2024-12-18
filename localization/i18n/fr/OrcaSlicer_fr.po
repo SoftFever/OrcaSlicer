@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:05+0800\n"
+"POT-Creation-Date: 2024-12-01 08:07+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -4456,7 +4456,7 @@ msgstr "Le volume:"
 msgid "Size:"
 msgstr "Taille:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -13273,6 +13273,14 @@ msgstr "Rétracter lors de changement de couche"
 
 msgid "Force a retraction when changes layer"
 msgstr "Cela force une rétraction sur les changements de couche."
+
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
 
 msgid "Retraction Length"
 msgstr "Longueur de Rétraction"

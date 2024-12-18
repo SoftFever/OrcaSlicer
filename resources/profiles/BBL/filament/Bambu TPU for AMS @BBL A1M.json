@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU for AMS @BBL A1M",
+    "inherits": "Bambu TPU for AMS @base",
+    "from": "system",
+    "setting_id": "GFSU02_03",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.4 nozzle",
+        "Bambu Lab A1 mini 0.6 nozzle",
+        "Bambu Lab A1 mini 0.8 nozzle"
+    ]
+}
