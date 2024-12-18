@@ -159,7 +159,7 @@ public:
     void set_fan_speed(int g);
     void set_fan_speed_percent(int speed);
     void set_fan_switch(bool s);
-    void post_event(int type);
+    void post_event();
     void on_swith_fan(wxMouseEvent& evt);
     void on_swith_fan(bool on);
     void update_mode();

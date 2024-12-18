@@ -15,7 +15,7 @@ wxDEFINE_EVENT(EVT_FAN_ADD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FAN_DEC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FAN_CHANGED, wxCommandEvent);
 
-constexpr int time_out = 20;
+constexpr int time_out = 10;
 
 /*************************************************
 Description:Fan
@@ -47,17 +47,16 @@ void Fan::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSi
     //auto m_bitmap_pointer  = ScalableBitmap(this, "fan_pointer", FromDIP(25));
     //m_img_pointer     = m_bitmap_pointer.bmp().ConvertToImage();
 
-    m_bitmap_bk  = ScalableBitmap(this, "fan_dash_bk", FromDIP(80));
+    m_bitmap_bk  = ScalableBitmap(this, "fan_dash_bk", 80);
 
     for (auto i = 0; i <= 10; i++) {
 #ifdef __APPLE__
-        auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), FromDIP(60));
+        auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), 60);
         m_bitmap_scales.push_back(m_bitmap_scale);
 #else
-        auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), FromDIP(46));
+        auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), 46);
         m_bitmap_scales.push_back(m_bitmap_scale);
 #endif
-        
     }
 
 //#ifdef __APPLE__
@@ -149,7 +148,8 @@ void Fan::doRender(wxDC& dc)
     //dc.DrawText(rpm, (size.x - dc.GetTextExtent(rpm).x) / 2, size.y - dc.GetTextExtent(rpm).y);
 }
 
-void Fan::msw_rescale() {
+void Fan::msw_rescale()
+{
    m_bitmap_bk.msw_rescale();
 }
 
@@ -168,16 +168,16 @@ FanOperate::FanOperate(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_min_speeds     = 1;
     m_max_speeds     = 10;
     create(parent, id, pos, size);
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void FanOperate::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
     SetBackgroundColour(*wxWHITE);
 
-    m_bitmap_add        = ScalableBitmap(this, "fan_control_add", FromDIP(24));
-    m_bitmap_decrease   = ScalableBitmap(this, "fan_control_decrease", FromDIP(24));
+    m_bitmap_add        = ScalableBitmap(this, "fan_control_add", 24);
+    m_bitmap_decrease   = ScalableBitmap(this, "fan_control_decrease", 24);
 
     SetMinSize(wxSize(FromDIP(SIZE_OF_FAN_OPERATE.x), FromDIP(SIZE_OF_FAN_OPERATE.y)));
     Bind(wxEVT_PAINT, &FanOperate::paintEvent, this);
@@ -327,7 +327,6 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
     auto m_static_bitmap_fan = new wxStaticBitmap(this, wxID_ANY, m_bitmap_fan->bmp(), wxDefaultPosition, wxDefaultSize);
 
     m_static_name = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTER_HORIZONTAL);
-    m_static_name->SetForegroundColour(wxColour(DRAW_HEAD_TEXT_COLOUR));
     m_static_name->SetBackgroundColour(wxColour(248, 248, 248));
     m_static_name->SetFont(Label::Head_18);
     m_static_name->SetMinSize(wxSize(FromDIP(100), -1));
@@ -370,6 +369,11 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
         command_control_fan();
     });
 
+    m_fan_operate->Bind(EVT_FAN_DEC, [this](const wxCommandEvent& e) {
+        m_current_speed = e.GetInt();
+        command_control_fan();
+    });
+
     m_sizer_control_bottom->Add(m_static_status_name, 0, wxALL, FromDIP(10));
     m_sizer_control_bottom->Add(m_fan_operate, 0, wxALL, FromDIP(10));
 
@@ -380,6 +384,7 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
     this->SetSizer(m_sizer_main);
     this->Layout();
     m_sizer_main->Fit(this);
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void FanControlNew::on_left_down(wxMouseEvent& evt)
@@ -395,19 +400,14 @@ void FanControlNew::command_control_fan()
     if (m_current_speed < 0 || m_current_speed > 10) { return; }
 
     BOOST_LOG_TRIVIAL(info) << "Functions Need to be supplemented! :FanControlNew::command_control_fan. the speed may change";
-    token.reset(this, nop_deleter_fan_control);
     if (m_obj) {
         if (!m_obj->is_enable_np){
             int speed = floor(m_current_speed * float(25.5));
             m_obj->command_control_fan(m_part_id, speed);
         } else {
-            m_obj->command_control_fan_new(m_part_id, m_current_speed, [this, w = std::weak_ptr<FanControlNew>(token)](const json &reply) {
-                if (w.expired())
-                    return;
-                post_event(1);
-            });
+            m_obj->command_control_fan_new(m_part_id, m_current_speed * 10, nullptr);
         }
-        post_event(0);
+        post_event();
     }
 }
 
@@ -480,7 +480,8 @@ void FanControlNew::set_machine_obj(MachineObject* obj)
     m_obj = obj;
 }
 
-void FanControlNew::set_name(wxString name) {
+void FanControlNew::set_name(wxString name)
+{
     m_static_name->SetLabelText(name);
 }
 
@@ -520,10 +521,9 @@ void FanControlNew::set_fan_switch(bool s)
 {
 }
 
-void FanControlNew::post_event(int type)
+void FanControlNew::post_event()
 {
     auto event = wxCommandEvent(EVT_FAN_CHANGED);
-    event.SetInt(type);
     event.SetString(wxString::Format("%d", m_current_speed));
     event.SetEventObject(GetParent());
     wxPostEvent(GetParent(), event);
@@ -544,20 +544,25 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirD
     m_obj = obj;
 
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    m_radio_btn_sizer = new wxGridSizer( 0, 3, 3, 3 );
-    m_sizer_fanControl = new wxGridSizer( 0, 3, 3, 10 );
+    m_radio_btn_sizer  = new wxGridSizer(0, 2, FromDIP(3), FromDIP(3));
+    m_sizer_fanControl = new wxGridSizer(0, 2, FromDIP(3), FromDIP(10));
 
     m_mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_button_refresh = new Button(this, wxString(""), "fan_poppingup_refresh", 0, FromDIP(24));
+    m_button_refresh = new Button(this, wxString(""), "fan_poppingup_refresh", 0, 24);
     m_button_refresh->SetBackgroundColor(*wxWHITE);
     m_button_refresh->SetBorderColor(*wxWHITE);
     m_button_refresh->SetMinSize(wxSize(FromDIP(26), FromDIP(26)));
     m_button_refresh->SetMaxSize(wxSize(FromDIP(26), FromDIP(26)));
-
+    m_button_refresh->Bind(wxEVT_ENTER_WINDOW, [this](const auto &e) { SetCursor(wxCURSOR_HAND); });
+    m_button_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](const auto &e) { SetCursor(wxCURSOR_ARROW); });
+    m_button_refresh->Bind(wxEVT_LEFT_DOWN, [this](const auto &e) {
+        CreateDuct();
+        Layout();
+        Fit();
+    });
     m_mode_sizer->Add(m_radio_btn_sizer, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_mode_sizer->Add(m_button_refresh, 0, wxALIGN_CENTRE_VERTICAL, 0);
-
     m_cooling_text = new wxStaticText(this, wxID_ANY, wxT(""));
     m_cooling_text->SetBackgroundColour(*wxWHITE);
 
@@ -589,14 +594,15 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirD
 #endif
     Bind(wxEVT_SHOW, &FanControlPopupNew::on_show, this);
     Bind(EVT_FAN_CHANGED, &FanControlPopupNew::on_fan_changed, this);
-
-    for (const auto& btn : m_mode_switch_btn_list) {
-        btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);
-    }
+    Bind(wxEVT_CLOSE_WINDOW, [this](const auto& e) {
+        int a = 0;
+    });
 }
 
-void FanControlPopupNew::CreateDuct(){
-
+void FanControlPopupNew::CreateDuct()
+{
+    m_radio_btn_sizer->Clear(true);
+    m_mode_switch_btn_list.clear();
     //tips
     UpdateTips(m_data.curren_mode);
 
@@ -611,6 +617,7 @@ void FanControlPopupNew::CreateDuct(){
     for (auto i = 0; i < mode_size; i++) {
         wxString text = wxString::Format("%s", radio_btn_name[AIR_DUCT(m_data.modes[i].id)]);
         SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == m_data.modes[i].id);
+        radio_btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);
         m_mode_switch_btn_list.emplace_back(radio_btn);
         m_radio_btn_sizer->Add(radio_btn, wxALL, FromDIP(5));
     }
@@ -620,7 +627,7 @@ void FanControlPopupNew::UpdateParts(int mode_id)
 {
     m_sizer_fanControl->Clear(true);
     for (const auto& part : m_data.parts) {
-        
+
         auto part_id = part.id;
         auto part_func = part.func;
         auto part_name = fan_func_name[AIR_FUN(part_id)];
@@ -633,39 +640,16 @@ void FanControlPopupNew::UpdateParts(int mode_id)
 
         m_fan_control_list[part_id] = fan_control;
         m_sizer_fanControl->Add(fan_control, 0, wxALL, FromDIP(5));
-
-        /*if (fan_control.type == AIR_FAN_TYPE)
-            m_duct_fans_list[fan.id] = fan_control;
-        else if (fan_control.type == AIR_DOOR_TYPE)
-            m_duct_doors_list[fan.id] = fan_control;*/
     }
 
     m_sizer_fanControl->Layout();
-
-    /*update state*/
-
-    //m_sizer_fanControl->Clear();
-    //if (m_fan_control_list.find(duct_id) == m_fan_control_list.end()) return;
-    //for (auto fan_control_list : m_fan_control_list){
-    //    if (fan_control_list.first == duct_id) continue;
-    //    for (auto fan_control : fan_control_list.second){
-    //        fan_control.second->Hide();
-    //    }
-    //}
-    //auto fan_control_new_list = m_fan_control_list[duct_id];
-    //for (auto it : fan_control_new_list){
-    //    //m_sizer_fanControl->Add(it.second, 0, wxALL | wxEXPAND, 0);
-    //    m_sizer_fanControl->Add(it.second, 0, wxALL, 5);
-    //    it.second->Show();
-    //}
-    //m_sizer_fanControl->Layout();
 }
 
 void FanControlPopupNew::UpdateTips(int model)
 {
     auto text = label_text[AIR_DUCT(model)];
     m_cooling_text->SetLabelText(text);
-    m_cooling_text->Wrap(FromDIP(600));
+    m_cooling_text->Wrap(FromDIP(400));
     Layout();
 }
 
@@ -675,8 +659,8 @@ void FanControlPopupNew::update_fan_data(MachineObject *obj)
         return;
 
     if (obj->is_enable_np) {
-        if (m_air_duct_time_out == 0) {
-            m_air_duct_time_out--;
+        if (m_fan_set_time_out > 0) {
+            m_fan_set_time_out--;
             return;
         }
         update_fan_data(obj->m_air_duct_data);
@@ -690,7 +674,7 @@ void FanControlPopupNew::update_fan_data(MachineObject *obj)
         int big_fan2_speed    = round(obj->big_fan2_speed / float(25.5));
         update_fan_data(AIR_FUN::FAN_COOLING_0_AIRDOOR, cooling_fan_speed);
         update_fan_data(AIR_FUN::FAN_REMOTE_COOLING_0_IDX, big_fan1_speed);
-        update_fan_data(AIR_FUN::FAN_REMOTE_COOLING_0_IDX, big_fan2_speed);
+        update_fan_data(AIR_FUN::FAN_CHAMBER_0_IDX, big_fan2_speed);
     }
 }
 
@@ -706,12 +690,12 @@ void FanControlPopupNew::update_fan_data(const AirDuctData &data)
         auto it = m_fan_control_list.find(part_id);
         if (it != m_fan_control_list.end()) {
             auto fan_control = m_fan_control_list[part_id];
-            fan_control->set_fan_speed_percent(part_state);
+            fan_control->set_fan_speed_percent(part_state / 10);
         }
     }
 }
 
-void FanControlPopupNew::update_fan_data(AIR_FUN id, int speed) 
+void FanControlPopupNew::update_fan_data(AIR_FUN id, int speed)
 {
     for (auto& part : m_data.parts) {
         auto part_id    = part.id;
@@ -872,38 +856,34 @@ void FanControlPopupNew::on_mode_changed(const wxMouseEvent &event)
 
 void FanControlPopupNew::on_fan_changed(const wxCommandEvent &event)
 {
-    int type           = event.GetInt();
-    if (type == 0)
-        m_fan_set_time_out = time_out;
-    else
-        m_fan_set_time_out = 0;
+    m_fan_set_time_out = time_out;
 }
 
 void FanControlPopupNew::init_names() {
 
     //Iint fan/door/func/duct name lists
-    radio_btn_name[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling Filter");
-    radio_btn_name[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Internal Filter");
+    radio_btn_name[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling");
+    radio_btn_name[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Heating");
     radio_btn_name[AIR_DUCT::AIR_DUCT_EXHAUST] = L("Exhaust");
     radio_btn_name[AIR_DUCT::AIR_DUCT_FULL_COOLING] = L("Full Cooling");
     radio_btn_name[AIR_DUCT::AIR_DUCT_NUM] = L("Num?");
     radio_btn_name[AIR_DUCT::AIR_DUCT_INIT] = L("Init");
-    
-    fan_func_name[AIR_FUN::FAN_HEAT_BREAK_0_IDX] = _L("Nozzle0");
+
+    fan_func_name[AIR_FUN::FAN_HEAT_BREAK_0_IDX] = _L("Hotend");
     fan_func_name[AIR_FUN::FAN_COOLING_0_AIRDOOR] = _L("Part");
     fan_func_name[AIR_FUN::FAN_REMOTE_COOLING_0_IDX] = _L("Aux");
-    fan_func_name[AIR_FUN::FAN_CHAMBER_0_IDX] = _L("Chamber");
+    fan_func_name[AIR_FUN::FAN_CHAMBER_0_IDX] = _L("Exhaust");
     fan_func_name[AIR_FUN::FAN_HEAT_BREAK_1_IDX] = _L("Nozzle1");
     fan_func_name[AIR_FUN::FAN_MC_BOARD_0_IDX] = _L("MC Board");
-    fan_func_name[AIR_FUN::FAN_INNNER_LOOP_FAN_0_IDX] = _L("Innerloop");
-    
+    fan_func_name[AIR_FUN::FAN_INNNER_LOOP_FAN_0_IDX] = _L("Heat");
+
     air_door_func_name[AIR_DOOR::AIR_DOOR_FUNC_CHAMBER] = _L("Chamber");
     air_door_func_name[AIR_DOOR::AIR_DOOR_FUNC_INNERLOOP] = _L("Innerloop");
     air_door_func_name[AIR_DOOR::AIR_DOOR_FUNC_TOP] = _L("Top");
 
     label_text[AIR_DUCT::AIR_DUCT_NONE] = _L("The fan controls the temperature during printing to improve print quality.The system automatically adjusts the fan's switch and speed according to different printing materials.");
     label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = L("Cooling-filtering mode is suitable for printing PLA/PETG/TPU materials. In this mode, the chamber temperature is low, and the air in the chamber can be filtered while cooling the printed part.");
-    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Cooling-filtering mode is suitable for printing PLA/PETG/TPU materials. In this mode, the chamber temperature is low, and the air in the chamber can be filtered while cooling the printed part.");
+    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
     label_text[AIR_DUCT::AIR_DUCT_EXHAUST] = L("Exhaust");
     label_text[AIR_DUCT::AIR_DUCT_FULL_COOLING] = L("Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printed part will be cooled in all directions.");
     label_text[AIR_DUCT::AIR_DUCT_NUM] = _L("Num");

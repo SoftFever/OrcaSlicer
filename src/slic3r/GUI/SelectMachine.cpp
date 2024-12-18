@@ -4610,8 +4610,8 @@ std::string PrintOptionItem::getValue()
 
      SetBackgroundColour(*wxWHITE);
      static Slic3r::GUI::BitmapCache cache;
-     m_img_selected   = ScalableBitmap(this, "switch_send_mode_on", 28);
-     m_img_unselected = ScalableBitmap(this, "switch_send_mode_off", 28);
+     m_img_selected       = ScalableBitmap(this, "switch_send_mode_on", 28);
+     m_img_unselected     = ScalableBitmap(this, "switch_send_mode_off", 28);
      m_img_selected_tag   = ScalableBitmap(this, "switch_send_mode_tag_on", 16);
      m_img_unselected_tag = ScalableBitmap(this, "switch_send_mode_tag_off", 16);
 
@@ -4619,6 +4619,7 @@ std::string PrintOptionItem::getValue()
 
      SetMinSize(tagSize);
      SetMaxSize(tagSize);
+     wxGetApp().UpdateDarkUIWin(this);
  }
 
 void SendModeSwitchButton::OnPaint(wxPaintEvent &event)

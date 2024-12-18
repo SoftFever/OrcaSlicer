@@ -5742,35 +5742,49 @@ void MachineObject::parse_new_info(json print)
 
             m_air_duct_data.curren_mode = device["airduct"]["modeCur"].get<int>();
 
-            for (auto it_mode = device["airduct"]["modeList"].begin(); it_mode != device["airduct"]["modeList"].end(); it_mode++) {
-                AirMode mode;
-                mode.id = (*it_mode)["modeId"].get<int>();
+            const json& airduct = device["airduct"];
+            if (airduct.contains("modeList") && airduct["modeList"].is_array()) {
+                auto list = airduct["modeList"].get<std::vector<json>>();
 
-                for (auto it_mode_ctrl = (*it_mode)["ctrl"].begin(); it_mode_ctrl != (*it_mode)["ctrl"].end(); it_mode_ctrl++) {
-                    mode.ctrl.push_back((*it_mode_ctrl).get<int>() >> 4);
+                for (int i = 0; i < list.size(); ++i) {
+                    // only show 2 mode
+                    if (i >= 2) { break; }
+
+                    json    mode_json = list[i];
+                    AirMode mode;
+                    if (mode_json.contains("modeId"))
+                        mode.id = mode_json["modeId"].get<int>();
+                    if (mode_json.contains("ctrl")) {
+                        for (auto it_mode_ctrl = mode_json["ctrl"].begin(); it_mode_ctrl != mode_json["ctrl"].end(); it_mode_ctrl++) {
+                            mode.ctrl.push_back((*it_mode_ctrl).get<int>() >> 4);
+                        }
+                    }
+
+                    if (mode_json.contains("off")) {
+                        for (auto it_mode_off = mode_json["off"].begin(); it_mode_off != mode_json["off"].end(); *it_mode_off++) {
+                            mode.off.push_back((*it_mode_off).get<int>() >> 4);
+                        }
+                    }
+
+                    m_air_duct_data.modes.push_back(mode);
                 }
-
-                for (auto it_mode_off = (*it_mode)["off"].begin(); it_mode_off != (*it_mode)["off"].begin(); *it_mode_off++) {
-                    mode.off.push_back((*it_mode_off).get<int>() >> 4);
-                }
-
-                m_air_duct_data.modes.push_back(mode);
             }
 
-            for (auto it_part = device["airduct"]["parts"].begin(); it_part != device["airduct"]["parts"].end(); it_part++) {
+            if (airduct.contains("parts") && airduct["parts"].is_array()) {
+                for (auto it_part = airduct["parts"].begin(); it_part != airduct["parts"].end(); it_part++) {
+                    int state = (*it_part)["state"].get<int>();
+                    int range = (*it_part)["range"].get<int>();
 
-                int state = (*it_part)["state"].get<int>();
-                int range = (*it_part)["range"].get<int>();
+                    AirParts part;
+                    part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 3);
+                    part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 12);
+                    part.func        = (*it_part)["func"].get<int>();
+                    part.state       = get_flag_bits(state, 0, 8);
+                    part.range_start = get_flag_bits(range, 0, 15);
+                    part.range_end   = get_flag_bits(range, 16, 15);
 
-                AirParts part;
-                part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 3);
-                part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 12);
-                part.func        = (*it_part)["func"].get<int>();
-                part.state       = get_flag_bits(state, 0, 8);
-                part.range_start = get_flag_bits(range, 0, 15);
-                part.range_end   = get_flag_bits(range, 16, 15);
-
-                m_air_duct_data.parts.push_back(part);
+                    m_air_duct_data.parts.push_back(part);
+                }
             }
         }
 
@@ -6246,7 +6260,8 @@ int MachineObject::command_handle_response(const json &response)
     std::string  reply = response["sequence_id"].get<std::string>();
     auto it    = m_callback_list.find(reply);
     if (it != m_callback_list.end()) {
-        it->second(response);
+        if (it->second)
+            it->second(response);
         m_callback_list.erase(it);
     }
 
