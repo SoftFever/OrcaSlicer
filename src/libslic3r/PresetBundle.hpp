@@ -179,7 +179,7 @@ public:
 
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
 
-    std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str);
+    std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only = true);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
                                                                                                std::string &      nozzle_diameter_str,
                                                                                                std::string &      setting_id,
@@ -187,6 +187,7 @@ public:
                                                                                                std::string &      nozzle_temp_min,
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
+    Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;

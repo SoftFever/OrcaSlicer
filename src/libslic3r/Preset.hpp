@@ -649,6 +649,8 @@ public:
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
     size_t          first_compatible_idx() const { return this->first_compatible_idx([](const Preset&) -> int { return 0; }); }
 
+    std::vector<std::string> diameters_of_selected_printer();
+
     // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
     // Return the first visible preset. Certainly at least the '- default -' preset shall be visible.
     Preset&         first_visible()             { return this->preset(this->first_visible_idx()); }

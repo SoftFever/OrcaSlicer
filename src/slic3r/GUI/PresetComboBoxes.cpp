@@ -718,6 +718,13 @@ bool PresetComboBox::is_selected_physical_printer()
     return marker == LABEL_ITEM_PHYSICAL_PRINTER;
 }
 
+bool PresetComboBox::is_selected_printer_model()
+{
+    auto selected_item = this->GetSelection();
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    return marker == LABEL_ITEM_PRINTER_MODELS;
+}
+
 bool PresetComboBox::selection_is_changed_according_to_physical_printers()
 {
     if (m_type != Preset::TYPE_PRINTER || !is_selected_physical_printer())
@@ -1049,18 +1056,6 @@ void PlaterPresetComboBox::show_edit_menu()
     wxGetApp().plater()->PopupMenu(menu);
 }
 
-wxString PlaterPresetComboBox::get_preset_group_name(const Preset &preset)
-{
-    wxString group_name;
-    if (preset.is_system) {
-        wxString name = get_preset_name(preset);
-        if (name.size() > 12) {
-            group_name = name.SubString(0, name.size() - 11);
-        }
-    }
-    return group_name;
-}
-
 wxString PlaterPresetComboBox::get_preset_name(const Preset& preset)
 {
     return from_u8(preset.label(false));
@@ -1113,21 +1108,12 @@ void PlaterPresetComboBox::update()
     // and draw a red flag in front of the selected preset.
     bool wide_icons = selected_preset && !selected_preset->is_compatible;
 
-    struct PresetItemInfo
-    {
-        wxString name;
-        wxString group_name;
-        wxBitmap *bitmap;
-
-        PresetItemInfo(wxString name_, wxString group_name_, wxBitmap * bitmap_): name(name_), group_name(group_name_), bitmap(bitmap_) {}
-    };
-
-    std::vector<PresetItemInfo> nonsys_presets;
+    std::map<wxString, wxBitmap*> nonsys_presets;
     //BBS: add project embedded presets logic
-    std::vector<PresetItemInfo> project_embedded_presets;
-    std::vector<PresetItemInfo> system_presets;
+    std::map<wxString, wxBitmap*>  project_embedded_presets;
+    std::map<wxString, wxBitmap *> system_presets;
+    std::unordered_set<std::string> system_printer_models;
     std::map<wxString, wxString>   preset_descriptions;
-
     //BBS:  move system to the end
     wxString selected_system_preset;
     wxString selected_user_preset;
@@ -1158,11 +1144,7 @@ void PlaterPresetComboBox::update()
         }
 
         bool single_bar = false;
-
-        wxString group_name;
-        if (m_type == Preset::TYPE_PRINTER)
-            group_name = get_preset_group_name(preset);
-
+        wxString name = get_preset_name(preset);
         if (m_type == Preset::TYPE_FILAMENT)
         {
 #if 0
@@ -1179,12 +1161,20 @@ void PlaterPresetComboBox::update()
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
-        const wxString name = get_preset_name(preset);
         preset_descriptions.emplace(name, from_u8(preset.description));
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace_back(PresetItemInfo(name, group_name, bmp));
+            if (m_type == Preset::TYPE_PRINTER) {
+                auto printer_model = preset.config.opt_string("printer_model");
+                name = from_u8(printer_model);
+                if (system_printer_models.count(printer_model) == 0) {
+                    system_presets.emplace(name, bmp);
+                    system_printer_models.insert(printer_model);
+                }
+            } else {
+                system_presets.emplace(name, bmp);
+            }
             if (is_selected) {
                 tooltip = get_tooltip(preset);
                 selected_system_preset = name;
@@ -1198,7 +1188,7 @@ void PlaterPresetComboBox::update()
         //BBS: add project embedded preset logic
         else if (preset.is_project_embedded)
         {
-            project_embedded_presets.emplace_back(PresetItemInfo(name, group_name, bmp));
+            project_embedded_presets.emplace(name, bmp);
             if (is_selected) {
                 selected_user_preset = name;
                 tooltip = wxString::FromUTF8(preset.name.c_str());
@@ -1206,7 +1196,7 @@ void PlaterPresetComboBox::update()
         }
         else
         {
-            nonsys_presets.emplace_back(PresetItemInfo(name, group_name, bmp));
+            nonsys_presets.emplace(name, bmp);
             if (is_selected) {
                 selected_user_preset = name;
                 //BBS set tooltip
@@ -1226,12 +1216,12 @@ void PlaterPresetComboBox::update()
     }
 
     auto add_presets = [this, &preset_descriptions, &selected_in_ams]
-            (std::vector<PresetItemInfo> const &presets, wxString const &selected, std::string const &group) {
+            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
         if (!presets.empty()) {
             set_label_marker(Append(separator(group), wxNullBitmap));
-            for (auto it = presets.begin(); it != presets.end(); ++it) {
-                SetItemTooltip(Append(it->name, *it->bitmap), preset_descriptions[it->name]);
-                bool is_selected = it->name == selected;
+                for (std::map<wxString, wxBitmap *>::const_iterator it = presets.begin(); it != presets.end(); ++it) {
+                    SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
+                bool is_selected = it->first == selected;
                 validate_selection(is_selected);
                 if (is_selected && selected_in_ams) {
                     SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
