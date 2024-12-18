@@ -23,6 +23,12 @@
     "required_nozzle_HRC": [
         "40"
     ],
+    "supertack_plate_temp": [
+        "50"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "50"
+    ],
     "slow_down_layer_time": [
         "7"
     ],
