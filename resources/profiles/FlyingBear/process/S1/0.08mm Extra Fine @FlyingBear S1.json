@@ -9,7 +9,7 @@
 	
     "inner_wall_acceleration": "3000",
     "bottom_shell_layers": "7",
-    "overhang_1_4_speed": "50",
+    "overhang_1_4_speed": "30",
     "overhang_2_4_speed": "30",
     "overhang_3_4_speed": "10",
     "top_shell_layers": "9",
