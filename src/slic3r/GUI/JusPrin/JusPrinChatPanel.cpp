@@ -399,24 +399,19 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     CallEmbeddedChatMethod("eventReceived", j.dump());
 }
 
-void JusPrinChatPanel::SendModelObjectAddedEvent(ModelObject* obj) {
+nlohmann::json JusPrinChatPanel::GetModelObjectFeaturesJson(const ModelObject* obj) {
     if (!obj || obj->instances.size() != 1) {
-        BOOST_LOG_TRIVIAL(error) << "SendModelObjectAddedEvent: Not sure why there will be more than one instance of a model object. Skipping for now.";
-        return;
+        BOOST_LOG_TRIVIAL(error) << "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
+        return nlohmann::json::object();
     }
+
     Slic3r::orientation::OrientMesh om = Slic3r::GUI::OrientJob::get_orient_mesh(obj->instances[0]);
     Slic3r::orientation::OrientParams params;
     params.min_volume = false;
 
     Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
     Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
-
-    nlohmann::json j = nlohmann::json::object();
-    j["type"] = "modelObjectAdded";
-    j["data"] = nlohmann::json::object();
-    j["data"]["name"] = obj->name;
-    j["data"]["features"] = CostItemsToJson(features);
-    CallEmbeddedChatMethod("eventReceived", j.dump());
+    return CostItemsToJson(features);
 }
 
 nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
@@ -432,7 +427,9 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
         auto object_grid_config = &(object->config);
 
         nlohmann::json obj;
+        obj["id"] = std::to_string(object->id().id);
         obj["name"] = object->name;
+        obj["features"] = GetModelObjectFeaturesJson(object);
 
         int extruder_id = -1;  // Default extruder ID
         auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
