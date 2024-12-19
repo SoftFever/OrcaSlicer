@@ -6,5 +6,11 @@
     "instantiation": "false",
     "filament_type": [
         "EVA"
+    ],
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
     ]
 }

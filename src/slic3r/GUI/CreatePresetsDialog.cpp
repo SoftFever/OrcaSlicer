@@ -543,16 +543,26 @@ static char* read_json_file(const std::string &preset_path)
 
 static std::string get_printer_nozzle_diameter(std::string printer_name) {
 
-    size_t index = printer_name.find(" nozzle");
+    size_t index = printer_name.find(" nozzle)");
     if (std::string::npos == index) {
-        return "";
+        size_t index = printer_name.find(" nozzle");
+        if (std::string::npos == index) {
+            return "";
+        }
+        std::string nozzle           = printer_name.substr(0, index);
+        size_t      last_space_index = nozzle.find_last_of(" ");
+        if (std::string::npos == index) {
+            return "";
+        }
+        return nozzle.substr(last_space_index + 1);
+    } else {
+        std::string nozzle = printer_name.substr(0, index);
+        size_t      last_bracket_index = nozzle.find_last_of("(");
+        if (std::string::npos == index) {
+            return "";
+        }
+        return nozzle.substr(last_bracket_index + 1);
     }
-    std::string nozzle           = printer_name.substr(0, index);
-    size_t      last_space_index = nozzle.find_last_of(" ");
-    if (std::string::npos == index) {
-        return "";
-    }
-    return nozzle.substr(last_space_index + 1);
 }
 
 static void adjust_dialog_in_screen(DPIDialog* dialog) {
@@ -1179,10 +1189,11 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
             std::string preset_name = filament_preset->name;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament_id: " << filament_preset->filament_id << " preset name: " << filament_preset->name;
             size_t      index_at    = preset_name.find(" @");
+            std::string cur_preset_name = preset_name;
             if (std::string::npos != index_at) {
-                std::string cur_preset_name = preset_name.substr(0, index_at);
-                preset_name_set.insert(from_u8(cur_preset_name));
+                cur_preset_name = preset_name.substr(0, index_at);
             }
+            preset_name_set.insert(from_u8(cur_preset_name));
         }
         assert(1 == preset_name_set.size());
         if (preset_name_set.size() > 1) {
