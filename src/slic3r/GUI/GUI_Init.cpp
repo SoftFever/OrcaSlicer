@@ -40,6 +40,12 @@ int GUI_Run(GUI_InitParams &params)
     try {
         //GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
         GUI::GUI_App* gui = new GUI::GUI_App();
+
+        /* initialize wxWidgets, so we could correctly init fonts */
+        wxInitialize();
+        bool useSystemFonts = gui->app_config->get("app", "use_system_fonts") == "true";
+        ::Label::initSysFont(useSystemFonts);
+
         //if (gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer) {
             // G-code viewer is currently not performing instance check, a new G-code viewer is started every time.
             bool gui_single_instance_setting = gui->app_config->get("app", "single_instance") == "true";
