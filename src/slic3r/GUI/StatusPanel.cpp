@@ -1419,7 +1419,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     wxWindowID nozzle_id = wxWindow::NewControlId();
-    m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_MAIN_NOZZLE_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
+    m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
                                       wxString("monitor_nozzle_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
     m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
@@ -2210,6 +2210,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
                 on_set_nozzle_temp(MAIN_NOZZLE_ID);
             } else if (e.GetString() == wxString::Format("%d", DEPUTY_NOZZLE_ID)) {
                 on_set_nozzle_temp(DEPUTY_NOZZLE_ID);
+            } else {
+                on_set_nozzle_temp(UNIQUE_NOZZLE_ID);//there is only one nozzle
             }
         } else if (id == m_tempCtrl_chamber->GetType()) {
             on_set_chamber_temp();
@@ -2855,7 +2857,6 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    int nozzle_num = obj->m_extder_data.total_extder_count;
     m_tempCtrl_bed->SetCurrTemp((int) obj->bed_temp);
     m_tempCtrl_bed->SetMaxTemp(obj->get_bed_temperature_limit());
 
@@ -2872,8 +2873,17 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_bed->SetIconNormal();
     }
 
-    m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp);
-    if (nozzle_num == 2 && obj->m_extder_data.extders.size() > 1) {
+    int nozzle_num = obj->m_extder_data.total_extder_count;
+    if (nozzle_num == 1 && obj->m_extder_data.extders.size() > MAIN_NOZZLE_ID)
+    {
+        m_tempCtrl_nozzle->SetCurrType(TEMP_OF_NORMAL_TYPE);
+        m_tempCtrl_nozzle->SetCurrTemp((int)obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp);
+        m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_NORMAL_TYPE);
+        m_tempCtrl_nozzle_deputy->SetLabel(TEMP_BLANK_STR);
+        m_tempCtrl_nozzle_deputy->Hide();
+    }
+    else if (nozzle_num == 2 && obj->m_extder_data.extders.size() > 1)
+    {
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_MAIN_NOZZLE_TYPE);
         m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_DEPUTY_NOZZLE_TYPE);
         m_tempCtrl_nozzle_deputy->Show();

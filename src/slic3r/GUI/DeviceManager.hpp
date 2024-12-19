@@ -40,6 +40,7 @@
 
 #define MAIN_NOZZLE_ID          0
 #define DEPUTY_NOZZLE_ID        1
+#define UNIQUE_NOZZLE_ID        MAIN_NOZZLE_ID
 
 #define VIRTUAL_TRAY_MAIN_ID    255
 #define VIRTUAL_TRAY_DEPUTY_ID  254
