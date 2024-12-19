@@ -180,8 +180,6 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
-
-	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true);
 }
 
 BedType PartPlate::get_bed_type(bool load_from_project) const
@@ -301,6 +299,32 @@ PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 
     return curr_plate_seq;
 }
+
+std::vector<int> PartPlate::get_real_filament_maps(const DynamicConfig& g_config, bool* use_global_param) const
+{
+	auto maps = get_filament_maps();
+	if (!maps.empty()) {
+		if (use_global_param) { *use_global_param = false; }
+		return maps;
+	}
+	auto g_maps = g_config.option<ConfigOptionInts>("filament_map")->values;
+	if (use_global_param) { *use_global_param = true; }
+	return g_maps;
+}
+
+FilamentMapMode PartPlate::get_real_filament_map_mode(const DynamicConfig& g_config, bool* use_global_param) const
+{
+	auto mode = get_filament_map_mode();
+	if (FilamentMapMode::fmmDefault != mode) {
+		if (use_global_param) { *use_global_param = false; };
+		return mode;
+	}
+
+	auto g_mode = g_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+	if (use_global_param) { *use_global_param = true; }
+	return g_mode;
+}
+
 
 bool PartPlate::has_spiral_mode_config() const
 {
@@ -3220,37 +3244,39 @@ void PartPlate::print() const
 	return;
 }
 
-FilamentMapMode PartPlate::get_filament_map_mode()
+FilamentMapMode PartPlate::get_filament_map_mode() const
 {
-	return m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
+    std::string key = "filament_map_mode";
+    if(m_config.has(key))
+        return m_config.option<ConfigOptionEnum<FilamentMapMode>>(key)->value;
+    return FilamentMapMode::fmmDefault;
 }
 
 void PartPlate::set_filament_map_mode(const FilamentMapMode& mode)
 {
-	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
+    m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
 }
 
-bool PartPlate::has_auto_filament_map_reslut()
+std::vector<int> PartPlate::get_filament_maps() const
 {
-    return m_has_auto_filament_map_result;
-}
+    std::string key = "filament_map";
+    if (m_config.has(key))
+        return m_config.option<ConfigOptionInts>(key)->values;
 
-void PartPlate::set_auto_filament_map_result(bool has_result)
-{
-	m_has_auto_filament_map_result = has_result;
-}
-
-std::vector<int> PartPlate::get_filament_maps()
-{
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-
-    return filament_maps;
+    return {};
 }
 
 void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
 {
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-    filament_maps = f_maps;
+    m_config.option<ConfigOptionInts>("filament_map", true)->values = f_maps;
+}
+
+void PartPlate::clear_filament_map_info()
+{
+    if (m_config.has("filament_map"))
+        m_config.erase("filament_map");
+    if (m_config.has("filament_map_mode"))
+        m_config.erase("filament_map_mode");
 }
 
 const std::vector<std::vector<int>>& PartPlate::get_unprintable_filament_ids()
@@ -3273,22 +3299,26 @@ void PartPlate::on_extruder_count_changed(int extruder_count)
 
 void PartPlate::set_filament_count(int filament_count)
 {
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-    filament_maps.resize(filament_count, 1);
+    if (m_config.has("filament_map")) {
+        std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
+        filament_maps.resize(filament_count);
+    }
 }
 
 void PartPlate::on_filament_added()
 {
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-    filament_maps.push_back(1);
+    if (m_config.has("filament_map")) {
+        std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
+        filament_maps.push_back(1);
+    }
 }
 
 void PartPlate::on_filament_deleted(int filament_count, int filament_id)
 {
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-
-    filament_maps.erase(filament_maps.begin()+filament_id);
-
+    if (m_config.has("filament_map")) {
+        std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
+        filament_maps.erase(filament_maps.begin() + filament_id);
+    }
     update_first_layer_print_sequence_when_delete_filament(filament_id);
 }
 
@@ -5458,6 +5488,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PlateData* plate_data_item = new PlateData();
+		// TODO: write if needed
 		plate_data_item->filament_maps = m_plate_list[i]->get_filament_maps();
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;

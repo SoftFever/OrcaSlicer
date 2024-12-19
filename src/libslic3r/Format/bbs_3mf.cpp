@@ -4230,9 +4230,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if (key == FILAMENT_MAP_MODE_ATTR)
             {
-                FilamentMapMode map_mode = FilamentMapMode::fmmAuto;
-                ConfigOptionEnum<FilamentMapMode>::from_string(value, map_mode);
-                m_curr_plater->config.set_key_value("filament_map_mode", new ConfigOptionEnum<FilamentMapMode>(map_mode));
+                FilamentMapMode map_mode = FilamentMapMode::fmmAutoForFlush;
+                // handle old versions, only load manual params
+                if (value != "Auto") {
+                    ConfigOptionEnum<FilamentMapMode>::from_string(value, map_mode);
+                    m_curr_plater->config.set_key_value("filament_map_mode", new ConfigOptionEnum<FilamentMapMode>(map_mode));
+                }
             }
             else if (key == FILAMENT_MAP_ATTR) {
                 if (m_curr_plater)
@@ -7695,7 +7698,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_MODE_ATTR << "\" " << VALUE_ATTR << "=\"" << filament_map_mode_names[filament_map_mode_opt->getInt()] << "\"/>\n";
 
                 ConfigOptionInts* filament_maps_opt = plate_data->config.option<ConfigOptionInts>("filament_map");
-                if (filament_maps_opt != nullptr) {
+                // filament map override global settings only when group mode overrides the global settings
+                if (filament_map_mode_opt !=nullptr && filament_maps_opt != nullptr) {
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
                     const std::vector<int>& values = filament_maps_opt->values;
                     for (int i = 0; i < values.size(); ++i) {

@@ -504,6 +504,11 @@ public:
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result = nullptr) const;
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
 
+    void set_global_filament_map_mode(FilamentMapMode mode);
+    void set_global_filament_map(const std::vector<int>& filament_map);
+    std::vector<int> get_global_filament_map() const;
+    FilamentMapMode get_global_filament_map_mode() const;
+
     void update_menus();
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;

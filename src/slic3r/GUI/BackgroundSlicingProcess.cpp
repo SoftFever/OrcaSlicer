@@ -228,10 +228,9 @@ void BackgroundSlicingProcess::process_fff()
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
 		m_print->process();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
-        if (m_current_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto) {
+        if (m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) < FilamentMapMode::fmmManual) {
             std::vector<int> f_maps = m_fff_print->get_filament_maps();
             m_current_plate->set_filament_maps(f_maps);
-            m_current_plate->set_auto_filament_map_result(m_fff_print->has_auto_filament_map_result());
 		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.

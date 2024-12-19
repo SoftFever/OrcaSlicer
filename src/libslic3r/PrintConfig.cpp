@@ -486,7 +486,8 @@ static const t_config_enum_values s_keys_map_NozzleVolumeType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleVolumeType)
 
 static const t_config_enum_values s_keys_map_FilamentMapMode = {
-    { "Auto",   fmmAuto },
+    { "Auto For Flush", fmmAutoForFlush },
+    { "Auto For Match", fmmAutoForMatch },
     { "Manual", fmmManual }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
@@ -2161,12 +2162,16 @@ void PrintConfigDef::init_fff_params()
     def->label         = L("filament mapping mode");
     def->tooltip = ("filament mapping mode used as plate param");
     def->enum_keys_map = &ConfigOptionEnum<FilamentMapMode>::get_enum_values();
-    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Auto For Flush");
+    def->enum_values.push_back("Auto For Match");
     def->enum_values.push_back("Manual");
-    def->enum_labels.push_back(L("Auto"));
+    def->enum_values.push_back("Default");
+    def->enum_labels.push_back(L("Auto For Flush"));
+    def->enum_labels.push_back(L("Auto For Match"));
     def->enum_labels.push_back(L("Manual"));
+    def->enum_labels.push_back(L("Default"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<FilamentMapMode>(fmmAuto));
+    def->set_default_value(new ConfigOptionEnum<FilamentMapMode>(fmmAutoForFlush));
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");

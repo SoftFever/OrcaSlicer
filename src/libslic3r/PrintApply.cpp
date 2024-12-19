@@ -1154,7 +1154,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (print_diff_set.find("filament_map_mode") == print_diff_set.end())
     {
         FilamentMapMode map_mode = new_full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
-        if (map_mode == fmmAuto) {
+        if (map_mode < fmmManual) {
             if (print_diff_set.find("filament_map") != print_diff_set.end()) {
                 print_diff_set.erase("filament_map");
                 //full_config_diff.erase("filament_map");

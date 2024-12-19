@@ -1207,8 +1207,9 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     //check per-object error for extruder areas
     if (object_results && (extruder_count > 1))
     {
-        object_results->mode = curr_plate->get_filament_map_mode();
-        if (object_results->mode == FilamentMapMode::fmmAuto)
+        const auto& project_config = Slic3r::GUI::wxGetApp().preset_bundle->project_config;
+        object_results->mode = curr_plate->get_real_filament_map_mode(project_config);
+        if (object_results->mode < FilamentMapMode::fmmManual)
         {
             std::vector<int> conflict_filament_vector;
             for (int index = 0; index < extruder_count; index++ )
@@ -1269,7 +1270,8 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
         else
         {
             std::set<int> conflict_filaments_set;
-            std::vector<int> filament_maps = curr_plate->get_filament_maps();
+            const auto& project_config = Slic3r::GUI::wxGetApp().preset_bundle->project_config;
+            std::vector<int> filament_maps = curr_plate->get_real_filament_maps(project_config);
             for (auto& object_map: objects_unprintable_filaments)
             {
                 ModelObject *model_object = object_map.first;

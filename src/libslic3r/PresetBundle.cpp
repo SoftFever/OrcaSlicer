@@ -41,7 +41,9 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_rotation_angle",
     "curr_bed_type",
     "flush_multiplier",
-    "nozzle_volume_type"
+    "nozzle_volume_type",
+    "filament_map_mode",
+    "filament_map"
 };
 
 //Orca: add custom as default
@@ -1892,7 +1894,9 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     }
 
     ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
     filament_color->resize(n);
+    filament_map->values.resize(n, 1);
     ams_multi_color_filment.resize(n);
 
     //BBS set new filament color to new_color
@@ -1914,11 +1918,15 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     filament_presets.erase(filament_presets.begin() + to_del_flament_id);
 
     ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
+
     if (filament_color->values.size() > to_del_flament_id) {
         filament_color->values.erase(filament_color->values.begin() + to_del_flament_id);
+        filament_map->values.erase(filament_map->values.begin() + to_del_flament_id);
     }
     else {
         filament_color->values.resize(to_del_flament_id);
+        filament_map->values.resize(to_del_flament_id, 1);
     }
 
     if (ams_multi_color_filment.size() > to_del_flament_id){
@@ -2199,14 +2207,14 @@ bool PresetBundle::support_different_extruders()
     return supported;
 }
 
-DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::vector<int> filament_maps) const
+DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::optional<std::vector<int>>filament_maps) const
 {
     return (this->printers.get_edited_preset().printer_technology() == ptFFF) ?
         this->full_fff_config(apply_extruder, filament_maps) :
         this->full_sla_config();
 }
 
-DynamicPrintConfig PresetBundle::full_config_secure(std::vector<int> filament_maps) const
+DynamicPrintConfig PresetBundle::full_config_secure(std::optional<std::vector<int>>filament_maps) const
 {
     DynamicPrintConfig config = this->full_fff_config(false, filament_maps);
     //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
@@ -2225,7 +2233,7 @@ const std::set<std::string> ignore_settings_list ={
     "print_settings_id", "filament_settings_id", "printer_settings_id"
 };
 
-DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vector<int> filament_maps) const
+DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps_new) const
 {
     DynamicPrintConfig out;
     out.apply(FullPrintConfig::defaults());
@@ -2238,6 +2246,9 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
     // BBS
     size_t  num_filaments = this->filament_presets.size();
 
+    std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    if (filament_maps_new.has_value())
+        filament_maps = *filament_maps_new;
     //in some middle state, they may be different
     if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);

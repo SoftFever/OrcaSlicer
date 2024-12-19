@@ -1126,8 +1126,9 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     // try color and type mapping
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const auto& project_config = wxGetApp().preset_bundle->project_config;
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-    m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
+    m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
 
     int filament_result = 0;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
@@ -1443,9 +1444,10 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
+    const auto& project_config = wxGetApp().preset_bundle->project_config;
     //check nozzle used
     auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders(); // 1 based
-    auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();  // 1 based
+    auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);  // 1 based
     std::map<int, std::string> used_extruders_flow;
     std::vector<int> used_extruders; // 0 based
     for (auto f : used_filaments) {
@@ -3544,7 +3546,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     bool use_double_extruder = nozzle_nums > 1 ? true : false;
     if (use_double_extruder)
     {
-        m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
+        const auto& project_config = preset_bundle->project_config;
+        m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
     }
 
     for (auto i = 0; i < extruders.size(); i++) {

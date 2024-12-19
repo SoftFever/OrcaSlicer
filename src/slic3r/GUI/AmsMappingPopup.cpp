@@ -18,6 +18,7 @@
 #include <wx/graphics.h>
 #include <miniz.h>
 #include <algorithm>
+#include <optional>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"

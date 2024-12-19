@@ -105,7 +105,6 @@ private:
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
     float m_slice_percent;
-    bool m_has_auto_filament_map_result{false};
 
     Print *m_print; //Print reference, not own it, no need to serialize
     GCodeProcessorResult *m_gcode_result;
@@ -245,6 +244,19 @@ public:
     // If curr_plate's print_seq is ByDefault, use the global sequence
     // @return PrintSequence::{ByLayer,ByObject}
     PrintSequence get_real_print_seq(bool* plate_same_as_global=nullptr) const;
+
+    std::vector<int> get_real_filament_maps(const DynamicConfig& g_config, bool* use_global_param = nullptr)const;
+    FilamentMapMode  get_real_filament_map_mode(const DynamicConfig& g_config,bool * use_global_param = nullptr) const;
+
+    FilamentMapMode get_filament_map_mode() const;
+    void set_filament_map_mode(const FilamentMapMode& mode);
+
+    // get filament map, 0 based filament ids, 1 based extruder ids
+    std::vector<int> get_filament_maps() const;
+    void set_filament_maps(const std::vector<int>& f_maps);
+
+    // remove filament map and map mode in profiles
+    void clear_filament_map_info();
 
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;
@@ -491,16 +503,6 @@ public:
     void update_first_layer_print_sequence_when_delete_filament(size_t filamen_id);
 
     void print() const;
-
-    FilamentMapMode get_filament_map_mode();
-    void set_filament_map_mode(const FilamentMapMode& mode);
-
-    bool has_auto_filament_map_reslut();
-    void set_auto_filament_map_result(bool has_result);
-
-    // get filament map, 0 based filament ids, 1 based extruder ids
-    std::vector<int> get_filament_maps();
-    void set_filament_maps(const std::vector<int>& f_maps);
 
     const std::vector<std::vector<int>> &get_unprintable_filament_ids();
     void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids);

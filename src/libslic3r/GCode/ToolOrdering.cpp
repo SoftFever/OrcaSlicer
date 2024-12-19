@@ -1194,7 +1194,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     }
 
     std::vector<int>filament_maps(number_of_extruders, 0);
-    FilamentMapMode map_mode = FilamentMapMode::fmmAuto;
+    FilamentMapMode map_mode = FilamentMapMode::fmmAutoForFlush;
 
     std::vector<std::vector<unsigned int>> layer_filaments;
     for (auto& lt : m_layer_tools) {
@@ -1210,7 +1210,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     map_mode = m_print->get_filament_map_mode();
     // only check and map in sequence mode, in by object mode, we check the map in print.cpp
     if (print_config->print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1) {
-        if (map_mode == FilamentMapMode::fmmAuto) {
+        if (map_mode < FilamentMapMode::fmmManual) {
             const PrintConfig* print_config = m_print_config_ptr;
             if (!print_config && m_print_object_ptr) {
                 print_config = &(m_print_object_ptr->print()->config());
@@ -1285,7 +1285,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, filament_maps, nozzle_flush_mtx, filament_sequences);
     if (nozzle_nums <= 1)
         m_stats_by_single_extruder = curr_flush_info;
-    else if (map_mode == fmmAuto)
+    else if (map_mode < fmmManual)
         m_stats_by_multi_extruder_auto = curr_flush_info;
     else if (map_mode == fmmManual)
         m_stats_by_multi_extruder_manual = curr_flush_info;

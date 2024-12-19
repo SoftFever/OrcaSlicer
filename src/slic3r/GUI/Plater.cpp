@@ -6178,14 +6178,15 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
 
     Print::ApplyStatus invalidated;
-    if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
+    const auto& preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle->get_printer_extruder_count() > 1) {
         PartPlate* cur_plate = background_process.get_current_plate();
-        std::vector<int> f_maps = cur_plate->get_filament_maps();
-        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false, f_maps));
+        std::vector<int> f_maps = cur_plate->get_real_filament_maps(preset_bundle->project_config);
+        invalidated = background_process.apply(this->model, preset_bundle->full_config(false, f_maps));
         background_process.fff_print()->set_extruder_filament_info(get_extruder_filament_info());
     }
     else
-        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(false));
+        invalidated = background_process.apply(this->model, preset_bundle->full_config(false));
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
         // BBS: add only gcode mode
@@ -14514,6 +14515,32 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
     return colors;
 }
 
+void Plater::set_global_filament_map_mode(FilamentMapMode mode)
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value = mode;
+}
+
+void Plater::set_global_filament_map(const std::vector<int>& filament_map)
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    project_config.option<ConfigOptionInts>("filament_map")->values = filament_map;
+}
+
+std::vector<int> Plater::get_global_filament_map() const
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    return project_config.option<ConfigOptionInts>("filament_map")->values;
+}
+
+
+FilamentMapMode Plater::get_global_filament_map_mode() const
+{
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    return project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+}
+
+
 wxWindow* Plater::get_select_machine_dialog()
 {
     return p->m_select_machine_dlg;
@@ -14954,14 +14981,15 @@ void Plater::apply_background_progress()
     PartPlate* part_plate = p->partplate_list.get_curr_plate();
     int plate_index = p->partplate_list.get_curr_plate_index();
     bool result_valid = part_plate->is_slice_result_valid();
+    const auto& preset_bundle = wxGetApp().preset_bundle;
     //always apply the current plate's print
     Print::ApplyStatus invalidated;
-    if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
-        std::vector<int> f_maps = part_plate->get_filament_maps();
-        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
+    if (preset_bundle->get_printer_extruder_count() > 1) {
+        std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
+        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
     }
     else
-        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
+        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -14983,6 +15011,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
         if (is_view3D_shown())
             wxGetApp().plater()->canvas3D()->render();
     }
+    const auto& preset_bundle = wxGetApp().preset_bundle;
 
     if ((!ret) && (p->background_process.can_switch_print()))
     {
@@ -15000,12 +15029,12 @@ int Plater::select_plate(int plate_index, bool need_slice)
         part_plate->get_print(&print, &gcode_result, NULL);
 
         //always apply the current plate's print
-        if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
-            std::vector<int> f_maps = part_plate->get_filament_maps();
-            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
+        if (preset_bundle->get_printer_extruder_count() > 1) {
+            std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
+            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
         }
         else
-            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
+            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
         bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
@@ -15296,33 +15325,41 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     int value = evt.GetInt();
     bool is_auto = value & 1;  //0000 means manual, 0001 means auto
     bool need_slice = value & (1 << 1);  //0010 means from gcode view, 0000 means not from gcode view
+
+    const auto& project_config = wxGetApp().preset_bundle->project_config;
+    auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
+    auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
+    auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
+    if (plate_filament_maps.size() != filament_colors.size())  // refine it later, save filament map to app config
+        plate_filament_maps.resize(filament_colors.size(), 1);
+
     FilamentMapDialog filament_dlg(this,
         config(),
-        curr_plate->get_filament_maps(),
+        plate_filament_maps,
         curr_plate->get_extruders(true),
-        is_auto,
-        curr_plate->has_auto_filament_map_reslut()
+        plate_filament_map_mode < FilamentMapMode::fmmManual,
+        false
     );
+
     if (filament_dlg.ShowModal() == wxID_OK) {
         std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
-        std::vector<int> old_filament_maps = curr_plate->get_filament_maps();
-        FilamentMapMode  new_map_mode = filament_dlg.is_auto() ? FilamentMapMode::fmmAuto : FilamentMapMode::fmmManual;
+        std::vector<int> old_filament_maps = plate_filament_maps;
 
-        if (new_map_mode == FilamentMapMode::fmmManual) {
-            curr_plate->set_auto_filament_map_result(false);
-        }
+        FilamentMapMode  old_map_mode = plate_filament_map_mode;
+        FilamentMapMode  new_map_mode = filament_dlg.is_auto() ? fmmAutoForFlush : fmmManual;
 
-        FilamentMapMode  old_map_mode = curr_plate->get_filament_map_mode();
-        bool             need_invalidate   = false;
-        if (new_map_mode != old_map_mode) {
+        bool need_invalidate = (old_map_mode != new_map_mode ||
+                                old_filament_maps != new_filament_maps);
+
+        if (old_map_mode != new_map_mode)
             curr_plate->set_filament_map_mode(new_map_mode);
-            need_invalidate = true;
-        }
-        if (new_filament_maps != old_filament_maps) {
+
+        if (old_filament_maps != new_filament_maps && new_map_mode==fmmManual)
             curr_plate->set_filament_maps(new_filament_maps);
-            if (new_map_mode == FilamentMapMode::fmmManual)
-                need_invalidate = true;
-        }
+
+        if (new_map_mode == fmmDefault)
+            curr_plate->clear_filament_map_info();
+
         if (need_invalidate) {
             if (need_slice) {
                 wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
@@ -15369,14 +15406,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             GCodeResult* gcode_result = nullptr;
             Print::ApplyStatus invalidated;
 
+            const auto& preset_bundle = wxGetApp().preset_bundle;
+
             part_plate->get_print(&print, &gcode_result, NULL);
             //always apply the current plate's print
-            if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
-                std::vector<int> f_maps = part_plate->get_filament_maps();
-                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps));
+            if (preset_bundle->get_printer_extruder_count() > 1) {
+                std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
+                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps));
             }
             else
-                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(false));
+                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
             bool model_fits, validate_err;
             validate_current_plate(model_fits, validate_err);
 
@@ -15499,7 +15538,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         if (!ret) {
             PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
             wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
-            evt.SetInt(curr_plate->get_filament_map_mode()==FilamentMapMode::fmmAuto ? 1 : 0);
+            evt.SetInt(curr_plate->get_filament_map_mode() < FilamentMapMode::fmmManual ? 1 : 0);
             evt.SetEventObject(this);
             wxPostEvent(this, evt);
         } else {

@@ -1373,7 +1373,7 @@ void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, st
     }
 
     if (!object_result.filaments.empty()) {
-        if (object_result.mode == FilamentMapMode::fmmAuto) {
+        if (object_result.mode < FilamentMapMode::fmmManual) {
             error_string += _u8L("In the Filament auto-matching mode, Filament ");
             for (auto& filament: object_result.filaments)
                 error_string += std::to_string(filament) + " ";

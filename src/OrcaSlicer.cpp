@@ -5073,8 +5073,8 @@ int CLI::run(int argc, char **argv)
                                 if (m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
                                     mode = m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
                                 else
-                                    mode = part_plate->get_filament_map_mode();
-                                if (mode == FilamentMapMode::fmmAuto) {
+                                    mode = part_plate->get_real_filament_map_mode(m_print_config);
+                                if (mode < FilamentMapMode::fmmManual) {
                                     part_plate->set_unprintable_filament_ids(unprintable_filament_vec);
                                     std::vector<int> conflict_filament_vector;
                                     for (int index = 0; index < new_extruder_count; index++)
@@ -5112,7 +5112,7 @@ int CLI::run(int argc, char **argv)
                                     if (m_extra_config.option<ConfigOptionInts>("filament_map"))
                                         filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
                                     else
-                                        filament_maps = part_plate->get_filament_maps();
+                                        filament_maps = part_plate->get_real_filament_maps(m_print_config);
                                     for (int index = 0; index < filament_maps.size(); index++)
                                     {
                                         int filament_extruder = filament_maps[index];
@@ -5138,11 +5138,11 @@ int CLI::run(int argc, char **argv)
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
                         if (new_extruder_count > 1) {
-                            FilamentMapMode map_mode = fmmAuto;
+                            FilamentMapMode map_mode = fmmAutoForFlush;
                             if (new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
                                 map_mode = new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
 
-                            if (map_mode == fmmAuto) {
+                            if (map_mode < fmmManual) {
                                 //set default params for auto map
                                 std::vector<std::string> extruder_ams_count(new_extruder_count, "");
                                 std::vector<std::vector<DynamicPrintConfig>> extruder_filament_info(new_extruder_count, std::vector<DynamicPrintConfig>());

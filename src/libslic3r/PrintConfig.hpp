@@ -379,8 +379,10 @@ enum NozzleVolumeType {
 };
 
 enum FilamentMapMode {
-    fmmAuto,
-    fmmManual
+    fmmAutoForFlush,
+    fmmAutoForMatch,
+    fmmManual,
+    fmmDefault
 };
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);

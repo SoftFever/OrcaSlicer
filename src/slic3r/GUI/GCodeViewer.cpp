@@ -4436,7 +4436,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                 if (msg_dlg.ShowModal() == wxID_OK) {
                     PartPlateList &partplate_list = wxGetApp().plater()->get_partplate_list();
                     PartPlate     *plate          = partplate_list.get_curr_plate();
-                    plate->set_filament_map_mode(FilamentMapMode::fmmAuto);
+                    plate->set_filament_map_mode(FilamentMapMode::fmmAutoForFlush);
                     Plater        *plater = wxGetApp().plater();
                     wxPostEvent(plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
                 }
@@ -4449,9 +4449,9 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
     auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
     auto filament_map_mode = config.filament_map_mode.value;
-    auto is_auto = filament_map_mode == FilamentMapMode::fmmAuto;
+    auto is_auto = filament_map_mode < FilamentMapMode::fmmManual;
     bool has_tips           = true;
-    if (filament_map_mode == FilamentMapMode::fmmAuto) {
+    if (is_auto) {
         float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
         int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
         if (!(saved_flush_weight > EPSILON || saved_filament_changed_time > 0)) has_tips = false;
@@ -4528,7 +4528,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             }
             return static_cast<int>(num);
         };
-        if (filament_map_mode == fmmAuto) {
+        if (filament_map_mode < fmmManual) {
             float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_auto.filament_flush_weight;
             int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_auto.filament_change_count;
             if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
