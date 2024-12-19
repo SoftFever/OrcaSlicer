@@ -14,7 +14,7 @@
 namespace Slic3r { namespace GUI {
 
 
-nlohmann::json PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& presets)
+nlohmann::json PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets)
 {
     nlohmann::json j_array = nlohmann::json::array();
     for (const auto& [preset, is_selected] : presets) {
@@ -28,6 +28,21 @@ nlohmann::json PresetsToJSON(const std::vector<std::pair<const Preset*, bool>>& 
     return j_array;
 }
 
+nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
+    nlohmann::json j;
+    j["overhang"] = cost_items.overhang;
+    j["bottom"] = cost_items.bottom;
+    j["bottom_hull"] = cost_items.bottom_hull;
+    j["contour"] = cost_items.contour;
+    j["area_laf"] = cost_items.area_laf;
+    j["area_projected"] = cost_items.area_projected;
+    j["volume"] = cost_items.volume;
+    j["area_total"] = cost_items.area_total;
+    j["radius"] = cost_items.radius;
+    j["height_to_bottom_hull_ratio"] = cost_items.height_to_bottom_hull_ratio;
+    j["unprintability"] = cost_items.unprintability;
+    return j;
+}
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -373,7 +388,7 @@ nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
         }
     }
 
-    return PresetsToJSON(presets);
+    return PresetsToJson(presets);
 }
 
 void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
@@ -391,25 +406,16 @@ void JusPrinChatPanel::SendModelObjectAddedEvent(ModelObject* obj) {
     }
     Slic3r::orientation::OrientMesh om = Slic3r::GUI::OrientJob::get_orient_mesh(obj->instances[0]);
     Slic3r::orientation::OrientParams params;
-    params.min_volume = false; // or false, depending on your needs
+    params.min_volume = false;
 
-    // Define the progress indicator and stop condition functions
-    auto progress_indicator = [](unsigned progress) {
-        // Implement progress indication logic here
-    };
-
-    auto stop_condition = []() -> bool {
-        // Implement stop condition logic here
-        return false; // Example: return true to stop
-    };
-
-    // Create the AutoOrienter with the correct arguments
-    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, progress_indicator, stop_condition);
+    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
     Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
+
     nlohmann::json j = nlohmann::json::object();
     j["type"] = "modelObjectAdded";
     j["data"] = nlohmann::json::object();
     j["data"]["name"] = obj->name;
+    j["data"]["features"] = CostItemsToJson(features);
     CallEmbeddedChatMethod("eventReceived", j.dump());
 }
 
