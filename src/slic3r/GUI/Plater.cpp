@@ -4678,10 +4678,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
     this->schedule_background_process();
 
-    for (auto& instance : new_instances) {
-        this->sidebar->jusprin_chat_panel()->SendModelObjectAddedEvent(instance->get_object());
-    }
-
     return obj_idxs;
 }
 

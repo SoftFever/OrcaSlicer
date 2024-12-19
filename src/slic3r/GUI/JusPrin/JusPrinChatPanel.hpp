@@ -28,7 +28,6 @@ public:
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
     void SendAutoOrientEvent(bool canceled);
-    void SendModelObjectAddedEvent(ModelObject* obj);
 
 private:
     void load_url();
@@ -66,6 +65,8 @@ private:
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetPlaterConfigJson();
+    nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
+
     void ApplyConfig(const nlohmann::json& item);
     void AdvertiseSupportedAction();
 
