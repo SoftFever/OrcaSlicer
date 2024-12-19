@@ -252,7 +252,7 @@ void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
             DynamicPrintConfig* config = tab->get_config();
             if (!config) return;
 
-        ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Enable);
+            ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Enable);
             config->set_deserialize(item.value("key", ""), item["value"], context);
         } catch (const std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << "handle_apply_config: error applying config " << e.what();
@@ -493,11 +493,9 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 }
 
 void JusPrinChatPanel::DiscardCurrentPresetChanges() {
-    Slic3r::GUI::wxGetApp().CallAfter([this] {
-        wxGetApp().preset_bundle->printers.discard_current_changes();
-        wxGetApp().preset_bundle->filaments.discard_current_changes();
-        wxGetApp().preset_bundle->prints.discard_current_changes();
-    });
+    wxGetApp().preset_bundle->printers.discard_current_changes();
+    wxGetApp().preset_bundle->filaments.discard_current_changes();
+    wxGetApp().preset_bundle->prints.discard_current_changes();
 }
 
 }} // namespace Slic3r::GUI
