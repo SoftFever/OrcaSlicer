@@ -86,6 +86,7 @@ public:
         Emboss,
         Svg,
         Measure,
+        Assembly,
         Simplify,
         //SlaSupports,
         // BBS
