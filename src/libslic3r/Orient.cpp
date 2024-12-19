@@ -26,33 +26,6 @@ namespace Slic3r {
 
 namespace orientation {
 
-    struct CostItems {
-        float overhang;
-        float bottom;
-        float bottom_hull;
-        float contour;
-        float area_laf;  // area_of_low_angle_faces
-        float area_projected; // area of projected 2D profile
-        float volume;
-        float area_total;  // total area of all faces
-        float radius;    // radius of bounding box
-        float height_to_bottom_hull_ratio;  // affects stability, the lower the better
-        float unprintability;
-        CostItems(CostItems const & other) = default;
-        CostItems() { memset(this, 0, sizeof(*this)); }
-        static std::string field_names() {
-            return "                                      overhang, bottom, bothull, contour, A_laf, A_prj, unprintability";
-        }
-        std::string field_values() {
-            std::stringstream ss;
-            ss << std::fixed << std::setprecision(1);
-            ss << overhang << ",\t" << bottom << ",\t" << bottom_hull << ",\t" << contour << ",\t" << area_laf << ",\t" << area_projected << ",\t" << unprintability;
-            return ss.str();
-        }
-    };
-
-
-
 // A class encapsulating the libnest2d Nester class and extending it with other
 // management and spatial index structures for acceleration.
 class AutoOrienter {
@@ -87,7 +60,7 @@ public:
         params = params_;
         progressind = progressind_;
         params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
-        
+
         // BOOST_LOG_TRIVIAL(info) << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle << ", params.ASCENT=" << params.ASCENT;
         // std::cout << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle << ", params.ASCENT=" << params.ASCENT;
 
@@ -98,6 +71,9 @@ public:
     {
         mesh = mesh_;
         preprocess();
+    }
+
+    ~AutoOrienter() {
     }
 
     struct VecHash {
@@ -161,9 +137,9 @@ public:
 
         for (int i = 1; i< results_vector.size()-1; i++) {
             if (abs(results_vector[i].second.unprintability - results_vector[0].second.unprintability) < EPSILON && abs(results_vector[0].first.dot(n1)-1) > EPSILON) {
-                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON*EPSILON) { 
+                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON*EPSILON) {
                     best_orientation = n1;
-                    break; 
+                    break;
                 }
             }
             else {
@@ -385,7 +361,7 @@ public:
         auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
         auto bottom_condition_hull = z_max_hull.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
         auto bottom_condition_2nd = z_max.array() < total_min_z + this->params.FIRST_LAY_H/2.f - EPSILON;
-        //The first layer is sliced on half of the first layer height. 
+        //The first layer is sliced on half of the first layer height.
         //The bottom area is measured by accumulating first layer area with the facets area below first layer height.
         //By combining these two factors, we can avoid the wrong orientation of large planar faces while not influence the
         //orientations of complex objects with small bottom areas.
@@ -539,6 +515,18 @@ void orient(ModelInstance* instance)
     instance->rotate(rotation_matrix);
 }
 
+AutoOrienterDelegate::AutoOrienterDelegate(OrientMesh* orient_mesh_,
+                                           const OrientParams &params_,
+                                           std::function<void(unsigned)> progressind_,
+                                           std::function<bool(void)> stopcond_)
+{
+    orienter_delegate_ = std::make_shared<AutoOrienter>(orient_mesh_, params_, progressind_, stopcond_);
+}
+
+CostItems AutoOrienterDelegate::get_features(Vec3f orientation, bool min_volume) {
+    orienter_delegate_->project_vertices(orientation);
+    return orienter_delegate_->get_features(orientation, min_volume);
+}
 
 } // namespace arr
 } // namespace Slic3r
