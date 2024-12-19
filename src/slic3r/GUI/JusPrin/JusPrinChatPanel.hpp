@@ -28,6 +28,7 @@ public:
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
     void SendAutoOrientEvent(bool canceled);
+    void SendModelObjectAddedEvent(ModelObject* obj);
 
 private:
     void load_url();

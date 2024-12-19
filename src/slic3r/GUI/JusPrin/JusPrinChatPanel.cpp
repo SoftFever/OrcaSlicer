@@ -1,6 +1,8 @@
 #include "JusPrinChatPanel.hpp"
 #include "../PresetComboBoxes.hpp"
 #include "libslic3r/Config.hpp"
+#include "slic3r/GUI/Jobs/OrientJob.hpp"
+#include "libslic3r/Orient.hpp"
 
 #include <iostream>
 #include <wx/sizer.h>
@@ -379,6 +381,35 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     j["type"] = "autoOrient";
     j["data"] = nlohmann::json::object();
     j["data"]["status"] = canceled ? "canceled" : "completed";
+    CallEmbeddedChatMethod("eventReceived", j.dump());
+}
+
+void JusPrinChatPanel::SendModelObjectAddedEvent(ModelObject* obj) {
+    if (!obj || obj->instances.size() != 1) {
+        BOOST_LOG_TRIVIAL(error) << "SendModelObjectAddedEvent: Not sure why there will be more than one instance of a model object. Skipping for now.";
+        return;
+    }
+    Slic3r::orientation::OrientMesh om = Slic3r::GUI::OrientJob::get_orient_mesh(obj->instances[0]);
+    Slic3r::orientation::OrientParams params;
+    params.min_volume = false; // or false, depending on your needs
+
+    // Define the progress indicator and stop condition functions
+    auto progress_indicator = [](unsigned progress) {
+        // Implement progress indication logic here
+    };
+
+    auto stop_condition = []() -> bool {
+        // Implement stop condition logic here
+        return false; // Example: return true to stop
+    };
+
+    // Create the AutoOrienter with the correct arguments
+    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, progress_indicator, stop_condition);
+    Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "modelObjectAdded";
+    j["data"] = nlohmann::json::object();
+    j["data"]["name"] = obj->name;
     CallEmbeddedChatMethod("eventReceived", j.dump());
 }
 
