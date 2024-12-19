@@ -527,7 +527,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(m_storage_panel, 0, wxALIGN_CENTER|wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_storage_panel, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(22));
@@ -584,7 +584,7 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string>& st
     }
 
     if (m_storage_radioBox.size() > 0) {
-        m_storage_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(6));
+        m_storage_sizer->Add(0, 0, 0, wxEXPAND, FromDIP(6));
         auto radio = m_storage_radioBox.front();
         radio->SetValue(true);
     }
@@ -1473,18 +1473,14 @@ void SendToPrinterDialog::Enable_Send_Button(bool en)
             m_button_ensure->Disable();
             m_button_ensure->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
             m_button_ensure->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-        }
-        if (!m_storage_radioBox.empty()) {
-            update_storage_list(std::vector<std::string>());
+            m_storage_panel->Hide();
         }
     } else {
         if (!m_button_ensure->IsEnabled()) {
             m_button_ensure->Enable();
             m_button_ensure->SetBackgroundColor(btn_bg_enable);
             m_button_ensure->SetBorderColor(btn_bg_enable);
-        }
-        if (!m_ability_list.empty()) {
-            update_storage_list(m_ability_list);
+            m_storage_panel->Show();
         }
     }
 }
