@@ -520,40 +520,6 @@ bool GLGizmoCut3D::render_cut_mode_combo()
     return is_changed;
 }
 
-bool GLGizmoCut3D::render_combo(const std::string& label, const std::vector<std::string>& lines, int& selection_idx)
-{
-    ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    ImGui::AlignTextToFramePadding();
-    m_imgui->text(label);
-    ImGui::SameLine(m_label_width);
-    ImGui::PushItemWidth(m_editing_window_width);
-
-    size_t selection_out = selection_idx;
-
-    const char* selected_str = (selection_idx >= 0 && selection_idx < int(lines.size())) ? lines[selection_idx].c_str() : "";
-    if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
-        for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
-            ImGui::PushID(int(line_idx));
-            if (ImGui::Selectable("", line_idx == selection_idx))
-                selection_out = line_idx;
-
-            ImGui::SameLine();
-            ImGui::Text("%s", lines[line_idx].c_str());
-            ImGui::PopID();
-        }
-
-        ImGui::EndCombo();
-    }
-
-    bool is_changed = selection_idx != selection_out;
-    selection_idx   = selection_out;
-
-    //if (is_changed) update_connector_shape();
-    ImGuiWrapper::pop_combo_style();
-
-    return is_changed;
-}
-
 bool GLGizmoCut3D::render_double_input(const std::string& label, double& value_in)
 {
     ImGui::AlignTextToFramePadding();
@@ -2299,7 +2265,7 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
             m_connector_style = int(CutConnectorStyle::Prism);
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
         }
-        if (render_combo(m_labels_map["Style"], m_connector_styles, m_connector_style))
+        if (render_combo(m_labels_map["Style"], m_connector_styles, m_connector_style, m_label_width, m_editing_window_width))
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
     m_imgui->disabled_end();
 
@@ -2308,7 +2274,7 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
             m_connector_shape_id = int(CutConnectorShape::Circle);
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
         }
-        if (render_combo(m_labels_map["Shape"], m_connector_shapes, m_connector_shape_id))
+        if (render_combo(m_labels_map["Shape"], m_connector_shapes, m_connector_shape_id, m_label_width, m_editing_window_width))
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     m_imgui->disabled_end();
 
