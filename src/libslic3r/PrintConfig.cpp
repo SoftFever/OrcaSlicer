@@ -2906,6 +2906,25 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def          = this->add("use_extruder_rotation_volume", coBool);
+    def->label   = L("Use extruder rotation volume");
+    def->tooltip = L("Enable extruder rotation volume in material settings");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(true));
+    
+    def          = this->add("active_feeder_motor_name", coStrings);
+    def->label   = L("Active feeder motor name");
+    def->tooltip = "Name that identify the feeder motor";
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings());
+
+        
+    def          = this->add("use_active_pellet_feeding", coBool);
+    def->label   = L("Use forded pellet feeding");
+    def->tooltip = L("Enable this option if your printer has active pellet feeding");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
     def->tooltip = L("Enable this option if you want to use multiple bed types");
