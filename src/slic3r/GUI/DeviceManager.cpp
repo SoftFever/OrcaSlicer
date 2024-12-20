@@ -2815,7 +2815,7 @@ void MachineObject::set_online_state(bool on_off)
     if (!on_off) m_active_state = NotActive;
 }
 
-bool MachineObject::is_info_ready()
+bool MachineObject::is_info_ready() const
 {
     if (module_vers.empty())
         return false;
@@ -5085,6 +5085,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
     }
     DeviceManager::update_local_machine(*this);
+
+    if (GUI::wxGetApp().plater())
+        GUI::wxGetApp().plater()->update_machine_sync_status();
     return 0;
 }
 

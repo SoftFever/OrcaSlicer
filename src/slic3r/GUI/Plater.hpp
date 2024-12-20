@@ -168,6 +168,7 @@ public:
     void sync_ams_list();
     void sync_extruder_list();
     bool should_sync_extruder_list(MachineObject* obj);
+    void update_sync_status(const MachineObject* obj);
     // Orca
     void show_SEMM_buttons(bool bshow);
     void update_dynamic_filament_list();
@@ -638,8 +639,11 @@ public:
     bool show_publish_dialog(bool show = true);
     //BBS: post process string object exception strings by warning types
     void post_process_string_object_exception(StringObjectException &err);
+    void update_objects_position_when_select_preset(const std::function<void()> &select_prest);
 
     bool check_ams_status();
+
+    void update_machine_sync_status();
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
