@@ -11,9 +11,10 @@ static const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
 static const wxString AutoForMatchLabel = _L("Convenient Mode");
 static const wxString ManualLabel       = _L("Manual Mode");
 
-static const wxString AutoForFlushDesp = _L("(Arrage after slicing)");
+static const wxString AutoForFlushDesp = _L("(Arrange after slicing)");
 static const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
 static const wxString ManualDesp       = "";
+static const wxString MachineSyncTip = _L("(Please sync printer)");
 
 static const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
                                               "by calculating the best allocation for the left and right "
@@ -220,7 +221,19 @@ void FilamentGroupPopup::Init(bool connect_status)
     radio_btns[ButtonType::btForMatch]->Enable(connect_status);
     button_labels[ButtonType::btForMatch]->Enable(connect_status);
 
+
+    if (connect_status) {
+        button_desps[ButtonType::btForMatch]->SetLabel(AutoForMatchDesp);
+    }
+    else {
+        button_desps[ButtonType::btForMatch]->SetLabel(MachineSyncTip);
+    }
+
     m_mode = get_prefered_map_mode();
+    if (m_mode == fmmAutoForMatch && !connect_status) {
+        set_prefered_map_mode(fmmAutoForFlush);
+        m_mode = fmmAutoForFlush;
+    }
 
     wxCheckBoxState check_state = get_pop_up_remind_flag() ? wxCheckBoxState::wxCHK_UNCHECKED : wxCheckBoxState::wxCHK_CHECKED;
     remind_checkbox->Set3StateValue(check_state);

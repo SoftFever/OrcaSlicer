@@ -1638,7 +1638,7 @@ wxBoxSizer* MainFrame::create_side_tools()
         pos.x -= (m_slice_option_btn->GetRect().width + m_filament_group_popup->GetRect().width * 0.6);
 
         m_filament_group_popup->SetPosition(pos);
-        m_filament_group_popup->tryPopup(m_plater->check_ams_status());
+        m_filament_group_popup->tryPopup(m_plater->get_machine_sync_status());
         });
 
     m_slice_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {

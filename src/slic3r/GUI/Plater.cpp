@@ -3221,6 +3221,7 @@ struct Plater::priv
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
     bool check_ams_status_impl();  // Check whether the printer and ams status are consistent, for grouping algorithm
+    bool get_machine_sync_status(); // check whether the printer is linked and the printer type is same as selected profile
 
     // BBS
     bool init_collapse_toolbar();
@@ -8986,6 +8987,20 @@ bool Plater::priv::check_ams_status_impl()
     }
 
     return true;
+}
+
+bool Plater::priv::get_machine_sync_status()
+{
+    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return false;
+
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj)
+        return false;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    return preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type;
 }
 
 bool Plater::priv::init_collapse_toolbar()
@@ -15822,6 +15837,11 @@ void Plater::update_machine_sync_status()
     }
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     GUI::wxGetApp().sidebar().update_sync_status(obj);
+}
+
+bool Plater::get_machine_sync_status()
+{
+    return p->get_machine_sync_status();
 }
 
 #if ENABLE_ENVIRONMENT_MAP

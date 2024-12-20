@@ -648,6 +648,8 @@ public:
     void update_objects_position_when_select_preset(const std::function<void()> &select_prest);
 
     bool check_ams_status();
+    // only check sync status and printer model id
+    bool get_machine_sync_status();
 
     void update_machine_sync_status();
 
