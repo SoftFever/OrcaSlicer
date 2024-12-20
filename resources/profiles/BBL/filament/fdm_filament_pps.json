@@ -7,6 +7,12 @@
     "chamber_temperatures": [
         "60"
     ],
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
     "cool_plate_temp": [
         "0"
     ],

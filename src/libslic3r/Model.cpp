@@ -2785,7 +2785,7 @@ std::vector<size_t> ModelVolume::get_extruders_from_multi_material_painting() co
      if (!this->is_mm_painted())
          return {};
 
-     assert(static_cast<size_t>(TriangleStateType::Extruder1) - 1 == 0);
+     assert(static_cast<size_t>(EnforcerBlockerType::Extruder1) - 1 == 0);
      const TriangleSelector::TriangleSplittingData &data = this->mmu_segmentation_facets.get_data();
 
      std::vector<size_t> extruders;
