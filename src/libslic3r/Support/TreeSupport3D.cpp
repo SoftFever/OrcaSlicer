@@ -813,7 +813,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
     if (distance == 0)
         return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
     if (safe_step_size < 0 || last_step_offset_without_check < 0) {
-        BOOST_LOG_TRIVIAL(error) << "Offset increase got invalid parameter!";
+        BOOST_LOG_TRIVIAL(warning) << "Offset increase got invalid parameter!";
         tree_supports_show_error("Negative offset distance... How did you manage this ?"sv, true);
         return do_final_difference ? diff(ret, collision_trimmed()) : union_(ret);
     }
@@ -1711,8 +1711,8 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
                         volumes.getCollision(radius, layer_idx - 1, settings.use_min_distance)
                 ));
             check_layer_data = current_elem.to_buildplate ? to_bp_data : to_model_data;
-            if (area(check_layer_data) < _tiny_area_threshold) {
-                BOOST_LOG_TRIVIAL(error) << "Lost area by doing catch up from " << ceil_radius_before << " to radius " <<
+            if (area(check_layer_data) < tiny_area_threshold) {
+                BOOST_LOG_TRIVIAL(debug) << "Lost area by doing catch up from " << ceil_radius_before << " to radius " <<
                     volumes.ceilRadius(support_element_collision_radius(config, current_elem), settings.use_min_distance);
                 tree_supports_show_error("Area lost catching up radius. May not cause visible malformation."sv, true);
             }
@@ -2013,7 +2013,7 @@ static void increase_areas_one_layer(
                             << "Trying to keep area by moving faster than intended: Success";
                     break;
                 } else if (!settings.no_error)
-                    BOOST_LOG_TRIVIAL(error) << "Trying to keep area by moving faster than intended: FAILURE! WRONG BRANCHES LIKLY!";
+                    BOOST_LOG_TRIVIAL(warning) << "Trying to keep area by moving faster than intended: FAILURE! WRONG BRANCHES LIKLY!";
             }
 
             if (add) {
@@ -2495,8 +2495,8 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
                         // This area was removed completely due to collisions.
                         return true;
                     if (elem.areas.to_bp_areas.empty() && elem.areas.to_model_areas.empty()) {
-                        if (area(elem.areas.influence_areas) < _tiny_area_threshold) {
-                            BOOST_LOG_TRIVIAL(error) << "Insert Error of Influence area bypass on layer " << layer_idx - 1;
+                        if (area(elem.areas.influence_areas) < tiny_area_threshold) {
+                            BOOST_LOG_TRIVIAL(warning) << "Insert Error of Influence area bypass on layer " << layer_idx - 1;
                             tree_supports_show_error("Insert error of area after bypassing merge.\n"sv, true);
                         }
                         // Move the area to output.
@@ -2528,8 +2528,8 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
             for (SupportElementMerging &elem : influence_areas)
                 if (! elem.areas.influence_areas.empty()) {
                     Polygons new_area = safe_union(elem.areas.influence_areas);
-                    if (area(new_area) < _tiny_area_threshold) {
-                        BOOST_LOG_TRIVIAL(error) << "Insert Error of Influence area on layer " << layer_idx - 1 << ". Origin of " << elem.parents.size() << " areas. Was to bp " << elem.state.to_buildplate;
+                    if (area(new_area) < tiny_area_threshold) {
+                        BOOST_LOG_TRIVIAL(warning) << "Insert Error of Influence area on layer " << layer_idx - 1 << ". Origin of " << elem.parents.size() << " areas. Was to bp " << elem.state.to_buildplate;
                         tree_supports_show_error("Insert error of area after merge.\n"sv, true);
                     }
                     this_layer.emplace_back(elem.state, std::move(elem.parents), std::move(new_area));
@@ -2558,7 +2558,7 @@ static void set_points_on_areas(const SupportElement &elem, SupportElements *lay
 
     // Based on the branch center point of the current layer, the point on the next (further up) layer is calculated.
     if (! elem.state.result_on_layer_is_set()) {
-        BOOST_LOG_TRIVIAL(error) << "Uninitialized support element";
+        BOOST_LOG_TRIVIAL(warning) << "Uninitialized support element";
         tree_supports_show_error("Uninitialized support element. A branch may be missing.\n"sv, true);
         return;
     }
@@ -2726,7 +2726,8 @@ static void create_nodes_from_area(
             if (! elem.state.result_on_layer_is_set()) {
                 if (elem.state.to_buildplate || (elem.state.distance_to_top < config.min_dtt_to_model && ! elem.state.supports_roof)) {
                     if (elem.state.to_buildplate) {
-                        BOOST_LOG_TRIVIAL(error) << "Uninitialized Influence area targeting " << elem.state.target_position.x() << "," << elem.state.target_position.y() << ") "
+                        BOOST_LOG_TRIVIAL(warning) << "Uninitialized Influence area targeting " << elem.state.target_position.x() << "," << elem.state.target_position.y()
+                                                   << ") "
                             "at target_height: " << elem.state.target_height << " layer: " << layer_idx;
                         tree_supports_show_error("Uninitialized support element! A branch could be missing or exist partially."sv, true);
                     }
