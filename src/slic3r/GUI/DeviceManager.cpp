@@ -4187,6 +4187,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         // new ams added event
                                         curr_ams = new_ams;
                                     } else {
+
+                                        if (nozzle_id != ams_it->second->nozzle) {
+                                            ams_it->second->nozzle = nozzle_id;
+                                        }
+
                                         curr_ams = ams_it->second;
                                     }
                                     if (!curr_ams) continue;

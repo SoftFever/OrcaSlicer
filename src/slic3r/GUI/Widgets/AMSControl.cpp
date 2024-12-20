@@ -1009,9 +1009,15 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
     if (!test){
         // update item
         bool fresh = false;
+
+        // basic check
         if (m_ams_info.size() == ams_info.size() && m_extder_data.total_extder_count == data.total_extder_count && m_dev_id == dev_id){
             for (int i = 0; i < m_ams_info.size(); i++){
                 if (m_ams_info[i].ams_id != ams_info[i].ams_id){
+                    fresh = true;
+                }
+
+                if (m_ams_info[i].nozzle_id != ams_info[i].nozzle_id) {
                     fresh = true;
                 }
             }
