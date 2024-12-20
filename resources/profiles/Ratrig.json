@@ -53,6 +53,10 @@
             "sub_path": "machine/RatRig V-Core 4 HYBRID 500.json"
         },
 		{
+            "name": "RatRig V-Core 4 IDEX 300",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 300.json"
+        },
+		{
             "name": "RatRig V-Core 4 IDEX 400",
             "sub_path": "machine/RatRig V-Core 4 IDEX 400.json"
         },
@@ -63,6 +67,10 @@
 		{
             "name": "RatRig V-Core 4 IDEX 400 MIRROR MODE",
             "sub_path": "machine/RatRig V-Core 4 IDEX 400 MIRROR MODE.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 500",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 500.json"
         }
     ],
     "process_list": [
@@ -480,6 +488,22 @@
             "sub_path": "machine/RatRig V-Core 4 HYBRID 500 0.6 nozzle.json"
         },
 		{
+            "name": "RatRig V-Core 4 IDEX 300 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 300 0.4 nozzle.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 300 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 300 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 IDEX 300 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 300 0.6 nozzle.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 300 0.8 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 300 0.8 nozzle.json"
+        },
+		{
             "name": "RatRig V-Core 4 IDEX 400 0.4 nozzle",
             "sub_path": "machine/RatRig V-Core 4 IDEX 400 0.4 nozzle.json"
         },
@@ -526,6 +550,22 @@
 		{
             "name": "RatRig V-Core 4 IDEX 400 MIRROR MODE 0.8 nozzle",
             "sub_path": "machine/RatRig V-Core 4 IDEX 400 MIRROR MODE 0.8 nozzle.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 500 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 500 0.4 nozzle.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 500 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 500 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 IDEX 500 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 500 0.6 nozzle.json"
+        },
+		{
+            "name": "RatRig V-Core 4 IDEX 500 0.8 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 IDEX 500 0.8 nozzle.json"
         }
     ]
 }
