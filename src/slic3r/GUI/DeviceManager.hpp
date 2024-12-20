@@ -743,6 +743,10 @@ public:
     int     big_fan2_speed = 0;
     uint32_t fan_gear       = 0;
 
+    /*extruder*/
+    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np; };
+    [[nodiscard]] NozzleFlowType get_nozzle_flow_type(int extruder_id) const;
+
     //new fan data
     AirDuctData m_air_duct_data;
     void converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun); // Convert the data to duct type to make the newand old protocols consistent

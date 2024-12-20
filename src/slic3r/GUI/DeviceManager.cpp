@@ -5428,6 +5428,16 @@ std::string MachineObject::get_string_from_fantype(int type)
     return "";
 }
 
+NozzleFlowType MachineObject::get_nozzle_flow_type(int extruder_id) const
+{
+    if (is_nozzle_flow_type_supported() && m_extder_data.extders.size() > extruder_id)
+    {
+        return m_extder_data.extders[extruder_id].current_nozzle_flow_type;
+    }
+
+    return NozzleFlowType::NONE_FLOWTYPE;
+}
+
 void MachineObject::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun)
 {
     m_air_duct_data.modes.clear();

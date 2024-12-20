@@ -1135,14 +1135,19 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     };
 
     int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
-    if (obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
-        MessageDialog dlg(nullptr, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."), _L("Warning"), wxICON_WARNING | wxOK);
+    if (obj->is_nozzle_flow_type_supported() && (obj->get_nozzle_flow_type(extruder_id) == NozzleFlowType::NONE_FLOWTYPE))
+    {
+        MessageDialog dlg(nullptr, _L("The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n'Device -> Print parts'"), _L("Warning"), wxICON_WARNING | wxOK);
         dlg.ShowModal();
     }
-    else {
-        nozzle_volume_type = NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1);
+
+    NozzleFlowType nozzle_flow_type = obj->get_nozzle_flow_type(extruder_id);
+    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
+    if (nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)
+    {
+        nozzle_volume_type = NozzleVolumeType(nozzle_flow_type - 1);
     }
+
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
