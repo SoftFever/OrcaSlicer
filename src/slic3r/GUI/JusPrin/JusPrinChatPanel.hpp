@@ -47,6 +47,7 @@ private:
 
     // Actions to trigger events in JusPrin
     void handle_select_preset(const nlohmann::json& params);
+    void handle_discard_current_changes(const nlohmann::json& params);
     void handle_apply_config(const nlohmann::json& params);
     void handle_add_printers(const nlohmann::json& params);
     void handle_add_filaments(const nlohmann::json& params);
@@ -68,6 +69,7 @@ private:
     nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
 
     void ApplyConfig(const nlohmann::json& item);
+    void UpdatePresetTabs();
     void AdvertiseSupportedAction();
 
     wxWebView* m_browser;
