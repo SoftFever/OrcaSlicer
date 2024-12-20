@@ -233,6 +233,11 @@ void ExtruderImage::setExtruderUsed(std::string loc)
     current_nozzle_loc = loc;
 }
 
+void ExtruderImage::update(ExtruderState single_state)
+{
+    m_single_ext_state = single_state;
+}
+
 void ExtruderImage::update(ExtruderState right_state, ExtruderState left_state) {
     m_left_ext_state = left_state;
     m_right_ext_state = right_state;
@@ -331,16 +336,21 @@ void ExtruderImage::doRender(wxDC& dc)
         dc.DrawBitmap(right_nozzle_bmp->bmp(), pot.x, pot.y + right_pipe_bmp->GetBmpSize().y);
     }
     else{
+
+        ScalableBitmap* nozzle_bmp = nullptr;
         switch (m_single_ext_state)
         {
-        case Slic3r::GUI::FILLED_LOAD: m_extruder_single_nozzle_filled_load; break;
-        case Slic3r::GUI::FILLED_UNLOAD: m_extruder_single_nozzle_filled_unload; break;
-        case Slic3r::GUI::EMPTY_LOAD: m_extruder_single_nozzle_empty_load; break;
-        case Slic3r::GUI::EMPTY_UNLOAD:  m_extruder_single_nozzle_empty_unload; break;
-        default:
-            break;
+            case Slic3r::GUI::FILLED_LOAD: nozzle_bmp = m_extruder_single_nozzle_filled_load; break;
+            case Slic3r::GUI::FILLED_UNLOAD: nozzle_bmp = m_extruder_single_nozzle_filled_unload; break;
+            case Slic3r::GUI::EMPTY_LOAD: nozzle_bmp = m_extruder_single_nozzle_empty_load; break;
+            case Slic3r::GUI::EMPTY_UNLOAD:  nozzle_bmp = m_extruder_single_nozzle_empty_unload; break;
+            default: break;
         }
-        dc.DrawBitmap(m_extruder_single_nozzle_empty_load->bmp(), pot.x - m_extruder_single_nozzle_empty_load->GetBmpWidth() / 2, (size.y - m_extruder_single_nozzle_empty_load->GetBmpHeight()) / 2);
+
+        if (nozzle_bmp)
+        {
+            dc.DrawBitmap(nozzle_bmp->bmp(), pot.x - nozzle_bmp->GetBmpWidth() / 2, (size.y - nozzle_bmp->GetBmpHeight()) / 2);
+        }
     }
 }
 
@@ -2950,6 +2960,12 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
+    auto get_extder_shown_state = [](bool ext_has_filament) -> ExtruderState
+    {
+        // no data to distinguish ExtruderState::UNLOAD or LOAD, use LOAD png as default
+        return ext_has_filament ? ExtruderState::FILLED_LOAD : ExtruderState::EMPTY_LOAD;
+    };
+
     if (!obj) return;
 
     /*extder*/
@@ -2963,7 +2979,15 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_nozzle_btn_panel->Show();
 
         m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
-        m_extruderImage[select_index]->update(ExtruderState::FILLED_LOAD, ExtruderState::FILLED_UNLOAD);
+
+        assert(obj->m_extder_data.extders.size() > 1);
+        if (obj->m_extder_data.extders.size() > 1)
+        {
+            const Extder& left_extder = obj->m_extder_data.extders[0];
+            const Extder& right_extder = obj->m_extder_data.extders[1];
+            m_extruderImage[select_index]->update(get_extder_shown_state(left_extder.ext_has_filament),
+                                                  get_extder_shown_state(right_extder.ext_has_filament));
+        }
 
         /*current*/
         if (obj->flag_update_nozzle) {
@@ -2982,6 +3006,14 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_nozzle_btn_panel->Hide();
         m_extruder_book->SetSelection(m_nozzle_num);
         m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
+
+        assert(!obj->m_extder_data.extders.empty());
+        if (!obj->m_extder_data.extders.empty())
+        {
+            const Extder& extder = obj->m_extder_data.extders[0];
+            ExtruderState shown_state = get_extder_shown_state(extder.ext_has_filament);
+            m_extruderImage[select_index]->update(shown_state);
+        }
     }
 
     /*switch extder*/

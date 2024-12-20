@@ -118,7 +118,9 @@ class ExtruderImage : public wxWindow
 
 public:
     void update(int nozzle_num, int nozzle_id);
+    void update(ExtruderState single_state);
     void update(ExtruderState right_state, ExtruderState left_state);
+
     void msw_rescale();
     void setExtruderCount(int nozzle_num);
     void setExtruderUsed(std::string loc);
