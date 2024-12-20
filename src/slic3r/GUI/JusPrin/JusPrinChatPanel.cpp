@@ -101,6 +101,7 @@ void JusPrinChatPanel::init_action_handlers() {
     action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
+    action_handlers["discard_current_changes"] = &JusPrinChatPanel::handle_discard_current_changes;
     action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
@@ -194,11 +195,11 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
     }
 
     RefreshPresets(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
+}
 
-    // Start a few chat session when printer or filament preset changes to make things simpler for now
-    if (preset_type == Preset::Type::TYPE_PRINTER || preset_type == Preset::Type::TYPE_FILAMENT) {
-        RefreshPresets();
-    }
+void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& params) {
+    DiscardCurrentPresetChanges();
+    UpdatePresetTabs();
 }
 
 void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
@@ -217,12 +218,14 @@ void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
         return;
     }
 
-    DiscardCurrentPresetChanges();
-
     for (const auto& item : param_item) {
         ApplyConfig(item);
     }
 
+    UpdatePresetTabs();
+}
+
+void JusPrinChatPanel::UpdatePresetTabs() {
     std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
 
     for (const auto& preset_type : preset_types) {
