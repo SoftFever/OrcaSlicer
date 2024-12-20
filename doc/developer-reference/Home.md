@@ -4,3 +4,4 @@ This is a documentation from someone exploring the code and is by no means compl
 
 - [Preset, PresetBundle and PresetCollection](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/Preset-and-bundle.md)
 - [Plater, Sidebar, Tab, ComboBox](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/plater-sidebar-tab-combobox.md)
+- [Slicing Call Hierarchy](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/slicing-hierarchy.md)
