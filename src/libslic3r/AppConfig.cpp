@@ -407,6 +407,9 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
+    if (get("show_spoolman_consumption_dialog").empty())
+        set_bool("show_spoolman_consumption_dialog", true);
+
     if (get("spoolman", "consumption_type").empty())
         set_str("spoolman", "consumption_type", "weight");
 

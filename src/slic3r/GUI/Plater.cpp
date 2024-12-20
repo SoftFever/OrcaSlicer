@@ -6876,6 +6876,9 @@ bool Plater::priv::warnings_dialog()
 
 void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
 {
+    static constexpr auto show_dlg_key = "show_spoolman_consumption_dialog";
+    if (!wxGetApp().app_config->get_bool(show_dlg_key))
+        return;
     if (!wxGetApp().preset_bundle->printers.get_edited_preset().spoolman_enabled())
         return;
     if (!Spoolman::is_server_valid())
@@ -6918,6 +6921,7 @@ void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
         msg += message + "\n";
 
     auto dlg = MessageDialog(nullptr, msg, _L("Spoolman Filament Consumption"), wxYES_NO);
+    dlg.show_dsa_button();
     if (dlg.ShowModal() == wxID_YES) {
         if (spoolman->use_spoolman_spools(estimates, consumption_type)) {
             notification_manager->push_spoolman_consumption_finished_notification();
@@ -6926,6 +6930,8 @@ void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
             show_error(nullptr, _L("Failed to consume filament from Spoolman"));
         }
     }
+    if (dlg.get_checkbox_state())
+        wxGetApp().app_config->set(show_dlg_key, false);
 }
 
 //BBS: add project slice logic
