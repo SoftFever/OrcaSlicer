@@ -290,7 +290,8 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
                                                                [](const Line &s) { return s.a == s.b; }),
                                                 polygon_sections[section_idx].end());
             std::sort(polygon_sections[section_idx].begin(), polygon_sections[section_idx].end(),
-                      [](const Line &a, const Line &b) { return a.a.y() < b.b.y(); });
+                      [](const Line &a, const Line &b) { if (a == b) return false; // Ensure irreflexivity
+                                                         return a.a.y() < b.b.y(); });
         }
 
         Polygons reconstructed_area{};
