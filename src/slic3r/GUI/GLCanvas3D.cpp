@@ -9880,7 +9880,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             text += "\n";
             text += _u8L("Open wiki for more information.");
         }
-        error = ErrorType::SLICING_LIMIT_ERROR;
+        error = ErrorType::SLICING_HEIGHT_OUTSIDE;
         break;
     }
 
