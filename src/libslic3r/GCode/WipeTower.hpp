@@ -339,7 +339,7 @@ public:
 
 	void plan_tower_new();
 	void generate_wipe_tower_blocks();
-    void update_start_depth_for_blocks();
+    void update_all_layer_depth(float wipe_tower_depth);
 
     ToolChangeResult tool_change_new(size_t new_tool);
     NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id);

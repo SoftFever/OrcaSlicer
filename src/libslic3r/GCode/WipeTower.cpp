@@ -2459,7 +2459,7 @@ void WipeTower::reset_block_status()
     }
 }
 
-void WipeTower::update_start_depth_for_blocks()
+void WipeTower::update_all_layer_depth(float wipe_tower_depth)
 {
     m_wipe_tower_depth = 0.f;
     float start_offset = m_perimeter_width;
@@ -2480,6 +2480,14 @@ void WipeTower::update_start_depth_for_blocks()
     }
     if (m_wipe_tower_depth > 0)
         m_wipe_tower_depth += start_offset;
+
+    if (m_enable_timelapse_print) {
+        if (is_approx(m_wipe_tower_depth, 0.f))
+            m_wipe_tower_depth = wipe_tower_depth;
+        for (WipeTowerInfo &plan_info : m_plan) {
+            plan_info.depth = m_wipe_tower_depth;
+        }
+    }
 }
 
 void WipeTower::generate_wipe_tower_blocks()
@@ -2621,7 +2629,7 @@ void WipeTower::plan_tower_new()
         }
     }
 
-    update_start_depth_for_blocks();
+    update_all_layer_depth(max_depth);
 }
 
 int WipeTower::get_wall_filament_for_all_layer()
