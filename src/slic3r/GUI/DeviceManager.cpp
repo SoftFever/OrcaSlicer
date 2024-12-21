@@ -5703,7 +5703,7 @@ void MachineObject::parse_new_info(json print)
         is_support_agora    = get_flag_bits(fun, 1);
         if (is_support_agora) is_support_tunnel_mqtt = false;
 
-        is_220V_voltage  = get_flag_bits(fun, 3) == 0?false:true;
+        is_220V_voltage  = get_flag_bits(fun, 2) == 0?false:true;
         is_support_flow_calibration = get_flag_bits(fun, 6);
         is_support_pa_calibration = get_flag_bits(fun, 7);
         is_support_prompt_sound = get_flag_bits(fun, 8);
