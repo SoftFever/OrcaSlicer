@@ -963,9 +963,9 @@ public:
     // 1 based ids
     const std::vector<std::vector<int>> &get_unprintable_filament_ids() const;
 
-    std::vector<Vec2d> get_printable_area();
-    std::vector<std::vector<Vec2d>> get_extruder_printable_area();
-    std::vector<double> get_extruder_printable_height();
+    std::vector<double> get_extruder_printable_height() const;
+    std::vector<Polygons> get_extruder_printable_polygons() const;
+    std::vector<Polygons> get_extruder_unprintable_polygons() const;
 
     bool                        enable_timelapse_print() const;
 

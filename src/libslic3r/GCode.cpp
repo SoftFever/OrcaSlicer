@@ -1659,15 +1659,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     // check gcode is valid in multi_extruder printabele area
     int extruder_size = m_print->config().nozzle_diameter.values.size();
     if (extruder_size > 1) {
-        std::vector<Vec2d> printable_area = m_print->get_printable_area();
-        Polygon printable_poly = Polygon::new_scale(printable_area);
-        std::vector<std::vector<Vec2d>> extruder_printable_areas = m_print->get_extruder_printable_area();
-        std::vector<Polygons>      extruder_unprintable_polys;
-        for (const auto &e_printable_area : extruder_printable_areas) {
-            Polygons ploys = diff(printable_poly, Polygon::new_scale(e_printable_area));
-            extruder_unprintable_polys.emplace_back(ploys);
-        }
-
+        std::vector<Polygons> extruder_unprintable_polys = m_print->get_extruder_unprintable_polygons();
         m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys, m_print->get_extruder_printable_height(), m_print->get_filament_maps());
     }
 
