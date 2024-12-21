@@ -350,27 +350,6 @@ public:
     ~AMSextruder();
 };
 
-class AMSVirtualRoad : public wxWindow
-{
-public:
-    AMSVirtualRoad(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-    ~AMSVirtualRoad();
-
-private:
-    bool    m_has_vams{ true };
-    bool    m_vams_loading{ false };
-    wxColour m_current_color;
-
-public:
-    void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
-    void SetHasVams(bool hvams) { m_has_vams = hvams; };
-    void create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size);
-    void paintEvent(wxPaintEvent& evt);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
-    void msw_rescale();
-};
-
 /*************************************************
 Description:AMSLib
 **************************************************/

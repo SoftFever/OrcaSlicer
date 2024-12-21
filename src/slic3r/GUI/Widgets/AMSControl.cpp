@@ -890,7 +890,6 @@ void AMSControl::show_vams(bool show)
 {
     //m_panel_virtual->Show(show);
     //m_vams_sizer->Show(show);
-    //m_vams_extra_road->Show(show);
     /*m_extruder->has_ams(show);
     show_vams_kn_value(show);
     Layout();
@@ -1626,7 +1625,6 @@ void AMSControl::SetExtruder(bool on_off, std::string ams_id, std::string slot_i
     //if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS || is_vams ) {
     //    if (!on_off) {
     //        m_extruder->TurnOff();
-    //        m_vams_extra_road->OnVamsLoading(false);
     //        m_extruder->OnVamsLoading(false);
     //        m_vams_road->OnVamsLoading(false);
     //    }
@@ -1714,14 +1712,13 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
     //Set path length in different case
     if (ams->get_can_count() == GENERIC_AMS_SLOT_NUM){
-        //length = left ? 129 : 145;
         length = left ? 129 : 145;
         model = ams->get_ams_model();
     }
     else if (ams->get_can_count() == 1){
         for (auto it : pair_id){
             if (it.first == ams_id){
-                length = left ? 145 : 124;
+                length = left ? 218 : 124;
                 break;
             }
             else if (it.second == ams_id){
@@ -1739,7 +1736,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
 
     if (model == EXT_AMS && ams->get_ext_type() == AMSModelOriginType::GENERIC_EXT){
-        length = left ? 192 : 82;
+        length = left ? 110 : 82;
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {

@@ -91,9 +91,6 @@ protected:
     StaticBox*      m_panel_virtual {nullptr};
     AMSLib*         m_vams_lib      {nullptr};
     AMSRoad*        m_vams_road     {nullptr};
-    AMSVirtualRoad* m_vams_extra_road {nullptr};
-
-
 
 
     wxBoxSizer *m_sizer_right_tip {nullptr};
