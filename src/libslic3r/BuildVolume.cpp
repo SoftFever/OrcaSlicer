@@ -486,8 +486,8 @@ BuildVolume::ObjectState  BuildVolume::check_object_state_with_extruder_areas(co
 BuildVolume::ObjectState  BuildVolume::check_volume_bbox_state_with_extruder_area(const BoundingBoxf3& volume_bbox, int index) const
 {
     const BuildExtruderVolume& extruder_volume = get_extruder_area_volume(index);
-
-    if (extruder_volume.same_with_bed || extruder_volume.bboxf.contains(volume_bbox))
+    BoundingBox3Base<Vec3d> extruder_bbox = extruder_volume.bboxf.inflated(SceneEpsilon);
+    if (extruder_volume.same_with_bed || extruder_bbox.contains(volume_bbox))
         return ObjectState::Inside;
     else
         return ObjectState::Limited;
