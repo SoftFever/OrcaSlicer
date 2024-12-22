@@ -333,6 +333,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
+    m_comboBox_printer->Bind(wxEVT_LEFT_DOWN, [=](auto& e) {
+        if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
+    });
+    m_comboBox_printer->Bind(wxEVT_LEFT_UP, [=](auto &e) {
+        if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
+    });
 
     m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
@@ -1179,7 +1185,6 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
-
     int filament_result = 0;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
@@ -1193,10 +1198,13 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
                     BOOST_LOG_TRIVIAL(info) << "m_filaments_map.size()" << m_filaments_map.size();
                     return false;
                 }
-                if (m_filaments_map[it->id] == 1)
-                    m_filament_left.push_back(*it);
-                else if (m_filaments_map[it->id] == 2)
-                    m_filament_right.push_back(*it);
+
+                if (it->id < m_filaments_map.size()) {
+                    if (m_filaments_map[it->id] == 1)
+                        m_filament_left.push_back(*it);
+                    else if (m_filaments_map[it->id] == 2)
+                        m_filament_right.push_back(*it);
+                }
             }
 
             bool has_left_ams = false, has_right_ams = false;
@@ -3327,7 +3335,7 @@ void SelectMachineDialog::update_show_status()
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     //the nozzle type of preset and machine are different
-    if (nozzle_nums > 1) {
+    if (nozzle_nums > 1 && m_print_type == FROM_NORMAL) {
         if (!obj_->is_nozzle_data_invalid()) {
             show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
             return;
@@ -3362,28 +3370,25 @@ void SelectMachineDialog::update_show_status()
     }
 
     // check ams and vt_slot mix use status
+    struct ExtruderStatus
     {
-        struct ExtruderStatus
-        {
-            bool has_ams{false};
-            bool has_vt_slot{false};
-        };
-        std::vector<ExtruderStatus> extruder_status(nozzle_nums);
-        for (const FilamentInfo &item : m_ams_mapping_result) {
-            if (item.ams_id.empty())
-                continue;
+        bool has_ams{false};
+        bool has_vt_slot{false};
+    };
+    std::vector<ExtruderStatus> extruder_status(nozzle_nums);
+    for (const FilamentInfo &item : m_ams_mapping_result) {
+        if (item.ams_id.empty()) continue;
 
-            int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
-            if (DeviceManager::is_virtual_slot(stoi(item.ams_id)))
-                extruder_status[extruder_id].has_vt_slot = true;
-            else
-                extruder_status[extruder_id].has_ams = true;
-        }
-        for (auto extruder : extruder_status) {
-            if (extruder.has_ams && extruder.has_vt_slot) {
-                show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
-                return;
-            }
+        int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
+        if (DeviceManager::is_virtual_slot(stoi(item.ams_id)))
+            extruder_status[extruder_id].has_vt_slot = true;
+        else
+            extruder_status[extruder_id].has_ams = true;
+    }
+    for (auto extruder : extruder_status) {
+        if (extruder.has_ams && extruder.has_vt_slot) {
+            show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
+            return;
         }
     }
 
@@ -3577,7 +3582,7 @@ void SelectMachineDialog::set_default()
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         m_stext_printer_title->Show(false);
-        m_comboBox_printer->Show(false);
+        m_comboBox_printer->Show(true);
         m_button_refresh->Show(false);
         m_rename_normal_panel->Show(false);
         m_hyperlink->Show(false);
@@ -4153,6 +4158,14 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
 void SelectMachineDialog::set_default_from_sdcard()
 {
+    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev_manager) return;
+    MachineObject *obj_ = dev_manager->get_selected_machine();
+    if (!obj_) { return; };
+
+    m_comboBox_printer->SetValue(obj_->dev_name);
+
+
     m_print_plate_total = m_required_data_plate_data_list.size();
     update_page_turn_state(true);
 
@@ -4177,6 +4190,33 @@ void SelectMachineDialog::set_default_from_sdcard()
         brands.push_back(fo.brand);
     }
 
+    // ams mapping area
+    if (obj_->m_extder_data.total_extder_count > 1) {
+        m_filament_left_panel->Show();
+        m_filament_right_panel->Show();
+        m_filament_panel->Hide();
+
+        m_sizer_ams_mapping_left->SetCols(4);
+        m_sizer_ams_mapping_left->Layout();
+        m_filament_panel_left_sizer->Layout();
+        m_filament_left_panel->Layout();
+
+        m_sizer_ams_mapping_right->SetCols(4);
+        m_sizer_ams_mapping_right->Layout();
+        m_filament_panel_right_sizer->Layout();
+        m_filament_right_panel->Layout();
+        m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+
+    } else {
+        m_filament_left_panel->Hide();
+        m_filament_right_panel->Hide();
+        m_filament_panel->Show();
+        m_sizer_ams_mapping->SetCols(8);
+        m_sizer_ams_mapping->Layout();
+        m_filament_panel_sizer->Layout();
+        m_mapping_popup.set_show_type(ShowType::RIGHT);
+    }
+
     //init MaterialItem
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
@@ -4199,7 +4239,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, fo](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, fo](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id = iter->first;
@@ -4218,10 +4258,6 @@ void SelectMachineDialog::set_default_from_sdcard()
 
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
-            // update ams data
-            DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject* obj_ = dev_manager->get_selected_machine();
 
             if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
@@ -4237,6 +4273,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(fo.id);
                     m_mapping_popup.set_tag_texture(fo.type);
+                    m_mapping_popup.set_send_win(this);
                     m_mapping_popup.update(obj_);
                     m_mapping_popup.Popup();
                 }
