@@ -132,7 +132,7 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     Point pxx;
     Line(a, b).distance_to_infinite_squared(source_point, &pxx);
     const Point   ppxx = pxx - source_point;
-    const coord_t d    = ppxx.norm();
+    const coord_t d    = ppxx.cast<int64_t>().norm();
 
     const Vec2d  rot           = perp(ppxx).cast<double>().normalized();
     const double rot_cos_theta = rot.x();
@@ -145,8 +145,8 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     }
 
     const double marking_bound = atan(transitioning_angle * 0.5);
-    int64_t      msx           = -marking_bound * d; // projected marking_start
-    int64_t      mex           = marking_bound * d;  // projected marking_end
+    int64_t      msx           = -marking_bound * int64_t(d); // projected marking_start
+    int64_t      mex           = marking_bound * int64_t(d);  // projected marking_end
 
     const coord_t marking_start_end_h = msx * msx / (2 * d) + d / 2;
     Point         marking_start       = Point(coord_t(msx), marking_start_end_h).rotated(rot_cos_theta, rot_sin_theta) + pxx;
@@ -160,7 +160,7 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     bool add_marking_start = msx * int64_t(dir) > int64_t(sx - px) * int64_t(dir) && msx * int64_t(dir) < int64_t(ex - px) * int64_t(dir);
     bool add_marking_end   = mex * int64_t(dir) > int64_t(sx - px) * int64_t(dir) && mex * int64_t(dir) < int64_t(ex - px) * int64_t(dir);
 
-    const Point apex     = Point(coord_t(0), coord_t(d / 2)).rotated(rot_cos_theta, rot_sin_theta) + pxx;
+    const Point apex     = Point(0, d / 2).rotated(rot_cos_theta, rot_sin_theta) + pxx;
     bool        add_apex = int64_t(sx - px) * int64_t(dir) < 0 && int64_t(ex - px) * int64_t(dir) > 0;
 
     assert(!add_marking_start || !add_marking_end || add_apex);
