@@ -83,7 +83,7 @@ public:
      */
     void collapseSmallEdges(coord_t snap_dist = 5);
 
-    void makeRib(edge_t*& prev_edge, Point start_source_point, Point end_source_point);
+    void makeRib(edge_t*& prev_edge, const Point &start_source_point, const Point &end_source_point);
 
     /*!
      * Insert a node into the graph and connect it to the input polygon using ribs

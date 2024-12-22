@@ -315,8 +315,7 @@ void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
     }
 }
 
-void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source_point, Point end_source_point)
-{
+void SkeletalTrapezoidationGraph::makeRib(edge_t *&prev_edge, const Point &start_source_point, const Point &end_source_point) {
     Point p;
     Line(start_source_point, end_source_point).distance_to_infinite_squared(prev_edge->to->p, &p);
     coord_t dist = (prev_edge->to->p - p).cast<int64_t>().norm();
