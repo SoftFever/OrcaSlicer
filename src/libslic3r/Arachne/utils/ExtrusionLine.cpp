@@ -2,10 +2,21 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 #include "ExtrusionLine.hpp"
-#include "linearAlg2D.hpp"
 #include "../../VariableWidth.hpp"
+#include "libslic3r/Arachne/utils/ExtrusionJunction.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+
+namespace Slic3r {
+class Flow;
+}  // namespace Slic3r
 
 namespace Slic3r::Arachne
 {

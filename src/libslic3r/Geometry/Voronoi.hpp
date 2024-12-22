@@ -1,8 +1,15 @@
 #ifndef slic3r_Geometry_Voronoi_hpp_
 #define slic3r_Geometry_Voronoi_hpp_
 
+#include <boost/polygon/polygon.hpp>
+#include <cstddef>
+#include <iterator>
+#include <vector>
+
 #include "../Line.hpp"
 #include "../Polyline.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/libslic3r.h"
 
 #ifdef _MSC_VER
 // Suppress warning C4146 in OpenVDB: unary minus operator applied to unsigned type, result still unsigned
@@ -10,6 +17,12 @@
 #pragma warning(disable : 4146)
 #endif // _MSC_VER
 #include "boost/polygon/voronoi.hpp"
+
+namespace boost {
+namespace polygon {
+template <typename Segment> struct segment_traits;
+}  // namespace polygon
+}  // namespace boost
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif // _MSC_VER

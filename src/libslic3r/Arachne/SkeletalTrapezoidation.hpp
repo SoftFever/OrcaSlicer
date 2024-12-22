@@ -5,11 +5,11 @@
 #define SKELETAL_TRAPEZOIDATION_H
 
 #include <boost/polygon/voronoi.hpp>
-
+#include <ankerl/unordered_dense.h>
 #include <memory> // smart pointers
 #include <utility> // pair
-
-#include <ankerl/unordered_dense.h>
+#include <list>
+#include <vector>
 
 #include "utils/HalfEdgeGraph.hpp"
 #include "utils/PolygonsSegmentIndex.hpp"
@@ -20,6 +20,10 @@
 #include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
 #include "SkeletalTrapezoidationGraph.hpp"
 #include "../Geometry/Voronoi.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/libslic3r.h"
 
 //#define ARACHNE_DEBUG
 //#define ARACHNE_DEBUG_VORONOI
@@ -82,10 +86,7 @@ class SkeletalTrapezoidation
 
 public:
     using Segment  = PolygonsSegmentIndex;
-    using NodeSet = ankerl::unordered_dense::set<node_t *>;
-    using EdgeSet = ankerl::unordered_dense::set<edge_t *>;
-    using EdgeMap = ankerl::unordered_dense::map<const VD::edge_type *, edge_t *>;
-    using NodeMap = ankerl::unordered_dense::map<const VD::vertex_type *, node_t *>;
+    using NodeSet  = ankerl::unordered_dense::set<node_t*>;
 
     /*!
      * Construct a new trapezoidation problem to solve.
@@ -169,8 +170,8 @@ protected:
      * mapping each voronoi VD edge to the corresponding halfedge HE edge
      * In case the result segment is discretized, we map the VD edge to the *last* HE edge
      */
-    EdgeMap vd_edge_to_he_edge;
-    NodeMap vd_node_to_he_node;
+    ankerl::unordered_dense::map<const VD::edge_type *, edge_t *> vd_edge_to_he_edge;
+    ankerl::unordered_dense::map<const VD::vertex_type *, node_t *> vd_node_to_he_node;
     node_t &makeNode(const VD::vertex_type &vd_node, Point p); //!< Get the node which the VD node maps to, or create a new mapping if there wasn't any yet.
 
     /*!

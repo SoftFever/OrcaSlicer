@@ -5,10 +5,20 @@
 #define SKELETAL_TRAPEZOIDATION_GRAPH_H
 
 #include <optional>
+#include <utility>
 
 #include "utils/HalfEdgeGraph.hpp"
 #include "SkeletalTrapezoidationEdge.hpp"
 #include "SkeletalTrapezoidationJoint.hpp"
+#include "libslic3r/Arachne/utils/HalfEdge.hpp"
+#include "libslic3r/Arachne/utils/HalfEdgeNode.hpp"
+#include "libslic3r/libslic3r.h"
+
+namespace Slic3r
+{
+class Line;
+class Point;
+};
 
 namespace Slic3r::Arachne
 {

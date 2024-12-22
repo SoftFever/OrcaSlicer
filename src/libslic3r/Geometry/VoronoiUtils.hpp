@@ -1,8 +1,15 @@
 #ifndef slic3r_VoronoiUtils_hpp_
 #define slic3r_VoronoiUtils_hpp_
 
+#include <boost/polygon/polygon.hpp>
+#include <iterator>
+#include <limits>
+
 #include "libslic3r/Geometry/Voronoi.hpp"
 #include "libslic3r/Arachne/utils/PolygonsSegmentIndex.hpp"
+#include "libslic3r/Arachne/utils/PolygonsPointIndex.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/libslic3r.h"
 
 using VD = Slic3r::Geometry::VoronoiDiagram;
 

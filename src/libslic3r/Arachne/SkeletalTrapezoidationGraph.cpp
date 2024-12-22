@@ -2,14 +2,18 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "SkeletalTrapezoidationGraph.hpp"
-#include "../Line.hpp"
+
 #include <ankerl/unordered_dense.h>
-
-
 #include <boost/log/trivial.hpp>
+#include <algorithm>
+#include <iostream>
+#include <cassert>
+#include <cinttypes>
 
-#include "utils/linearAlg2D.hpp"
 #include "../Line.hpp"
+#include "libslic3r/Arachne/SkeletalTrapezoidationEdge.hpp"
+#include "libslic3r/Arachne/SkeletalTrapezoidationJoint.hpp"
+#include "libslic3r/Point.hpp"
 
 namespace Slic3r::Arachne
 {
@@ -182,8 +186,8 @@ bool STHalfEdgeNode::isLocalMaximum(bool strict) const
 
 void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
 {
-    ankerl::unordered_dense::map<edge_t*, std::list<edge_t>::iterator> edge_locator;
-    ankerl::unordered_dense::map<node_t*, std::list<node_t>::iterator> node_locator;
+    ankerl::unordered_dense::map<edge_t*, Edges::iterator> edge_locator;
+    ankerl::unordered_dense::map<node_t*, Nodes::iterator> node_locator;
     
     for (auto edge_it = edges.begin(); edge_it != edges.end(); ++edge_it)
     {
@@ -195,7 +199,7 @@ void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
         node_locator.emplace(&*node_it, node_it);
     }
     
-    auto safelyRemoveEdge = [this, &edge_locator](edge_t* to_be_removed, std::list<edge_t>::iterator& current_edge_it, bool& edge_it_is_updated)
+    auto safelyRemoveEdge = [this, &edge_locator](edge_t* to_be_removed, Edges::iterator& current_edge_it, bool& edge_it_is_updated)
     {
         if (current_edge_it != edges.end()
             && to_be_removed == &*current_edge_it)

@@ -1,11 +1,13 @@
 #include "Voronoi.hpp"
 
+#include <boost/log/trivial.hpp>
+#include <cassert>
+
 #include "libslic3r/Arachne/utils/PolygonsSegmentIndex.hpp"
 #include "libslic3r/Geometry/VoronoiUtils.hpp"
 #include "libslic3r/Geometry/VoronoiUtilsCgal.hpp"
 #include "libslic3r/MultiMaterialSegmentation.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Line.hpp"
 
 namespace Slic3r::Geometry {
 
