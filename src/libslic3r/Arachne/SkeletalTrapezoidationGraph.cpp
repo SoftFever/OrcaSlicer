@@ -315,7 +315,7 @@ void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
     }
 }
 
-void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source_point, Point end_source_point, bool is_next_to_start_or_end)
+void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source_point, Point end_source_point)
 {
     Point p;
     Line(start_source_point, end_source_point).distance_to_infinite_squared(prev_edge->to->p, &p);

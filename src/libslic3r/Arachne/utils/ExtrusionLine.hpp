@@ -137,11 +137,6 @@ struct ExtrusionLine
     }
 
     /*!
-     * Get the minimal width of this path
-     */
-    coord_t getMinimalWidth() const;
-
-    /*!
      * Removes vertices of the ExtrusionLines to make sure that they are not too high
      * resolution.
      *

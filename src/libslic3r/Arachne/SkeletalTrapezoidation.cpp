@@ -152,8 +152,7 @@ void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_t
             assert(twin->prev->twin); // Back rib
             assert(twin->prev->twin->prev); // Prev segment along parabola
             
-            constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
-            graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
+            graph.makeRib(prev_edge, start_source_point, end_source_point);
         }
         assert(prev_edge);
     }
@@ -203,10 +202,8 @@ void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_t
             p0 = p1;
             v0 = v1;
             
-            if (p1_idx < discretized.size() - 1)
-            { // Rib for last segment gets introduced outside this function!
-                constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
-                graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
+            if (p1_idx < discretized.size() - 1) { // Rib for last segment gets introduced outside this function!
+                graph.makeRib(prev_edge, start_source_point, end_source_point);
             }
         }
         assert(prev_edge);
@@ -462,8 +459,7 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
         node_t *starting_node                    = vd_node_to_he_node[starting_voronoi_edge->vertex0()];
         starting_node->data.distance_to_boundary = 0;
 
-        constexpr bool is_next_to_start_or_end = true;
-        graph.makeRib(prev_edge, start_source_point, end_source_point, is_next_to_start_or_end);
+        graph.makeRib(prev_edge, start_source_point, end_source_point);
         for (const VD::edge_type* vd_edge = starting_voronoi_edge->next(); vd_edge != ending_voronoi_edge; vd_edge = vd_edge->next()) {
             assert(vd_edge->is_finite());
             assert(Geometry::VoronoiUtils::is_in_range<coord_t>(*vd_edge));
@@ -471,7 +467,7 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
             Point v1 = Geometry::VoronoiUtils::to_point(vd_edge->vertex0()).cast<coord_t>();
             Point v2 = Geometry::VoronoiUtils::to_point(vd_edge->vertex1()).cast<coord_t>();
             transferEdge(v1, v2, *vd_edge, prev_edge, start_source_point, end_source_point, segments);
-            graph.makeRib(prev_edge, start_source_point, end_source_point, vd_edge->next() == ending_voronoi_edge);
+            graph.makeRib(prev_edge, start_source_point, end_source_point);
         }
 
         transferEdge(Geometry::VoronoiUtils::to_point(ending_voronoi_edge->vertex0()).cast<coord_t>(), end_source_point, *ending_voronoi_edge, prev_edge, start_source_point, end_source_point, segments);

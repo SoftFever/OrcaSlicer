@@ -29,15 +29,6 @@ int64_t ExtrusionLine::getLength() const
     return len;
 }
 
-coord_t ExtrusionLine::getMinimalWidth() const
-{
-    return std::min_element(junctions.cbegin(), junctions.cend(),
-                            [](const ExtrusionJunction& l, const ExtrusionJunction& r)
-                            {
-                                return l.w < r.w;
-                            })->w;
-}
-
 void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const int64_t allowed_error_distance_squared, const int64_t maximum_extrusion_area_deviation)
 {
     const size_t min_path_size = is_closed ? 3 : 2;
