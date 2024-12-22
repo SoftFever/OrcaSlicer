@@ -32,7 +32,6 @@ set(lisbslic3r_sources
     AABBMesh.cpp
     Algorithm/LineSplit.hpp
     Algorithm/LineSplit.cpp
-    Algorithm/PathSorting.hpp
     Algorithm/RegionExpansion.hpp
     Algorithm/RegionExpansion.cpp
     AnyPtr.hpp
