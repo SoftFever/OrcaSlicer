@@ -30,7 +30,12 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(const coord_t preferred_
                                                         const int     inward_distributed_center_wall_count,
                                                         const double  minimum_variable_line_ratio)
 {
-    BeadingStrategyPtr ret = std::make_unique<DistributedBeadingStrategy>(preferred_bead_width_inner, preferred_transition_length, transitioning_angle, wall_split_middle_threshold, wall_add_middle_threshold, inward_distributed_center_wall_count);
+    // Handle a special case when there is just one external perimeter.
+    // Because big differences in bead width for inner and other perimeters cause issues with current beading strategies.
+    const coord_t      optimal_width = max_bead_count <= 2 ? preferred_bead_width_outer : preferred_bead_width_inner;
+    BeadingStrategyPtr ret = std::make_unique<DistributedBeadingStrategy>(optimal_width, preferred_transition_length, transitioning_angle,
+                                                                          wall_split_middle_threshold, wall_add_middle_threshold,
+                                                                          inward_distributed_center_wall_count);
 
     BOOST_LOG_TRIVIAL(trace) << "Applying the Redistribute meta-strategy with outer-wall width = " << preferred_bead_width_outer << ", inner-wall width = " << preferred_bead_width_inner << ".";
     ret = std::make_unique<RedistributeBeadingStrategy>(preferred_bead_width_outer, minimum_variable_line_ratio, std::move(ret));
