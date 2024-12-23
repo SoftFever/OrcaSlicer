@@ -524,7 +524,6 @@ void AMSControl::msw_rescale()
     m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
 
     m_extruder->msw_rescale();
-    if (m_vams_extra_road) m_vams_extra_road->msw_rescale();
 
 
     if (m_button_extruder_feed) m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
