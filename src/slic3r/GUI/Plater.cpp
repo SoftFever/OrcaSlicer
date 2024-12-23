@@ -225,6 +225,26 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
     show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"");
 }
 
+static std::map<BedType, std::string> bed_type_thumbnails = {
+    {BedType::btPC, "bed_cool"},
+    {BedType::btEP, "bed_engineering"},
+    {BedType::btPEI, "bed_pei"},
+    {BedType::btPTE, "bed_high_templ"},
+    {BedType::btSuperTack, "bed_cool_supertack"}
+};
+
+// print_model_id
+static std::map<std::string, std::string> printer_thumbnails = {
+    {"N1", "printer_preview_N1"},
+    {"N2S", "printer_preview_N2S"},
+    {"C11", "printer_preview_C11"},
+    {"C12", "printer_preview_C12"},
+    {"C13", "printer_preview_C13"},
+    {"BL-P001", "printer_preview_BL-P001"},
+    {"BL-P002", "printer_preview_BL-P002"},
+    {"O1D", "printer_preview_O1D"},
+};
+
 enum SlicedInfoIdx
 {
     siFilament_m,
@@ -978,6 +998,13 @@ void ExtruderGroup::update_ams()
     if (ams_n4 * 4 + ams_n1 * 2 <= 8)
         is_upward = false;
 
+    std::vector<wxColour> colors = {
+        wxColour(255, 110, 100),
+        wxColour(97, 27, 22),
+        wxColour(7, 134, 219),
+        wxColour(170, 111, 252)
+    };
+
     bool   display_front_ams = !is_upward;
     size_t i                 = 0;
     for (; i < ams_n4 && i < 4; ++i) {
@@ -987,7 +1014,11 @@ void ExtruderGroup::update_ams()
         if (show_this_ams) {
             AMSinfo ams_info;
             ams_info.ams_type = AMSModel::GENERIC_AMS;
-            for (size_t i = 0; i < 4; ++i) ams_info.cans.emplace_back(Caninfo());
+            for (size_t i = 0; i < 4; ++i) {
+                Caninfo can_info;
+                can_info.material_colour = colors[i];
+                ams_info.cans.push_back(can_info);
+            }
             ams[i]->Update(ams_info);
             ams[i]->Refresh();
             ams[i]->Open();
@@ -1003,7 +1034,9 @@ void ExtruderGroup::update_ams()
         if (show_this_ams) {
             AMSinfo ams_info;
             ams_info.ams_type = AMSModel::N3S_AMS;
-            ams_info.cans.emplace_back(Caninfo());
+            Caninfo can_info;
+            can_info.material_colour = wxColour(255, 110, 100);
+            ams_info.cans.push_back(can_info);
             ams[i]->Update(ams_info);
             ams[i]->Refresh();
             ams[i]->Open();
@@ -1397,6 +1430,11 @@ Sidebar::Sidebar(Plater *parent)
                 p->combo_printer_bed->AppendString(_L(item));
             }
         }
+
+        p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
+            int selection = p->combo_printer_bed->GetSelection();
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(selection + 1)], this, 48));
+        });
 
         {
         auto hovered = std::make_shared<wxWindow *>();
@@ -1933,8 +1971,10 @@ void Sidebar::update_all_preset_comboboxes()
             cb->update();
     }
 
-    if (p->combo_printer)
+    if (p->combo_printer) {
         p->combo_printer->update();
+        update_printer_thumbnail();
+    }
 
     // Orca:: show device tab based on vendor type
     p_mainframe->show_device(preset_bundle.use_bbl_device_tab());
@@ -2793,6 +2833,17 @@ Search::OptionsSearcher& Sidebar::get_searcher()
 std::string& Sidebar::get_search_line()
 {
     return p->searcher.search_string();
+}
+
+void Sidebar::update_printer_thumbnail()
+{
+    auto& preset_bundle = wxGetApp().preset_bundle;
+    Preset & selected_preset = preset_bundle->printers.get_edited_preset();
+    std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
+    if (printer_thumbnails.find(printer_type) != printer_thumbnails.end())
+        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, 48));
+    else
+        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
 }
 
 void Sidebar::auto_calc_flushing_volumes(const int modify_id)
@@ -7358,6 +7409,7 @@ void Plater::priv::on_combobox_select(wxCommandEvent &evt)
     PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     if (preset_combo_box) {
         this->on_select_preset(evt);
+        sidebar->update_printer_thumbnail();
     }
     else {
         this->on_select_bed_type(evt);

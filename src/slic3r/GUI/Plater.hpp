@@ -210,7 +210,7 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
-
+    void                            update_printer_thumbnail();
 private:
     struct priv;
     std::unique_ptr<priv> p;
