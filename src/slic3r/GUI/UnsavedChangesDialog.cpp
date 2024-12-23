@@ -2058,16 +2058,19 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 #endif // __WXMSW__
+}
 
-    // Init bundles
+void DiffPresetDialog::ensure_inited()
+{
+    if (inited) {
+        return;
+    }
+    inited = true;
 
-    assert(wxGetApp().preset_bundle);
-
-    m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
-    m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
+    assert(m_preset_bundle_left.get());
+    assert(m_preset_bundle_right.get());
 
     // Create UI items
-
     SetBackgroundColour(*wxWHITE);
 
     create_info_lines();
@@ -2085,6 +2088,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
 void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
+    ensure_inited();
     for (auto preset_combos : m_preset_combos) {
         Preset::Type cb_type = preset_combos.presets_left->get_type();
         bool show = type != Preset::TYPE_INVALID    ? type == cb_type :
@@ -2106,8 +2110,16 @@ void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset:
 
 void DiffPresetDialog::update_bundles_from_app()
 {
-    *m_preset_bundle_left  = *wxGetApp().preset_bundle;
-    *m_preset_bundle_right = *wxGetApp().preset_bundle;
+    if (m_preset_bundle_left.get()) {
+        *m_preset_bundle_left = *wxGetApp().preset_bundle;
+    } else {
+        m_preset_bundle_left = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
+    }
+    if (m_preset_bundle_right.get()) {
+        *m_preset_bundle_right = *wxGetApp().preset_bundle;
+    } else {
+        m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
+    }
 
     m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
 }

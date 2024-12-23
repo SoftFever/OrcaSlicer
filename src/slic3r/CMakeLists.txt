@@ -367,8 +367,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/RotoptimizeJob.cpp
     GUI/Jobs/FillBedJob.hpp
     GUI/Jobs/FillBedJob.cpp
-    GUI/Jobs/SLAImportJob.hpp
-    GUI/Jobs/SLAImportJob.cpp
+    #GUI/Jobs/SLAImportJob.hpp
+    #GUI/Jobs/SLAImportJob.cpp
     GUI/Jobs/ProgressIndicator.hpp
     GUI/Jobs/PrintJob.hpp
     GUI/Jobs/PrintJob.cpp
@@ -379,7 +379,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
     GUI/Jobs/ThreadSafeQueue.hpp
-    GUI/Jobs/SLAImportDialog.hpp
+    #GUI/Jobs/SLAImportDialog.hpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp
