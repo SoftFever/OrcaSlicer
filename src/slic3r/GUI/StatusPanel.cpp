@@ -2902,6 +2902,9 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     else if (nozzle_num == 2 && obj->m_extder_data.extders.size() > 1)
     {
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_MAIN_NOZZLE_TYPE);
+        m_tempCtrl_nozzle->Show();
+        m_tempCtrl_nozzle->SetCurrTemp((int)obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp);
+
         m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_DEPUTY_NOZZLE_TYPE);
         m_tempCtrl_nozzle_deputy->Show();
         m_tempCtrl_nozzle_deputy->SetCurrTemp((int)obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].temp);
