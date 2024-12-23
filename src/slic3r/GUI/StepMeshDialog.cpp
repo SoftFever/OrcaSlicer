@@ -117,9 +117,10 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     wxBoxSizer* tips_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText* info = new wxStaticText(this, wxID_ANY, _L("Smaller linear and angular deflections result in higher-quality transformations but increase the processing time."));
-    wxStaticText *tips = new wxStaticText(this, wxID_ANY, _L("See BambuLab Wiki"));
+    wxStaticText *tips = new wxStaticText(this, wxID_ANY, _L("View Wiki for more information"));
     wxFont font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
     font.SetUnderlined(true);
+    tips->SetForegroundColour(wxColour(0, 174, 66));
     tips->SetFont(font);
     tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/step");
