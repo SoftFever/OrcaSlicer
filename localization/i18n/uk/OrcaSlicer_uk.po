@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-10-27 23:05+0800\n"
-"PO-Revision-Date: 2024-11-13 13:34+0200\n"
+"PO-Revision-Date: 2024-12-23 20:00+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: uk_UA\n"
@@ -4621,14 +4621,14 @@ msgid "Top"
 msgstr "Верх"
 
 msgid "Top View"
-msgstr "Вигляд зверху"
+msgstr "Вид зверху"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr "Ніз"
+msgstr "Низ"
 
 msgid "Bottom View"
-msgstr "Вигляд знизу"
+msgstr "Вид знизу"
 
 msgid "Front"
 msgstr "Перед"
@@ -4640,19 +4640,19 @@ msgid "Rear"
 msgstr "Зад"
 
 msgid "Rear View"
-msgstr "Вигляд ззаду"
+msgstr "Вид ззаду"
 
 msgid "Left"
 msgstr "Ліво"
 
 msgid "Left View"
-msgstr "Вигляд зліва"
+msgstr "Вид зліва"
 
 msgid "Right"
 msgstr "Право"
 
 msgid "Right View"
-msgstr "Вигляд справа"
+msgstr "Вид справа"
 
 msgid "Start a new window"
 msgstr "Почати нове вікно"
@@ -4664,25 +4664,25 @@ msgid "Start a new project"
 msgstr "Почати новий проєкт"
 
 msgid "Open a project file"
-msgstr "Відкрийте файл проекту"
+msgstr "Відкрити файл проекту"
 
 msgid "Recent projects"
-msgstr "Недавні проекти"
+msgstr "Недавні проєкти"
 
 msgid "Save Project"
-msgstr "Зберегти проект"
+msgstr "Зберегти проєкт"
 
 msgid "Save current project to file"
-msgstr "Зберегти поточний проект у файл"
+msgstr "Зберегти поточний проєкт у файл"
 
 msgid "Save Project as"
-msgstr "Зберегти проект як"
+msgstr "Зберегти проєкт як"
 
 msgid "Shift+"
 msgstr "Shift+"
 
 msgid "Save current project as"
-msgstr "Зберегти поточний проект як"
+msgstr "Зберегти поточний проєкт як"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "Імпорт 3MF/STL/STEP/SVG/OBJ/AMF"
