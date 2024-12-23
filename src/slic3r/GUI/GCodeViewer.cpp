@@ -4393,21 +4393,20 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     auto link_text = [&](const std::string &label) {
         ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
 
-        ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+        ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
         ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
         imgui.text(label.c_str());
         ImGui::PopStyleColor();
 
+        // underline
+        ImVec2 lineEnd = ImGui::GetItemRectMax();
+        lineEnd.y -= 2.0f;
+        ImVec2 lineStart = lineEnd;
+        lineStart.x      = ImGui::GetItemRectMin().x;
+        ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
         // click behavior
         if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-            // underline
-            ImVec2 lineEnd = ImGui::GetItemRectMax();
-            lineEnd.y -= 2.0f;
-            ImVec2 lineStart = lineEnd;
-            lineStart.x      = ImGui::GetItemRectMin().x;
-            ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
-
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) { 
                 Plater *plater = wxGetApp().plater();
                 wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
                 evt.SetEventObject(plater);
@@ -4420,20 +4419,18 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     auto link_text_set_to_optional = [&](const std::string &label) {
         ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
 
-        ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+        ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
         ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
         imgui.text(label.c_str());
         ImGui::PopStyleColor();
-
+        // underline
+        ImVec2 lineEnd = ImGui::GetItemRectMax();
+        lineEnd.y -= 2.0f;
+        ImVec2 lineStart = lineEnd;
+        lineStart.x      = ImGui::GetItemRectMin().x;
+        ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
         // click behavior
         if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-            // underline
-            ImVec2 lineEnd = ImGui::GetItemRectMax();
-            lineEnd.y -= 2.0f;
-            ImVec2 lineStart = lineEnd;
-            lineStart.x      = ImGui::GetItemRectMin().x;
-            ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
-
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 MessageDialog msg_dlg(nullptr, _L("Automatically re-slice according to the optimal filament arrangement, and the arrangement results will be displayed after slicing."), wxEmptyString, wxOK | wxCANCEL);
                 if (msg_dlg.ShowModal() == wxID_OK) {
@@ -4562,6 +4559,8 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::Dummy({window_padding, window_padding});
         if (!is_optimal_group) {
             link_text_set_to_optional(_u8L("Set to Optimal"));
+            ImGui::SameLine();
+            ImGui::Dummy({window_padding, window_padding});
             ImGui::SameLine();
         }
         link_text(_u8L("Rearrange filament"));
