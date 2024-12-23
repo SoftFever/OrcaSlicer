@@ -256,6 +256,8 @@ public:
     // update size and content of filament_presets.
     void                        update_multi_material_filament_presets(size_t to_delete_filament_id = size_t(-1));
 
+    void                        on_extruders_count_changed(int extruder_count);
+
     // Update the is_compatible flag of all print and filament presets depending on whether they are marked
     // as compatible with the currently selected printer (and print in case of filament presets).
     // Also updates the is_visible flag of each preset.

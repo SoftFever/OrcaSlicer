@@ -1199,12 +1199,14 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     }
 
     std::vector<std::map<int, int>> extruder_ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
-    for (size_t i = 0; i < extruder_ams_counts.size(); ++i) {
-        for (auto iter = extruder_ams_counts[i].begin(); iter != extruder_ams_counts[i].end(); ++iter){
-            if (iter->first == 4)
-                extruder_infos[i].ams_4 = iter->second;
-            if (iter->first == 1)
-                extruder_infos[i].ams_1 = iter->second;
+    if (extruder_ams_counts.size() >= extruder_nums) {
+        for (size_t i = 0; i < extruder_nums; ++i) {
+            for (auto iter = extruder_ams_counts[i].begin(); iter != extruder_ams_counts[i].end(); ++iter) {
+                if (iter->first == 4)
+                    extruder_infos[i].ams_4 = iter->second;
+                if (iter->first == 1)
+                    extruder_infos[i].ams_1 = iter->second;
+            }
         }
     }
 

@@ -3386,6 +3386,14 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     return std::make_pair(std::move(substitutions), presets_loaded);
 }
 
+void PresetBundle::on_extruders_count_changed(int extruders_count)
+{
+    printers.get_edited_preset().set_num_extruders(extruders_count);
+    update_multi_material_filament_presets();
+    reset_default_nozzle_volume_type();
+    extruder_ams_counts.resize(extruders_count);
+}
+
 void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filament_id)
 {
     if (printers.get_edited_preset().printer_technology() != ptFFF)
