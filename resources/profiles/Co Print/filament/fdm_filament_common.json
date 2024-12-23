@@ -82,6 +82,9 @@
     "filament_z_hop": [
         "nil"
     ],
+    "filament_z_hop_types": [
+        "nil"
+    ],
     "filament_retract_restart_extra": [
         "nil"
     ],
