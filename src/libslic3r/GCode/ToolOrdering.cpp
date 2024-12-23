@@ -1031,19 +1031,20 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
     return flush_volume;
 }
 
-std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const Print* print, const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
+std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const Print* print,  const FilamentMapMode mode,const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
 {
     using namespace FilamentGroupUtils;
-    if (!print_config || layer_filaments.empty())
+    if (!print || layer_filaments.empty())
         return std::vector<int>();
 
-    const unsigned int filament_nums = (unsigned int)(print_config->filament_colour.values.size() + EPSILON);
+    const auto& print_config = print->config();
+    const unsigned int filament_nums = (unsigned int)(print_config.filament_colour.values.size() + EPSILON);
 
     // get flush matrix
     std::vector<FlushMatrix> nozzle_flush_mtx;
-    size_t extruder_nums = print_config->nozzle_diameter.values.size();
+    size_t extruder_nums = print_config.nozzle_diameter.values.size();
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
-        std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(print_config->flush_volumes_matrix.values, nozzle_id, extruder_nums)));
+        std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(print_config.flush_volumes_matrix.values, nozzle_id, extruder_nums)));
         std::vector<std::vector<float>> wipe_volumes;
         for (unsigned int i = 0; i < filament_nums; ++i)
             wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * filament_nums, flush_matrix.begin() + (i + 1) * filament_nums));
@@ -1051,14 +1052,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
 
-    std::vector<LayerPrintSequence> other_layers_seqs;
-    const ConfigOptionInts* other_layers_print_sequence_op = print_config->option<ConfigOptionInts>("other_layers_print_sequence");
-    const ConfigOptionInt* other_layers_print_sequence_nums_op = print_config->option<ConfigOptionInt>("other_layers_print_sequence_nums");
-    if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
-        const std::vector<int>& print_sequence = other_layers_print_sequence_op->values;
-        int                     sequence_nums = other_layers_print_sequence_nums_op->value;
-        other_layers_seqs = get_other_layers_print_sequence(sequence_nums, print_sequence);
-    }
+    std::vector<LayerPrintSequence> other_layers_seqs = get_other_layers_print_sequence(print_config.other_layers_print_sequence_nums.value, print_config.other_layers_print_sequence.values);
 
     // other_layers_seq: the layer_idx and extruder_idx are base on 1
     auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int>& out_seq) -> bool {
@@ -1075,18 +1069,18 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     std::vector<int>ret(filament_nums, 0);
     // if mutli_extruder, calc group,otherwise set to 0
     if (extruder_nums == 2) {
-        std::vector<std::string> extruder_ams_count_str = print_config->extruder_ams_count.values;
+        std::vector<std::string> extruder_ams_count_str = print_config.extruder_ams_count.values;
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
         std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, false);
 
         auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info());
-        std::vector<std::string> filament_types = print_config->filament_type.values;
-        std::vector<std::string> filament_colours = print_config->filament_colour.values;
+        std::vector<std::string> filament_types = print_config.filament_type.values;
+        std::vector<std::string> filament_colours = print_config.filament_colour.values;
 
         // speacially handle tpu filaments
         auto used_filaments = collect_sorted_used_filaments(layer_filaments);
-        auto tpu_filaments = get_filament_by_type(used_filaments, print_config, "TPU");
-        FGMode fg_mode = print_config->filament_map_mode.value == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
+        auto tpu_filaments = get_filament_by_type(used_filaments, &print_config, "TPU");
+        FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
 
         std::vector<std::set<int>> ext_unprintable_filaments;
         collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);  // TODO: throw exception if fail or set it to status
@@ -1101,7 +1095,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
 
             context.machine_info.machine_filament_info = machine_filament_info;
             context.machine_info.max_group_size = std::move(group_size);
-            context.machine_info.master_extruder_id = print_config->master_extruder_id.value - 1; // switch to 0 based idx
+            context.machine_info.master_extruder_id = print_config.master_extruder_id.value - 1; // switch to 0 based idx
 
             context.group_info.total_filament_num = (int)(filament_nums);
             context.group_info.max_gap_threshold = 0.01;
@@ -1130,10 +1124,10 @@ FilamentChangeStats ToolOrdering::get_filament_change_stats(FilamentChangeMode m
     {
     case Slic3r::ToolOrdering::SingleExt:
         return m_stats_by_single_extruder;
-    case Slic3r::ToolOrdering::MultiExtAuto:
-        return m_stats_by_multi_extruder_auto;
-    case Slic3r::ToolOrdering::MultiExtManual:
-        return m_stats_by_multi_extruder_manual;
+    case Slic3r::ToolOrdering::MultiExtBest:
+        return m_stats_by_multi_extruder_best;
+    case Slic3r::ToolOrdering::MultiExtCurr:
+        return m_stats_by_multi_extruder_curr;
     default:
         break;
     }
@@ -1193,7 +1187,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 print_config = &(m_print_object_ptr->print()->config());
             }
 
-            filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
+            filament_maps = ToolOrdering::get_recommended_filament_maps(layer_filaments, m_print, map_mode, physical_unprintables, geometric_unprintables);
 
             if (filament_maps.empty())
                 return;
@@ -1262,10 +1256,11 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, filament_maps, nozzle_flush_mtx, filament_sequences);
     if (nozzle_nums <= 1)
         m_stats_by_single_extruder = curr_flush_info;
-    else if (map_mode < fmmManual)
-        m_stats_by_multi_extruder_auto = curr_flush_info;
-    else if (map_mode == fmmManual)
-        m_stats_by_multi_extruder_manual = curr_flush_info;
+    else {
+        m_stats_by_multi_extruder_curr = curr_flush_info;
+        if (map_mode == fmmAutoForFlush)
+            m_stats_by_multi_extruder_best = curr_flush_info;
+    }
 
     // in multi extruder mode,collect data with other mode
     if (nozzle_nums > 1) {
@@ -1285,11 +1280,11 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             );
             m_stats_by_single_extruder = calc_filament_change_info_by_toolorder(print_config, maps_without_group, nozzle_flush_mtx, filament_sequences_one_extruder);
         }
-        // if in manual mode,also calculate the info by auto mode
-        if (map_mode == fmmManual)
+        // if not in best for flush mode,also calculate the info by best for flush mode
+        if (map_mode != fmmAutoForFlush)
         {
             std::vector<std::vector<unsigned int>>filament_sequences_one_extruder;
-            std::vector<int>filament_maps_auto = get_recommended_filament_maps(layer_filaments, print_config, m_print, physical_unprintables, geometric_unprintables);
+            std::vector<int>filament_maps_auto = get_recommended_filament_maps(layer_filaments, m_print, fmmAutoForFlush, physical_unprintables, geometric_unprintables);
             reorder_filaments_for_minimum_flush_volume(
                 filament_lists,
                 filament_maps_auto,
@@ -1298,7 +1293,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 get_custom_seq,
                 &filament_sequences_one_extruder
             );
-            m_stats_by_multi_extruder_auto = calc_filament_change_info_by_toolorder(print_config, filament_maps_auto, nozzle_flush_mtx, filament_sequences_one_extruder);
+            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, filament_maps_auto, nozzle_flush_mtx, filament_sequences_one_extruder);
         }
     }
 

@@ -182,8 +182,8 @@ class ToolOrdering
 public:
     enum FilamentChangeMode {
         SingleExt,
-        MultiExtAuto,
-        MultiExtManual
+        MultiExtBest,
+        MultiExtCurr
     };
     ToolOrdering() = default;
 
@@ -204,8 +204,8 @@ public:
     void    clear() {
         m_layer_tools.clear();
         m_stats_by_single_extruder.clear();
-        m_stats_by_multi_extruder_auto.clear();
-        m_stats_by_multi_extruder_manual.clear();
+        m_stats_by_multi_extruder_best.clear();
+        m_stats_by_multi_extruder_curr.clear();
     }
 
     // Only valid for non-sequential print:
@@ -240,7 +240,7 @@ public:
     * called in dual extruder mode, the value in map will be 0 or 1
     * 0 based group id
     */
-    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const PrintConfig* print_config, const Print* print, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
+    static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const Print* print,const FilamentMapMode mode, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
 
     static std::vector<std::set<int>> get_physical_unprintables(const std::vector<unsigned int>& layer_filaments, const PrintConfig* config);
     static std::vector<std::set<int>> get_geometrical_unprintables(const std::vector<std::vector<int>>& unprintable_arrs, const PrintConfig* config);
@@ -283,8 +283,8 @@ private:
     bool                       m_is_BBL_printer = false;
 
     FilamentChangeStats        m_stats_by_single_extruder;
-    FilamentChangeStats        m_stats_by_multi_extruder_manual;
-    FilamentChangeStats        m_stats_by_multi_extruder_auto;
+    FilamentChangeStats        m_stats_by_multi_extruder_curr;
+    FilamentChangeStats        m_stats_by_multi_extruder_best;
 };
 
 } // namespace SLic3r

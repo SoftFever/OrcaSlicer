@@ -2134,7 +2134,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             auto map_mode = get_filament_map_mode();
             // get recommended filament map
             if (map_mode < FilamentMapMode::fmmManual) {
-                filament_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config(), this, physical_unprintables, geometric_unprintables);
+                filament_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, this, map_mode, physical_unprintables, geometric_unprintables);
                 std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
                 update_filament_maps_to_config(filament_maps);
             }

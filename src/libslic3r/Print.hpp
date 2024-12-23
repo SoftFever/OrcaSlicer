@@ -828,12 +828,12 @@ struct StatisticsByExtruderCount
 {
     // flush weight comes first,then comes filament change time
     FilamentChangeStats stats_by_single_extruder;
-    FilamentChangeStats stats_by_multi_extruder_auto;
-    FilamentChangeStats stats_by_multi_extruder_manual;
+    FilamentChangeStats stats_by_multi_extruder_best;
+    FilamentChangeStats stats_by_multi_extruder_curr;
     void clear() {
         stats_by_single_extruder.clear();
-        stats_by_multi_extruder_auto.clear();
-        stats_by_multi_extruder_manual.clear();
+        stats_by_multi_extruder_best.clear();
+        stats_by_multi_extruder_curr.clear();
     }
 };
 

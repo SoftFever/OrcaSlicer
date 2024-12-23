@@ -2651,8 +2651,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 {
                     // save the flush statitics stored in tool ordering by object
                     print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
-                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
-                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_best += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtBest);
+                    print.m_statistics_by_extruder_count.stats_by_multi_extruder_curr += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtCurr);
                     // save sorted filament sequences
                     const auto& layer_tools = tool_ordering.layer_tools();
                     for (const auto& lt : layer_tools)
@@ -2726,8 +2726,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             {
                 //save the flush statitics stored in tool ordering
                 print.m_statistics_by_extruder_count.stats_by_single_extruder = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
-                print.m_statistics_by_extruder_count.stats_by_multi_extruder_auto = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtAuto);
-                print.m_statistics_by_extruder_count.stats_by_multi_extruder_manual = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtManual);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_best = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtBest);
+                print.m_statistics_by_extruder_count.stats_by_multi_extruder_curr = tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::MultiExtCurr);
                 // save sorted filament sequences
                 const auto& layer_tools = tool_ordering.layer_tools();
                 for (const auto& lt : layer_tools)
