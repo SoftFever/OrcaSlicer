@@ -5,6 +5,8 @@
 #include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
 #include "Widgets/PopupWindow.hpp"
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/Label.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -24,13 +26,13 @@ private:
     void StartTimer();
     void ResetTimer();
 
-    void OnRadioBtn(wxCommandEvent &event);
+    void OnRadioBtn(int idx);
     void OnLeaveWindow(wxMouseEvent &);
     void OnEnterWindow(wxMouseEvent &);
     void OnTimer(wxTimerEvent &event);
     void OnRemindBtn(wxCommandEvent &event);
 
-    void Init(bool connect_status);
+    void Init();
     void UpdateButtonStatus(int hover_idx = -1);
     void DrawRoundedCorner(int radius);
 
@@ -40,15 +42,16 @@ private:
     const std::vector<FilamentMapMode> mode_list = {fmmAutoForFlush, fmmAutoForMatch, fmmManual};
 
     FilamentMapMode m_mode;
+    bool m_connected{ false };
     wxTimer        *m_timer;
 
     std::vector<wxBitmapButton *> radio_btns;
-    std::vector<wxStaticText *>   button_labels;
-    std::vector<wxStaticText *>   button_desps;
-    std::vector<wxStaticText *>   detail_infos;
+    std::vector<Label *>   button_labels;
+    std::vector<Label *>   button_desps;
+    std::vector<Label *>   detail_infos;
 
     wxStaticText *wiki_link;
-    wxCheckBox   *remind_checkbox;
+    CheckBox* remind_checkbox;
 };
 }} // namespace Slic3r::GUI
 #endif

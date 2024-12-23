@@ -70,9 +70,11 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_ok_btn                 = new Button(this, _L("OK"));
     m_cancel_btn             = new Button(this, _L("Cancel"));
-    button_sizer->Add(m_ok_btn, 0, wxALL, 5);
-    button_sizer->Add(m_cancel_btn, 0, wxALL, 5);
-    main_sizer->Add(button_sizer, 0, wxALIGN_CENTER | wxALL, 10);
+    m_ok_btn->SetFont(Label::Body_12);
+    m_cancel_btn->SetFont(Label::Body_12);
+    button_sizer->Add(m_ok_btn, 0, wxALL, FromDIP(8));
+    button_sizer->Add(m_cancel_btn, 0, wxALL, FromDIP(8));
+    main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxALL, FromDIP(15));
 
     m_ok_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_ok, this);
     m_cancel_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_cancle, this);

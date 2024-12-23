@@ -24,6 +24,13 @@ static const wxString AutoForMatchDetail = _L("Based on the current filaments in
                                               "filaments to the left and right nozzles.");
 static const wxString ManualDetail       = _L("Mannully allocate the filaments for the left and right nozzles.");
 
+static const wxColour LabelEnableColor = wxColour("#262E30");
+static const wxColour LabelDisableColor = wxColour("#6B6B6B");
+static const wxColour GreyColor = wxColour("#6B6B6B");
+static const wxColour GreenColor = wxColour("#00AE42");
+static const wxColour BackGroundColor = wxColour("#FFFFFF");
+
+
 static bool is_multi_extruder()
 {
     const auto &preset_bundle    = wxGetApp().preset_bundle;
@@ -76,7 +83,7 @@ bool is_pop_up_required()
     return is_multi_extruder_ && is_manual_mode_;
 }
 
-FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE)
+FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
     wxBoxSizer *top_sizer         = new wxBoxSizer(wxVERTICAL);
     const int   horizontal_margin = FromDIP(16);
@@ -84,8 +91,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     const int   vertical_padding  = FromDIP(12);
     const int   ratio_spacing     = FromDIP(4);
 
-    const wxColor background_color = wxColor(255, 255, 255);
-    SetBackgroundColour(background_color);
+    SetBackgroundColour(BackGroundColor);
 
     radio_btns.resize(ButtonType::btCount);
     button_labels.resize(ButtonType::btCount);
@@ -103,16 +109,16 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     for (size_t idx = 0; idx < ButtonType::btCount; ++idx) {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
         radio_btns[idx]          = new wxBitmapButton(this, idx, unchecked_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-        radio_btns[idx]->SetBackgroundColour(background_color);
+        radio_btns[idx]->SetBackgroundColour(BackGroundColor);
 
-        button_labels[idx] = new wxStaticText(this, wxID_ANY, btn_texts[idx]);
-        button_labels[idx]->SetBackgroundColour(background_color);
-        button_labels[idx]->SetForegroundColour(wxColor("#262E30"));
-        button_labels[idx]->SetFont(Label::Head_14);
+        button_labels[idx] = new Label(this, btn_texts[idx]);
+        button_labels[idx]->SetBackgroundColour(BackGroundColor);
+        button_labels[idx]->SetForegroundColour(LabelEnableColor);
+        button_labels[idx]->SetFont(Label::Body_14);
 
-        button_desps[idx] = new wxStaticText(this, wxID_ANY, btn_desps[idx]);
-        button_desps[idx]->SetBackgroundColour(background_color);
-        button_desps[idx]->SetForegroundColour(wxColor("#262E30"));
+        button_desps[idx] = new Label(this, btn_desps[idx]);
+        button_desps[idx]->SetBackgroundColour(BackGroundColor);
+        button_desps[idx]->SetForegroundColour(LabelEnableColor);
         button_desps[idx]->SetFont(Label::Body_14);
 
         button_sizer->Add(radio_btns[idx], 0, wxALIGN_CENTER_VERTICAL);
@@ -122,9 +128,9 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
 
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        detail_infos[idx] = new wxStaticText(this, wxID_ANY, mode_details[idx]);
-        detail_infos[idx]->SetBackgroundColour(background_color);
-        detail_infos[idx]->SetForegroundColour(wxColor("#6B6B6B"));
+        detail_infos[idx] = new Label(this, mode_details[idx]);
+        detail_infos[idx]->SetBackgroundColour(BackGroundColor);
+        detail_infos[idx]->SetForegroundColour(GreyColor);
         detail_infos[idx]->SetFont(Label::Body_12);
         detail_infos[idx]->Wrap(FromDIP(320));
 
@@ -135,44 +141,42 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         top_sizer->Add(label_sizer, 0, wxLEFT | wxRIGHT, horizontal_margin);
         top_sizer->AddSpacer(vertical_padding);
 
-        radio_btns[idx]->Bind(wxEVT_BUTTON, [this, idx](wxCommandEvent &event) {
-            event.SetInt(idx);
-            OnRadioBtn(event);
-        });
+        radio_btns[idx]->Bind(wxEVT_LEFT_DOWN, [this, idx](auto &) { OnRadioBtn(idx);});
 
-        radio_btns[idx]->Bind(wxEVT_ENTER_WINDOW, [this, idx](wxMouseEvent &) { UpdateButtonStatus(idx); });
+        radio_btns[idx]->Bind(wxEVT_ENTER_WINDOW, [this, idx](auto &) { UpdateButtonStatus(idx); });
+        radio_btns[idx]->Bind(wxEVT_LEAVE_WINDOW, [this](auto &) { UpdateButtonStatus(); });
 
-        radio_btns[idx]->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { UpdateButtonStatus(); });
-
-        button_labels[idx]->Bind(wxEVT_LEFT_UP, [this, idx](wxMouseEvent &) {
-            wxCommandEvent event;
-            event.SetInt(idx);
-            OnRadioBtn(event);
-        });
-
-        button_labels[idx]->Bind(wxEVT_ENTER_WINDOW, [this, idx](wxMouseEvent &) { UpdateButtonStatus(idx); });
-        button_labels[idx]->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { UpdateButtonStatus(); });
+        button_labels[idx]->Bind(wxEVT_LEFT_DOWN, [this, idx](auto &) { OnRadioBtn(idx);});
+        button_labels[idx]->Bind(wxEVT_ENTER_WINDOW, [this, idx](auto &) { UpdateButtonStatus(idx); });
+        button_labels[idx]->Bind(wxEVT_LEAVE_WINDOW, [this](auto &) { UpdateButtonStatus(); });
     }
 
     {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
+        auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("More info on wiki"));
-        wiki_link->SetBackgroundColour(background_color);
-        wiki_link->SetForegroundColour(wxColor("#00AE42"));
+        wiki_link->SetBackgroundColour(BackGroundColor);
+        wiki_link->SetForegroundColour(GreenColor);
         wiki_link->SetFont(Label::Body_12.Underlined());
         wiki_link->SetCursor(wxCursor(wxCURSOR_HAND));
         wiki_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) { wxLaunchDefaultBrowser("http//:example.com"); });
+        wiki_sizer->Add(wiki_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
 
-        remind_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't remind me again"));
-        remind_checkbox->SetBackgroundColour(background_color);
-        remind_checkbox->SetForegroundColour(wxColor("#6B6B6B"));
-        remind_checkbox->SetFont(Label::Body_12);
-        remind_checkbox->Bind(wxEVT_CHECKBOX, &FilamentGroupPopup::OnRemindBtn, this);
+        auto* checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+        remind_checkbox = new CheckBox(this);
+        remind_checkbox->Bind(wxEVT_TOGGLEBUTTON, &FilamentGroupPopup::OnRemindBtn, this);
+        checkbox_sizer->Add(remind_checkbox, 0, wxALIGN_CENTER, 0);
 
-        button_sizer->Add(wiki_link, 0, wxLEFT, horizontal_margin);
+        auto checkbox_title = new Label(this, _L("Don't remind me again"));
+        checkbox_title->SetBackgroundColour(BackGroundColor);
+        checkbox_title->SetForegroundColour(GreyColor);
+        checkbox_title->SetFont(Label::Body_12);
+        checkbox_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
+
+        button_sizer->Add(wiki_sizer, 0, wxLEFT, horizontal_margin);
         button_sizer->AddStretchSpacer();
-        button_sizer->Add(remind_checkbox, 0, wxRIGHT, horizontal_margin);
+        button_sizer->Add(checkbox_sizer, 0, wxRIGHT, horizontal_margin);
 
         top_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, horizontal_margin);
     }
@@ -216,13 +220,16 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
 #endif
 }
 
-void FilamentGroupPopup::Init(bool connect_status)
+void FilamentGroupPopup::Init()
 {
-    radio_btns[ButtonType::btForMatch]->Enable(connect_status);
-    button_labels[ButtonType::btForMatch]->Enable(connect_status);
+    radio_btns[ButtonType::btForMatch]->Enable(m_connected);
+    if (m_connected)
+        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
+    else
+        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
 
 
-    if (connect_status) {
+    if (m_connected) {
         button_desps[ButtonType::btForMatch]->SetLabel(AutoForMatchDesp);
     }
     else {
@@ -230,13 +237,13 @@ void FilamentGroupPopup::Init(bool connect_status)
     }
 
     m_mode = get_prefered_map_mode();
-    if (m_mode == fmmAutoForMatch && !connect_status) {
+    if (m_mode == fmmAutoForMatch && !m_connected) {
         set_prefered_map_mode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
     }
 
-    wxCheckBoxState check_state = get_pop_up_remind_flag() ? wxCheckBoxState::wxCHK_UNCHECKED : wxCheckBoxState::wxCHK_CHECKED;
-    remind_checkbox->Set3StateValue(check_state);
+    bool check_state = get_pop_up_remind_flag() ? false : true;
+    remind_checkbox->SetValue(check_state);
 
     UpdateButtonStatus();
 }
@@ -250,8 +257,9 @@ void FilamentGroupPopup::tryPopup(bool connect_status)
     };
 
     if (canPopup()) {
+        m_connected = connect_status;
         DrawRoundedCorner(16);
-        Init(connect_status);
+        Init();
         ResetTimer();
         PopupWindow::Popup();
     }
@@ -266,9 +274,9 @@ void FilamentGroupPopup::ResetTimer()
     if (m_timer->IsRunning()) { m_timer->Stop(); }
 }
 
-void FilamentGroupPopup::OnRadioBtn(wxCommandEvent &event)
+void FilamentGroupPopup::OnRadioBtn(int idx)
 {
-    m_mode = mode_list.at(event.GetInt());
+    m_mode = mode_list.at(idx);
 
     set_prefered_map_mode(m_mode);
 
@@ -277,7 +285,8 @@ void FilamentGroupPopup::OnRadioBtn(wxCommandEvent &event)
 
 void FilamentGroupPopup::OnRemindBtn(wxCommandEvent &event)
 {
-    bool is_checked = remind_checkbox->IsChecked();
+    bool is_checked = remind_checkbox->GetValue();
+    remind_checkbox->SetValue(is_checked);
     set_pop_up_remind_flag(!is_checked);
 
     if (is_checked) {
@@ -306,6 +315,10 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
     auto unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr);
 
     for (int i = 0; i < ButtonType::btCount; ++i) {
+        if (ButtonType::btForMatch == i && !m_connected) {
+            button_labels[i]->SetFont(Label::Body_14);
+            continue;
+        }
         // process checked and unchecked status
         if (mode_list.at(i) == m_mode) {
             if (i == hover_idx)
@@ -326,6 +339,8 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
         remind_checkbox->Enable(false);
     else
         remind_checkbox->Enable(true);
+    Fit();
+    Layout();
 }
 
 }} // namespace Slic3r::GUI
