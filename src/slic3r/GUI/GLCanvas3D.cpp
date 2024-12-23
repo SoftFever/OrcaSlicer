@@ -2883,7 +2883,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //    _set_warning_notification(EWarning::SlaSupportsOutside, false);
 
             PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-            bool tpu_valid = cur_plate->check_tpu_printable_status(m_config, wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
+            bool tpu_valid = cur_plate->check_tpu_printable_status(wxGetApp().preset_bundle->full_config(), wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 
             bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid;

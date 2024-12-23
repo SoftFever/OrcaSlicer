@@ -1699,20 +1699,20 @@ std::vector<int> PartPlate::get_used_extruders()
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
-bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig *config, const std::vector<int> &tpu_filaments)
+bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)
 {
     bool tpu_valid = true;
 
     if (!tpu_filaments.empty()) {
         if (tpu_filaments.size() > 1)
             tpu_valid = false;
-        else if (get_filament_map_mode() == FilamentMapMode::fmmManual) {
-            if (config->has("master_extruder_id")) {
+        else if (get_real_filament_map_mode(config) == FilamentMapMode::fmmManual) {
+            if (config.has("master_extruder_id")) {
                 int tpu_filament_id = *tpu_filaments.begin();
-                std::vector<int> filament_map    = get_filament_maps();
+                std::vector<int> filament_map    = get_real_filament_maps(config);
                 int extruder_id = filament_map[tpu_filament_id];
 
-                int master_extruder_id = config->opt_int("master_extruder_id");  // base 1
+                int master_extruder_id = config.opt_int("master_extruder_id");  // base 1
                 if (master_extruder_id != extruder_id)
                     tpu_valid = false;
             }
@@ -3293,8 +3293,10 @@ void PartPlate::set_unprintable_filament_ids(const std::vector<std::vector<int>>
 
 void PartPlate::on_extruder_count_changed(int extruder_count)
 {
-    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
-    std::fill(filament_maps.begin(), filament_maps.end(), 1);
+    if (extruder_count < 2) {
+        // clear filament map and mode in single extruder mode
+        clear_filament_map_info();
+    }
 }
 
 void PartPlate::set_filament_count(int filament_count)
