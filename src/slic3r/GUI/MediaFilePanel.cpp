@@ -535,7 +535,7 @@ void MediaFilePanel::doAction(size_t index, int action)
         if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
             if (index != -1) {
                 auto dlg = new MediaProgressDialog(_L("Print"), this, [fs] { fs->FetchModelCancel(); });
-                dlg->Update(0, _L("Fetching model infomations ..."));
+                dlg->Update(0, _L("Fetching model information..."));
                 fs->FetchModel(index, [this, fs, dlg, index](int result, std::string const &data) {
                     dlg->Destroy();
                     if (result == PrinterFileSystem::ERROR_CANCEL)

@@ -54,17 +54,20 @@
     "fan_min_speed":[
         "10"
     ],
-    "filament_retraction_length": [
-        "0.01"
-    ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "filament_density":[
         "1.07"
     ],
     "chamber_temperature": [
         "55"
+    ],
+    "slow_down_layer_time": [
+        "4"
+    ],
+    "fan_cooling_layer_time": [
+        "40"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

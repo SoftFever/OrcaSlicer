@@ -194,27 +194,8 @@ struct ExtrusionLine
     double area() const;
 };
 
-static inline Slic3r::ThickPolyline to_thick_polyline(const Arachne::ExtrusionLine &line_junctions)
-{
-    assert(line_junctions.size() >= 2);
-    Slic3r::ThickPolyline out;
-    out.points.emplace_back(line_junctions.front().p);
-    out.width.emplace_back(line_junctions.front().w);
-    out.points.emplace_back(line_junctions[1].p);
-    out.width.emplace_back(line_junctions[1].w);
-
-    auto it_prev = line_junctions.begin() + 1;
-    for (auto it = line_junctions.begin() + 2; it != line_junctions.end(); ++it) {
-        out.points.emplace_back(it->p);
-        out.width.emplace_back(it_prev->w);
-        out.width.emplace_back(it->w);
-        it_prev = it;
-    }
-
-    return out;
-}
-
-static inline Slic3r::ThickPolyline to_thick_polyline(const ClipperLib_Z::Path &path)
+template<class PathType>
+static inline Slic3r::ThickPolyline to_thick_polyline(const PathType &path)
 {
     assert(path.size() >= 2);
     Slic3r::ThickPolyline out;
