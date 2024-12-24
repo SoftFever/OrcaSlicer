@@ -4024,12 +4024,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     /*ams info*/
                                     if (it->contains("info")) {
                                         std::string info = (*it)["info"].get<std::string>();
-                                        type_id = get_flag_bits(info, 0, 3);
-                                        nozzle_id = get_flag_bits(info, 8, 3);
+                                        type_id = get_flag_bits(info, 0, 4);
+                                        nozzle_id = get_flag_bits(info, 8, 4);
                                     }
 
                                     /*AMS without initialization*/
-                                    if (nozzle_id == 0x0E) {
+                                    if (nozzle_id == 0xE) {
                                         continue;
                                     }
 
@@ -5355,11 +5355,10 @@ void MachineObject::parse_new_info(json print)
         upgrade_force_upgrade = get_flag_bits(cfg, 2);
         camera_recording_when_printing = get_flag_bits(cfg, 3);
         camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
-        //liveview_local                    = get_flag_bits(cfg, 5); todo zhanma
-        camera_timelapse = get_flag_bits(cfg, 6);
-        tutk_state = get_flag_bits(cfg, 7) == 1 ? "disable" : "";
-        chamber_light = get_flag_bits(cfg, 8) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-        printing_speed_lvl = (PrintingSpeedLevel)get_flag_bits(cfg, 9, 3);
+        camera_timelapse = get_flag_bits(cfg, 5);
+        tutk_state = get_flag_bits(cfg, 6) == 1 ? "disable" : "";
+        chamber_light = get_flag_bits(cfg, 7) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
+        printing_speed_lvl = (PrintingSpeedLevel)get_flag_bits(cfg, 8, 3);
         //is_support_build_plate_marker_detect = get_flag_bits(cfg, 12); todo yangcong
 
         xcam_first_layer_inspector = get_flag_bits(cfg, 13);
@@ -5416,7 +5415,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data aux = " << aux;
 
     if (!aux.empty()) {
-        //ams_exist_bits = get_flag_bits(aux, 8, 3); //todo yangcong
          sdcard_state = MachineObject::SdcardState(get_flag_bits(aux, 12, 2));
     }
 
@@ -5426,7 +5424,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data stat = " << stat;
 
     if (!stat.empty()) {
-        //sdcard_state = get_flag_bits(aux, 12, 2); todo yangcong
         camera_recording = get_flag_bits(stat, 7);
     }
 
@@ -5439,13 +5436,13 @@ void MachineObject::parse_new_info(json print)
         }
 
         if (device.contains("bed_temp")) {
-            bed_temp        = get_flag_bits(device["bed_temp"].get<int>(), 0, 15);
-            bed_temp_target = get_flag_bits(device["bed_temp"].get<int>(), 16, 15);
+            bed_temp        = get_flag_bits(device["bed_temp"].get<int>(), 0, 16);
+            bed_temp_target = get_flag_bits(device["bed_temp"].get<int>(), 16, 16);
         }
 
         if (device.contains("cham_temp")) {
-            chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 15);
-            chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 15);
+            chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 16);
+            chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 16);
         }
 
         if (device.contains("fan")) {
