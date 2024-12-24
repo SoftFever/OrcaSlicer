@@ -1192,6 +1192,9 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     // 2. update extruder status
     int extruder_nums = preset_bundle->get_printer_extruder_count();
+    if (extruder_nums != obj->m_extder_data.extders.size())
+        return;
+
     std::vector<ExtruderInfo> extruder_infos(extruder_nums);
     std::vector<int> nozzle_volume_types = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     //for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
@@ -1231,6 +1234,9 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     //    machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
     //}
     for (auto &item : obj->amsList) {
+        if (item.second->nozzle >= machine_extruder_infos.size())
+            continue;
+
         if (item.second->type == 4) { // N3S
             machine_extruder_infos[item.second->nozzle].ams_1++;
         } else {

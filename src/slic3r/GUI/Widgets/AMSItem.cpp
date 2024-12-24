@@ -2615,7 +2615,7 @@ void AMSPreview::doRender(wxDC &dc)
     }
 
     //single slot
-    else {
+    else if (m_amsinfo.cans.size() == 1) {
         auto iter = m_amsinfo.cans[0];
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR));
