@@ -302,6 +302,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-gz=zstd)
     endif()
 
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=template-id-cdtor" )
+    endif()
+
 endif()
 
 if (SLIC3R_ASAN)

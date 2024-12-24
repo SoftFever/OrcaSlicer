@@ -780,7 +780,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
     params.is_seq_print                        = settings.is_seq_print;
-    params.min_obj_distance                    = settings.distance;
+    params.min_obj_distance                    = scaled(settings.distance);
     params.align_to_y_axis                     = settings.align_to_y_axis;
 
     int state = p->get_prepare_state();
