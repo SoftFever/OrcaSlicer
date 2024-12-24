@@ -3,7 +3,7 @@
 		"display_name": "Bambu Lab X1 Carbon",
 		"print": {
 			"ipcam": {
-				"resolution_supported": ["720p", "1080p"],
+				"resolution_supported": [ "720p", "1080p" ],
 				"virtual_camera": "enabled",
 				"liveview": {
 					"remote": "tutk"
@@ -13,6 +13,7 @@
 					"model_download": "enabled"
 				}
 			},
+			"nozzle_temp_range": [ 20, 300 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": false,
 			"support_mqtt_alive": false,
@@ -41,7 +42,7 @@
 			"support_user_preset": false
 		},
 		"model_id": "BL-P001",
-		"compatible_machine": ["BL-P002", "C11", "C12", "C13"],
+		"compatible_machine": [ "BL-P002", "C11", "C12", "C13" ],
 		"printer_type": "3DPrinter-X1-Carbon",
 		"printer_thumbnail_image": "printer_thumbnail",
 		"printer_connect_help_image": "input_access_code_x1",

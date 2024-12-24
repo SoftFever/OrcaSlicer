@@ -3,11 +3,12 @@
 		"display_name": "Bambu Lab P1S",
 		"print": {
 			"ipcam": {
-				"resolution_supported": ["720p"],
+				"resolution_supported": [ "720p" ],
 				"liveview": {
 					"local": "local"
 				}
 			},
+			"nozzle_temp_range": [ 20, 300 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": false,
 			"support_mqtt_alive": false,
@@ -37,7 +38,7 @@
 			"bed_temperature_limit": 100
 		},
 		"model_id": "C12",
-		"compatible_machine": ["BL-P001", "BL-P002", "C11", "C13"],
+		"compatible_machine": [ "BL-P001", "BL-P002", "C11", "C13" ],
 		"printer_type": "C12",
 		"ftp_folder": "sdcard/",
 		"printer_thumbnail_image": "printer_thumbnail_p1s",

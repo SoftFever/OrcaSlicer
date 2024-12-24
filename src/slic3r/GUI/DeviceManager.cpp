@@ -3170,6 +3170,15 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
+                //nozzle temp range
+                if (jj.contains("nozzle_temp_range")) {
+                    if (jj["nozzle_temp_range"].is_array()) {
+                        for (auto it = jj["nozzle_temp_range"].begin(); it != jj["nozzle_temp_range"].end(); it++) {
+                            nozzle_temp_range.push_back(it.value().get<int>());
+                        }
+                    }
+                }
+
                 //supported function
                 if (jj.contains("support_chamber_temp_edit")) {
                     if (jj["support_chamber_temp_edit"].is_boolean()) {
@@ -3323,12 +3332,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 if (jj.contains("support_user_preset")) {
                     if (jj["support_user_preset"].is_boolean()) {
                         is_support_user_preset = jj["support_user_preset"].get<bool>();
-                    }
-                }
-
-                if (jj.contains("nozzle_max_temperature")) {
-                    if (jj["nozzle_max_temperature"].is_number_integer()) {
-                        nozzle_max_temperature = jj["nozzle_max_temperature"].get<int>();
                     }
                 }
 

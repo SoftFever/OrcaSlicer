@@ -36,7 +36,6 @@ static const wxFont   SWITCH_FONT    = Label::Body_10;
 
 /* const values */
 static const int bed_temp_range[2]    = {20, 120};
-static const int nozzle_temp_range[2] = {20, 300};
 static const int nozzle_chamber_range[2] = {20, 60};
 
 /* colors */
@@ -1432,8 +1431,8 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
                                       wxString("monitor_nozzle_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
-    m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
-    m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+    m_tempCtrl_nozzle->SetMinTemp(20);
+    m_tempCtrl_nozzle->SetMaxTemp(300);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
 
     StateColor tempinput_text_colour(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal));
@@ -1447,8 +1446,8 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
-    m_tempCtrl_nozzle_deputy->SetMinTemp(nozzle_temp_range[0]);
-    m_tempCtrl_nozzle_deputy->SetMaxTemp(nozzle_temp_range[1]);
+    m_tempCtrl_nozzle_deputy->SetMinTemp(20);
+    m_tempCtrl_nozzle_deputy->SetMaxTemp(300);
     m_tempCtrl_nozzle_deputy->SetBorderWidth(FromDIP(2));
 
     m_tempCtrl_nozzle_deputy->SetTextColor(tempinput_text_colour);
@@ -2870,6 +2869,14 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     m_tempCtrl_bed->SetCurrTemp((int) obj->bed_temp);
     m_tempCtrl_bed->SetMaxTemp(obj->get_bed_temperature_limit());
 
+    if (obj->nozzle_temp_range.size() >= 2) {
+        m_tempCtrl_nozzle->SetMinTemp(obj->nozzle_temp_range[0]);
+        m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_temp_range[1]);
+
+        m_tempCtrl_nozzle_deputy->SetMinTemp(obj->nozzle_temp_range[0]);
+        m_tempCtrl_nozzle_deputy->SetMaxTemp(obj->nozzle_temp_range[1]);
+    }
+
     // update temprature if not input temp target
     if (m_temp_bed_timeout > 0) {
         m_temp_bed_timeout--;
@@ -2898,15 +2905,6 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_DEPUTY_NOZZLE_TYPE);
         m_tempCtrl_nozzle_deputy->Show();
         m_tempCtrl_nozzle_deputy->SetCurrTemp((int)obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].temp);
-    }
-
-    if (obj->nozzle_max_temperature > -1) {
-        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
-        if (m_tempCtrl_nozzle_deputy && nozzle_num >= 2) m_tempCtrl_nozzle_deputy->SetMaxTemp(obj->nozzle_max_temperature);
-    }
-    else {
-        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
-        if (m_tempCtrl_nozzle_deputy && nozzle_num >= 2) m_tempCtrl_nozzle_deputy->SetMaxTemp(nozzle_temp_range[1]);
     }
 
     if (m_temp_nozzle_timeout > 0) {

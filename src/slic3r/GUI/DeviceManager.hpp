@@ -986,8 +986,10 @@ public:
     bool is_support_command_homing { false };// fun[32]
 
     bool installed_upgrade_kit{false};
-    int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
+
+    /*nozzle temp range*/
+    std::vector<int>    nozzle_temp_range;
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
