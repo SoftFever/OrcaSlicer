@@ -52,10 +52,10 @@
         "3"
     ],
     "machine_max_jerk_x": [
-        "8"
+        "12"
     ],
     "machine_max_jerk_y": [
-        "8"
+        "12"
     ],
     "machine_max_jerk_z": [
         "0.3"

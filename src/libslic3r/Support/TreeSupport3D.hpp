@@ -9,12 +9,16 @@
 #ifndef slic3r_TreeSupport_hpp
 #define slic3r_TreeSupport_hpp
 
-#include <boost/container/small_vector.hpp>
-#include "../Point.hpp"
-#include "../BoundingBox.hpp"
-#include "../Utils.hpp"
+#include "SupportLayer.hpp"
 #include "TreeModelVolumes.hpp"
 #include "TreeSupportCommon.hpp"
+
+#include "../BoundingBox.hpp"
+#include "../Point.hpp"
+#include "../Utils.hpp"
+
+#include <boost/container/small_vector.hpp>
+
 
 // #define TREE_SUPPORT_SHOW_ERRORS
 
@@ -36,11 +40,9 @@ namespace Slic3r
 {
 
 // Forward declarations
-class TreeSupport;
 class Print;
 class PrintObject;
-class SupportGeneratorLayer;
-using SupportGeneratorLayersPtr     = std::vector<SupportGeneratorLayer*>;
+struct SlicingParameters;
 
 namespace TreeSupport3D
 {
@@ -90,7 +92,7 @@ struct SupportElementStateBits {
 #endif // TREE_SUPPORTS_TRACK_LOST
         deleted(false),
         marked(false)
-    {}
+        {}
 
     /*!
      * \brief The element trys to reach the buildplate
@@ -108,7 +110,7 @@ struct SupportElementStateBits {
     bool use_min_xy_dist : 1;
 
     /*!
-     * \brief True if this Element or any parent provides support to a support roof.
+     * \brief True if this Element or any parent (element above) provides support to a support roof.
      */
     bool supports_roof : 1;
 
@@ -137,10 +139,6 @@ struct SupportElementStateBits {
 
 struct SupportElementState : public SupportElementStateBits
 {
-    int type = 0;
-    coordf_t radius = 0;
-    float print_z = 0;
-
     /*!
      * \brief The layer this support elements wants reach
      */
@@ -175,7 +173,7 @@ struct SupportElementState : public SupportElementStateBits
      * \brief The resulting center point around which a circle will be drawn later.
      * Will be set by setPointsOnAreas
      */
-    Point result_on_layer{ std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max() };
+    Point result_on_layer { std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max() };
     bool  result_on_layer_is_set() const { return this->result_on_layer != Point{ std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max() }; }
     void  result_on_layer_reset() { this->result_on_layer = Point{ std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max() }; }
     /*!
@@ -189,7 +187,7 @@ struct SupportElementState : public SupportElementStateBits
     double      elephant_foot_increases;
 
     /*!
-     * \brief The element trys not to move until this dtt is reached, is set to 0 if the element had to move.
+     * \brief The element tries to not move until this dtt is reached, is set to 0 if the element had to move.
      */
     uint32_t    dont_move_until;
 
@@ -204,18 +202,19 @@ struct SupportElementState : public SupportElementStateBits
     uint32_t    missing_roof_layers;
 
     // called by increase_single_area() and increaseAreas()
-    [[nodiscard]] static SupportElementState propagate_down(const SupportElementState& src)
+    [[nodiscard]] static SupportElementState propagate_down(const SupportElementState &src)
     {
         SupportElementState dst{ src };
-        ++dst.distance_to_top;
-        --dst.layer_idx;
+        ++ dst.distance_to_top;
+        -- dst.layer_idx;
         // set to invalid as we are a new node on a new layer
         dst.result_on_layer_reset();
         dst.skip_ovalisation = false;
         return dst;
     }
-};
 
+    [[nodiscard]] bool locked() const { return this->distance_to_top < this->dont_move_until; }
+};
 
 /*!
  * \brief Get the Distance to top regarding the real radius this part will have. This is different from distance_to_top, which is can be used to calculate the top most layer of the branch.
@@ -279,8 +278,6 @@ struct SupportElement
     Polygons                    influence_area;
 };
 
-void tree_supports_show_error(std::string_view message, bool critical);
-
 using SupportElements = std::deque<SupportElement>;
 
 [[nodiscard]] inline coord_t support_element_radius(const TreeSupportSettings &settings, const SupportElement &elem)
@@ -293,39 +290,27 @@ using SupportElements = std::deque<SupportElement>;
     return support_element_collision_radius(settings, elem.state);
 }
 
-void create_layer_pathing(const TreeModelVolumes& volumes, const TreeSupportSettings& config, std::vector<SupportElements>& move_bounds, std::function<void()> throw_on_cancel);
-
-void create_nodes_from_area(const TreeModelVolumes& volumes, const TreeSupportSettings& config, std::vector<SupportElements>& move_bounds, std::function<void()> throw_on_cancel);
-
-void organic_smooth_branches_avoid_collisions(const PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<std::pair<SupportElement*, int>>& elements_with_link_down, const std::vector<size_t>& linear_data_layers, std::function<void()> throw_on_cancel);
-
-indexed_triangle_set draw_branches(PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, std::vector<SupportElements>& move_bounds, std::function<void()> throw_on_cancel);
-
-void slice_branches(PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<Polygons>& overhangs, std::vector<SupportElements>& move_bounds, const indexed_triangle_set& cummulative_mesh, SupportGeneratorLayersPtr& bottom_contacts, SupportGeneratorLayersPtr& top_contacts, SupportGeneratorLayersPtr& intermediate_layers, SupportGeneratorLayerStorage& layer_storage, std::function<void()> throw_on_cancel);
-
-void generate_initial_areas(const PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<Polygons>& overhangs, std::vector<SupportElements>& move_bounds, InterfacePlacer& interface_placer, std::function<void()> throw_on_cancel);
-
 // Organic specific: Smooth branches and produce one cummulative mesh to be sliced.
 void organic_draw_branches(
-    PrintObject& print_object,
-    TreeModelVolumes& volumes,
-    const TreeSupportSettings& config,
-    std::vector<SupportElements>& move_bounds,
+    PrintObject                     &print_object,
+    TreeModelVolumes                &volumes, 
+    const TreeSupportSettings       &config,
+    std::vector<SupportElements>    &move_bounds,
 
     // I/O:
-    SupportGeneratorLayersPtr& bottom_contacts,
-    SupportGeneratorLayersPtr& top_contacts,
-    InterfacePlacer& interface_placer,
+    SupportGeneratorLayersPtr       &bottom_contacts,
+    SupportGeneratorLayersPtr       &top_contacts,
+    InterfacePlacer                 &interface_placer,
 
     // Output:
-    SupportGeneratorLayersPtr& intermediate_layers,
-    SupportGeneratorLayerStorage& layer_storage,
+    SupportGeneratorLayersPtr       &intermediate_layers,
+    SupportGeneratorLayerStorage    &layer_storage,
 
     std::function<void()>            throw_on_cancel);
 
 } // namespace TreeSupport3D
 
-void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_support, std::function<void()> throw_on_cancel = []{});
+void generate_tree_support_3D(PrintObject &print_object, std::function<void()> throw_on_cancel = []{});
 
 } // namespace Slic3r
 
