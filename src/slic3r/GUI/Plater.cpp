@@ -467,7 +467,7 @@ struct Sidebar::priv
     void jump_to_object(ObjectDataViewModelNode* item);
     void can_search();
 
-    void sync_extruder_list();
+    bool sync_extruder_list();
     void update_sync_status(const MachineObject* obj);
 
 #ifdef _WIN32
@@ -1083,7 +1083,7 @@ void ExtruderGroup::update_ams()
         GUI::wxGetApp().plater()->update_machine_sync_status();
 }
 
-void Sidebar::priv::sync_extruder_list()
+bool Sidebar::priv::sync_extruder_list()
 {
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
@@ -1092,13 +1092,16 @@ void Sidebar::priv::sync_extruder_list()
     if (obj == nullptr || !obj->is_info_ready()) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
         dlg.ShowModal();
-        return;
+        return false;
     }
     if (obj->m_extder_data.extders.size() != 2) {
         MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
-        return;
+        return false;
     }
+
+    if (!check_printer_initialized(obj))
+        return false;
 
     std::string machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -1108,11 +1111,11 @@ void Sidebar::priv::sync_extruder_list()
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
                                             "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);
         if (dlg.ShowModal() == wxID_NO) {
-            return;
+            return false;
         }
 
         if (!this->plater)
-            return;
+            return false;
 
         this->plater->update_objects_position_when_select_preset([&obj, machine_preset]() {
             Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
@@ -1142,6 +1145,7 @@ void Sidebar::priv::sync_extruder_list()
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
     AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+    return true;
 }
 
 void Sidebar::priv::update_sync_status(const MachineObject *obj)
@@ -2517,9 +2521,9 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     return filament_ams_list;
 }
 
-void Sidebar::sync_extruder_list()
+bool Sidebar::sync_extruder_list()
 {
-    p->sync_extruder_list();
+    return p->sync_extruder_list();
 }
 
 void Sidebar::update_sync_status(const MachineObject *obj)
@@ -8971,9 +8975,10 @@ bool Plater::priv::check_ams_status_impl()
             } dlg(q);
             dlg.Fit();
             if (dlg.ShowModal() == wxID_YES) {
-                GUI::wxGetApp().sidebar().sync_extruder_list();
-                wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-                wxGetApp().mainframe->m_tabpanel->SetSelection(MainFrame::TabPosition::tpPreview);
+                if (GUI::wxGetApp().sidebar().sync_extruder_list()) {
+                    wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                    wxGetApp().mainframe->m_tabpanel->SetSelection(MainFrame::TabPosition::tpPreview);
+                }
                 return false;
             }
         }
@@ -12834,6 +12839,35 @@ Preset *get_printer_preset(MachineObject *obj)
         }
     }
     return printer_preset;
+}
+
+bool check_printer_initialized(MachineObject *obj)
+{
+    if (!obj)
+        return false;
+
+    bool has_been_initialized = true;
+    for (const Extder& extruder : obj->m_extder_data.extders) {
+        if (extruder.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+            has_been_initialized = false;
+            break;
+        }
+        if (extruder.current_nozzle_type == NozzleType::ntUndefine) {
+            has_been_initialized = false;
+            break;
+        }
+    }
+
+    if (!has_been_initialized) {
+        MessageDialog dlg(wxGetApp().plater(), _L("It is detected that the nozzle type is not set. please set the nozzle first and then perform the current operation again."), _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+
+        PrinterPartsDialog* print_parts_dlg = new PrinterPartsDialog(nullptr);
+        print_parts_dlg->update_machine_obj(obj);
+        print_parts_dlg->ShowModal();
+        return false;
+    }
+    return true;
 }
 
 // Following lambda generates a combined mesh for export with normals pointing outwards.
