@@ -1109,7 +1109,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 if (cali_info.extruder_id == 0) {
                     name = _L("right");
                 }
-                error_message = wxString::Format("The nozzle type of the %s extruder is not set. Please set it first and then start calibration.", name);
+                error_message = wxString::Format(_L("The nozzle type of the %s extruder is not set. Please set it first and then start calibration."), name);
                 return false;
             }
 
@@ -1118,8 +1118,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 if (cali_info.extruder_id == 0) {
                     name = _L("right");
                 }
-                error_message = wxString::Format("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
-                                                 "Please synchronize the printer information first and then start calibration.", name);
+                error_message = wxString::Format(_L("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
+                                                 "Please synchronize the printer information first and then start calibration."), name);
                 return false;
             }
         }

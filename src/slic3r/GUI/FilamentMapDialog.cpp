@@ -43,7 +43,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<int>         &filaments,
                                      const FilamentMapMode           mode,
                                      bool                            show_default)
-    : wxDialog(parent, wxID_ANY, _L("Filament arrangement method of plate"), wxDefaultPosition, wxSize(2000, 1500))
+    : wxDialog(parent, wxID_ANY, _L("Filament arrangement method"), wxDefaultPosition, wxSize(2000, 1500))
     , m_filament_color(filament_color)
     , m_filament_map(filament_map)
 {
