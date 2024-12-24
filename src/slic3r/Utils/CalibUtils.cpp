@@ -1071,7 +1071,21 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         return false;
     }
 
-    float diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    float cali_diameter = cali_infos.calib_datas[0].nozzle_diameter;
+    int   extruder_id   = cali_infos.calib_datas[0].extruder_id;
+    for (const auto& cali_info : cali_infos.calib_datas) {
+        if (!is_approx(cali_diameter, cali_info.nozzle_diameter)) {
+            error_message = _L("Calibration using nozzles of different diameters is not supported.");
+            return false;
+        }
+    }
+
+    if (extruder_id >= obj->m_extder_data.extders.size()) {
+        error_message = _L("The number of printer extruders and the printer selected for calibration does not match.");
+        return false;
+    }
+
+    float diameter = obj->m_extder_data.extders[extruder_id].current_nozzle_diameter;
     bool  is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {

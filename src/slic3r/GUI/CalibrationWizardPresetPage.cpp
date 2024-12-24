@@ -5,6 +5,12 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Print.hpp"
 
+#define CALIBRATION_LABEL_SIZE wxSize(FromDIP(150), FromDIP(24))
+#define SYNC_BUTTON_SIZE (wxSize(FromDIP(50), FromDIP(50)))
+
+#define LEFT_EXTRUDER_ID  1
+#define RIGHT_EXTRUDER_ID 0
+
 namespace Slic3r { namespace GUI {
 static int PA_LINE = 0;
 static int PA_PATTERN = 1;
@@ -522,56 +528,155 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto nozzle_combo_text = new Label(parent, _L("Nozzle Diameter"));
-    nozzle_combo_text->SetFont(Label::Head_14);
-    nozzle_combo_text->Wrap(-1);
-    panel_sizer->Add(nozzle_combo_text, 0, wxALL, 0);
-    panel_sizer->AddSpacer(FromDIP(10));
-    m_comboBox_nozzle_dia = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
-    panel_sizer->Add(m_comboBox_nozzle_dia, 0, wxALL, 0);
+    auto sync_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto btn_sync = new Button(parent, "", "ams_nozzle_sync");
+    btn_sync->SetToolTip(_L("Synchronize nozzle and AMS information"));
+    btn_sync->SetCornerRadius(8);
+    StateColor btn_sync_bg_col(std::pair<wxColour, int>(wxColour(0xCECECE), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Normal));
+    StateColor btn_sync_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+    btn_sync->SetBackgroundColor(btn_sync_bg_col);
+    btn_sync->SetBorderColor(btn_sync_bd_col);
+    btn_sync->SetCanFocus(false);
+    btn_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
+    btn_sync->SetMinSize(SYNC_BUTTON_SIZE);
+    btn_sync->SetMaxSize(SYNC_BUTTON_SIZE);
+    btn_sync->SetVertical();
+    btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        if (!curr_obj) {
+            MessageDialog msg_dlg(nullptr, _L("Please connect the printer first before synchronizing."), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+        on_device_connected(curr_obj);
+    });
 
+    auto sync_button_text = new Label(parent, _L("Sync printer information"));
+    sync_button_text->SetFont(Label::Head_14);
+    sync_button_text->Wrap(-1);
+    sync_button_sizer->Add(btn_sync);
+    sync_button_sizer->AddSpacer(FromDIP(20));
+    sync_button_sizer->Add(sync_button_text, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    panel_sizer->Add(sync_button_sizer);
     panel_sizer->AddSpacer(PRESET_GAP);
 
-    // nozzle_volume_type (multi_extruder)
+    // single extruder
     {
-        m_nozzle_volume_type_panel = new wxPanel(parent);
-        m_nozzle_volume_type_panel->SetBackgroundColour(*wxWHITE);
+        m_single_nozzle_info_panel = new wxPanel(parent);
+        m_single_nozzle_info_panel->SetBackgroundColour(*wxWHITE);
+        auto single_nozzle_sizer = new wxBoxSizer(wxVERTICAL);
+        auto nozzle_combo_text = new Label(m_single_nozzle_info_panel, _L("Nozzle Diameter"));
+        nozzle_combo_text->SetFont(Label::Head_14);
+        nozzle_combo_text->Wrap(-1);
+
+        single_nozzle_sizer->Add(nozzle_combo_text, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(FromDIP(10));
+        m_comboBox_nozzle_dia = new ComboBox(m_single_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+        single_nozzle_sizer->Add(m_comboBox_nozzle_dia, 0, wxALL, 0);
+
+        m_nozzle_diameter_tips = new Label(m_single_nozzle_info_panel, "");
+        m_nozzle_diameter_tips->Hide();
+        m_nozzle_diameter_tips->SetFont(Label::Body_13);
+        // m_nozzle_diameter_tips->SetForegroundColour(wxColour(100, 100, 100));
+        m_nozzle_diameter_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+        single_nozzle_sizer->Add(m_nozzle_diameter_tips, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(PRESET_GAP);
+
+        m_single_nozzle_info_panel->SetSizer(single_nozzle_sizer);
+        panel_sizer->Add(m_single_nozzle_info_panel);
+    }
+
+    // multi extruder
+    {
+        m_multi_nozzle_info_panel = new wxPanel(parent);
+        m_multi_nozzle_info_panel->SetBackgroundColour(*wxWHITE);
         auto nozzle_volume_sizer = new wxBoxSizer(wxVERTICAL);
-        auto nozzle_volume_type_text = new Label(m_nozzle_volume_type_panel, _L("Nozzle Volume Type"));
-        nozzle_volume_type_text->SetFont(Label::Head_14);
-        nozzle_volume_type_text->Wrap(-1);
-        nozzle_volume_sizer->Add(nozzle_volume_type_text, 0, wxALL, 0);
-        nozzle_volume_sizer->AddSpacer(FromDIP(10));
+        auto nozzle_info_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Info"));
+        nozzle_info_text->SetFont(Label::Head_14);
+        nozzle_info_text->Wrap(-1);
+        nozzle_volume_sizer->Add(nozzle_info_text, 0, wxALL, 0);
+        //nozzle_volume_sizer->AddSpacer(FromDIP(10));
 
         wxBoxSizer *      type_sizer  = new wxBoxSizer(wxHORIZONTAL);
-        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_nozzle_volume_type_panel, "Left");
-        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_nozzle_volume_type_panel, "Right");
+        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, "Left");
+        {
+            //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
+            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"), 0, CALIBRATION_LABEL_SIZE);
+            nozzle_diameter_text->SetFont(Label::Head_14);
+            nozzle_diameter_text->Wrap(-1);
 
-        m_comboBox_nozzle_volume_types.clear();
+            m_left_comboBox_nozzle_dia = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_left_comboBox_nozzle_dia->Disable();
 
-        ComboBox *nozzle_volume_type_cbx = new ComboBox(m_nozzle_volume_type_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
-        m_comboBox_nozzle_volume_types.emplace_back(nozzle_volume_type_cbx);
-        m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types.back(), 0, wxEXPAND | wxALL, 5);
+            m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_left_nozzle_volume_type_sizer->Add(nozzle_diameter_text, 0, wxLEFT | wxRIGHT, 10);
+            m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_left_nozzle_volume_type_sizer->Add(m_left_comboBox_nozzle_dia, 0, wxLEFT | wxRIGHT, 10);
+            m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
 
-        nozzle_volume_type_cbx = new ComboBox(m_nozzle_volume_type_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr,wxCB_READONLY);
-        m_comboBox_nozzle_volume_types.emplace_back(nozzle_volume_type_cbx);
-        m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types.back(), 0, wxEXPAND | wxALL, 5);
+            //wxBoxSizer *nozzle_volume_sizer   = new wxBoxSizer(wxHORIZONTAL);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Volume Type"), 0, CALIBRATION_LABEL_SIZE);
+            nozzle_volume_type_text->SetFont(Label::Head_14);
+            nozzle_volume_type_text->Wrap(-1);
 
-        type_sizer->Add(m_left_nozzle_volume_type_sizer, 1, wxEXPAND | wxALL, 10);
-        type_sizer->Add(m_right_nozzle_volume_type_sizer, 1, wxEXPAND | wxALL, 10);
+            m_left_comboBox_nozzle_volume = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_left_comboBox_nozzle_volume->Disable();
+
+            m_left_nozzle_volume_type_sizer->Add(nozzle_volume_type_text, 0, wxLEFT | wxRIGHT, 10);
+            m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_left_nozzle_volume_type_sizer->Add(m_left_comboBox_nozzle_volume, 0, wxLEFT | wxRIGHT, 10);
+            m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+
+            //m_left_nozzle_volume_type_sizer->Add(nozzle_diameter_sizer);
+            //m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            //m_left_nozzle_volume_type_sizer->Add(nozzle_volume_sizer);
+        }
+
+        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, "Right");
+        {
+            //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
+            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"), 0, CALIBRATION_LABEL_SIZE);
+            nozzle_diameter_text->SetFont(Label::Head_14);
+            nozzle_diameter_text->Wrap(-1);
+
+            m_right_comboBox_nozzle_dia = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_right_comboBox_nozzle_dia->Disable();
+
+            m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_right_nozzle_volume_type_sizer->Add(nozzle_diameter_text, 0, wxLEFT | wxRIGHT, 10);
+            m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_right_nozzle_volume_type_sizer->Add(m_right_comboBox_nozzle_dia, 0, wxLEFT | wxRIGHT, 10);
+            m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+
+            //wxBoxSizer *nozzle_volume_sizer     = new wxBoxSizer(wxHORIZONTAL);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Volume Type"), 0, CALIBRATION_LABEL_SIZE);
+            nozzle_volume_type_text->SetFont(Label::Head_14);
+            nozzle_volume_type_text->Wrap(-1);
+
+            m_right_comboBox_nozzle_volume = new ComboBox(m_multi_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+            m_right_comboBox_nozzle_volume->Disable();
+
+            m_right_nozzle_volume_type_sizer->Add(nozzle_volume_type_text, 0, wxLEFT | wxRIGHT, 10);
+            m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            m_right_nozzle_volume_type_sizer->Add(m_right_comboBox_nozzle_volume, 0, wxLEFT | wxRIGHT, 10);
+            m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+
+            //m_right_nozzle_volume_type_sizer->Add(nozzle_diameter_sizer);
+            //m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
+            //m_right_nozzle_volume_type_sizer->Add(nozzle_volume_sizer);
+        }
+
+        type_sizer->Add(m_left_nozzle_volume_type_sizer, 1, wxEXPAND | wxRIGHT, 10);
+        type_sizer->Add(m_right_nozzle_volume_type_sizer, 1, wxEXPAND, 0);
 
         nozzle_volume_sizer->Add(type_sizer);
         nozzle_volume_sizer->AddSpacer(PRESET_GAP);
 
-        for (size_t i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->Bind(wxEVT_COMBOBOX, std::bind(&CalibrationPresetPage::on_select_nozzle_volume_type, this, std::placeholders::_1, i));
-            m_comboBox_nozzle_volume_types[i]->Hide();
-        }
+        m_multi_nozzle_info_panel->SetSizer(nozzle_volume_sizer);
+        panel_sizer->Add(m_multi_nozzle_info_panel);
 
-        m_nozzle_volume_type_panel->SetSizer(nozzle_volume_sizer);
-        panel_sizer->Add(m_nozzle_volume_type_panel);
-
-        m_nozzle_volume_type_panel->Hide();
+        m_multi_nozzle_info_panel->Hide();
     }
 
     auto plate_type_combo_text = new Label(parent, _L("Plate Type"));
@@ -649,20 +754,38 @@ void CalibrationPresetPage::init_selection_values()
         m_comboBox_bed_type->SetSelection(curr_selection);
     }
 
-    // init nozzle_volume_type for multi_extruder
+    // left
     {
+        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
+            m_left_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        }
+        m_left_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
-                for (size_t i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-                    m_comboBox_nozzle_volume_types[i]->AppendString(_L(item));
-                }
+                m_left_comboBox_nozzle_volume->AppendString(_L(item));
             }
         }
 
-        for (size_t i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->SetSelection(int(NozzleVolumeType::nvtStandard));  // default for single extruder printer
+        m_left_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
+    }
+
+    // right
+    {
+        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
+            m_right_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
         }
+        m_right_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+
+        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
+        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                m_right_comboBox_nozzle_volume->AppendString(_L(item));
+            }
+        }
+
+        m_right_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
     }
 }
 
@@ -737,13 +860,39 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
     panel_sizer->Fit(parent);
 }
 
+float CalibrationPresetPage::get_nozzle_diameter(int extruder_id) const
+{
+    float nozzle_dia = -1.f;
+    if (!curr_obj)
+        return nozzle_dia;
+
+    if (curr_obj->is_multi_extruders()) {
+        if (extruder_id == LEFT_EXTRUDER_ID) {
+            if (m_left_comboBox_nozzle_dia->GetSelection() >= 0 && m_left_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
+                nozzle_dia = nozzle_diameter_list[m_left_comboBox_nozzle_dia->GetSelection()];
+            }
+        } else if (extruder_id == RIGHT_EXTRUDER_ID) {
+            if (m_right_comboBox_nozzle_dia->GetSelection() >= 0 && m_right_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
+                nozzle_dia = nozzle_diameter_list[m_right_comboBox_nozzle_dia->GetSelection()];
+            }
+        }
+    }
+    else if (m_comboBox_nozzle_dia->GetSelection() >= 0 && m_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
+        nozzle_dia = nozzle_diameter_list[m_comboBox_nozzle_dia->GetSelection()];
+    }
+
+    return nozzle_dia;
+}
+
 NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int extruder_id) const
 {
-    if (m_comboBox_nozzle_volume_types.size() > extruder_id)
-        return NozzleVolumeType(m_comboBox_nozzle_volume_types[extruder_id]->GetSelection());
-    else {
-        return NozzleVolumeType::nvtStandard;
+    if (extruder_id == LEFT_EXTRUDER_ID) {
+        return NozzleVolumeType(m_left_comboBox_nozzle_volume->GetSelection());
     }
+    else if (extruder_id == RIGHT_EXTRUDER_ID) {
+        return NozzleVolumeType(m_right_comboBox_nozzle_volume->GetSelection());
+    }
+    return NozzleVolumeType::nvtStandard;
 }
 
 ExtruderType CalibrationPresetPage::get_extruder_type(int extruder_id) const
@@ -1761,6 +1910,15 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 {
     if (!obj) return;
 
+    auto get_nozzle_diameter_list_index = [&obj](int extruder_id) -> int {
+        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
+            if (abs(obj->m_extder_data.extders[extruder_id].current_nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
     //set flow ratio calibration type
     m_cali_stage_panel->set_flow_ratio_calibration_type(obj->flow_ratio_calibration_type);
     // set nozzle value from machine
@@ -1787,27 +1945,58 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     }
 
     if (obj->is_multi_extruders()) {
-        for (int i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->Show();
-            if (obj->m_extder_data.extders[i].current_nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)
-                m_comboBox_nozzle_volume_types[i]->SetSelection(obj->m_extder_data.extders[i].current_nozzle_flow_type - 1);
-            else
-                m_comboBox_nozzle_volume_types[i]->SetSelection(0);
+        for (size_t i = 0; i < obj->m_extder_data.extders.size(); ++i) {
+            if (i == LEFT_EXTRUDER_ID) {
+                int index = get_nozzle_diameter_list_index(LEFT_EXTRUDER_ID);
+                if ((index != -1) && m_left_comboBox_nozzle_dia->GetCount() > index) {
+                    m_left_comboBox_nozzle_dia->SetSelection(index);
+                    wxCommandEvent event(wxEVT_COMBOBOX);
+                    event.SetEventObject(this);
+                    wxPostEvent(m_left_comboBox_nozzle_dia, event);
+                    m_left_comboBox_nozzle_dia->SetToolTip(_L("The nozzle diameter has been synchronized from the printer Settings"));
+                }
+                else {
+                    m_left_comboBox_nozzle_dia->SetToolTip(wxEmptyString);
+                    if (m_left_comboBox_nozzle_dia->GetCount() > NOZZLE_LIST_DEFAULT)
+                        m_left_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+                }
+
+                if (obj->m_extder_data.extders[i].current_nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE) {
+                    m_left_comboBox_nozzle_volume->SetSelection(obj->m_extder_data.extders[i].current_nozzle_flow_type - 1);
+                } else {
+                    m_left_comboBox_nozzle_volume->SetSelection(0);
+                }
+            }
+            else if (i == RIGHT_EXTRUDER_ID) {
+                int index = get_nozzle_diameter_list_index(RIGHT_EXTRUDER_ID);
+                if ((index != -1) && m_right_comboBox_nozzle_dia->GetCount() > index) {
+                    m_right_comboBox_nozzle_dia->SetSelection(index);
+                    wxCommandEvent event(wxEVT_COMBOBOX);
+                    event.SetEventObject(this);
+                    wxPostEvent(m_right_comboBox_nozzle_dia, event);
+                    m_right_comboBox_nozzle_dia->SetToolTip(_L("The nozzle diameter has been synchronized from the printer Settings"));
+                } else {
+                    m_right_comboBox_nozzle_dia->SetToolTip(wxEmptyString);
+                    if (m_right_comboBox_nozzle_dia->GetCount() > NOZZLE_LIST_DEFAULT)
+                        m_right_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+                }
+
+                if (obj->m_extder_data.extders[i].current_nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE) {
+                    m_right_comboBox_nozzle_volume->SetSelection(obj->m_extder_data.extders[i].current_nozzle_flow_type - 1);
+                } else {
+                    m_right_comboBox_nozzle_volume->SetSelection(0);
+                }
+            }
         }
 
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
-            m_left_nozzle_volume_type_sizer->Detach(0);
-            m_right_nozzle_volume_type_sizer->Detach(0);
 
             m_main_sizer->GetStaticBox()->SetLabel("Right");
             m_deputy_sizer->GetStaticBox()->SetLabel("Left");
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
-
-            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
-            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
 
             m_main_extruder_on_left = false;
         }
@@ -1815,31 +2004,23 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
 
-            m_left_nozzle_volume_type_sizer->Detach(0);
-            m_right_nozzle_volume_type_sizer->Detach(0);
-
             m_main_sizer->GetStaticBox()->SetLabel("Left");
             m_deputy_sizer->GetStaticBox()->SetLabel("Right");
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
-            m_left_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[0]);
-            m_right_nozzle_volume_type_sizer->Add(m_comboBox_nozzle_volume_types[1]);
-
             m_main_extruder_on_left = true;
         }
 
-        m_nozzle_volume_type_panel->Show();
+        m_single_nozzle_info_panel->Hide();
+        m_multi_nozzle_info_panel->Show();
         m_multi_exutrder_filament_list_panel->Show();
         m_filament_list_panel->Hide();
         m_ext_spool_panel->Hide();
     }
     else {
-        for (int i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
-            m_comboBox_nozzle_volume_types[i]->Hide();
-        }
-
-        m_nozzle_volume_type_panel->Hide();
+        m_single_nozzle_info_panel->Show();
+        m_multi_nozzle_info_panel->Hide();
         m_multi_exutrder_filament_list_panel->Hide();
     }
 

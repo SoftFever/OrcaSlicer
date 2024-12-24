@@ -417,6 +417,7 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
             get_tray_ams_and_slot_id(result.tray_id, ams_id, slot_id, tray_id);
             result.extruder_id = preset_page->get_extruder_id(ams_id);
             result.nozzle_volume_type = preset_page->get_nozzle_volume_type(result.extruder_id);
+            result.nozzle_diameter  = preset_page->get_nozzle_diameter(result.extruder_id);
         }
         else {
             result.extruder_id = 0;
@@ -696,7 +697,6 @@ void PressureAdvanceWizard::on_cali_start()
     //clean PA result
     curr_obj->reset_pa_cali_result();
 
-    float nozzle_dia = -1;
     std::string setting_id;
     BedType plate_type = BedType::btDefault;
 
@@ -709,11 +709,11 @@ void PressureAdvanceWizard::on_cali_start()
         return;
     }
 
+    float nozzle_dia = -1;
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
     CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
-
-    if (nozzle_dia < 0 || plate_type == BedType::btDefault) {
+    if (/*nozzle_dia < 0 || */ plate_type == BedType::btDefault) {
         BOOST_LOG_TRIVIAL(error) << "CaliPreset: get preset info, nozzle and plate type error";
         return;
     }
@@ -737,7 +737,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.extruder_id          = preset_page->get_extruder_id(calib_info.ams_id);
             calib_info.extruder_type        = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type   = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
-            calib_info.nozzle_diameter      = nozzle_dia;
+            calib_info.nozzle_diameter      = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.filament_id          = item.second->filament_id;
             calib_info.setting_id           = item.second->setting_id;
             calib_info.bed_temp             = bed_temp;
@@ -782,7 +782,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             calib_info.bed_type      = plate_type;
             calib_info.process_bar   = preset_page->get_sending_progress_bar();
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
             calib_info.print_prest   = preset_page->get_print_preset();
             calib_info.filament_prest = temp_filament_preset;
 
@@ -1188,7 +1188,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.extruder_id      = preset_page->get_extruder_id(calib_info.ams_id);
             calib_info.extruder_type    = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
-            calib_info.nozzle_diameter  = nozzle_dia;
+            calib_info.nozzle_diameter  = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.filament_id      = item.second->filament_id;
             calib_info.setting_id       = item.second->setting_id;
             calib_info.bed_temp         = bed_temp;
@@ -1247,7 +1247,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             temp_filament_preset->config = preset->config;
 
             calib_info.bed_type = plate_type;
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
             calib_info.print_prest = preset_page->get_print_preset();
             calib_info.params.mode = CalibMode::Calib_Flow_Rate;
 
@@ -1656,7 +1656,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
 
     calib_info.bed_type      = plate_type;
     calib_info.process_bar   = preset_page->get_sending_progress_bar();
-    calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+    calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
     calib_info.print_prest   = preset_page->get_print_preset();
 
     wxString wx_err_string;
