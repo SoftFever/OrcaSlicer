@@ -3826,7 +3826,7 @@ msgid "Objects Info"
 msgstr ""
 
 msgid "Dimensions"
-msgstr ""
+msgstr "尺寸"
 
 msgid "Temperatures"
 msgstr "溫度"
@@ -3848,7 +3848,7 @@ msgid "Filament settings"
 msgstr "線材設定"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "SLA材料設定"
 
 msgid "Printer settings"
 msgstr "列印設備設定"
@@ -3869,7 +3869,7 @@ msgstr "參數驗證"
 
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
+msgstr "數值 %s 超出範圍。有效範圍是從 %d 到 %d。"
 
 msgid "Value is out of range."
 msgstr "值超出範圍。"
@@ -3894,7 +3894,7 @@ msgid "Input value is out of range"
 msgstr "輸入值超出範圍"
 
 msgid "Some extension in the input is invalid"
-msgstr ""
+msgstr "輸入的副檔名無效。"
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -3966,7 +3966,7 @@ msgid "Flushed"
 msgstr "廢料"
 
 msgid "Tower"
-msgstr ""
+msgstr "塔"
 
 msgid "Total"
 msgstr "總計"
@@ -4074,10 +4074,10 @@ msgid "Normal mode"
 msgstr "普通模式"
 
 msgid "Total Filament"
-msgstr ""
+msgstr "總線材量"
 
 msgid "Model Filament"
-msgstr ""
+msgstr "模型線材量"
 
 msgid "Prepare time"
 msgstr "準備時間"
@@ -4174,7 +4174,7 @@ msgid "Spacing"
 msgstr "間距"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 表示自動間距。"
 
 msgid "Auto rotate for arrangement"
 msgstr "自動旋轉以最佳化自動擺放效果"
@@ -4328,10 +4328,10 @@ msgid "Enable"
 msgstr "開啟"
 
 msgid "Hostname or IP"
-msgstr ""
+msgstr "主機名稱或 IP"
 
 msgid "Custom camera source"
-msgstr ""
+msgstr "自訂相機來源"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "顯示\"直播影片\"引導"
@@ -4377,7 +4377,7 @@ msgid "Preview"
 msgstr "預覽"
 
 msgid "Multi-device"
-msgstr ""
+msgstr "多臺設備"
 
 msgid "Project"
 msgstr "專案項目"
@@ -4525,10 +4525,10 @@ msgid "Load a model"
 msgstr "載入模型"
 
 msgid "Import Zip Archive"
-msgstr ""
+msgstr "匯入壓縮檔"
 
 msgid "Load models contained within a zip archive"
-msgstr ""
+msgstr "載入壓縮檔中的模型"
 
 msgid "Import Configs"
 msgstr "匯入設定檔"
@@ -4540,10 +4540,10 @@ msgid "Import"
 msgstr "匯入"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "將所有物件匯出為一個 STL 檔案"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "將所有物件匯出為 STL 檔案"
 
 msgid "Export Generic 3MF"
 msgstr "匯出通用 3MF"
@@ -4564,7 +4564,7 @@ msgid "Export current plate as G-code"
 msgstr "匯出目前列印板的 G-code"
 
 msgid "Export Preset Bundle"
-msgstr ""
+msgstr "匯出設定檔組"
 
 #, fuzzy
 msgid "Export current configuration to files"
@@ -4617,10 +4617,10 @@ msgid "Clone copies of selections"
 msgstr "複製多份所選項目"
 
 msgid "Duplicate Current Plate"
-msgstr ""
+msgstr "複製列印板"
 
 msgid "Duplicate the current plate"
-msgstr ""
+msgstr "複製目前列印板"
 
 msgid "Select all"
 msgstr "選取所有"
@@ -4641,10 +4641,10 @@ msgid "Use Orthogonal View"
 msgstr "使用正交視角"
 
 msgid "Show &G-code Window"
-msgstr ""
+msgstr "顯示 G-code"
 
 msgid "Show g-code window in Preview scene"
-msgstr ""
+msgstr "在預覽分頁中顯示 G-code 視窗"
 
 msgid "Show 3D Navigator"
 msgstr ""
@@ -4653,10 +4653,10 @@ msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr ""
 
 msgid "Reset Window Layout"
-msgstr ""
+msgstr "重設視窗配置"
 
 msgid "Reset to default window layout"
-msgstr ""
+msgstr "恢復預設視窗配置"
 
 msgid "Show &Labels"
 msgstr "顯示名稱"
@@ -4671,10 +4671,10 @@ msgid "Show object overhang highlight in 3D scene"
 msgstr "在 3D 場景中凸顯懸空"
 
 msgid "Show Selected Outline (Experimental)"
-msgstr ""
+msgstr "顯示選取輪廓（實驗性）"
 
 msgid "Show outline around selected object in 3D scene"
-msgstr ""
+msgstr "在 3D 場景中顯示選定物件的輪廓。"
 
 msgid "Preferences"
 msgstr "偏好設定"
@@ -4698,16 +4698,16 @@ msgid "Flow rate test - Pass 2"
 msgstr "流量測試 - 通過 2"
 
 msgid "YOLO (Recommended)"
-msgstr ""
+msgstr "YOLO (建議)"
 
 msgid "Orca YOLO flowrate calibration, 0.01 step"
-msgstr ""
+msgstr "Orca YOLO 流量校正，0.01 步"
 
 msgid "YOLO (perfectionist version)"
-msgstr ""
+msgstr "YOLO (完美主義者模式)"
 
 msgid "Orca YOLO flowrate calibration, 0.005 step"
-msgstr ""
+msgstr "Orca YOLO 流量校正，0.005 步"
 
 msgid "Flow rate"
 msgstr "流量"
@@ -4822,6 +4822,8 @@ msgid ""
 "Hint: Make sure you have added the corresponding printer before importing "
 "the configs."
 msgstr ""
+"\n"
+"提示：在匯入設定之前，請確保已添加對應的列印設備。"
 
 msgid "Import result"
 msgstr "匯入結果"
@@ -4855,45 +4857,48 @@ msgid "The device cannot handle more conversations. Please retry later."
 msgstr ""
 
 msgid "Player is malfunctioning. Please reinstall the system player."
-msgstr ""
+msgstr "播放器故障。請重新安裝系統播放器。"
 
 msgid "The player is not loaded, please click \"play\" button to retry."
-msgstr ""
+msgstr "播放器未載入，請點擊「播放」按鈕重試。"
 
 msgid "Please confirm if the printer is connected."
-msgstr ""
+msgstr "請確認列印設備是否已連接。"
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
+"列印機目前正忙於下載。請待下載完成後再試一次。"
 
 msgid "Printer camera is malfunctioning."
-msgstr ""
+msgstr "列印設備攝影機故障。"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
-msgstr ""
+msgstr "發生問題。請更新列印設備韌體後再試一次。"
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
+"僅 LAN 模式的LiveView已關閉。請在列印機螢幕上開啟LiveView。"
 
 msgid "Please enter the IP of printer to connect."
-msgstr ""
+msgstr "請輸入列印設備的 IP 以進行連接。"
 
 msgid "Initializing..."
 msgstr "正在初始化……"
 
 msgid "Connection Failed. Please check the network and try again"
-msgstr ""
+msgstr "連線失敗。請檢查網路並重試。"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
 msgstr ""
+"請檢查網路並重試。如果問題持續，你可以重新啟動或更新列印設備。"
 
 msgid "The printer has been logged out and cannot connect."
-msgstr ""
+msgstr "列印設備已登出，無法連接。"
 
 msgid "Stopped."
 msgstr "已經停止。"
@@ -4981,7 +4986,7 @@ msgid "Refresh"
 msgstr "刷新"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "從列印機重新載入檔案清單。"
 
 #, fuzzy
 msgid "No printers."
@@ -4995,10 +5000,10 @@ msgid "Loading file list..."
 msgstr "載入檔案清單..."
 
 msgid "No files"
-msgstr ""
+msgstr "無檔案"
 
 msgid "Load failed"
-msgstr ""
+msgstr "載入失敗"
 
 msgid "Initialize failed (Device connection not ready)!"
 msgstr "初始化失敗（未連接列印設備）"
@@ -5007,15 +5012,16 @@ msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
+"目前韌體不支援瀏覽 SD 卡中的檔案。請更新列印機韌體。"
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
-msgstr ""
+msgstr "初始化失敗（存儲不可用，請插入 SD 卡）。"
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr ""
+msgstr "LAN 連線失敗（無法查看 SD 卡）。"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "在僅 LAN 模式下不支援瀏覽 SD 卡中的檔案。"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -5041,10 +5047,10 @@ msgid "Fetching model information..."
 msgstr "正在獲取模型資訊..."
 
 msgid "Failed to fetch model information from printer."
-msgstr ""
+msgstr "無法從列印設備獲取模型資訊。"
 
 msgid "Failed to parse model information."
-msgstr ""
+msgstr "解析模型資訊失敗。"
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -5083,12 +5089,13 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
+"重新連接列印機，操作無法立即完成，請稍後再試。"
 
 msgid "File does not exist."
-msgstr ""
+msgstr "檔案不存在。"
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "檔案核對和錯誤。請重試。"
 
 msgid "Not supported on the current printer version."
 msgstr "目前列印設備的版本不支援。"
@@ -5098,7 +5105,7 @@ msgstr "無儲存空間，請插入 SD 記憶卡。"
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "錯誤代碼：%d"
 
 msgid "Speed:"
 msgstr "速度："
@@ -5179,7 +5186,7 @@ msgid "Camera Setting"
 msgstr "攝影機設定"
 
 msgid "Switch Camera View"
-msgstr ""
+msgstr "切換相機視角"
 
 msgid "Control"
 msgstr "控制"
@@ -5242,6 +5249,7 @@ msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
 msgstr ""
+"請在上料或卸料之前將噴嘴加熱至 170 度以上。"
 
 msgid "Still unload"
 msgstr "繼續退料"
@@ -5418,27 +5426,28 @@ msgid ""
 "The 3mf file version is in Beta and it is newer than the current OrcaSlicer  "
 "version."
 msgstr ""
+"該 3MF 檔案版本為測試版，並且較目前的 OrcaSlicer 版本更新。"
 
 msgid "If you would like to try Orca Slicer Beta, you may click to"
-msgstr ""
+msgstr "如果你想嘗試 Orca Slicer 測試版，可以點擊以下載。"
 
 msgid "Download Beta Version"
-msgstr ""
+msgstr "下載測試版"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
-msgstr ""
+msgstr "該 3MF 檔案版本較目前的 Orca Slicer 版本更新。"
 
 msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
-msgstr ""
+msgstr "更新你的 Orca Slicer 以啟用 3MF 檔案中的所有功能。"
 
 msgid "Current Version: "
-msgstr ""
+msgstr "目前版本"
 
 msgid "Latest Version: "
-msgstr ""
+msgstr "最新版本"
 
 msgid "Not for now"
-msgstr ""
+msgstr "現在不要"
 
 #, fuzzy
 msgid "3D Mouse disconnected."
@@ -5467,7 +5476,7 @@ msgid "Details"
 msgstr "詳細"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "有新的列印機設定可用。"
 
 msgid "Wiki"
 msgstr "Wiki"
@@ -5618,22 +5627,22 @@ msgid "Allow Prompt Sound"
 msgstr "允許提示音效"
 
 msgid "Filament Tangle Detect"
-msgstr ""
+msgstr "線材打結偵測"
 
 msgid "Nozzle Clumping Detection"
-msgstr ""
+msgstr "噴嘴堵塞偵測"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "檢查噴嘴是否因線材或其他異物而堵塞。"
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "噴嘴類型"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "不鏽鋼"
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "硬化鋼"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5655,7 +5664,7 @@ msgid "View all object's settings"
 msgstr "查看所有物件的設定"
 
 msgid "Material settings"
-msgstr ""
+msgstr "材料設定"
 
 msgid "Remove current plate (if not last one)"
 msgstr "刪除目前列印板（如果不是最後一個）"
@@ -5673,10 +5682,10 @@ msgid "Lock current plate"
 msgstr "鎖定列印板"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "編輯列印板名稱"
 
 msgid "Move plate to the front"
-msgstr ""
+msgstr "更改列印板順序至前"
 
 #, fuzzy
 msgid "Customize current plate"
@@ -5736,10 +5745,10 @@ msgid "Set filaments to use"
 msgstr "設定可選擇的線材"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "搜尋列印板、物件和零件。"
 
 msgid "Pellets"
-msgstr ""
+msgstr "顆粒"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5856,23 +5865,25 @@ msgid "Please correct them in the param tabs"
 msgstr "請在參數設定頁更正它們"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
-msgstr ""
+msgstr "該 3MF 檔案在耗材或列印機預設中具有以下修改過的 GCODE："
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
+"請確認這些修改過的 GCODE 是安全的，以防止對機器造成任何損壞！"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "已修改的 GCODE"
 
 msgid "The 3mf has following customized filament or printer presets:"
-msgstr ""
+msgstr "該 3MF 檔案具有以下自訂的耗材或列印機預設："
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"請確認這些預設中的 GCODE 是安全的，以防止對機器造成任何損壞！"
 
 msgid "Customized Preset"
 msgstr ""
@@ -5952,9 +5963,11 @@ msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"檔案 %s 已存在"
+"您確定要替換它嗎？"
 
 msgid "Confirm Save As"
-msgstr ""
+msgstr "確認另存為"
 
 msgid "Delete object which is a part of cut object"
 msgstr "刪除切割物件的一部分"
@@ -6063,13 +6076,13 @@ msgid "prepare 3mf file..."
 msgstr "正在準備 3mf 檔案..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "下載失敗，未知的檔案格式。"
 
 msgid "downloading project ..."
 msgstr "專案項目下載中..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "下載失敗，檔案大小異常。"
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -6095,16 +6108,16 @@ msgstr "載入 G-code 檔案時遇到錯誤"
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "載入路徑 %1% 的 ZIP 檔案失敗。"
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "無法將檔案解壓縮到 %1%：%2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
-msgstr ""
+msgstr "無法找到解壓縮的檔案 %1%。解壓縮檔案失敗。"
 
 #, fuzzy
 msgid "Drop project file"
@@ -6169,28 +6182,31 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try again."
 msgstr ""
+"無法對模型網格執行布林運算。只有正向部分會被保留。你可以修正網格後再試一次。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "原因：\"%1%\"無物件"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "原因：零件\"%1%\"無體積"
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "原因：零件\"%1%\""
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "原因：\"%1%\" 與另一個零件沒有交集"
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
 "3MF file?\n"
 "If you hit 'NO', all SVGs in the project will not be editable any more."
 msgstr ""
+”你確定要將原始 SVG 檔案及其本地路徑儲存到 3MF 檔案中嗎？  
+如果選擇「否」，專案中的所有 SVG 將不再可編輯。“
 
 msgid "Private protection"
 msgstr ""
@@ -6220,7 +6236,7 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr "自訂的支撐和上色在模型修復之前被清除了。"
 
 msgid "Optimize Rotation"
-msgstr ""
+msgstr "優化旋轉"
 
 msgid "Invalid number"
 msgstr "無效數字"
@@ -6375,7 +6391,7 @@ msgid "Units"
 msgstr "單位"
 
 msgid "Allow only one OrcaSlicer instance"
-msgstr "僅允許一個 OrcaSlicer 實例"
+msgstr "僅允許一個 OrcaSlicer 程序"
 
 msgid ""
 "On OSX there is always only one instance of app running by default. However "
@@ -6390,6 +6406,8 @@ msgid ""
 "same OrcaSlicer is already running, that instance will be reactivated "
 "instead."
 msgstr ""
+"啟用後，嘗試開起 OrcaSlicer 時若有另一個 OrcaSlicer 程序已在運行時，"
+"已在運行的程序會被重新啟動。"
 
 msgid "Home"
 msgstr "首頁"
@@ -6401,16 +6419,19 @@ msgid "Set the page opened on startup."
 msgstr "設定為啟動頁面。"
 
 msgid "Touchpad"
-msgstr ""
+msgstr "觸控板"
 
 msgid "Camera style"
-msgstr ""
+msgstr "相機模式"
 
 msgid ""
 "Select camera navigation style.\n"
 "Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
+“選擇相機導航樣式。”
+“預設：左鍵+移動旋轉，右鍵/中鍵+移動平移。“
+”觸控板：Alt+移動旋轉，Shift+移動平移。”
 
 msgid "Zoom to mouse position"
 msgstr "放大到滑鼠位置"
@@ -6430,7 +6451,7 @@ msgid "Reverse mouse zoom"
 msgstr "反轉滑鼠滾輪縮放方向"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "啟用後，改變滑鼠滾輪縮放方向"
 
 msgid "Show splash screen"
 msgstr "顯示啟動動畫"
@@ -6445,39 +6466,42 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果啟用，將在啟動時顯示有用的提示。"
 
 msgid "Flushing volumes: Auto-calculate every time the color changed."
-msgstr ""
+msgstr "廢料體積：換色時自動計算"
 
 msgid "If enabled, auto-calculate every time the color changed."
-msgstr ""
+msgstr "啟用後，換色時自動計算"
 
 msgid ""
 "Flushing volumes: Auto-calculate every time when the filament is changed."
 msgstr ""
+“廢料體積：換料時自動計算”
 
 msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr ""
+msgstr "啟用後，換料時自動計算" 
 
 msgid "Remember printer configuration"
-msgstr ""
+msgstr "記住機臺設定"
 
 msgid ""
 "If enabled, Orca will remember and switch filament/process configuration for "
 "each printer automatically."
 msgstr ""
+"啟用後，Orca會記住且自動切換各機臺線材與列印設定"
 
 msgid "Multi-device Management(Take effect after restarting Orca)."
-msgstr ""
+msgstr "多臺設備管理(需重開Orca)"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 msgstr ""
+“啟用時可以同時傳送到並管理多個機臺”
 
 msgid "Auto arrange plate after cloning"
-msgstr ""
+msgstr "複製後自動排列"
 
 msgid "Auto arrange plate after object cloning"
-msgstr ""
+msgstr " "
 
 msgid "Network"
 msgstr "網路"
@@ -6534,7 +6558,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "清除我對未儲存的專案項目的選擇。"
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "載入具有GCODE修改的3MF時不警告"
 
 msgid "Auto-Backup"
 msgstr "自動備份"
@@ -6689,10 +6713,10 @@ msgid "Add/Remove materials"
 msgstr "新增/刪除材料"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "選擇/移除機台(系統預設)"
 
 msgid "Create printer"
-msgstr ""
+msgstr "創建機臺"
 
 msgid "The selected preset is null!"
 msgstr "選擇的預設為空！"
@@ -6719,7 +6743,7 @@ msgid "Print sequence"
 msgstr "列印順序"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "跟隨全域設定"
 
 msgid "Disable"
 msgstr ""
@@ -6982,6 +7006,7 @@ msgid ""
 "The selected printer (%s）is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr ""
+“以選的機臺(%s)與切片軟體內所選的機臺預設(%s)不相容”
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "使用縮時攝影功能需要插入 SD 記憶卡"
@@ -7006,6 +7031,7 @@ msgstr "當啟用花瓶模式時，門架結構的設備不會產生縮時攝影
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+“逐件列印模式下不支援縮時錄影”
 
 msgid "Errors"
 msgstr "錯誤"
@@ -7050,7 +7076,7 @@ msgid ""
 msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
-msgstr ""
+msgstr "請排除上述錯誤，否則無法繼續列印"
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -7258,7 +7284,7 @@ msgstr ""
 "平滑模式的縮時錄影需要換料塔，否則列印物件上可能會有瑕疵。要打開換料塔嗎？"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "持續逐件列印？"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -8874,7 +8900,7 @@ msgstr "根據目前設定，不會進行任何列印。"
 msgid ""
 "Smooth mode of timelapse is not supported when \"by object\" sequence is "
 "enabled."
-msgstr "平滑模式的縮時錄影不支援在逐件列印模式下使用。"
+msgstr "逐件列印模式下不支援使用平滑模式的縮時錄影。"
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
@@ -9574,7 +9600,7 @@ msgid ""
 msgstr ""
 "在偶數層上，對於有懸挑部分的外圍輪廓，採用反向擠出。這種交替模式可以大幅改善陡峭的懸挑。\n"
 "\n"
-"此設定還有助於減少因部件牆壁應力降低而導致的變形。"
+"此設定還有助於減少因零件牆壁應力降低而導致的變形。"
 
 msgid "Reverse only internal perimeters"
 msgstr "僅在內圍輪廓反向"
@@ -9845,7 +9871,7 @@ msgid "Speed of exhaust fan after printing completes"
 msgstr "列印完成後排風扇的轉速"
 
 msgid "No cooling for the first"
-msgstr "前Ｎ層關閉部件風扇"
+msgstr "前Ｎ層關閉零件風扇"
 
 #, fuzzy
 msgid ""
