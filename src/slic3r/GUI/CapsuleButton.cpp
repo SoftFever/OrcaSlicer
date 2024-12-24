@@ -2,7 +2,6 @@
 #include "CapsuleButton.hpp"
 #include "wx/graphics.h"
 #include "Widgets/Label.hpp"
-#include "wx/dcgraph.h"
 
 namespace Slic3r { namespace GUI {
 CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &label, bool selected) : wxPanel(parent, id)
@@ -61,10 +60,11 @@ void CapsuleButton::OnPaint(wxPaintEvent &event)
         gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, 0);
         wxColour bg_color     = m_selected ? wxColour("#EBF9F0") : wxColour("#FFFFFF");
         wxColour border_color = m_hovered || m_selected ? wxColour("#00AE42") : wxColour("#CECECE");
-        int      cornerRadius = 5;
+        bg_color = StateColor::darkModeColorFor(bg_color);
+        border_color = StateColor::darkModeColorFor(border_color);
         gc->SetBrush(wxBrush(bg_color));
         gc->SetPen(wxPen(border_color, 2));
-        gc->DrawRoundedRectangle(1, 1, rect.width - 2, rect.height - 2, cornerRadius);
+        gc->DrawRoundedRectangle(1, 1, rect.width - 2, rect.height - 2, 5);
         delete gc;
     }
 }
@@ -99,8 +99,8 @@ void CapsuleButton::OnLeaveWindow(wxMouseEvent &event)
 
 void CapsuleButton::UpdateStatus()
 {
-    const wxColour selected_color = wxColour("#EBF9F0");
-    const wxColour normal_color   = wxColour("#FFFFFF");
+    wxColour selected_color = StateColor::darkModeColorFor(wxColour("#EBF9F0"));
+    wxColour normal_color   = StateColor::darkModeColorFor(wxColour("#FFFFFF"));
 
     std::string icon_name = m_selected ? "capsule_tag_on" : "capsule_tag_off";
     auto        bmp       = create_scaled_bitmap(icon_name, nullptr, FromDIP(16));

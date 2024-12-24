@@ -1,9 +1,6 @@
 #ifndef FILAMENT_GROUP_HOVER_HPP
 #define FILAMENT_GROUP_HOVER_HPP
 
-#include <wx/graphics.h>
-#include <wx/hyperlink.h>
-#include "wxExtensions.hpp"
 #include "Widgets/PopupWindow.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
@@ -23,6 +20,7 @@ public:
     FilamentMapMode GetSelectedMode() const { return m_mode; }
 
 private:
+    void OnPaint(wxPaintEvent&event);
     void StartTimer();
     void ResetTimer();
 

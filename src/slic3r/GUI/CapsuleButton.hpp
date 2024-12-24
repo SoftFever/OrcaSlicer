@@ -1,8 +1,8 @@
 #ifndef CAPSULE_BUTTON_HPP
 #define CAPSULE_BUTTON_HPP
 
-#include "GUI.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/Label.hpp"
 
 namespace Slic3r { namespace GUI {
 class CapsuleButton : public wxPanel

@@ -9,6 +9,34 @@
 
 namespace Slic3r { namespace GUI {
 
+static const StateColor btn_bg_green(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+static const StateColor btn_bd_green(
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+static const StateColor btn_text_green(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
+static const StateColor btn_bg_white(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+static const StateColor btn_bd_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+static const StateColor btn_text_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
 FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<std::string> &filament_color,
                                      const std::vector<int>         &filament_map,
@@ -21,8 +49,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 {
     SetBackgroundColour(*wxWHITE);
 
-    SetMinSize(wxSize(FromDIP(550), -1));
-    SetMaxSize(wxSize(FromDIP(550), -1));
+    SetMinSize(wxSize(FromDIP(580), -1));
+    SetMaxSize(wxSize(FromDIP(580), -1));
 
     if (mode < fmmManual)
         m_page_type = PageType::ptAuto;
@@ -70,8 +98,18 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_ok_btn                 = new Button(this, _L("OK"));
     m_cancel_btn             = new Button(this, _L("Cancel"));
+    m_ok_btn->SetCornerRadius(FromDIP(12));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
     m_ok_btn->SetFont(Label::Body_12);
     m_cancel_btn->SetFont(Label::Body_12);
+
+    m_ok_btn->SetBackgroundColor(btn_bg_green);
+    m_ok_btn->SetBorderColor(btn_bd_green);
+    m_ok_btn->SetTextColor(btn_text_green);
+    m_cancel_btn->SetBackgroundColor(btn_bg_white);
+    m_cancel_btn->SetBorderColor(btn_bd_white);
+    m_cancel_btn->SetTextColor(btn_text_white);
+
     button_sizer->Add(m_ok_btn, 0, wxALL, FromDIP(8));
     button_sizer->Add(m_cancel_btn, 0, wxALL, FromDIP(8));
     main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxALL, FromDIP(15));

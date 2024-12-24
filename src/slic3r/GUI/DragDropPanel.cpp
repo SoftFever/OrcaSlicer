@@ -181,7 +181,7 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
     m_sizer->Add(title_panel, 0, wxEXPAND);
     m_sizer->AddSpacer(20);
 
-    m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(5),FromDIP(5));   // row = 0, col = 3,  10 10 is space
+    m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(4),FromDIP(4));   // row = 0, col = 3,  10 10 is space
     m_sizer->Add(m_grid_item_sizer, 1, wxEXPAND);
 
     // set droptarget
@@ -197,7 +197,7 @@ void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool u
 {
     ColorPanel *panel = new ColorPanel(this, color, filament_id);
     panel->SetMinSize(wxSize(FromDIP(32), FromDIP(40)));
-    m_grid_item_sizer->Add(panel, 0, wxALIGN_CENTER);
+    m_grid_item_sizer->Add(panel, 0);
     m_filament_blocks.push_back(panel);
     if (update_ui) {
         m_filament_blocks.front()->Refresh();  // FIX BUG: STUDIO-8467

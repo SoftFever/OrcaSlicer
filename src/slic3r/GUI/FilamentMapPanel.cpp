@@ -42,8 +42,8 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER|wxEXPAND);
 
-    m_tips = new Label(this, _L("Tips: You can drag the filaments to change which extruder they are assigned to.\n"
-                                "But your filament arrangement may not be the most filament-efficient."));
+    m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles.\n"
+                                "But your filament arrangement may not be the most efficient for filament usage."));
     m_tips->SetFont(Label::Body_14);
     m_tips->SetForegroundColour(wxColour("#6B6B6B"));
     top_sizer->AddSpacer(FromDIP(8));
@@ -165,18 +165,20 @@ void FilamentMapBtnPanel::OnPaint(wxPaintEvent &event)
         gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, 0);
         wxColour bg_color     = m_selected ? wxColour("#EBF9F0") : wxColour("#FFFFFF");
         wxColour border_color = m_hover || m_selected ? wxColour("#00AE42") : wxColour("#CECECE");
-        int      cornerRadius = 8;
+        bg_color = StateColor::darkModeColorFor(bg_color);
+        border_color = StateColor::darkModeColorFor(border_color);
         gc->SetBrush(wxBrush(bg_color));
         gc->SetPen(wxPen(border_color, 2));
-        gc->DrawRoundedRectangle(1, 1, rect.width - 2, rect.height - 2, cornerRadius);
+        gc->DrawRoundedRectangle(1, 1, rect.width - 2, rect.height - 2, 8);
         delete gc;
     }
 }
 
 void FilamentMapBtnPanel::UpdateStatus()
 {
-    const wxColour selected_color = wxColour("#EBF9F0");
-    const wxColour normal_color   = wxColour("#FFFFFF");
+    const wxColour selected_color = StateColor::darkModeColorFor(wxColour("#EBF9F0"));
+    const wxColour normal_color = StateColor::darkModeColorFor(wxColour("#FFFFFF"));
+
     if (m_selected) {
         m_btn->SetBackgroundColour(selected_color);
         m_label->SetBackgroundColour(selected_color);
@@ -235,13 +237,13 @@ void GUI::FilamentMapBtnPanel::Show()
 FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode) : wxPanel(parent)
 {
     static const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
-        "by calculating the best allocation for the left and right "
-        "nozzles. Arrange the filaments according on the printer according to "
+        "by calculating the best arrangement for the left and right "
+        "nozzles. Arrange the filaments on the printer based on "
         "the slicing results.");
-    static const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, allocate the "
+    static const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, arrange the "
         "filaments to the left and right nozzles.");
     auto sizer    = new wxBoxSizer(wxHORIZONTAL);
-    m_flush_panel = new FilamentMapBtnPanel(this, _L("Material-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
+    m_flush_panel = new FilamentMapBtnPanel(this, _L("Filament-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
     m_match_panel = new FilamentMapBtnPanel(this, _L("Convenient Mode"), AutoForMatchDetail,"match_mode_panel_icon");
 
     sizer->AddStretchSpacer();
@@ -296,7 +298,7 @@ FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(par
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_label = new Label(this, _L("The material allocation for the current disk follows the global settings."));
+    m_label = new Label(this, _L("The filament arrangement for current plate follows the global settings."));
     m_label->SetFont(Label::Body_14);
     m_label->SetBackgroundColour(*wxWHITE);
 

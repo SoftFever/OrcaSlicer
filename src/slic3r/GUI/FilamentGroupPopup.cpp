@@ -2,34 +2,16 @@
 #include "FilamentMapDialog.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
-#include "I18N.hpp"
 #include "wx/dcgraph.h"
+#include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
 
-static const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
-static const wxString AutoForMatchLabel = _L("Convenient Mode");
-static const wxString ManualLabel       = _L("Manual Mode");
-
-static const wxString AutoForFlushDesp = _L("(Arrange after slicing)");
-static const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
-static const wxString ManualDesp       = "";
-static const wxString MachineSyncTip = _L("(Please sync printer)");
-
-static const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
-                                              "by calculating the best allocation for the left and right "
-                                              "nozzles. Arrange the filaments according on the printer according to "
-                                              "the slicing results.");
-static const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, allocate the "
-                                              "filaments to the left and right nozzles.");
-static const wxString ManualDetail       = _L("Mannully allocate the filaments for the left and right nozzles.");
-
 static const wxColour LabelEnableColor = wxColour("#262E30");
-static const wxColour LabelDisableColor = wxColour("#6B6B6B");
+static const wxColour LabelDisableColor = wxColour("#ACACAC");
 static const wxColour GreyColor = wxColour("#6B6B6B");
 static const wxColour GreenColor = wxColour("#00AE42");
 static const wxColour BackGroundColor = wxColour("#FFFFFF");
-
 
 static bool is_multi_extruder()
 {
@@ -85,6 +67,23 @@ bool is_pop_up_required()
 
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
+    const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
+    const wxString AutoForMatchLabel = _L("Convenient Mode");
+    const wxString ManualLabel       = _L("Manual Mode");
+
+    const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
+        "by calculating the best arrangement for the left and right "
+        "nozzles. Arrange the filaments on the printer based on "
+        "the slicing results.");
+    const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, arrange the "
+        "filaments to the left and right nozzles.");
+    const wxString ManualDetail       = _L("Mannully arrange the filaments for the left and right nozzles.");
+
+    const wxString AutoForFlushDesp = _L("(Arrange after slicing)");
+    const wxString ManualDesp       = "";
+    const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
+    const wxString MachineSyncTip = _L("(Please sync printer)");
+
     wxBoxSizer *top_sizer         = new wxBoxSizer(wxVERTICAL);
     const int   horizontal_margin = FromDIP(16);
     const int   vertical_margin   = FromDIP(15);
@@ -189,6 +188,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
 
     GUI::wxGetApp().UpdateDarkUIWin(this);
 
+    Bind(wxEVT_PAINT, &FilamentGroupPopup::OnPaint, this);
     Bind(wxEVT_TIMER, &FilamentGroupPopup::OnTimer, this);
     Bind(wxEVT_ENTER_WINDOW, &FilamentGroupPopup::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &FilamentGroupPopup::OnLeaveWindow, this);
@@ -222,17 +222,24 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
 
 void FilamentGroupPopup::Init()
 {
+    const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
+    const wxString MachineSyncTip = _L("(Please sync printer)");
+
+    auto disabled_bmp = create_scaled_bitmap("map_mode_disabled", nullptr, 16);
+    auto unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
     radio_btns[ButtonType::btForMatch]->Enable(m_connected);
-    if (m_connected)
-        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
-    else
-        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
-
-
     if (m_connected) {
+        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
+        button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
+        detail_infos[ButtonType::btForMatch]->SetForegroundColour(GreyColor);
+        radio_btns[ButtonType::btForMatch]->SetBitmap(unchecked_bmp);
         button_desps[ButtonType::btForMatch]->SetLabel(AutoForMatchDesp);
     }
     else {
+        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
+        button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
+        detail_infos[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
+        radio_btns[ButtonType::btForMatch]->SetBitmap(disabled_bmp);
         button_desps[ButtonType::btForMatch]->SetLabel(MachineSyncTip);
     }
 
@@ -258,7 +265,6 @@ void FilamentGroupPopup::tryPopup(bool connect_status)
 
     if (canPopup()) {
         m_connected = connect_status;
-        DrawRoundedCorner(16);
         Init();
         ResetTimer();
         PopupWindow::Popup();
@@ -266,6 +272,11 @@ void FilamentGroupPopup::tryPopup(bool connect_status)
 }
 
 void FilamentGroupPopup::tryClose() { StartTimer(); }
+
+void FilamentGroupPopup::OnPaint(wxPaintEvent&)
+{
+    DrawRoundedCorner(16);
+}
 
 void FilamentGroupPopup::StartTimer() { m_timer->StartOnce(300); }
 
@@ -276,6 +287,8 @@ void FilamentGroupPopup::ResetTimer()
 
 void FilamentGroupPopup::OnRadioBtn(int idx)
 {
+    if (mode_list.at(idx) == FilamentMapMode::fmmAutoForMatch && !m_connected)
+        return;
     m_mode = mode_list.at(idx);
 
     set_prefered_map_mode(m_mode);
@@ -290,7 +303,7 @@ void FilamentGroupPopup::OnRemindBtn(wxCommandEvent &event)
     set_pop_up_remind_flag(!is_checked);
 
     if (is_checked) {
-        MessageDialog dialog(nullptr, _L("No further pop up.You can go to \"Preferences\" to reopen the pop up."), _L("Tips"), wxICON_INFORMATION | wxOK);
+        MessageDialog dialog(nullptr, _L("No further pop-up will appear. You can reopen it in 'Preferences'"), _L("Tips"), wxICON_INFORMATION | wxOK);
         dialog.ShowModal();
         Dismiss();
     }
@@ -311,8 +324,9 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
     auto checked_bmp         = create_scaled_bitmap("map_mode_on", nullptr, 16);
     auto unchecked_bmp       = create_scaled_bitmap("map_mode_off", nullptr, 16);
-    auto checked_hover_bmp   = create_scaled_bitmap("map_mode_on_hovered", nullptr);
-    auto unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr);
+    auto checked_hover_bmp = create_scaled_bitmap("map_mode_on_hovered", nullptr, 16);
+    auto unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
+
 
     for (int i = 0; i < ButtonType::btCount; ++i) {
         if (ButtonType::btForMatch == i && !m_connected) {
@@ -339,8 +353,9 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
         remind_checkbox->Enable(false);
     else
         remind_checkbox->Enable(true);
-    Fit();
+
     Layout();
+    Fit();
 }
 
 }} // namespace Slic3r::GUI

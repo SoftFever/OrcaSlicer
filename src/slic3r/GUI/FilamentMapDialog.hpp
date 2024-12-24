@@ -1,13 +1,8 @@
 #ifndef slic3r_FilamentMapDialog_hpp_
 #define slic3r_FilamentMapDialog_hpp_
 
-#include "GUI.hpp"
 #include "FilamentMapPanel.hpp"
-#include <wx/simplebook.h>
-#include <wx/dialog.h>
-#include <wx/timer.h>
 #include <vector>
-#include "SelectMachine.hpp"
 #include "CapsuleButton.hpp"
 
 class SwitchButton;
