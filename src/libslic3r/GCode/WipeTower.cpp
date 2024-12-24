@@ -843,6 +843,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
     writer.speed_override_backup();
 	writer.speed_override(100);
 
+    float feedrate = is_first_layer() ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow, 5400.f);
+
     // Increase the extruder driver current to allow fast ramming.
     //BBS
 	//if (m_set_extruder_trimpot)
@@ -916,7 +918,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             writer.set_initial_position(pos, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
             wt_box = align_perimeter(wt_box);
-            writer.rectangle(wt_box);
+            writer.rectangle(wt_box, feedrate);
         }
 
         writer.travel(initial_position);
@@ -928,7 +930,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
                                    m_layer_info->depth + m_perimeter_width);
             // align the perimeter
             wt_box = align_perimeter(wt_box);
-            writer.rectangle(wt_box);
+            writer.rectangle(wt_box, feedrate);
         }
 
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
