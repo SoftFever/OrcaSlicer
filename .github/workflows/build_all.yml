@@ -47,13 +47,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-          - os: ubuntu-24.04
+          # - os: ubuntu-20.04
+          # - os: ubuntu-24.04
           - os: windows-latest
-          - os: macos-14
-            arch: x86_64
-          - os: macos-14
-            arch: arm64
+          # - os: macos-14
+          #   arch: x86_64
+          # - os: macos-14
+          #   arch: arm64
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
@@ -70,7 +70,7 @@ jobs:
     # maybe i'm too dumb and fucked up to do CI. OH WELL :D -ppd
     - name: "Remove unneeded stuff to free disk space"
       run:
-        sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
+        rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
     - uses: actions/checkout@v4
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
