@@ -111,6 +111,7 @@ public:
     void            export_selections(AppConfig &config);
 
     // BBS
+    void            set_num_filaments(unsigned int n, std::vector<std::string> new_colors);
     void            set_num_filaments(unsigned int n, std::string new_col = "");
     unsigned int sync_ams_list(unsigned int & unknowns);
     //BBS: check whether this is the only edited filament

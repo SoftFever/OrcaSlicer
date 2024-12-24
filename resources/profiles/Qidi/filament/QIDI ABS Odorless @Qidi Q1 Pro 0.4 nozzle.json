@@ -3,9 +3,6 @@
     "filament_id": "GFB99",
     "setting_id": "GFSA04",
     "instantiation": "true",
-    "activate_air_filtration":[
-         "0"
-    ],
     "during_print_exhaust_fan_speed":[
          "0"
     ],
@@ -25,7 +22,7 @@
         "80"
     ],
     "filament_max_volumetric_speed": [
-        "24.5"
+        "22"
     ],
     "from": "system",
     "hot_plate_temp_initial_layer": [
@@ -38,10 +35,10 @@
         "260"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "pressure_advance": [
-        "0.035"
+        "0.023"
     ],
     "slow_down_min_speed": [
         "20"
