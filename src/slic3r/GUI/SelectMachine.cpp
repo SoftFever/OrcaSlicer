@@ -2923,6 +2923,11 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj && !obj->get_lan_mode_connection_state()) {
+
+        // update image
+        auto printer_img_name = "printer_preview_" + obj->printer_type;
+        m_printer_image->SetBitmap(create_scaled_bitmap(printer_img_name, this, 52));
+
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
