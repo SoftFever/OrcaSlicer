@@ -4408,7 +4408,7 @@ msgstr "Об'єм:"
 msgid "Size:"
 msgstr "Розмір:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -12690,6 +12690,14 @@ msgstr "Втягування при зміні шару"
 
 msgid "Force a retraction when changes layer"
 msgstr "Примусове втягування при зміні шару"
+
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
 
 msgid "Retraction Length"
 msgstr "Довжина втягування"

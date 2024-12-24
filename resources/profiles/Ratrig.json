@@ -110,6 +110,18 @@
             "name": "0.25mm Quality Speed @RatRig V-Core 4 0.5",
             "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.5.json"
         },
+	{
+            "name": "0.35mm Extra Big @RatRig V-Core 4 HYBRID 0.8",
+            "sub_path": "process/0.35mm Extra Big @RatRig V-Core 4 HYBRID 0.8.json"
+        },
+		{
+            "name": "0.30mm Big @RatRig V-Core 4 HYBRID 0.8",
+            "sub_path": "process/0.30mm Big @RatRig V-Core 4 HYBRID 0.8.json"
+        },
+		{
+            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.8",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.8.json"
+        },
         {
             "name": "0.25mm Quality Speed @RatRig V-Core 4 0.6",
             "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.6.json"
@@ -204,6 +216,10 @@
             "name": "RatRig Generic PLA-CF",
             "sub_path": "filament/RatRig Generic PLA-CF.json"
         },
+	{
+            "name": "RatRig Generic PCTG",
+            "sub_path": "filament/RatRig Generic PCTG.json"
+        },
         {
             "name": "RatRig Generic PETG",
             "sub_path": "filament/RatRig Generic PETG.json"
@@ -247,6 +263,26 @@
         {
             "name": "RatRig PunkFil PETG",
             "sub_path": "filament/RatRig PunkFil PETG.json"
+        },
+	{
+            "name": "RatRig BigNozzle ABS",
+            "sub_path": "filament/RatRig BigNozzle ABS.json"
+        },
+	{
+            "name": "RatRig BigNozzle ASA",
+            "sub_path": "filament/RatRig BigNozzle ASA.json"
+        },
+	{
+            "name": "RatRig BigNozzle PLA",
+            "sub_path": "filament/RatRig BigNozzle PLA.json"
+        },
+	{
+            "name": "RatRig BigNozzle PETG",
+            "sub_path": "filament/RatRig BigNozzle PETG.json"
+        },
+	{
+            "name": "RatRig BigNozzle PCTG",
+            "sub_path": "filament/RatRig BigNozzle PCTG.json"
         }
     ],
     "machine_list": [
