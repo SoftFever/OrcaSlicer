@@ -67,6 +67,7 @@ public:
 	static const ColorRGB YELLOW()      { return { 1.0f, 1.0f, 0.0f }; }
 	static const ColorRGB WHITE()       { return { 1.0f, 1.0f, 1.0f }; }
     static const ColorRGB ORCA()		{ return {0.0f, 150.f / 255.0f, 136.0f / 255}; }
+	static const ColorRGB WARNING()     { return {241.0f / 255, 117.f / 255.0f, 78.0f / 255}; }
 
 	static const ColorRGB X()           { return { 0.75f, 0.0f, 0.0f }; }
 	static const ColorRGB Y()           { return { 0.0f, 0.75f, 0.0f }; }

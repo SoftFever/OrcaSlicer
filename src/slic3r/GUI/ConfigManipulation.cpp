@@ -676,9 +676,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
                     "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
                     "wipe_tower_bridging", "wipe_tower_extra_flow",
-                    "wipe_tower_no_sparse_layers",
-                    "single_extruder_multi_material_priming"})
+                    "wipe_tower_no_sparse_layers"})
       toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && !is_BBL_Printer);
 
     toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
     
@@ -735,8 +736,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
     bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
     bool force_wall_direction     = config->opt_enum<WallDirection>("wall_direction") != WallDirection::Auto;
-    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase && !force_wall_direction;
+    bool allow_overhang_reverse   = !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
+    toggle_field("overhang_reverse_threshold", has_detect_overhang_wall);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
     toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
     bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");
