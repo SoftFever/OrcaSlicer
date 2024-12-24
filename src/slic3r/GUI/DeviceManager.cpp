@@ -5779,12 +5779,12 @@ void MachineObject::parse_new_info(json print)
                     int range = (*it_part)["range"].get<int>();
 
                     AirParts part;
-                    part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 3);
-                    part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 12);
+                    part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 4);
+                    part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 9);
                     part.func        = (*it_part)["func"].get<int>();
                     part.state       = get_flag_bits(state, 0, 8);
-                    part.range_start = get_flag_bits(range, 0, 15);
-                    part.range_end   = get_flag_bits(range, 16, 15);
+                    part.range_start = get_flag_bits(range, 0, 16);
+                    part.range_end   = get_flag_bits(range, 16, 16);
 
                     m_air_duct_data.parts.push_back(part);
                 }
@@ -5803,13 +5803,6 @@ void MachineObject::parse_new_info(json print)
         if (device.contains("cham_temp")) {
             chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 16);
             chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 16);
-        }
-
-        if (device.contains("fan")) {
-            big_fan1_speed = get_flag_bits(device["fan"].get<int>(), 0, 3);
-            big_fan2_speed = get_flag_bits(device["fan"].get<int>(), 4, 3);
-            cooling_fan_speed = get_flag_bits(device["fan"].get<int>(), 8, 3);
-            heatbreak_fan_speed = get_flag_bits(device["fan"].get<int>(), 12, 3);
         }
 
         if (device.contains("nozzle")) {
