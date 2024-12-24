@@ -440,12 +440,18 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     return w.string();
 }
 
-std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment, bool force_z)
 {
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
     // Calculation of feedrate was not updated accordingly. If you want to use
     // this function, fix it first.
     //std::terminate();
+
+    // Orca: If moving down during below the current layer nominal Z, force XY->Z moves to avoid collisions with previous extrusions
+    double nominal_z = m_pos(2) - m_lifted;
+    if (point(2) < nominal_z - EPSILON) { // EPSILON to avoid false matches due to rounding errors
+        this->set_current_position_clear(false); // This forces XYZ moves to be split into XY->Z
+    }
 
     /*  If target Z is lower than current Z but higher than nominal Z we
         don't perform the Z move but we only move in the XY plane and
@@ -526,7 +532,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         this->set_current_position_clear(true);
         return slop_move + xy_z_move;
     }
-    else if (!this->will_move_z(point(2))) {
+    else if (!force_z && !this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
         m_lifted -= (point(2) - nominal_z);
         // In case that z_hop == layer_height we could end up with almost zero in_m_lifted

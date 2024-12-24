@@ -1,7 +1,7 @@
 {
     "name": "Sovol",
     "url": "",
-    "version": "02.02.00.00",
+    "version": "02.02.00.04",
     "force_update": "0",
     "description": "Sovol configurations",
     "machine_model_list": [
@@ -24,6 +24,14 @@
 		{
             "name": "Sovol SV06 Plus",
             "sub_path": "machine/Sovol SV06 Plus.json"
+        },
+        {
+            "name": "Sovol SV06 ACE",
+            "sub_path": "machine/Sovol SV06 ACE.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE",
+            "sub_path": "machine/Sovol SV06 Plus ACE.json"
         },
 		{
             "name": "Sovol SV07",
@@ -90,6 +98,14 @@
 		{
             "name": "0.20mm Standard @Sovol SV06Plus",
             "sub_path": "process/0.20mm Standard @Sovol SV06Plus.json"
+        },
+        {
+            "name": "0.20mm Standard @Sovol SV06 ACE - official",
+            "sub_path": "process/0.20mm Standard @Sovol SV06 ACE - official.json"
+        },
+        {
+            "name": "0.20mm Standard @Sovol SV06 Plus ACE - official",
+            "sub_path": "process/0.20mm Standard @Sovol SV06 Plus ACE - official.json"
         },
 		{
             "name": "0.20mm Standard @Sovol SV07",
@@ -158,6 +174,38 @@
             "sub_path": "filament/Sovol Generic TPU.json"
         },
         {
+            "name": "Sovol SV06 ACE PLA",
+            "sub_path": "filament/Sovol SV06 ACE PLA.json"
+        },
+        {
+            "name": "Sovol SV06 ACE ABS",
+            "sub_path": "filament/Sovol SV06 ACE ABS.json"
+        },
+        {
+            "name": "Sovol SV06 ACE PETG",
+            "sub_path": "filament/Sovol SV06 ACE PETG.json"
+        },
+        {
+            "name": "Sovol SV06 ACE TPU",
+            "sub_path": "filament/Sovol SV06 ACE TPU.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE PLA",
+            "sub_path": "filament/Sovol SV06 Plus ACE PLA.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE ABS",
+            "sub_path": "filament/Sovol SV06 Plus ACE ABS.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE PETG",
+            "sub_path": "filament/Sovol SV06 Plus ACE PETG.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE TPU",
+            "sub_path": "filament/Sovol SV06 Plus ACE TPU.json"
+        },
+        {
             "name": "Sovol SV07 PLA",
             "sub_path": "filament/Sovol SV07 PLA.json"
         },
@@ -206,6 +254,14 @@
 		{
             "name": "Sovol SV06 Plus 0.4 nozzle",
             "sub_path": "machine/Sovol SV06 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Sovol SV06 ACE 0.4 nozzle",
+            "sub_path": "machine/Sovol SV06 ACE 0.4 nozzle.json"
+        },
+        {
+            "name": "Sovol SV06 Plus ACE 0.4 nozzle",
+            "sub_path": "machine/Sovol SV06 Plus ACE 0.4 nozzle.json"
         },
 		{
             "name": "Sovol SV07 0.4 nozzle",

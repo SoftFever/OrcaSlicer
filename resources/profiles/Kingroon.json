@@ -1,8 +1,8 @@
 {
   "name": "Kingroon",
   "url": "https://kingroon.com/",
-  "version": "02.02.00.00",
-  "force_update": "0",
+  "version": "02.02.00.04",
+  "force_update": "1",
   "description": "Kingroon configuration files",
   "machine_model_list": [
     {
@@ -162,6 +162,10 @@
     {
       "name": "Kingroon KP3S 0.4 nozzle",
       "sub_path": "machine/Kingroon KP3S 3.0 0.4 nozzle.json"
+    },
+    {
+      "name": "Kingroon KP3S V1 0.4 nozzle",
+      "sub_path": "machine/Kingroon KP3S V1 0.4 nozzle.json"
     },
     {
       "name": "Kingroon KLP1 0.4 nozzle",

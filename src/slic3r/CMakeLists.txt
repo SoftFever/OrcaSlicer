@@ -145,6 +145,8 @@ set(SLIC3R_GUI_SOURCES
     #GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp
     GUI/Gizmos/GLGizmoMeasure.hpp
+    GUI/Gizmos/GLGizmoAssembly.cpp
+    GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     #GUI/Gizmos/GLGizmoText.cpp
@@ -535,6 +537,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/MKS.hpp
     Utils/ESP3D.cpp
     Utils/ESP3D.hpp
+    Utils/CrealityPrint.cpp
+    Utils/CrealityPrint.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/Duet.cpp

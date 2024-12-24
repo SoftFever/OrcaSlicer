@@ -61,6 +61,9 @@
   "enable_pressure_advance": [
     "1"
   ],
+  "pressure_advance": [
+    "0.03"
+  ],
   "default_filament_colour": [
     "#DF6734"
   ],

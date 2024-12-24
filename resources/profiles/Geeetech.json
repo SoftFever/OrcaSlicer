@@ -1,6 +1,6 @@
 {
     "name": "Geeetech",
-    "version": "02.02.00.00",
+    "version": "02.02.00.04",
     "force_update": "0",
     "description": "Geeetech configurations",
     "machine_model_list": [
@@ -63,7 +63,11 @@
         {
             "name": "Geeetech A30 T",
             "sub_path": "machine/Geeetech A30 T.json"
-        }
+        },
+        {
+            "name": "Geeetech M1",
+            "sub_path": "machine/Geeetech M1.json"
+        }		
     ],
     "process_list": [
         {
@@ -365,7 +369,63 @@
         {
             "name": "0.56mm Extra Draft @Geeetech common 0.8 nozzle",
             "sub_path": "process/0.56mm Extra Draft @Geeetech common 0.8 nozzle.json"
-        }
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech M1",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech M1.json"
+        },		
+        {
+            "name": "0.08mm Optimal @Geeetech M1 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech M1 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Fine @Geeetech M1",
+            "sub_path": "process/0.10mm Fine @Geeetech M1.json"
+        },		
+        {
+            "name": "0.10mm Standard @Geeetech M1 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech M1 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech M1 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech M1 0.2 nozzle.json"
+        },	
+        {
+            "name": "0.14mm Extra Draft @Geeetech M1 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech M1 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech M1",
+            "sub_path": "process/0.16mm Optimal @Geeetech M1.json"
+        },		
+        {
+            "name": "0.24mm Optimal @Geeetech M1 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech M1 0.6 nozzle.json"
+        },		
+        {
+            "name": "0.20mm Standard @Geeetech M1",
+            "sub_path": "process/0.20mm Standard @Geeetech M1.json"
+        },		
+        {
+            "name": "0.25mm Draft @Geeetech M1",
+            "sub_path": "process/0.25mm Draft @Geeetech M1.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech M1 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech M1 0.6 nozzle.json"
+        },	
+        {
+            "name": "0.36mm Draft @Geeetech M1 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech M1 0.6 nozzle.json"
+        },		
+        {
+            "name": "0.36mm Optimal @Geeetech M1 0.8 nozzle",
+            "sub_path": "process/0.36mm Optimal @Geeetech M1 0.8 nozzle.json"
+        },
+        {
+            "name": "0.44mm Draft @Geeetech M1 0.8 nozzle",
+            "sub_path": "process/0.44mm Draft @Geeetech M1 0.8 nozzle.json"
+        }		
     ],
     "filament_list": [
         {
@@ -613,6 +673,22 @@
         {
             "name": "Geeetech A30 T 0.4 nozzle",
             "sub_path": "machine/Geeetech A30 T 0.4 nozzle.json"
-        }
+        },
+        {
+            "name": "Geeetech M1 0.2 nozzle",
+            "sub_path": "machine/Geeetech M1 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech M1 0.4 nozzle",
+            "sub_path": "machine/Geeetech M1 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech M1 0.6 nozzle",
+            "sub_path": "machine/Geeetech M1 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech M1 0.8 nozzle",
+            "sub_path": "machine/Geeetech M1 0.8 nozzle.json"
+        }		
     ]
 }

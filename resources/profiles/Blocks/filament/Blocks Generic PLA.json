@@ -1,0 +1,34 @@
+{
+    "type": "filament",
+    "filament_id": "BSFI001",
+    "setting_id": "BSSI001",
+    "name": "Blocks Generic PLA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.97"
+    ],
+    "filament_max_volumetric_speed": [
+        "20"
+    ],
+    "additional_cooling_fan_speed": [
+        "80"
+    ],
+    "compatible_printers": [
+        "BLOCKS Pro S100 0.4 nozzle",
+        "BLOCKS Pro S100 0.6 nozzle",
+        "BLOCKS Pro S100 0.8 nozzle",
+        "BLOCKS Pro S100 1.0 nozzle",
+        "BLOCKS Pro S100 1.2 nozzle",
+        "BLOCKS Pro S100",
+        "BLOCKS RD50 V2 0.4 nozzle",
+        "BLOCKS RD50 V2 0.6 nozzle",
+        "BLOCKS RD50 V2 0.8 nozzle",
+        "BLOCKS RD50 V2",
+        "BLOCKS RF50 0.4 nozzle",
+        "BLOCKS RF50 0.6 nozzle",
+        "BLOCKS RF50 0.8 nozzle",
+        "BLOCKS RF50"
+    ]
+}
