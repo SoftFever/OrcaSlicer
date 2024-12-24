@@ -3575,10 +3575,16 @@ int CLI::run(int argc, char **argv)
                     // this affects volumes:
                     o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Y);
         } else if (opt_key == "scale") {
+            float ratio = m_config.opt_float(opt_key);
+            if (ratio <= 0.f) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid scale ratio %1%")%ratio;
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
             for (auto &model : m_models)
                 for (auto &o : model.objects)
                     // this affects volumes:
-                    o->scale(m_config.get_abs_value(opt_key, 1));
+                    o->scale(ratio);
         } else if (opt_key == "scale_to_fit") {
             const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
             if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {

@@ -717,6 +717,54 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
     return out;
 }
 
+// For parsing a transformation matrix from 3MF / AMF.
+Transform3d transform3d_from_string(const std::string& transform_str)
+{
+    assert(is_decimal_separator_point()); // for atof
+    Transform3d transform = Transform3d::Identity();
+
+    if (!transform_str.empty()) {
+        std::vector<std::string> mat_elements_str;
+        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
+
+        const unsigned int size = (unsigned int)mat_elements_str.size();
+        if (size == 16) {
+            unsigned int i = 0;
+            for (unsigned int r = 0; r < 4; ++r) {
+                for (unsigned int c = 0; c < 4; ++c) {
+                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
+                }
+            }
+        }
+    }
+
+    return transform;
+}
+
+Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    return
+        // From the current coordinate system to world.
+        Eigen::AngleAxisd(rot_xyz_to.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rot_xyz_to.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rot_xyz_to.x(), Vec3d::UnitX()) *
+        // From world to the initial coordinate system.
+        Eigen::AngleAxisd(-rot_xyz_from.x(), Vec3d::UnitX()) * Eigen::AngleAxisd(-rot_xyz_from.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(-rot_xyz_from.z(), Vec3d::UnitZ());
+}
+
+// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
+double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    const Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+    const Vec3d  axis  = angle_axis.axis();
+    const double angle = angle_axis.angle();
+#ifndef NDEBUG
+    if (std::abs(angle) > 1e-8) {
+        assert(std::abs(axis.x()) < 1e-8);
+        assert(std::abs(axis.y()) < 1e-8);
+    }
+#endif /* NDEBUG */
+    return (axis.z() < 0) ? -angle : angle;
+}
+
 TransformationSVD::TransformationSVD(const Transform3d& trafo)
 {
     const auto &m0 = trafo.matrix().block<3, 3>(0, 0);
@@ -764,52 +812,31 @@ TransformationSVD::TransformationSVD(const Transform3d& trafo)
         skew = false;
 }
 
-// For parsing a transformation matrix from 3MF / AMF.
-Transform3d transform3d_from_string(const std::string& transform_str)
+ Transformation mat_around_a_point_rotate(const Transformation &InMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian)
 {
-    assert(is_decimal_separator_point()); // for atof
-    Transform3d transform = Transform3d::Identity();
+    auto           xyz = InMat.get_offset();
+    Transformation left;
+    left.set_offset(-xyz); // at world origin
+    auto curMat = left * InMat;
 
-    if (!transform_str.empty()) {
-        std::vector<std::string> mat_elements_str;
-        boost::split(mat_elements_str, transform_str, boost::is_any_of(" "), boost::token_compress_on);
+    auto qua = Eigen::Quaterniond(Eigen::AngleAxisd(rotate_theta_radian, axis));
+    qua.normalize();
+    Transform3d    cur_matrix;
+    Transformation rotateMat4;
+    rotateMat4.set_matrix(cur_matrix.fromPositionOrientationScale(Vec3d(0., 0., 0.), qua, Vec3d(1., 1., 1.)));
 
-        const unsigned int size = (unsigned int)mat_elements_str.size();
-        if (size == 16) {
-            unsigned int i = 0;
-            for (unsigned int r = 0; r < 4; ++r) {
-                for (unsigned int c = 0; c < 4; ++c) {
-                    transform(r, c) = ::atof(mat_elements_str[i++].c_str());
-                }
-            }
-        }
-    }
+    curMat = rotateMat4 * curMat; // along_fix_axis
+    // rotate mat4 along fix pt
+    Transformation temp_world;
+    auto           qua_world = Eigen::Quaterniond(Eigen::AngleAxisd(0, axis));
+    qua_world.normalize();
+    Transform3d cur_matrix_world;
+    temp_world.set_matrix(cur_matrix_world.fromPositionOrientationScale(pt, qua_world, Vec3d(1., 1., 1.)));
+    auto temp_xyz = temp_world.get_matrix().inverse() * xyz;
+    auto new_pos  = temp_world.get_matrix() * (rotateMat4.get_matrix() * temp_xyz);
+    curMat.set_offset(new_pos);
 
-    return transform;
-}
-
-Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
-{
-    return
-        // From the current coordinate system to world.
-        Eigen::AngleAxisd(rot_xyz_to.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rot_xyz_to.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rot_xyz_to.x(), Vec3d::UnitX()) *
-        // From world to the initial coordinate system.
-        Eigen::AngleAxisd(-rot_xyz_from.x(), Vec3d::UnitX()) * Eigen::AngleAxisd(-rot_xyz_from.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(-rot_xyz_from.z(), Vec3d::UnitZ());
-}
-
-// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
-double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
-{
-    const Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
-    const Vec3d  axis  = angle_axis.axis();
-    const double angle = angle_axis.angle();
-#ifndef NDEBUG
-    if (std::abs(angle) > 1e-8) {
-        assert(std::abs(axis.x()) < 1e-8);
-        assert(std::abs(axis.y()) < 1e-8);
-    }
-#endif /* NDEBUG */
-    return (axis.z() < 0) ? -angle : angle;
+    return curMat;
 }
 
 }} // namespace Slic3r::Geometry
