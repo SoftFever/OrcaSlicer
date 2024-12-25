@@ -1480,10 +1480,10 @@ void AmsReplaceMaterialDialog::create()
     m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
     m_main_sizer->Add(m_top_line, 0, wxEXPAND, 0);
 
+    m_nozzle_btn_panel = new SwitchBoard(this, _L("Left"), _L("Right"), wxSize(FromDIP(126), FromDIP(26)));
+    m_nozzle_btn_panel->Hide();
+    m_nozzle_btn_panel->Connect(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEventHandler(AmsReplaceMaterialDialog::on_nozzle_selected), NULL, this);
 
-    auto label_title = new Label(this, _L("Auto Refill"));
-    label_title->SetFont(Label::Head_14);
-    label_title->SetForegroundColour(0x009688);
     label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));
     label_txt->SetFont(Label::Body_13);
     label_txt->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
@@ -1522,8 +1522,8 @@ void AmsReplaceMaterialDialog::create()
     m_button_sizer->Add( 0, 0, 1, wxEXPAND, 0 );
 
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
-    m_main_sizer->Add(label_title,0, wxLEFT, FromDIP(30));
-    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(4));
+    m_main_sizer->Add(m_nozzle_btn_panel,0, wxALIGN_CENTER_HORIZONTAL, FromDIP(30));
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
     m_main_sizer->Add(label_txt,0, wxLEFT, FromDIP(30));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(16));
     m_main_sizer->Add(m_scrollview_groups, 1, wxALIGN_CENTER, 0);
@@ -1564,89 +1564,21 @@ void AmsReplaceMaterialDialog::update_mapping_result( std::vector<FilamentInfo> 
 
 void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
 {
-    if (obj) {m_obj = obj;}
-    else {return;}
+    if (obj)
+    {
+        m_obj = obj;
+        if (obj->m_extder_data.total_extder_count > 1)
+        {
+            m_nozzle_btn_panel->updateState("right");
+            m_nozzle_btn_panel->Show();
+        }
+        else
+        {
+            m_nozzle_btn_panel->Hide();
+        }
 
-    AmsTray* tray_list[4*4];
-    for (auto i = 0; i < 4*4; i++) {
-        tray_list[i] = nullptr;
+        update_to_nozzle(MAIN_NOZZLE_ID);
     }
-
-    try {
-        for (auto ams_info : obj->amsList) {
-            int ams_id_int = atoi(ams_info.first.c_str()) * 4;
-
-            for (auto tray_info : ams_info.second->trayList) {
-                int tray_id_int = atoi(tray_info.first.c_str());
-                tray_id_int =  ams_id_int + tray_id_int;
-                tray_list[tray_id_int] = tray_info.second;
-            }
-        }
-    }
-    catch (...) {}
-
-    //creat group
-    int group_index = 0;
-
-    const Extder& extder = m_obj->m_extder_data.extders[MAIN_NOZZLE_ID];
-    for (int filam : extder.filam_bak) {
-         auto status_list = GetStatus(filam);
-
-         std::map<std::string, wxColour> group_info;
-         std::string    group_material;
-         bool   is_in_tray = false;
-
-         //get color & material
-         for (auto i = 0; i < status_list.size(); i++) {
-             if (status_list[i] && tray_list[i] != nullptr) {
-                 auto tray_name = wxGetApp().transition_tridid(i).ToStdString();
-                 auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
-                 if (it != m_tray_used.end()) {
-                     is_in_tray = true;
-                 }
-
-                 group_info[tray_name] = AmsTray::decode_color(tray_list[i]->color);
-                 group_material = tray_list[i]->get_display_filament_type();
-             }
-         }
-
-         if (is_in_tray || m_tray_used.size() <= 0) {
-             m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
-             group_index++;
-         }
-    }
-
-    if (group_index > 0) {
-        auto height = 0;
-        if (group_index > 6) {
-            height = FromDIP(550);
-        }
-        else {
-            height = FromDIP(200) * (std::ceil(group_index / 2.0));
-        }
-        m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
-        m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
-    } else {
-        if (!obj->is_support_filament_backup) {
-            label_txt->SetLabel(_L("The printer does not currently support auto refill."));
-        }
-        else if (!obj->ams_auto_switch_filament_flag) {
-            label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
-        }
-        else {
-            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled.\n"
-                                       "(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
-        }
-
-        label_txt->SetMinSize(wxSize(FromDIP(380), -1));
-        label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
-        label_txt->Wrap(FromDIP(380));
-
-    }
-
-    m_scrollview_groups->Layout();
-    Layout();
-    Fit();
 }
 
 AmsRMGroup* AmsReplaceMaterialDialog::create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list)
@@ -1666,6 +1598,124 @@ void AmsReplaceMaterialDialog::paintEvent(wxPaintEvent& evt)
 void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
 
+}
+
+void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
+{
+    if (!m_obj)
+    {
+        return;
+    }
+
+    if (m_obj->m_extder_data.extders.size() < nozzle_id)
+    {
+        return;
+    }
+
+    // traverse the amd list
+    AmsTray* tray_list[4 * 4];
+    for (auto i = 0; i < 4 * 4; i++)
+    {
+        tray_list[i] = nullptr;
+    }
+
+    try
+    {
+        for (auto ams_info : m_obj->amsList)
+        {
+            int ams_id_int = atoi(ams_info.first.c_str()) * 4;
+            for (auto tray_info : ams_info.second->trayList)
+            {
+                int tray_id_int = atoi(tray_info.first.c_str());
+                tray_id_int = ams_id_int + tray_id_int;
+                tray_list[tray_id_int] = tray_info.second;
+            }
+        }
+    }
+    catch (...) {}
+
+    //update group
+    int group_index = 0;
+    m_groups_sizer->Clear(true);
+    const Extder& extder = m_obj->m_extder_data.extders[nozzle_id];
+    for (int filam : extder.filam_bak)
+    {
+        auto status_list = GetStatus(filam);
+
+        std::map<std::string, wxColour> group_info;
+        std::string    group_material;
+        bool   is_in_tray = false;
+
+        //get color & material
+        for (auto i = 0; i < status_list.size(); i++)
+        {
+            if (status_list[i] && tray_list[i] != nullptr)
+            {
+                auto tray_name = wxGetApp().transition_tridid(i).ToStdString();
+                auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                if (it != m_tray_used.end())
+                {
+                    is_in_tray = true;
+                }
+
+                group_info[tray_name] = AmsTray::decode_color(tray_list[i]->color);
+                group_material = tray_list[i]->get_display_filament_type();
+            }
+        }
+
+        if (is_in_tray || m_tray_used.size() <= 0)
+        {
+            m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
+            group_index++;
+        }
+    }
+
+    if (group_index > 0)
+    {
+        auto height = 0;
+        if (group_index > 6)
+        {
+            height = FromDIP(550);
+        }
+        else
+        {
+            height = FromDIP(200) * (std::ceil(group_index / 2.0));
+        }
+
+        m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
+        m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
+    }
+    else
+    {
+        m_scrollview_groups->SetMinSize(wxSize(0, 0));
+    }
+
+    // update text
+    if (group_index > 0)
+    {
+        label_txt->SetLabel(_L("When the current material run out, the printer will continue to print in the following order."));
+    }
+    else
+    {
+        if (!m_obj->is_support_filament_backup)
+        {
+            label_txt->SetLabel(_L("The printer does not currently support auto refill."));
+        }
+        else if (!m_obj->ams_auto_switch_filament_flag)
+        {
+            label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
+        }
+        else
+        {
+            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+        }
+    }
+
+    m_groups_sizer->Layout();
+    m_scrollview_groups->Layout();
+
+    Layout();
+    Fit();
 }
 
 AmsRMGroup::AmsRMGroup(wxWindow* parent, std::map<std::string, wxColour> group_info, wxString mname, wxString group_index)

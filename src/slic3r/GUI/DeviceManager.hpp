@@ -637,7 +637,6 @@ public:
 
     std::string product_name;       // set by iot service, get /user/print
 
-
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */

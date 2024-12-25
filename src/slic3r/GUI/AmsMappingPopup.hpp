@@ -352,8 +352,6 @@ public:
     ~AmsReplaceMaterialDialog() {};
 
 public:
-    AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list);
-    void        create();
     void        update_machine_obj(MachineObject* obj);
     void        update_mapping_result(std::vector<FilamentInfo> result);
     void        paintEvent(wxPaintEvent& evt);
@@ -361,13 +359,24 @@ public:
     std::vector<bool>        GetStatus(unsigned int status);
 
 public:
+    MachineObject* m_obj{ nullptr };
+
     wxScrolledWindow* m_scrollview_groups{ nullptr };
     wxBoxSizer* m_scrollview_sizer{ nullptr };
     wxBoxSizer* m_main_sizer{ nullptr };
     wxWrapSizer* m_groups_sizer{ nullptr };
-    MachineObject* m_obj{ nullptr };
+    SwitchBoard* m_nozzle_btn_panel { nullptr};
+
     std::vector<std::string> m_tray_used;
     Label* label_txt{nullptr};
+
+private:
+    void        create();
+    AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list);
+
+    // update to nozzle
+    void  on_nozzle_selected(wxCommandEvent& event) { update_to_nozzle(event.GetInt()); };
+    void  update_to_nozzle(int nozzle_id);
 };
 
 
