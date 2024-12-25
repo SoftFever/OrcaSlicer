@@ -6,18 +6,13 @@
 
 #include "Point.hpp"
 
-
 struct indexed_triangle_set;
-
-
 
 namespace Slic3r {
 
 class TriangleMesh;
 
 namespace Measure {
-
-
 enum class SurfaceFeatureType : int {
     Undef  = 0,
     Point  = 1 << 0,
@@ -26,22 +21,44 @@ enum class SurfaceFeatureType : int {
     Plane  = 1 << 3
 };
 
-class SurfaceFeature {
+bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt);
+Vec3d get_one_point_in_plane(const Vec3d &plane_origin, const Vec3d &plane_normal);
+
+class SurfaceFeature
+{
 public:
     SurfaceFeature(SurfaceFeatureType type, const Vec3d& pt1, const Vec3d& pt2, std::optional<Vec3d> pt3 = std::nullopt, double value = 0.0)
         : m_type(type), m_pt1(pt1), m_pt2(pt2), m_pt3(pt3), m_value(value) {}
 
-    explicit SurfaceFeature(const Vec3d& pt)
+    SurfaceFeature(const Vec3d& pt)
     : m_type{SurfaceFeatureType::Point}, m_pt1{pt} {}
 
+    SurfaceFeature(const SurfaceFeature& sf){
+        this->clone(sf);
+        volume                 = sf.volume;
+        plane_indices          = sf.plane_indices;
+        world_tran             = sf.world_tran;
+        world_plane_features   = sf.world_plane_features;
+        origin_surface_feature = sf.origin_surface_feature;
+    }
+
+    void clone(const SurfaceFeature &sf)
+    {
+        m_type               = sf.get_type();
+        m_pt1                = sf.get_pt1();
+        m_pt2                = sf.get_pt2();
+        m_pt3                = sf.get_pt3();
+        m_value              = sf.get_value();
+    }
+    void translate(const Vec3d& displacement);
+    void translate(const Transform3d& tran);
     // Get type of this feature.
     SurfaceFeatureType get_type() const { return m_type; }
 
     // For points, return the point.
     Vec3d get_point() const { assert(m_type == SurfaceFeatureType::Point); return m_pt1; }
-
     // For edges, return start and end.
-    std::pair<Vec3d, Vec3d> get_edge() const { assert(m_type == SurfaceFeatureType::Edge); return std::make_pair(m_pt1, m_pt2); }    
+    std::pair<Vec3d, Vec3d> get_edge() const { assert(m_type == SurfaceFeatureType::Edge); return std::make_pair(m_pt1, m_pt2); }
 
     // For circles, return center, radius and normal.
     std::tuple<Vec3d, double, Vec3d> get_circle() const { assert(m_type == SurfaceFeatureType::Circle); return std::make_tuple(m_pt1, m_value, m_pt2); }
@@ -75,6 +92,17 @@ public:
         return !operator == (other);
     }
 
+    void* volume{nullptr};
+    std::vector<int>*    plane_indices{nullptr};
+    Transform3d                  world_tran;
+    std::shared_ptr<std::vector<SurfaceFeature>> world_plane_features{nullptr};
+    std::shared_ptr<SurfaceFeature> origin_surface_feature{nullptr};
+
+    Vec3d get_pt1() const{ return m_pt1; }
+    Vec3d                       get_pt2() const { return m_pt2; }
+    const std::optional<Vec3d>& get_pt3() const { return m_pt3; }
+    double                      get_value() const { return m_value; }
+
 private:
     SurfaceFeatureType m_type{ SurfaceFeatureType::Undef };
     Vec3d m_pt1{ Vec3d::Zero() };
@@ -97,7 +125,7 @@ public:
 
     // Given a face_idx where the mouse cursor points, return a feature that
     // should be highlighted (if any).
-    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point) const;
+    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point, const Transform3d & world_tran,bool only_select_plane) const;
 
     // Return total number of planes.
     int get_num_of_planes() const;
@@ -111,7 +139,7 @@ public:
     // Returns the mesh used for measuring
     const indexed_triangle_set& get_its() const;
 
-private: 
+private:
     std::unique_ptr<MeasuringImpl> priv;
 };
 
@@ -152,7 +180,24 @@ struct MeasurementResult {
 };
 
 // Returns distance/angle between two SurfaceFeatures.
-MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b, const Measuring* measuring = nullptr);
+MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b,bool deal_circle_result =false);
+bool              can_set_xyz_distance(const SurfaceFeature &a, const SurfaceFeature &b);
+
+struct AssemblyAction
+{
+    bool                         can_set_to_parallel{false};
+    bool                         can_set_to_center_coincidence{false};
+    bool                         can_set_feature_1_reverse_rotation{false};
+    bool                         can_set_feature_2_reverse_rotation{false};
+    bool                         can_around_center_of_faces{false};
+    bool                         has_parallel_distance{false};
+    float                        parallel_distance;
+    float                        angle_radian{0};
+    Transform3d                  tran_for_parallel;
+    Transform3d                  tran_for_center_coincidence;
+    Transform3d                  tran_for_reverse_rotation;
+};
+AssemblyAction get_assembly_action(const SurfaceFeature &a, const SurfaceFeature &b);
 
 inline Vec3d edge_direction(const Vec3d& from, const Vec3d& to) { return (to - from).normalized(); }
 inline Vec3d edge_direction(const std::pair<Vec3d, Vec3d>& e) { return edge_direction(e.first, e.second); }

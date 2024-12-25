@@ -9,6 +9,7 @@
     "bridge_flow": "1",
     "line_width": "0.62",
     "outer_wall_line_width": "0.62",
+    "ironing_inset": "0.31",
     "initial_layer_line_width": "0.62",
     "sparse_infill_line_width": "0.62",
     "inner_wall_line_width": "0.62",
