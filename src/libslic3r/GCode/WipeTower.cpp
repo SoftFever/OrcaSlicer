@@ -2650,8 +2650,8 @@ int WipeTower::get_wall_filament_for_all_layer()
     }
 
     //std::vector<std::pair<int, int>> category_counts_vec;
-    int selected_category = category_counts.begin()->first;
-    int selected_count = category_counts.begin()->second;
+    int selected_category = -1;
+    int selected_count = 0;
 
     for (auto iter = category_counts.begin(); iter != category_counts.end(); ++iter) {
         if (iter->second > selected_count) {
