@@ -143,8 +143,6 @@ public:
 
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
-
-    void SetFilamentStep(int item_idx, FilamentStepType f_type);
     void ShowFilamentTip(bool hasams = true);
 
     void UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step);

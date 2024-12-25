@@ -1506,78 +1506,6 @@ void AMSControl::SwitchAms(std::string ams_id)
     post_event(SimpleEvent(EVT_AMS_SWITCH));
 }
 
-void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
-{/*
-    wxString FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_COUNT] = {
-        _L("Idling..."),
-        _L("Heat the nozzle"),
-        _L("Cut filament"),
-        _L("Pull back current filament"),
-        _L("Push new filament into extruder"),
-        _L("Purge old filament"),
-        _L("Feed Filament"),
-        _L("Confirm extruded"),
-        _L("Check filament location")
-    };
-
-
-    if (item_idx == FilamentStep::STEP_IDLE) {
-        m_simplebook_right->SetSelection(0);
-        m_filament_load_step->Idle();
-        m_filament_unload_step->Idle();
-        m_filament_vt_load_step->Idle();
-        return;
-    }
-
-    wxString step_str = wxEmptyString;
-    if (item_idx < FilamentStep::STEP_COUNT) {
-        step_str = FILAMENT_CHANGE_STEP_STRING[item_idx];
-    }
-
-    if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            if (m_simplebook_right->GetSelection() != 1) {
-                m_simplebook_right->SetSelection(1);
-            }
-
-            m_filament_load_step->SelectItem( m_filament_load_step->GetItemUseText(step_str) );
-        } else {
-            m_filament_load_step->Idle();
-        }
-    } else if (f_type == FilamentStepType::STEP_TYPE_UNLOAD) {
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            if (m_simplebook_right->GetSelection() != 2) {
-                m_simplebook_right->SetSelection(2);
-            }
-            m_filament_unload_step->SelectItem( m_filament_unload_step->GetItemUseText(step_str) );
-        }
-        else {
-            m_filament_unload_step->Idle();
-        }
-    } else if (f_type == FilamentStepType::STEP_TYPE_VT_LOAD) {
-        m_simplebook_right->SetSelection(3);
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            if (item_idx == STEP_CONFIRM_EXTRUDED) {
-                m_filament_vt_load_step->SelectItem(2);
-            }
-            else {
-                m_filament_vt_load_step->SelectItem( m_filament_vt_load_step->GetItemUseText(step_str) );
-            }
-        }
-        else {
-            m_filament_vt_load_step->Idle();
-        }
-    } else {
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            m_simplebook_right->SetSelection(1);
-            m_filament_load_step->SelectItem( m_filament_load_step->GetItemUseText(step_str) );
-        }
-        else {
-            m_filament_load_step->Idle();
-        }
-    }*/
-}
-
 void AMSControl::ShowFilamentTip(bool hasams)
 {
     //m_simplebook_right->SetSelection(0);
@@ -1621,48 +1549,14 @@ void AMSControl::SetExtruder(bool on_off, std::string ams_id, std::string slot_i
     AmsItem *item = nullptr;
     if (m_ams_item_list.find(ams_id) != m_ams_item_list.end()) { item = m_ams_item_list[ams_id]; }
 
-    //if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS || is_vams ) {
-    //    if (!on_off) {
-    //        m_extruder->TurnOff();
-    //        m_extruder->OnVamsLoading(false);
-    //        m_vams_road->OnVamsLoading(false);
-    //    }
-    //    else {
-    //        m_extruder->TurnOn(col);
-    //    }
-    //}
-    //else if (m_ams_model == AMSModel::AMS_LITE || m_ext_model == AMSModel::AMS_LITE) {
-    //    if (!on_off) {
-    //        m_extruder->TurnOff();
-    //        m_extruder->OnAmsLoading(false);
-    //    }
-    //    else {
-    //        if (item) {
-    //            m_extruder->TurnOn(col);
-    //            m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
-    //        }
-    //    }
-    //} else if (m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
-    //    if (!on_off) {
-    //        m_extruder->TurnOff();
-    //        m_extruder->OnAmsLoading(false);
-    //    } else {
-    //        if (item) {
-    //            m_extruder->TurnOn(col);
-    //            m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
-    //        }
-    //    }
-    //}
-
+    if (!item) {
+        return;
+    }
     if (!on_off) {
-        //m_extruder->TurnOff();
-        m_extruder->OnAmsLoading(false);
+        m_extruder->OnAmsLoading(false, item->get_nozzle_id());
     } else {
-        if (item) {
-            auto col = item->GetTagColr(slot_id);
-            //m_extruder->TurnOn(col);
-            m_extruder->OnAmsLoading(true, item->get_nozzle_id(), col);
-        }
+        auto col = item->GetTagColr(slot_id);
+        m_extruder->OnAmsLoading(true, item->get_nozzle_id(), col);
     }
 }
 

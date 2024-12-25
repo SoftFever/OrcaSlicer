@@ -640,7 +640,7 @@ AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, int nozzle_num, const 
 
  void AMSextruder::TurnOn(wxColour col)
  {
-     //m_left_extruder->TurnOn(col);
+    //m_left_extruder->TurnOn(col);
  }
 
 void AMSextruder::TurnOff()
@@ -650,12 +650,8 @@ void AMSextruder::TurnOff()
 
 void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    //wxWindow::Create(parent, id, pos, AMS_EXTRUDER_SIZE, wxBORDER_NONE);
     wxWindow::Create(parent, id, pos, wxSize(-1, FromDIP(36)), wxBORDER_NONE);
-    //SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
     SetBackgroundColour(*wxWHITE);
-    /*SetSize(wxSize(FromDIP(29), FromDIP(37)));
-    SetMinSize(wxSize(FromDIP(29), FromDIP(37)));*/
 
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
@@ -671,9 +667,6 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
         m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
     }
     m_left_extruder->setShowState(true);
-
-    /*m_bitmap_sizer->Add(m_left_extruder, 0, wxLEFT, 0);
-    m_bitmap_sizer->Add(m_right_extruder, 0, wxLEFT, 2);*/
     m_bitmap_sizer->Add(m_left_extruder, 0, wxLEFT | wxALIGN_TOP, 0);
     m_bitmap_sizer->Add(m_right_extruder, 0, wxLEFT | wxALIGN_TOP, FromDIP(2));
     SetSizer(m_bitmap_sizer);
@@ -723,13 +716,9 @@ void AMSextruder::updateNozzleNum(int nozzle_num)
     m_right_extruder->setShowState(false);
     if (m_nozzle_num >= 2) {
         m_left_extruder = new AMSextruderImage(this, wxID_ANY, "left_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
-        /*SetSize(wxSize(FromDIP(29), FromDIP(37)));
-        SetMinSize(wxSize(FromDIP(29), FromDIP(37)));*/
     }
     else {
         m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
-        /*SetSize(wxSize(FromDIP(48), FromDIP(37)));
-        SetMinSize(wxSize(FromDIP(48), FromDIP(37)));*/
     }
     wxBoxSizer *m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
 
