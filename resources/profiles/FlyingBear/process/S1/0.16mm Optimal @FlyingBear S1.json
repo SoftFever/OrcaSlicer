@@ -5,7 +5,8 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common_S1",
-    
+
+    "inner_wall_acceleration": "3000",
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
     "top_shell_layers": "6",
@@ -15,8 +16,9 @@
     "bridge_speed": "25",
     "brim_object_gap": "0.1",
     "exclude_object": "1",
-    "gap_infill_speed": "300",
-    "inner_wall_speed": "300",
+    "gap_infill_speed": "250",
+    "inner_wall_speed": "250",
+    "outer_wall_speed": "120",
     "internal_bridge_speed": "50",
     "internal_solid_infill_line_width": "0.42",
     "internal_solid_infill_speed": "300",

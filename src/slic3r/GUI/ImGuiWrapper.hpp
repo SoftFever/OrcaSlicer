@@ -134,6 +134,7 @@ public:
     bool button(const wxString& label, float width, float height);
     bool button(const wxString& label, const ImVec2 &size, bool enable); // default size = ImVec2(0.f, 0.f)
     bool radio_button(const wxString &label, bool active);
+    static ImVec4          to_ImVec4(const ColorRGB &color);
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
@@ -144,6 +145,8 @@ public:
     static void text(const char *label);
     static void text(const std::string &label);
     static void text(const wxString &label);
+    void warning_text(const char *all_text);
+    void warning_text(const wxString &all_text);
     static void text_colored(const ImVec4& color, const char* label);
     static void text_colored(const ImVec4& color, const std::string& label);
     static void text_colored(const ImVec4& color, const wxString& label);
@@ -323,6 +326,9 @@ public:
     static const ImVec4 COL_BUTTON_ACTIVE;
 
     //BBS add more colors
+    static const ImVec4 COL_RED;
+    static const ImVec4 COL_GREEN;
+    static const ImVec4 COL_BLUE;
     static const ImVec4 COL_BLUE_LIGHT;
     static const ImVec4 COL_GREEN_LIGHT;
     static const ImVec4 COL_HOVER;
