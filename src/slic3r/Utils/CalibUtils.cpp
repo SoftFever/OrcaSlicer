@@ -628,7 +628,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
             print_config.get_abs_value("layer_height"), 0)));
     
     for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+        print_config.set_key_value(opt.first, new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false));
     }
 
     for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
