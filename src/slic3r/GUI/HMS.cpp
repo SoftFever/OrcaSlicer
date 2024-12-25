@@ -223,54 +223,73 @@ std::string HMSQuery::get_hms_file(std::string hms_type, std::string lang, std::
     return (boost::format("hms_%1%_%2%.json") % lang % dev_type).str();
 }
 
-wxString HMSQuery::query_hms_msg(std::string long_error_code)
+wxString HMSQuery::query_hms_msg(std::string long_error_code) const
 {
     AppConfig* config = wxGetApp().app_config;
     if (!config) return wxEmptyString;
-    std::string lang_code = HMSQuery::hms_language_code();
+    const std::string& lang_code = HMSQuery::hms_language_code();
     return _query_hms_msg(long_error_code, lang_code);
 }
 
-wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_code)
+wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_code) const
 {
     if (long_error_code.empty())
+    {
         return wxEmptyString;
+    }
 
-    if (m_hms_info_json.contains("device_hms")) {
-        if (m_hms_info_json["device_hms"].contains(lang_code)) {
-            for (auto item = m_hms_info_json["device_hms"][lang_code].begin(); item != m_hms_info_json["device_hms"][lang_code].end(); item++) {
-                if (item->contains("ecode")) {
-                    std::string temp_string =  (*item)["ecode"].get<std::string>();
-                    if (boost::to_upper_copy(temp_string) == long_error_code) {
-                        if (item->contains("intro")) {
-                            return wxString::FromUTF8((*item)["intro"].get<std::string>());
-                        }
-                    }
-                }
-            }
-            BOOST_LOG_TRIVIAL(info) << "hms: query_hms_msg, not found error_code = " << long_error_code;
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "hms: query_hms_msg, do not contains lang_code = " << lang_code;
-            // return first language
-            if (!m_hms_info_json["device_hms"].empty()) {
-                for (auto lang : m_hms_info_json["device_hms"]) {
-                    for (auto item = lang.begin(); item != lang.end(); item++) {
-                        if (item->contains("ecode")) {
-                            std::string temp_string = (*item)["ecode"].get<std::string>();
-                            if (boost::to_upper_copy(temp_string) == long_error_code) {
-                                if (item->contains("intro")) {
-                                    return wxString::FromUTF8((*item)["intro"].get<std::string>());
-                                }
-                            }
+    if (!m_hms_info_json.is_object())
+    {
+        BOOST_LOG_TRIVIAL(error) << "the hms info is not a valid json object";
+        return wxEmptyString;
+    }
+
+    const json& device_hms_json = m_hms_info_json.value("device_hms", json());
+    if (device_hms_json.is_null() || !device_hms_json.is_object())
+    {
+        BOOST_LOG_TRIVIAL(error) << "there are no valid json object named device_hms";
+        return wxEmptyString;
+    }
+
+    const json& device_hms_msg_json = device_hms_json.value(lang_code, json());
+    if (device_hms_msg_json.is_null())
+    {
+        BOOST_LOG_TRIVIAL(error) << "hms: query_hms_msg, do not contains lang_code = " << lang_code;
+        if (lang_code.empty()) /*traverse all if lang_code is empty*/
+        {
+            for (const auto& lang_item : device_hms_json)
+            {
+                for (const auto& msg_item : lang_item)
+                {
+                    if (msg_item.is_object())
+                    {
+                        const std::string& error_code = msg_item.value("ecode", json()).get<std::string>();
+                        if (boost::to_upper_copy(error_code) == long_error_code && msg_item.contains("intro"))
+                        {
+                            BOOST_LOG_TRIVIAL(info) << "retry without lang_code successed.";
+                            return msg_item["intro"].get<std::string>();
                         }
                     }
                 }
             }
         }
-    } else {
-        BOOST_LOG_TRIVIAL(info) << "device_hms is not exists";
+
         return wxEmptyString;
     }
+
+    for (const auto& item : device_hms_msg_json)
+    {
+        if (item.is_object())
+        {
+            const std::string& error_code = item.value("ecode", json()).get<std::string>();
+            if (boost::to_upper_copy(error_code) == long_error_code && item.contains("intro"))
+            {
+                return item["intro"].get<std::string>();
+            }
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(error) << "hms: query_hms_msg, do not contains valid message, lang_code = " << lang_code << " long_error_code = " << long_error_code;
     return wxEmptyString;
 }
 

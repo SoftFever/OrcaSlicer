@@ -27,13 +27,13 @@ protected:
     int load_from_local(std::string &version_info, std::string hms_type, json *load_json, std::string dev_type);
 	int save_to_local(std::string lang, std::string hms_type, std::string dev_type, json save_json);
     std::string get_hms_file(std::string hms_type, std::string lang = std::string("en"), std::string dev_type = "");
-	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = std::string("en"));
+	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = std::string("en")) const;
     bool _query_error_msg(wxString &error_msg, std::string long_error_code, std::string lang_code = std::string("en"));
     wxString _query_error_url_action(std::string long_error_code, std::string dev_id, std::vector<int>& button_action);
 public:
 	HMSQuery() {}
     int  check_hms_info(std::string dev_type = "00M");
-    wxString           query_hms_msg(std::string long_error_code);
+    wxString           query_hms_msg(std::string long_error_code) const;
     bool query_print_error_msg(int print_error, wxString &error_msg);
     wxString query_print_error_url_action(int print_error, std::string dev_id, std::vector<int>& button_action);
 	static std::string hms_language_code();
