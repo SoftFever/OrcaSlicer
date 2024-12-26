@@ -649,8 +649,8 @@ namespace Slic3r
                 return count;
             };
 
-        std::map<int, int>unplaceable_limits;
-        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
+        std::map<int, int>unplaceable_limit_indices;
+        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limit_indices);
 
         int used_filament_num = used_filaments.size();
         uint64_t max_group_num = (static_cast<uint64_t>(1) << used_filament_num);
@@ -663,14 +663,14 @@ namespace Slic3r
             std::vector<std::set<int>>groups(2);
             for (int j = 0; j < used_filament_num; ++j) {
                 if (i & (static_cast<uint64_t>(1) << j))
-                    groups[1].insert(used_filaments[j]);
+                    groups[1].insert(j);
                 else
-                    groups[0].insert(used_filaments[j]);
+                    groups[0].insert(j);
             }
 
             int prefer_level = 0;
 
-            if (check_printable(groups, unplaceable_limits))
+            if (check_printable(groups, unplaceable_limit_indices))
                 prefer_level += UNPLACEABLE_LIMIT_REWARD;
             if (groups[0].size() <= ctx.machine_info.max_group_size[0] && groups[1].size() <= ctx.machine_info.max_group_size[1])
                 prefer_level += MAX_SIZE_LIMIT_REWARD;
@@ -679,9 +679,9 @@ namespace Slic3r
 
             std::vector<int>filament_maps(used_filament_num);
             for (int i = 0; i < used_filament_num; ++i) {
-                if (groups[0].find(used_filaments[i]) != groups[0].end())
+                if (groups[0].find(i) != groups[0].end())
                     filament_maps[i] = 0;
-                if (groups[1].find(used_filaments[i]) != groups[1].end())
+                if (groups[1].find(i) != groups[1].end())
                     filament_maps[i] = 1;
             }
 
