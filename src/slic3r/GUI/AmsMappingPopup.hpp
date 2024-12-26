@@ -328,7 +328,7 @@ public:
     void render(wxDC& dc);
     void doRender(wxDC& dc);
     void on_mouse_move(wxMouseEvent& evt);
-    
+
     double GetAngle(wxPoint pointA, wxPoint pointB);
     wxPoint CalculateEndpoint(const wxPoint& startPoint, int angle, int length);
 private:
@@ -369,6 +369,7 @@ public:
 
     std::vector<std::string> m_tray_used;
     Label* label_txt{nullptr};
+    Label* identical_filament;
 
 private:
     void        create();
