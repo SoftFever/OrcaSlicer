@@ -1169,6 +1169,8 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             std::string s2 = OneModel["sub_path"];
 
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
+            if (!boost::filesystem::exists(sub_path)) continue;
+
             std::string             sub_file = sub_path.string();
 
             // wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
@@ -1211,6 +1213,8 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
+            if (!boost::filesystem::exists(sub_path)) continue;
+
             std::string             sub_file = sub_path.string();
             LoadFile(sub_file, contents);
             json pm = json::parse(contents);
@@ -1252,6 +1256,8 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             if (!m_ProfileJson["filament"].contains(s1)) {
                 // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
                 boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
+                if (!boost::filesystem::exists(sub_path)) continue;
+
                 std::string             sub_file = sub_path.string();
                 LoadFile(sub_file, contents);
                 json pm = json::parse(contents);
@@ -1312,6 +1318,8 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             std::string s2 = OneProcess["sub_path"];
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
+            if (!boost::filesystem::exists(sub_path)) continue;
+
             std::string             sub_file = sub_path.string();
             LoadFile(sub_file, contents);
             json pm = json::parse(contents);
