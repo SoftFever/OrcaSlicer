@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFT01",
     "instantiation": "false",
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "cool_plate_temp": [
         "0"
     ],
@@ -67,6 +68,12 @@
     ],
     "required_nozzle_HRC": [
         "40"
+    ],
+    "supertack_plate_temp": [
+        "80"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "80"
     ],
     "slow_down_layer_time": [
         "2"

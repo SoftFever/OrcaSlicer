@@ -302,6 +302,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-gz=zstd)
     endif()
 
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=template-id-cdtor" )
+    endif()
+
 endif()
 
 if (SLIC3R_ASAN)
@@ -407,12 +411,14 @@ if(SLIC3R_STATIC)
     set(Boost_USE_STATIC_LIBS ON)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
+else()
+    add_definitions(-DBOOST_LOG_DYN_LINK)
 endif()
 #set(Boost_DEBUG ON)
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log locale regex chrono atomic date_time iostreams program_options)
+find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)

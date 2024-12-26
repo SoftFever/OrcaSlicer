@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.2.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:05+0800\n"
-"PO-Revision-Date: 2024-11-30 20:56+0700\n"
+"POT-Creation-Date: 2024-12-01 08:07+0100\n"
+"PO-Revision-Date: 2024-09-25 22:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "Language: ru_RU\n"
@@ -4472,7 +4472,7 @@ msgstr "Объём:"
 msgid "Size:"
 msgstr "Размер:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -11097,7 +11097,7 @@ msgstr ""
 "максимальные точки. OrcaSlicer следит за тем, чтобы значения "
 "adaptive_bed_mesh_min/adaptive_bed_mesh_max не превышают эти минимальные/"
 "максимальные значения. Эту информацию можно получить у производителя "
-"принтера. По умолчанию установлено значение (-99999, -99999), которое "
+"принтера. По умолчанию установлено значение (99999, 99999), которое "
 "означает отсутствие ограничений, что позволяет проводить зондирование по "
 "всему столу."
 
@@ -13213,6 +13213,14 @@ msgstr "Откат при смене слоя"
 
 msgid "Force a retraction when changes layer"
 msgstr "Эта опция включает принудительный откат при переходе со слоя на слой."
+
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
 
 msgid "Retraction Length"
 msgstr "Длина отката"
