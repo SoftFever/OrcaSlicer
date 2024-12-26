@@ -344,7 +344,7 @@ public:
     ToolChangeResult tool_change_new(size_t new_tool);
     NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id);
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
-    ToolChangeResult   finish_block(int filament_id, bool extrude_perimeter = true, bool extrude_fill = true);
+    ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_perimeter = true, bool extrude_fill = true);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length);
 
 private:

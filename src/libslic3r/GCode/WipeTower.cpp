@@ -2074,7 +2074,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     // BBS: speed up perimeter speed to 90mm/s for non-first layer
     float           feedrate   = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow, 5400.f);
 
-    box_coordinates fill_box(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width, m_wipe_tower_depth - 2 * m_perimeter_width);
+    float fill_box_depth = m_wipe_tower_depth - 2 * m_perimeter_width;
+    if (m_wipe_tower_blocks.size() == 1) {
+        fill_box_depth = m_layer_info->depth - 2 * m_perimeter_width;
+    }
+    box_coordinates fill_box(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width, fill_box_depth);
 
     writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
@@ -2205,7 +2209,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     return construct_tcr(writer, false, m_current_tool, true, 0.f);
 }
 
-WipeTower::ToolChangeResult WipeTower::finish_block(int filament_id, bool extrude_perimeter, bool extrude_fill)
+WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_perimeter, bool extrude_fill)
 {
     WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(m_extrusion_flow)
@@ -2221,7 +2225,6 @@ WipeTower::ToolChangeResult WipeTower::finish_block(int filament_id, bool extrud
     float feedrate = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[filament_id].max_e_speed / m_extrusion_flow, 5400.f);
 
     box_coordinates fill_box(Vec2f(0, 0), 0, 0);
-    WipeTower::WipeTowerBlock &block = get_block_by_category(m_filpar[filament_id].category);
     fill_box = box_coordinates(Vec2f(m_perimeter_width, block.cur_depth), m_wipe_tower_width - 2 * m_perimeter_width, block.start_depth + block.layer_depths[m_cur_layer_id] - block.cur_depth - m_perimeter_width);
 
     writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
@@ -2790,7 +2793,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     finish_layer_filament = block.last_nozzle_change_id;
                 }
 
-                ToolChangeResult finish_block_tcr = finish_block(finish_layer_filament, false, layer.extruder_fill);
+                ToolChangeResult finish_block_tcr = finish_block(block, finish_layer_filament, false, layer.extruder_fill);
 
                 bool has_inserted = false;
                 {
