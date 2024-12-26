@@ -7,7 +7,7 @@ namespace Slic3r {
 namespace Measure {
 
 // Utility class used to calculate distance circle-circle
-// Adaptation of code found in: 
+// Adaptation of code found in:
 // https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/Polynomial1.h
 
 class Polynomial1
@@ -174,7 +174,7 @@ inline Polynomial1 operator * (double scalar, const Polynomial1& p)
 }
 
 // Utility class used to calculate distance circle-circle
-// Adaptation of code found in: 
+// Adaptation of code found in:
 // https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/RootsPolynomial.h
 
 class RootsPolynomial
@@ -242,7 +242,7 @@ public:
             return false;
 
         if (tmin >= tmax)
-            // Invalid ordering of interval endpoitns. 
+            // Invalid ordering of interval endpoitns.
             return false;
 
         for (uint32_t i = 1; i <= maxIterations; ++i) {
@@ -345,7 +345,7 @@ public:
     }
 };
 
-// Adaptation of code found in: 
+// Adaptation of code found in:
 // https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/Vector.h
 
 // Construct a single vector orthogonal to the nonzero input vector.  If
