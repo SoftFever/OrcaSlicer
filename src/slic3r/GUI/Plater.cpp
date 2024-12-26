@@ -6931,7 +6931,7 @@ void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
         }
     }
     if (dlg.get_checkbox_state())
-        wxGetApp().app_config->set(show_dlg_key, false);
+        wxGetApp().app_config->set_bool(show_dlg_key, false);
 }
 
 //BBS: add project slice logic
