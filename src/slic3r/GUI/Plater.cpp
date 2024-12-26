@@ -1165,18 +1165,6 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const 
         update_ams();
 }
 
-struct DiameterMessageDialog : MessageDialog
-{
-    DiameterMessageDialog(wxWindow * parent, wxString diameter_left, wxString diameter_right)
-        : MessageDialog(parent, _L("The software does not support using different diameter of nozzles for one  print. "
-                    "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
-                    "Please confirm which nozzle you would like to use for this project."), _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT)
-    {
-        add_button(wxID_YES, false, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
-        add_button(wxID_NO, true, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
-    }
-};
-
 bool Sidebar::priv::switch_diameter(bool single)
 {
     wxString diameter;
@@ -1186,7 +1174,13 @@ bool Sidebar::priv::switch_diameter(bool single)
         auto diameter_left = left_extruder->combo_diameter->GetValue();
         auto diameter_right = right_extruder->combo_diameter->GetValue();
         if (diameter_left != diameter_right) {
-            DiameterMessageDialog dlg(this->plater, diameter_left, diameter_right);
+            MessageDialog dlg(this->plater,
+                              _L("The software does not support using different diameter of nozzles for one  print. "
+                                 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
+                                 "Please confirm which nozzle you would like to use for this project."),
+                              _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
+            dlg.SetButtonLabel(wxID_YES, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
+            dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
             int result = dlg.ShowModal();
             if (result == wxID_YES)
                 diameter = diameter_left;
@@ -1756,8 +1750,10 @@ Sidebar::Sidebar(Plater *parent)
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
             auto result   = p->switch_diameter(extruder == p->single_extruder);
             if (result) {
-                extruder->combo_diameter->SetSelection(evt.GetInt());
-                extruder->diameter = evt.GetString();
+                if (extruder != p->single_extruder) {
+                    extruder->combo_diameter->SetSelection(evt.GetInt());
+                    extruder->diameter = evt.GetString();
+                }
             } else {
                 extruder->combo_diameter->SetValue(extruder->diameter);
             }
