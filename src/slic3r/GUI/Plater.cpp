@@ -14561,6 +14561,17 @@ FilamentMapMode Plater::get_global_filament_map_mode() const
     return project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
 }
 
+void Plater::on_filament_map_mode_change()
+{
+    auto& plate_list = this->get_partplate_list();
+    int plate_count = plate_list.get_plate_count();
+    for (int idx = 0; idx < plate_count; ++idx) {
+        auto plate=plate_list.get_plate(idx);
+        auto plate_map_mode = plate->get_filament_map_mode();
+        if (plate_map_mode == fmmDefault)
+            plate->clear_filament_map();
+    }
+}
 
 wxWindow* Plater::get_select_machine_dialog()
 {
@@ -15374,14 +15385,18 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
         bool need_invalidate = (old_map_mode != new_map_mode ||
                                 old_filament_maps != new_filament_maps);
 
-        if (old_map_mode != new_map_mode)
+        if (old_map_mode != new_map_mode) {
             curr_plate->set_filament_map_mode(new_map_mode);
+            curr_plate->clear_filament_map();
+        }
 
         if (old_filament_maps != new_filament_maps && new_map_mode==fmmManual)
             curr_plate->set_filament_maps(new_filament_maps);
 
-        if (new_map_mode == fmmDefault)
-            curr_plate->clear_filament_map_info();
+        if (new_map_mode == fmmDefault) {
+            curr_plate->clear_filament_map();
+            curr_plate->clear_filament_map_mode();
+        }
 
         if (need_invalidate) {
             if (need_slice) {

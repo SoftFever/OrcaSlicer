@@ -1620,9 +1620,12 @@ wxBoxSizer* MainFrame::create_side_tools()
             }
 
             if (slice) {
+                if (m_plater->get_global_filament_map_mode() != g_filament_map_mode)
+                    m_plater->on_filament_map_mode_change();
                 m_plater->set_global_filament_map_mode(g_filament_map_mode);
                 if (g_filament_map_mode == FilamentMapMode::fmmManual)
                     m_plater->set_global_filament_map(g_filament_map);
+
                 if (m_slice_select == eSliceAll)
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
                 else

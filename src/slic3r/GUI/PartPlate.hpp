@@ -255,8 +255,8 @@ public:
     std::vector<int> get_filament_maps() const;
     void set_filament_maps(const std::vector<int>& f_maps);
 
-    // remove filament map and map mode in profiles
-    void clear_filament_map_info();
+    void clear_filament_map();
+    void clear_filament_map_mode();
 
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;

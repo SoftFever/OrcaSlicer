@@ -3271,12 +3271,17 @@ void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
     m_config.option<ConfigOptionInts>("filament_map", true)->values = f_maps;
 }
 
-void PartPlate::clear_filament_map_info()
+void PartPlate::clear_filament_map()
 {
     if (m_config.has("filament_map"))
         m_config.erase("filament_map");
+}
+
+void PartPlate::clear_filament_map_mode()
+{
     if (m_config.has("filament_map_mode"))
         m_config.erase("filament_map_mode");
+
 }
 
 const std::vector<std::vector<int>>& PartPlate::get_unprintable_filament_ids()
@@ -3295,7 +3300,8 @@ void PartPlate::on_extruder_count_changed(int extruder_count)
 {
     if (extruder_count < 2) {
         // clear filament map and mode in single extruder mode
-        clear_filament_map_info();
+        clear_filament_map();
+        clear_filament_map_mode();
     }
 }
 

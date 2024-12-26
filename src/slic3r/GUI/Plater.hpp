@@ -509,6 +509,7 @@ public:
     void set_global_filament_map(const std::vector<int>& filament_map);
     std::vector<int> get_global_filament_map() const;
     FilamentMapMode get_global_filament_map_mode() const;
+    void on_filament_map_mode_change();
 
     void update_menus();
     // BBS
