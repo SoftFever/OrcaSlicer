@@ -238,6 +238,7 @@ wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_
         return wxEmptyString;
     }
 
+    std::unique_lock unique_lock(m_hms_mutex);
     if (!m_hms_info_json.is_object())
     {
         BOOST_LOG_TRIVIAL(error) << "the hms info is not a valid json object";
@@ -295,6 +296,8 @@ wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_
 
 bool HMSQuery::_query_error_msg(wxString &error_msg, std::string error_code, std::string lang_code)
 {
+    std::unique_lock unique_lock(m_hms_mutex);
+
     if (m_hms_info_json.contains("device_error")) {
         if (m_hms_info_json["device_error"].contains(lang_code)) {
             for (auto item = m_hms_info_json["device_error"][lang_code].begin(); item != m_hms_info_json["device_error"][lang_code].end(); item++) {
@@ -334,6 +337,8 @@ bool HMSQuery::_query_error_msg(wxString &error_msg, std::string error_code, std
 
 wxString HMSQuery::_query_error_url_action(std::string long_error_code, std::string dev_id, std::vector<int>& button_action)
 {
+    std::unique_lock unique_lock(m_hms_mutex);
+
     if (m_hms_action_json.contains("data")) {
         for (auto item = m_hms_action_json["data"].begin(); item != m_hms_action_json["data"].end(); item++) {
             if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == long_error_code) {
@@ -390,6 +395,8 @@ int HMSQuery::check_hms_info(std::string dev_type)
     dev_sn.push_back("094");
 
     boost::thread check_thread = boost::thread([this, dev_type, dev_sn] {
+
+        std::unique_lock unique_lock(m_hms_mutex);
         for (auto sn : dev_sn) {
             download_hms_related(QUERY_HMS_INFO, &m_hms_info_json, sn);
             download_hms_related(QUERY_HMS_ACTION, &m_hms_action_json, sn);
