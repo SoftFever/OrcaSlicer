@@ -134,6 +134,57 @@ std::string to_string_nozzle_diameter(float nozzle_diameter)
     return "0";
 }
 
+void sanitizeToUtf8(std::string& str) {
+    std::string result;
+    size_t i = 0;
+
+    while (i < str.size()) {
+        unsigned char c = str[i];
+        size_t remainingBytes = 0;
+        bool valid = true;
+
+        if ((c & 0x80) == 0x00) { // 1-byte character (ASCII)
+            remainingBytes = 0;
+        }
+        else if ((c & 0xE0) == 0xC0) { // 2-byte character
+            remainingBytes = 1;
+        }
+        else if ((c & 0xF0) == 0xE0) { // 3-byte character
+            remainingBytes = 2;
+        }
+        else if ((c & 0xF8) == 0xF0) { // 4-byte character
+            remainingBytes = 3;
+        }
+        else {
+            valid = false; // Invalid first byte
+        }
+
+        if (valid && i + remainingBytes < str.size()) {
+            for (size_t j = 1; j <= remainingBytes; ++j) {
+                if ((str[i + j] & 0xC0) != 0x80) {
+                    valid = false; // Invalid continuation byte
+                    break;
+                }
+            }
+        }
+        else {
+            valid = false; // Truncated character
+        }
+
+        if (valid) {
+            // Append valid UTF-8 character
+            result.append(str, i, remainingBytes + 1);
+            i += remainingBytes + 1;
+        }
+        else {
+            // Replace invalid character with space
+            result += ' ';
+            ++i; // Skip the invalid byte
+        }
+    }
+    str = std::move(result);
+}
+
 namespace Slic3r {
 
 /* Common Functions */
@@ -2851,10 +2902,24 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
 
+    json j_pre;
+    bool parse_ok = false;
+    try {
+        j_pre = json::parse(payload);
+        parse_ok = true;
+    }
+    catch(...) {
+        parse_ok = false;
+        /* post process payload */
+        sanitizeToUtf8(payload);
+        BOOST_LOG_TRIVIAL(info) << "parse_json: sanitize to utf8";
+    }
+
     try {
         bool restored_json = false;
         json j;
-        json j_pre = json::parse(payload);
+        if (!parse_ok)
+            j_pre = json::parse(payload);
         CNumericLocalesSetter locales_setter;
         if (j_pre.empty()) {
             return 0;
