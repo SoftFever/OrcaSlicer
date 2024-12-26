@@ -13976,7 +13976,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate pick_thumbnail for plate %1%") % i;
                 const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
                 p->generate_thumbnail(p->partplate_list.get_plate(i)->pick_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params,
-                                      Camera::EType::Ortho, Camera::ViewAngleType::Top_Plate, true);
+                                      Camera::EType::Ortho, Camera::ViewAngleType::Top_Plate, true,true);
             }
             picking_thumbnails.push_back(picking_thumbnail);
         }
