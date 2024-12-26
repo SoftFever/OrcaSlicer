@@ -38,8 +38,7 @@ wxString get_stage_string(int stage)
 {
     switch(stage) {
     case 0:
-        //return _L("Printing");
-        return "";
+        return _L("Printing");
     case 1:
         return _L("Auto bed leveling");
     case 2:
@@ -110,6 +109,38 @@ wxString get_stage_string(int stage)
         return _L("First layer error pause");
     case 35:
         return _L("Nozzle clog pause");
+    case 36:
+        return _L("Check printer absolute accuracy before calibration");
+    case 37:
+        return _L("Absolute accuracy calibration");
+    case 38:
+        return _L("Check printer absolute accuracy after calibration");
+    case 39:
+        return _L("Nozzle offset calibration");
+    case 40:
+        return _L("high temperature auto bed levelling");
+    case 41:
+        return _L("Auto Check: Quick Release Lever");
+    case 42:
+        return _L("Auto Check: Door and Upper Cover");
+    case 43:
+        return _L("Laser Calibration");
+    case 44:
+        return _L("Auto Check: Platform");
+    case 45:
+        return _L("Confirming birdeye camera position");
+    case 46:
+        return _L("Calibrating birdeye camera");
+    case 47:
+        return _L("Auto bed leveling -phase 1");
+    case 48:
+        return _L("Auto bed leveling -phase 2");
+    case 49:
+        return _L("Heating chamber");
+    case 50:
+        return _L("Heated bed cooling");
+    case 51:
+        return _L("Printing calibration lines");
     default:
         ;
     }
@@ -6959,7 +6990,7 @@ void DeviceManager::parse_user_print_info(std::string body)
             }
         }
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         ;
     }
 }
