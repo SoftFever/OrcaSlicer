@@ -1428,14 +1428,24 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                     size_t n = mz_zip_reader_get_extra(&archive, stat.m_file_index, extra.data(), extra.size());
                     dest_file = decode(extra.substr(0, n), stat.m_filename);
                 }
-                auto dest_file_path = boost::filesystem::path(dest_file);
-                dest_file = dest_file_path.filename().string();
-                auto dest_path = boost::filesystem::path(plugin_folder.string() + "/" + dest_file);
+                auto dest_path = plugin_folder / dest_file;
+                boost::filesystem::create_directories(dest_path.parent_path());
                 std::string dest_zip_file = encode_path(dest_path.string().c_str());
                 try {
                     if (fs::exists(dest_path))
                         fs::remove(dest_path);
-                    mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+                    mz_bool res = 0;
+#ifndef WIN32
+                    if (S_ISLNK(stat.m_external_attr >> 16)) {
+                        std::string link(stat.m_uncomp_size + 1, 0);
+                        res = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, link.data(), stat.m_uncomp_size, 0);
+                        boost::filesystem::create_symlink(link, dest_path);
+                    } else {
+#endif
+                        res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+#ifndef WIN32
+                    }
+#endif
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from plugin zip %2%\n") % dest_file % stat.m_filename;
                     if (res == 0) {
 #ifdef WIN32
