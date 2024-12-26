@@ -6845,7 +6845,7 @@ bool Plater::priv::warnings_dialog()
         return true;
     std::string text = _u8L("There are warnings after slicing models:");
 
-    auto get_text_from_warnings = [&](const vector<pair<PrintStateBase::Warning, unsigned long long>>& warnings, const unsigned int& plate_idx = -1) {
+    auto get_text_from_warnings = [&](const vector<pair<PrintStateBase::Warning, size_t>>& warnings, const unsigned int& plate_idx = -1) {
         if (m_export_all)
             text += "\n\n" + (boost::format(_u8L("Plate") + " %1%:") % (plate_idx+1)).str();
         else
