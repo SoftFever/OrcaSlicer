@@ -1730,6 +1730,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     filament_colors.resize(filament_presets.size(), "#26A69A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
 
+    std::vector<int> filament_maps(filament_colors.size(), 1);
+    project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
+
     std::vector<std::string> extruder_ams_count_str;
     if (config.has("presets", "extruder_ams_count")) {
         boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
@@ -1996,6 +1999,9 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     filament_color->resize(filament_presets.size());
     filament_color->values = filament_colors;
+    ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
+    filament_map->values.resize(filament_colors.size(), 1);
+
     update_multi_material_filament_presets();
     return filament_presets.size();
 }
