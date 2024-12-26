@@ -487,36 +487,60 @@ namespace Slic3r
             used_types.emplace_back(ctx.model_info.filament_types[f]);
         }
 
-        std::vector<FilamentInfo> machine_filaments;
-
-        for (size_t eid = 0; eid < ctx.machine_info.machine_filament_info.size(); ++eid) {
+        std::vector<FilamentInfo> machine_filament_list;
+        std::map<FilamentInfo, std::set<int>> machine_filament_set;
+        for (size_t eid = 0; eid < ctx.machine_info.machine_filament_info.size();++eid) {
             for (auto& filament : ctx.machine_info.machine_filament_info[eid]) {
-                if (!ctx.group_info.ignore_ext_filament || !filament.is_extended) {
-                    machine_filaments.emplace_back(filament);
-                }
+                machine_filament_set[filament].insert(machine_filament_list.size());
+                machine_filament_list.emplace_back(filament);
             }
         }
 
-        if (machine_filaments.empty())
+        if (machine_filament_list.empty())
             throw FilamentGroupException(FilamentGroupException::EmptyAmsFilaments,"Empty ams filament in For-Match mode.");
 
-        std::map<int, int> unprintable_limits; // key stores filament idx in used_filament, value stores unprintable extruder
-        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unprintable_limits);
+        std::map<int, int> unprintable_limit_indices; // key stores filament idx in used_filament, value stores unprintable extruder
+        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unprintable_limit_indices);
 
-        auto is_extruder_filament_compatible = [&unprintable_limits](int filament_idx, int extruder_id) {
-            auto iter = unprintable_limits.find(filament_idx);
-            if (iter != unprintable_limits.end() && iter->second == extruder_id)
+        std::vector<std::vector<float>> color_dist_matrix(used_colors.size(), std::vector<float>(machine_filament_list.size()));
+        for (size_t i = 0; i < used_colors.size(); ++i) {
+            for (size_t j = 0; j < machine_filament_list.size(); ++j) {
+                color_dist_matrix[i][j] = calc_color_distance(
+                    RGBColor(used_colors[i].r, used_colors[i].g, used_colors[i].b),
+                    RGBColor(machine_filament_list[j].color.r, machine_filament_list[j].color.g, machine_filament_list[j].color.b)
+                );
+            }
+        }
+
+        std::vector<int>l_nodes(used_filaments.size());
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::vector<int>r_nodes(machine_filament_list.size());
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+        std::vector<int>machine_filament_capacity(machine_filament_list.size());
+        for (size_t idx = 0; idx < machine_filament_capacity.size(); ++idx) {
+            if (machine_filament_list[idx].is_extended) {
+                // extend filaments can at most map one filaments
+                machine_filament_capacity[idx] = ctx.group_info.ignore_ext_filament ? 0 : 1;
+            }
+            else
+                machine_filament_capacity[idx] = l_nodes.size();  // AMS filaments can map multiple filaments
+        }
+
+        std::vector<int>extruder_filament_count(2, 0);
+
+        auto is_extruder_filament_compatible = [&unprintable_limit_indices](int filament_idx, int extruder_id) {
+            auto iter = unprintable_limit_indices.find(filament_idx);
+            if (iter != unprintable_limit_indices.end() && iter->second == extruder_id)
                 return false;
             return true;
             };
-
 
         auto build_unlink_limits = [](const std::vector<int>& l_nodes, const std::vector<int>& r_nodes, const std::function<bool(int, int)>& can_link) {
             std::unordered_map<int, std::vector<int>> unlink_limits;
             for (size_t i = 0; i < l_nodes.size(); ++i) {
                 std::vector<int> unlink_filaments;
                 for (size_t j = 0; j < r_nodes.size(); ++j) {
-                    if (!can_link(i, j))
+                    if (!can_link(l_nodes[i], r_nodes[j]))
                         unlink_filaments.emplace_back(j);
                 }
                 if (!unlink_filaments.empty())
@@ -525,76 +549,111 @@ namespace Slic3r
             return unlink_limits;
             };
 
+        auto optimize_map_to_machine_filament = [&](const std::vector<int>& map_to_machine_filament, const std::vector<int>& l_nodes, const std::vector<int>& r_nodes, std::vector<int>& filament_map, bool consider_capacity) {
+            std::vector<int> ungrouped_filaments;
+            std::vector<int> filaments_to_optimize;
 
-        std::vector<std::vector<float>> color_dist_matrix(used_colors.size(), std::vector<float>(machine_filaments.size()));
-        for (size_t i = 0; i < used_colors.size(); ++i) {
-            for (size_t j = 0; j < machine_filaments.size(); ++j) {
-                color_dist_matrix[i][j] = calc_color_distance(
-                    RGBColor(used_colors[i].r, used_colors[i].g, used_colors[i].b),
-                    RGBColor(machine_filaments[j].color.r, machine_filaments[j].color.g, machine_filaments[j].color.b)
-                );
+            auto map_filament_to_machine_filament = [&](int filament_idx, int machine_filament_idx) {
+                auto& machine_filament = machine_filament_list[machine_filament_idx];
+                machine_filament_capacity[machine_filament_idx] = std::max(0, machine_filament_capacity[machine_filament_idx] - 1);  // decrease machine filament capacity
+                filament_map[used_filaments[filament_idx]] = machine_filament.extruder_id;  // set extruder id to filament map
+                extruder_filament_count[machine_filament.extruder_id] += 1; // increase filament count in extruder
+                };
+            auto unmap_filament_to_machine_filament = [&](int filament_idx, int machine_filament_idx) {
+                auto& machine_filament = machine_filament_list[machine_filament_idx];
+                machine_filament_capacity[machine_filament_idx] += 1;  // increase machine filament capacity
+                extruder_filament_count[machine_filament.extruder_id] -= 1; // increase filament count in extruder
+                };
+
+            for (size_t idx = 0; idx < map_to_machine_filament.size(); ++idx) {
+                if (map_to_machine_filament[idx] == MaxFlowGraph::INVALID_ID) {
+                    ungrouped_filaments.emplace_back(l_nodes[idx]);
+                    continue;
+                }
+                int used_filament_idx = l_nodes[idx];
+                int machine_filament_idx = r_nodes[map_to_machine_filament[idx]];
+                auto& machine_filament = machine_filament_list[machine_filament_idx];
+                if (machine_filament_set[machine_filament].size() > 1 && unprintable_limit_indices.count(used_filament_idx) == 0)
+                    filaments_to_optimize.emplace_back(idx);
+
+                map_filament_to_machine_filament(used_filament_idx, machine_filament_idx);
             }
-        }
+            // try to optimize the result
+            for (auto idx : filaments_to_optimize) {
+                int filament_idx = l_nodes[idx];
+                int old_machine_filament_idx = r_nodes[map_to_machine_filament[idx]];
+                auto& old_machine_filament = machine_filament_list[old_machine_filament_idx];
 
-        std::vector<int>l_nodes(used_filaments.size());
-        std::vector<int>r_nodes(machine_filaments.size());
-        std::iota(r_nodes.begin(), r_nodes.end(), 0);
-        std::vector<int>r_node_capacity(machine_filaments.size(),l_nodes.size());
+                int curr_gap = std::abs(extruder_filament_count[0] - extruder_filament_count[1]);
+                unmap_filament_to_machine_filament(filament_idx, old_machine_filament_idx);
+
+                auto optional_filaments = machine_filament_set[old_machine_filament];
+                auto iter = optional_filaments.begin();
+                for (; iter != optional_filaments.end(); ++iter) {
+                    int new_extruder_id = machine_filament_list[*iter].extruder_id;
+                    int new_gap = std::abs(extruder_filament_count[new_extruder_id] + 1 - extruder_filament_count[1 - new_extruder_id]);
+                    if (new_gap < curr_gap && (!consider_capacity || machine_filament_capacity[*iter] > 0)) {
+                        map_filament_to_machine_filament(filament_idx, *iter);
+                        break;
+                    }
+                }
+
+                if (iter == optional_filaments.end())
+                    map_filament_to_machine_filament(filament_idx, old_machine_filament_idx);
+            }
+            return ungrouped_filaments;
+            };
 
         std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
         std::vector<int> ungrouped_filaments;
 
+        auto unlink_limits_full = build_unlink_limits(l_nodes, r_nodes, [&used_types, &machine_filament_list, is_extruder_filament_compatible](int used_filament_idx, int machine_filament_idx) {
+            return used_types[used_filament_idx] == machine_filament_list[machine_filament_idx].type &&
+                is_extruder_filament_compatible(used_filament_idx, machine_filament_list[machine_filament_idx].extruder_id);
+            });
+
         {
-            std::iota(l_nodes.begin(), l_nodes.end(), 0);
-            auto unlink_limits = build_unlink_limits(l_nodes, r_nodes, [&](int lidx, int ridx) {
-                return used_types[l_nodes[lidx]] == machine_filaments[r_nodes[ridx]].type &&
-                    is_extruder_filament_compatible(l_nodes[lidx], machine_filaments[ridx].extruder_id);
-                });
-
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, r_node_capacity, unlink_limits);
-            auto ret = s.solve();
-            for (size_t idx = 0; idx < ret.size(); ++idx)
-                if (ret[idx] == MaxFlowGraph::INVALID_ID)
-                    ungrouped_filaments.emplace_back(l_nodes[idx]);
-                else
-                    group[used_filaments[l_nodes[idx]]] = machine_filaments[r_nodes[ret[idx]]].extruder_id;
-
-            for (size_t idx = 0; idx < std::min(ret.size(), l_nodes.size()); ++idx)
-                l_nodes[idx] = ret[idx];
+            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group,true);
+            if (ungrouped_filaments.empty())
+                return group;
         }
-        if (ungrouped_filaments.empty())
-            return group;
 
+        for (size_t idx = 0; idx < machine_filament_capacity.size(); ++idx)
+            machine_filament_capacity[idx] = l_nodes.size();
+
+        // remove capacity limits
         {
             l_nodes = ungrouped_filaments;
-            ungrouped_filaments.clear();
-
-            auto unlink_limits = build_unlink_limits(l_nodes, r_nodes, [&](int lidx, int ridx) {
-                return is_extruder_filament_compatible(l_nodes[lidx], machine_filaments[ridx].extruder_id);
-                });
-
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, r_node_capacity, unlink_limits);
-            auto ret = s.solve();
-            for (size_t idx = 0; idx < ret.size(); ++idx) {
-                if (ret[idx] == MaxFlowGraph::INVALID_ID)
-                    ungrouped_filaments.emplace_back(l_nodes[idx]);
-                else
-                    group[used_filaments[l_nodes[idx]]] = machine_filaments[r_nodes[ret[idx]]].extruder_id;
-            }
+            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
+            if (ungrouped_filaments.empty())
+                return group;
         }
-        if (ungrouped_filaments.empty())
-            return group;
 
+        // additionally remove type limits
         {
             l_nodes = ungrouped_filaments;
-            ungrouped_filaments.clear();
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, r_node_capacity, {});
-            auto ret = s.solve();
+            auto unlink_limits = build_unlink_limits(l_nodes, r_nodes, [&machine_filament_list, is_extruder_filament_compatible](int used_filament_idx, int machine_filament_idx) {
+                return is_extruder_filament_compatible(used_filament_idx, machine_filament_list[machine_filament_idx].extruder_id);
+                });
+
+            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
+            if (ungrouped_filaments.empty())
+                return group;
+        }
+
+        // remove all limits
+        {
+            l_nodes = ungrouped_filaments;
+            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, {});
+            auto ret = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
             for (size_t idx = 0; idx < ret.size(); ++idx) {
                 if (ret[idx] == MaxFlowGraph::INVALID_ID)
                     assert(false);
                 else
-                    group[used_filaments[l_nodes[idx]]] = machine_filaments[r_nodes[ret[idx]]].extruder_id;
+                    group[used_filaments[l_nodes[idx]]] = machine_filament_list[r_nodes[ret[idx]]].extruder_id;
             }
         }
 

@@ -26,6 +26,32 @@ namespace FilamentGroupUtils
             a = hexToByte(hexstr.substr(7, 2));
     }
 
+    bool Color::operator<(const Color& other) const
+    {
+        if (r != other.r) return r < other.r;
+        if (g != other.g) return g < other.g;
+        if (b != other.b) return b < other.b;
+        return a < other.a;
+    }
+
+    bool Color::operator==(const Color& other) const
+    {
+        return r == other.r && g == other.g && b == other.b && a == other.a;
+
+    }
+
+    bool Color::operator!=(const Color& other) const
+    {
+        return r != other.r || g != other.g || b != other.b || a != other.a;
+    }
+
+    bool FilamentInfo::operator<(const FilamentInfo& other) const
+    {
+        if (color != other.color) return color < other.color;
+        return type < other.type;
+    }
+
+
     // TODO: add explanation
     std::vector<int> calc_max_group_size(const std::vector<std::map<int, int>>& ams_counts, bool ignore_ext_filament) {
         // add default value to 2
@@ -53,7 +79,11 @@ namespace FilamentGroupUtils
             auto& arr = filament_configs[idx];
             for (auto& item : arr) {
                 FilamentInfo temp;
-                temp.color = Color(item.option<ConfigOptionStrings>("filament_colour")->get_at(0));
+                std::string color_str = item.option<ConfigOptionStrings>("filament_colour")->get_at(0);
+                if (color_str.empty())
+                    temp.color = Color();
+                else
+                    temp.color = Color(color_str);
                 temp.type = item.option<ConfigOptionStrings>("filament_type")->get_at(0);
                 temp.extruder_id = idx;
                 temp.is_extended = item.option<ConfigOptionStrings>("tray_name")->get_at(0) == "Ext"; // hard-coded ext flag

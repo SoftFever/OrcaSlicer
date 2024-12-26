@@ -20,6 +20,9 @@ namespace Slic3r
             unsigned char a = 255;
             Color(unsigned char r_ = 0, unsigned char g_ = 0, unsigned char b_ = 0, unsigned a_ = 255) :r(r_), g(g_), b(b_), a(a_) {}
             Color(const std::string& hexstr);
+            bool operator<(const Color& other) const;
+            bool operator==(const Color& other) const;
+            bool operator!=(const Color& other) const;
         };
 
 
@@ -27,7 +30,8 @@ namespace Slic3r
             Color color;
             std::string type;
             int extruder_id;
-            bool is_extended; // TODO: rename
+            bool is_extended;
+            bool operator<(const FilamentInfo& other) const;
         };
 
 
