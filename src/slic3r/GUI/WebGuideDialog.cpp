@@ -178,12 +178,6 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // Bind(wxEVT_IDLE, &GuideFrame::OnIdle, this);
     // Bind(wxEVT_CLOSE_WINDOW, &GuideFrame::OnClose, this);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    LoadProfile();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": LoadProfile() took " << duration.count() << " milliseconds";
-
     // UI
     SetStartPage(BBL_REGION);
 
@@ -214,43 +208,43 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     m_page = startpage;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
-    wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string() );
+    wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=1").make_preferred().string() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
 
     if (startpage == BBL_WELCOME){
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=1").make_preferred().string());
     } else if (startpage == BBL_REGION) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/11/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=11").make_preferred().string());
     } else if (startpage == BBL_MODELS) {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=21").make_preferred().string());
     } else if (startpage == BBL_FILAMENTS) {
         SetTitle(_L("Setup Wizard"));
 
         int nSize = m_ProfileJson["model"].size();
 
         if (nSize>0)
-            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/22/index.html").make_preferred().string());
+            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=22").make_preferred().string());
         else
-            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
+            TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=21").make_preferred().string());
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle("");
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=23").make_preferred().string());
     } else if (startpage == BBL_MODELS_ONLY) {
         SetTitle("");
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=24").make_preferred().string());
     }
     else {
         SetTitle(_L("Setup Wizard"));
-        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
+        TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=21").make_preferred().string());
     }
 
     wxString strlang = wxGetApp().current_language_code_safe();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%") % into_u8(strlang);
     if (strlang != "")
-        TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
+        TargetUrl = wxString::Format("%s&lang=%s", w2s(TargetUrl), strlang);
 
     TargetUrl = "file://" + TargetUrl;
     if (load)
@@ -301,6 +295,13 @@ void GuideFrame::OnNavigationRequest(wxWebViewEvent &evt)
 void GuideFrame::OnNavigationComplete(wxWebViewEvent &evt)
 {
     //wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
+    if (!bFirstComplete) {
+        boost::thread LoadProfileThread(boost::bind(&GuideFrame::LoadProfile, this));
+        LoadProfileThread.detach();
+
+        bFirstComplete = true;
+    }
+
     m_browser->Show();
     Layout();
     
@@ -509,7 +510,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
     }
 
-    wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
+    //wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
 }
 
 void GuideFrame::RunScript(const wxString &javascript)
@@ -1122,6 +1123,12 @@ int GuideFrame::LoadProfile()
     std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished, json contents: "<< std::endl<<strAll;
+    json m_Res           = json::object();
+    m_Res["command"]     = "userguide_profile_load_finish";
+    m_Res["sequence_id"] = "10001";
+    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+    wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
+
     return 0;
 }
 

@@ -107,6 +107,9 @@ private:
     boost::filesystem::path vendor_dir;
     boost::filesystem::path rsrc_vendor_dir;
 
+    //First Load
+    bool bFirstComplete{false};
+
     // User Config
     bool PrivacyUse;
     bool StealthMode;
