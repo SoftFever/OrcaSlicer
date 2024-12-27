@@ -38,6 +38,8 @@ src/slic3r/GUI/HintNotification.cpp
 src/slic3r/GUI/IMSlider.cpp
 src/slic3r/GUI/Widgets/SideTools.cpp
 src/slic3r/GUI/Widgets/AMSControl.cpp
+src/slic3r/GUI/Widgets/FanControl.cpp
+src/slic3r/GUI/Widgets/FilamentLoad.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
@@ -76,6 +78,7 @@ src/slic3r/GUI/MediaFilePanel.cpp
 src/slic3r/GUI/ImageGrid.cpp
 src/slic3r/GUI/Printer/PrinterFileSystem.cpp
 src/slic3r/GUI/Mouse3DController.cpp
+src/slic3r/GUI/SelectMachinePop.cpp
 src/slic3r/GUI/StatusPanel.cpp
 src/slic3r/GUI/Monitor.cpp
 src/slic3r/GUI/MsgDialog.cpp

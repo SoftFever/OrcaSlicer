@@ -66,7 +66,7 @@ void Fan::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSi
     SetMinSize(wxSize(m_bitmap_bk.GetBmpSize().x, m_bitmap_bk.GetBmpSize().y + FromDIP(6)));
     SetMaxSize(wxSize(m_bitmap_bk.GetBmpSize().x, m_bitmap_bk.GetBmpSize().y + FromDIP(6)));
 //#endif // __APPLE__
-    
+
     Bind(wxEVT_PAINT, &Fan::paintEvent, this);
 }
 
@@ -215,8 +215,8 @@ void FanOperate::add_fan_speeds()
 {
     if (m_current_speeds + 1 > m_max_speeds) return;
     set_fan_speeds(++m_current_speeds);
-    post_event(wxCommandEvent(EVT_FAN_ADD)); 
-    post_event(wxCommandEvent(EVT_FAN_SWITCH_ON)); 
+    post_event(wxCommandEvent(EVT_FAN_ADD));
+    post_event(wxCommandEvent(EVT_FAN_SWITCH_ON));
 }
 
 void FanOperate::decrease_fan_speeds()
@@ -231,7 +231,7 @@ void FanOperate::decrease_fan_speeds()
         set_fan_speeds(--m_current_speeds);
     }
      post_event(wxCommandEvent(EVT_FAN_DEC));
-    
+
 }
 
 void FanOperate::post_event(wxCommandEvent &&event)
@@ -863,9 +863,9 @@ void FanControlPopupNew::init_names() {
 
     //Iint fan/door/func/duct name lists
     radio_btn_name[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling");
-    radio_btn_name[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Heating");
-    radio_btn_name[AIR_DUCT::AIR_DUCT_EXHAUST] = L("Exhaust");
-    radio_btn_name[AIR_DUCT::AIR_DUCT_FULL_COOLING] = L("Full Cooling");
+    radio_btn_name[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating");
+    radio_btn_name[AIR_DUCT::AIR_DUCT_EXHAUST] = _L("Exhaust");
+    radio_btn_name[AIR_DUCT::AIR_DUCT_FULL_COOLING] = _L("Full Cooling");
     radio_btn_name[AIR_DUCT::AIR_DUCT_NUM] = L("Num?");
     radio_btn_name[AIR_DUCT::AIR_DUCT_INIT] = L("Init");
 
@@ -881,11 +881,13 @@ void FanControlPopupNew::init_names() {
     air_door_func_name[AIR_DOOR::AIR_DOOR_FUNC_INNERLOOP] = _L("Innerloop");
     air_door_func_name[AIR_DOOR::AIR_DOOR_FUNC_TOP] = _L("Top");
 
-    label_text[AIR_DUCT::AIR_DUCT_NONE] = _L("The fan controls the temperature during printing to improve print quality.The system automatically adjusts the fan's switch and speed according to different printing materials.");
-    label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = L("Cooling-filtering mode is suitable for printing PLA/PETG/TPU materials. In this mode, the chamber temperature is low, and the air in the chamber can be filtered while cooling the printed part.");
-    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = L("Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
-    label_text[AIR_DUCT::AIR_DUCT_EXHAUST] = L("Exhaust");
-    label_text[AIR_DUCT::AIR_DUCT_FULL_COOLING] = L("Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printed part will be cooled in all directions.");
+    label_text[AIR_DUCT::AIR_DUCT_NONE] = _L("The fan controls the temperature during printing to improve print quality."
+                                             "The system automatically adjusts the fan's switch and speed "
+                                             "according to different printing materials.");
+    label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
+    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
+    label_text[AIR_DUCT::AIR_DUCT_EXHAUST] = _L("Exhaust");
+    label_text[AIR_DUCT::AIR_DUCT_FULL_COOLING] = _L("Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled.");
     label_text[AIR_DUCT::AIR_DUCT_NUM] = _L("Num");
     label_text[AIR_DUCT::AIR_DUCT_INIT] = _L("Init");
 
