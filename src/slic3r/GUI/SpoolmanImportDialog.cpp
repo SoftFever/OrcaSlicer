@@ -41,7 +41,7 @@ wxString SpoolmanViewModel::GetColumnType(unsigned int col) const
 {
     if (col == COL_CHECK)
         return "bool";
-    else if (col == COL_COLOR)
+    if (col == COL_COLOR)
         return "wxColour";
     return "string";
 }
@@ -64,7 +64,7 @@ void SpoolmanViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item,
     switch (col) {
     case COL_CHECK: variant = node->get_checked(); break;
     case COL_ID: variant = std::to_string(node->get_id()); break;
-    case COL_COLOR: variant << wxColour(node->get_color()); break;
+    case COL_COLOR: variant << node->get_color(); break;
     case COL_VENDOR: variant = node->get_vendor_name(); break;
     case COL_NAME: variant = node->get_filament_name(); break;
     case COL_MATERIAL: variant = node->get_material(); break;
