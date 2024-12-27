@@ -1107,6 +1107,9 @@ bool Sidebar::priv::sync_extruder_list()
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     Preset* machine_preset = get_printer_preset(obj);
+    if (!machine_preset)
+        return false;
+
     if (machine_print_name != target_model_id) {
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
                                             "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);

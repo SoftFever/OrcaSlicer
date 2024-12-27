@@ -1507,6 +1507,8 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
     }
 
     Preset* printer_preset = get_printer_preset(obj, nozzle_value);
+    if (!printer_preset)
+        return;
 
     auto opt_extruder_type = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
     if (opt_extruder_type) {
