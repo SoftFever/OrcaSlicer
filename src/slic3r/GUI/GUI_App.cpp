@@ -2249,6 +2249,29 @@ class wxBoostLog : public wxLog
     }
 };
 
+std::string get_system_info()
+{
+    std::stringstream out;
+
+    std::string b_start  = "";
+    std::string b_end    = "";
+    std::string line_end = "\n";
+
+    out << b_start << "Operating System:    " << b_end << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << line_end;
+    out << b_start << "System Architecture: " << b_end << wxPlatformInfo::Get().GetBitnessName() << line_end;
+    out << b_start <<
+#if defined _WIN32
+        "Windows Version:     "
+#else
+        // Hopefully some kind of unix / linux.
+        "System Version:      "
+#endif
+        << b_end << wxPlatformInfo::Get().GetOperatingSystemDescription() << line_end;
+    out << b_start << "Total RAM size [MB]: " << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory());
+
+    return out.str();
+}
+
 bool GUI_App::on_init_inner()
 {
     wxLog::SetActiveTarget(new wxBoostLog());
@@ -2310,6 +2333,7 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
+    BOOST_LOG_TRIVIAL(info) << get_system_info();
 
 #if defined(__WINDOWS__)
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
