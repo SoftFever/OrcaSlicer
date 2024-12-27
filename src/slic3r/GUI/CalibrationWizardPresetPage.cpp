@@ -616,7 +616,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
 
             //wxBoxSizer *nozzle_volume_sizer   = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Volume Type"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"), 0, CALIBRATION_LABEL_SIZE);
             nozzle_volume_type_text->SetFont(Label::Head_14);
             nozzle_volume_type_text->Wrap(-1);
 
@@ -650,7 +650,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
 
             //wxBoxSizer *nozzle_volume_sizer     = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Volume Type"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"), 0, CALIBRATION_LABEL_SIZE);
             nozzle_volume_type_text->SetFont(Label::Head_14);
             nozzle_volume_type_text->Wrap(-1);
 

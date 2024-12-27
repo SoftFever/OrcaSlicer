@@ -103,7 +103,20 @@ void CalibrationCaliPage::set_cali_img()
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual", 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            if (curr_obj) {
+                if (curr_obj->is_multi_extruders()) {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_multi_extruders", 400));
+                }
+                else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
+                }
+                else {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+                }
+            }
+            else {
+                m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            }
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {

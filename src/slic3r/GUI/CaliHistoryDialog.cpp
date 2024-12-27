@@ -311,7 +311,7 @@ void HistoryWindow::sync_history_data() {
     gbSizer->Add(title_preset_name, { 0, get_colume_idx(CaliColumnType::Cali_Filament, curr_obj) }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
     if (curr_obj && curr_obj->is_multi_extruders()) {
-        auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle"));
+        auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle Flow"));
         nozzle_name->SetFont(Label::Head_14);
         gbSizer->Add(nozzle_name, {0, get_colume_idx(CaliColumnType::Cali_Nozzle, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
     }
@@ -876,11 +876,14 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         });
 
         if (iter != m_history_results.end()) {
-            MessageDialog msg_dlg(nullptr,
-                                  wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                      "is saved. Are you sure you want to override the historical result?"),
-                                                   m_new_result.name),
-                                  wxEmptyString, wxICON_WARNING | wxYES_NO);
+
+            wxString duplicate_name_info = wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                      "is saved. Are you sure you want to override the historical result?"), m_new_result.name);
+
+            duplicate_name_info = wxString::Format(_L("Within the same extruder, the name(%s) must be unique when the filament type, nozzle diameter, and nozzle flow are the same.\n"
+                                                      "Are you sure you want to override the historical result?"), m_new_result.name);
+
+            MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxYES_NO);
             if (msg_dlg.ShowModal() != wxID_YES)
                 return;
         }

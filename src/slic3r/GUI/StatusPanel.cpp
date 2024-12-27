@@ -3529,7 +3529,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 int height = m_project_task_panel->get_bitmap_thumbnail()->GetSize().y;
                 if (m_calib_method == CALI_METHOD_AUTO) {
                     if (m_calib_mode == CalibMode::Calib_PA_Line) {
-                        png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
+                        if (obj->is_multi_extruders())
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_multi_extruders.png") % resources_dir()).str();
+                        else if (obj->get_printer_arch() == PrinterArch::ARCH_I3)
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_i3.png") % resources_dir()).str();
+                        else
+                            png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
                     }
                     else if (m_calib_mode == CalibMode::Calib_Flow_Rate) {
                         png_path = (boost::format("%1%/images/flow_rate_calibration_auto.png") % resources_dir()).str();
