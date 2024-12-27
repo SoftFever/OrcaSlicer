@@ -201,9 +201,8 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->cali_version != history_version) {
+    if (obj->cali_version != obj->last_cali_version) {
         if (obj->has_get_pa_calib_tab) {
-            history_version = obj->cali_version;
             reqeust_history_result(obj);
         }
     }

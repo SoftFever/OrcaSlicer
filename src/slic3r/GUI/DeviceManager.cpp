@@ -706,7 +706,7 @@ bool MachineObject::is_extrusion_cali_finished()
     if (diff.count() < EXTRUSION_OMIT_TIME) {
         return false;
     }
-    
+
     if (boost::contains(m_gcode_file, "extrusion_cali")
         && this->mc_print_percent == 100)
         return true;
@@ -929,6 +929,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
     }
 
+
     // is_support_ams_mapping
     if (!is_support_ams_mapping()) {
         BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
@@ -1033,7 +1034,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     }
                     continue;
                 }
-                    
+
                 if (distance_map[i][j].is_same_color
                     && distance_map[i][j].is_type_match) {
                     if (min_val > distance_map[i][j].distance) {
@@ -1041,7 +1042,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                         min_val = distance_map[i][j].distance;
                         picked_src_idx = i;
                         picked_tar_idx = j;
-                    } 
+                    }
                     else if (min_val == distance_map[i][j].distance&& filaments[picked_src_idx].filament_id!= tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
 
                         picked_src_idx = i;
@@ -1682,7 +1683,7 @@ int MachineObject::command_get_access_code() {
     json j;
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["system"]["command"] = "get_access_code";
-    
+
     return this->publish_json(j.dump());
 }
 
@@ -1884,7 +1885,7 @@ int MachineObject::command_set_nozzle(int temp)
 int MachineObject::command_set_chamber(int temp)
 {
     json j;
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++); 
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"] = "set_ctt";
     j["print"]["ctt_val"] = temp;
 
@@ -2914,7 +2915,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     else {
                         if (!printer_type.empty() && connection_type() == "lan")
                             print_json.load_compatible_settings(printer_type, "");
-                        print_json.diff2all_base_reset(j_pre); 
+                        print_json.diff2all_base_reset(j_pre);
                     }
                 }
             }
@@ -3587,7 +3588,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("heatbreak_fan_speed")) {
                             heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                         }
-                    
+
                         /* parse speed */
                         try {
                             if (jj.contains("spd_lvl")) {
@@ -3918,7 +3919,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
                                 if (ipcam.contains("rtsp_url")) {
                                     local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
-                                    liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
+                                    liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable"
                                             ? LVL_Disable : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
                                 }
                                 if (ipcam.contains("tutk_server")) {
@@ -4680,17 +4681,26 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             }
                         }
                     }
-                }   
+                }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
+                    std::string str = jj.dump();
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
+                    reset_pa_cali_history_result();
+                    bool is_succeed = true;
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
+                            is_succeed = false;
                         }
                     }
 
-                    reset_pa_cali_history_result();
-                    has_get_pa_calib_tab = true;
+                    if (is_succeed) {
+                        last_cali_version = cali_version;
+                        has_get_pa_calib_tab = true;
+                    }
 
                     if (jj.contains("nozzle_diameter")) {
                         if (jj["nozzle_diameter"].is_number_float()) {
@@ -4717,11 +4727,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-#ifdef CALI_DEBUG
-                            std::string str = jj.dump();
-                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
-#endif
-
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
@@ -4760,23 +4765,25 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     // notify cali history to update
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
+                    std::string str = jj.dump();
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
+                    reset_pa_cali_result();
+                    bool is_succeed = true;
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                                is_succeed    = false;
+                            }
                         }
                     }
 
-                    reset_pa_cali_result();
-                    get_pa_calib_result = true;
+                    if (is_succeed)
+                        get_pa_calib_result = true;
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-#ifdef CALI_DEBUG
-                            std::string str = jj.dump();
-                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
-#endif
-
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
@@ -4862,7 +4869,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 if (it->contains("confidence")) {
                                     flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
                                 } else {
-                                    flow_ratio_calib_result.confidence = 0; 
+                                    flow_ratio_calib_result.confidence = 0;
                                 }
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);
@@ -6194,7 +6201,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                         if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
                         obj->dev_ip = dev_ip;
                     }
-                    
+
                 }
                 /* ip changed reconnect mqtt */
             }

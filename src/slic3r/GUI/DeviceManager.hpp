@@ -710,6 +710,7 @@ public:
     bool    is_support_layer_num { false };
     bool    nozzle_blob_detection_enabled{ false };
 
+    int last_cali_version = -1;
     int cali_version = -1;
     float                      cali_selected_nozzle_dia { 0.0 };
     // 1: record when start calibration in preset page
