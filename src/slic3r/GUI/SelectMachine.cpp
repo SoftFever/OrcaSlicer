@@ -975,8 +975,15 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     if (obj && obj->is_support_auto_leveling) {
         m_checkbox_list["bed_leveling"]->Show();
     }
-    if (obj && obj->is_support_timelapse) {
+
+    /*STUDIO-9197*/
+    if (obj && obj->canEnableTimelapse())
+    {
         m_checkbox_list["timelapse"]->Show();
+    }
+    else
+    {
+        m_checkbox_list["timelapse"]->Hide();
     }
 
     Layout();
