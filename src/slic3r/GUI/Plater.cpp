@@ -1449,6 +1449,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             int selection = p->combo_printer_bed->GetSelection();
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(selection + 1)], this, 48));
+            e.Skip();//fix bug:Event spreads to sidebar
         });
 
         {
