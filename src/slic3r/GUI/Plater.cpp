@@ -8911,7 +8911,9 @@ bool Plater::priv::check_ams_status_impl()
     MachineObject* obj = dev->get_selected_machine();
     if (!obj || !obj->is_multi_extruders())
         return true;
-
+    if (q->is_gcode_3mf() || q->only_gcode_mode() || q->get_partplate_list().get_curr_plate()->get_objects().empty()) {
+        return true;
+    }
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
         bool is_same_as_printer = true;
