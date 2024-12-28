@@ -5147,6 +5147,10 @@ int CLI::run(int argc, char **argv)
                                 std::vector<std::string> extruder_ams_count(new_extruder_count, "");
                                 std::vector<std::vector<DynamicPrintConfig>> extruder_filament_info(new_extruder_count, std::vector<DynamicPrintConfig>());
                                 int color_count = 0;
+
+                                const ConfigOptionStrings* filament_type  = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_type"));
+                                std::vector<std::string> types = filament_type ? filament_type->vserialize() : std::vector<std::string>{"PLA"};
+
                                 for (int e_index = 0; e_index < new_extruder_count; e_index++)
                                 {
                                     extruder_ams_count[e_index] = "1#0|4#1";
@@ -5154,10 +5158,15 @@ int CLI::run(int argc, char **argv)
                                     {
                                         DynamicPrintConfig temp_config;
                                         std::vector<std::string> temp_colors(1, "#FFFFFFFF");
+                                        std::vector<std::string> temp_types(1, "PLA");
                                         //if (filament_color) {
                                         //    temp_colors[0] = colors[color_count % colors.size()];
                                         //}
+                                        if (filament_type)
+                                            temp_types[0]  = types[color_count % types.size()];
+
                                         temp_config.option<ConfigOptionStrings>("filament_colour", true)->values = temp_colors;
+                                        temp_config.option<ConfigOptionStrings>("filament_type", true)->values = temp_types;
                                         extruder_filament_info[e_index].push_back(std::move(temp_config));
                                         color_count++;
                                     }

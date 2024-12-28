@@ -79,14 +79,21 @@ namespace FilamentGroupUtils
             auto& arr = filament_configs[idx];
             for (auto& item : arr) {
                 FilamentInfo temp;
-                std::string color_str = item.option<ConfigOptionStrings>("filament_colour")->get_at(0);
-                if (color_str.empty())
-                    temp.color = Color();
-                else
-                    temp.color = Color(color_str);
-                temp.type = item.option<ConfigOptionStrings>("filament_type")->get_at(0);
+                std::string type = "PLA";
+                std::string color = "#FFFFFF";
+                std::string tray_name;
+
+                if (auto color_ptr = item.option<ConfigOptionStrings>("filament_colour"); color_ptr)
+                    color = color_ptr->get_at(0);
+                if (auto type_ptr = item.option<ConfigOptionStrings>("filament_type"); type_ptr)
+                    type = type_ptr->get_at(0);
+                if (auto tray_ptr = item.option<ConfigOptionStrings>("tray_name"); tray_ptr)
+                    tray_name = tray_ptr->get_at(0);
+
+                temp.color = color.empty() ? Color() : Color(color);
+                temp.type =type;
                 temp.extruder_id = idx;
-                temp.is_extended = item.option<ConfigOptionStrings>("tray_name")->get_at(0) == "Ext"; // hard-coded ext flag
+                temp.is_extended = tray_name == "Ext"; // hard-coded ext flag
                 machine_filaments[idx].emplace_back(std::move(temp));
             }
         }
