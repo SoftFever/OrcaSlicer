@@ -55,7 +55,7 @@
   "change_filament_gcode": "",
   "machine_pause_gcode": "PAUSE",
   "printing_by_object_gcode": ";BETWEEN_OBJECTS\nG92 E0",
-  "printable_height": "400",
+  "printable_height": "300",
   "time_lapse_gcode": "TIMELAPSE_TAKE_FRAME",
   "thumbnails": [
     "64x64/PNG",
