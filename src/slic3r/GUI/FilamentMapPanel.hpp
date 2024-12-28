@@ -42,6 +42,8 @@ public:
     void Hide();
     void Show();
     void Select(bool selected);
+    bool Enable(bool enable);
+    bool IsEnabled() const { return m_enabled; }
 protected:
     void OnPaint(wxPaintEvent &event);
 private:
@@ -53,6 +55,8 @@ private:
     wxBitmapButton *m_btn;
     wxStaticText   *m_label;
     Label          *m_detail;
+    std::string     m_icon_path;
+    bool            m_enabled{ true };
     bool            m_hover{false};
     bool            m_selected{false};
 };
@@ -60,7 +64,7 @@ private:
 class FilamentMapAutoPanel : public wxPanel
 {
 public:
-    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode);
+    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced);
     void            Hide();
     void            Show();
     FilamentMapMode GetMode() const { return m_mode; }

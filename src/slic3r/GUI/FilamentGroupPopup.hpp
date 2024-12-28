@@ -18,7 +18,6 @@ public:
     void tryClose();
 
     FilamentMapMode GetSelectedMode() const { return m_mode; }
-
 private:
     void OnPaint(wxPaintEvent&event);
     void StartTimer();
@@ -29,6 +28,7 @@ private:
     void OnEnterWindow(wxMouseEvent &);
     void OnTimer(wxTimerEvent &event);
     void OnRemindBtn(wxCommandEvent &event);
+    void Dismiss();
 
     void Init();
     void UpdateButtonStatus(int hover_idx = -1);
@@ -42,6 +42,7 @@ private:
     FilamentMapMode m_mode;
     bool m_connected{ false };
     wxTimer        *m_timer;
+    bool m_active{ false };
 
     std::vector<wxBitmapButton *> radio_btns;
     std::vector<Label *>   button_labels;

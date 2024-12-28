@@ -29,6 +29,7 @@ public:
         const std::vector<int> &filament_map,
         const std::vector<int> &filaments,
         const FilamentMapMode mode,
+        bool machine_synced,
         bool show_default=true
     );
 

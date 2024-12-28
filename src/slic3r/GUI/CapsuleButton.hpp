@@ -10,6 +10,7 @@ class CapsuleButton : public wxPanel
 public:
     CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &label, bool selected);
     void Select(bool selected);
+    bool IsSelected() const { return m_selected; }
 protected:
     void OnPaint(wxPaintEvent &event);
 private:

@@ -9,48 +9,35 @@
 
 namespace Slic3r { namespace GUI {
 
-static const StateColor btn_bg_green(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
-    );
+static const StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                     std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                     std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-static const StateColor btn_bd_green(
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
-    );
+static const StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-static const StateColor btn_text_green(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
+static const StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
 
-static const StateColor btn_bg_white(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
+static const StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                                     std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                                     std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
-static const StateColor btn_bd_white(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
+static const StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
 
-static const StateColor btn_text_white(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
+static const StateColor btn_text_white(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
 
 FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<std::string> &filament_color,
                                      const std::vector<int>         &filament_map,
                                      const std::vector<int>         &filaments,
                                      const FilamentMapMode           mode,
+                                     bool                            machine_synced,
                                      bool                            show_default)
-    : wxDialog(parent, wxID_ANY, _L("Filament arrangement method"), wxDefaultPosition, wxSize(2000, 1500))
-    , m_filament_color(filament_color)
-    , m_filament_map(filament_map)
+    : wxDialog(parent, wxID_ANY, _L("Filament arrangement method"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_map(filament_map)
 {
     SetBackgroundColour(*wxWHITE);
 
-    SetMinSize(wxSize(FromDIP(580), -1));
-    SetMaxSize(wxSize(FromDIP(580), -1));
+    SetMinSize(wxSize(FromDIP(550), -1));
+    SetMaxSize(wxSize(FromDIP(550), -1));
 
     if (mode < fmmManual)
         m_page_type = PageType::ptAuto;
@@ -82,9 +69,13 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     main_sizer->AddSpacer(FromDIP(24));
 
     auto            panel_sizer       = new wxBoxSizer(wxHORIZONTAL);
-    FilamentMapMode default_auto_mode = (mode < FilamentMapMode::fmmManual ? mode : FilamentMapMode::fmmAutoForFlush);
+
+    FilamentMapMode default_auto_mode = mode >= fmmManual ? fmmAutoForFlush :
+        mode == fmmAutoForMatch && !machine_synced ? fmmAutoForFlush :
+        mode;
+
     m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, filaments, filament_map);
-    m_auto_map_panel                  = new FilamentMapAutoPanel(this, default_auto_mode);
+    m_auto_map_panel                  = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);
     else
@@ -131,10 +122,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
 FilamentMapMode FilamentMapDialog::get_mode()
 {
-    if (m_page_type == PageType::ptAuto)
-        return m_auto_map_panel->GetMode();
-    if (m_page_type == PageType::ptManual)
-        return fmmManual;
+    if (m_page_type == PageType::ptAuto) return m_auto_map_panel->GetMode();
+    if (m_page_type == PageType::ptManual) return fmmManual;
     return fmmDefault;
 }
 
@@ -147,14 +136,13 @@ int FilamentMapDialog::ShowModal()
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
 {
     if (m_page_type == PageType::ptManual) {
-        std::vector<int> left_filaments = m_manual_map_panel->GetLeftFilaments();
+        std::vector<int> left_filaments  = m_manual_map_panel->GetLeftFilaments();
         std::vector<int> right_filaments = m_manual_map_panel->GetRightFilaments();
 
         for (int i = 0; i < m_filament_map.size(); ++i) {
             if (std::find(left_filaments.begin(), left_filaments.end(), i + 1) != left_filaments.end()) {
                 m_filament_map[i] = 1;
-            }
-            else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
+            } else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
                 m_filament_map[i] = 2;
             }
         }
@@ -167,48 +155,42 @@ void FilamentMapDialog::on_cancle(wxCommandEvent &event) { EndModal(wxID_CANCEL)
 
 void FilamentMapDialog::update_panel_status(PageType page)
 {
+    std::vector<CapsuleButton*>button_list = { m_default_btn,m_manual_btn,m_auto_btn };
+    for (auto p : button_list) {
+        if (p && p->IsSelected()) {
+            p->Select(false);
+        }
+    }
+    std::vector<wxPanel*>panel_list = { m_default_map_panel,m_manual_map_panel,m_auto_map_panel };
+    for (auto p : panel_list) {
+        if (p && p->IsShown()) {
+            p->Hide();
+        }
+    }
+
     if (page == PageType::ptDefault) {
         if (m_default_btn && m_default_map_panel) {
             m_default_btn->Select(true);
             m_default_map_panel->Show();
         }
-
-        m_manual_btn->Select(false);
-        m_manual_map_panel->Hide();
-
-        m_auto_btn->Select(false);
-        m_auto_map_panel->Hide();
     }
     if (page == PageType::ptManual) {
-        if (m_default_btn && m_default_map_panel) {
-            m_default_btn->Select(false);
-            m_default_map_panel->Hide();
-        }
         m_manual_btn->Select(true);
         m_manual_map_panel->Show();
-
-        m_auto_btn->Select(false);
-        m_auto_map_panel->Hide();
     }
     if (page == PageType::ptAuto) {
-        if (m_default_btn && m_default_map_panel) {
-            m_default_btn->Select(false);
-            m_default_map_panel->Hide();
-        }
-        m_manual_btn->Select(false);
-        m_manual_map_panel->Hide();
-
         m_auto_btn->Select(true);
         m_auto_map_panel->Show();
     }
+
     Layout();
     Fit();
 }
 
 void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)
 {
-    int      win_id = event.GetId();
-    m_page_type  = PageType(win_id);
+    int win_id  = event.GetId();
+    m_page_type = PageType(win_id);
 
     update_panel_status(m_page_type);
     event.Skip();
@@ -219,6 +201,5 @@ void FilamentMapDialog::set_modal_btn_labels(const wxString &ok_label, const wxS
     m_ok_btn->SetLabel(ok_label);
     m_cancel_btn->SetLabel(cancel_label);
 }
-
 
 }} // namespace Slic3r::GUI

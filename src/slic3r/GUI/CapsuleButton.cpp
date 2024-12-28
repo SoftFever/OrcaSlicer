@@ -4,6 +4,16 @@
 #include "Widgets/Label.hpp"
 
 namespace Slic3r { namespace GUI {
+
+static const wxColour BgNormalColor  = wxColour("#FFFFFF");
+static const wxColour BgSelectColor  = wxColour("#EBF9F0");
+
+static const wxColour TextNormalColor = wxColour("#000000");
+static const wxColour TextSelectColor = wxColour("#00AE42");
+
+static const wxColour BorderNormalColor   = wxColour("#CECECE");
+static const wxColour BorderSelectColor = wxColour("#00AE42");
+
 CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &label, bool selected) : wxPanel(parent, id)
 {
     SetBackgroundColour(*wxWHITE);
@@ -58,12 +68,12 @@ void CapsuleButton::OnPaint(wxPaintEvent &event)
         wxRect rect = GetClientRect();
         gc->SetBrush(wxTransparentColour);
         gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, 0);
-        wxColour bg_color     = m_selected ? wxColour("#EBF9F0") : wxColour("#FFFFFF");
-        wxColour border_color = m_hovered || m_selected ? wxColour("#00AE42") : wxColour("#CECECE");
+        wxColour bg_color     = m_selected ? BgSelectColor : BgNormalColor;
+        wxColour border_color = m_hovered || m_selected ? BorderSelectColor : BorderNormalColor;
         bg_color = StateColor::darkModeColorFor(bg_color);
         border_color = StateColor::darkModeColorFor(border_color);
         gc->SetBrush(wxBrush(bg_color));
-        gc->SetPen(wxPen(border_color, 2));
+        gc->SetPen(wxPen(border_color, 1));
         gc->DrawRoundedRectangle(1, 1, rect.width - 2, rect.height - 2, 5);
         delete gc;
     }
@@ -99,19 +109,20 @@ void CapsuleButton::OnLeaveWindow(wxMouseEvent &event)
 
 void CapsuleButton::UpdateStatus()
 {
-    wxColour selected_color = StateColor::darkModeColorFor(wxColour("#EBF9F0"));
-    wxColour normal_color   = StateColor::darkModeColorFor(wxColour("#FFFFFF"));
-
     std::string icon_name = m_selected ? "capsule_tag_on" : "capsule_tag_off";
     auto        bmp       = create_scaled_bitmap(icon_name, nullptr, FromDIP(16));
     m_btn->SetBitmap(bmp);
 
     if (m_selected) {
-        m_label->SetBackgroundColour(selected_color);
-        m_btn->SetBackgroundColour(selected_color);
+        m_label->SetForegroundColour(TextSelectColor);
+        m_label->SetBackgroundColour(BgSelectColor);
+        m_btn->SetBackgroundColour(BgSelectColor);
     } else {
-        m_label->SetBackgroundColour(normal_color);
-        m_btn->SetBackgroundColour(normal_color);
+        m_label->SetForegroundColour(TextNormalColor);
+        m_label->SetBackgroundColour(BgNormalColor);
+        m_btn->SetBackgroundColour(BgNormalColor);
     }
+
+    GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 }} // namespace Slic3r::GUI

@@ -1,5 +1,4 @@
 #include "FilamentGroupPopup.hpp"
-#include "FilamentMapDialog.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "wx/dcgraph.h"
@@ -264,10 +263,18 @@ void FilamentGroupPopup::tryPopup(bool connect_status)
     };
 
     if (canPopup()) {
-        m_connected = connect_status;
-        Init();
-        ResetTimer();
-        PopupWindow::Popup();
+        if (m_active) {
+            if (m_connected != connect_status) { Init(); }
+            m_connected = connect_status;
+            ResetTimer();
+        }
+        else {
+            m_connected = connect_status;
+            m_active = true;
+            Init();
+            ResetTimer();
+            PopupWindow::Popup();
+        }
     }
 }
 
@@ -310,6 +317,12 @@ void FilamentGroupPopup::OnRemindBtn(wxCommandEvent &event)
 }
 
 void FilamentGroupPopup::OnTimer(wxTimerEvent &event) { Dismiss(); }
+
+void FilamentGroupPopup::Dismiss() {
+    m_active = false;
+    PopupWindow::Dismiss();
+    m_timer->Stop();
+}
 
 void FilamentGroupPopup::OnLeaveWindow(wxMouseEvent &)
 {

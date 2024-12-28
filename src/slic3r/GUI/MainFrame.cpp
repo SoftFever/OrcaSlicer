@@ -1607,6 +1607,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     g_filament_map,
                     filament_lists,
                     FilamentMapMode::fmmManual,
+                    m_plater->get_machine_sync_status(),
                     false
                 );
                 auto ret = filament_dlg.ShowModal();
@@ -1635,10 +1636,9 @@ wxBoxSizer* MainFrame::create_side_tools()
         });
 
     m_slice_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) {
-        m_filament_group_popup->SetSize(wxSize(FromDIP(380),-1));
         wxPoint pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
         pos.y += m_slice_btn->GetRect().height * 1.25;
-        pos.x -= (m_slice_option_btn->GetRect().width + m_filament_group_popup->GetRect().width * 0.6);
+        pos.x -= (m_slice_option_btn->GetRect().width + FromDIP(380) * 0.6);
 
         m_filament_group_popup->SetPosition(pos);
         m_filament_group_popup->tryPopup(m_plater->get_machine_sync_status());

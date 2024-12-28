@@ -15379,6 +15379,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
         plate_filament_maps,
         curr_plate->get_extruders(true),
         display_mode,
+        this->get_machine_sync_status(),
         true
     );
 
