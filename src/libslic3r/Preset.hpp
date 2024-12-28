@@ -676,10 +676,11 @@ public:
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
-    std::vector<Preset *> get_visible() {
+    // gets all presets that are visible and compatible
+    std::vector<Preset *> get_compatible() {
         std::vector<Preset *> ret;
         for (auto& item : m_presets)
-            if (item.is_visible)
+            if (item.is_visible && item.is_compatible)
                 ret.emplace_back(&item);
         return ret;
     }

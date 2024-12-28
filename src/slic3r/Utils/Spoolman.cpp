@@ -307,7 +307,7 @@ void Spoolman::update_visible_spool_statistics(bool clear_cache)
     // Clear the cache so that it can be repopulated with the correct info
     if (clear_cache) get_instance()->clear();
     if (printers.get_edited_preset().spoolman_enabled() && is_server_valid()) {
-        for (auto item : filaments.get_visible()) {
+        for (auto item : filaments.get_compatible()) {
             if (item->is_user() && item->spoolman_enabled()) {
                 if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
@@ -328,7 +328,7 @@ void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>&
     spool_ids_set.erase(0);
 
     if (printers.get_edited_preset().spoolman_enabled() && is_server_valid()) {
-        for (auto item : filaments.get_visible()) {
+        for (auto item : filaments.get_compatible()) {
             if (item->is_user() && spool_ids_set.count(item->config.opt_int("spoolman_spool_id", 0)) > 0) {
                 if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
