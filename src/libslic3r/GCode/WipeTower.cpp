@@ -1905,7 +1905,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
             const float &xl = cleaning_box.ld.x();
             const float &xr = cleaning_box.rd.x();
 
-            Vec2f  start_pos         = m_nozzle_change_result.start_pos + Vec2f(0, m_perimeter_width);
+            Vec2f  start_pos         = m_nozzle_change_result.origin_start_pos + Vec2f(0, m_perimeter_width);
             bool   left_to_right     = true;
             double tpu_travel_length = 5;
             double e_flow            = extrusion_flow(0.2);
@@ -2051,6 +2051,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     writer.append("; Nozzle change end\n");
 
     result.start_pos = writer.start_pos_rotated();
+    result.origin_start_pos = initial_position;
     result.end_pos   = writer.pos();
     result.gcode     = writer.gcode();
     return result;

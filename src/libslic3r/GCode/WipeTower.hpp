@@ -42,8 +42,10 @@ public:
     {
         std::string gcode;
 
-        Vec2f start_pos;
+        Vec2f start_pos;  // rotated
         Vec2f end_pos;
+
+		Vec2f origin_start_pos;  // not rotated
 
         std::vector<Vec2f> wipe_path;
     };

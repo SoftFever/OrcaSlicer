@@ -584,31 +584,27 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
         std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
-        // add nozzle change gcode into change filament gcode
-        {
-            std::string nozzle_change_gcode_trans;
-            if (!tcr.nozzle_change_result.gcode.empty()) {
-                // move to start_pos before nozzle change
-                std::string start_pos_str;
-                start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
-                    "Move to nozzle change start pos");
-                check_add_eol(start_pos_str);
-                nozzle_change_gcode_trans += start_pos_str;
-                nozzle_change_gcode_trans += gcodegen.unretract();
-                nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
-                gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
-                gcodegen.m_wipe.reset_path();
-                for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
-                    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-                nozzle_change_gcode_trans += gcodegen.retract(true, false);
-            }
 
-            std::string prefix_gcode = lift_gcode_after_printing_object;
-            if (gcodegen.config().nozzle_diameter.size() > 1) {
-                prefix_gcode += nozzle_change_gcode_trans;
-            }
-            change_filament_gcode = prefix_gcode + change_filament_gcode;
+        // add nozzle change gcode into change filament gcode
+        std::string prefix_gcode = lift_gcode_after_printing_object;
+        std::string nozzle_change_gcode_trans;
+        if (!tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1)) {
+            // move to start_pos before nozzle change
+            std::string start_pos_str;
+            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
+                "Move to nozzle change start pos");
+            check_add_eol(start_pos_str);
+            nozzle_change_gcode_trans += start_pos_str;
+            nozzle_change_gcode_trans += gcodegen.unretract();
+            nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
+            gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
+            gcodegen.m_wipe.reset_path();
+            for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
+                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
+            nozzle_change_gcode_trans += gcodegen.retract(true, false);
+            prefix_gcode = nozzle_change_gcode_trans;
         }
+        change_filament_gcode = prefix_gcode + change_filament_gcode;
 
         if (! change_filament_gcode.empty()) {
             DynamicConfig config;
@@ -904,8 +900,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         else {
             // Prepare a future wipe.
             gcodegen.m_wipe.reset_path();
-            for (const Vec2f &wipe_pt : tcr.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt)));
+            for (const Vec2f& wipe_pt : tcr.wipe_path)
+                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
         }
 
         // Let the planner know we are traveling between objects.
