@@ -9495,6 +9495,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
     const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+    const double filament_max_volumetric_speed = full_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     auto line_width = (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
                             (nozzle_diameter * 1.125) :
                             print_config.get_abs_value("line_width", nozzle_diameter);
@@ -9576,6 +9577,12 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         size_t plate_idx = arranged_items[test_idx].bed_idx;
         auto tspd = flows[test_idx % flows.size()];
         auto tacc = accels[test_idx / flows.size()];
+
+        if (tspd > filament_max_volumetric_speed) {
+            auto fmt_str = boost::format(_L("Volumetric speed provided (%1% mm³/s) higher than max volumetric speed of filament (%2% mm³/s)" ).ToStdString()) % long(tspd) %long(filament_max_volumetric_speed);
+            const auto msg{_L("WARNING:").ToStdString() + "\n" + fmt_str.str()};
+            get_notification_manager()->push_notification(msg);
+        }
 
         /* make an own copy of anchor cube for each test */
         auto obj = test_idx == 0 ? cube : model().add_object(*cube);
