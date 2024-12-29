@@ -73,7 +73,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     wxString end_pa_str = _L("End PA: ");
     wxString PA_step_str = _L("PA step: ");
     wxString sp_accel_str = _L("Accelerations: ");
-    wxString sp_speed_str = _L("Speeds: ");
+    wxString sp_speed_str = _L("Volumetric speeds: ");
 	auto text_size = wxWindow::GetTextExtent(start_pa_str);
 	text_size.IncTo(wxWindow::GetTextExtent(end_pa_str));
 	text_size.IncTo(wxWindow::GetTextExtent(PA_step_str));
@@ -121,7 +121,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto sp_accel_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto sp_accel_text = new wxStaticText(this, wxID_ANY, sp_accel_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiBMAccels = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_PROCESS_ENTER);
-    m_tiBMAccels->SetToolTip(_L("Comma-separated list of printing accelerations"));
+    m_tiBMAccels->SetToolTip(_L("Comma-separated list of printing accelerations, mm/s²"));
     m_tiBMAccels->GetTextCtrl()->SetValidator(val_list_validator);
     sp_accel_sizer->Add(sp_accel_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     sp_accel_sizer->Add(m_tiBMAccels, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -130,7 +130,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto sp_speed_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto sp_speed_text = new wxStaticText(this, wxID_ANY, sp_speed_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiBMSpeeds = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_PROCESS_ENTER);
-    m_tiBMSpeeds->SetToolTip(_L("Comma-separated list of printing speeds"));
+    m_tiBMSpeeds->SetToolTip(_L("Comma-separated list of volumetric speeds, mm³/s"));
     m_tiBMSpeeds->GetTextCtrl()->SetValidator(val_list_validator);
     sp_speed_sizer->Add(sp_speed_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     sp_speed_sizer->Add(m_tiBMSpeeds, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
