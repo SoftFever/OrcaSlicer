@@ -9596,6 +9596,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
                                0};
         obj->instances[0]->set_offset(cur_plate->get_origin() + obj_offset + pa_pattern.handle_pos_offset());
         obj->ensure_on_bed();
+
+        if (obj_idx == 0)
+            sidebar().obj_list()->update_name_for_items();
+        else
+            sidebar().obj_list()->add_object_to_list(obj_idx);
     }
 
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
