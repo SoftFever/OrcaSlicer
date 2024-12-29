@@ -79,11 +79,11 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	text_size.IncTo(wxWindow::GetTextExtent(PA_step_str));
     text_size.IncTo(wxWindow::GetTextExtent(sp_accel_str));
     text_size.IncTo(wxWindow::GetTextExtent(sp_speed_str));
-	text_size.x = text_size.x * 1.5;
+    text_size.x = text_size.x * 1.1;
 	wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
 	auto st_size = FromDIP(wxSize(text_size.x, -1));
-	auto ti_size = FromDIP(wxSize(90, -1));
+    auto ti_size = FromDIP(wxSize(140, -1));
     // start PA
     auto start_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_pa_text = new wxStaticText(this, wxID_ANY, start_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
