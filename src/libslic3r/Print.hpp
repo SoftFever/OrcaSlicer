@@ -38,7 +38,6 @@ class SupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
-#define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_DIAMETER   4
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
@@ -401,7 +400,8 @@ public:
     // The slicing parameters are dependent on various configuration values
     // (layer height, first layer height, raft settings, print nozzle diameter etc).
     const SlicingParameters&    slicing_parameters() const { return m_slicing_params; }
-    static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z);
+    // Orca: XYZ shrinkage compensation has introduced the const Vec3d &object_shrinkage_compensation parameter to the function below
+    static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, const Vec3d &object_shrinkage_compensation);
 
     size_t                      num_printing_regions() const throw() { return m_shared_regions->all_regions.size(); }
     const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
@@ -981,6 +981,14 @@ public:
     bool is_all_objects_are_short() const {
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
+    
+    // Orca: Implement prusa's filament shrink compensation approach
+    // Returns if all used filaments have same shrinkage compensations.
+     bool has_same_shrinkage_compensations() const;
+    // Returns scaling for each axis representing shrinkage compensations in each axis.
+     Vec3d shrinkage_compensation() const;
+
+    std::tuple<float, float> object_skirt_offset(double margin_height = 0) const;
 
 protected:
     // Invalidates the step, and its depending steps in Print.

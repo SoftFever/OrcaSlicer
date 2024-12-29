@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <sstream>
+//#include "libslic3r/FlushVolCalc.hpp"
 #include "ObjColorDialog.hpp"
 #include "BitmapCache.hpp"
+#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -24,11 +27,13 @@ const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 370;
 const int COLOR_LABEL_WIDTH = 180;
-#define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
+
+#undef  ICON_SIZE
+#define ICON_SIZE                 wxSize(FromDIP(16), FromDIP(16))
 #define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(400)
 #define FIX_SCROLL_HEIGTH         FromDIP(400)
-#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
-#define BTN_GAP                 FromDIP(20)
+#define BTN_SIZE                  wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP                   FromDIP(20)
 
 static void update_ui(wxWindow* window)
 {
@@ -241,6 +246,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
     }
     //end first cluster
     //draw ui
+    auto sizer_width = FromDIP(300);
     // Create two switched panels with their own sizers
     m_sizer_simple          = new wxBoxSizer(wxVERTICAL);
     m_page_simple			= new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -670,6 +676,7 @@ void ObjColorPanel::draw_table()
     m_scrolledWindow->SetSizer(m_gridsizer);
     int totalHeight = row_height *(row+1) * 2;
     m_scrolledWindow->SetVirtualSize(MIN_OBJCOLOR_DIALOG_WIDTH, totalHeight);
+    auto look = FIX_SCROLL_HEIGTH;
     if (totalHeight > FIX_SCROLL_HEIGTH) {
         m_scrolledWindow->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));
         m_scrolledWindow->SetMaxSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));

@@ -2,6 +2,7 @@
 #include "libslic3r/NormalUtils.hpp"
 
 #include <unordered_map>
+#include <unordered_set>
 #include <random>
 #include <algorithm>
 

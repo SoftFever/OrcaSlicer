@@ -10,7 +10,7 @@
 // Serialization through the Cereal library
 #include <cereal/access.hpp>
 
-namespace Slic3r { 
+namespace Slic3r {
 
     namespace ClipperLib {
         class PolyNode;
@@ -466,6 +466,9 @@ public:
     Transform3d get_matrix_no_offset() const;
     Transform3d get_matrix_no_scaling_factor() const;
 
+    // Orca: Implement prusa's filament shrink compensation approach
+    Transform3d get_matrix_with_applied_shrinkage_compensation(const Vec3d &shrinkage_compensation) const;
+    
     void set_matrix(const Transform3d& transform) { m_matrix = transform; }
 
     Transformation operator * (const Transformation& other) const;
@@ -541,6 +544,7 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
     return is_rotation_ninety_degrees(rotation.x()) && is_rotation_ninety_degrees(rotation.y()) && is_rotation_ninety_degrees(rotation.z());
 }
 
+Transformation mat_around_a_point_rotate(const Transformation& innMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian);
 } } // namespace Slicer::Geometry
 
 #endif

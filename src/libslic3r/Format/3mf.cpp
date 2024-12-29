@@ -298,6 +298,7 @@ bool PrusaFileParser::check_3mf_from_prusa(const std::string filename)
         const std::string model_file       = "3D/3dmodel.model";
         int               model_file_index = mz_zip_reader_locate_file(&archive, model_file.c_str(), nullptr, 0);
         if (model_file_index != -1) {
+            int depth = 0;
             m_parser  = XML_ParserCreate(nullptr);
             XML_SetUserData(m_parser, (void *) this);
             XML_SetElementHandler(m_parser, start_element_handler, nullptr);

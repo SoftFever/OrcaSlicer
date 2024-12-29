@@ -301,6 +301,7 @@ public:
             memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
+            int text_width = memDC.GetTextExtent(text).GetWidth();
             wxRect text_rect(wxPoint(0, m_action_line_y_position), wxPoint(width, m_action_line_y_position + text_height));
             memDC.DrawLabel(text, text_rect, wxALIGN_CENTER);
 
@@ -962,7 +963,7 @@ void GUI_App::post_init()
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
     if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
         CallAfter([this] {
-            this->config_wizard_startup();
+            bool cw_showed = this->config_wizard_startup();
 
             std::string http_url = get_http_url(app_config->get_country_code());
             std::string language = GUI::into_u8(current_language_code());
@@ -1025,7 +1026,8 @@ void GUI_App::post_init()
                try {
                    std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
                    files_vec.push_back({ lw_t, temp_path.filename().string() });
-               } catch (std::exception&) {}
+               } catch (const std::exception &) {
+               }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
                std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
@@ -1315,6 +1317,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
             bool cancel = false;
+            int percent = 0;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
             file.write(body.c_str(), body.size());
             file.close();
@@ -1905,32 +1908,44 @@ void GUI_App::init_app_config()
 	// Mac : "~/Library/Application Support/Slic3r"
 
     if (data_dir().empty()) {
-        boost::filesystem::path data_dir_path;
-        #ifndef __linux__
-            std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-            //BBS create folder if not exists
-            data_dir_path = boost::filesystem::path(data_dir);
-            set_data_dir(data_dir);
-        #else
-            // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
-            // https://github.com/prusa3d/PrusaSlicer/issues/2911
-            wxString dir;
-            if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
-                dir = wxFileName::GetHomeDir() + wxS("/.config");
-            set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
-            data_dir_path = boost::filesystem::path(data_dir());
-        #endif
-        if (!boost::filesystem::exists(data_dir_path)){
-            boost::filesystem::create_directory(data_dir_path);
+        // Orca: check if data_dir folder exists in application folder use it if it exists
+        // Note:wxStandardPaths::Get().GetExecutablePath() return following paths
+        // Unix: /usr/local/bin/exename
+        // Windows: "C:\Programs\AppFolder\exename.exe"
+        // Mac: /Applications/exename.app/Contents/MacOS/exename
+        // TODO: have no idea what to do with Linux bundles
+        auto _app_folder = boost::filesystem::path(wxStandardPaths::Get().GetExecutablePath().ToUTF8().data()).parent_path();
+#ifdef __APPLE__
+        // On macOS, the executable is inside the .app bundle.
+        _app_folder = _app_folder.parent_path().parent_path().parent_path();
+#endif
+        boost::filesystem::path app_data_dir_path = _app_folder / "data_dir";
+        if (boost::filesystem::exists(app_data_dir_path)) {
+            set_data_dir(app_data_dir_path.string());
+        }
+        else{
+            boost::filesystem::path data_dir_path;
+            #ifndef __linux__
+                std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+                //BBS create folder if not exists
+                data_dir_path = boost::filesystem::path(data_dir);
+                set_data_dir(data_dir);
+            #else
+                // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
+                // https://github.com/prusa3d/PrusaSlicer/issues/2911
+                wxString dir;
+                if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
+                    dir = wxFileName::GetHomeDir() + wxS("/.config");
+                set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
+                data_dir_path = boost::filesystem::path(data_dir());
+            #endif
+            if (!boost::filesystem::exists(data_dir_path)){
+                boost::filesystem::create_directory(data_dir_path);
+            }
         }
 
-        // Change current directory of application
-        auto path = encode_path((Slic3r::data_dir() + "/log").c_str());
-#ifdef _WIN32
-        _chdir(path.c_str());
-#else
-        chdir(path.c_str());
-#endif
+        // Change current dirtory of application
+        chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }
@@ -3367,7 +3382,7 @@ if (res) {
             mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
-    } catch (std::exception&) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3381,7 +3396,9 @@ void GUI_App::ShowDownNetPluginDlg() {
             return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
-    } catch (std::exception&) {}
+    } catch (std::exception &) {
+        ;
+    }
 }
 
 void GUI_App::ShowUserLogin(bool show)
@@ -3396,7 +3413,9 @@ void GUI_App::ShowUserLogin(bool show)
                 login_dlg = new ZUserLogin();
             }
             login_dlg->ShowModal();
-        } catch (std::exception&) {}
+        } catch (std::exception &) {
+            ;
+        }
     } else {
         if (login_dlg)
             login_dlg->EndModal(wxID_OK);
@@ -3416,7 +3435,7 @@ void GUI_App::ShowOnlyFilament() {
 
             // BBS: remove SLA related message
         }
-    } catch (std::exception&) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3670,7 +3689,7 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
-            _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
+            _L("You can keep the modified presets to the new project, discard or save changes as new presets.");
         wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ActionButtons::KEEP | ActionButtons::SAVE, &transfer_preset_changes);
 
         m_device_manager->clean_user_info();
@@ -3828,10 +3847,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     auto keyCode = key_event_node.get<int>("key");
                     auto ctrlKey = key_event_node.get<bool>("ctrl");
                     auto shiftKey = key_event_node.get<bool>("shift");
+                    auto cmdKey = key_event_node.get<bool>("cmd");
 
                     wxKeyEvent e(wxEVT_CHAR_HOOK);
 #ifdef __APPLE__
-                    auto cmdKey = key_event_node.get<bool>("cmd");
                     e.SetControlDown(cmdKey);
                     e.SetRawControlDown(ctrlKey);
 #else
@@ -4261,7 +4280,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                         best_pre         = tag_version;
                         best_pre_url     = root.get<std::string>("html_url");
                         best_pre_content = root.get<std::string>("body");
-                        best_pre.set_prerelease("Preview");
                     }
                 } else {
                     if (best_release < tag_version) {
@@ -4283,7 +4301,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                             best_pre         = tag_version;
                             best_pre_url     = json_version.second.get<std::string>("html_url");
                             best_pre_content = json_version.second.get<std::string>("body");
-                            best_pre.set_prerelease("Preview");
                         }
                     } else {
                         if (best_release < tag_version) {
@@ -4786,6 +4803,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                     plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
                             });
                         }
+
+                        unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
                         std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
@@ -5470,7 +5489,7 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 
 void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
 {
-    // bool app_layout_changed = false;
+    bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor
@@ -5626,7 +5645,8 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
         bool is_called_from_configwizard = postponed_apply_of_keeped_changes != nullptr;
 
         UnsavedChangesDialog dlg(caption, header, "", action_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        bool no_need_change = dlg.getUpdateItemCount() == 0 ? true : false;
+        if (!no_need_change && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         auto reset_modifications = [this, is_called_from_configwizard]() {
@@ -5641,7 +5661,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             load_current_presets(false);
         };
 
-        if (dlg.discard())
+        if (dlg.discard() || no_need_change)
             reset_modifications();
         else  // save selected changes
         {

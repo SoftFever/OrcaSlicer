@@ -435,8 +435,11 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     text_size.x = text_size.x * 1.5;
     wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
+    wxString input_str = _L("mm³/s");
+    auto input_text_size = wxWindow::GetTextExtent(input_str);
+
     auto st_size = FromDIP(wxSize(text_size.x, -1));
-    auto ti_size = FromDIP(wxSize(90, -1));
+    auto ti_size = FromDIP(wxSize(input_text_size.x + 90, -1));
     // start vol
     auto start_vol_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_vol_text = new wxStaticText(this, wxID_ANY, start_vol_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
@@ -540,8 +543,11 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     text_size.x = text_size.x * 1.5;
     wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
+    wxString input_str = _L("mm/s");
+    auto input_text_size = wxWindow::GetTextExtent(input_str);
+
     auto st_size = FromDIP(wxSize(text_size.x, -1));
-    auto ti_size = FromDIP(wxSize(90, -1));
+    auto ti_size = FromDIP(wxSize(input_text_size.x + 90, -1));
     // start vol
     auto start_vol_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_vol_text = new wxStaticText(this, wxID_ANY, start_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
@@ -646,8 +652,11 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     text_size.x = text_size.x * 1.5;
     wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
+    wxString input_text_str = _L("mm/mm");
+    auto input_text_size = wxWindow::GetTextExtent(input_text_str);
+
     auto st_size = FromDIP(wxSize(text_size.x, -1));
-    auto ti_size = FromDIP(wxSize(90, -1));
+    auto ti_size = FromDIP(wxSize(input_text_size.x + 90, -1));
     // start length
     auto start_length_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_length_text = new wxStaticText(this, wxID_ANY, start_length_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
@@ -670,7 +679,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     // length step
     auto length_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto length_step_text = new wxStaticText(this, wxID_ANY, length_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStep = new TextInput(this, wxString::FromDouble(0.1), _L("mm/mm"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiStep = new TextInput(this, wxString::FromDouble(0.1), _L("mm/mm"), "", wxDefaultPosition, ti_size, wxTE_RIGHT);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     length_step_sizer->Add(length_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     length_step_sizer->Add(m_tiStep, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);

@@ -114,7 +114,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
+    Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
 
@@ -160,7 +160,7 @@ MonitorPanel::~MonitorPanel()
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(REFRESH_INTERVAL);
-    on_timer();
+    wxPostEvent(this, wxTimerEvent());
 
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -272,7 +272,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     }
 }
 
-void MonitorPanel::on_timer()
+ void MonitorPanel::on_timer(wxTimerEvent& event)
 {
      if (update_flag) {
          update_all();
@@ -306,6 +306,9 @@ void MonitorPanel::on_timer()
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 {
+    auto mouse_pos = ClientToScreen(event.GetPosition());
+    wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
+
     if (!m_side_tools->is_in_interval()) {
         wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
@@ -431,6 +434,7 @@ bool MonitorPanel::Show(bool show)
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
 
+    NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         start_update();
@@ -438,7 +442,7 @@ bool MonitorPanel::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
-        on_timer();
+        wxPostEvent(this, wxTimerEvent());
 
         if (dev) {
             //set a default machine when obj is null
@@ -481,6 +485,7 @@ void MonitorPanel::show_status(int status)
     if (!m_initialized) return;
     if (last_status == status)return;
     if ((last_status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
+        NetworkAgent* agent = wxGetApp().getAgent();
         json j;
         j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
         if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) {

@@ -1,17 +1,27 @@
 #include "WebDownPluginDlg.hpp"
+#include "ConfigWizard.hpp"
+
+#include <string.h>
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "libslic3r_version.h"
 
 #include <wx/sizer.h>
+#include <wx/toolbar.h>
 #include <wx/textdlg.h>
+
 #include <wx/wx.h>
 #include <wx/fileconf.h>
+#include <wx/file.h>
 #include <wx/wfstream.h>
 
 #include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "MainFrame.hpp"
+#include <boost/dll.hpp>
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/Utils/Http.hpp>
 #include <libslic3r/miniz_extension.hpp>
@@ -217,7 +227,7 @@ void DownPluginFrame::OnScriptMessage(wxWebViewEvent &evt)
             auto plugin_folder = (boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins").make_preferred().string();
             desktop_open_any_folder(plugin_folder);
         }
-    } catch (std::exception&) {
+    } catch (std::exception &) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }

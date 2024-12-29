@@ -161,7 +161,9 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = COL_BUTTON_HOVERED;
 
 //BBS
-
+const ImVec4 ImGuiWrapper::COL_RED               = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+const ImVec4 ImGuiWrapper::COL_GREEN             = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+const ImVec4 ImGuiWrapper::COL_BLUE              = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255.f, 0.25f }; // ORCA used on various places like text selection bg. Replaced with orca color
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
@@ -182,6 +184,8 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
+    bool compression_enabled = false;
+
     NSVGimage *image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
     if (image == nullptr) { return false; }
 
@@ -234,6 +238,7 @@ bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, Th
 bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const ImS32 v_max, ImS32* out_value, ImRect* out_handle, ImGuiSliderFlags flags/* = 0*/, const int fixed_value/* = -1*/, const ImVec4& fixed_rect/* = ImRect()*/)
 {
     ImGuiContext& context = *GImGui;
+    ImGuiIO& io = ImGui::GetIO();
 
     const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
 
@@ -853,6 +858,10 @@ bool ImGuiWrapper::radio_button(const wxString &label, bool active)
     return ImGui::RadioButton(label_utf8.c_str(), active);
 }
 
+ImVec4 ImGuiWrapper::to_ImVec4(const ColorRGB &color) {
+    return {color.r(), color.g(), color.b(), 1.0};
+}
+
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
 {
     return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
@@ -938,6 +947,19 @@ void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
     ImGuiWrapper::text(label_utf8.c_str());
+}
+
+void ImGuiWrapper::warning_text(const char *label)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
+    this->text(label);
+    ImGui::PopStyleColor();
+}
+
+void ImGuiWrapper::warning_text(const wxString &all_text)
+{
+    auto label_utf8 = into_u8(all_text);
+    warning_text(label_utf8.c_str());
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
@@ -1790,7 +1812,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     ImGui::ListBoxFooter();
 
-    /*auto check_box = [&edited, this](const wxString& label, bool& check) {
+    auto check_box = [&edited, this](const wxString& label, bool& check) {
         ImGui::SameLine();
         bool ch = check;
         checkbox(label, ch);
@@ -1798,7 +1820,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
             check = !check;
             edited = true;
         }
-    };*/
+    };
 
     ImGui::AlignTextToFramePadding();
 
@@ -3146,6 +3168,7 @@ bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
 
+    bool compress = false;
     GLint last_texture;
     unsigned m_image_texture{ 0 };
     unsigned char* pixels = (unsigned char*)(&data[0]);

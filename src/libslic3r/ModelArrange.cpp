@@ -167,6 +167,7 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     auto support_type_ptr = obj->get_config_value<ConfigOptionEnum<SupportType>>(config, "support_type");
     auto support_type = support_type_ptr->value;
     auto enable_support = supp_type_ptr->getBool();
+    int support_int = support_type_ptr->getInt();
 
     if (enable_support && (support_type == stNormalAuto || support_type == stNormal))
         ap.brim_width = 6.0;

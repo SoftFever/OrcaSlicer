@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "filament_id": "GFB98",
+    "setting_id": "GFSA04",
+    "name": "Elegoo ASA @Elegoo Giga",
+    "inherits": "Elegoo Generic ASA",
+    "from": "system",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "30"
+    ],
+    "nozzle_temperature": [
+        "270"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270"
+    ],
+    "compatible_printers": [
+        "Elegoo OrangeStorm Giga 0.4 nozzle",
+        "Elegoo OrangeStorm Giga 0.6 nozzle",
+        "Elegoo OrangeStorm Giga 0.8 nozzle",
+        "Elegoo OrangeStorm Giga 1.0 nozzle"
+    ]
+}
+  

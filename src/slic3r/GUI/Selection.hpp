@@ -230,6 +230,7 @@ public:
     void remove_curr_plate();
     void clone(int numbers = 1);
     void center();
+    void drop();
     void center_plate(const int plate_idx);
     void set_printable(bool printable);
 
@@ -343,6 +344,10 @@ public:
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
+    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement);
+
+    void rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran);
+    void rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran);
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS

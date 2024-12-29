@@ -47,7 +47,6 @@ static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const float DEFAULT_FILAMENT_COST = 29.99f;
-static const float DEFAULT_FILAMENT_FLOW_RATIOS = 1.0f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
@@ -99,6 +98,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
+//Orca: External device purge tag
+const std::string GCodeProcessor::External_Purge_Tag = " EXTERNAL_PURGE";
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -392,8 +393,10 @@ void GCodeProcessor::TimeProcessor::reset()
     extruder_unloaded = true;
     machine_envelope_processing_enabled = false;
     machine_limits = MachineEnvelopeConfig();
-    filament_load_times = std::vector<float>();
-    filament_unload_times = std::vector<float>();
+    filament_load_times = 0.0f;
+    filament_unload_times = 0.0f;
+    machine_tool_change_time = 0.0f;
+
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         machines[i].reset();
@@ -953,7 +956,6 @@ void GCodeProcessorResult::reset() {
     required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     filament_costs = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_COST);
-    filament_flow_ratios = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_FLOW_RATIOS);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     bed_match_result = BedMatchResult(true);
@@ -1076,7 +1078,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_result.filament_costs.resize(extruders_count);
-    m_result.filament_flow_ratios.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
     m_extruder_temps_config.resize(extruders_count);
     m_extruder_temps_first_layer_config.resize(extruders_count);
@@ -1096,7 +1097,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
         m_result.filament_costs[i]      = static_cast<float>(config.filament_cost.get_at(i));
-        m_result.filament_flow_ratios[i]  = static_cast<float>(config.filament_flow_ratio.get_at(i));
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
@@ -1115,23 +1115,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
-    if(s_IsBBLPrinter){
-        // BBL printers use machine_load_filament_time and machine_unload_filament_time
-        m_time_processor.filament_load_times.resize(1);
-        m_time_processor.filament_load_times[0] = static_cast<float>(config.machine_load_filament_time.value);
-        m_time_processor.filament_unload_times.resize(1);
-        m_time_processor.filament_unload_times[0] = static_cast<float>(config.machine_unload_filament_time.value);
-    } else {
-        // for non-BBL printers use the filament_load_time and filament_unload_time
-        m_time_processor.filament_load_times.resize(config.filament_load_time.values.size());
-        for (size_t i = 0; i < config.filament_load_time.values.size(); ++i) {
-            m_time_processor.filament_load_times[i] = static_cast<float>(config.filament_load_time.values[i]);
-        }
-        m_time_processor.filament_unload_times.resize(config.filament_unload_time.values.size());
-        for (size_t i = 0; i < config.filament_unload_time.values.size(); ++i) {
-            m_time_processor.filament_unload_times[i] = static_cast<float>(config.filament_unload_time.values[i]);
-        }
-    }
+    m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
+    m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
+    m_time_processor.machine_tool_change_time = static_cast<float>(config.machine_tool_change_time.value);
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
@@ -1274,15 +1260,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_result.filament_costs.emplace_back(DEFAULT_FILAMENT_COST);
     }
 
-    // Orca: filament flow ratio
-    const ConfigOptionFloats* filament_flow_ratios = config.option<ConfigOptionFloats>("filament_flow_ratio");
-    if (filament_flow_ratios != nullptr) {
-        m_result.filament_flow_ratios.clear();
-        m_result.filament_flow_ratios.resize(filament_flow_ratios->values.size());
-        for (size_t i = 0; i < filament_flow_ratios->values.size(); ++i)
-            m_result.filament_flow_ratios[i]=static_cast<float>(filament_flow_ratios->values[i]);
-    }
-
     //BBS
     const ConfigOptionInts* filament_vitrification_temperature = config.option<ConfigOptionInts>("temperature_vitrification");
     if (filament_vitrification_temperature != nullptr) {
@@ -1352,36 +1329,18 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     m_extruder_temps.resize(m_result.extruders_count);
 
-    if(s_IsBBLPrinter){
-        // BBL printers use machine_load_filament_time and machine_unload_filament_time
-        const ConfigOptionFloat* machine_load_filament_time = config.option<ConfigOptionFloat>("machine_load_filament_time");
-        if (machine_load_filament_time != nullptr){
-            m_time_processor.filament_load_times.resize(1);
-            m_time_processor.filament_load_times[0] = static_cast<float>(machine_load_filament_time->value);
-        }
+    const ConfigOptionFloat* machine_load_filament_time = config.option<ConfigOptionFloat>("machine_load_filament_time");
+    if (machine_load_filament_time != nullptr)
+        m_time_processor.filament_load_times = static_cast<float>(machine_load_filament_time->value);
 
-        const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
-        if (machine_unload_filament_time != nullptr){
-            m_time_processor.filament_unload_times.resize(1);
-            m_time_processor.filament_unload_times[0] = static_cast<float>(machine_unload_filament_time->value);
-        }
-    } else {
-        // non-BBL printers use filament_load_time and filament_unload_time
-        const ConfigOptionFloats* filament_load_time = config.option<ConfigOptionFloats>("filament_load_time");
-        if (filament_load_time != nullptr) {
-            m_time_processor.filament_load_times.resize(filament_load_time->values.size());
-            for (size_t i = 0; i < filament_load_time->values.size(); ++i) {
-                m_time_processor.filament_load_times[i] = static_cast<float>(filament_load_time->values[i]);
-            }
-        }
-        const ConfigOptionFloats* filament_unload_time = config.option<ConfigOptionFloats>("filament_unload_time");
-        if (filament_unload_time != nullptr) {
-            m_time_processor.filament_unload_times.resize(filament_unload_time->values.size());
-            for (size_t i = 0; i < filament_unload_time->values.size(); ++i) {
-                m_time_processor.filament_unload_times[i] = static_cast<float>(filament_unload_time->values[i]);
-            }
-        }
-    }
+    const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
+    if (machine_unload_filament_time != nullptr)
+        m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
+
+    const ConfigOptionFloat* machine_tool_change_time = config.option<ConfigOptionFloat>("machine_tool_change_time");
+    if (machine_tool_change_time != nullptr)
+        m_time_processor.machine_tool_change_time = static_cast<float>(machine_tool_change_time->value);
+
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
@@ -2332,6 +2291,24 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         m_flushing = false;
         return;
     }
+    
+    // Orca: Integrate filament consumption for purging performed to an external device and controlled via macros
+    // (eg. Happy Hare) in the filament consumption stats.
+    if (boost::starts_with(comment, GCodeProcessor::External_Purge_Tag)) {
+        std::regex numberRegex(R"(\d+\.\d+)");
+        std::smatch match;
+        std::string line(comment);
+        if (std::regex_search(line, match, numberRegex)) {
+            float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ?  m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
+            float filament_radius = 0.5f * filament_diameter;
+            float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
+            
+            float dE = std::stof(match.str());
+            float volume_extruded_filament = area_filament_cross_section * dE;
+            m_used_filaments.update_flush_per_filament(m_extruder_id, volume_extruded_filament);
+        }
+        return;
+    }
 
     if (!producers_enabled || m_producer == EProducer::OrcaSlicer) {
         // height tag
@@ -2960,7 +2937,6 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::optional<unsigned int>& remaining_internal_g1_lines)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
-    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
@@ -3038,7 +3014,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         // volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
+        m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -3389,7 +3365,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
-    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
@@ -3481,6 +3456,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         arc_length = ((int)line.p()) * 2 * PI * (start_point - m_arc_center).norm();
     //BBS: Attention! arc_onterpolation does not support P mode while P is not 1.
     arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float radian = ArcSegment::calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f start_dir = Circle::calc_tangential_vector(start_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f end_dir = Circle::calc_tangential_vector(end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
 
@@ -3517,7 +3493,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         //BBS: volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
+        m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -4373,6 +4349,7 @@ void GCodeProcessor::process_T(const std::string_view command)
                     float extra_time = get_filament_unload_time(static_cast<size_t>(m_last_extruder_id));
                     m_time_processor.extruder_unloaded = false;
                     extra_time += get_filament_load_time(static_cast<size_t>(m_extruder_id));
+                    extra_time += m_time_processor.machine_tool_change_time;
                     simulate_st_synchronize(extra_time);
                 }
 
@@ -5277,32 +5254,14 @@ void GCodeProcessor::set_travel_acceleration(PrintEstimatedStatistics::ETimeMode
 
 float GCodeProcessor::get_filament_load_time(size_t extruder_id)
 {
-    if (s_IsBBLPrinter) {
-        // BBL printers
-        // BBS: change load time to machine config and all extruder has same value
-        return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_load_times[0];
-    } else {
-        // non-BBL printers
-        return (m_time_processor.filament_load_times.empty() || m_time_processor.extruder_unloaded) ?
-                   0.0f :
-                   ((extruder_id < m_time_processor.filament_load_times.size()) ? m_time_processor.filament_load_times[extruder_id] :
-                                                                                  m_time_processor.filament_load_times.front());
-    }
+    //BBS: change load time to machine config and all extruder has same value
+    return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_load_times;
 }
 
 float GCodeProcessor::get_filament_unload_time(size_t extruder_id)
 {
-    if (s_IsBBLPrinter) {
-        // BBL printers
-        // BBS: change unload time to machine config and all extruder has same value
-        return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times[0];
-    } else {
-        // non-BBL printers
-        return (m_time_processor.filament_unload_times.empty() || m_time_processor.extruder_unloaded) ?
-                   0.0f :
-                   ((extruder_id < m_time_processor.filament_unload_times.size()) ? m_time_processor.filament_unload_times[extruder_id] :
-                                                                                    m_time_processor.filament_unload_times.front());
-    }
+    //BBS: change unload time to machine config and all extruder has same value
+    return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times;
 }
 
 //BBS

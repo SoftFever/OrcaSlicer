@@ -216,6 +216,9 @@ class GLCanvas3D
         };
 
         static const float THICKNESS_BAR_WIDTH;
+        
+        // Orca: Shrinkage compensation
+        void set_shrinkage_compensation(const Vec3d &shrinkage_compensation) { m_shrinkage_compensation = shrinkage_compensation; };
 
     private:
         bool                        m_enabled{ false };
@@ -229,6 +232,9 @@ class GLCanvas3D
         // Owned by LayersEditing.
         SlicingParameters* m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
+        
+        // Orca: Shrinkage compensation to apply when we need to use object_max_z with Z compensation.
+        Vec3d                       m_shrinkage_compensation{ Vec3d::Ones() };
 
         mutable float               m_adaptive_quality{ 0.5f };
         mutable HeightProfileSmoothingParams m_smooth_params;
@@ -737,6 +743,7 @@ public:
         m_scene_raycaster.set_gizmos_on_top(value);
     }
 
+    float get_explosion_ratio() { return m_explosion_ratio; }
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
@@ -978,6 +985,7 @@ public:
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_center();
+    void do_drop();
     void do_center_plate(const int plate_idx);
     void do_mirror(const std::string& snapshot_type);
 

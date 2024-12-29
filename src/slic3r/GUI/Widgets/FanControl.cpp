@@ -112,7 +112,7 @@ void Fan::render(wxDC& dc)
 
 void Fan::doRender(wxDC& dc)
 {
-    // auto rpm = wxT("rpm");
+    auto rpm = wxT("rpm");
 
     wxSize size = GetSize();
     dc.DrawBitmap(m_bitmap_bk.bmp(), wxPoint(0,0));

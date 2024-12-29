@@ -768,9 +768,11 @@ bool ImGui::BBLButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFl
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
+    bool b_hover = false;
     if (hovered)
     {
         PushStyleColor(ImGuiCol_Text,GetColorU32(ImGuiCol_CheckMark));
+        b_hover = true;
     }
 
     // Render
@@ -2132,7 +2134,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     bool hovered, held;
     bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held);
 
-    bool push_color_count = 0;
+    int push_color_count = 0;
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
         push_color_count = 1;
@@ -2166,7 +2168,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
         OpenPopupEx(popup_id, ImGuiPopupFlags_None);
         popup_open = true;
     }
-     if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
+    if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
     if (!popup_open) return false;
 
     if (has_window_size_constraint) {
@@ -4165,8 +4167,10 @@ bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_d
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
     // Tabbing or CTRL-clicking on Drag turns it into an InputText
     const bool hovered = ItemHoverable(frame_bb, id);
+    // We are only allowed to access the state if we are already the active widget.
+    ImGuiInputTextState *state = GetInputTextState(id);
 
-    bool push_color_count = 0;
+    int push_color_count = 0;
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
         push_color_count = 1;
@@ -6294,9 +6298,9 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
             RenderFrameBorder(bb.Min, bb.Max, rounding);
         else
         #ifdef __APPLE__
-           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,0,4.0f);; // Color button are often in need of some sort of border
+           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,4.0f);; // Color button are often in need of some sort of border
         #else
-            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,0,3.0f); // Color button are often in need of some sort of border
+            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,3.0f); // Color button are often in need of some sort of border
         #endif
     }
 
@@ -7093,6 +7097,7 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
 
     // Text stays at the submission position, but bounding box may be extended on both sides
     const float  arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+    const ImVec2 text_min = ImVec2(pos.x + arrow_size, pos.y);
     const ImVec2 text_max(min_x + size.x, pos.y + size.y);
 
     // Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
@@ -7204,6 +7209,7 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
     if (flags & ImGuiSelectableFlags_Disabled) PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
 
     // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
     ImVec2 p_min = bb.Min + ImVec2(style.ItemInnerSpacing.x, (bb.Max.y - bb.Min.y - font_size.y) / 2);
     ImVec2 p_max = p_min + font_size;
     window->DrawList->AddImage(user_texture_id, p_min, p_max, uv0, uv1, selected || (held && hovered) ? GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)) : GetColorU32(tint_col));

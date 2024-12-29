@@ -291,6 +291,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     });
 
     m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        auto        buf = m_button_pause_resume->GetClientData();
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
             m_button_pause_resume->SetBitmap_("print_control_pause");
         }
@@ -2527,7 +2528,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
+    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {
@@ -2591,6 +2592,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
+    bool is_support_filament_backup = obj->is_support_filament_backup;
     AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (obj) {
@@ -2661,6 +2663,9 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+    bool is_vt_tray = false;
+    if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID))
+        is_vt_tray = true;
 
     // set segment 1, 2
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
@@ -4841,7 +4846,7 @@ wxBoxSizer *ScoreDialog::get_photo_btn_sizer() {
                 it = m_selected_image_list.erase(it);
             }
             m_image_url_paths.clear();
-            for (const std::pair<wxStaticBitmap *, ImageMsg> &bitmap : m_image) {
+            for (const auto& bitmap : m_image) {
                 if (bitmap.second.is_uploaded) {
                     if (!bitmap.second.img_url_paths.empty()) {
                         m_image_url_paths.push_back(bitmap.second.img_url_paths);
@@ -4902,7 +4907,8 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
             if (m_upload_status_code == StatusCode::UPLOAD_PROGRESS) {
                 int             need_upload_nums   = need_upload_images.size();
                 int             upload_nums        = 0;
-                ProgressDialog *progress_dialog    = new ProgressDialog(_L("Upload Pictrues"), _L("Number of images successfully uploaded") + ": " + std::to_string(upload_nums) + "/" + std::to_string(need_upload_nums), need_upload_nums, this);
+                int             upload_failed_nums = 0;
+                ProgressDialog *progress_dialog    = new ProgressDialog(_L("Upload Pictures"), _L("Number of images successfully uploaded") + ": " + std::to_string(upload_nums) + "/" + std::to_string(need_upload_nums), need_upload_nums, this);
                 for (std::set<std::pair<wxStaticBitmap *, wxString>>::iterator it = need_upload_images.begin(); it != need_upload_images.end();) {
                     std::pair<wxStaticBitmap *, wxString> need_upload     = *it;
                     std::string need_upload_uf8 = into_u8(need_upload.second);

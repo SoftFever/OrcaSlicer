@@ -151,8 +151,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     params_base.mode_below     = params_base.mode;
 
     // BBS
-    // const size_t num_extruders = print_config.filament_diameter.size();
-    // const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
+    const size_t num_extruders = print_config.filament_diameter.size();
+    const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
     // BBS: don't do size compensation when slice volume.
     // Will handle contour and hole size compensation seperately later.
     //const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
@@ -336,8 +336,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 };
 
                 // BBS
-                // Orca: unused
-/*                 auto trim_overlap = [](ExPolygons& expolys_a, ExPolygons& expolys_b) {
+                auto trim_overlap = [](ExPolygons& expolys_a, ExPolygons& expolys_b) {
                     ExPolygons trimming_a;
                     ExPolygons trimming_b;
 
@@ -362,7 +361,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 
                     expolys_a = diff_ex(expolys_a, trimming_a);
                     expolys_b = diff_ex(expolys_b, trimming_b);
-                }; */
+                };
 
                 std::vector<RegionSlice> temp_slices;
                 for (size_t zs_complex_idx = range.begin(); zs_complex_idx < range.end(); ++ zs_complex_idx) {
@@ -448,22 +447,6 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     throw_on_cancel_callback();
                 }
             });
-    }
-
-    // SoftFever: ported from SuperSlicer
-    // filament shrink
-    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
-        if (pr.get()) {
-            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
-            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
-            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygons& polys : region_polys)
-                    for (ExPolygon& poly : polys)
-                        poly.scale(scale);
-            }
-        }
     }
 
     return slices_by_region;
@@ -1052,6 +1035,8 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    this->apply_conical_overhang();
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1071,7 +1056,6 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    this->apply_conical_overhang();
     m_print->throw_if_canceled();
 
     InterlockingGenerator::generate_interlocking_structure(this);
@@ -1275,14 +1259,15 @@ void PrintObject::apply_conical_overhang() {
         auto upper_poly = upper_layer->merged(float(SCALED_EPSILON));
         upper_poly = union_ex(upper_poly);
 
+        // Merge layer for the same reason
+        auto current_poly = layer->merged(float(SCALED_EPSILON));
+        current_poly = union_ex(current_poly);
+
         // Avoid closing up of recessed holes in the base of a model.
         // Detects when a hole is completely covered by the layer above and removes the hole from the layer above before
         // adding it in.
         // This should have no effect any time a hole in a layer interacts with any polygon in the layer above
         if (scaled_max_hole_area > 0.0) {
-            // Merge layer for the same reason
-            auto current_poly = layer->merged(float(SCALED_EPSILON));
-            current_poly = union_ex(current_poly);
 
             // Now go through all the holes in the current layer and check if they intersect anything in the layer above
             // If not, then they're the top of a hole and should be cut from the layer above before the union
@@ -1317,10 +1302,25 @@ void PrintObject::apply_conical_overhang() {
             }
 
             // Calculate the scaled upper poly that belongs to current region
-            auto p = intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly);
-            // And now union it
+            auto p = union_ex(intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly));
+
+            // Remove all islands that have already been fully covered by current layer
+            p.erase(std::remove_if(p.begin(), p.end(), [&current_poly](const ExPolygon& ex) {
+                return diff_ex(ex, current_poly).empty();
+            }), p.end());
+
+            // And now union it with current region
             ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
             layer->m_regions[region_id]->slices.set(union_ex(layer_polygons, p), stInternal);
+
+            // Then remove it from all other regions, to avoid overlapping regions
+            for (size_t other_region = 0; other_region < this->num_printing_regions(); ++other_region) {
+                if (other_region == region_id) {
+                    continue;
+                }
+                ExPolygons s = to_expolygons(layer->m_regions[other_region]->slices.surfaces);
+                layer->m_regions[other_region]->slices.set(diff_ex(s, p, ApplySafetyOffset::Yes), stInternal);
+            }
         }
         //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
     }

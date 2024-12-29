@@ -57,10 +57,6 @@ void RotoptimizeJob::process(Ctl &ctl)
             .print_config(&m_default_print_cfg)
             .statucb([this, &prev_status, &ctl/*, &statustxt*/](int s)
         {
-//            if (s > 0 && s < 100)
-                // ctl.update_status(prev_status + s / m_selected_object_ids.size(),
-                //               statustxt);
-
             return !ctl.was_canceled();
         });
 

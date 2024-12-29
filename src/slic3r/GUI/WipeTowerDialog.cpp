@@ -3,6 +3,7 @@
 #include "libslic3r/FlushVolCalc.hpp"
 #include "WipeTowerDialog.hpp"
 #include "BitmapCache.hpp"
+#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -19,6 +20,7 @@ int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; 
 int ITEM_WIDTH() { return scale(30); }
 static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 
+#undef  ICON_SIZE
 #define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
 #define TABLE_BORDER            FromDIP(28)
 #define HEADER_VERT_PADDING     FromDIP(12)
@@ -526,7 +528,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     auto message_sizer = new wxBoxSizer(wxVERTICAL);
     tip_message_panel->SetSizer(message_sizer);
     {
-        wxString message = _L("Orca would re-calculate your flushing volumes everytime the filaments color changed. You could disable the auto-calculate in Orca Slicer > Preferences");
+        wxString message = _L("Orca would re-calculate your flushing volumes every time the filaments color changed. You could disable the auto-calculate in Orca Slicer > Preferences");
         m_tip_message_label = new Label(tip_message_panel, wxEmptyString);
         wxClientDC dc(tip_message_panel);
         wxString multiline_message;
@@ -733,6 +735,9 @@ void WipingPanel::update_warning_texts()
 {
     static const wxColour g_warning_color = *wxRED;
     static const wxColour g_normal_color = *wxBLACK;
+
+    wxString multi_str = m_flush_multiplier_ebox->GetValue();
+    float multiplier = wxAtof(multi_str);
 
     bool has_exception_flush = false;
     for (int i = 0; i < edit_boxes.size(); i++) {

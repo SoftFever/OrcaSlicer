@@ -490,6 +490,12 @@ void Selection::center()
     return;
 }
 
+void Selection::drop()
+{
+    this->move_to_center(Vec3d(0, 0, -this->get_bounding_box().min.z()));
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
+}
+
 void Selection::center_plate(const int plate_idx) {
 
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
@@ -1104,6 +1110,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
     if (!m_valid)
         return;
 
+    EMode translation_type = m_mode;
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
 
     set_caches();
@@ -1124,6 +1131,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
             else {
                 const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                translation_type = Volume;
             }
         }
     }
@@ -1712,6 +1720,66 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
+            v.set_volume_offset(v.get_volume_offset() + displacement);
+    }
+
+    this->set_bounding_boxes_dirty();
+}
+
+void Selection::rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran)
+{
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx) {
+            v.set_instance_transformation(overwrite_tran);
+        }
+    }
+
+    std::set<unsigned int> done; // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+    for (unsigned int i : m_list) {
+        if (done.size() == m_volumes->size()) break;
+
+        int object_idx = (*m_volumes)[i]->object_idx();
+        if (object_idx >= 1000) continue;
+
+        // Process unselected volumes of the object.
+        for (unsigned int j = 0; j < (unsigned int) m_volumes->size(); ++j) {
+            if (done.size() == m_volumes->size()) break;
+
+            if (done.find(j) != done.end()) continue;
+
+            GLVolume &v = *(*m_volumes)[j];
+            if (v.object_idx() != object_idx || v.instance_idx() != (int) instance_idx)
+                continue;
+
+            v.set_instance_transformation(overwrite_tran);
+            done.insert(j);
+        }
+    }
+    this->set_bounding_boxes_dirty();
+}
+void Selection::rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran)
+{
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            v.set_volume_transformation(overwrite_tran);
+        }
+    }
+    this->set_bounding_boxes_dirty();
+}
+
 //BBS: add partplate related logic
 void Selection::notify_instance_update(int object_idx, int instance_idx)
 {
@@ -2177,8 +2245,7 @@ void Selection::update_type()
         obj_it->second.insert(inst_idx);
     }
 
-    // BBL removed functionality below
-    // bool requires_disable = false;
+    bool requires_disable = false;
 
     if (!m_valid)
         m_type = Invalid;
@@ -2194,7 +2261,7 @@ void Selection::update_type()
             else if (first->is_modifier)
             {
                 m_type = SingleModifier;
-                // requires_disable = true;
+                requires_disable = true;
             }
             else
             {
@@ -2216,7 +2283,7 @@ void Selection::update_type()
                 else
                 {
                     m_type = SingleVolume;
-                    // requires_disable = true;
+                    requires_disable = true;
                 }
             }
         }
@@ -2264,7 +2331,7 @@ void Selection::update_type()
                         else if (modifiers_count == (unsigned int)m_list.size())
                             m_type = MultipleModifier;
 
-                        // requires_disable = true;
+                        requires_disable = true;
                     }
                 }
                 else if ((selected_instances_count > 1) && (selected_instances_count * model_volumes_count + sla_volumes_count == (unsigned int)m_list.size()))

@@ -106,7 +106,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
                     {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
+                    {"infill_combination", "",1}, {"infill_combination_max_layer_height", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
@@ -708,13 +708,6 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     if (sel_vol && sel_vol->type() >= ModelVolumeType::SUPPORT_ENFORCER)
         return nullptr;
 
-
-    // Create new items for settings popupmenu
-
-//    if (printer_technology() == ptFFF ||
-//        (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        // menu->SetFirstSeparator();
-
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
     ObjectDataViewModel* obj_model = list_model();
@@ -1314,6 +1307,8 @@ void MenuFactory::create_extra_object_menu()
     append_menu_item_merge_parts_to_single_part(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
+    // Object Drop
+    append_menu_item_drop(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -1339,7 +1334,7 @@ void MenuFactory::create_extra_object_menu()
     m_object_menu.AppendSeparator();
     // Set filament insert menu item here
     // Set Printable
-    append_menu_item_printable(&m_object_menu);
+    wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
     append_menu_item_per_object_process(&m_object_menu);
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
@@ -1436,6 +1431,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
     append_menu_item_center(menu);
+    append_menu_item_drop(menu);
     append_menu_items_mirror(menu);
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -1493,6 +1489,8 @@ void MenuFactory::create_plate_menu()
     // arrange objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->arrange();
         }, "", nullptr,
@@ -1505,6 +1503,8 @@ void MenuFactory::create_plate_menu()
     append_menu_item(
         menu, wxID_ANY, _L("Reload All"), _L("reload all from disk"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->reload_all_from_disk();
         },
@@ -1513,6 +1513,8 @@ void MenuFactory::create_plate_menu()
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rotate current plate"),
         [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             //BBS TODO call auto rotate for current plate
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
@@ -1675,6 +1677,7 @@ wxMenu* MenuFactory::multi_selection_menu()
             index++;
         }
         append_menu_item_center(menu);
+        append_menu_item_drop(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1691,6 +1694,7 @@ wxMenu* MenuFactory::multi_selection_menu()
     }
     else {
         append_menu_item_center(menu);
+        append_menu_item_drop(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1795,7 +1799,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
 }
@@ -1816,6 +1820,21 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
                 Vec3d center_pos = plate->get_center_origin();
                 return !( (model_pos.x() == center_pos.x()) && (model_pos.y() == center_pos.y()) );
             } //disable if model is at center / not in View3D
+        }, m_parent);
+}
+
+void MenuFactory::append_menu_item_drop(wxMenu* menu)
+{
+     append_menu_item(menu, wxID_ANY, _L("Drop") , "",
+        [this](wxCommandEvent&) {
+            plater()->drop_selection();
+        }, "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                return (plater()->get_view3D_canvas3D()->get_selection().get_bounding_box().min.z() != 0);
+            } //disable if model is on the bed / not in View3D
         }, m_parent);
 }
 
@@ -1893,16 +1912,16 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 
-    // int initial_extruder = -1; // negative value for multiple object/part selection
-    // if (sels.Count() == 1) {
-    //     const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-    //     // BBS
-    //     const auto sel_vol = obj_list()->get_selected_model_volume();
-    //     if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
-    //         initial_extruder = config.has("extruder") ? config.extruder() : 0;
-    //     else
-    //         initial_extruder = config.has("extruder") ? config.extruder() : 1;
-    // }
+    int initial_extruder = -1; // negative value for multiple object/part selection
+    if (sels.Count() == 1) {
+        const ModelConfig& config = obj_list()->get_item_config(sels[0]);
+        // BBS
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
+            initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        else
+            initial_extruder = config.has("extruder") ? config.extruder() : 1;
+    }
 
     // BBS
     bool has_modifier = false;
@@ -1943,6 +1962,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
 
 void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 {
+    const Selection& selection = plater()->canvas3D()->get_selection();
     bool all_printable = true;
     ObjectList* list = obj_list();
     wxDataViewItemArray sels;
@@ -1992,8 +2012,8 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
         }, "", nullptr, []() { return true; }, m_parent);
 
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        // PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-        // assert(plate);
+        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+        assert(plate);
         //bool check = plate->is_locked();
         //evt.Check(check);
         plater()->set_current_canvas_as_dirty();
@@ -2029,6 +2049,8 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
     m_parent->Bind(
         wxEVT_UPDATE_UI,
         [](wxUpdateUIEvent &evt) {
+            PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
             plater()->set_current_canvas_as_dirty();
         },
         item->GetId());
