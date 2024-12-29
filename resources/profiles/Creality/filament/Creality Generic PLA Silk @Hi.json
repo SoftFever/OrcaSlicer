@@ -1,0 +1,13 @@
+{
+	"type": "filament",
+    "setting_id": "GFSL96_00",
+	"name": "Creality Generic PLA Silk @Hi",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "Creality Generic PLA @Hi",
+	"filament_max_volumetric_speed": ["7.5"],
+	"compatible_printers": [
+		"Creality Hi 0.4 nozzle",
+		"Creality Hi 0.6 nozzle"
+	]
+}
