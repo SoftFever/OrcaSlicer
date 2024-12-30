@@ -90,7 +90,7 @@ Description:FanOperate
 class FanOperate : public wxWindow
 {
 public:
-    FanOperate(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    FanOperate(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~FanOperate() {};
     void    post_event(wxCommandEvent&& event);
     void    paintEvent(wxPaintEvent& evt);
@@ -99,6 +99,8 @@ public:
     void    msw_rescale();
     void    create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size);
     void    on_left_down(wxMouseEvent& event);
+
+    void    set_machine_obj(MachineObject *obj);
 
 public:
     void    set_fan_speeds(int g);
@@ -111,6 +113,8 @@ private:
     int     m_max_speeds;
     ScalableBitmap   m_bitmap_add;
     ScalableBitmap   m_bitmap_decrease;
+
+    MachineObject* m_obj;
 };
 
 

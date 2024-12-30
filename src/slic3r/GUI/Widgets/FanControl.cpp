@@ -3,6 +3,7 @@
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
+#include "../MsgDialog.hpp"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -205,6 +206,11 @@ void FanOperate::on_left_down(wxMouseEvent& event)
      }
 }
 
+void FanOperate::set_machine_obj(MachineObject *obj)
+{
+    m_obj = obj;
+}
+
 void FanOperate::set_fan_speeds(int g)
 {
     m_current_speeds = g;
@@ -213,6 +219,13 @@ void FanOperate::set_fan_speeds(int g)
 
 void FanOperate::add_fan_speeds()
 {
+    if (m_obj && m_obj->is_in_printing()) {
+        MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
+        if (msg_wingow.ShowModal() == wxID_CANCEL) {
+            return;
+        }
+    }
+
     if (m_current_speeds + 1 > m_max_speeds) return;
     set_fan_speeds(++m_current_speeds);
     post_event(wxCommandEvent(EVT_FAN_ADD));
@@ -221,6 +234,13 @@ void FanOperate::add_fan_speeds()
 
 void FanOperate::decrease_fan_speeds()
 {
+    if (m_obj && m_obj->is_in_printing()) {
+        MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
+        if (msg_wingow.ShowModal() == wxID_CANCEL) {
+            return;
+        }
+    }
+
     //turn off
     if (m_current_speeds - 1 < m_min_speeds) {
         m_current_speeds = 0;
@@ -413,6 +433,13 @@ void FanControlNew::command_control_fan()
 
 void FanControlNew::on_swith_fan(wxMouseEvent& evt)
 {
+    if (m_obj && m_obj->is_in_printing()) {
+        MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
+        if (msg_wingow.ShowModal() == wxID_CANCEL) {
+            return;
+        }
+    }
+
     int speed = 0;
     if (m_switch_fan) {
         m_switch_button->SetBitmap(m_bitmap_toggle_off->bmp());
@@ -478,6 +505,8 @@ void FanControlNew::set_machine_obj(MachineObject* obj)
 {
     m_update_already = true;
     m_obj = obj;
+    if (m_fan_operate)
+        m_fan_operate->set_machine_obj(obj);
 }
 
 void FanControlNew::set_name(wxString name)
@@ -563,6 +592,7 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirD
     });
     m_mode_sizer->Add(m_radio_btn_sizer, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_mode_sizer->Add(m_button_refresh, 0, wxALIGN_CENTRE_VERTICAL, 0);
+    m_button_refresh->Hide();
     m_cooling_text = new wxStaticText(this, wxID_ANY, wxT(""));
     m_cooling_text->SetBackgroundColour(*wxWHITE);
 
@@ -594,9 +624,6 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirD
 #endif
     Bind(wxEVT_SHOW, &FanControlPopupNew::on_show, this);
     Bind(EVT_FAN_CHANGED, &FanControlPopupNew::on_fan_changed, this);
-    Bind(wxEVT_CLOSE_WINDOW, [this](const auto& e) {
-        int a = 0;
-    });
 }
 
 void FanControlPopupNew::CreateDuct()
@@ -610,7 +637,7 @@ void FanControlPopupNew::CreateDuct()
     UpdateParts(m_data.curren_mode);
 
     if (m_data.modes.empty()) {
-        m_button_refresh->Hide();
+        //m_button_refresh->Hide();
         return;
     }
     size_t mode_size = m_data.modes.size();
@@ -841,6 +868,12 @@ void FanControlPopupNew::paintEvent(wxPaintEvent& evt)
 
 void FanControlPopupNew::on_mode_changed(const wxMouseEvent &event)
 {
+    if (m_obj && m_obj->is_in_printing()) {
+        MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
+        msg_wingow.ShowModal();
+        return;
+    }
+
     size_t btn_list_size = m_mode_switch_btn_list.size();
     for (size_t i = 0; i < btn_list_size; ++i) {
         if (m_mode_switch_btn_list[i]->GetId() == event.GetId()) {
