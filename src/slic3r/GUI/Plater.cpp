@@ -4948,15 +4948,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             q->on_filaments_change(preset_bundle->filament_presets.size());
                             is_project_file = true;
 
-                            //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
+                            DynamicConfig& proj_cfg = preset_bundle->project_config;
+                            // do some post process after loading config
                             {
-                                DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-                                ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+                                //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
+                                 ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                                 ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
                                 if (file_wipe_tower_x)
                                     *wipe_tower_x = *file_wipe_tower_x;
                                 if (file_wipe_tower_y)
                                     *wipe_tower_y = *file_wipe_tower_y;
+
+                                ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
+                                ConfigOptionInts* filament_map = proj_cfg.opt<ConfigOptionInts>("filament_map", true);
+                                if (filament_color && filament_color->size() != filament_map->size()) {
+                                    filament_map->values.resize(filament_color->size(), 1);
+                                }
                             }
                         }
                     }
