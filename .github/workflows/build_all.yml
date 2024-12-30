@@ -70,17 +70,20 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
+      volumes:
+        - /usr/local/lib/android:/usr/local/lib/android
+        - /usr/share/dotnet:/usr/share/dotnet
     steps:
     - name: free disk space
       uses: jlumbroso/free-disk-space@main
       with:
-        tool-cache: true
+        tool-cache: false
         android: true
         dotnet: true
-        haskell: true
-        large-packages: true
+        haskell: false
+        large-packages: false
         docker-images: false
-        swap-storage: true
+        swap-storage: false
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
