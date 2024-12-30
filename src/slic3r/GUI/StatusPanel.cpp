@@ -36,6 +36,8 @@ static const wxFont   SWITCH_FONT    = Label::Body_10;
 
 /* const values */
 static const int bed_temp_range[2]    = {20, 120};
+static const int default_champer_temp_min = 20;
+static const int default_champer_temp_max = 60;
 
 /* colors */
 static const wxColour STATUS_PANEL_BG     = wxColour(238, 238, 238);
@@ -1479,8 +1481,8 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_frame_temp"),
         wxString("monitor_frame_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_chamber->SetReadOnly(true);
-    m_tempCtrl_chamber->SetMinTemp(obj->chamber_temp_edit_min);
-    m_tempCtrl_chamber->SetMaxTemp(obj->chamber_temp_edit_max);
+    m_tempCtrl_chamber->SetMinTemp(default_champer_temp_min);
+    m_tempCtrl_chamber->SetMaxTemp(default_champer_temp_max);
     m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
     m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
     m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
