@@ -2600,16 +2600,6 @@ void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
     prepare_mode();
 }
 
-std::vector<std::string> SelectMachineDialog::sort_string(std::vector<std::string> strArray)
-{
-    std::vector<std::string> outputArray;
-    std::sort(strArray.begin(), strArray.end());
-    std::vector<std::string>::iterator st;
-    for (st = strArray.begin(); st != strArray.end(); st++) { outputArray.push_back(*st); }
-
-    return outputArray;
-}
-
 bool  SelectMachineDialog::is_timeout()
 {
     if (m_timeout_count > 15 * 1000 / LIST_REFRESH_INTERVAL) {
@@ -2640,6 +2630,102 @@ void  SelectMachineDialog::reset_timeout()
     m_timeout_count = 0;
 }
 
+
+static bool
+_compare_obj_names(MachineObject* obj1, MachineObject* obj2)
+{
+    return obj1->dev_name < obj2->dev_name;
+}
+
+/*******************************************************************
+*@note   _collect_machine_list
+*@param  dev_manager -- the device manager
+*@param  sorted_machine_objs -- return the sorted machine objects
+*@param  sorted_machine_names -- return the sorted machine shown names
+*/
+/*******************************************************************/
+static void
+_collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
+                         std::vector<MachineObject*>& sorted_machine_objs,
+                         wxArrayString& sorted_machine_names)
+{
+    sorted_machine_objs.clear();
+    sorted_machine_names.clear();
+    if (!dev_manager)
+    {
+        return;
+    }
+
+    /* Step 1 :Collect the target and compatible types*/
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const std::string& printer_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    const auto& compatible_types_list = dev_manager->get_compatible_machine(printer_type);
+    std::set<std::string> compatible_types_set(compatible_types_list.begin(), compatible_types_list.end());
+
+    /* Step 2: collect different machine list*/
+    std::vector<MachineObject*> match_avaliable_list;  // match and availiable machines
+    std::vector<MachineObject*> match_inavaliable_list;// match but inavaliable machines
+    std::vector<MachineObject*> other_list;// other bound machines
+    auto _collect_machine = [&](MachineObject* obj)
+    {
+        if (obj->printer_type == printer_type)
+        {
+            obj->is_avaliable() ? match_avaliable_list.push_back(obj) : match_inavaliable_list.push_back(obj);
+        }
+        else
+        {
+            other_list.push_back(obj);
+        }
+    };
+
+    // collect from user machine list
+    const auto& user_machine_list = dev_manager->get_my_machine_list();// user machine list
+    for (const auto& elem : user_machine_list)
+    {
+        MachineObject* mobj = elem.second;
+        if (mobj && (mobj->is_online() || mobj->is_connected()))
+        {
+            _collect_machine(mobj);
+        }
+    }
+
+#if 0
+    // collect from unbinded lan machine list
+    const auto& lan_omachine_list = dev_manager->get_local_machine_list();// lan machine list
+    for (const auto& elem : lan_omachine_list)
+    {
+        MachineObject* mobj = elem.second;// do not show printer bind state is empty
+        if ( mobj->is_online() && mobj->is_lan_mode_printer() && !mobj->has_access_right())
+        {
+            _collect_machine(mobj);
+        }
+    }
+#endif
+
+    /* Step 2: Sort the lists*/
+    std::sort(match_avaliable_list.begin(), match_avaliable_list.end(), _compare_obj_names);
+    std::sort(match_inavaliable_list.begin(), match_inavaliable_list.end(), _compare_obj_names);
+    std::sort(other_list.begin(), other_list.end(), _compare_obj_names);
+
+    /* Step 3: Get the sorted objects*/
+    auto _collect_sorted_objs = [](const std::vector<MachineObject*>& obj_list,
+                                   std::vector<MachineObject*>& sorted_machine_objs,
+                                   wxArrayString& sorted_machine_names)
+    {
+        for (auto obj : obj_list)
+        {
+            sorted_machine_objs.push_back(obj);
+            const wxString& dev_name = wxString::FromUTF8(obj->dev_name);
+            obj->is_lan_mode_printer() ? sorted_machine_names.push_back(dev_name + "(LAN)"):
+                                         sorted_machine_names.push_back(dev_name);
+        }
+    };
+
+    _collect_sorted_objs(match_avaliable_list, sorted_machine_objs, sorted_machine_names);
+    _collect_sorted_objs(match_inavaliable_list, sorted_machine_objs, sorted_machine_names);
+    _collect_sorted_objs(other_list, sorted_machine_objs, sorted_machine_names);
+}
+
 void SelectMachineDialog::update_user_printer()
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2651,57 +2737,9 @@ void SelectMachineDialog::update_user_printer()
         m_print_info = "";
     }
 
-    // clear machine list
-    m_list.clear();
-    m_comboBox_printer->Clear();
-    std::vector<std::string>              machine_list;
-    wxArrayString                         machine_list_name;
-    std::map<std::string, MachineObject*> option_list;
-
-    //user machine list
-    option_list = dev->get_my_machine_list();
-
-    // same machine only appear once
-    for (auto it = option_list.begin(); it != option_list.end(); it++) {
-        if (it->second && (it->second->is_online() || it->second->is_connected())) {
-            machine_list.push_back(it->second->dev_name);
-        }
-    }
-
-
-
-    //lan machine list
-    auto lan_option_list = dev->get_local_machine_list();
-
-    for (auto elem : lan_option_list) {
-        MachineObject* mobj = elem.second;
-
-        /* do not show printer bind state is empty */
-        if (!mobj->is_avaliable()) continue;
-        if (!mobj->is_online()) continue;
-        if (!mobj->is_lan_mode_printer()) continue;
-        if (!mobj->has_access_right()) {
-            option_list[mobj->dev_name] = mobj;
-            machine_list.push_back(mobj->dev_name);
-        }
-    }
-
-    machine_list = sort_string(machine_list);
-    for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
-        for (auto it = option_list.begin(); it != option_list.end(); it++) {
-            if (it->second->dev_name == *tt) {
-                m_list.push_back(it->second);
-                wxString dev_name_text = from_u8(it->second->dev_name);
-                if (it->second->is_lan_mode_printer()) {
-                    dev_name_text += "(LAN)";
-                }
-                machine_list_name.Add(dev_name_text);
-                break;
-            }
-        }
-    }
-
-    m_comboBox_printer->Set(machine_list_name);
+    wxArrayString  sorted_machine_names;
+    _collect_sorted_machines(dev, m_list, sorted_machine_names);
+    m_comboBox_printer->Set(sorted_machine_names);
 
     MachineObject* obj = dev->get_selected_machine();
     if (!obj) {

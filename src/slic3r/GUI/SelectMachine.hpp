@@ -478,7 +478,6 @@ public:
     wxString    format_steel_name(NozzleType type);
     wxString    format_text(wxString &m_msg);
     PrintDialogStatus  get_status() { return m_print_status; }
-    std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 
 
