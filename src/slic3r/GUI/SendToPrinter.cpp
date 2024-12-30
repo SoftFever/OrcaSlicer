@@ -159,6 +159,11 @@ void SendToPrinterDialog::on_rename_enter()
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && new_file_name.size() >= 100) {
+        info_line    = _L("The name length exceeds the limit.");
+        m_valid_type = NoValid;
+    }
+
     if (m_valid_type != Valid) {
         MessageDialog msg_wingow(nullptr, info_line, "", wxICON_WARNING | wxOK);
         if (msg_wingow.ShowModal() == wxID_OK) {
@@ -725,6 +730,8 @@ void SendToPrinterDialog::init_timer()
 void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
 {
     m_worker->cancel_all();
+
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_file_sys) {
         m_file_sys->CancelUploadTask();
 
@@ -733,6 +740,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
             m_task_timer.reset();
         }
     }
+#endif
 
     this->EndModal(wxID_CANCEL);
 }
@@ -771,6 +779,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
         m_worker->cancel_all();
+#if !BBL_RELEASE_TO_PUBLIC
         if (m_file_sys) {
             m_file_sys->CancelUploadTask();
             if (m_task_timer && m_task_timer->IsRunning()) {
@@ -778,6 +787,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
                 m_task_timer.reset();
             }
         }
+#endif
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -832,6 +842,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		fs::path default_output_file_path = boost::filesystem::path(default_output_file.c_str());
 		file_name = default_output_file_path.filename().string();
     }*/
+#if !BBL_RELEASE_TO_PUBLIC
     if (!obj_->is_lan_mode_printer()) {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
@@ -839,7 +850,17 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
             m_plater->get_print_job_data(&print_data);
             std::string project_name = m_current_project_name.utf8_string() + ".3mf";
             std::string _3mf_path    = print_data._3mf_path.string();
-            m_file_sys->SetUploadFile(_3mf_path, project_name, get_storage_selected());
+
+            std::string storage;
+            auto it = std::find_if(m_ability_list.begin(), m_ability_list.end(), [](const std::string& s) {
+                return s != EMMC_STORAGE;
+            });
+
+            if (it != m_ability_list.end())
+                m_file_sys->SetUploadFile(_3mf_path, project_name, *it);
+            else {
+                BOOST_LOG_TRIVIAL(info) << "SendToPrinter::send job: The printer media capability set is incorrect.";
+            }
             m_file_sys->RequestUploadFile();
 
             // time out
@@ -863,6 +884,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
             m_task_timer->StartOnce(timeout_period);
         }
     } else {
+#endif
         auto m_send_job                 = std::make_unique<SendJob>(m_printer_last_select);
         m_send_job->m_dev_ip      = obj_->dev_ip;
         m_send_job->m_access_code = obj_->get_access_code();
@@ -893,9 +915,11 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
             m_send_job->set_check_mode();
             m_send_job->check_and_continue();
         }
-
         replace_job(*m_worker, std::move(m_send_job));
+#if !BBL_RELEASE_TO_PUBLIC
     }
+#endif
+
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
 }
 
@@ -937,10 +961,10 @@ void SendToPrinterDialog::update_user_machine_list()
 void SendToPrinterDialog::on_refresh(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "m_printer_last_select: on_refresh";
-    /* show_status(PrintDialogStatus::PrintStatusRefreshingMachineList);
-     update_user_machine_list();*/
+     show_status(PrintDialogStatus::PrintStatusRefreshingMachineList);
+     update_user_machine_list();
     /*todo refresh*/
-    if (m_file_sys) { m_file_sys->Retry(); }
+    /*if (m_file_sys) { m_file_sys->Retry(); }*/
 }
 
 void SendToPrinterDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -1092,12 +1116,16 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
             dev->set_selected_machine(m_printer_last_select, true);
+#if !BBL_RELEASE_TO_PUBLIC
             if (m_file_sys) m_file_sys.reset();
+#endif
         }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
             m_ability_list.clear();
-            update_storage_list(std::vector<std::string>());
+            //update_storage_list(std::vector<std::string>());
             dev->set_selected_machine(m_printer_last_select, true);
+#if !BBL_RELEASE_TO_PUBLIC
             if (m_file_sys) m_file_sys.reset();
+#endif
         }
     }
     else {
@@ -1181,6 +1209,11 @@ void SendToPrinterDialog::update_show_status()
     }
 
     if (!m_is_in_sending_mode) {
+#if BBL_RELEASE_PUPBLIC
+        show_status(PrintDialogStatus::PrintStatusReadingFinished);
+        return;
+    }
+#else
         if (obj_->connection_type() == "lan") {
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
@@ -1192,6 +1225,8 @@ void SendToPrinterDialog::update_show_status()
                     if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && obj_->get_file_remote()))
                         m_file_sys->Retry();
                     return;
+                } else {
+                    m_file_sys->Stop(true);
                 }
             }
 
@@ -1260,7 +1295,7 @@ void SendToPrinterDialog::update_show_status()
                 m_ability_list = fs->GetMediaAbilityList();
 
                 if (e.GetInt() == PrinterFileSystem::RequestMediaAbilityStatus::S_SUCCESS) {
-                    update_storage_list(m_ability_list);
+                    //update_storage_list(m_ability_list);
                     show_status(PrintDialogStatus::PrintStatusReadingFinished);
                 } else {
                     show_status(PrintDialogStatus::PrintStatusPublicInitFailed);
@@ -1272,7 +1307,9 @@ void SendToPrinterDialog::update_show_status()
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs) return;
                 int progress = e.GetInt();
-                m_status_bar->set_progress(10 + std::floor(progress * 0.9));
+                bool cancelled = false;
+                wxString msg       = _L("Sending...");
+                m_status_bar->update_status(msg, cancelled, 10 + std::floor(progress * 0.9), true);
 
                if (m_task_timer && m_task_timer->IsRunning()) m_task_timer->Stop();
 
@@ -1287,7 +1324,7 @@ void SendToPrinterDialog::update_show_status()
                            boost::shared_ptr fs(wfs.lock());
                            if (!fs) return;
                            fs->CancelUploadTask(false);
-                           update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
+                           update_print_status_msg(_L("File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."), false, true);
                        },
                        m_task_timer->GetId());
                    m_task_timer->StartOnce(timeout_period);
@@ -1296,6 +1333,8 @@ void SendToPrinterDialog::update_show_status()
             m_file_sys->Bind(EVT_UPLOAD_CHANGED, [this, wfs = boost::weak_ptr(m_file_sys)](auto e) {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs) return;
+
+                if (m_task_timer && m_task_timer->IsRunning()) m_task_timer->Stop();
 
                 if (e.GetInt() == PrinterFileSystem::FF_UPLOADDONE) {
                     show_status(PrintDialogStatus::PrintStatusReadingFinished);
@@ -1313,6 +1352,7 @@ void SendToPrinterDialog::update_show_status()
             m_file_sys->Start();
         }
     }
+#endif
 }
 
 bool SendToPrinterDialog::is_blocking_printing(MachineObject* obj_)
@@ -1613,7 +1653,7 @@ bool SendToPrinterDialog::Show(bool show)
     // set default value when show this dialog
     if (show) {
         m_ability_list.clear();
-        update_storage_list(std::vector<std::string>());
+        //update_storage_list(std::vector<std::string>());
         wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
@@ -1629,9 +1669,14 @@ bool SendToPrinterDialog::Show(bool show)
     Fit();
     if (show) { CenterOnParent(); }
 
-    if (m_file_sys) {
-        show ? m_file_sys->Start() : m_file_sys->Stop();
+#if !BBL_RELEASE_TO_PUBLIC
+    if (m_file_sys && !show) {
+        m_file_sys->Stop(true);
+        m_waiting_enable = false;
+        m_waiting_support = false;
+        m_file_sys.reset();
     }
+#endif
 
     return DPIDialog::Show(show);
 }

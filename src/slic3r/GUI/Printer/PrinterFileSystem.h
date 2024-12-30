@@ -169,6 +169,7 @@ public:
         std::unique_ptr<Upload> upload;
 
         bool IsUploading() const { return flags & FF_UPLOADING; }
+        ~UploadFile();
     };
 
     struct Void {};

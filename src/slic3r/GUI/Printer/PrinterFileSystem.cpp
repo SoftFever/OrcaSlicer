@@ -415,6 +415,13 @@ std::string PrinterFileSystem::File::Metadata(std::string const &key, std::strin
     return iter == metadata.end() || iter->second.empty() ? dflt : iter->second;
 }
 
+PrinterFileSystem::UploadFile::~UploadFile()
+{
+    if (upload && upload->ifs.is_open()) {
+        upload->ifs.close();
+    }
+}
+
 size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
 {
     auto   iter = std::upper_bound(m_file_list.begin(), m_file_list.end(), File{"", "", time});
@@ -1140,6 +1147,9 @@ void PrinterFileSystem::RequestUploadFile()
 
             // reset m_upload_file
             if (m_upload_file) {
+                if (m_upload_file->upload->ifs.is_open()) {
+                    m_upload_file->upload->ifs.close();
+                }
                 m_upload_file.reset();
             }
             return result;
@@ -1243,6 +1253,16 @@ void PrinterFileSystem::CancelUploadTask(bool send_cancel_req)
 {
     if (!m_upload_file)
         return;
+
+    {
+        boost::unique_lock l(m_mutex);
+        if (m_produce_message_cb_map.find(m_upload_seq) != m_produce_message_cb_map.end())
+            m_produce_message_cb_map.erase(m_upload_seq);
+        if (m_upload_file->upload->ifs.is_open()) {
+            m_upload_file->upload->ifs.close();
+        }
+        m_upload_file.reset();
+    }
 
     if (send_cancel_req) {
         CancelRequest(m_upload_seq);
@@ -1422,8 +1442,8 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
         json_end = end;
     std::string msg((char const *) sample.buffer, json_end - sample.buffer);
     json        root;
-    //OutputDebugStringA(msg.c_str());
-    //OutputDebugStringA("\n");
+    // OutputDebugStringA(msg.c_str());
+    // OutputDebugStringA("\n");
     wxLogInfo("PrinterFileSystem::HandleResponse <<<: \n%s\n", wxString::FromUTF8(msg));
     std::istringstream iss(msg);
     int                cmd    = 0;
@@ -1669,5 +1689,4 @@ void StaticBambuLib::release()
 }
 
 extern "C" BambuLib *bambulib_get() {
-    return &StaticBambuLib::get();
-}
+    return &StaticBambuLib::get(); }
