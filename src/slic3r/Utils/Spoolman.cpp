@@ -432,7 +432,7 @@ std::string SpoolmanSpool::get_preset_name()
 
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
 {
-    config.set_key_value("spoolman_spool_id", new ConfigOptionInt(id));
+    config.set_key_value("spoolman_spool_id", new ConfigOptionInts({id}));
     m_filament_ptr->apply_to_config(config);
 }
 
