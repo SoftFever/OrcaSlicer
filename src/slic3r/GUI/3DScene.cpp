@@ -63,25 +63,6 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 }
 #endif // HAS_GLSAFE
 
-// BBS
-std::vector<Slic3r::ColorRGBA> get_extruders_colors()
-{
-    unsigned char                     rgba_color[4] = {};
-    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<Slic3r::ColorRGBA> colors_out(colors.size());
-    for (const std::string &color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
-        size_t color_idx      = &color - &colors.front();
-        colors_out[color_idx] = {
-            float(rgba_color[0]) / 255.f,
-            float(rgba_color[1]) / 255.f,
-            float(rgba_color[2]) / 255.f,
-            float(rgba_color[3]) / 255.f,
-        };
-    }
-    return colors_out;
-}
-
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
 // Be careful changing this value because it could break thumbnail color due to rounding error!
@@ -422,7 +403,7 @@ void GLVolume::render()
         return;
 
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
-    std::vector<ColorRGBA> colors = get_extruders_colors();
+    std::vector<ColorRGBA> colors = GUI::wxGetApp().plater()->get_extruders_colors();
 
     simple_render(shader, model_objects, colors);
 }
@@ -438,7 +419,7 @@ void GLVolume::render_with_outline(const GUI::Size& cnv_size)
         return;
 
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
-    std::vector<ColorRGBA> colors = get_extruders_colors();
+    std::vector<ColorRGBA> colors = GUI::wxGetApp().plater()->get_extruders_colors();
 
     const GUI::OpenGLManager::EFramebufferType framebuffers_type = GUI::OpenGLManager::get_framebuffers_type();
     if (framebuffers_type == GUI::OpenGLManager::EFramebufferType::Unknown) {
@@ -799,7 +780,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     if (height == 0.0f)
         height = 0.1f;
 
-    std::vector<ColorRGBA> extruder_colors = get_extruders_colors();
+    std::vector<ColorRGBA> extruder_colors = GUI::wxGetApp().plater()->get_extruders_colors();
     std::vector<ColorRGBA> colors;
     GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);

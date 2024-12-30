@@ -2165,7 +2165,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     else
         shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
-    std::vector<ColorRGBA> colors = ::get_extruders_colors();
+    std::vector<ColorRGBA> colors = wxGetApp().plater()->get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
     {
     case OpenGLManager::EFramebufferType::Arb:

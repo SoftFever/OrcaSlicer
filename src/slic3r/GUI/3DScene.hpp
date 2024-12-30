@@ -32,7 +32,6 @@
     #define glsafe(cmd) cmd
     #define glcheck()
 #endif // HAS_GLSAFE
-extern std::vector<Slic3r::ColorRGBA> get_extruders_colors();
 extern float                          FullyTransparentMaterialThreshold;
 extern float                          FullTransparentModdifiedToFixAlpha;
 extern Slic3r::ColorRGBA              adjust_color_for_rendering(const Slic3r::ColorRGBA &colors);
