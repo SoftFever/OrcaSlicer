@@ -1912,7 +1912,7 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
  * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
  * @return is same or not
 /*************************************************************/
-bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter) const
+bool SelectMachineDialog::is_same_nozzle_diameters(float& tag_nozzle_diameter) const
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return false;
@@ -1929,11 +1929,22 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter) c
 
     try
     {
-        auto extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
-        for (auto i = 0; i < extruders.size(); i++) {
-            auto extruder = extruders[i] - 1;
-            tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(extruder));
-            if (tag_nozzle_diameter != obj_->m_extder_data.extders[0].current_nozzle_diameter) {
+        auto used_extruder_idxs = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();/*the index is started from 1*/
+        for (int extruder_idx : used_extruder_idxs)
+        {
+            if (opt_nozzle_diameters->size() < extruder_idx)
+            {
+                return false;
+            }
+
+            tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(extruder_idx));
+            if (obj_->m_extder_data.extders.size() < extruder_idx)
+            {
+                return false;
+            }
+
+            if (tag_nozzle_diameter != obj_->m_extder_data.extders[extruder_idx - 1].current_nozzle_diameter)
+            {
                 return false;
             }
         }
@@ -2163,18 +2174,24 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 + "\n    " + nozzle_in_printer
                 + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
-        
-        std::string filament_type;
-        if (!is_same_nozzle_type(obj_->m_extder_data.extders[0], filament_type))
-        {
-            has_slice_warnings = true;
-            is_printing_block = true;
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material (%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
-            confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
+        /*check nozzle type*/
+        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+        const std::vector<Extder>& extders = obj ? obj->m_extder_data.extders : std::vector<Extder>();
+        for (const auto& extder : extders)
+        {
+            std::string filament_type;
+            if (!is_same_nozzle_type(extder, filament_type))
+            {
+                has_slice_warnings = true;
+                is_printing_block = true;
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"),
+                                                             filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
+                confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
+            }
         }
     }
-    
 
     if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");

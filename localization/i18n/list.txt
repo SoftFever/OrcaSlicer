@@ -40,6 +40,7 @@ src/slic3r/GUI/Widgets/SideTools.cpp
 src/slic3r/GUI/Widgets/AMSControl.cpp
 src/slic3r/GUI/Widgets/FanControl.cpp
 src/slic3r/GUI/Widgets/FilamentLoad.cpp
+src/slic3r/GUI/Widgets/TempInput.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
