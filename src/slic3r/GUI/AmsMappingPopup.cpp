@@ -875,7 +875,7 @@ void MappingItem::send_event(int fliament_id)
     event.SetString(param);
 
     if (send_win) {
-         event.SetEventObject(send_win);
+        event.SetEventObject(send_win);
         wxPostEvent(send_win, event);
     }
 }

@@ -336,6 +336,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendSystemInfoDialog.hpp
     GUI/StepMeshDialog.cpp
     GUI/StepMeshDialog.hpp
+    GUI/SyncAmsInfoDialog.cpp
+    GUI/SyncAmsInfoDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
     GUI/TextLines.cpp

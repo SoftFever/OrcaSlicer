@@ -184,6 +184,11 @@ void AppConfig::set_defaults()
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
+     if (get("enable_append_color_by_sync_ams").empty())
+        set_bool("enable_append_color_by_sync_ams", true);
+    if (get("enable_merge_color_by_sync_ams").empty())
+        set_bool("enable_merge_color_by_sync_ams", true);
+
     if (get("camera_orbit_mult").empty())
         set("camera_orbit_mult", "1.0");
 

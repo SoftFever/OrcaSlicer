@@ -42,15 +42,8 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 #define WRAP_GAP FromDIP(2)
 
 static wxString task_canceled_text = _L("Task canceled");
-static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
-    //_L("Auto"),
-    _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-    _L("Bambu Engineering Plate"),
-    _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bambu Textured PEI Plate")
-};
 
-static std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type)
+std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type)
 {
     if (nozzle_volume_type == NozzleVolumeType::nvtStandard) {
         return "standard_flow";
@@ -109,6 +102,22 @@ wxString SelectMachineDialog::format_text(wxString &m_msg)
     }
     return out_txt;
 }
+std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
+std::vector<string> SelectMachineDialog::MachineBedTypeString;
+void                SelectMachineDialog::init_machine_bed_types()
+{
+    if (MACHINE_BED_TYPE_STRING.size() == 0) {
+        MACHINE_BED_TYPE_STRING = {//_L("Auto"),
+                                   _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
+                                   _L("Bamabu Engineering Plate"),
+                                   _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+                                   _L("Bamabu Textured PEI Plate"),
+                                   _L("Bambu Cool Plate SuperTack")
+        };
+        MachineBedTypeString    = {//"auto",
+                                   "pc", "pe", "pei", "pte", "suprtack"};
+    }
+}
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
@@ -116,6 +125,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
     , m_mapping_tutorial_popup(AmsTutorialPopup(this))
 {
+    init_machine_bed_types();
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
@@ -3798,8 +3808,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
+                    m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
                     m_mapping_popup.update(obj_);
-                    m_mapping_popup.set_send_win(this);
                     m_mapping_popup.Popup();
                 }
             }

@@ -103,6 +103,7 @@
 #include "PublishDialog.hpp"
 #include "ModelMall.hpp"
 #include "ConfigWizard.hpp"
+#include "SyncAmsInfoDialog.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
@@ -2475,11 +2476,13 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
 
-    auto build_tray_config = [](AmsTray const & tray, std::string const & name) {
+    auto build_tray_config = [](AmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1% setting_id %2% color %3%") % name % tray.setting_id % tray.color;
         DynamicPrintConfig tray_config;
         tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
         tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
+        tray_config.set_key_value("ams_id", new ConfigOptionStrings{ams_id});
+        tray_config.set_key_value("slot_id", new ConfigOptionStrings{slot_id});
         tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.type});
         tray_config.set_key_value("tray_name", new ConfigOptionStrings{ name });
         tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
@@ -2495,7 +2498,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     if (obj->ams_support_virtual_tray) {
         int extruder = 0x10000; // Main (first) extruder at right
         for (auto & vt_tray : obj->vt_slot) {
-            filament_ams_list.emplace(extruder + stoi(vt_tray.id), build_tray_config(vt_tray, "Ext"));
+            filament_ams_list.emplace(extruder + stoi(vt_tray.id), build_tray_config(vt_tray, "Ext",vt_tray.id, "0"));//254 or 255
             extruder = 0;
         }
     }
@@ -2519,7 +2522,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         for (auto tray : ams.second->trayList) {
             int  slot_id = std::stoi(tray.first);
             filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
-                build_tray_config(*tray.second, get_ams_name(ams_id, slot_id)));
+                                      build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
         }
     }
     return filament_ams_list;
@@ -2577,40 +2580,32 @@ void Sidebar::sync_ams_list()
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty()) {
-        MessageDialog dlg(this,
-            _L("No AMS filaments. Please select a printer in 'Device' page to load AMS info."),
-            _L("Sync filaments with AMS"), wxOK);
-        dlg.ShowModal();
+        SyncAmsInfoDialog::SyncInfo temp_info;
+        SyncAmsInfoDialog           sync_dlg(this, temp_info);
+        sync_dlg.ShowModal();//printer is not connected
         return;
     }
     std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
     std::vector<std::string> list2;
-    if (!ams_filament_ids.empty())
+    if (!ams_filament_ids.empty()) {
         boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(","));
-    struct SyncAmsDialog : MessageDialog {
-        SyncAmsDialog(wxWindow * parent, bool first): MessageDialog(parent,
-            first
-                ? _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?")
-                : _L("Already did a synchronization, do you want to sync only changes or resync all?"),
-            _L("Sync filaments with AMS"), 0)
-        {
-            if (first) {
-                add_button(wxID_YES, true, _L("Yes"));
-            } else {
-                add_button(wxID_OK, true, _L("Sync"));
-                add_button(wxID_YES, false, _L("Resync"));
-            }
-            add_button(wxID_CANCEL, false, _L("Cancel"));
-        }
-    } dlg(this, ams_filament_ids.empty());
-    auto res = dlg.ShowModal();
-    if (res == wxID_CANCEL) return;
+    }
+    wxGetApp().plater()->update_all_plate_thumbnails(true);//preview thumbnail for sync_dlg
+    SyncAmsInfoDialog::SyncInfo temp_info;
+    temp_info.connected_printer = true;
+    temp_info.first_sync = ams_filament_ids.empty();
+    SyncAmsInfoDialog           sync_dlg(this, temp_info);
+    auto                        dlg_res = sync_dlg.ShowModal();
+    if (dlg_res == wxID_CANCEL)
+        return;
+    auto sync_result = sync_dlg.get_result();
+
     list2.resize(list.size());
     auto iter = list.begin();
     for (int i = 0; i < list.size(); ++i, ++iter) {
         auto & ams = iter->second;
         auto filament_id = ams.opt_string("filament_id", 0u);
-        ams.set_key_value("filament_changed", new ConfigOptionBool{res == wxID_YES || list2[i] != filament_id});
+        ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
         list2[i] = filament_id;
     }
 
@@ -2623,9 +2618,10 @@ void Sidebar::sync_ams_list()
         is_support_before.push_back(is_support_filament(i));
         color_before_sync.push_back(color_opt->values[i]);
     }
-
+    MergeFilamentInfo merge_info;
     unsigned int unknowns = 0;
-    auto n = wxGetApp().preset_bundle->sync_ams_list(unknowns);
+    auto enable_append = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
+    auto n             = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info);
     if (n == 0) {
         MessageDialog dlg(this,
             _L("There are no compatible filaments, and sync is not performed."),
@@ -2665,6 +2661,26 @@ void Sidebar::sync_ams_list()
                 bool flag = is_support_filament(i);
                 if (flag != is_support_before[i])
                     auto_calc_flushing_volumes(i);
+            }
+        }
+    }
+    if (!merge_info.is_empty() && wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams")) { // merge same color and preset filament//use same ams
+        auto reduce_index = [](MergeFilamentInfo &merge_info,int value) {
+            for (size_t i = 0; i < merge_info.merges.size(); i++) {
+                auto &cur = merge_info.merges[i];
+                for (size_t j = 0; j < cur.size(); j++) {
+                    if (value < cur[j]) {
+                        cur[j] = cur[j] - 1;
+                    }
+                }
+            }
+        };
+        for (size_t i = 0; i < merge_info.merges.size(); i++) {
+            auto& cur = merge_info.merges[i];
+            for (size_t j = cur.size() -1; j >= 1 ; j--) {
+                change_filament(cur[j], cur[0]);
+                cur.erase(cur.begin() + j);
+                reduce_index(merge_info, cur[j]);
             }
         }
     }

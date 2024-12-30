@@ -49,6 +49,7 @@
 
 namespace Slic3r { namespace GUI {
 
+std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type);
 void        print_ams_mapping_result(std::vector<FilamentInfo> &result);
 enum PrintFromType {
     FROM_NORMAL,
@@ -396,6 +397,11 @@ protected:
     wxGridSizer*                        m_sizer_ams_mapping{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_left{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
+
+public:
+    static std::vector<wxString> MACHINE_BED_TYPE_STRING;
+    static void                  init_machine_bed_types();
+    static std::vector<std::string> MachineBedTypeString;
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);

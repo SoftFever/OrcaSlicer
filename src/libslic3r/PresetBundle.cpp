@@ -1925,7 +1925,9 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
 
     if (filament_color->values.size() > to_del_flament_id) {
         filament_color->values.erase(filament_color->values.begin() + to_del_flament_id);
-        filament_map->values.erase(filament_map->values.begin() + to_del_flament_id);
+        if (filament_map->values.size() > to_del_flament_id) {
+            filament_map->values.erase(filament_map->values.begin() + to_del_flament_id);
+        }
     }
     else {
         filament_color->values.resize(to_del_flament_id);
@@ -1942,21 +1944,50 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     update_multi_material_filament_presets(to_del_flament_id);
 }
 
-unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
+unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
 {
-    std::vector<std::string> filament_presets;
-    std::vector<std::string> filament_colors;
+    std::vector<std::string> ams_filament_presets;
+    std::vector<std::string> ams_filament_colors;
+    std::vector<AMSMapInfo>  ams_array_maps;
     ams_multi_color_filment.clear();
+    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
+    struct AmsInfo
+    {
+        bool valid{false};
+        bool is_map{false};
+        std::string filament_color  = "";
+        std::string filament_preset = "";
+    };
+    auto is_double_extruder = get_printer_extruder_count() == 2;
+    std::vector<AmsInfo> ams_infos;
+    int                  index = 0;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
         auto filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colors")->values;
-        if (filament_id.empty()) continue;
-        if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
-            filament_presets.push_back(this->filament_presets[filament_presets.size()]);
-            filament_colors.push_back(filament_color);
+        auto ams_id     = ams.opt_string("ams_id", 0u);
+        auto slot_id    = ams.opt_string("slot_id", 0u);
+        ams_infos.push_back({filament_id.empty() ? false : true,false, filament_color});
+        AMSMapInfo temp = {ams_id, slot_id};
+        ams_array_maps.push_back(temp);
+        index++;
+        if (filament_id.empty()) {
+            if (use_map) {
+                ams_filament_presets.push_back("Generic PLA");//for unknow matieral
+                auto default_unknown_color = "#CECECE";
+                ams_filament_colors.push_back(default_unknown_color);
+                if (filament_multi_color.size() == 0) {
+                    filament_multi_color.push_back(default_unknown_color);
+                }
+                ams_multi_color_filment.push_back(filament_multi_color);
+            }
+            continue;
+        }
+        if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
+            ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+            ams_filament_colors.push_back(filament_color);
             ams_multi_color_filment.push_back(filament_multi_color);
             continue;
         }
@@ -1974,9 +2005,10 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
             }
             if (iter == filaments.end()) {
                 // Prefer old selection
-                if (filament_presets.size() < this->filament_presets.size()) {
-                    filament_presets.push_back(this->filament_presets[filament_presets.size()]);
-                    filament_colors.push_back(filament_color);
+                if (ams_filament_presets.size() < this->filament_presets.size()) {
+                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+                    ams_filament_colors.push_back(filament_color);
+                    ams_multi_color_filment.push_back(filament_multi_color);
                     ++unknowns;
                     continue;
                 }
@@ -1989,21 +2021,100 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
             ++unknowns;
             filament_id = iter->filament_id;
         }
-        filament_presets.push_back(iter->name);
-        filament_colors.push_back(filament_color);
+        ams_filament_presets.push_back(iter->name);
+        ams_filament_colors.push_back(filament_color);
         ams_multi_color_filment.push_back(filament_multi_color);
     }
-    if (filament_presets.empty())
+    if (ams_filament_presets.empty())
         return 0;
-    this->filament_presets = filament_presets;
     ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
-    filament_color->resize(filament_presets.size());
-    filament_color->values = filament_colors;
-    ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
-    filament_map->values.resize(filament_colors.size(), 1);
+    ConfigOptionInts *   filament_map = project_config.option<ConfigOptionInts>("filament_map");
+    if (use_map) {
+        auto check_has_merge_info = [](std::map<int, AMSMapInfo> &maps, MergeFilamentInfo &merge_info, int exist_colors_size) {
+            std::map<int, bool> done;
+            for (int i = 0; i < maps.size(); i++) {
+                std::vector<int> same_ams;
+                same_ams.emplace_back(i);
+                for (size_t j = i + 1; j < maps.size(); j++) {
+                    if (done.find(j) != done.end()) {
+                        continue;
+                    }
+                    if (maps[i].slot_id == "" || maps[i].ams_id == ""){//reserve
+                        continue;
+                    }
+                    if (maps[i].slot_id == maps[j].slot_id && maps[i].ams_id == maps[j].ams_id) {
+                        same_ams.emplace_back(j);
+                        done[j] =true;
+                    }
+                }
+                if (same_ams.size() > 1) {
+                    merge_info.merges.emplace_back(same_ams);
+                }
+            }
+        };
+        check_has_merge_info(maps, merge_info,filament_color->values.size());
+        auto get_map_index = [&ams_infos](const std::vector<AMSMapInfo> &infos, const AMSMapInfo &temp) {
+            for (int i = 0; i < infos.size(); i++) {
+                if (infos[i].slot_id == temp.slot_id && infos[i].ams_id == temp.ams_id) {
+                    ams_infos[i].is_map = true;
+                    return i;
+                }
+            }
+            return -1;
+        };
+        std::vector<AmsInfo> need_append_colors;
+        auto exist_colors = filament_color->values;
+        auto exist_filament_presets = this->filament_presets;
+        for (size_t i = 0; i < exist_colors.size(); i++) {
+            if (maps.find(i) != maps.end()) {//mapping exist
+                auto valid_index = get_map_index(ams_array_maps, maps[i]);
+                if (valid_index >= 0) {
+                    exist_colors[i]           = ams_filament_colors[valid_index];
+                    exist_filament_presets[i] = ams_filament_presets[valid_index];
+                }
+            }
+        }
+        for (size_t i = 0; i < ams_infos.size(); i++) {// check append
+            if (ams_infos[i].valid) {
+                ams_infos[i].filament_preset = ams_filament_presets[i];
+                if (!ams_infos[i].is_map) {
+                    need_append_colors.emplace_back(ams_infos[i]);
+                    ams_filament_colors[i]     = "";
+                    ams_filament_presets[i]    = "";
+                    ams_multi_color_filment[i] = std::vector<std::string>();
+                }
+            }
+        }
+        //delete redundant color
+        ams_filament_colors.erase(std::remove_if(ams_filament_colors.begin(), ams_filament_colors.end(), [](std::string &value) { return value.empty(); }),
+                                  ams_filament_colors.end());
+        ams_filament_presets.erase(std::remove_if(ams_filament_presets.begin(), ams_filament_presets.end(), [](std::string &value) { return value.empty(); }),
+                                   ams_filament_presets.end());
+        ams_multi_color_filment.erase(std::remove_if(ams_multi_color_filment.begin(), ams_multi_color_filment.end(),
+                                                     [](std::vector<std::string> &value) { return value.empty(); }),
+                                      ams_multi_color_filment.end());
+        if (need_append_colors.size() > 0 && enable_append) {
+            for (size_t i = 0; i < need_append_colors.size(); i++){
+                exist_filament_presets.push_back(need_append_colors[i].filament_preset);
+                exist_colors.push_back(need_append_colors[i].filament_color);
+                std::vector<std::string> value = {need_append_colors[i].filament_color};
+                ams_multi_color_filment.push_back(value);
+            }
+        }
+        filament_color->resize(exist_colors.size());
+        filament_color->values = exist_colors;
+        this->filament_presets = exist_filament_presets;
+        filament_map->values.resize(exist_filament_presets.size(), 1);
+    }
+    else {//overwrite
+        filament_color->resize(ams_filament_presets.size());
+        filament_color->values = ams_filament_colors;
+        this->filament_presets = ams_filament_presets;
+        filament_map->values.resize(ams_filament_colors.size(), 1);
+    }
 
     update_multi_material_filament_presets();
-    return filament_presets.size();
+    return this->filament_presets.size();
 }
 
 std::vector<int> PresetBundle::get_used_tpu_filaments(const std::vector<int> &used_filaments)
