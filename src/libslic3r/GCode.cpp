@@ -2854,15 +2854,30 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 }
 
-
+// export info requested for filament change
 void GCode::export_layer_filaments(GCodeProcessorResult* result)
 {
     if (result == nullptr)
         return;
-    result->layer_filaments.clear();
+
+    const std::vector<int>filament_map = m_config.filament_map.values; // 1 based
+    std::vector<int>prev_filament(m_config.nozzle_diameter.size(), -1);
     for (size_t idx = 0; idx < m_sorted_layer_filaments.size(); ++idx) {
+        for (auto f : m_sorted_layer_filaments[idx]) {
+            int extruder_idx = filament_map[f] - 1;
+            if (prev_filament[extruder_idx] != -1 && f != prev_filament[extruder_idx]) {
+                std::pair<int, int> from_to_pair = { prev_filament[extruder_idx],f };
+                auto iter = result->filament_change_count_map.find(from_to_pair);
+                if (iter == result->filament_change_count_map.end())
+                    result->filament_change_count_map.emplace(from_to_pair, 1);
+                else
+                    iter->second += 1;
+            }
+            prev_filament[extruder_idx] = f;
+        }
+
         // now we do not need sorted data, so we sort the filaments in id order
-        auto& layer_filaments = m_sorted_layer_filaments[idx];
+        auto layer_filaments = m_sorted_layer_filaments[idx];
         std::sort(layer_filaments.begin(), layer_filaments.end());
         auto iter = result->layer_filaments.find(layer_filaments);
         if (iter == result->layer_filaments.end()) {

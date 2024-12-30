@@ -256,6 +256,9 @@ class Print;
         std::vector<NozzleType> nozzle_type;
         // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
+        // first key stores `from` filament, second keys stores the `to` filament
+        std::map<std::pair<int,int>, int > filament_change_count_map;
+
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -291,6 +294,8 @@ class Print;
             gcode_check_result = other.gcode_check_result;
             limit_filament_maps = other.limit_filament_maps;
             filament_printable_reuslt = other.filament_printable_reuslt;
+            layer_filaments = other.layer_filaments;
+            filament_change_count_map = other.filament_change_count_map;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
