@@ -3230,6 +3230,13 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj["support_chamber_temp_edit"].is_boolean()) {
                         is_support_chamber_edit = jj["support_chamber_temp_edit"].get<bool>();
                     }
+
+                    const auto& support_champer_range = jj["support_chamber_temp_edit_range"];
+                    if (support_champer_range.is_array() && !support_champer_range.empty())
+                    {
+                        chamber_temp_edit_min = support_champer_range[0];
+                        chamber_temp_edit_max = support_champer_range[1];
+                    }
                 }
 
                 if (jj.contains("support_extrusion_cali")) {
