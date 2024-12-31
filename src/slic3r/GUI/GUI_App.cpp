@@ -3778,7 +3778,7 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
-wxString GUI_App::transition_tridid(int trid_id)
+wxString GUI_App::transition_tridid(int trid_id) const
 {
     wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
@@ -3792,6 +3792,19 @@ wxString GUI_App::transition_tridid(int trid_id)
         int id_suffix = trid_id % 4 + 1;
         return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
     }
+}
+
+wxString GUI_App::transition_tridid(int trid_id, bool is_n3s) const
+{
+    if (is_n3s)
+    {
+        const char base = 'A' + (trid_id - 128);
+        wxString prefix("HT-");
+        prefix.append(base);
+        return prefix;
+    }
+
+    return transition_tridid(trid_id);
 }
 
 //BBS

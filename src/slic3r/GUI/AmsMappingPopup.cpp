@@ -1544,22 +1544,6 @@ void AmsReplaceMaterialDialog::create()
     Fit();
 }
 
-std::vector<bool> AmsReplaceMaterialDialog::GetStatus(unsigned int status)
-{
-    std::vector<bool> listStatus;
-    bool current = false;
-    for (int i = 0; i < 16; i++) {
-        if (status & (1 << i)) {
-            current = true;
-        }
-        else {
-            current = false;
-        }
-        listStatus.push_back(current);
-    }
-    return listStatus;
-}
-
 void AmsReplaceMaterialDialog::update_mapping_result( std::vector<FilamentInfo> result)
 {
     m_tray_used.clear();
@@ -1587,7 +1571,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     }
 }
 
-AmsRMGroup* AmsReplaceMaterialDialog::create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list)
+AmsRMGroup* AmsReplaceMaterialDialog::create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material)
 {
     auto grp = new AmsRMGroup(m_scrollview_groups, group_info, material, gname);
     return grp;
@@ -1606,6 +1590,29 @@ void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
+static std::unordered_map<int, bool>
+_GetBackupStatus(unsigned int fila_back_group)
+{
+    std::unordered_map<int, bool> trayid_group;
+    for (int i = 0; i < 16; i++)
+    {
+        if (fila_back_group & (1 << i))
+        {
+            trayid_group[i] = true;
+        }
+    }
+
+    for (int j = 16; j < 32; j++)/* single ams is from 128*/
+    {
+        if (fila_back_group & (1 << j))
+        {
+            trayid_group[128 + j - 16] = true;
+        }
+    }
+
+    return trayid_group;
+}
+
 void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
 {
     if (!m_obj)
@@ -1619,22 +1626,24 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     }
 
     // traverse the amd list
-    AmsTray* tray_list[4 * 4];
-    for (auto i = 0; i < 4 * 4; i++)
-    {
-        tray_list[i] = nullptr;
-    }
-
+    std::unordered_map<int, AmsTray*> id2tray;// tray id to tray
     try
     {
-        for (auto ams_info : m_obj->amsList)
+        for (const auto& ams_info : m_obj->amsList)
         {
-            int ams_id_int = atoi(ams_info.first.c_str()) * 4;
-            for (auto tray_info : ams_info.second->trayList)
+            int ams_device_id = atoi(ams_info.first.c_str());
+            if (ams_device_id < 128)
             {
-                int tray_id_int = atoi(tray_info.first.c_str());
-                tray_id_int = ams_id_int + tray_id_int;
-                tray_list[tray_id_int] = tray_info.second;
+                int ams_base_id = ams_device_id * 4;
+                for (auto tray_info : ams_info.second->trayList)
+                {
+                    int tray_offset = atoi(tray_info.first.c_str());
+                    id2tray[ams_base_id + tray_offset] = tray_info.second;
+                }
+            }
+            else if (ams_info.second->trayList.size() == 1)/*n3f*/
+            {
+                id2tray[ams_device_id] = ams_info.second->trayList.begin()->second;
             }
         }
     }
@@ -1646,32 +1655,35 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     const Extder& extder = m_obj->m_extder_data.extders[nozzle_id];
     for (int filam : extder.filam_bak)
     {
-        auto status_list = GetStatus(filam);
-
         std::map<std::string, wxColour> group_info;
         std::string    group_material;
         bool   is_in_tray = false;
 
         //get color & material
-        for (auto i = 0; i < status_list.size(); i++)
+        const auto& trayid_group = _GetBackupStatus(filam);
+        for (const auto& elem : trayid_group)
         {
-            if (status_list[i] && tray_list[i] != nullptr)
+            if (elem.second)
             {
-                auto tray_name = wxGetApp().transition_tridid(i).ToStdString();
-                auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
-                if (it != m_tray_used.end())
+                AmsTray* cur_tray = id2tray[elem.first];
+                if (cur_tray)
                 {
-                    is_in_tray = true;
-                }
+                    auto tray_name = wxGetApp().transition_tridid(elem.first, elem.first > 127).ToStdString();
+                    auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                    if (it != m_tray_used.end())
+                    {
+                        is_in_tray = true;
+                    }
 
-                group_info[tray_name] = AmsTray::decode_color(tray_list[i]->color);
-                group_material = tray_list[i]->get_display_filament_type();
+                    group_info[tray_name] = AmsTray::decode_color(cur_tray->color);
+                    group_material = cur_tray->get_display_filament_type();
+                }
             }
         }
 
         if (is_in_tray || m_tray_used.size() <= 0)
         {
-            m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
+            m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
             group_index++;
         }
     }

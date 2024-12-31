@@ -356,7 +356,6 @@ public:
     void        update_mapping_result(std::vector<FilamentInfo> result);
     void        paintEvent(wxPaintEvent& evt);
     void        on_dpi_changed(const wxRect& suggested_rect) override;
-    std::vector<bool>        GetStatus(unsigned int status);
 
 public:
     MachineObject* m_obj{ nullptr };
@@ -373,7 +372,7 @@ public:
 
 private:
     void        create();
-    AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list);
+    AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material);
 
     // update to nozzle
     void  on_nozzle_selected(wxCommandEvent& event) { update_to_nozzle(event.GetInt()); };
