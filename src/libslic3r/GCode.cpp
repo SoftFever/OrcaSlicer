@@ -2150,7 +2150,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     std::vector<int>                                    first_non_support_filaments;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
     std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
-    std::vector<int> extruder_count;
     std::vector<const PrintInstance *>::const_iterator  first_has_extrude_print_object;
     //resize
     first_non_support_filaments.resize(print.config().nozzle_diameter.size(), -1);
@@ -2166,13 +2165,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         bool find_fist_non_support_filament = false;
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-            //get extruder count
-            std::vector<int> object_extruder_count = tool_ordering.cal_most_used_extruder(print.config());
-            if (extruder_count.empty())
-                extruder_count = object_extruder_count;
-            else
-                for (size_t extruder_id = 0; extruder_id < object_extruder_count.size(); extruder_id++)
-                    extruder_count[extruder_id] += object_extruder_count[extruder_id];
 
             tool_ordering.sort_and_build_data(*(*print_object_instance_sequential_active)->print_object,initial_extruder_id);
             if (!find_fist_non_support_filament && tool_ordering.first_extruder() != (unsigned int) -1) {
@@ -2197,7 +2189,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
         tool_ordering = print.tool_ordering();
-        extruder_count = tool_ordering.cal_most_used_extruder(print.config());
+        tool_ordering.cal_most_used_extruder(print.config());
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.
@@ -2263,15 +2255,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Update output variables after the extruders were initialized.
     m_placeholder_parser_integration.init(m_writer);
 
-    //set key for most used extruder
-    //count most used extruder
-    int max_count_extruder = 0;
-    for (int extruder_id = 1; extruder_id < extruder_count.size(); extruder_id++) {
-        if (extruder_count[extruder_id] >= extruder_count[max_count_extruder])
-            max_count_extruder = extruder_id;
-    }
-
-    this->placeholder_parser().set("most_used_physical_extruder_id", print.config().physical_extruder_map.values[max_count_extruder]);
     // Let the start-up script prime the 1st printing tool.
 
     auto match_physical_extruder_for_each_filament = [](std::vector<int> &filaments, const FullPrintConfig &config) {
@@ -2643,6 +2626,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
+                tool_ordering.cal_most_used_extruder(print.config());
                 this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object
@@ -2947,7 +2931,7 @@ void GCode::process_layers(
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();
-                return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
+                return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, tool_ordering.get_most_used_extruder(), size_t(-1));
             }
         });
     if (m_spiral_vase) {
@@ -3047,7 +3031,7 @@ void GCode::process_layers(
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();
-                return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
+                return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, tool_ordering.get_most_used_extruder(), single_object_idx, prime_extruder);
             }
         });
     if (m_spiral_vase) {
@@ -3762,6 +3746,7 @@ LayerResult GCode::process_layer(
     const bool                               last_layer,
     // Pairs of PrintObject index and its instance index.
     const std::vector<const PrintInstance*> *ordering,
+    const int                               most_used_extruder,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
     const size_t                     		 single_object_instance_idx,
@@ -3860,7 +3845,7 @@ LayerResult GCode::process_layer(
 
     PrinterStructure printer_structure           = m_config.printer_structure.value;
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if (printer_structure == PrinterStructure::psI3 &&
+    if ((printer_structure == PrinterStructure::psI3 || m_config.nozzle_diameter.values.size() == 2)&&
         !m_spiral_vase &&
         (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) &&
         print.config().print_sequence == PrintSequence::ByLayer) {
@@ -3869,10 +3854,13 @@ LayerResult GCode::process_layer(
     bool has_insert_timelapse_gcode = false;
     bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
 
-    auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
+    int physical_extruder_id = print.config().physical_extruder_map.get_at(most_used_extruder);
+
+    auto insert_timelapse_gcode = [this, print_z, &print, &physical_extruder_id]() -> std::string {
         std::string gcode_res;
         if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
+            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
@@ -3886,7 +3874,9 @@ LayerResult GCode::process_layer(
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if(is_BBL_Printer()){
-        if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
+        if ((printer_structure == PrinterStructure::psI3 || m_config.nozzle_diameter.values.size() == 2)
+            && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase
+            && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
             if(!timepals_gcode.empty()){
             gcode += timepals_gcode;
@@ -3913,6 +3903,7 @@ LayerResult GCode::process_layer(
     }
     if (! m_config.layer_change_gcode.value.empty()) {
         DynamicConfig config;
+        config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
         gcode += this->placeholder_parser_process("layer_change_gcode",
@@ -4299,22 +4290,31 @@ LayerResult GCode::process_layer(
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
-                    gcode += this->retract(false, false, LiftType::NormalLift);
-                    m_writer.add_object_change_labels(gcode);
+                    bool should_insert = true;
+                    if (m_config.nozzle_diameter.values.size() == 2){
+                        if (!writer().filament() || get_extruder_id(writer().filament()->id()) != most_used_extruder) {
+                            should_insert = false;
+                        }
+                    }
 
-                    std::string timepals_gcode = insert_timelapse_gcode();
-                    if(!timepals_gcode.empty()){
-                    gcode += timepals_gcode;
-                    m_writer.set_current_position_clear(false);
-                    //BBS: check whether custom gcode changes the z position. Update if changed
-                    double temp_z_after_timepals_gcode;
-                    if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                        Vec3d pos = m_writer.get_position();
-                        pos(2) = temp_z_after_timepals_gcode;
-                        m_writer.set_position(pos);
+                    if (should_insert) {
+                        gcode += this->retract(false, false, LiftType::NormalLift);
+                        m_writer.add_object_change_labels(gcode);
+
+                        std::string timepals_gcode = insert_timelapse_gcode();
+                        if(!timepals_gcode.empty()){
+                        gcode += timepals_gcode;
+                        m_writer.set_current_position_clear(false);
+                        // BBS: check whether custom gcode changes the z position. Update if changed
+                        double temp_z_after_timepals_gcode;
+                        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                            Vec3d pos = m_writer.get_position();
+                            pos(2)    = temp_z_after_timepals_gcode;
+                            m_writer.set_position(pos);
+                        }
+                        }
+                        has_insert_timelapse_gcode = true;
                     }
-                    }
-                    has_insert_timelapse_gcode = true;
                 }
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
@@ -4546,7 +4546,8 @@ LayerResult GCode::process_layer(
                     {
                         // Print perimeters of regions that has is_infill_first == false
                         gcode += this->extrude_perimeters(print, by_region_specific, first_layer, false);
-                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && printer_structure == PrinterStructure::psI3
+                            && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
                             std::string timepals_gcode = insert_timelapse_gcode();
@@ -4628,8 +4629,8 @@ LayerResult GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
 
-    if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
-        if (m_support_traditional_timelapse)
+    if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        if (m_support_traditional_timelapse && printer_structure == PrinterStructure::psI3)
             m_support_traditional_timelapse = false;
 
         gcode += this->retract(false, false, LiftType::NormalLift);

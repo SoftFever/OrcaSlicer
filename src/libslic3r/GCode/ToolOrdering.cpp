@@ -823,7 +823,7 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
     }
 }
 
-std::vector<int> ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
+void ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
 {
     // record
     std::vector<int> extruder_count;
@@ -841,7 +841,14 @@ std::vector<int> ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
             extruder_count[extruder_id]++;
         }
     }
-    return extruder_count;
+
+    // set key for most used extruder
+    // count most used extruder
+    most_used_extruder = 0;
+    for (int extruder_id = 1; extruder_id < extruder_count.size(); extruder_id++) {
+        if (extruder_count[extruder_id] >= extruder_count[most_used_extruder])
+            most_used_extruder = extruder_id;
+    }
 }
 
 //BBS: find first non support filament

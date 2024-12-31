@@ -235,6 +235,7 @@ public:
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
+    int                 get_most_used_extruder() const { return most_used_extruder; }
     /*
     * called in single extruder mode, the value in map are all 0
     * called in dual extruder mode, the value in map will be 0 or 1
@@ -246,7 +247,7 @@ public:
 
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
-    std::vector<int>    cal_most_used_extruder(const PrintConfig &config);
+    void                cal_most_used_extruder(const PrintConfig &config);
     bool                cal_non_support_filaments(const PrintConfig &config,
                                                   unsigned int &     first_non_support_filament,
                                                   std::vector<int> & initial_non_support_filaments,
@@ -283,6 +284,8 @@ private:
     FilamentChangeStats        m_stats_by_single_extruder;
     FilamentChangeStats        m_stats_by_multi_extruder_curr;
     FilamentChangeStats        m_stats_by_multi_extruder_best;
+
+    int                        most_used_extruder;
 };
 
 } // namespace SLic3r
