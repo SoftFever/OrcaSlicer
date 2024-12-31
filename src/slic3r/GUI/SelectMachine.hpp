@@ -325,6 +325,8 @@ protected:
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
     wxBoxSizer*                         m_sizer_autorefill{ nullptr };
+    wxBoxSizer*                         m_mapping_sugs_sizer{ nullptr };
+    wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
     ScalableButton*                     m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     wxStaticBitmap *                    m_rename_button{nullptr};
@@ -341,6 +343,7 @@ protected:
     wxPanel*                            m_panel_prepare{nullptr};
     wxPanel*                            m_panel_finish{nullptr};
     wxPanel*                            m_line_top{ nullptr };
+    Label*                              m_link_edit_nozzle{ nullptr };
     Label*                              m_st_txt_error_code{nullptr};
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
@@ -353,6 +356,7 @@ protected:
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
     Label*                              m_statictext_ams_msg{ nullptr };
+    Label*                              m_txt_change_filament_times{ nullptr };
     Label*                              m_text_printer_msg{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
@@ -413,7 +417,8 @@ public:
     void reset_ams_material();
     void update_show_status();
     void update_ams_check(MachineObject* obj);
-    void on_rename_click(wxMouseEvent& event);
+    void update_filament_change_count();
+    void     on_rename_click(wxMouseEvent &event);
     void on_rename_enter();
     void update_printer_combobox(wxCommandEvent& event);
     void on_cancel(wxCloseEvent& event);
