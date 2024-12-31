@@ -412,20 +412,18 @@ void TempInput::render(wxDC &dc)
     if (normal_icon.bmp().IsOk()) szIcon = normal_icon.GetBmpSize();
     else if (actice_icon.bmp().IsOk()) szIcon = actice_icon.GetBmpSize();
 
-    if (m_input_type != TEMP_OF_DEPUTY_NOZZLE_TYPE) {
-        if (actice_icon.bmp().IsOk() && actice) {
-            szIcon = actice_icon.GetBmpSize();
-            pt.y = (size.y - szIcon.y) / 2;
-            dc.DrawBitmap(actice_icon.bmp(), pt);
-        }
-        else {
-            actice = false;
-        }
-        if (normal_icon.bmp().IsOk() && !actice) {
-            szIcon = normal_icon.GetBmpSize();
-            pt.y = (size.y - szIcon.y) / 2;
-            dc.DrawBitmap(normal_icon.bmp(), pt);
-        }
+    if (actice_icon.bmp().IsOk() && actice) {
+        szIcon = actice_icon.GetBmpSize();
+        pt.y = (size.y - szIcon.y) / 2;
+        dc.DrawBitmap(actice_icon.bmp(), pt);
+    }
+    else {
+        actice = false;
+    }
+    if (normal_icon.bmp().IsOk() && !actice) {
+        szIcon = normal_icon.GetBmpSize();
+        pt.y = (size.y - szIcon.y) / 2;
+        dc.DrawBitmap(normal_icon.bmp(), pt);
     }
 
     pt.x += szIcon.x + 9;
@@ -448,7 +446,7 @@ void TempInput::render(wxDC &dc)
         dc.DrawBitmap(right_icon.bmp(), pt);
 
         dc.SetFont(::Label::Body_12);
-        auto sepSize = dc.GetMultiLineTextExtent(wxString("L"));
+        auto sepSize = dc.GetMultiLineTextExtent(wxString("R"));
         dc.SetTextForeground(*wxWHITE);
         dc.SetTextBackground(*wxWHITE);
         dc.DrawText(wxString("R"), pt.x + (szIcon.x - sepSize.x) / 2, (size.y - sepSize.y) / 2);

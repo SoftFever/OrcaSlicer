@@ -412,8 +412,6 @@ void FilamentStepIndicator::doRender(wxDC& dc)
 
     dc.SetFont(::Label::Body_13);
 
-    dc.DrawText(m_slot_information, circleX + sz.GetWidth() + FromDIP(5), circleY + FromDIP(3));
-
     dc.DrawBitmap(bmp_extruder, FromDIP(250), circleY);
     circleY += sz.y;
 
