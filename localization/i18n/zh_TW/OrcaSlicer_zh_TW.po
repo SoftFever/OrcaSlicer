@@ -155,7 +155,7 @@ msgid "Height range"
 msgstr "高度範圍"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+
 
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
@@ -308,7 +308,7 @@ msgid "Hexagon"
 msgstr "六邊形"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "保持方向"
 
 msgid "Place on cut"
 msgstr "切割面貼其於列印底板"
@@ -635,7 +635,7 @@ msgstr ""
 #. TRN - Input label. Be short as possible
 #. Select look of letter shape
 msgid "Font"
-msgstr "字體"
+msgstr "字型"
 
 msgid "Thickness"
 msgstr "厚度"
@@ -722,7 +722,7 @@ msgstr "高級"
 msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
-msgstr "文字與字體不相容，請選擇其他的字體"
+msgstr "文字與字型不相容，請選擇其他的字型"
 
 msgid "Embossed text cannot contain only white spaces."
 msgstr "浮雕文字不能僅包含空白字元。"
@@ -753,16 +753,16 @@ msgstr ""
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr ""
+msgstr "字型 \"%1%\" 無法選擇。"
 
 msgid "Operation"
 msgstr ""
 
 msgid "Join"
-msgstr ""
+msgstr "合併"
 
 msgid "Click to change text into object part."
-msgstr ""
+msgstr "點擊將文字轉換為物件部分。"
 
 msgid "You can't change a type of the last solid part of the object."
 msgstr "你無法變更模型最後一個實體部分的類型。"
@@ -781,17 +781,17 @@ msgid "Click to change part type into modifier."
 msgstr "點擊將零件類型變更為修改器"
 
 msgid "Change Text Type"
-msgstr ""
+msgstr "更改文字類型"
 
 #, boost-format
 msgid "Rename style(%1%）for embossing text"
 msgstr ""
 
 msgid "Name can't be empty."
-msgstr ""
+msgstr "名稱不可空白"
 
 msgid "Name has to be unique."
-msgstr ""
+msgstr "名稱必須是獨特的"
 
 msgid "OK"
 msgstr "確認"
@@ -875,27 +875,29 @@ msgid "Style \"%1%\" can't be used and will be removed from a list."
 msgstr ""
 
 msgid "Unset italic"
-msgstr ""
+msgstr "取消斜體"
 
 msgid "Set italic"
-msgstr ""
+msgstr "斜體"
 
 msgid "Unset bold"
-msgstr ""
+msgstr "取消粗體"
 
 msgid "Set bold"
-msgstr ""
+msgstr "粗體"
 
 msgid "Revert text size."
-msgstr ""
+msgstr "恢復文字大小"
 
 msgid "Revert embossed depth."
-msgstr ""
+msgstr "恢復浮雕深度"
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
+"無法更改所選字型的進階選項。\n"
+"請選擇其他字型。"
 
 msgid "Revert using of model surface."
 msgstr ""
@@ -927,60 +929,60 @@ msgstr "頂部"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr ""
+msgstr "置中"
 
 msgctxt "Alignment"
 msgid "Bottom"
 msgstr "底部"
 
 msgid "Revert alignment."
-msgstr ""
+msgstr "恢復對齊"
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr ""
+msgstr "pt"
 
 msgid "Revert gap between characters"
-msgstr ""
+msgstr "恢復字元間距"
 
 msgid "Distance between characters"
-msgstr ""
+msgstr "字元間距"
 
 msgid "Revert gap between lines"
-msgstr ""
+msgstr "恢復線間距"
 
 msgid "Distance between lines"
-msgstr ""
+msgstr "線間距"
 
 msgid "Undo boldness"
-msgstr ""
+msgstr "恢復粗體"
 
 msgid "Tiny / Wide glyphs"
 msgstr ""
 
 msgid "Undo letter's skew"
-msgstr ""
+msgstr "恢復文字變形"
 
 msgid "Italic strength ratio"
 msgstr ""
 
 msgid "Undo translation"
-msgstr ""
+msgstr "恢復移動"
 
 msgid "Distance of the center of the text to the model surface."
-msgstr ""
+msgstr "文字中心到模型表面的距離"
 
 msgid "Undo rotation"
-msgstr ""
+msgstr "恢復旋轉"
 
 msgid "Rotate text Clock-wise."
-msgstr ""
+msgstr "文字順時針旋轉"
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "在沿物體表面移動文字時解鎖文字旋轉。"
 
 msgid "Lock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "將文字旋轉鎖定，並沿物體表面移動文字。"
 
 msgid "Select from True Type Collection."
 msgstr "從 True Type 中選擇。"
@@ -1855,7 +1857,7 @@ msgid "Edit text"
 msgstr "編輯文字"
 
 msgid "Ability to change text, font, size, ..."
-msgstr "編輯文字、字形、尺寸..."
+msgstr "編輯文字、字型、尺寸..."
 
 msgid "Edit SVG"
 msgstr "編輯SVG"
