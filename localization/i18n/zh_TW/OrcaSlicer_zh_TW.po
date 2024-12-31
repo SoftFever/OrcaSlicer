@@ -6224,6 +6224,12 @@ msgstr "原因：零件\"%1%\""
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "原因：\"%1%\" 與另一個零件沒有交集"
 
+#, fuzzy
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr "無法對模型網格執行布林運算。只有正面部分將被導出。"
+
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
 "3MF file?\n"
@@ -9675,7 +9681,9 @@ msgstr "懸空反轉臨界值"
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every even layers regardless."
+"Value 0 enables reversal on every even layers regardless.\n"
+"When Detect overhang wall is not enabled, this option is ignored and "
+"reversal happens on every even layers regardless."
 msgstr ""
 "懸挑需要達到的毫米數，才會反向列印。可以是周邊寬度的百分比。\n"
 "值為 0 時，將在每個偶數層啟用反向列印。"
@@ -11971,6 +11979,14 @@ msgstr "換層時回抽"
 
 msgid "Force a retraction when changes layer"
 msgstr "強制在換層時回抽。"
+
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
 
 msgid "Retraction Length"
 msgstr "回抽長度"
@@ -16313,11 +16329,6 @@ msgstr ""
 
 #~ msgid "Failed to parse model informations."
 #~ msgstr "解析模型資訊失敗。"
-
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
-#~ msgstr "無法對網格模型執行布林運算。只有正面部分將被導出。"
 
 #, boost-format
 #~ msgid ""

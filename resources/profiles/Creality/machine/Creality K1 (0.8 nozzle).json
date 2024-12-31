@@ -86,7 +86,7 @@
         "0.5"
     ],
     "min_layer_height": [
-        "0.08"
+        "0.16"
     ],
     "printer_settings_id": "Creality",
     "retraction_minimum_travel": [

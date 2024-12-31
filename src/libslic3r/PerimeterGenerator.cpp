@@ -1222,6 +1222,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     smooth_overhang_level(paths);
                 }
 
+                if (overhangs_reverse) {
+                    for (const ExtrusionPath& path : paths) {
+                        if (path.role() == erOverhangPerimeter) {
+                            if (pg_extrusion.is_contour)
+                                steep_overhang_contour = true;
+                            else
+                                steep_overhang_hole = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
         else {
@@ -3113,11 +3124,15 @@ void PerimeterGenerator::process_arachne()
                 bringContoursToFront(ordered_extrusions);
                 std::vector<PerimeterGeneratorArachneExtrusion> reordered_extrusions;
                 
-                // Get searching thresholds. For an external perimeter we take the middle of the external perimeter width, split it in two, add the spacing to the internal perimeter and add half the internal perimeter width.
-                // This should get us to the middle of the internal perimeter. We then scale by 10% up for safety margin.
-                coord_t threshold_external = (this->ext_perimeter_flow.scaled_width()/2+this->ext_perimeter_flow.scaled_spacing()+this->perimeter_flow.scaled_width()/2) * 1.1;
-                // For the intenal perimeter threshold, the distance is the perimeter width plus the spacing, scaled by 10% for safety margin.
-                coord_t threshold_internal = (this->perimeter_flow.scaled_width()+this->perimeter_flow.scaled_spacing()) * 1.1;
+                // Debug statement to print spacing values:
+                //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
+               
+                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by 3% to cover
+                // rounding errors
+                coord_t threshold_external = (this->ext_perimeter_flow.scaled_spacing()/2 + this->perimeter_flow.scaled_spacing()/2)*1.03;
+                
+                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by 3% to cover rounding errors.
+                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * 1.03;
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter
@@ -3164,7 +3179,7 @@ void PerimeterGenerator::process_arachne()
                     // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found all three perimeters to re-order? If not the perimeters will be processed outside in.
                         std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
-                        inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
+                        inner_outer_extrusions.resize(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
                         // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
                         
                         for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out towards the external perimeter (perimeters in reverse order) and store all internal perimeters until the first one identified with inset index 2
