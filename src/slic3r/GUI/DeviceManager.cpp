@@ -4154,9 +4154,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj["ams"].contains("ams_exist_bits")) {
                                 ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 16);
                             }
+
                             if (jj["ams"].contains("tray_exist_bits")) {
                                 tray_exist_bits = stol(jj["ams"]["tray_exist_bits"].get<std::string>(), nullptr, 16);
                             }
+
                             if (!key_field_only) {
                                 if (jj["ams"].contains("tray_read_done_bits")) {
                                     tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
