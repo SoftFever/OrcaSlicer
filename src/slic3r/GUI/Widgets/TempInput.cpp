@@ -218,7 +218,7 @@ void TempInput::Warning(bool warn, WarningType type)
 
             wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
-            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {FromDIP(260), -1}, wxTAB_TRAVERSAL);
+            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
             body->SetBackgroundColour(wxColour(0xFFFFFF));
 
 
@@ -256,6 +256,7 @@ void TempInput::Warning(bool warn, WarningType type)
              warning_string = _L("The minmum temperature should not be less than " + wxString::Format("%d", max_temp));
 
         warning_text->SetLabel(warning_string);
+        wdialog->Fit();
         wdialog->Popup();
     } else {
         if (wdialog)
