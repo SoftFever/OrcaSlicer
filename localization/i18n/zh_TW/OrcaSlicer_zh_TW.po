@@ -1233,7 +1233,7 @@ msgstr "選擇用於浮雕的 SVG 檔案："
 
 #, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr "檔案不存在（%1）。"
+msgstr "檔案不存在（%1%）。"
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
@@ -3817,7 +3817,7 @@ msgstr "預設"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr "編輯自訂 GOCDE（%1）"
+msgstr "編輯自訂 GOCDE（%1%）"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr "內建占位符（雙點擊加入GCODE）"
@@ -10397,7 +10397,7 @@ msgid ""
 msgstr ""
 "啟用自適應 PA 以應對懸挑以及同一特徵內流量變化。"
 "這是一個實驗性選項，因為如果 PA 配置未準確設定，可能會在懸挑前後的外部表面上造成均勻"
-"性問題。"
+"性問題。\n"
 
 msgid "Pressure advance for bridges"
 msgstr "橋接壓力提前"
