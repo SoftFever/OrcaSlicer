@@ -434,8 +434,10 @@ void TempInput::render(wxDC &dc)
 
         dc.SetFont(::Label::Body_12);
         auto sepSize = dc.GetMultiLineTextExtent(wxString("L"));
-        dc.SetTextForeground(*wxWHITE);
-        dc.SetTextBackground(*wxWHITE);
+
+        const wxColour& clr = Slic3r::GUI::wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxWHITE) : *wxWHITE;
+        dc.SetTextForeground(clr);
+        dc.SetTextBackground(clr);
         dc.DrawText(wxString("L"), pt.x + (szIcon.x - sepSize.x) / 2, (size.y - sepSize.y) / 2);
         pt.x += szIcon.x + 3;
     }
@@ -447,8 +449,10 @@ void TempInput::render(wxDC &dc)
 
         dc.SetFont(::Label::Body_12);
         auto sepSize = dc.GetMultiLineTextExtent(wxString("R"));
-        dc.SetTextForeground(*wxWHITE);
-        dc.SetTextBackground(*wxWHITE);
+
+        const wxColour& clr = Slic3r::GUI::wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxWHITE) : *wxWHITE;
+        dc.SetTextForeground(clr);
+        dc.SetTextBackground(clr);
         dc.DrawText(wxString("R"), pt.x + (szIcon.x - sepSize.x) / 2, (size.y - sepSize.y) / 2);
         pt.x += szIcon.x + 3;
     }
