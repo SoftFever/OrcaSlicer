@@ -2085,17 +2085,24 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 
+    std::vector<Vec2f> finish_rect_wipe_path;
     if (extrude_fill_wall) {
         // inner perimeter of the sparse section, if there is space for it:
-        if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
+        if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON) {
             writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
+            Vec2f target = (writer.pos() == fill_box.ld ? fill_box.rd :
+                           (writer.pos() == fill_box.rd ? fill_box.ru :
+                           (writer.pos() == fill_box.ru ? fill_box.lu :
+                           fill_box.ld)));
+            finish_rect_wipe_path.emplace_back(writer.pos());
+            finish_rect_wipe_path.emplace_back(target);
+        }
     }
 
     // Extrude infill to support the material to be printed above.
     const float        dy    = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
     float              left  = fill_box.lu.x() + 2 * m_perimeter_width;
     float              right = fill_box.ru.x() - 2 * m_perimeter_width;
-    std::vector<Vec2f> finish_rect_wipe_path;
     if (extrude_fill && dy > m_perimeter_width) {
         writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
             .append(";--------------------\n"
@@ -2137,6 +2144,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
                 writer.travel(x, writer.y());
                 writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
             }
+
+            finish_rect_wipe_path.clear();
             // BBS: add wipe_path for this case: only with finish rectangle
             finish_rect_wipe_path.emplace_back(writer.pos());
             finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
@@ -2210,7 +2219,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     return construct_tcr(writer, false, m_current_tool, true, 0.f);
 }
 
-WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_perimeter, bool extrude_fill)
+WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill)
 {
     WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(m_extrusion_flow)
@@ -2232,15 +2241,21 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
 
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 
+    std::vector<Vec2f> finish_rect_wipe_path;
     // inner perimeter of the sparse section, if there is space for it:
-    if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
+    if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON) {
         writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
+        Vec2f target = (writer.pos() == fill_box.ld ? fill_box.rd :
+                       (writer.pos() == fill_box.rd ? fill_box.ru :
+                       (writer.pos() == fill_box.ru ? fill_box.lu : fill_box.ld)));
+        finish_rect_wipe_path.emplace_back(writer.pos());
+        finish_rect_wipe_path.emplace_back(target);
+    }
 
     // Extrude infill to support the material to be printed above.
     const float        dy    = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
     float              left  = fill_box.lu.x() + 2 * m_perimeter_width;
     float              right = fill_box.ru.x() - 2 * m_perimeter_width;
-    std::vector<Vec2f> finish_rect_wipe_path;
     if (extrude_fill && dy > m_perimeter_width) {
         writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
             .append(";--------------------\n"
@@ -2282,6 +2297,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
                 writer.travel(x, writer.y());
                 writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
             }
+            finish_rect_wipe_path.clear();
             // BBS: add wipe_path for this case: only with finish rectangle
             finish_rect_wipe_path.emplace_back(writer.pos());
             finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
@@ -2295,9 +2311,6 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
     // BBS
     box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
     wt_box = align_perimeter(wt_box);
-    if (extrude_perimeter) {
-        writer.rectangle(wt_box, feedrate);
-    }
 
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
     Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
@@ -2306,6 +2319,69 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
     if (finish_rect_wipe_path.size() == 2 && finish_rect_wipe_path[0] == writer.pos()) target = finish_rect_wipe_path[1];
 
     writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
+
+    // Ask our writer about how much material was consumed.
+    // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
+    if (!m_no_sparse_layers || toolchanges_on_layer)
+        if (filament_id < m_used_filament_length.size())
+            m_used_filament_length[filament_id] += writer.get_and_reset_used_filament_length();
+
+    return construct_block_tcr(writer, false, filament_id, true, 0.f);
+}
+
+WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill)
+{
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    writer.set_extrusion_flow(m_extrusion_flow)
+        .set_z(m_z_pos)
+        .set_initial_tool(filament_id)
+        .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
+
+    // Slow down on the 1st layer.
+    bool first_layer = is_first_layer();
+    // BBS: speed up perimeter speed to 90mm/s for non-first layer
+    float feedrate = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[filament_id].max_e_speed / m_extrusion_flow, 5400.f);
+
+    box_coordinates fill_box(Vec2f(0, 0), 0, 0);
+    fill_box = box_coordinates(Vec2f(m_perimeter_width, block.cur_depth), m_wipe_tower_width - 2 * m_perimeter_width,
+                               block.start_depth + block.layer_depths[m_cur_layer_id] - block.cur_depth - m_perimeter_width);
+
+    writer.set_initial_position((m_left_to_right ? fill_box.rd : fill_box.ld), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
+    m_left_to_right = !m_left_to_right;
+    bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
+
+    // Extrude infill to support the material to be printed above.
+    const float        dy    = (fill_box.lu.y() - fill_box.ld.y());
+    float              left  = fill_box.lu.x();
+    float              right = fill_box.ru.x();
+    std::vector<Vec2f> finish_rect_wipe_path;
+    {
+        writer.append(";--------------------\n"
+                    "; CP EMPTY GRID START\n")
+            .comment_with_value(" layer #", m_num_layer_changes + 1);
+
+        float y             = fill_box.ld.y();
+        int   n             = (dy + 0.25 * m_perimeter_width) / m_perimeter_width + 1;
+        float spacing       = m_perimeter_width;
+        int   i             = 0;
+        for (i = 0; i < n; ++i) {
+            writer.extrude(m_left_to_right ? right : left, writer.y(), feedrate);
+            if (i == n - 1) {
+                writer.add_wipe_point(writer.pos()).add_wipe_point(Vec2f(m_left_to_right ? left : right, writer.y()));
+                break;
+            }
+            m_left_to_right = !m_left_to_right;
+            y = y + spacing;
+            writer.extrude(writer.x(), y, feedrate);
+        }
+
+        writer.append("; CP EMPTY GRID END\n"
+                      ";------------------\n\n\n\n\n\n\n");
+    }
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
@@ -2504,8 +2580,8 @@ void WipeTower::generate_wipe_tower_blocks()
     for (auto& info : m_plan) {
         for (const WipeTowerInfo::ToolChange &tool_change : info.tool_changes) {
             if (is_in_same_extruder(tool_change.old_tool, tool_change.new_tool)) {
-                int filament_category = get_filament_category(tool_change.old_tool);
-                add_depth_to_block(tool_change.old_tool, filament_category, tool_change.required_depth);
+                int filament_category = get_filament_category(tool_change.new_tool);
+                add_depth_to_block(tool_change.new_tool, filament_category, tool_change.required_depth);
             }
             else {
                 int old_filament_category = get_filament_category(tool_change.old_tool);
@@ -2534,10 +2610,33 @@ void WipeTower::generate_wipe_tower_blocks()
         const auto &layer_category_depths = all_layer_category_to_depth[layer_id];
         for (auto iter = layer_category_depths.begin(); iter != layer_category_depths.end(); ++iter) {
             auto& block = get_block_by_category(iter->first);
-            if (block.layer_depths.empty())
+            if (block.layer_depths.empty()) {
                 block.layer_depths.resize(all_layer_category_to_depth.size(), 0);
+                block.solid_infill.resize(all_layer_category_to_depth.size(), false);
+            }
             block.depth = std::max(block.depth, iter->second);
             block.layer_depths[layer_id] = iter->second;
+        }
+    }
+
+    // add solid infill flag
+    int solid_infill_layer = 2;
+    for (WipeTowerBlock& block : m_wipe_tower_blocks) {
+        for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
+            std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
+            if (is_approx(category_to_depth[block.filament_category], 0.f)) {
+                int layer_count = solid_infill_layer;
+                while (layer_count > 0) {
+                    if (layer_id + layer_count < all_layer_category_to_depth.size()) {
+                        std::unordered_map<int, float>& up_layer_depth = all_layer_category_to_depth[layer_id + layer_count];
+                        if (!is_approx(up_layer_depth[block.filament_category], 0.f)) {
+                            block.solid_infill[layer_id] = true;
+                            break;
+                        }
+                    }
+                    --layer_count;
+                }
+            }
         }
     }
 
@@ -2750,10 +2849,22 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
         // this layer has no tool_change
         if (wall_idx == -1) {
-            if (m_enable_timelapse_print) {
-                timelapse_wall = only_generate_out_wall(true);
+            bool need_insert_solid_infill = false;
+            for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
+                if (block.solid_infill[m_cur_layer_id] && (block.filament_category != m_filament_categories[m_current_tool])) {
+                    need_insert_solid_infill = true;
+                    break;
+                }
             }
-            finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, layer.extruder_fill);
+
+            if (need_insert_solid_infill) {
+                wall_idx = m_current_tool;
+            } else {
+                if (m_enable_timelapse_print) {
+                    timelapse_wall = only_generate_out_wall(true);
+                }
+                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, layer.extruder_fill);
+            }
         }
 
         // generate tool change
@@ -2782,6 +2893,10 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
         // insert finish block
         if (wall_idx != -1) {
+            if (layer.tool_changes.empty()) {
+                finish_layer_tcr = finish_layer_new(true, false, false);
+            }
+
             for (const WipeTowerBlock& block : m_wipe_tower_blocks) {
                 if (block.cur_depth + EPSILON >= block.start_depth + block.layer_depths[m_cur_layer_id]) {
                     continue;
@@ -2794,7 +2909,11 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     finish_layer_filament = block.last_nozzle_change_id;
                 }
 
-                ToolChangeResult finish_block_tcr = finish_block(block, finish_layer_filament, false, layer.extruder_fill);
+                ToolChangeResult finish_block_tcr;
+                if (block.solid_infill[m_cur_layer_id] && block.filament_category != m_filament_categories[wall_idx])
+                    finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill);
+                else
+                    finish_block_tcr = finish_block(block, finish_layer_filament, layer.extruder_fill);
 
                 bool has_inserted = false;
                 {
@@ -2813,6 +2932,13 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                         *nc_iter = merge_tcr(finish_block_tcr, *nc_iter);
                         has_inserted = true;
                     }
+                }
+
+                if (!has_inserted) {
+                    if (finish_block_tcr.gcode.empty())
+                        finish_block_tcr = finish_block_tcr;
+                    else
+                        finish_layer_tcr = merge_tcr(finish_layer_tcr, finish_block_tcr);
                 }
                 assert(has_inserted);
             }

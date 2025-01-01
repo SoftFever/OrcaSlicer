@@ -311,6 +311,7 @@ public:
         int              block_id{0};
         int              filament_category{0};
         std::vector<float>      layer_depths;
+		std::vector<bool>       solid_infill;
         float            depth{0};
         float            start_depth{0};
         float            cur_depth{0};
@@ -346,7 +347,8 @@ public:
     ToolChangeResult tool_change_new(size_t new_tool);
     NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id);
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
-    ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_perimeter = true, bool extrude_fill = true);
+    ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
+    ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length);
 
 private:
