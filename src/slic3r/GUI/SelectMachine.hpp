@@ -44,6 +44,9 @@
 
 #include "Jobs/Worker.hpp"
 
+#define  PRINT_OPT_BG_GRAY       0xF8F8F8
+#define  PRINT_OPT_ITEM_BG_GRAY  0xEEEEEE
+
 namespace Slic3r { namespace GUI {
 
 void        print_ams_mapping_result(std::vector<FilamentInfo> &result);

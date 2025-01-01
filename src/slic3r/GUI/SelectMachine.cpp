@@ -4535,7 +4535,7 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
      m_ops = ops;
      m_param = param;
 
-     SetBackgroundColour(*wxWHITE);
+     SetBackgroundColour(PRINT_OPT_BG_GRAY);
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
      wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -4594,7 +4594,7 @@ void PrintOption::doRender(wxDC &dc)
 {
     auto size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-    dc.SetBrush(wxBrush(0xF8F8F8));
+    dc.SetBrush(GetBackgroundColour());
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
 }
 
@@ -4630,6 +4630,7 @@ PrintOptionItem::PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std:
 
     m_ops = ops;
     m_param = param;
+    SetBackgroundColour(PRINT_OPT_ITEM_BG_GRAY);
 
     Bind(wxEVT_PAINT, &PrintOptionItem::OnPaint, this);
     auto width = ops.size() * FromDIP(56) + FromDIP(8);
@@ -4708,7 +4709,7 @@ void PrintOptionItem::doRender(wxDC &dc)
 {
     auto size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-    dc.SetBrush(wxBrush(0xEBEBEB));
+    dc.SetBrush(GetBackgroundColour());
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
 
     auto left = FromDIP(4);
@@ -4730,8 +4731,11 @@ void PrintOptionItem::doRender(wxDC &dc)
         auto text_value    = it->value;
 
         if (text_key == selected_key) {
-            dc.SetPen(wxPen(0x00AE42));
-            dc.SetTextForeground(0x00AE42);
+
+            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor("#00AE42") : "#00AE42";
+            dc.SetPen(wxPen(clr));
+            dc.SetTextForeground(clr);
+
             dc.SetFont(::Label::Head_13);
             auto text_size = dc.GetTextExtent(text_value);
             auto text_left = left + (FromDIP(56) - text_size.x) / 2;
@@ -4739,8 +4743,10 @@ void PrintOptionItem::doRender(wxDC &dc)
             dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
         else {
-            dc.SetPen(wxPen(*wxBLACK));
-            dc.SetTextForeground(*wxBLACK);
+            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxBLACK) : *wxBLACK;
+            dc.SetPen(wxPen(clr));
+            dc.SetTextForeground(clr);
+
             dc.SetFont(::Label::Body_13);
             auto text_size = dc.GetTextExtent(text_value);
             auto text_left = left + (FromDIP(56) - text_size.x) / 2;
