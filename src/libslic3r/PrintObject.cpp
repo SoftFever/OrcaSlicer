@@ -32,6 +32,7 @@
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
+#include <tbb/concurrent_unordered_set.h>
 
 #include <Shiny/Shiny.h>
 
@@ -285,6 +286,92 @@ void PrintObject::_transform_hole_to_polyholes()
             poly_to_replace.first->points = polyhole.points;
         }
     }
+}
+
+std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables() const
+{
+    int extruder_size = m_print->config().nozzle_diameter.size();
+    if(extruder_size == 1)
+        return std::vector<std::set<int>>(1, std::set<int>());
+
+    std::vector<tbb::concurrent_unordered_set<int>> tbb_geometric_unprintables(extruder_size);
+    std::vector<Polygons> unprintable_area_in_obj_coord =  m_print->get_extruder_unprintable_polygons();
+    std::vector<BoundingBox> unprintable_area_bbox;
+
+    for (auto& polys : unprintable_area_in_obj_coord) {
+        for (auto& poly : polys) {
+            poly.translate(-m_instances.front().shift_without_plate_offset());
+        }
+        unprintable_area_bbox.emplace_back(get_extents(polys));
+    }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, m_layers.size()),
+        [this, &tbb_geometric_unprintables, &unprintable_area_in_obj_coord, &unprintable_area_bbox](const tbb::blocked_range<int>& range) {
+            for (int j = range.begin(); j < range.end(); ++j) {
+                auto layer = m_layers[j];
+                for (auto layerm : layer->regions()) {
+                    const auto& region = layerm->region();
+                    int wall_filament = region.config().wall_filament;
+                    int solid_infill_filament = region.config().solid_infill_filament;
+                    int sparse_infill_filament = region.config().sparse_infill_filament;
+                    std::optional<ExPolygons> fill_expolys;
+                    BoundingBox fill_bbox;
+                    std::optional<ExPolygons> wall_expolys;
+                    BoundingBox wall_bbox;
+
+                    for (size_t idx = 0; idx < unprintable_area_in_obj_coord.size(); ++idx) {
+                        bool do_infill_filament_detect = (solid_infill_filament > 0 && tbb_geometric_unprintables[idx].count(solid_infill_filament - 1) == 0) ||
+                            (sparse_infill_filament > 0 && tbb_geometric_unprintables[idx].count(sparse_infill_filament-1) == 0);
+
+                        bool infill_unprintable = !layerm->fills.entities.empty() &&
+                            ((solid_infill_filament > 0 && tbb_geometric_unprintables[idx].count(solid_infill_filament - 1) > 0) ||
+                                (sparse_infill_filament > 0 && tbb_geometric_unprintables[idx].count(sparse_infill_filament - 1) > 0));
+
+                        if (!layerm->fills.entities.empty() && do_infill_filament_detect) {
+                            if (!fill_expolys) {
+                                fill_expolys = layerm->fill_expolygons;
+                                fill_bbox = get_extents(*fill_expolys);
+                            }
+                            if (fill_bbox.overlap(unprintable_area_bbox[idx]) &&
+                                !intersection(*fill_expolys, unprintable_area_in_obj_coord[idx]).empty()) {
+                                if (solid_infill_filament > 0)
+                                    tbb_geometric_unprintables[idx].insert(solid_infill_filament - 1);
+                                if (sparse_infill_filament > 0)
+                                    tbb_geometric_unprintables[idx].insert(sparse_infill_filament - 1);
+                                infill_unprintable = true;
+                            }
+                        }
+
+                        bool do_wall_filament_detect = wall_filament > 0 && tbb_geometric_unprintables[idx].count(wall_filament - 1) == 0;
+                        if (!layerm->perimeters.entities.empty() && do_wall_filament_detect) {
+                            if (infill_unprintable) {
+                                tbb_geometric_unprintables[idx].insert(wall_filament - 1);
+                                continue;
+                            }
+
+                            if (!wall_expolys) {
+                                if (!fill_expolys) {
+                                    fill_expolys = layerm->fill_expolygons;
+                                    fill_bbox = get_extents(*fill_expolys);
+                                }
+                                wall_expolys = diff_ex(layerm->raw_slices, *fill_expolys);
+                                wall_bbox = get_extents(*wall_expolys);
+                            }
+
+                            if (wall_bbox.overlap(unprintable_area_bbox[idx]) &&
+                                !intersection(*wall_expolys, unprintable_area_in_obj_coord[idx]).empty()) {
+                                tbb_geometric_unprintables[idx].insert(wall_filament - 1);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    std::vector<std::set<int>> ret(tbb_geometric_unprintables.size());
+    for (size_t idx = 0; idx < ret.size(); ++idx)
+        ret[idx] = std::set<int>(tbb_geometric_unprintables[idx].begin(), tbb_geometric_unprintables[idx].end());
+    return ret;
 }
 
 // 1) Merges typed region slices into stInternal type.
@@ -3376,7 +3463,7 @@ void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPt
     out.emplace_back(std::move(out_temp));
 };
 
-Points PrintObject::get_instances_shift_without_plate_offset()
+Points PrintObject::get_instances_shift_without_plate_offset() const
 {
     Points out;
     out.reserve(m_instances.size());

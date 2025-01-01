@@ -2074,7 +2074,22 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         }
     }
 
+
+
     if (this->set_started(psWipeTower)) {
+        {
+            std::vector<std::set<int>> geometric_unprintables(m_config.nozzle_diameter.size());
+            for (PrintObject* obj : m_objects) {
+                std::vector<std::set<int>> obj_geometric_unprintables = obj->detect_extruder_geometric_unprintables();
+                for (size_t idx = 0; idx < obj_geometric_unprintables.size(); ++idx) {
+                    if (idx < geometric_unprintables.size()) {
+                        geometric_unprintables[idx].insert(obj_geometric_unprintables[idx].begin(), obj_geometric_unprintables[idx].end());
+                    }
+                }
+            }
+            this->set_geometric_unprintable_filaments(geometric_unprintables);
+        }
+
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
@@ -2127,9 +2142,8 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             }
 
             auto used_filaments = collect_sorted_used_filaments(all_filaments);
-            auto physical_unprintables = ToolOrdering::get_physical_unprintables(used_filaments, &m_config);
-            auto geometric_unprintables = ToolOrdering::get_geometrical_unprintables(get_unprintable_filament_ids(), &m_config);
-
+            auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
+            auto geometric_unprintables = this->get_geometric_unprintable_filaments();
             std::vector<int>filament_maps = this->get_filament_maps();
             auto map_mode = get_filament_map_mode();
             // get recommended filament map
@@ -2676,10 +2690,6 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps)
     m_has_auto_filament_map_result = true;
 }
 
-const std::vector<std::vector<int>>& Print::get_unprintable_filament_ids() const
-{
-    return m_config.unprintable_filament_map.values;
-}
 
 std::vector<int> Print::get_filament_maps() const
 {
@@ -2690,6 +2700,44 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
+
+std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
+{
+    // master saved in config is 1 based,so we should transfer to 0 based here
+    int master_extruder_id = m_config.master_extruder_id.value - 1;
+    std::set<int> tpu_filaments;
+    for (auto f : used_filaments) {
+        if (m_config.filament_type.get_at(f) == "TPU")
+            tpu_filaments.insert(f);
+    }
+    if (tpu_filaments.size() > 1) {
+        throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
+    }
+
+    int extruder_num = m_config.nozzle_diameter.size();
+    // consider tpu, only place tpu in extruder with ams
+    std::vector<std::set<int>>physical_unprintables(extruder_num);
+    if (extruder_num < 2)
+        return physical_unprintables;
+
+    int extruder_without_tpu = 1 - master_extruder_id;
+    for (auto& f : tpu_filaments)
+        physical_unprintables[extruder_without_tpu].insert(f);
+
+    // consider nozzle hrc, nozzle hrc should larger than filament hrc
+    for (size_t eid = 0; eid < physical_unprintables.size(); ++eid) {
+        auto nozzle_type = m_config.nozzle_type.get_at(eid);
+        int nozzle_hrc = get_hrc_by_nozzle_type(NozzleType(nozzle_type));
+        for (auto& f : used_filaments) {
+            int filament_hrc = m_config.required_nozzle_HRC.get_at(f);
+            if(filament_hrc>nozzle_hrc){
+                physical_unprintables[eid].insert(f);
+            }
+        }
+    }
+    return physical_unprintables;
+}
+
 
 std::vector<double> Print::get_extruder_printable_height() const
 {

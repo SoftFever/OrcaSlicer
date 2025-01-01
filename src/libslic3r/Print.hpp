@@ -450,7 +450,7 @@ public:
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
     void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
-    Points       get_instances_shift_without_plate_offset();
+    Points       get_instances_shift_without_plate_offset() const;
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
@@ -498,6 +498,17 @@ private:
     void generate_support_material();
     void estimate_curled_extrusions();
     void simplify_extrusion_path();
+
+    /**
+     * @brief Determines the unprintable filaments for each extruder based on its printable area.
+     *
+     * The returned array will always have the same size as the number of extruders.
+     * If extruder num is 1, just return an empty vector.
+     * If an extruder has no unprintable filaments, an empty set will also be returned
+     *
+     * @return A vector of sets representing unprintable filaments for each extruder
+     */
+    std::vector<std::set<int>> detect_extruder_geometric_unprintables() const;
 
     void slice_volumes();
     //BBS
@@ -960,8 +971,21 @@ public:
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
 
-    // 1 based ids
-    const std::vector<std::vector<int>> &get_unprintable_filament_ids() const;
+    void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
+    std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
+
+    /**
+    * @brief Determines the unprintable filaments for each extruder based on its physical attributes
+    *
+    * Currently, the criteria for determining unprintable filament include the following:
+    * 1. TPU filaments can only be placed in the master extruder and must be grouped alone.
+    * 2. We only support at most 1 tpu filament.
+    * 3. An extruder can only accommodate filament with a hardness requirement lower than that of its nozzle.
+    *
+    * @param used_filaments Totally used filaments when slicing
+    * @return A vector of sets representing unprintable filaments for each extruder.Return an empty vecto if extruder num is 1
+    */
+    std::vector<std::set<int>> get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const;
 
     std::vector<double> get_extruder_printable_height() const;
     std::vector<Polygons> get_extruder_printable_polygons() const;
@@ -1103,7 +1127,7 @@ private:
     FakeWipeTower     m_fake_wipe_tower;
     bool              m_has_auto_filament_map_result{false};
     
-    std::vector<std::vector<int>> m_unprintable_filament_ids;
+    std::vector<std::set<int>> m_geometric_unprintable_filaments;
 
     //SoftFever: calibration
     Calib_Params m_calib_params;

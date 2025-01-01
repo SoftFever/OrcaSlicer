@@ -39,82 +39,6 @@ static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_f
 }
 
 
-/**
- * @brief Determines the unprintable filaments for each extruder based on its physical attributes
- *
- * Currently, the criteria for determining unprintable filament include the following:
- * 1. TPU filaments can only be placed in the master extruder and must be grouped alone.
- * 2. We only support at most 1 tpu filament.
- * 3. An extruder can only accommodate filament with a hardness requirement lower than that of its nozzle.
- * If extruder num is 1, just return an empty vector.
- *
- * @param used_filaments Totally used filaments when slicing
- * @param config Config that stores releted params
- * @return A vector of sets representing unprintable filaments for each extruder
- */
-std::vector<std::set<int>> ToolOrdering::get_physical_unprintables(const std::vector<unsigned int>& used_filaments, const PrintConfig* config)
-{
-    // master saved in config is 1 based,so we should transfer to 0 based here
-    int master_extruder_id = config->master_extruder_id.value - 1;
-    auto tpu_filaments = get_filament_by_type(used_filaments, config, "TPU");
-    if (tpu_filaments.size() > 1) {
-        throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
-    }
-
-    int extruder_num = config->nozzle_diameter.size();
-    // consider tpu, only place tpu in extruder with ams
-    std::vector<std::set<int>>physical_unprintables(extruder_num);
-    if (extruder_num < 2)
-        return physical_unprintables;
-
-    int extruder_without_tpu = 1 - master_extruder_id;
-    for (auto& f : tpu_filaments)
-        physical_unprintables[extruder_without_tpu].insert(f);
-
-    // consider nozzle hrc, nozzle hrc should larger than filament hrc
-    for (size_t eid = 0; eid < physical_unprintables.size(); ++eid) {
-        auto nozzle_type = config->nozzle_type.get_at(eid);
-        int nozzle_hrc = Print::get_hrc_by_nozzle_type(NozzleType(nozzle_type));
-        for (auto& f : used_filaments) {
-            int filament_hrc = config->required_nozzle_HRC.get_at(f);
-            if(filament_hrc>nozzle_hrc){
-                physical_unprintables[eid].insert(f);
-            }
-        }
-    }
-
-    return physical_unprintables;
-}
-
-/**
- * @brief Determines the unprintable filaments for each extruder based on its printable area.
- *
- * The returned array will always have the same size as the number of extruders.
- * If extruder num is 1, just return an empty vector.
- * If an extruder has no unprintable filaments, an empty set will also be returned
- *
- * @param unprintable_arrs An array of unprintable filaments for each extruder
- * @param config Containing extruder nums or any other info requested
- * @return A vector of sets representing unprintable filaments for each extruder
- */
-std::vector<std::set<int>> ToolOrdering::get_geometrical_unprintables(const std::vector<std::vector<int>>& unprintable_arrs, const PrintConfig* config)
-{
-    auto arrs_idx_switched = unprintable_arrs;
-    int extruder_nums = config->nozzle_diameter.size();
-    std::vector<std::set<int>> unprintables(extruder_nums);
-    if(extruder_nums < 2)
-        return unprintables;
-
-    for (auto& arr : arrs_idx_switched)
-        for (auto& item : arr)
-            item -= 1;
-
-    for (size_t idx = 0; idx < arrs_idx_switched.size(); ++idx)
-        unprintables[idx] = std::set<int>(arrs_idx_switched[idx].begin(), arrs_idx_switched[idx].end());
-
-    return unprintables;
-}
-
 // Returns true in case that extruder a comes before b (b does not have to be present). False otherwise.
 bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
 {
@@ -1174,8 +1098,8 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(layer_filaments);
 
-    std::vector<std::set<int>>geometric_unprintables = get_geometrical_unprintables(m_print->get_unprintable_filament_ids(), print_config);
-    std::vector<std::set<int>>physical_unprintables = get_physical_unprintables(used_filaments, print_config);
+    std::vector<std::set<int>>geometric_unprintables = m_print->get_geometric_unprintable_filaments();
+    std::vector<std::set<int>>physical_unprintables = m_print->get_physical_unprintable_filaments(used_filaments);
 
     filament_maps = m_print->get_filament_maps();
     map_mode = m_print->get_filament_map_mode();
