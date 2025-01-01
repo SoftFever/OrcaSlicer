@@ -325,7 +325,8 @@ public:
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
     // get used filaments, 1 based idx
-    std::vector<int> get_used_extruders();
+    std::vector<int> get_used_filaments();
+    int  get_used_nozzle_by_filament_id(int idx) const;
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
 
     /* instance related operations*/

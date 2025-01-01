@@ -1504,7 +1504,7 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     //check nozzle used
-    auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders(); // 1 based
+    auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments(); // 1 based
     auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);  // 1 based
     std::map<int, std::string> used_extruders_flow;
     std::vector<int> used_extruders; // 0 based
@@ -1980,21 +1980,19 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float& tag_nozzle_diameter) c
 
     try
     {
-        auto used_extruder_idxs = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();/*the index is started from 1*/
-        for (int extruder_idx : used_extruder_idxs)
+        PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        auto used_filament_idxs = cur_plate->get_used_filaments();/*the index is started from 1*/
+        for (int used_filament_idx : used_filament_idxs)
         {
-            if (opt_nozzle_diameters->size() < extruder_idx)
+            int used_nozzle_idx = cur_plate->get_used_nozzle_by_filament_id(used_filament_idx);
+            if (used_nozzle_idx == -1)
             {
+                assert(0);
                 return false;
             }
 
-            tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(extruder_idx));
-            if (obj_->m_extder_data.extders.size() < extruder_idx)
-            {
-                return false;
-            }
-
-            if (tag_nozzle_diameter != obj_->m_extder_data.extders[extruder_idx - 1].current_nozzle_diameter)
+            tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(used_nozzle_idx));
+            if (tag_nozzle_diameter != obj_->m_extder_data.extders[used_nozzle_idx].current_nozzle_diameter)
             {
                 return false;
             }
@@ -3696,7 +3694,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         }
     }
 
-    auto           extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
+    auto           extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();
     BitmapCache    bmcache;
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {

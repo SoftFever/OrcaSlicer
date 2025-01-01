@@ -1679,16 +1679,28 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 	return plate_extruders;
 }
 
-std::vector<int> PartPlate::get_used_extruders()
+/* -1 is invalid, return extruder 0 or 1*/
+int PartPlate::get_used_nozzle_by_filament_id(int idx) const
 {
-	std::vector<int> used_extruders;
-    if (check_objects_empty_and_gcode3mf(used_extruders)) {
-        return used_extruders;
+	const std::vector<int>& filament_map = get_filament_maps();
+	if (filament_map.size() < idx)
+	{
+		return -1;
+	}
+
+	return  filament_map[idx - 1] - 1;
+}
+
+std::vector<int> PartPlate::get_used_filaments()
+{
+	std::vector<int> used_filaments;
+    if (check_objects_empty_and_gcode3mf(used_filaments)) {
+        return used_filaments;
     }
 
 	GCodeProcessorResult* result = get_slice_result();
 	if (!result)
-		return used_extruders;
+		return used_filaments;
 
 	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
