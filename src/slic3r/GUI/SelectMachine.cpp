@@ -4075,8 +4075,7 @@ void SelectMachineDialog::set_default()
         set_default_normal(m_plater->get_partplate_list().get_curr_plate()->thumbnail_data);
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-        //todo:unify_deal_thumbnail_data(input_data, no_light_data);this include m_print_type = PrintFromType::FROM_SDCARD_VIEW
-        //and notice update_page_turn_state(true)
+        update_page_turn_state(true);
         set_default_from_sdcard();
     }
 
@@ -4654,21 +4653,21 @@ void SelectMachineDialog::set_default_from_sdcard()
 
 void SelectMachineDialog::update_page_turn_state(bool show)
 {
-    /* m_bitmap_last_plate->Show(show);
+     m_bitmap_last_plate->Show(show);
      m_bitmap_next_plate->Show(show);
 
      if (show) {
-         if (m_print_plate_idx <= 0) { m_bitmap_last_plate->Hide(); }
-         else { m_bitmap_last_plate->Show(); }
+         if (m_print_plate_idx <= 0) { m_bitmap_last_plate->Disable(); }
+         else { m_bitmap_last_plate->Enable(); }
 
-         if ((m_print_plate_idx + 1) >= m_print_plate_total) { m_bitmap_next_plate->Hide(); }
-         else { m_bitmap_next_plate->Show(); }
+         if ((m_print_plate_idx + 1) >= m_print_plate_total) { m_bitmap_next_plate->Disable(); }
+         else { m_bitmap_next_plate->Enable(); }
 
          if (m_print_plate_total == 1) {
              m_bitmap_last_plate->Show(false);
              m_bitmap_next_plate->Show(false);
          }
-     }*/
+     }
 }
 
 void SelectMachineDialog::sys_color_changed()
