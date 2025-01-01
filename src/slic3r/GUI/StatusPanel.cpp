@@ -4406,16 +4406,6 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 {
     if (obj) {
 
-        if (obj->is_filament_at_extruder()) {
-            MessageDialog msg_dlg(
-                nullptr,
-                _L("Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."),
-                wxEmptyString,
-                wxICON_WARNING | wxYES);
-            msg_dlg.ShowModal();
-            return;
-        }
-
         //std::string curr_ams_id = m_ams_control->GetCurentAms();
         if (event.GetInt() < 0 || event.GetInt() > VIRTUAL_TRAY_MAIN_ID){
             return;
@@ -4427,20 +4417,48 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
         }
         std::string curr_can_id = event.GetString().ToStdString();
 
-        std::map<std::string, Ams *>::iterator it = obj->amsList.find(curr_ams_id);
-        if (it == obj->amsList.end()) {
+        std::map<std::string, Ams *>::iterator ams_it = obj->amsList.find(curr_ams_id);
+        if (ams_it == obj->amsList.end()) {
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
             return;
         }
-        auto tray_it = it->second->trayList.find(curr_can_id);
-        if (tray_it == it->second->trayList.end()) {
+        auto slot_it = ams_it->second->trayList.find(curr_can_id);
+        if (slot_it == ams_it->second->trayList.end()) {
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
             return;
         }
 
+        auto has_filament_at_extruder = false;
+        auto use_new_command = false;
+
+        if (obj->m_extder_data.total_extder_count <= 1 && !obj->is_enable_np) {
+            has_filament_at_extruder = obj->is_filament_at_extruder();
+        } else {
+            use_new_command = true;
+
+            if (ams_it->second->nozzle < obj->m_extder_data.extders.size()) {
+                has_filament_at_extruder = obj->m_extder_data.extders[ams_it->second->nozzle].ext_has_filament;
+            }
+        }
+
+        if (has_filament_at_extruder) {
+            MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."), wxEmptyString,
+                                  wxICON_WARNING | wxYES);
+            msg_dlg.ShowModal();
+            return;
+        }
+
+
         try {
-            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
-            obj->command_ams_refresh_rfid(std::to_string(tray_index));
+            if (!use_new_command) {
+                int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(slot_it->second->id.c_str());
+                obj->command_ams_refresh_rfid(std::to_string(tray_index));
+            }
+
+            if (use_new_command) {
+                obj->command_ams_refresh_rfid2(stoi(curr_ams_id), stoi(curr_can_id));
+            }
+
         } catch (...) {
             ;
         }

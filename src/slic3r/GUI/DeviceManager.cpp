@@ -2085,6 +2085,17 @@ int MachineObject::command_ams_refresh_rfid(std::string tray_id)
     return this->publish_gcode(gcode_cmd);
 }
 
+int MachineObject::command_ams_refresh_rfid2(int ams_id,  int slot_id)
+{
+    json j;
+    j["print"]["command"]       = "ams_get_rfid";
+    j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["ams_id"]        = ams_id;
+    j["print"]["slot_id"]       = slot_id;
+    return this->publish_json(j.dump());
+}
+
+
 int MachineObject::command_ams_select_tray(std::string tray_id)
 {
     std::string gcode_cmd = (boost::format("M620 P%1% \n") % tray_id).str();
