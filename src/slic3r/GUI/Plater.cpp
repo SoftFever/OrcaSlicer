@@ -2410,6 +2410,7 @@ void Sidebar::add_filament() {
 }
 
 void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
+    if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() <= 1) return;
 
     size_t filament_count = p->combos_filament.size() - 1;
@@ -2452,6 +2453,7 @@ void Sidebar::edit_filament()
 }
 
 void Sidebar::add_custom_filament(wxColour new_col) {
+    if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER) return;
 
     int         filament_count = p->combos_filament.size() + 1;
@@ -2462,6 +2464,27 @@ void Sidebar::add_custom_filament(wxColour new_col) {
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     auto_calc_flushing_volumes(filament_count - 1);
+}
+
+bool Sidebar::is_new_project_in_gcode3mf()
+{
+    if (p->plater->using_exported_file()) {
+        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
+        bool                    is_cancle = true;
+        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &is_cancle](wxCommandEvent &e) {
+            is_cancle = false;
+            });
+        confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
+        auto filename = p->plater->get_preview_only_filename();
+
+        confirm_dlg.update_text(filename + " " + _L("will be closed before modify filament. Do you want to continue?"));
+        confirm_dlg.on_show();
+        if (!is_cancle) {
+            p->plater->new_project();
+        }
+        return is_cancle;
+    }
+    return false;
 }
 
 void Sidebar::on_bed_type_change(BedType bed_type)
@@ -7448,6 +7471,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 // BBS
 void Plater::priv::on_combobox_select(wxCommandEvent &evt)
 {
+    if (q->sidebar().is_new_project_in_gcode3mf()) { return; }
     PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     if (preset_combo_box) {
         this->on_select_preset(evt);

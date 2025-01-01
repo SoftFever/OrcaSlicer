@@ -1360,6 +1360,7 @@ void ConfirmBeforeSendDialog::on_show()
     m_button_ok->GetEventHandler()->ProcessEvent(evt_ok);
     wxMouseEvent evt_cancel(wxEVT_LEFT_UP);
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
+    CenterOnScreen();
     this->ShowModal();
 }
 
