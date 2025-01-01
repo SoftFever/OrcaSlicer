@@ -100,7 +100,7 @@ wxString SelectMachineDialog::format_text(wxString &m_msg)
 
     for (int i = 0; i < m_msg.length(); i++) {
         auto text_size = m_statictext_ams_msg->GetTextExtent(count_txt);
-        if (text_size.x < (FromDIP(400))) {
+        if (text_size.x < (FromDIP(600))) {
             count_txt += m_msg[i];
         } else {
             out_txt.insert(i - 1, '\n');
@@ -529,6 +529,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*ams mapping suggestions*/
     m_link_edit_nozzle = new Label(this, wxEmptyString);
+    m_link_edit_nozzle->SetMinSize(wxSize(FromDIP(600), -1));
+    m_link_edit_nozzle->SetMaxSize(wxSize(FromDIP(600), -1));
     m_link_edit_nozzle->SetFont(::Label::Body_13);
     m_link_edit_nozzle->SetForegroundColour(0x00ae42);
     m_link_edit_nozzle->SetBackgroundColour(*wxWHITE);
@@ -550,6 +552,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto m_txt_mapping_sugs = new Label(this, wxEmptyString);
     m_txt_mapping_sugs->SetFont(::Label::Body_13);
     m_txt_mapping_sugs->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
+    m_txt_mapping_sugs->SetMinSize(wxSize(FromDIP(580), -1));
+    m_txt_mapping_sugs->SetMaxSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetBackgroundColour(*wxWHITE);
     m_txt_mapping_sugs->SetLabel(_L("Your material arrangement method is not optimal."));
     m_mapping_sugs_sizer->Add(m_img_mapping_sugs, 0, wxALIGN_CENTER, 0);
@@ -559,6 +563,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto m_img_change_filament_times = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
     m_txt_change_filament_times = new Label(this, wxEmptyString);
     m_txt_change_filament_times->SetFont(::Label::Body_13);
+    m_txt_change_filament_times->SetMinSize(wxSize(FromDIP(580), -1));
+    m_txt_change_filament_times->SetMaxSize(wxSize(FromDIP(580), -1));
     m_txt_change_filament_times->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
     m_txt_change_filament_times->SetBackgroundColour(*wxWHITE);
     m_txt_change_filament_times->SetLabel(wxEmptyString);
@@ -824,10 +830,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_filament_panel, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
-    m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(15));
-    m_sizer_main->Add(m_change_filament_times_sizer, 0, wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_statictext_ams_msg, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_sizer_main->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_sizer_main->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_sizer_main->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(18));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_options_timelapse, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -3066,7 +3072,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             auto best  = stats.stats_by_multi_extruder_best;
             auto curr  = stats.stats_by_multi_extruder_curr;
 
-            if (curr.filament_flush_weight >= best.filament_flush_weight) {
+            if (curr.filament_flush_weight > best.filament_flush_weight) {
                 m_link_edit_nozzle->Show(true);
                 m_mapping_sugs_sizer->Show(true);
             }
