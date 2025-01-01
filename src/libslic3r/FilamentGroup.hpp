@@ -95,7 +95,7 @@ namespace Slic3r
 
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<FilamentGroupUtils::Color>& used_filament_colors_, const std::vector<std::vector<FilamentGroupUtils::Color>>& ams_filament_colros_,const double color_delta_threshold = 20);
 
-    bool optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, std::vector<int>& filament_map);
+    std::vector<int> optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, const std::vector<int>& filament_map);
 
     bool can_swap_groups(const int extruder_id_0, const std::set<int>& group_0, const int extruder_id_1, const std::set<int>& group_1, const FilamentGroupContext& ctx);
 

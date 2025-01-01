@@ -991,13 +991,15 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         };
 
     std::vector<int>ret(filament_nums, 0);
+    bool ignore_ext_filament = false; // TODO: read from config
     // if mutli_extruder, calc group,otherwise set to 0
     if (extruder_nums == 2) {
         std::vector<std::string> extruder_ams_count_str = print_config.extruder_ams_count.values;
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
-        std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, false);
+        std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
-        auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info());
+        auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
+
         std::vector<std::string> filament_types = print_config.filament_type.values;
         std::vector<std::string> filament_colours = print_config.filament_colour.values;
 
@@ -1007,12 +1009,12 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
 
         std::vector<std::set<int>> ext_unprintable_filaments;
-        collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);  // TODO: throw exception if fail or set it to status
+        collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
 
         FilamentGroupContext context;
         {
             context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
-            context.model_info.unprintable_filaments = ext_unprintable_filaments;  // TODO:
+            context.model_info.unprintable_filaments = ext_unprintable_filaments;
             context.model_info.layer_filaments = layer_filaments;
             context.model_info.filament_colors = filament_colours;
             context.model_info.filament_types = filament_types;
@@ -1025,7 +1027,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             context.group_info.max_gap_threshold = 0.01;
             context.group_info.strategy = FGStrategy::BestCost;
             context.group_info.mode = fg_mode;
-            context.group_info.ignore_ext_filament = false; // TODO:
+            context.group_info.ignore_ext_filament = ignore_ext_filament;
         }
 
 

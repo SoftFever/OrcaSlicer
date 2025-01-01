@@ -84,12 +84,13 @@ namespace Slic3r
 
 
     // only support extruder nums with 2, try to swap the master extruder id with the other extruder id
-    bool optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments,const FilamentGroupContext& ctx, std::vector<int>& filament_map)
+    std::vector<int> optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments,const FilamentGroupContext& ctx, std::vector<int>& filament_map)
     {
+        std::vector<int> ret = filament_map;
         std::unordered_map<int, std::set<int>> groups;
         for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
             int filament_id = used_filaments[idx];
-            int group_id = filament_map[filament_id];
+            int group_id = ret[filament_id];
             groups[group_id].insert(filament_id);
         }
 
@@ -99,12 +100,11 @@ namespace Slic3r
         if (can_swap_groups(none_master_extruder_id, groups[none_master_extruder_id], ctx.machine_info.master_extruder_id, groups[ctx.machine_info.master_extruder_id], ctx)
             && groups[none_master_extruder_id].size()>groups[ctx.machine_info.master_extruder_id].size()) {
             for (auto fid : groups[none_master_extruder_id])
-                filament_map[fid] = ctx.machine_info.master_extruder_id;
+                ret[fid] = ctx.machine_info.master_extruder_id;
             for (auto fid : groups[ctx.machine_info.master_extruder_id])
-                filament_map[fid] = none_master_extruder_id;
-            return true;
+                ret[fid] = none_master_extruder_id;
         }
-        return false;
+        return ret;
     }
 
     /**
@@ -124,19 +124,12 @@ namespace Slic3r
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<Color>& used_filament_colors_, const std::vector<std::vector<Color>>& ams_filament_colors_,const double color_threshold)
     {
         using namespace FlushPredict;
-        std::vector<Color>used_filament_colors;
+        std::vector<Color>used_filament_colors=used_filament_colors_;
         std::vector<std::vector<Color>>ams_filament_colors(2);
-        for (auto& item : used_filament_colors_)
-            used_filament_colors.emplace_back(item);
+        for (size_t idx = 0; idx < std::min(ams_filament_colors.size(), ams_filament_colors_.size()); ++idx)
+            ams_filament_colors[idx] = ams_filament_colors_[idx];
 
         const double ams_color_dist_threshold = used_filaments.size() * color_threshold;
-
-        for (size_t idx = 0; idx < ams_filament_colors_.size(); ++idx) {
-            std::vector<Color> tmp;
-            for (auto& item : ams_filament_colors_[idx])
-                tmp.emplace_back(item);
-            ams_filament_colors[idx] = std::move(tmp);
-        }
 
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
@@ -169,7 +162,7 @@ namespace Slic3r
                 std::vector<int>l_nodes(group_colors[i].size()), r_nodes(ams_filament_colors[i].size());
                 std::iota(l_nodes.begin(), l_nodes.end(), 0);
                 std::iota(r_nodes.begin(), r_nodes.end(), 0);
-                GeneralMinCostSolver mcmf(distance_matrix, l_nodes, r_nodes);
+                MatchModeGroupSolver mcmf(distance_matrix, l_nodes, r_nodes,std::vector<int>(r_nodes.size(),l_nodes.size()));
                 auto ams_map = mcmf.solve();
 
                 for (size_t idx = 0; idx < ams_map.size(); ++idx) {
@@ -519,11 +512,11 @@ namespace Slic3r
         std::vector<int>machine_filament_capacity(machine_filament_list.size());
         for (size_t idx = 0; idx < machine_filament_capacity.size(); ++idx) {
             if (machine_filament_list[idx].is_extended) {
-                // extend filaments can at most map one filaments
-                machine_filament_capacity[idx] = ctx.group_info.ignore_ext_filament ? 0 : 1;
+                machine_filament_capacity[idx] = 1; // extend filaments can at most map one filaments
             }
-            else
+            else {
                 machine_filament_capacity[idx] = l_nodes.size();  // AMS filaments can map multiple filaments
+            }
         }
 
         std::vector<int>extruder_filament_count(2, 0);
@@ -665,11 +658,12 @@ namespace Slic3r
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
 
         std::vector<int> ret = calc_min_flush_group(cost);
-
-        optimize_group_for_master_extruder(used_filaments, ctx, ret); // ignore the return value
-
         std::vector<std::vector<int>> memoryed_maps = this->m_memoryed_groups;
         memoryed_maps.insert(memoryed_maps.begin(), ret);
+
+        std::vector<int> optimized_ret = optimize_group_for_master_extruder(used_filaments, ctx, ret);
+        if (optimized_ret != ret)
+            memoryed_maps.insert(memoryed_maps.begin(), optimized_ret);
 
         std::vector<Color> used_colors;
         for (const auto& f : used_filaments)
@@ -678,9 +672,9 @@ namespace Slic3r
         std::vector<std::vector<Color>> ams_colors;
         for (const auto& filament_info : ctx.machine_info.machine_filament_info) {
             ams_colors.emplace_back();
-            for (const auto& info : filament_info)
-                if (!ctx.group_info.ignore_ext_filament || !info.is_extended)
-                    ams_colors.back().push_back(info.color);
+            for (const auto& info : filament_info) {
+                ams_colors.back().push_back(info.color);
+            }
         }
 
         ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors, ams_colors);

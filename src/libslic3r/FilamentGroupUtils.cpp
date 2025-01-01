@@ -71,7 +71,7 @@ namespace FilamentGroupUtils
     }
 
 
-    std::vector<std::vector<FilamentInfo>> build_machine_filaments(const std::vector<std::vector<DynamicPrintConfig>>& filament_configs)
+    static std::vector<std::vector<FilamentInfo>> build_full_machine_filaments(const std::vector<std::vector<DynamicPrintConfig>>& filament_configs)
     {
         // defualt size set to 2
         std::vector<std::vector<FilamentInfo>> machine_filaments(2);
@@ -79,8 +79,8 @@ namespace FilamentGroupUtils
             auto& arr = filament_configs[idx];
             for (auto& item : arr) {
                 FilamentInfo temp;
-                std::string type = "PLA";
-                std::string color = "#FFFFFF";
+                std::string type;
+                std::string color;
                 std::string tray_name;
 
                 if (auto color_ptr = item.option<ConfigOptionStrings>("filament_colour"); color_ptr)
@@ -90,7 +90,10 @@ namespace FilamentGroupUtils
                 if (auto tray_ptr = item.option<ConfigOptionStrings>("tray_name"); tray_ptr)
                     tray_name = tray_ptr->get_at(0);
 
-                temp.color = color.empty() ? Color() : Color(color);
+                if (color.empty() || type.empty() || tray_name.empty())
+                    continue;
+
+                temp.color = Color(color);
                 temp.type =type;
                 temp.extruder_id = idx;
                 temp.is_extended = tray_name == "Ext"; // hard-coded ext flag
@@ -98,6 +101,36 @@ namespace FilamentGroupUtils
             }
         }
         return machine_filaments;
+    }
+
+    std::vector<std::vector<FilamentInfo>> build_machine_filaments(const std::vector<std::vector<DynamicPrintConfig>>& filament_configs, const std::vector<std::map<int, int>>& ams_counts, bool ignore_ext_filament)
+    {
+        std::vector<std::vector<FilamentInfo>> ret(2);
+        std::vector<int> ams_size(2, 0);
+        std::vector<std::vector<FilamentInfo>> full_machine_filaments = build_full_machine_filaments(filament_configs);
+        assert(full_machine_filaments.size() == 2);
+        for (size_t idx = 0; idx < std::min(ams_counts.size(),ams_size.size()); ++idx) {
+            const auto& ams_count = ams_counts[idx];
+            for (auto iter = ams_count.begin(); iter != ams_count.end(); ++iter) {
+                ams_size[idx] += iter->first * iter->second;
+            }
+        }
+
+        assert(full_machine_filaments.size() == ams_size.size());
+        for (size_t idx = 0; idx < std::min(ams_size.size(), full_machine_filaments.size()); ++idx) {
+            std::vector<FilamentInfo> tmp;
+            bool accept_ext_filament = ams_size[idx] == 0 && !ignore_ext_filament;
+
+            for (size_t j = 0; j < full_machine_filaments[idx].size(); ++j) {
+                auto machine_filament = full_machine_filaments[idx][j];
+                if (!full_machine_filaments[idx][j].is_extended)
+                    tmp.emplace_back(machine_filament);
+                else if (accept_ext_filament)
+                    tmp.emplace_back(machine_filament);
+            }
+            ret[idx] = std::move(tmp);
+        }
+        return ret;
     }
 
     bool collect_unprintable_limits(const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables, std::vector<std::set<int>>& unprintable_limits)
