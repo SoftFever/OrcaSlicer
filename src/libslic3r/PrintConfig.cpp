@@ -6024,6 +6024,12 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def          = this->add("prime_tower_skip_points", coBool);
+    def->label   = L("Skip points");
+    def->tooltip = L("The wall of prime tower will skip the start points of wipe path");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("flush_into_infill", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into objects' infill");

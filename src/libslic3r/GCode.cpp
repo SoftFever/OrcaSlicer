@@ -99,7 +99,6 @@ static const std::string lift_gcode_after_printing_object = "{if toolchange_coun
 Vec2d travel_point_1;
 Vec2d travel_point_2;
 Vec2d travel_point_3;
-static bool is_used_travel_avoid_perimeter = true;
 static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 {
     // give safe value in case there is no start_end_points in config
@@ -729,6 +728,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
         std::string change_filament_gcode = gcodegen.config().change_filament_gcode.value;
+
+        bool is_used_travel_avoid_perimeter = gcodegen.m_config.prime_tower_skip_points.value;
 
         // add nozzle change gcode into change filament gcode
         std::string prefix_gcode = lift_gcode_after_printing_object;
@@ -6876,7 +6877,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
     dyn_config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
     dyn_config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
-    dyn_config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
+    dyn_config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(false));
     dyn_config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
 
     dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));

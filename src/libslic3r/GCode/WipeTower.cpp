@@ -16,7 +16,6 @@ namespace Slic3r
 {
 static const double wipe_tower_wall_infill_overlap = 0.0;
 static const double wipe_tower_wall_infill_overlap_new = -0.2;
-static bool         is_used_gap_wall                   = true;
 inline float align_round(float value, float base)
 {
     return std::round(value / base) * base;
@@ -679,7 +678,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
     m_nozzle_change_length(config.extruder_change_length.get_at(0)),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
-    m_is_print_outer_first(config.prime_tower_outer_first.value)
+    m_is_print_outer_first(config.prime_tower_outer_first.value),
+    m_use_gap_wall(config.prime_tower_skip_points.value)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -807,7 +807,7 @@ Vec2f WipeTower::get_next_pos(const WipeTower::box_coordinates &cleaning_box, fl
 
     Vec2f res;
     int   index = m_cur_layer_id % 4;
-    Vec2f offset = is_used_gap_wall ? Vec2f(5 * m_perimeter_width, 0) : Vec2f{0, 0};
+    Vec2f offset = m_use_gap_wall ? Vec2f(5 * m_perimeter_width, 0) : Vec2f{0, 0};
     switch (index % 4) {
     case 0:
         res = offset +cleaning_box.ld + pos_offset;
@@ -2242,7 +2242,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
     if (extrude_perimeter) {
-        if (is_used_gap_wall)
+        if (m_use_gap_wall)
             generate_support_wall(writer, wt_box, feedrate, first_layer);
         else
             writer.rectangle(wt_box, feedrate);
@@ -2518,7 +2518,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         }
 
         float ironing_length = 3.;
-        if (i == 0 && is_used_gap_wall) { // BBS: add ironing after extruding start
+        if (i == 0 && m_use_gap_wall) { // BBS: add ironing after extruding start
             if (m_left_to_right) {
                 float dx = xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
                 if (abs(dx) < ironing_length) ironing_length = abs(dx);
@@ -3207,7 +3207,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
         wipe_tower_depth = m_wipe_tower_width;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
-    if (is_used_gap_wall)
+    if (m_use_gap_wall)
         generate_support_wall(writer, wt_box, feedrate, first_layer);
     else
         writer.rectangle(wt_box, feedrate);
