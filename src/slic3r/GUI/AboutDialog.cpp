@@ -259,8 +259,19 @@ AboutDialog::AboutDialog()
         version->SetBackgroundColour(wxColour("#4d4d4d"));
         bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
 
+        #ifdef SNAPSHOT_BUILD
+        auto build_string = _L("build") + " " + std::string(GIT_COMMIT_HASH);
+        wxStaticText* version_build = new wxStaticText(this, wxID_ANY, build_string.c_str(), wxDefaultPosition, wxDefaultSize);
+        version_build->SetFont(Label::Body_12);
+
+        version_build->SetForegroundColour(wxColour("#FFFFFD"));
+        version_build->SetBackgroundColour(wxColour("#4d4d4d"));
+        #endif
 
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        #ifdef SNAPSHOT_BUILD
+        vesizer->Add(version_build, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        #endif
         vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #if BBL_INTERNAL_TESTING
 //         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
