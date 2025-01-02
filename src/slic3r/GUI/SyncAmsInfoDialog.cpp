@@ -99,6 +99,8 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_tip_text->Hide();
         m_specify_color_cluster_title->Hide();
         m_are_you_sure_title->Hide();
+        m_append_color_checkbox->Hide();
+        m_merge_color_checkbox->Hide();
     }
     if (!m_input_info.connected_printer) {
         m_button_cancel->Hide();
@@ -1616,8 +1618,18 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(ExtderData data)
     std::map<int, std::string> used_extruders_flow;
     std::vector<int>           used_extruders; // 0 based
     for (auto f : used_filaments) {
+        if (f <= 0) {
+               BOOST_LOG_TRIVIAL(error) << "check error:f < 0";
+               continue;
+        }
         int filament_extruder = filament_maps[f - 1] - 1;
-        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) used_extruders.emplace_back(filament_extruder);
+        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) {
+            if (filament_extruder < 0) {
+                BOOST_LOG_TRIVIAL(error) << "check error:filament_extruder < 0";
+                continue;
+            }
+            used_extruders.emplace_back(filament_extruder);
+        }
     }
 
     std::sort(used_extruders.begin(), used_extruders.end());
@@ -3611,6 +3623,10 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             } else if (m_filaments_map[extruder] == 2) {
                 item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_right
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << "check error:MaterialItem *item = nullptr";
+                continue;
             }
         } else {
             item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
