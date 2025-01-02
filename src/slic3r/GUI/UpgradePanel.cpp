@@ -2,6 +2,8 @@
 #include <slic3r/GUI/Widgets/SideTools.hpp>
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include <slic3r/GUI/I18N.hpp>
+#include "slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Thread.hpp"
@@ -207,7 +209,10 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_main_left_sizer->Add(m_ext_sizer, 0, wxEXPAND, 0);
 
-
+    /* cutting module */
+    createCuttingWidgets(m_main_left_sizer);
+    createLaserWidgets(m_main_left_sizer);
+    createAirPumpWidgets(m_main_left_sizer);
 
     m_main_sizer->Add(m_main_left_sizer, 1, wxEXPAND, 0);
 
@@ -318,6 +323,69 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
     return caption_panel;
 }
 
+void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_air_pump_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_air_pump_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_air_pump_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_air_pump_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_air_pump_img->SetBitmap(m_img_air_pump.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_air_pump_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_air_pump_version, 0, wxEXPAND, 0);
+
+    m_air_pump_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_air_pump_sizer->Add(m_air_pump_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_air_pump_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_air_pump_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::createCuttingWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_cutting_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_cutting_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_cutting_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_cutting_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_cutting_img->SetBitmap(m_img_cutting.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_cutting_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_cutting_version, 0, wxEXPAND, 0);
+
+    m_cutting_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cutting_sizer->Add(m_cutting_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_cutting_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_cutting_sizer, 0, wxEXPAND, 0);
+};
+
+void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_laser_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_laser_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_laser_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_lazer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_lazer_img->SetBitmap(m_img_laser.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_laser_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_laser_version, 0, wxEXPAND, 0);
+
+    m_laser_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_laser_sizer->Add(m_lazer_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_laser_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_laser_sizer, 0, wxEXPAND, 0);
+}
+
 void MachineInfoPanel::msw_rescale() 
 {
     rescale_bitmaps();
@@ -345,6 +413,11 @@ void MachineInfoPanel::init_bitmaps()
     else {
         m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
     }
+
+    m_img_air_pump       = ScalableBitmap(this, "printer_thumbnail", 160);/*TODO: replace the bitmap*/
+    m_img_laser          = ScalableBitmap(this, "laser", 160);
+    m_img_cutting        = ScalableBitmap(this, "cut", 160);
+
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
     upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
@@ -433,6 +506,11 @@ void MachineInfoPanel::update(MachineObject* obj)
 
         // update ams and extension
         update_ams_ext(obj);
+
+        // update
+        update_air_pump(obj);
+        update_cut(obj);
+        update_laszer(obj);
 
         //update progress
         int upgrade_percent = obj->get_upgrade_percent();
@@ -901,6 +979,45 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     this->Fit();
 }
 
+void MachineInfoPanel::update_air_pump(MachineObject* obj)
+{
+    if (obj && obj->air_pump_version_info.isValid())
+    {
+        m_air_pump_version->UpdateInfo(obj->air_pump_version_info);
+        show_air_pump(true);
+    }
+    else
+    {
+        show_air_pump(false);
+    }
+}
+
+void MachineInfoPanel::update_cut(MachineObject* obj)
+{
+    if (obj && obj->cutting_module_version_info.isValid())
+    {
+        m_cutting_version->UpdateInfo(obj->cutting_module_version_info);
+        show_cut(true);
+    }
+    else
+    {
+        show_cut(false);
+    }
+}
+
+void MachineInfoPanel::update_laszer(MachineObject* obj)
+{
+    if (obj && obj->laser_version_info.isValid())
+    {
+        m_laser_version->UpdateInfo(obj->laser_version_info);
+        show_laszer(true);
+    }
+    else
+    {
+        show_laszer(false);
+    }
+}
+
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
 {
     if (last_status == status && last_status_str == upgrade_status_str) return;
@@ -993,6 +1110,36 @@ void MachineInfoPanel::show_extra_ams(bool show, bool force_update) {
         BOOST_LOG_TRIVIAL(trace) << "upgrade: show_extra_ams = " << show;
     }
     m_last_extra_ams_show = show;
+}
+
+void MachineInfoPanel::show_air_pump(bool show)
+{
+    if (m_air_pump_version->IsShown() != show)
+    {
+        m_air_pump_img->Show(show);
+        m_air_pump_line_above->Show(show);
+        m_air_pump_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::show_cut(bool show)
+{
+    if (m_cutting_version->IsShown() != show)
+    {
+        m_cutting_img->Show(show);
+        m_cutting_line_above->Show(show);
+        m_cutting_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::show_laszer(bool show)
+{
+    if (m_laser_version->IsShown() != show)
+    {
+        m_lazer_img->Show(show);
+        m_laser_line_above->Show(show);
+        m_laser_version->Show(show);
+    }
 }
 
 void MachineInfoPanel::on_sys_color_changed()

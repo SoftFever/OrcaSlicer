@@ -1352,6 +1352,24 @@ std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
     return result;
 }
 
+void MachineObject::store_version_info(const ModuleVersionInfo& info)
+{
+    if (info.isAirPump())
+    {
+        air_pump_version_info = info;
+    }
+    else if (info.isLaszer())
+    {
+        laser_version_info = info;
+    }
+    else if (info.isCuttingModule())
+    {
+        cutting_module_version_info = info;
+    }
+
+    module_vers.emplace(info.name, info);
+}
+
 bool MachineObject::is_system_printing()
 {
     if (is_in_calibration() && is_in_printing_status(print_status))
@@ -2956,6 +2974,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     for (auto it = j_module.begin(); it != j_module.end(); it++) {
                         ModuleVersionInfo ver_info;
                         ver_info.name = (*it)["name"].get<std::string>();
+                        ver_info.product_name = wxString::FromUTF8((*it).value("product_name", json()).get<string>());
                         if ((*it).contains("sw_ver"))
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
                         if ((*it).contains("sn"))
@@ -2964,7 +2983,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
                         if((*it).contains("flag"))
                             ver_info.firmware_status= (*it)["flag"].get<int>();
-                        module_vers.emplace(ver_info.name, ver_info);
+
+                        store_version_info(ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
                             if (agent) {

@@ -579,6 +579,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/bambu_networking.hpp
 )
 
+add_subdirectory(GUI/DeviceTab)
+
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES
             GUI/dark_mode/dark_mode.hpp
