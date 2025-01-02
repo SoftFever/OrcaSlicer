@@ -353,6 +353,11 @@ void MediaPlayCtrl::Play()
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         m_failed_code = 3;
+                        if (boost::ends_with(url, "]")) {
+                            size_t n = url.find_last_of('[');
+                            if (n != std::string::npos)
+                                m_failed_code = std::atoi(url.substr(n + 1, url.length() - n - 2).c_str());
+                        }
                         Stop(_L("Connection Failed. Please check the network and try again"), from_u8(url));
                     } else {
                         m_url = url;

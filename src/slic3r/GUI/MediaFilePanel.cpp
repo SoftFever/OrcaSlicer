@@ -504,7 +504,13 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                     fs->SetUrl(url);
                 } else {
                     m_image_grid->SetStatus(m_bmp_failed, _L("Connection Failed. Please check the network and try again"));
-                    fs->SetUrl("3");
+                    std::string res = "3";
+                    if (boost::ends_with(url, "]")) {
+                        size_t n = url.find_last_of('[');
+                        if (n != std::string::npos)
+                            res = url.substr(n + 1, url.length() - n - 2);
+                    }
+                    fs->SetUrl(res);
                 }
             });
         });

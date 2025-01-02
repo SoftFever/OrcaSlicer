@@ -1275,6 +1275,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 }
 
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
+#define PRINTER_THUMBNAIL_SIZE_SMALL (wxSize(FromDIP(32), FromDIP(32)))
 #define PRINTER_PANEL_SIZE_SMALL (wxSize(FromDIP(98), FromDIP(68)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
 
@@ -1435,8 +1436,8 @@ Sidebar::Sidebar(Plater *parent)
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
         });
 
-        ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 48);
-        p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
+        p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE_SMALL, 0);
 
         p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
         p->combo_printer_bed->SetBorderWidth(0);
@@ -1450,7 +1451,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             int selection = p->combo_printer_bed->GetSelection();
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(selection + 1)], this, 48));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(selection + 1)], this, 32));
             e.Skip();//fix bug:Event spreads to sidebar
         });
 
@@ -1471,8 +1472,8 @@ Sidebar::Sidebar(Plater *parent)
             bed_type_hsizer->Add(bed_type_hsizer2, 1);
             bed_type_hsizer->Add(p->image_printer_bed, 0);
             bed_type_hsizer->AddStretchSpacer(1);
-        bed_type_sizer->Add(bed_type_hsizer, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxRIGHT, FromDIP(4));
-        bed_type_sizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(4));
+        bed_type_sizer->Add(bed_type_hsizer, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
+        bed_type_sizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(2));
         bed_type_sizer->AddStretchSpacer(1);
         p->panel_printer_bed->SetSizer(bed_type_sizer);
 
@@ -2148,6 +2149,8 @@ void Sidebar::msw_rescale()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+    p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
+    p->image_printer_bed->SetSize(PRINTER_THUMBNAIL_SIZE_SMALL);
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
@@ -2223,7 +2226,8 @@ void Sidebar::sys_color_changed()
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
 #endif
-    //for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
+    p->btn_sync_printer->SetIcon("ams_nozzle_sync");
+    // for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
     //    wxGetApp().UpdateDarkUI(btn, true);
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();

@@ -630,6 +630,8 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 wxString Tab::translate_category(const wxString& title, Preset::Type preset_type)
 {
     if (preset_type == Preset::TYPE_PRINTER && title.Contains("Extruder ")) {
+        if (title == "Extruder 1") return _("Left Extruder");
+        if (title == "Extruder 2") return _("Right Extruder");
         return _("Extruder") + title.SubString(8, title.Last());
     }
     return _(title);
