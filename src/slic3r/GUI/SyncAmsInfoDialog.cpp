@@ -1727,7 +1727,7 @@ wxString SyncAmsInfoDialog::format_text(wxString &m_msg)
     if (wxGetApp().app_config->get("language") != "zh_CN") {
         return m_msg;
     }
-
+    if (!m_statictext_ams_msg) { return m_msg; }
     wxString out_txt      = m_msg;
     wxString count_txt    = "";
     int      new_line_pos = 0;
