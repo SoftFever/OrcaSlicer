@@ -347,6 +347,7 @@ class Print;
 
         static int get_gcode_last_filament(const std::string &gcode_str);
         static bool get_last_z_from_gcode(const std::string& gcode_str, double& z);
+        static bool get_last_position_from_gcode(const std::string &gcode_str, Vec3f &pos);
 
         static const float Wipe_Width;
         static const float Wipe_Height;

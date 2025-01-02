@@ -306,7 +306,7 @@ struct Segment
     bool is_valid() const { return start.y() < end.y(); }
 };
 
-std::vector<Segment> remove_points_from_segment(const Segment& segment, const std::vector<Vec2f>& skip_points, double range)
+static std::vector<Segment> remove_points_from_segment(const Segment& segment, const std::vector<Vec2f>& skip_points, double range)
 {
     std::vector<Segment> result;
     result.push_back(segment);

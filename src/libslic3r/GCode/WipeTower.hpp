@@ -175,6 +175,7 @@ public:
 	void generate(std::vector<std::vector<ToolChangeResult>> &result);
 
 	WipeTower::ToolChangeResult only_generate_out_wall(bool is_new_mode = false);
+    Polygon generate_support_wall(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer);
 
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
@@ -438,6 +439,7 @@ private:
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
 
+	 std::vector<Vec2f> m_wall_skip_points;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
 	// Calculates length of extrusion line to extrude given volume
@@ -522,6 +524,7 @@ private:
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
 		float wipe_volume);
+    void get_wall_skip_points(const WipeTowerInfo &layer);
 };
 
 

@@ -15,7 +15,8 @@
 namespace Slic3r
 {
 static const double wipe_tower_wall_infill_overlap = 0.0;
-
+static const double wipe_tower_wall_infill_overlap_new = -0.2;
+static bool         is_used_gap_wall                   = true;
 inline float align_round(float value, float base)
 {
     return std::round(value / base) * base;
@@ -58,6 +59,39 @@ static bool is_valid_gcode(const std::string &gcode)
     }
 
     return is_valid;
+}
+
+struct Segment
+{
+    Vec2f start;
+    Vec2f end;
+
+    Segment(const Vec2f &s, const Vec2f &e) : start(s), end(e) {}
+    bool is_valid() const { return start.y() < end.y(); }
+};
+
+static std::vector<Segment> remove_points_from_segment(const Segment &segment, const std::vector<Vec2f> &skip_points, double range)
+{
+    std::vector<Segment> result;
+    result.push_back(segment);
+    float x = segment.start.x();
+
+    for (const Vec2f &point : skip_points) {
+        std::vector<Segment> newResult;
+        for (const auto &seg : result) {
+            if (point.y() + range <= seg.start.y() || point.y() - range >= seg.end.y()) {
+                newResult.push_back(seg);
+            } else {
+                if (point.y() - range > seg.start.y()) { newResult.push_back(Segment(Vec2f(x, seg.start.y()), Vec2f(x, point.y() - range))); }
+                if (point.y() + range < seg.end.y()) { newResult.push_back(Segment(Vec2f(x, point.y() + range), Vec2f(x, seg.end.y()))); }
+            }
+        }
+
+        result = newResult;
+    }
+
+    result.erase(std::remove_if(result.begin(), result.end(), [](const Segment &seg) { return !seg.is_valid(); }), result.end());
+    return result;
 }
 
 class WipeTowerWriter
@@ -773,18 +807,19 @@ Vec2f WipeTower::get_next_pos(const WipeTower::box_coordinates &cleaning_box, fl
 
     Vec2f res;
     int   index = m_cur_layer_id % 4;
+    Vec2f offset = is_used_gap_wall ? Vec2f(5 * m_perimeter_width, 0) : Vec2f{0, 0};
     switch (index % 4) {
     case 0:
-        res = cleaning_box.ld + pos_offset;
+        res = offset +cleaning_box.ld + pos_offset;
         break;
     case 1:
-        res = cleaning_box.rd + pos_offset + Vec2f(0, y_offset);
+        res = -offset +cleaning_box.rd + pos_offset + Vec2f(0, y_offset);
         break;
     case 2:
-        res = cleaning_box.rd + pos_offset;
+        res = -offset+ cleaning_box.rd + pos_offset;
         break;
     case 3:
-        res = cleaning_box.ld + pos_offset + Vec2f(0, y_offset);
+        res = offset+cleaning_box.ld + pos_offset + Vec2f(0, y_offset);
         break;
     default: break;
     }
@@ -1821,7 +1856,7 @@ static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
 {
     assert(first.new_tool == second.initial_tool);
     WipeTower::ToolChangeResult out = first;
-    if (first.end_pos != second.start_pos)
+    if ((first.end_pos - second.start_pos).norm()> (float)EPSILON)
         out.gcode += "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3)
                      + " Y" + Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3)
                      + " F7200\n";
@@ -1840,6 +1875,50 @@ static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
     // BBS
     out.purge_volume += second.purge_volume;
     return out;
+}
+
+void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
+{
+    m_wall_skip_points.clear();
+    std::unordered_map<int, float> cur_block_depth;
+    for (int i = 0; i < int(layer.tool_changes.size()); ++i) {
+        const WipeTowerInfo::ToolChange &tool_change         = layer.tool_changes[i];
+        size_t                           old_filament        = tool_change.old_tool;
+        size_t                           new_filament        = tool_change.new_tool;
+        float                            spacing             = m_layer_info->extra_spacing;
+        if (has_tpu_filament() && m_layer_info->extra_spacing < m_tpu_fixed_spacing) spacing = 1;
+        float nozzle_change_depth = tool_change.nozzle_change_depth * spacing;
+        //float                            nozzle_change_depth = tool_change.nozzle_change_depth * (has_tpu_filament() ? m_tpu_fixed_spacing : layer.extra_spacing);
+        auto                            &block               = get_block_by_category(m_filpar[new_filament].category);
+        float                                                  wipe_depth          = tool_change.required_depth - nozzle_change_depth;
+        float                            process_depth       = 0.f;
+        if (!cur_block_depth.count(m_filpar[new_filament].category))
+            cur_block_depth[m_filpar[new_filament].category] = block.start_depth;
+        process_depth = cur_block_depth[m_filpar[new_filament].category];
+        if (!m_filament_map.empty() && new_filament < m_filament_map.size() && m_filament_map[old_filament] != m_filament_map[new_filament]) {
+            if (m_filament_categories[new_filament] == m_filament_categories[old_filament])
+                process_depth += nozzle_change_depth;
+            else {
+                if (!cur_block_depth.count(m_filpar[old_filament].category))
+                    cur_block_depth[m_filpar[old_filament].category]=m_perimeter_width; //Here, it is assumed that the bottom-most lines of the blocks are adjacent to the previous line.
+                cur_block_depth[m_filpar[old_filament].category] += nozzle_change_depth;
+            }
+        }
+        {
+            Vec2f res;
+            int   index = m_cur_layer_id % 4;
+            switch (index % 4) {
+            case 0: res = Vec2f(0, process_depth); break;
+            case 1: res = Vec2f(m_wipe_tower_width, process_depth + wipe_depth - layer.extra_spacing*m_perimeter_width); break;
+            case 2: res = Vec2f(m_wipe_tower_width, process_depth); break;
+            case 3: res = Vec2f(0, process_depth + wipe_depth - layer.extra_spacing * m_perimeter_width); break;
+            default: break;
+            }
+
+            m_wall_skip_points.emplace_back(res);
+        }
+        cur_block_depth[m_filpar[new_filament].category] = process_depth + wipe_depth ;
+    }
 }
 
 WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
@@ -1930,7 +2009,6 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
         Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
         //Vec2f initial_position = cleaning_box.ld;
         writer.set_initial_position(initial_position + Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
-
         writer.travel(initial_position);
 
         toolchange_wipe_new(writer, cleaning_box, wipe_length);
@@ -2164,7 +2242,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
     if (extrude_perimeter) {
-        writer.rectangle(wt_box, feedrate);
+        if (is_used_gap_wall)
+            generate_support_wall(writer, wt_box, feedrate, first_layer);
+        else
+            writer.rectangle(wt_box, feedrate);
     }
 
     // brim chamfer
@@ -2436,10 +2517,33 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
             need_change_flow = true;
         }
 
-        if (m_left_to_right)
-            writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
-        else
-            writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
+        float ironing_length = 3.;
+        if (i == 0 && is_used_gap_wall) { // BBS: add ironing after extruding start
+            if (m_left_to_right) {
+                float dx = xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
+                if (abs(dx) < ironing_length) ironing_length = abs(dx);
+                writer.extrude(writer.x() + ironing_length, writer.y(), wipe_speed);
+                writer.retract(0.8, 1800.);
+                writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 600.);
+                writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 240.);
+                writer.retract(-0.8, 1800.);
+                writer.extrude(xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
+            } else {
+                float dx = xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
+                if (abs(dx) < ironing_length) ironing_length = abs(dx);
+                writer.extrude(writer.x() - ironing_length, writer.y(), wipe_speed);
+                writer.retract(0.8, 1800.);
+                writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 600.);
+                writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 240.);
+                writer.retract(-0.8, 1800.);
+                writer.extrude(xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
+            }
+        } else {
+            if (m_left_to_right)
+                writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
+            else
+                writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
+        }
 
         // BBS: recover the flow in non-bridging area
         if (need_change_flow) {
@@ -2782,7 +2886,6 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 {
     if (m_plan.empty())
         return;
-
     m_extra_spacing = 1.f;
 
     plan_tower_new();
@@ -2819,6 +2922,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 m_y_shift = align_round(m_y_shift, dy);
             }
         }
+
+        get_wall_skip_points(layer);
 
         ToolChangeResult finish_layer_tcr;
         ToolChangeResult timelapse_wall;
@@ -2957,7 +3062,6 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         if (m_enable_timelapse_print) {
             layer_result.insert(layer_result.begin(), std::move(timelapse_wall));
         }
-
         result.emplace_back(std::move(layer_result));
     }
 }
@@ -3103,7 +3207,10 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
         wipe_tower_depth = m_wipe_tower_width;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
-    writer.rectangle(wt_box, feedrate);
+    if (is_used_gap_wall)
+        generate_support_wall(writer, wt_box, feedrate, first_layer);
+    else
+        writer.rectangle(wt_box, feedrate);
 
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
     Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
@@ -3118,6 +3225,109 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 
     return construct_tcr(writer, false, old_tool, true, 0.f);
 }
+
+Polygon WipeTower::generate_support_wall(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer)
+{
+    bool is_left  = false;
+    bool is_right = false;
+    for (auto pt : m_wall_skip_points) {
+        if (abs(pt.x()) < EPSILON) {
+            is_left = true;
+        } else if (abs(pt.x() - m_wipe_tower_width) < EPSILON) {
+            is_right = true;
+        }
+    }
+
+    if (is_left && is_right) {
+        Vec2f *p = nullptr;
+        p->x();
+    }
+
+    if (!is_left && !is_right) {
+        Vec2f *p = nullptr;
+        p->x();
+    }
+
+    //  3 -------------  2
+    //    |           |
+    //    |           |
+    //  0 -------------  1
+
+    int   index   = 0;
+    Vec2f cur_pos = writer.pos();
+    if (abs(cur_pos.x() - wt_box.ld.x()) > abs(cur_pos.x() - wt_box.rd.x())) {
+        if (abs(cur_pos.y() - wt_box.ld.y()) > abs(cur_pos.y() - wt_box.lu.y())) {
+            index = 2;
+        } else {
+            index = 1;
+        }
+    } else {
+        if (abs(cur_pos.y() - wt_box.ld.y()) > abs(cur_pos.y() - wt_box.lu.y())) {
+            index = 3;
+        } else {
+            index = 0;
+        }
+    }
+
+    std::vector<Vec2f> points;
+    points.emplace_back(wt_box.ld);
+    points.emplace_back(wt_box.rd);
+    points.emplace_back(wt_box.ru);
+    points.emplace_back(wt_box.lu);
+
+    writer.travel(points[index]);
+    int extruded_nums = 0;
+    while (extruded_nums < 4) {
+        index = (index + 1) % 4;
+        if (index == 2) {
+            if (is_right) {
+                std::vector<Segment> break_segments = remove_points_from_segment(Segment(wt_box.rd, wt_box.ru), m_wall_skip_points, 2.5 * m_perimeter_width);
+                for (auto iter = break_segments.begin(); iter != break_segments.end(); ++iter) {
+                    float dx  = iter->start.x() - writer.pos().x();
+                    float dy  = iter->start.y() - writer.pos().y();
+                    float len = std::sqrt(dx * dx + dy * dy);
+                    if (len > 0) {
+                        writer.retract(0.8, 1800.);
+                        writer.travel(iter->start, 600.);
+                        writer.retract(-0.8, 1800.);
+                    } else
+                        writer.travel(iter->start, 600.);
+
+                    writer.extrude(iter->end, feedrate);
+                }
+                writer.travel(wt_box.ru, feedrate);
+            } else {
+                writer.extrude(wt_box.ru, feedrate);
+            }
+        } else if (index == 0) {
+            if (is_left) {
+                std::vector<Segment> break_segments = remove_points_from_segment(Segment(wt_box.ld, wt_box.lu), m_wall_skip_points, 2.5 * m_perimeter_width);
+                for (auto iter = break_segments.rbegin(); iter != break_segments.rend(); ++iter) {
+                    float dx  = iter->end.x() - writer.pos().x();
+                    float dy  = iter->end.y() - writer.pos().y();
+                    float len = std::sqrt(dx * dx + dy * dy);
+                    if (len > 0) {
+                        writer.retract(0.8, 1800.);
+                        writer.travel(iter->end, 600.);
+                        writer.retract(-0.8, 1800.);
+                    } else
+                        writer.travel(iter->end, 600.);
+
+                    writer.extrude(iter->start, feedrate);
+                }
+                writer.travel(wt_box.ld, feedrate);
+            } else {
+                writer.extrude(wt_box.ld, feedrate);
+            }
+        } else {
+            writer.extrude(points[index], feedrate);
+        }
+        extruded_nums++;
+    }
+
+    return Polygon();
+}
+
 
 bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     if (m_layer_info == m_plan.begin() || (m_layer_info - 1) == m_plan.begin())

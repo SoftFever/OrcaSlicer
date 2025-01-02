@@ -99,7 +99,7 @@ static const std::string lift_gcode_after_printing_object = "{if toolchange_coun
 Vec2d travel_point_1;
 Vec2d travel_point_2;
 Vec2d travel_point_3;
-
+static bool is_used_travel_avoid_perimeter = true;
 static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 {
     // give safe value in case there is no start_end_points in config
@@ -404,6 +404,19 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return gcode_out;
     }
 
+    float get_wipe_avoid_pos_x(const Vec2f &wt_ori, float wt_width, float offset, bool is_default)
+    {
+        float left = 100, right = 250;
+        float default_value = 110.f;
+        float a = 0.f, b = 0.f;
+        if (is_default) return default_value;
+        a = wt_ori.x() + wt_width + offset;
+        b = wt_ori.x() - offset;
+        if (a > left && a < right) return a;
+        if (b > left && b < right) return b;
+        return default_value;
+    }
+
     std::string Wipe::wipe(GCode& gcodegen,double length, bool toolchange, bool is_last)
     {
         std::string gcode;
@@ -501,6 +514,138 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
             outer_wall_volumetric_speed = filament_max_volumetric_speed;
         return outer_wall_volumetric_speed;
+    }
+
+    // BBS
+    // start_pos refers to the last position before the wipe_tower.
+    // end_pos refers to the wipe tower's start_pos.
+    // using the print coordinate system
+    std::string WipeTowerIntegration::generate_path_to_wipe_tower(
+        GCode &gcodegen, const Point &wipe_tower_left_front, const Point &start_pos, const Point &end_pos, int width, int depth, int brim_width) const
+    {
+        std::string gcode;
+        int         alpha = scaled(2.f); // offset distance
+        BoundingBox wipe_tower_offset_bbx(wipe_tower_left_front, wipe_tower_left_front + Point(width, depth));
+        wipe_tower_offset_bbx.offset(brim_width);
+        wipe_tower_offset_bbx.offset(alpha);
+        Polygon wipe_tower_offset_polygon = wipe_tower_offset_bbx.polygon();
+        Polygon bed_polygon;
+        for (size_t i = 0; i < gcodegen.m_config.printable_area.values.size(); i++) {
+            bed_polygon.points.push_back(
+                wipe_tower_point_to_object_point(gcodegen, gcodegen.m_config.printable_area.values[i].cast<float>() + Vec2f{m_plate_origin[0], m_plate_origin[1]}));
+        }                                                                   // gcode coordinate system to printing coordinate system
+        Vec2f v(1, 0);                                                      // the first print direction of end_pos.
+        if (abs(end_pos[0] - wipe_tower_left_front[0]) < width / 2) v = -v; // judge whether the wipe tower's infill goes to the left or right.
+        // Judge whether the wipe_tower_bbx_offset is outside the bed_boundary.
+        // If so, do nothing and just go directly to the end_pos.
+        bool is_bbx_in_bed = true;
+        for (auto &wipe_tower_bbx_p : wipe_tower_offset_polygon.points) {
+            if (ClipperLib::PointInPolygon(wipe_tower_bbx_p, bed_polygon.points) != 1) {
+                is_bbx_in_bed = false;
+                break;
+            }
+        }
+        if (!is_bbx_in_bed) {
+            gcode += gcodegen.travel_to(end_pos, erMixed, "Move to start pos");
+            check_add_eol(gcode);
+            return gcode;
+        }
+        // Ray-Line Segment Intersection
+        auto ray_intersetion_line = [](const Vec2d &a, const Vec2d &v1, const Vec2d &b, const Vec2d &c) -> std::pair<bool, Point> {
+            const Vec2d v2    = c - b;
+            double      denom = cross2(v1, v2);
+            if (fabs(denom) < EPSILON) return {false, Point(0, 0)};
+            const Vec2d v12    = (a - b);
+            double      nume_a = cross2(v2, v12);
+            double      nume_b = cross2(v1, v12);
+            double      t1     = nume_a / denom;
+            double      t2     = nume_b / denom;
+            if (t1 >= 0 && t2 >= 0 && t2 <= 1.) {
+                // Get the intersection point.
+                Vec2d res = a + t1 * v1;
+                return std::pair<bool, Point>(true, scaled(res));
+            }
+            return std::pair<bool, Point>(false, {0, 0});
+        };
+        struct Inter_info
+        {
+            int   inter_idx0 = -1;
+            Point inter_p;
+        };
+        auto calc_path_len = [](Points &points, Inter_info &beg_info, Inter_info &end_info, bool is_add) -> std::pair<std::vector<Point>, double> {
+            int                beg = is_add ? (beg_info.inter_idx0 + 1) % points.size() : beg_info.inter_idx0;
+            int                end = is_add ? end_info.inter_idx0 : (end_info.inter_idx0 + 1) % points.size();
+            int                i   = beg;
+            double             len = 0;
+            std::vector<Point> path;
+            path.push_back(beg_info.inter_p);
+            len += (unscale(beg_info.inter_p) - unscale(points[beg])).squaredNorm();
+            while (i != end) {
+                int  ni = is_add ? (i + 1) % points.size() : (i - 1 + points.size()) % points.size();
+                auto a  = unscale(points[i]);
+                auto b  = unscale(points[ni]);
+                len += (a - b).squaredNorm();
+                path.push_back(points[i]);
+                i = ni;
+            }
+            path.push_back(points[end]);
+            path.push_back(end_info.inter_p);
+            len += (unscale(end_info.inter_p) - unscale(points[end])).squaredNorm();
+            return {path, len};
+        };
+        // calculate the intersection point of end_pos along vector v with the wipe_tower_offset_polygon.
+        // store in inter_info.
+        // represent this intersection by 'p'.
+        Inter_info inter_info;
+        for (size_t i = 0; i < wipe_tower_offset_polygon.points.size(); i++) {
+            auto &a                  = wipe_tower_offset_polygon[i];
+            auto &b                  = wipe_tower_offset_polygon[(i + 1) % wipe_tower_offset_polygon.points.size()];
+            auto [is_inter, inter_p] = ray_intersetion_line(unscale(end_pos), v.cast<double>(), unscale(a), unscale(b));
+            if (is_inter) {
+                inter_info.inter_idx0 = i;
+                inter_info.inter_p    = inter_p;
+                break;
+            }
+        }
+        if (inter_info.inter_idx0 == -1) {
+                gcode += gcodegen.travel_to(end_pos, erMixed, "Move to start pos");
+                check_add_eol(gcode);
+                return gcode;
+        }
+        // calculate the other intersection of start_to_p with the wipe_tower_offset_polygon.
+        // represent this intersection by 'p_'.
+        Inter_info inter_info2;
+        Linef      start_to_p(unscale(start_pos), unscale(inter_info.inter_p));
+        for (size_t i = 0; i < wipe_tower_offset_polygon.points.size(); i++) {
+            if (i == inter_info.inter_idx0) continue;
+            Vec2d a = unscale(wipe_tower_offset_polygon.points[i]);
+            Vec2d b = unscale(wipe_tower_offset_polygon.points[(i + 1) % wipe_tower_offset_polygon.points.size()]);
+            Linef tower_edge(a, b);
+            Vec2d inter;
+            if (line_alg::intersection(start_to_p, tower_edge, &inter)) {
+                inter_info2.inter_p    = scaled(inter);
+                inter_info2.inter_idx0 = i;
+                break;
+            }
+        }
+        // if p_ does not exist, go directly to p.
+        // else p travels along the shorter path on the wipe_tower_offset_polygon to p_
+        if (inter_info2.inter_idx0 == -1) {
+            gcode += gcodegen.travel_to(inter_info.inter_p, erMixed, "Move to start pos");
+            check_add_eol(gcode);
+        } else {
+            std::vector<Point> path;
+            auto [path1, len1] = calc_path_len(wipe_tower_offset_polygon.points, inter_info2, inter_info, true);
+            auto [path2, len2] = calc_path_len(wipe_tower_offset_polygon.points, inter_info2, inter_info, false);
+            path               = len1 < len2 ? path1 : path2;
+            for (size_t i = 0; i < path.size(); i++) {
+                gcode += gcodegen.travel_to(path[i], erMixed, "Move to start pos");
+                check_add_eol(gcode);
+            }
+        }
+        gcode += gcodegen.travel_to(end_pos, erMixed, "Move to start pos");
+        check_add_eol(gcode);
+        return gcode;
     }
 
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
@@ -642,6 +787,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
                 int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
                 new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
+                float wipe_avoid_pos_x = get_wipe_avoid_pos_x(m_wipe_tower_pos, gcodegen.m_config.prime_tower_width.value, 3.f + gcodegen.m_config.prime_tower_brim_width.value,false);
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.use_relative_e_distances));
@@ -670,6 +816,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
 
                 config.set_key_value("flush_length", new ConfigOptionFloat(purge_length));
+                config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
+                config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
 
                 int   flush_count = std::min(g_max_flush_count, (int) std::round(purge_volume / g_purge_volume_one_time));
                 float flush_unit  = purge_length / flush_count;
@@ -706,9 +854,23 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             }
 
             // move to start_pos for wiping after toolchange
-            std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Move to start pos");
-            check_add_eol(start_pos_str);
-            toolchange_gcode_str += start_pos_str;
+            if (!is_used_travel_avoid_perimeter) {
+                std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Move to start pos");
+                check_add_eol(start_pos_str);
+                toolchange_gcode_str += start_pos_str;
+            } else {
+                // BBS:change travel_path
+                Vec3f gcode_last_pos;
+                GCodeProcessor::get_last_position_from_gcode(toolchange_gcode_str, gcode_last_pos);
+                Vec2f       gcode_last_pos2d{gcode_last_pos[0], gcode_last_pos[1]};
+                Point       gcode_last_pos2d_object    = gcodegen.gcode_to_point(gcode_last_pos2d.cast<double>() + plate_origin_2d.cast<double>());
+                Point       start_wipe_pos             = wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d);
+                std::string travel_to_wipe_tower_gcode = generate_path_to_wipe_tower(gcodegen, wipe_tower_point_to_object_point(gcodegen, m_wipe_tower_pos + plate_origin_2d),
+                                                                                     gcode_last_pos2d_object, start_wipe_pos, scaled(gcodegen.m_config.prime_tower_width.value),
+                                                                                     scaled(m_wipe_tower_depth), scaled(gcodegen.m_config.prime_tower_brim_width.value));
+                toolchange_gcode_str += travel_to_wipe_tower_gcode;
+                gcodegen.set_last_pos(start_wipe_pos);
+            }
         }
 
         std::string toolchange_command;
@@ -2658,7 +2820,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
             // Prusa Multi-Material wipe tower.
             if (has_wipe_tower && ! layers_to_print.empty()) {
-                m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), * print.wipe_tower_data().priming.get(), print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
+                m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), *print.wipe_tower_data().priming.get(),
+                                                            print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
+                m_wipe_tower->set_wipe_tower_depth(print.get_wipe_tower_depth());
                 //BBS
                 file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
 
@@ -6680,7 +6844,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     // set volumetric speed of outer wall ,ignore per obejct,just use default setting
     float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id));
-
+    float         wipe_avoid_pos_x            = get_wipe_avoid_pos_x(Vec2f{0, 0}, 0, 0, true);
     DynamicConfig dyn_config;
     dyn_config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
@@ -6712,6 +6876,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
     dyn_config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
     dyn_config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
+    dyn_config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
+    dyn_config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
 
     dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));
 
