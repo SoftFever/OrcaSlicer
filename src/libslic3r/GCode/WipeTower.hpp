@@ -303,6 +303,8 @@ public:
         std::vector<float>  ramming_speed;
         float               nozzle_diameter;
         float               filament_area;
+        float               retract_length;
+        float               retract_speed;
     };
 
 

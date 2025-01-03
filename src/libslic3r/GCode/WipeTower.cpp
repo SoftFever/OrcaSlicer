@@ -784,6 +784,9 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 #endif
 
     m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
+
+    m_filpar[idx].retract_length = config.retraction_length.get_at(idx);
+    m_filpar[idx].retract_speed  = config.retraction_speed.get_at(idx);
 }
 
 
@@ -1678,7 +1681,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     if (!m_filament_map.empty() && m_filament_map[old_tool] != m_filament_map[new_tool]) {
         double e_flow                   = extrusion_flow(0.2);
         double length                   = m_nozzle_change_length / e_flow;
-        int    nozzle_change_line_count = length / (m_wipe_tower_width - m_perimeter_width) + 1;
+        int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
         if (has_tpu_filament())
             nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_perimeter_width;
         else
@@ -1918,7 +1921,8 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
         float nozzle_change_depth = tool_change.nozzle_change_depth * spacing;
         //float                            nozzle_change_depth = tool_change.nozzle_change_depth * (has_tpu_filament() ? m_tpu_fixed_spacing : layer.extra_spacing);
         auto                            &block               = get_block_by_category(m_filpar[new_filament].category);
-        float                                                  wipe_depth          = tool_change.required_depth - nozzle_change_depth;
+        //float wipe_depth    = tool_change.required_depth - nozzle_change_depth;
+        float wipe_depth    = ceil(tool_change.wipe_length / (m_wipe_tower_width - 2 * m_perimeter_width)) * m_perimeter_width*layer.extra_spacing;
         float                            process_depth       = 0.f;
         if (!cur_block_depth.count(m_filpar[new_filament].category))
             cur_block_depth[m_filpar[new_filament].category] = block.start_depth;
@@ -1928,11 +1932,11 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
                 process_depth += nozzle_change_depth;
             else {
                 if (!cur_block_depth.count(m_filpar[old_filament].category))
-                    cur_block_depth[m_filpar[old_filament].category]=m_perimeter_width; //Here, it is assumed that the bottom-most lines of the blocks are adjacent to the previous line.
+                    cur_block_depth[m_filpar[old_filament].category] = get_block_by_category(m_filpar[old_filament].category).start_depth;
                 cur_block_depth[m_filpar[old_filament].category] += nozzle_change_depth;
             }
         }
-        {
+            {
             Vec2f res;
             int   index = m_cur_layer_id % 4;
             switch (index % 4) {
@@ -1945,9 +1949,9 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
 
             m_wall_skip_points.emplace_back(res);
         }
-        cur_block_depth[m_filpar[new_filament].category] = process_depth + wipe_depth ;
+        cur_block_depth[m_filpar[new_filament].category] = process_depth + tool_change.required_depth - tool_change.nozzle_change_depth * layer.extra_spacing;
     }
-}
+    }
 
 WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
 {
@@ -2510,6 +2514,8 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
     if (is_first_layer()) {
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(1.15 * m_perimeter_width) + "\n");
     }
+    float        retract_length = m_filpar[m_current_tool].retract_length;
+    float        retract_speed  = m_filpar[m_current_tool].retract_speed * 60;
 
     const float &xl = cleaning_box.ld.x();
     const float &xr = cleaning_box.rd.x();
@@ -2550,19 +2556,19 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
                 float dx = xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
                 if (abs(dx) < ironing_length) ironing_length = abs(dx);
                 writer.extrude(writer.x() + ironing_length, writer.y(), wipe_speed);
-                writer.retract(0.8, 1800.);
+                writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 600.);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 240.);
-                writer.retract(-0.8, 1800.);
+                writer.retract(-retract_length, retract_speed);
                 writer.extrude(xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
             } else {
                 float dx = xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
                 if (abs(dx) < ironing_length) ironing_length = abs(dx);
                 writer.extrude(writer.x() - ironing_length, writer.y(), wipe_speed);
-                writer.retract(0.8, 1800.);
+                writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 600.);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 240.);
-                writer.retract(-0.8, 1800.);
+                writer.retract(-retract_length, retract_speed);
                 writer.extrude(xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
             }
         } else {
@@ -3255,6 +3261,8 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 
 Polygon WipeTower::generate_support_wall(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer)
 {
+    float retract_length = m_filpar[m_current_tool].retract_length;
+    float retract_speed  = m_filpar[m_current_tool].retract_speed *60 ;
     bool is_left  = false;
     bool is_right = false;
     for (auto pt : m_wall_skip_points) {
@@ -3314,9 +3322,9 @@ Polygon WipeTower::generate_support_wall(WipeTowerWriter &writer, const box_coor
                     float dy  = iter->start.y() - writer.pos().y();
                     float len = std::sqrt(dx * dx + dy * dy);
                     if (len > 0) {
-                        writer.retract(0.8, 1800.);
+                        writer.retract(retract_length, retract_speed);
                         writer.travel(iter->start, 600.);
-                        writer.retract(-0.8, 1800.);
+                        writer.retract(-retract_length, retract_speed);
                     } else
                         writer.travel(iter->start, 600.);
 
@@ -3334,9 +3342,9 @@ Polygon WipeTower::generate_support_wall(WipeTowerWriter &writer, const box_coor
                     float dy  = iter->end.y() - writer.pos().y();
                     float len = std::sqrt(dx * dx + dy * dy);
                     if (len > 0) {
-                        writer.retract(0.8, 1800.);
+                        writer.retract(retract_length, retract_speed);
                         writer.travel(iter->end, 600.);
-                        writer.retract(-0.8, 1800.);
+                        writer.retract(-retract_length, retract_speed);
                     } else
                         writer.travel(iter->end, 600.);
 
