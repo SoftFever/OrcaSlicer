@@ -38,7 +38,7 @@
   "extruder_clearance_height_to_lid": "140",
   "retract_lift_below": ["0.3"],
   "retraction_length": ["2"],
-  "retraction_speed": ["40"],
+  "retraction_speed": ["120"],
   "deretraction_speed": ["120"],
   "wipe": ["1"],
   "retract_before_wipe": ["70%"],
