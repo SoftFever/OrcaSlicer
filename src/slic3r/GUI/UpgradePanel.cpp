@@ -686,6 +686,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 if (add_count > 0) {
                     for (int i = 0; i < add_count; i++) {
                         auto amspanel = new AmsPanel(this, wxID_ANY);
+                        wxGetApp().UpdateDarkUIWin(amspanel);
                         m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
                         m_amspanel_list.Add(amspanel);
                     }
