@@ -1123,7 +1123,6 @@ int CLI::run(int argc, char **argv)
     bool start_gui = m_actions.empty() && !downward_check;
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
-        ::Label::initSysFont();
 #ifdef SLIC3R_GUI
     /*#if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux / unix system
