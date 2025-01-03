@@ -11253,7 +11253,7 @@ msgstr "Pressure Advance (Klipper) AKA Linear Advance (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Activer l’avance de pression adaptative (beta)"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -11295,6 +11295,7 @@ msgstr ""
 "remplacée. Cependant, une valeur par défaut raisonnable est fortement "
 "recommandée pour servir de solution de secours et en cas de changement "
 "d’outil.\n"
+"\n"
 
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Mesures adaptatives de l’avance de pression (beta)"
@@ -13275,12 +13276,15 @@ msgid "Force a retraction when changes layer"
 msgstr "Cela force une rétraction sur les changements de couche."
 
 msgid "Retract on top layer"
-msgstr ""
+msgstr "Rétracter sur la couche supérieure"
 
 msgid ""
 "Force a retraction on top layer. Disabling could prevent clog on very slow "
 "patterns with small movements, like Hilbert curve"
 msgstr ""
+"Force la rétraction de la couche supérieure. La désactivation pourrait "
+"empêcher le bouchage des motifs très lents avec de petits mouvements, comme "
+"la courbe de Hilbert."
 
 msgid "Retraction Length"
 msgstr "Longueur de Rétraction"
