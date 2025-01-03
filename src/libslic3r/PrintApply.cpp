@@ -1175,7 +1175,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 for (size_t index = 0; index < old_filament_map.size(); index++)
                 {
                     if ((old_filament_map[index] == new_filament_map[index])
-                        || (used_filament_set.find(index + 1) == used_filament_set.end()))
+                        || (used_filament_set.find(index) == used_filament_set.end()))
                         continue;
                     else {
                         same_map = false;
