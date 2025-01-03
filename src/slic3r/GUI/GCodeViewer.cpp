@@ -4528,8 +4528,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Separator();
     };
 
-    auto max_width = [](const std::vector<std::string>& items, const std::string& title, float extra_size = 0.0f) {
-        float ret = ImGui::CalcTextSize(title.c_str()).x;
+    auto max_width = [](const std::vector<std::string>& items, float extra_size = 0.0f) {
+        float ret = extra_size;
         for (const std::string& item : items) {
             ret = std::max(ret, extra_size + ImGui::CalcTextSize(item.c_str()).x);
         }
@@ -4538,22 +4538,30 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     auto calculate_offsets = [&imgui, max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
-            std::vector<float> offsets;
-            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
+            auto const imgui = wxGetApp().imgui();
+            std::vector<float> col_widths;
+            std::vector<float> hdr_widths;
+            col_widths.push_back(max_width(title_columns[0].second, extra_size) + 3.0f * style.ItemSpacing.x);
             for (size_t i = 1; i < title_columns.size() - 1; i++)
-                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("Display")) {
-                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                if (preferred_offset > offsets.back()) {
-                    offsets.back() = preferred_offset;
+                col_widths.push_back(max_width(title_columns[i].second) + style.ItemSpacing.x);
+
+            imgui->push_bold_font();
+            for (size_t i = 0; i < title_columns.size() - 1; i++) {
+                if (title_columns[i].first.empty()) {
+                    hdr_widths.push_back(0);
+                } else {
+                    hdr_widths.push_back(ImGui::CalcTextSize(title_columns[i].first.c_str()).x + style.ItemSpacing.x);
                 }
             }
+            imgui->pop_bold_font();
 
-            float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
-            std::vector<float> ret;
-            ret.push_back(0);
-            for (size_t i = 1; i < title_columns.size(); i++) {
-                ret.push_back(std::max(offsets[i - 1], i * average_col_width));
+            float header_ref = 0;
+            std::vector<float> ret{{0}};
+            for (size_t i = 0; i < title_columns.size() - 1; i++) {
+                ret.push_back(std::max(ret.back() + col_widths[i], header_ref + hdr_widths[i]));
+                if (hdr_widths[i] > 0) {
+                    header_ref = ret.back();
+                }
             }
 
             return ret;
@@ -4840,7 +4848,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             travel_percent = buffer;
         }
 
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {"", used_filaments_length}, {_u8L("Used filament"), used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
         append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Used filament"), offsets[3]}, {_u8L("Display"), offsets[5]}});
         break;
     }
