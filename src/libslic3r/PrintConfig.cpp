@@ -936,11 +936,23 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge infill direction");
+    def->label = L("External bridge infill direction");
     def->category = L("Strength");
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
         "Use 180°for zero angle.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+    
+    // ORCA: Internal bridge angle override
+    def = this->add("internal_bridge_angle", coFloat);
+    def->label = L("Internal bridge infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Internal bridging angle override. If left to zero, the bridging angle will be calculated "
+        "automatically. Otherwise the provided angle will be used for internal bridges. "
+        "Use 180°for zero angle.\n\n It is recommended to leave it at 0 unless there is a specific model need not to.");
     def->sidetext = L("°");
     def->min = 0;
     def->mode = comAdvanced;
