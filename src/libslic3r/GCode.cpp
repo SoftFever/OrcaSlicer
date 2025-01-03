@@ -667,9 +667,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         Vec2f start_pos = tcr.start_pos;
         Vec2f end_pos   = tcr.end_pos;
+        Vec2f tool_change_start_pos = start_pos;
+        if (tcr.is_tool_change)
+            tool_change_start_pos = tcr.tool_change_start_pos;
         if (!tcr.priming) {
             start_pos = transform_wt_pt(start_pos);
             end_pos   = transform_wt_pt(end_pos);
+            tool_change_start_pos = transform_wt_pt(tool_change_start_pos);
         }
 
         Vec2f wipe_tower_offset   = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
@@ -802,8 +806,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
                 config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
                 config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
-                config.set_key_value("x_after_toolchange", new ConfigOptionFloat(start_pos(0)));
-                config.set_key_value("y_after_toolchange", new ConfigOptionFloat(start_pos(1)));
+                config.set_key_value("x_after_toolchange", new ConfigOptionFloat(tool_change_start_pos(0)));
+                config.set_key_value("y_after_toolchange", new ConfigOptionFloat(tool_change_start_pos(1)));
                 config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
                 config.set_key_value("first_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
@@ -856,7 +860,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             // move to start_pos for wiping after toolchange
             if (!is_used_travel_avoid_perimeter) {
-                std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Move to start pos");
+                std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d), erMixed, "Move to start pos");
                 check_add_eol(start_pos_str);
                 toolchange_gcode_str += start_pos_str;
             } else {
@@ -865,7 +869,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 GCodeProcessor::get_last_position_from_gcode(toolchange_gcode_str, gcode_last_pos);
                 Vec2f       gcode_last_pos2d{gcode_last_pos[0], gcode_last_pos[1]};
                 Point       gcode_last_pos2d_object    = gcodegen.gcode_to_point(gcode_last_pos2d.cast<double>() + plate_origin_2d.cast<double>());
-                Point       start_wipe_pos             = wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d);
+                Point       start_wipe_pos             = wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d);
                 std::string travel_to_wipe_tower_gcode = generate_path_to_wipe_tower(gcodegen, wipe_tower_point_to_object_point(gcodegen, m_wipe_tower_pos + plate_origin_2d),
                                                                                      gcode_last_pos2d_object, start_wipe_pos, scaled(gcodegen.m_config.prime_tower_width.value),
                                                                                      scaled(m_wipe_tower_depth), scaled(gcodegen.m_config.prime_tower_brim_width.value));

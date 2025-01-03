@@ -72,6 +72,9 @@ public:
         // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
         bool                    priming;
 
+		bool                    is_tool_change;
+		Vec2f                   tool_change_start_pos;
+
         // Pass a polyline so that normal G-code generator can do a wipe for us.
         // The wipe cannot be done by the wipe tower because it has to pass back
         // a loaded extruder, so it would have to either do a wipe with no retraction
@@ -147,6 +150,7 @@ public:
                                    bool priming,
                                    size_t old_tool,
                                    bool is_finish,
+		                           bool is_tool_change,
                                    float purge_volume) const;
 
     ToolChangeResult construct_block_tcr(WipeTowerWriter& writer,
