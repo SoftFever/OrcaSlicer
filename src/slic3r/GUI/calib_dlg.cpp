@@ -18,8 +18,6 @@ wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, 
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
     auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(-1, -1), 0);
-    checkbox_title->SetForegroundColour(wxColour(144, 144, 144));
-    checkbox_title->SetFont(::Label::Body_13);
     checkbox_title->Wrap(-1);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
@@ -28,7 +26,10 @@ wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, 
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [parent, checkbox, value](wxCommandEvent& e) {
         (*value) = (*value) ? false : true;
         e.Skip();
-        });
+    });
+    checkbox_title->Bind(wxEVT_UPDATE_UI, [checkbox](wxUpdateUIEvent &evt) {
+        evt.Enable(checkbox->IsEnabled());
+    });
 
     return m_sizer_checkbox;
 }
