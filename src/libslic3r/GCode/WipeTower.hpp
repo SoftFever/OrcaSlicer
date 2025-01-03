@@ -72,7 +72,7 @@ public:
         // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
         bool                    priming;
 
-		bool                    is_tool_change;
+		bool                    is_tool_change{false};
 		Vec2f                   tool_change_start_pos;
 
         // Pass a polyline so that normal G-code generator can do a wipe for us.

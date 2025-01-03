@@ -651,6 +651,8 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
     result.extrusions           = std::move(writer.extrusions());
     result.wipe_path            = std::move(writer.wipe_path());
     result.is_finish_first      = is_finish;
+    result.is_tool_change       = false;
+    result.tool_change_start_pos = Vec2f(0, 0);
     // BBS
     result.purge_volume = purge_volume;
     return result;
@@ -1863,18 +1865,15 @@ static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
     if ((first.end_pos - second.start_pos).norm() > (float)EPSILON) {
         std::string travel_gcode = "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3)
                                    + " Y" + Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3) + "\n";
-        bool has_inserted = false;
+        bool need_insert_travel = true;
         if (second.is_tool_change
             && is_approx(second.start_pos.x(), second.tool_change_start_pos.x())
             && is_approx(second.start_pos.y(), second.tool_change_start_pos.y())) {
-            size_t insert_pos = second.gcode.find("; CP TOOLCHANGE WIPE");
-            if (insert_pos != std::string::npos) {
-                second.gcode.insert(insert_pos, travel_gcode);
-                has_inserted = true;
-            }
+            // will insert travel in gcode.cpp
+            need_insert_travel = false;
         }
 
-        if (!has_inserted)
+        if (need_insert_travel)
             out.gcode += travel_gcode;
     }
     out.gcode += second.gcode;
@@ -1993,9 +1992,11 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
     writer.speed_override_backup();
     writer.speed_override(100);
 
-    Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (new_tool != (unsigned int) -1) { // This is not the last change.
+        Vec2f initial_position = get_next_pos(cleaning_box, wipe_length);
+        writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
+
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
                           is_first_layer() ? m_filpar[new_tool].nozzle_temperature_initial_layer : m_filpar[new_tool].nozzle_temperature);
@@ -2022,7 +2023,6 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
             int    tpu_line_count    = length / (m_wipe_tower_width - 2 * m_perimeter_width) + 1;
 
             writer.travel(start_pos);
-            writer.set_initial_position(start_pos);
 
             for (int i = 0; true; ++i) {
                 if (left_to_right)
@@ -2037,8 +2037,6 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
             }
             writer.travel(initial_position);
         }
-        else
-            writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
         toolchange_wipe_new(writer, cleaning_box, wipe_length);
 
