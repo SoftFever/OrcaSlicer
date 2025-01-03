@@ -3071,6 +3071,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<string>());
                         if ((*it).contains("sw_ver"))
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
+                        if ((*it).contains("sw_new_ver"))
+                            ver_info.sw_new_ver = (*it)["sw_new_ver"].get<std::string>();
                         if ((*it).contains("sn"))
                             ver_info.sn = (*it)["sn"].get<std::string>();
                         if ((*it).contains("hw_ver"))
@@ -3796,7 +3798,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
                             } if (jj["upgrade_state"].contains("new_version_state"))
                                 upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
-                            if (jj["upgrade_state"].contains("ams_new_version_number"))
+                            if (!check_enable_np(jj) && jj["upgrade_state"].contains("ams_new_version_number"))/* is not used in new np, by AP*/
                                 ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
                             if (jj["upgrade_state"].contains("ota_new_version_number"))
                                 ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
