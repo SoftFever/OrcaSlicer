@@ -1681,6 +1681,11 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
             }
         }
 
+        if (group_info.size() < 2) /* do not show refill if there is one tray*/
+        {
+            continue;
+        }
+
         if (is_in_tray || m_tray_used.size() <= 0)
         {
             m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
