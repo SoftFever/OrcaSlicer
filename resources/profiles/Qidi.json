@@ -773,6 +773,22 @@
             "sub_path": "filament/Qidi Generic PLA @Qidi X-Smart 3 0.2 nozzle.json"
         },
         {
+            "name": "Qidi Generic PLA High Speed @Qidi X-Plus 4 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PLA High Speed @Qidi X-Plus 4 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PLA High Speed @Qidi X-Plus 4 0.4 nozzle",
+            "sub_path": "filament/Qidi Generic PLA High Speed @Qidi X-Plus 4 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PLA High Speed @Qidi X-Plus 4 0.6 nozzle",
+            "sub_path": "filament/Qidi Generic PLA High Speed @Qidi X-Plus 4 0.6 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PLA High Speed @Qidi X-Plus 4 0.8 nozzle",
+            "sub_path": "filament/Qidi Generic PLA High Speed @Qidi X-Plus 4 0.8 nozzle.json"
+        },
+        {
             "name": "Qidi Generic TPU 95A",
             "sub_path": "filament/Qidi Generic TPU 95A.json"
         },
