@@ -11203,8 +11203,6 @@ void Plater::remove_selected()
 
 void Plater::increase_instances(size_t num)
 {
-    // BBS
-#if 0
     if (! can_increase_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Increase Instances");
@@ -11237,13 +11235,14 @@ void Plater::increase_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-#endif
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
+        this->arrange();
+    }
 }
 
 void Plater::decrease_instances(size_t num)
 {
-    // BBS
-#if 0
     if (! can_decrease_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Decrease Instances");
@@ -11267,7 +11266,10 @@ void Plater::decrease_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-#endif
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
+        this->arrange();
+    }
 }
 
 static long GetNumberFromUser(  const wxString& msg,
@@ -11312,12 +11314,21 @@ void Plater::set_number_of_copies(/*size_t num*/)
         decrease_instances(-diff);
 }
 
-void Plater::fill_bed_with_instances()
+void Plater::fill_bed_with_copies()
 {
     auto &w = get_ui_job_worker();
     if (w.is_idle()) {
         p->take_snapshot(_u8L("Arrange"));
         replace_job(w, std::make_unique<FillBedJob>());
+    }
+}
+
+void Plater::fill_bed_with_instances()
+{
+    auto &w = get_ui_job_worker();
+    if (w.is_idle()) {
+        p->take_snapshot(_u8L("Arrange"));
+        replace_job(w, std::make_unique<FillBedJob>(true));
     }
 }
 
