@@ -1,3 +1,6 @@
+#ifndef slic3r_VoronoiVisualUtils_hpp_
+#define slic3r_VoronoiVisualUtils_hpp_
+
 #include <stack>
 
 #include <libslic3r/Geometry.hpp>
@@ -451,3 +454,5 @@ static inline void dump_voronoi_to_svg(
 }
 
 } // namespace Slic3r
+
+#endif // slic3r_VoronoiVisualUtils_hpp_

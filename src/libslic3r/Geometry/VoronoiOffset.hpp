@@ -3,9 +3,15 @@
 #ifndef slic3r_VoronoiOffset_hpp_
 #define slic3r_VoronoiOffset_hpp_
 
-#include "../libslic3r.h"
+#include <boost/polygon/polygon.hpp>
+#include <cmath>
+#include <vector>
 
+#include "libslic3r/libslic3r.h"
 #include "Voronoi.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Polygon.hpp"
 
 namespace Slic3r {
 
