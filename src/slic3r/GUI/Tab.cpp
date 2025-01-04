@@ -3640,6 +3640,7 @@ void TabFilament::toggle_options()
             
         toggle_line("extruder_rotation_distance", is_pellet_printer);
         toggle_line("mixing_stepper_rotation_distance", is_pellet_printer);
+
         toggle_line("extruder_rotation_volume", is_pellet_printer);
         toggle_line("mixing_stepper_rotation_volume", is_pellet_printer);
         toggle_line("pellet_flow_coefficient", is_pellet_printer);

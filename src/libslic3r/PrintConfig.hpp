@@ -1173,6 +1173,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionBool,                has_scarf_joint_seam))
 
+    ((ConfigOptionBool,                pellet_modded_printer))
+
     ((ConfigOptionBool,                use_extruder_rotation_volume))
     ((ConfigOptionBool,                use_active_pellet_feeding))
     ((ConfigOptionStrings,             active_feeder_motor_name))

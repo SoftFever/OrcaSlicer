@@ -425,7 +425,8 @@ std::string GCodeWriter::add_rotation_volume(unsigned int extruder_id, double va
 std::string GCodeWriter::add_rotation_volume(const std::string &name, double value)
 { 
     std::ostringstream gcode;
-    if (FLAVOR_IS(gcfKlipper)) {
+    if (FLAVOR_IS(gcfKlipper) && this->config.pellet_modded_printer.value) {
+
         //https://www.klipper3d.org/it/G-Codes.html?h=set_ex#set_extruder_rotation_distance
         gcode << "SET_EXTRUDER_ROTATION_DISTANCE";
         gcode << " EXTRUDER=" << name;
