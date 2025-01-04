@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-01 08:07+0100\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -1302,9 +1302,6 @@ msgstr "Centro de la arista"
 msgid "Center of circle"
 msgstr "Centro del círculo"
 
-msgid "ShiftLeft mouse button"
-msgstr "Mayúsculas + Botón izquierdo del ratón"
-
 msgid "Select feature"
 msgstr "Seleccionar característica"
 
@@ -1320,18 +1317,25 @@ msgstr "Reiniciar selección"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "Deseleccionar"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "Medir"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "Editar a escala"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Escala"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Ninguno"
@@ -1344,6 +1348,42 @@ msgstr "Longitud"
 
 msgid "Selection"
 msgstr "Selección"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
@@ -1359,6 +1399,27 @@ msgstr "Distancia directa"
 
 msgid "Distance XYZ"
 msgstr "Distancia XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2813,8 +2874,8 @@ msgstr ""
 msgid "About %s"
 msgstr "Acerca de %s"
 
-msgid "Orca Slicer "
-msgstr "Orca Slicer "
+msgid "Orca Slicer"
+msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer está basado en BambuStudio, PrusaSlicer, y SuperSlicer."
@@ -3659,9 +3720,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "La temperatura actual de la cámara es superior a la temperatura de seguridad "
 "del material, puede provocar que el material se ablande y se atasque. La "
@@ -7945,7 +8006,15 @@ msgstr "Boquilla"
 msgid "Nozzle temperature when printing"
 msgstr "Temperatura de la boquilla al imprimir"
 
-msgid "Cool plate"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
 msgstr "Bandeja Fría"
 
 msgid ""
@@ -8177,8 +8246,8 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Límites de altura de la capa"
 
-msgid "Lift Z Enforcement"
-msgstr "Forzar elevación Z"
+msgid "Z-Hop"
+msgstr ""
 
 msgid "Retraction when switching material"
 msgstr "Retracción al cambiar de material"
@@ -9762,8 +9831,8 @@ msgstr ""
 "contener el nombre de host, la dirección IP o la URL de la instancia de la "
 "impresora. Se puede acceder a la impresora detrás de un proxy con la "
 "autenticación básica activada por un nombre de usuario y contraseña en la "
-"URL en el siguiente formato: https://nombredeusuario:"
-"contraseña@tudirecciondeoctopi/"
+"URL en el siguiente formato: https://"
+"nombredeusuario:contraseña@tudirecciondeoctopi/"
 
 msgid "Device UI"
 msgstr "IU de dispositivo"
@@ -9902,6 +9971,11 @@ msgstr "Capa inicial"
 
 msgid "Initial layer bed temperature"
 msgstr "Temperatura de la cama durante la primera capa"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -11843,8 +11917,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² o %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Aceleración del relleno de baja densidad. Si el valor se expresa en "
 "porcentaje (por ejemplo 100%), se calculará basándose en la aceleración por "
@@ -11978,8 +12052,8 @@ msgid ""
 "Can only be overridden by disable_fan_first_layers."
 msgstr ""
 "Esta velocidad de ventilador se fuerza cuando se imprimen todas las "
-"interfaces de soporte, con el objetivo de debilitar la unión con la pieza."
-"Sólo puede ser anulado por disable_fan_first_layers."
+"interfaces de soporte, con el objetivo de debilitar la unión con la "
+"pieza.Sólo puede ser anulado por disable_fan_first_layers."
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -13188,8 +13262,8 @@ msgstr ""
 "Función experimental. Longitud de retracción antes del corte durante el "
 "cambio de filamento"
 
-msgid "Z hop when retract"
-msgstr "Salto en Z al retraer"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -13220,6 +13294,9 @@ msgid ""
 msgstr ""
 "Si este valor es positivo, Z hop sólo se usará cuando Z esté por encima del "
 "parámetro \"Límite inferior de salto Z\" y por debajo de este valor"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "Tipo de salto Z"
@@ -14649,9 +14726,9 @@ msgid "Idle temperature"
 msgstr "Temperatura de Espera"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "Temperatura de la boquilla cuando el cabezal no se está utilizando en "
 "configuraciones multicabezal. Este parámetro sólo es utilizado cuando la "
@@ -14730,8 +14807,8 @@ msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
 "following format: \"XxY, XxY, ...\""
 msgstr ""
-"Los tamaños de las imágenes para almacenar en archivos .gcode y .sl1 / ."
-"sl1s, en el siguiente formato: \"XxY, XxY, ...\""
+"Los tamaños de las imágenes para almacenar en archivos .gcode "
+"y .sl1 / .sl1s, en el siguiente formato: \"XxY, XxY, ...\""
 
 msgid "Format of G-code thumbnails"
 msgstr "Formato de las miniaturas de G-Code"
@@ -15380,8 +15457,8 @@ msgstr "Soporte: propagando ramas en la capa %d"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Formato de archivo desconocido: el archivo de entrada debe tener extensión ."
-"stl, .obj o .amf (.xml)."
+"Formato de archivo desconocido: el archivo de entrada debe tener "
+"extensión .stl, .obj o .amf (.xml)."
 
 msgid "Loading of a model file failed."
 msgstr "Error en la carga del fichero de modelo."
@@ -15391,8 +15468,8 @@ msgstr "El archivo proporcionado no puede ser leído debido a que está vacío"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Formato de archivo desconocido: el archivo de entrada debe tener "
-"extensión .3mf o .zip.amf."
+"Formato de archivo desconocido: el archivo de entrada debe tener extensión "
+".3mf o .zip.amf."
 
 msgid "Canceled"
 msgstr "Cancelado"
@@ -17747,6 +17824,28 @@ msgstr ""
 "aumentar adecuadamente la temperatura de la cama térmica puede reducir la "
 "probabilidad de deformaciones."
 
+#~ msgid "ShiftLeft mouse button"
+#~ msgstr "Mayúsculas + Botón izquierdo del ratón"
+
+#~ msgid "Unselect"
+#~ msgstr "Deseleccionar"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Escala"
+
+#~ msgid "Orca Slicer "
+#~ msgstr "Orca Slicer "
+
+#~ msgid "Cool plate"
+#~ msgstr "Bandeja Fría"
+
+#~ msgid "Lift Z Enforcement"
+#~ msgstr "Forzar elevación Z"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Salto en Z al retraer"
+
 #, no-c-format, no-boost-format
 #~ msgid ""
 #~ "Number of mm the overhang need to be for the reversal to be considered "
@@ -17756,9 +17855,6 @@ msgstr ""
 #~ "Número de mm que debe tener el voladizo para que la inversión se "
 #~ "considere útil. Puede ser % del ancho del perímetro.\n"
 #~ "El valor 0 permite la inversión en todas las capas pares."
-
-#~ msgid "Cool Plate"
-#~ msgstr "Bandeja Fría"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Invertir en impar"
@@ -18670,10 +18766,10 @@ msgstr ""
 #~ "geometría."
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
 #~ "Se recomienda la extrusión relativa cuando se utiliza la opción "
 #~ "\"label_objects\". Algunos extrusores funcionan mejor con esta opción "
@@ -19130,11 +19226,11 @@ msgstr ""
 #~ msgstr "Nivel de depuración"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Ajusta el nivel de registro de depuración. 0:fatal, 1:error, 2:"
-#~ "advertencia, 3:información, 4:depuración, 5:rastreo\n"
+#~ "Ajusta el nivel de registro de depuración. 0:fatal, 1:error, "
+#~ "2:advertencia, 3:información, 4:depuración, 5:rastreo\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."
