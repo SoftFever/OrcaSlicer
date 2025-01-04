@@ -2724,6 +2724,29 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
         case 'T':
             process_T(line); // Select Tool
             break;
+        case 'S':
+            switch (cmd.size()) {
+                case 4:
+                    switch (cmd[1]){
+                        case 'Y':
+                            switch (cmd[2]){
+                                case 'N':
+                                    switch (cmd[3]){
+                                        case 'C':
+                                            process_SYNC(line);
+                                            break;
+                                        default: break;
+                                    }
+                                    break;
+                                default: break;
+                            }
+                            break;
+                        default: break;
+                    }
+                    break;
+                default: break;
+            }
+            break;
         default:
             break;
         }
@@ -4152,8 +4175,69 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
         return;
 
     EMoveType type = move_type(delta_pos);
-    // BBS: now we only support virtual flush
-    if (EMoveType::Unretract == type && m_virtual_flushing) {
+    if (type == EMoveType::Extrude) {
+        float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
+        float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
+
+        if(m_extrusion_role == ExtrusionRole::erSupportMaterial || m_extrusion_role == ExtrusionRole::erSupportMaterialInterface || m_extrusion_role ==ExtrusionRole::erSupportTransition)
+            m_used_filaments.increase_support_caches(volume_extruded_filament);
+        else if (m_extrusion_role==ExtrusionRole::erWipeTower) {
+            m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
+        }
+        else {
+            // save extruded volume to the cache
+            m_used_filaments.increase_model_caches(volume_extruded_filament);
+        }
+        // volume extruded filament / tool displacement = area toolpath cross section
+        m_mm3_per_mm = area_toolpath_cross_section;
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+        if (m_forced_height > 0.0f)
+            m_height = m_forced_height;
+        else {
+            if (m_end_position[Z] > m_extruded_last_z + EPSILON)
+                m_height = m_end_position[Z] - m_extruded_last_z;
+        }
+
+        if (m_height == 0.0f)
+            m_height = DEFAULT_TOOLPATH_HEIGHT;
+
+        if (m_end_position[Z] == 0.0f)
+            m_end_position[Z] = m_height;
+
+        m_extruded_last_z = m_end_position[Z];
+        m_options_z_corrector.update(m_height);
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_height_compare.update(m_height, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+        if (m_forced_width > 0.0f)
+            m_width = m_forced_width;
+        else if (m_extrusion_role == erExternalPerimeter)
+            // cross section: rectangle
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05f * filament_radius)) / (delta_xyz * m_height);
+        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
+            // cross section: circle
+            m_width = static_cast<float>(m_result.filament_diameters[filament_id]) * std::sqrt(delta_pos[E] / delta_xyz);
+        else
+            // cross section: rectangle + 2 semicircles
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
+
+        if (m_width == 0.0f)
+            m_width = DEFAULT_TOOLPATH_WIDTH;
+
+        // clamp width to avoid artifacts which may arise from wrong values of m_height
+        m_width = std::min(m_width, std::max(2.0f, 4.0f * m_height));
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_width_compare.update(m_width, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+    }
+    else if (EMoveType::Unretract == type && m_virtual_flushing) {
         int extruder_id = get_extruder_id();
         float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
         if (m_remaining_volume[extruder_id] > volume_flushed_filament)
@@ -5347,6 +5431,16 @@ void GCodeProcessor::process_M702(const GCodeReader::GCodeLine& line)
         simulate_st_synchronize(get_filament_unload_time(filament_id));
     }
 }
+
+
+void GCodeProcessor::process_SYNC(const GCodeReader::GCodeLine& line)
+{
+    float time = 0;
+    if (line.has_value('T', time) ) {
+        simulate_st_synchronize(time);
+    }
+}
+
 
 void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 {
