@@ -13,6 +13,7 @@
     "bridge_no_support": "0",
     "elefant_foot_compensation": "0.1",
     "outer_wall_line_width": "0.42",
+    "ironing_inset": "0.21",
     "outer_wall_speed": "120",
     "line_width": "0.45",
     "infill_direction": "45",
@@ -69,5 +70,6 @@
     "xy_contour_compensation": "0",
     "compatible_printers": [],
     "smooth_coefficient": "80",
-    "overhang_totally_speed": "24"
+    "overhang_totally_speed": "19",
+    "scarf_angle_threshold": "155"
 }

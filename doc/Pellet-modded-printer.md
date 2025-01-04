@@ -1,65 +1,61 @@
 # Pellet modded printer
-Le stampanti 3D a pellet, comunemente utilizzate per stampe di grandi dimensioni (solitamente superiori a 1m³), si basano su una tecnologia simile alla stampa FDM. Tuttavia, anziché utilizzare filamenti, queste stampanti impiegano pellet come materiale di stampa.
-L'uso dei pellet comporta una gestione dell'estrusione diversa rispetto alle stampanti a filamento tradizionali, a causa di:
+Pellet 3D printers, commonly used for large prints (usually larger than 1m³), are based on a technology similar to FDM printing. However, instead of using filaments, these printers use pellets as the printing material.
+The use of pellets requires a different extrusion management compared to traditional filament printers, due to:
 
-- La presenza di aria tra i pellet.
-- Dimensioni variabili del particolato a seconda del materiale.
-- Necessità di sistemi di alimentazione attivi.
+- The presence of air between the pellets.
+- Variable particle size depending on the material.
+- Need for active feeding systems.
 
-Questo richiede parametri aggiuntivi per una corretta configurazione dell'estrusione.
+This requires additional parameters for a correct extrusion configuration.
 
 ## pellet flow coefficient
-Il pellet flow coefficient è un parametro che rappresenta la capacità di estrusione dei pellet, influenzata da fattori quali:
+The pellet flow coefficient is a parameter that represents the extrusion capacity of the pellets, influenced by factors such as:
 
-- Forma del pellet.
-- Tipo di materiale.
-- Viscosità del materiale.
+- Shape of the pellet.
+- Type of material.
+- Viscosity of the material.
 
-### Funzionamento
-Questo valore definisce la quantità di materiale estruso per ogni giro del meccanismo di alimentazione. Internamente, il coefficiente viene convertito in un valore equivalente di `filament_diameter` per garantire compatibilità con i calcoli volumetrici standard FDM.
+### Operation
+This value defines the amount of material extruded for each revolution of the feeding mechanism. Internally, the coefficient is converted to an equivalent value of `filament_diameter` to ensure compatibility with standard FDM volumetric calculations.
 
-La formula utilizzata è: *filament_diameter = sqrt( (4 \* pellet_flow_coefficient) / PI )*
+The formula used is: *filament_diameter = sqrt( (4 \* pellet_flow_coefficient) / PI )*
 
-- Maggiore densità di riempimento → Maggior materiale estruso → Coefficiente di flusso più alto → Simulazione di un filamento con diametro maggiore.
-- Una riduzione del coefficiente del 20% corrisponde a una riduzione lineare del flusso del 20%.
+- Higher infill density → More extruded material → Higher flow coefficient → Simulation of a larger diameter filament.
+- A 20% reduction in the coefficient corresponds to a 20% linear reduction in flow.
 
-In stampanti dove non è possibile regolare la distanza di rotazione del motore dell'estrusore, il pellet_flow_coefficient permette di controllare la percentuale di flusso modificando il diametro del filamento simulato.
+In printers where it is not possible to adjust the rotation distance of the extruder motor, the pellet_flow_coefficient allows you to control the flow rate by changing the diameter of the simulated filament.
 
->**ATTENZIONE:** Modulare l'estrusione modificando il diametro del filamento virtuale causa tuttavia un errore di lettura della quantità estrusa dalla stampante all'interno del firmware utilizzato.
-Ad esempio su un firmware klipper si avrà una lettura a schermo del flusso di stampa differente da quello realmente in corso.
-utilizzare questo metodo causa anche problemi con il valore di retraction e unretraction, in quanto la conversione col filamneto virtuale altera i valori reali. 
-
-
+>**WARNING:** Modulating the extrusion by changing the diameter of the virtual filament causes an error in reading the quantity extruded by the printer within the firmware used.
+For example, on a klipper firmware you will have a different reading of the print flow on the screen than the one actually in progress.
+using this method also causes problems with the retraction and unretraction value, as the conversion with the virtual filament alters the real values.
 
 ## Extruder Rotation Volume
-La extruder rotation volume rappresenta il volume di materiale estruso (in mm³) per ogni giro completo del motore dell'estrusore. Questo parametro offre una maggiore precisione nella configurazione rispetto al pellet flow coefficient, eliminando errori di calcolo dovuti alla simulazione del diametro del filamento virtuale.
+The extruder rotation volume represents the volume of material extruded (in mm³) for each complete revolution of the extruder motor. This parameter offers greater precision in the configuration compared to the pellet flow coefficient, eliminating calculation errors due to the simulation of the virtual filament diameter.
 
-### Configurazione tramite Filamento Virtuale con Area di 1 mm²
-Per semplificare ulteriormente il calcolo del volume estruso e sincronizzare i parametri della stampante con i valori di volume nel G-code, è possibile simulare un filamento virtuale con un'area trasversale di 1 mm². In questo modo, i valori di estrusione 𝐸 nel G-code rappresentano direttamente il volume in mm³.
+### Configuration via Virtual Filament with Area of ​​1 mm²
+To further simplify the calculation of the extruded volume and synchronize the printer parameters with the volume values ​​in the G-code, it is possible to simulate a virtual filament with a cross-sectional area of ​​1 mm². In this way, the extrusion values ​​𝐸 in the G-code directly represent the volume in mm³.
 
-#### Passaggi per l'implementazione
-1. **Impostazione del Pellet Flow Coefficient:** Simulare un filamento con un'area trasversale di 1 mm² impostando il pellet flow coefficent ad 1.
-2. **Configurazione della Extruder Rotation Volume:** Determina quanti mm³ di materiale vengono estrusi per ogni giro completo del motore dell'estrusore. Questo parametro dipende dalla geometria della vite o dell'ingranaggio dell'estrusore e può essere calibrato sperimentalmente.
-Inserisci il valore ottenuto nella configurazione del materiale come extruder rotation volume.
-3. **Imposta il filament_diameter** pari a 1.1284 all'interno del firmware della proprio stampante
+#### Implementation steps
+1. **Setting the Pellet Flow Coefficient:** Simulate a filament with a cross-sectional area of ​​1 mm² by setting the pellet flow coefficent to 1.
+2. **Setting the Extruder Rotation Volume:** Determines how many mm³ of material are extruded for each complete revolution of the extruder motor. This parameter depends on the geometry of the extruder screw or gear and can be calibrated experimentally.
+Enter the obtained value in the material configuration as extruder rotation volume.
+3. **Set the filament_diameter** equal to 1.1284 within the firmware of your printer
 
-### Vantaggi del Sistema
-- Eliminazione degli errori di conversione: Non è necessario simulare filamenti di diverso diametro, riducendo gli errori.
-- Maggiore precisione: L'utilizzo del volume estruso diretto nel G-code rende la calibrazione più semplice e accurata.
-- Compatibilità dinamica: Con firmware come Klipper, puoi aggiornare i parametri in tempo reale senza dover riscrivere il G-code.
+### System Benefits
+- Elimination of conversion errors: It is not necessary to simulate filaments of different diameters, reducing errors.
+- Greater precision: Using the direct extruded volume in the G-code makes calibration easier and more accurate.
+- Dynamic Compatibility: With firmware like Klipper, you can update parameters in real time without having to rewrite the G-code.
 
->**ATTENZIONE:** Questa funzionalità è attualmente supportata solo da stampanti con firmware Klipper. Assicurati di verificare la compatibilità prima di procedere con la configurazione.
-
-
+>**ATTENTION:** This feature is currently only supported by printers with Klipper firmware. Make sure to check compatibility before proceeding with the configuration.
 
 ## Mixing Stepper Rotation Volume
-La mixing stepper rotation volume indica il volume di materiale (in mm³) immesso attivamente nell'estrusore tramite un motore dedicato.
+The mixing stepper rotation volume indicates the volume of material (in mm³) actively fed into the extruder via a dedicated motor.
 
-### Utilizzo
-Per utilizzare questa funzionalità, è necessario:
+### Usage
+To use this feature, you need to:
 
-- Abilitare l'opzione nelle impostazioni della stampante.
-- Definire il nome identificativo del motore che gestisce il feeding nelle impostazioni dell'estrusore.
-- Configurare il valore di mixing_stepper_rotation_volume nelle impostazioni del materiale.
+- Enable the option in the printer settings.
+- Define the identifying name of the motor that manages the feeding in the extruder settings.
+- Configure the value of mixing_stepper_rotation_volume in the material settings.
 
->**ATTENZIONE:** Questa funzionalità è attualmente supportata solo da stampanti con firmware Klipper. Assicurati di verificare la compatibilità prima di procedere con la configurazione.
+>**ATTENTION:** This feature is currently only supported by printers with Klipper firmware. Make sure to check compatibility before proceeding with the configuration.
