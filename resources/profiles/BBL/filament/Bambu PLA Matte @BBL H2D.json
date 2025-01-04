@@ -5,9 +5,22 @@
     "from": "system",
     "setting_id": "GFSA01_05",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -22,6 +35,14 @@
         "22"
     ],
     "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_above": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
@@ -62,18 +83,6 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
