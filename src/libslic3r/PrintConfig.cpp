@@ -4926,6 +4926,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def          = this->add("staggered_layers", coBool);
+    def->label   = L("Stagger Print Layers");
+    def->category = L("Strength");
+    def->tooltip = L("This is an experminetal feature that allows you to print staggered layers for better layer adhesion and strength.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("change_filament_gcode", coString);
     def->label = L("Change filament G-code");
     def->tooltip = L("This gcode is inserted when change filament, including T command to trigger tool change");
