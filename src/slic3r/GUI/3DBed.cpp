@@ -246,7 +246,7 @@ void Bed3D::Axes::render()
 
 //BBS: add part plate logic
 bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_model, bool force_as_custom,
-    const Vec2d position, bool with_reset)
+    const Vec2d& position, bool with_reset)
 {
     /*auto check_texture = [](const std::string& texture) {
         boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
