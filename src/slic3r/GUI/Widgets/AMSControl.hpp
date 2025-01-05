@@ -179,11 +179,8 @@ public:
     void show_noams_mode();
     void show_auto_refill(bool show);
     void enable_ams_setting(bool en);
-    void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray, MachineObject* obj);
-
-    void reset_vams();
     void post_event(wxEvent&& event);
 
     virtual bool Enable(bool enable = true);

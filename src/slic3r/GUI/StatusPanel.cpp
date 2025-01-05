@@ -2062,11 +2062,12 @@ void StatusBasePanel::show_ams_group(bool show)
 {
     if (m_ams_control->IsShown() != show) {
         m_ams_control->Show(show);
-        m_ams_control->show_noams_mode();
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
         Fit();
+        wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
+        wxGetApp().mainframe->m_monitor->Layout();
     }
 
     if (m_ams_control_box->IsShown() != show) {
@@ -2075,11 +2076,9 @@ void StatusBasePanel::show_ams_group(bool show)
         m_ams_control->Fit();
         Layout();
         Fit();
+        wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
+        wxGetApp().mainframe->m_monitor->Layout();
     }
-
-    //if (m_show_ams_group != show){
-    //    m_show_ams_group = show;
-    //}
 }
 
 void StatusBasePanel::show_filament_load_group(bool show)
@@ -2097,6 +2096,8 @@ void StatusBasePanel::show_filament_load_group(bool show)
         m_show_filament_group = show;
         Layout();
         Fit();
+        wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
+        wxGetApp().mainframe->m_monitor->Layout();
     }
 }
 
@@ -2561,9 +2562,9 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 void StatusPanel::update(MachineObject *obj)
 {
     if (!obj) return;
-    m_project_task_panel->Freeze();
+    //m_project_task_panel->Freeze();
     update_subtask(obj);
-    m_project_task_panel->Thaw();
+    //m_project_task_panel->Thaw();
 
 #if !BBL_RELEASE_TO_PUBLIC
     auto delay1  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_utc_time - std::chrono::system_clock::now()).count();
@@ -3123,7 +3124,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
         m_filament_step->SetAmsModel(ams_mode, ams_mode);
         show_ams_group(true);
-        show_filament_load_group(true);
+        //show_filament_load_group(true);
 
         if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
             m_ams_control->show_auto_refill(false);
@@ -3701,7 +3702,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     }
 
-    Layout();
+    //Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)

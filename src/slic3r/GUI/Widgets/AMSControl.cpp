@@ -32,7 +32,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_extder_data.total_extder_count = 1;
     SetBackgroundColour(*wxWHITE);
     // normal mode
-    Freeze();
+    //Freeze();
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     m_amswin                 = new wxWindow(this, wxID_ANY);
     m_amswin->SetBackgroundColour(*wxWHITE);
@@ -266,7 +266,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_amswin->SetSizer(m_sizer_body);
     m_amswin->Layout();
     m_amswin->Fit();
-    Thaw();
+    //Thaw();
 
     SetSize(m_amswin->GetSize());
     SetMinSize(m_amswin->GetSize());
@@ -581,7 +581,7 @@ void AMSControl::CreateAms()
     AMSinfo                        ams8 = AMSinfo{ "7", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4, ams5, ams6, ams7, ams8 };
     std::vector<AMSinfo>::iterator it;
-    Freeze();
+    //Freeze();
     for (it = ams_info.begin(); it != ams_info.end(); it++) {
         AddAmsPreview(*it, AMSModel::GENERIC_AMS);
         AddAms(*it);
@@ -596,7 +596,7 @@ void AMSControl::CreateAms()
         m_sizer_prv_left->Layout();
         m_sizer_prv_right->Layout();
     }
-    Thaw();
+    //Thaw();
 }
 
 
@@ -635,7 +635,7 @@ void AMSControl::CreateAmsDoubleNozzle()
     std::vector<AMSinfo> single_info_left;
     std::vector<AMSinfo> single_info_right;
 
-    Freeze();
+    //Freeze();
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++){
         if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM){
             ams_info->nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(ams_info->ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(ams_info->ams_id);
@@ -742,7 +742,7 @@ void AMSControl::CreateAmsDoubleNozzle()
     m_down_road->UpdatePassRoad(AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
 
-    Thaw();
+    //Thaw();
 }
 
 void AMSControl::CreateAmsSingleNozzle()
@@ -750,7 +750,7 @@ void AMSControl::CreateAmsSingleNozzle()
     std::vector<int>m_item_nums{0,0};
     std::vector<AMSinfo> single_info;
 
-    Freeze();
+    //Freeze();
 
     //add ams data
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
@@ -828,7 +828,7 @@ void AMSControl::CreateAmsSingleNozzle()
     m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
 
     //Refresh();
-    Thaw();
+    //Thaw();
 }
 
 void AMSControl::Reset()
@@ -860,16 +860,6 @@ void AMSControl::Reset()
 
 void AMSControl::show_noams_mode()
 {
-    show_vams(true);
-    //m_sizer_ams_tips->Show(true);
-
-    /*if (m_ams_model == AMSModel::NO_AMS) {
-        EnterNoneAMSMode();
-    } else if(m_ams_model == AMSModel::GENERIC_AMS){
-        EnterGenericAMSMode();
-    } else if (m_ams_model == AMSModel::EXTRA_AMS) {
-        EnterExtraAMSMode();
-    }*/
     EnterGenericAMSMode();
 }
 
@@ -883,23 +873,6 @@ void AMSControl::show_auto_refill(bool show)
 void AMSControl::enable_ams_setting(bool en)
 {
     m_button_ams_setting->Enable(en);
-}
-
-void AMSControl::show_vams(bool show)
-{
-    //m_panel_virtual->Show(show);
-    //m_vams_sizer->Show(show);
-    /*m_extruder->has_ams(show);
-    show_vams_kn_value(show);
-    Layout();
-
-    if (show && m_is_none_ams_mode) {
-        if (m_current_ams == "") {
-            wxMouseEvent event(wxEVT_LEFT_DOWN);
-            event.SetEventObject(m_vams_lib);
-            wxPostEvent(m_vams_lib, event);
-        }
-    }*/
 }
 
 void AMSControl::show_vams_kn_value(bool show)
@@ -935,20 +908,6 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
     //m_vams_lib->m_info.material_colour = tray.get_color();
     //m_vams_lib->Refresh();
 }
-
-void AMSControl::reset_vams()
-{
-    /*m_vams_lib->m_info.k = 0;
-    m_vams_lib->m_info.n = 0;
-    m_vams_lib->m_info.material_name = wxEmptyString;
-    m_vams_lib->m_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
-    m_vams_lib->m_info.cali_idx = -1;
-    m_vams_lib->m_info.filament_id = "";
-    m_vams_info.material_name = wxEmptyString;
-    m_vams_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
-    m_vams_lib->Refresh();*/
-}
-
 
 std::vector<AMSinfo> AMSControl::GenerateSimulateData() {
     auto caninfo0_0 = Caninfo{ "0", (""), *wxRED, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
@@ -1095,7 +1054,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             first_time = false;
         }
 
-        Freeze();
+        //Freeze();
 
         // update item
         m_ams_info.clear();
@@ -1119,7 +1078,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             SetSize(wxSize(FromDIP(578), -1));
             SetMinSize(wxSize(FromDIP(578), -1));
         }
-        Thaw();
+        //Thaw();
 
         // update cans
 

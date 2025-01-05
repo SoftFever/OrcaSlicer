@@ -1551,7 +1551,7 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     for (std::map<int, std::string>::iterator it = used_extruders_flow.begin(); it!= used_extruders_flow.end(); it++) {
         int target_machine_nozzle_id = map_extruders[it->first];
 
-        if (target_machine_nozzle_id <= flow_type_of_machine.size()) {
+        if (target_machine_nozzle_id < flow_type_of_machine.size()) {
             if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
                 return false;
             }
