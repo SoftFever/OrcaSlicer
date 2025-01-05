@@ -91,7 +91,7 @@ public:
     bool undo_use_spoolman_spools();
 
     static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
-                                                            const Preset*              base_profile,
+                                                            const Preset*              base_preset,
                                                             bool                       detach = false,
                                                             bool                       force = false);
     static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset,

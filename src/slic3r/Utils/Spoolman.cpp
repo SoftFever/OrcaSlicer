@@ -207,66 +207,83 @@ bool Spoolman::undo_use_spoolman_spools()
 }
 
 SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
-                                                           const Preset*              base_profile,
+                                                           const Preset*              base_preset,
                                                            bool                       detach,
                                                            bool                       force)
 {
-    PresetCollection& filaments            = wxGetApp().preset_bundle->filaments;
-    string            filament_preset_name = spool->get_preset_name();
+    PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
     SpoolmanResult    result;
 
-    // Check if the preset already exists
-    Preset* preset = filaments.find_preset(filament_preset_name);
-    if (preset) {
-        if (force) {
-            update_filament_preset_from_spool(preset, true, false);
-            filaments.save_current_preset(preset->name, detach, false, preset);
-            return result;
-        }
-        std::string msg("Preset already exists with the name");
-        BOOST_LOG_TRIVIAL(error) << msg << filament_preset_name;
-        result.messages.emplace_back(msg);
-    }
+    if (!base_preset)
+        base_preset = &filaments.get_edited_preset();
 
-    if (!force) {
+    std::string filament_preset_name = spool->get_preset_name();
+
+    // Bring over the printer name from the base preset or add one for the current printer
+    if (const auto idx = base_preset->name.rfind(" @"); idx != std::string::npos)
+        filament_preset_name += base_preset->name.substr(idx);
+    else
+        filament_preset_name += " @" + wxGetApp().preset_bundle->printers.get_selected_preset_name();
+
+    if (const auto idx = filament_preset_name.rfind(" - Copy"); idx != std::string::npos)
+        filament_preset_name.erase(idx);
+
+    Preset* preset = filaments.find_preset(filament_preset_name);
+
+    if (force) {
+        if (preset && !preset->is_user())
+            result.messages.emplace_back(_u8L("A system preset exists with the same name and cannot be overwritten"));
+    } else {
+        // Check if a preset with the same name already exists
+        if (preset) {
+            if (preset->is_user())
+                result.messages.emplace_back(_u8L("Preset already exists with the same name"));
+            else
+                result.messages.emplace_back(_u8L("A system preset exists with the same name and cannot be overwritten"));
+        }
+
         // Check for presets with the same spool ID
-        int visible(0), invisible(0);
-        for (const auto& item : filaments()) { // count num of visible and invisible
-            if (item.config.opt_int("spoolman_spool_id", 0) == spool->id) {
-                if (item.is_visible)
-                    visible++;
-                else
-                    invisible++;
+        int compatible(0);
+        for (const auto item : filaments.get_compatible()) { // count num of visible and invisible
+            if (item->is_user() && item->config.opt_int("spoolman_spool_id", 0) == spool->id) {
+                compatible++;
+                if (compatible > 1)
+                    break;
             }
-            if (visible > 1 && invisible > 1)
-                break;
         }
         // if there were any, build the message
-        if (visible) {
-            if (visible > 1)
-                result.messages.emplace_back("Multiple visible presets share the same spool ID");
+        if (compatible) {
+            if (compatible > 1)
+                result.messages.emplace_back(_u8L("Multiple compatible presets share the same spool ID"));
             else
-                result.messages.emplace_back("A visible preset shares the same spool ID");
+                result.messages.emplace_back(_u8L("A compatible preset shares the same spool ID"));
         }
-        if (invisible) {
-            if (invisible > 1)
-                result.messages.emplace_back("Multiple invisible presets share the same spool ID");
-            else
-                result.messages.emplace_back("An invisible preset shares the same spool ID");
+
+        // Check if the material types match between the base preset and the spool
+        if (base_preset->config.opt_string("filament_type", 0) != spool->m_filament_ptr->material) {
+            result.messages.emplace_back(_u8L("The materials of the base preset and the Spoolman spool do not match"));
         }
-        if (result.has_failed())
-            return result;
     }
 
-    std::string inherits = filaments.is_base_preset(*base_profile) ? base_profile->name : base_profile->inherits();
+    if (result.has_failed())
+        return result;
+
+    // get the first preset that is a system preset or base user preset in the inheritance hierarchy
+    std::string inherits;
+    if (!detach) {
+        if (const auto base = filaments.get_preset_base(*base_preset))
+            inherits = base->name;
+        else // fallback if the above operation fails
+            inherits = base_preset->name;
+    }
 
     preset = new Preset(Preset::TYPE_FILAMENT, filament_preset_name);
-    preset->config.apply(base_profile->config);
+    preset->config.apply(base_preset->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
     preset->config.set("inherits", inherits, true);
     spool->apply_to_preset(preset);
     preset->filament_id = get_filament_id(filament_preset_name);
-    preset->version     = base_profile->version;
+    preset->version     = base_preset->version;
     preset->loaded      = true;
     filaments.save_current_preset(filament_preset_name, detach, false, preset);
 
@@ -427,7 +444,14 @@ void SpoolmanSpool::update_from_server(bool recursive)
 
 std::string SpoolmanSpool::get_preset_name()
 {
-    return remove_special_key(getVendor()->name + " " + m_filament_ptr->name + " " + m_filament_ptr->material);
+    auto name = getVendor()->name;
+
+    if (!m_filament_ptr->name.empty())
+        name += " " + m_filament_ptr->name;
+    if (!m_filament_ptr->material.empty())
+        name += " " + m_filament_ptr->material;
+
+    return remove_special_key(name);
 }
 
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
