@@ -282,6 +282,7 @@ private:
     wxCheckBox* m_merge_color_checkbox = nullptr;
     bool m_is_empty_project = true;
 
+    std::vector<int> m_plate_choices;
     const int THUMBNAIL_SIZE_WIDTH = 200;
     int      m_specify_plate_idx{-1};
     wxString m_printer_name;

@@ -387,11 +387,12 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         wxArrayString       choices;
         for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
             auto temp_plate = GUI::wxGetApp().plater()->get_partplate_list().get_plate(i);
-            if (!temp_plate->get_objects().empty()) {
+            if (!temp_plate->get_objects_on_this_plate().empty()) {
                 if (m_is_empty_project) {
                     m_is_empty_project     = false;
                 }
-                choices.Add(std::to_wstring(i));
+                choices.Add(i < 10 ? ("0"+std::to_wstring(i + 1)) : std::to_wstring(i));
+                m_plate_choices.emplace_back(i);
             }
         }
         if (m_is_empty_project == false) {
@@ -408,11 +409,17 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
                 for (size_t i = 0; i < choices.size(); i++) {
                     cur_combox->Append(choices[i]);
                 }
-                cur_combox->SetSelection(m_specify_plate_idx);
+                auto iter = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx);
+                if (iter != m_plate_choices.end()) {
+                    auto index = iter - m_plate_choices.begin();
+                    cur_combox->SetSelection(index);
+                }
                 cur_combox->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-                    update_when_change_plate(e.GetSelection());
-                    Layout();
-                    Fit();
+                    if (e.GetSelection() < m_plate_choices.size()) {
+                        update_when_change_plate(m_plate_choices[e.GetSelection()]);
+                        Layout();
+                        Fit();
+                    }
                 });
                 m_plate_combox_sizer->Add(cur_combox, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, FromDIP(5));
 
