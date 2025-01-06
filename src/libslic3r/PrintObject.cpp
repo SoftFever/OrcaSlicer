@@ -31,6 +31,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 
 #include <Shiny/Shiny.h>
 
@@ -2512,7 +2513,10 @@ void PrintObject::bridge_over_infill()
                                                          [](const Line &s) { return s.a == s.b; }),
                                           polygon_sections[i].end());
                 std::sort(polygon_sections[i].begin(), polygon_sections[i].end(),
-                          [](const Line &a, const Line &b) { return a.a.y() < b.b.y(); });
+                          [](const Line &a, const Line &b) {
+                              if (a == b) return false; // Ensure irreflexivity
+                              return a.a.y() < b.b.y();
+                          });
             }
 
             // reconstruct polygon from polygon sections

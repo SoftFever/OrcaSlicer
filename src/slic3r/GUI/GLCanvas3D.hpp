@@ -743,6 +743,7 @@ public:
         m_scene_raycaster.set_gizmos_on_top(value);
     }
 
+    float get_explosion_ratio() { return m_explosion_ratio; }
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }

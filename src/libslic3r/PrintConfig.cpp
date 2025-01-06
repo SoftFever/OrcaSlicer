@@ -78,6 +78,7 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "prusalink",      htPrusaLink },
     { "prusaconnect",   htPrusaConnect },
     { "octoprint",      htOctoPrint },
+    { "crealityprint",  htCrealityPrint },
     { "duet",           htDuet },
     { "flashair",       htFlashAir },
     { "astrobox",       htAstroBox },
@@ -349,6 +350,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
+    { "Supertack Plate",    btSuperTack },
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
@@ -656,6 +658,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     // BBS
+    def             = this->add("supertack_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Cool Plate");
+    def->sidetext   = "°C";
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{35});
+
     def = this->add("cool_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
@@ -705,6 +717,16 @@ void PrintConfigDef::init_fff_params()
     def->min        = 0;
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("supertack_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer. "
+        "Value 0 means the filament does not support to print on the Cool Plate SuperTack");
+    def->sidetext = "°C";
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("cool_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -761,11 +783,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
     // Orca: make sure the order of the values is the same as the BedType enum 
+    def->enum_values.emplace_back("Supertack Plate");
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Textured Cool Plate");
+    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
@@ -3321,16 +3345,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     
-    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
-    				 "Allowed values: 1-5");
-    def->min = 1;
+    				 "Allowed values: 0.5-5");
+    def->min = 0.5;
     def->max = 5;
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(3));
+    def->set_default_value(new ConfigOptionFloat(3.0));
+    
+    def = this->add("extrusion_rate_smoothing_external_perimeter_only", coBool);
+    def->label = L("Apply only on external features");
+    def->tooltip = L("Applies extrusion rate smoothing only on external perimeters and overhangs. This can help reduce artefacts due to sharp speed transitions on externally visible "
+                     "overhangs without impacting the print speed of features that will not be visible to the user.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
@@ -3401,6 +3434,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_values.push_back("esp3d");
+    def->enum_values.push_back("crealityprint");
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
     def->enum_values.push_back("simplyprint");
@@ -3413,6 +3447,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
     def->enum_labels.push_back("ESP3D");
+    def->enum_labels.push_back("CrealityPrint");
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
     def->enum_labels.push_back("SimplyPrint");
@@ -3708,6 +3743,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
+    def = this->add("retract_on_top_layer", coBools);
+    def->label = L("Retract on top layer");
+    def->tooltip = L("Force a retraction on top layer. Disabling could prevent clog on very slow patterns with small movements, like Hilbert curve");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools { true });
+
     def = this->add("retraction_length", coFloats);
     def->label = L("Length");
     def->full_label = L("Retraction Length");
@@ -3748,7 +3789,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("z_hop", coFloats);
-    def->label = L("Z hop when retract");
+    def->label = L("Z-hop height");
     def->tooltip = L("Whenever the retraction is done, the nozzle is lifted a little to create clearance between nozzle and the print. "
                      "It prevents nozzle from hitting the print when travel move. "
                      "Using spiral line to lift z can prevent stringing");
@@ -3776,7 +3817,7 @@ void PrintConfigDef::init_fff_params()
 
 
     def = this->add("z_hop_types", coEnums);
-    def->label = L("Z hop type");
+    def->label = L("Z-hop type");
     def->tooltip = L("Z hop type");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
     def->enum_values.push_back("Auto Lift");
@@ -5368,7 +5409,7 @@ void PrintConfigDef::init_fff_params()
         // BBS: floats
         "wipe_distance",
         // bools
-        "retract_when_changing_layer", "wipe",
+        "retract_when_changing_layer", "retract_on_top_layer", "wipe",
         // percents
         "retract_before_wipe",
         "long_retractions_when_cut",
@@ -5420,7 +5461,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
+        "retract_when_changing_layer", "retract_on_top_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
 
@@ -5431,6 +5472,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
+        "retract_on_top_layer",
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_distances_when_cut",
@@ -5452,7 +5494,7 @@ void PrintConfigDef::init_filament_option_keys()
         "filament_diameter", "min_layer_height", "max_layer_height",
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
+        "retract_when_changing_layer", "retract_on_top_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"/*,"filament_seam_gap"*/
     };
 
@@ -5465,6 +5507,7 @@ void PrintConfigDef::init_filament_option_keys()
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retract_on_top_layer",
         "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
