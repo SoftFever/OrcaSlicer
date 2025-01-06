@@ -27,8 +27,8 @@ protected:
 	json m_hms_action_json;
     mutable std::mutex m_hms_mutex;
 
-    int download_hms_related(std::string hms_type, json *receive_json, std::string dev_type);
-    int load_from_local(std::string &version_info, std::string hms_type, json *load_json, std::string dev_type);
+    int download_hms_related(const std::string& hms_type, const std::string& dev_type, json *receive_json);
+    int load_from_local(const std::string& hms_type, const std::string& dev_type, json * receive_json, std::string& version_info);
 	int save_to_local(std::string lang, std::string hms_type, std::string dev_type, json save_json);
     std::string get_hms_file(std::string hms_type, std::string lang = std::string("en"), std::string dev_type = "");
 	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = std::string("en")) const;
@@ -44,7 +44,9 @@ public:
 	static std::string hms_language_code();
 	static std::string build_query_params(std::string& lang);
     bool check_local_file(std::string dev_type);
-    bool save_local = false;
+
+private:
+    void copy_from_data_dir_to_local();
 };
 
 int get_hms_info_version(std::string &version);

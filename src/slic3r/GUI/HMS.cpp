@@ -2,6 +2,7 @@
 
 #include <boost/log/trivial.hpp>
 
+static const char* HMS_PATH = "hms";
 
 namespace Slic3r {
 namespace GUI {
@@ -41,10 +42,11 @@ int get_hms_info_version(std::string& version)
     return result;
 }
 
-int HMSQuery::download_hms_related(std::string hms_type, json* receive_json, std::string dev_type)
+// Note:  Download the hms into receive_json
+int HMSQuery::download_hms_related(const std::string& hms_type, const std::string& dev_type, json* receive_json)
 {
     std::string local_version = "0";
-    load_from_local(local_version, hms_type, receive_json, dev_type);
+    load_from_local(hms_type, dev_type, receive_json, local_version);
 
     AppConfig* config = wxGetApp().app_config;
     if (!config) return -1;
@@ -65,27 +67,40 @@ int HMSQuery::download_hms_related(std::string hms_type, json* receive_json, std
     if (!dev_type.empty()) { url += (url.find('?') != std::string::npos ? "&" : "?") + (boost::format("d=%1%") % dev_type).str(); }
 
 
+    bool to_save_local = false;
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
     Slic3r::Http http = Slic3r::Http::get(url);
-    http.on_complete([this, receive_json, hms_type](std::string body, unsigned status) {
+    http.on_complete([this, receive_json, hms_type, &to_save_local, &local_version](std::string body, unsigned status) {
         try {
             json j = json::parse(body);
             if (j.contains("result")) {
                 if (j["result"] == 0 && j.contains("data")) {
-                    if (hms_type.compare(QUERY_HMS_INFO) == 0) {
+
+                    if (!j.contains("ver"))
+                    {
+                        return;
+                    }
+
+                    const std::string& remote_ver = std::to_string(j["ver"].get<long long>());
+                    if (remote_ver <= local_version)
+                    {
+                        return;
+                    }
+                    (*receive_json)["version"] = remote_ver;
+
+                    if (hms_type.compare(QUERY_HMS_INFO) == 0)
+                    {
                         (*receive_json) = j["data"];
-                        this->save_local = true;
+                        to_save_local = true;
                     }
-                    else if (hms_type.compare(QUERY_HMS_ACTION) == 0) {
+                    else if (hms_type.compare(QUERY_HMS_ACTION) == 0)
+                    {
                         (*receive_json)["data"] = j["data"];
-                        this->save_local = true;
+                        to_save_local = true;
                     }
-                    if (j.contains("ver"))
-                        (*receive_json)["version"] = std::to_string(j["ver"].get<long long>());
                 } else if (j["result"] == 201){
                     BOOST_LOG_TRIVIAL(info) << "HMSQuery: HMS info is the latest version";
                 }else{
-                    receive_json->clear();
                     BOOST_LOG_TRIVIAL(info) << "HMSQuery: update hms info error = " << j["result"].get<int>();
                 }
             }
@@ -98,9 +113,8 @@ int HMSQuery::download_hms_related(std::string hms_type, json* receive_json, std
             BOOST_LOG_TRIVIAL(error) << "HMSQuery: update hms info error = " << error << ", body = " << body << ", status = " << status;
         }).perform_sync();
 
-        if (!receive_json->empty() && save_local == true) {
+        if (to_save_local && !receive_json->empty()) {
             save_to_local(lang, hms_type, dev_type, *receive_json);
-            save_local = false;
         }
     return 0;
 }
@@ -130,10 +144,31 @@ bool HMSQuery::check_local_file(std::string dev_type)
     return false;
 }
 
-int HMSQuery::load_from_local(std::string& version_info, std::string hms_type, json* load_json, std::string dev_type)
+void HMSQuery::copy_from_data_dir_to_local()
+{
+    const fs::path& from_dir = fs::path(Slic3r::resources_dir()) / HMS_PATH;
+    const fs::path& to_dir = fs::path(Slic3r::data_dir()) / HMS_PATH;
+    for (const auto& entry : fs::directory_iterator(from_dir))
+    {
+        const fs::path& source_path = entry.path();
+        const fs::path& relative_path = fs::relative(source_path, from_dir);
+        const fs::path& dest_path = to_dir / relative_path;
+        if (fs::exists(dest_path))
+        {
+            continue;
+        }
+
+        if (fs::is_regular_file(source_path))
+        {
+            copy_file(source_path, dest_path);
+        }
+    }
+}
+
+int HMSQuery::load_from_local(const std::string& hms_type, const std::string& dev_type, json* load_json, std::string& load_version)
 {
     if (data_dir().empty()) {
-        version_info = "0";
+        load_version = "0";
         BOOST_LOG_TRIVIAL(error) << "HMS: load_from_local, data_dir() is empty";
         return -1;
     }
@@ -148,7 +183,7 @@ int HMSQuery::load_from_local(std::string& version_info, std::string hms_type, j
         if (json_file.is_open()) {
             json_file >> (*load_json);
             if ((*load_json).contains("version")) {
-                version_info = (*load_json)["version"].get<std::string>();
+                load_version = (*load_json)["version"].get<std::string>();
                 return 0;
             } else {
                 BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
@@ -156,11 +191,11 @@ int HMSQuery::load_from_local(std::string& version_info, std::string hms_type, j
             }
         }
     } catch(...) {
-        version_info = "0";
+        load_version = "0";
         BOOST_LOG_TRIVIAL(error) << "HMS: load_from_local failed";
         return -1;
     }
-    version_info = "0";
+    load_version = "0";
     return 0;
 }
 
@@ -384,6 +419,8 @@ wxString HMSQuery::query_print_error_url_action(int print_error, std::string dev
 
 int HMSQuery::check_hms_info(std::string dev_type)
 {
+    copy_from_data_dir_to_local();// STUDIO-9512
+
     std::vector<std::string> dev_sn;
     dev_sn.push_back("00M");
     dev_sn.push_back("00W");
@@ -392,14 +429,14 @@ int HMSQuery::check_hms_info(std::string dev_type)
     dev_sn.push_back("01S");
     dev_sn.push_back("030");
     dev_sn.push_back("039");
-    dev_sn.push_back("094");
+    // dev_sn.push_back("094"); // there are 094 files in local
 
     boost::thread check_thread = boost::thread([this, dev_type, dev_sn] {
 
         std::unique_lock unique_lock(m_hms_mutex);
         for (auto sn : dev_sn) {
-            download_hms_related(QUERY_HMS_INFO, &m_hms_info_json, sn);
-            download_hms_related(QUERY_HMS_ACTION, &m_hms_action_json, sn);
+            download_hms_related(QUERY_HMS_INFO, sn, &m_hms_info_json);
+            download_hms_related(QUERY_HMS_ACTION, sn, &m_hms_action_json);
         }
         return 0;
     });
