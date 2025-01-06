@@ -194,29 +194,23 @@ void SpoolmanImportDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void SpoolmanImportDialog::on_import()
 {
-    const Preset* current_preset = wxGetApp().preset_bundle->filaments.find_preset(m_preset_combobox->GetStringSelection().ToUTF8().data());
-    const vector<SpoolmanSpoolShrPtr>& spools = m_svc->get_model()->GetSelectedSpools();
-    if (spools.empty()) {
-        show_error(this, "No spools are selected");
+    const auto  current_preset = wxGetApp().preset_bundle->filaments.find_preset(m_preset_combobox->GetStringSelection().ToUTF8().data());
+    const auto& selected_spools = m_svc->get_model()->GetSelectedSpools();
+    if (selected_spools.empty()) {
+        show_error(this, _L("No spools are selected"));
         return;
     }
 
-    for (const auto& spool : spools)
-        if (spool->get_preset_name() == current_preset->name) {
-            show_error(this, "One of the selected spools is the same as the current base preset.\n"
-                             "Please deselect that spool or select a different base preset.");
-            return;
-        }
-
-    bool                                                        detach = m_detach_checkbox->GetValue();
+    const bool                                                  detach = m_detach_checkbox->GetValue();
     std::vector<std::pair<SpoolmanSpoolShrPtr, SpoolmanResult>> failed_spools;
 
     auto create_presets = [&](const vector<SpoolmanSpoolShrPtr>& spools, bool force = false) {
+        failed_spools.clear();
         // Attempt to create the presets
         // Calculating the hash for the internal filament id takes a bit, so using multithreading to speed it up
         std::vector<boost::thread> threads;
         for (const auto& spool : spools) {
-            threads.emplace_back(Slic3r::create_thread([&spool, &failed_spools, &current_preset, &force, &detach]() {
+            threads.emplace_back(Slic3r::create_thread([&] {
                 auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, detach, force);
                 if (res.has_failed())
                     failed_spools.emplace_back(spool, res);
@@ -229,40 +223,43 @@ void SpoolmanImportDialog::on_import()
                 thread.join();
     };
 
-    create_presets(spools);
+    create_presets(selected_spools);
 
     // Show message with any errors
     if (!failed_spools.empty()) {
-        //       message      spools with same message
-        std::map<std::string, std::vector<SpoolmanSpoolShrPtr>> sorted_error_messages;
+        auto build_error_msg = [&](const wxString& prefix, const wxString& postfix = "") {
+            wxString error_message = prefix + ":\n\n";
+            for (const auto& [spool_ptr, result] : failed_spools) {
+                error_message += wxString::FromUTF8(spool_ptr->get_preset_name()) + ":\n";
+                for (const auto& msg : result.messages) {
+                    error_message += " - " + msg + "\n";
+                }
+                error_message += "\n";
+            }
+            if (postfix.empty())
+                error_message.erase(error_message.size() - 2);
+            else
+                error_message += postfix;
+            return error_message;
+        };
 
-        for (const std::pair<SpoolmanSpoolShrPtr, SpoolmanResult>& failed_spool : failed_spools)
-            for (const auto& msg : failed_spool.second.messages)
-                sorted_error_messages[msg].emplace_back(failed_spool.first);
+        const auto error_message = build_error_msg(_L("Errors were generated while trying to import the selected spools"),
+                                                   _L("Would you like to ignore these issues and continue?"));
 
-        std::stringstream error_message;
-        for (const auto& msg_pair : sorted_error_messages) {
-            for (const auto& errored_spool : msg_pair.second)
-                error_message << errored_spool->get_preset_name() << ",\n";
-            error_message.seekp(-2, ios_base::end);
-            error_message << ":\n";
-            error_message << "\t" << msg_pair.first << std::endl << std::endl;
-        }
-
-        error_message << "Would you like to ignore these issues and continue?\n"
-                   "Presets with the same name will be updated and presets with conflicting IDs will be forcibly created.";
-
-        WarningDialog dlg = WarningDialog(this, error_message.str(), wxEmptyString, wxYES | wxCANCEL);
+        auto dlg = WarningDialog(this, error_message, wxEmptyString, wxYES | wxCANCEL);
         if (dlg.ShowModal() == wxID_YES) {
             std::vector<SpoolmanSpoolShrPtr> retry_spools;
-            for (const auto& item : failed_spools)
-                retry_spools.emplace_back(item.first);
+            for (const auto& [spool_ptr, res] : failed_spools)
+                retry_spools.emplace_back(spool_ptr);
             create_presets(retry_spools, true);
+            if (!failed_spools.empty())
+                show_error(this, build_error_msg(_L("Errors were still generated during force import")));
             this->EndModal(wxID_OK);
         }
 
         // Update the combobox to display any successfully added presets
         m_preset_combobox->update();
+        // Don't close the dialog so that the user may update their selections and try again
         return;
     }
     this->EndModal(wxID_OK);
