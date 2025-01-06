@@ -2720,13 +2720,16 @@ _compare_obj_names(MachineObject* obj1, MachineObject* obj2)
 *@param  dev_manager -- the device manager
 *@param  sorted_machine_objs -- return the sorted machine objects
 *@param  sorted_machine_names -- return the sorted machine shown names
+*@param  best_one -- return the best one
 */
 /*******************************************************************/
 static void
 _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
                          std::vector<MachineObject*>& sorted_machine_objs,
-                         wxArrayString& sorted_machine_names)
+                         wxArrayString& sorted_machine_names,
+                         MachineObject*& best_one)
 {
+    best_one = nullptr;
     sorted_machine_objs.clear();
     sorted_machine_names.clear();
     if (!dev_manager)
@@ -2741,11 +2744,21 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
     std::set<std::string> compatible_types_set(compatible_types_list.begin(), compatible_types_list.end());
 
     /* Step 2: collect different machine list*/
+    MachineObject* cur_selected_obj = dev_manager->get_selected_machine();
     std::vector<MachineObject*> match_avaliable_list;  // match and availiable machines
     std::vector<MachineObject*> match_inavaliable_list;// match but inavaliable machines
     std::vector<MachineObject*> other_list;// other bound machines
     auto _collect_machine = [&](MachineObject* obj)
     {
+         if (obj == cur_selected_obj)
+         {
+             if (obj->printer_type == printer_type && obj->is_avaliable())
+             {
+                 best_one = cur_selected_obj;;
+             }
+             return;
+         }
+
         if (obj->printer_type == printer_type)
         {
             obj->is_avaliable() ? match_avaliable_list.push_back(obj) : match_inavaliable_list.push_back(obj);
@@ -2767,19 +2780,6 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
         }
     }
 
-#if 0
-    // collect from unbinded lan machine list
-    const auto& lan_omachine_list = dev_manager->get_local_machine_list();// lan machine list
-    for (const auto& elem : lan_omachine_list)
-    {
-        MachineObject* mobj = elem.second;// do not show printer bind state is empty
-        if ( mobj->is_online() && mobj->is_lan_mode_printer() && !mobj->has_access_right())
-        {
-            _collect_machine(mobj);
-        }
-    }
-#endif
-
     /* Step 2: Sort the lists*/
     std::sort(match_avaliable_list.begin(), match_avaliable_list.end(), _compare_obj_names);
     std::sort(match_inavaliable_list.begin(), match_inavaliable_list.end(), _compare_obj_names);
@@ -2799,6 +2799,18 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
         }
     };
 
+    // make the other as best
+    if (!best_one && !sorted_machine_objs.empty())
+    {
+        best_one = sorted_machine_objs.front();
+    }
+
+    // the shown list, STUDIO-8235
+    if (cur_selected_obj)
+    {
+        std::vector<MachineObject*> cur_selected_obj_list{ cur_selected_obj };
+        _collect_sorted_objs(cur_selected_obj_list, sorted_machine_objs, sorted_machine_names);
+    }
     _collect_sorted_objs(match_avaliable_list, sorted_machine_objs, sorted_machine_names);
     _collect_sorted_objs(match_inavaliable_list, sorted_machine_objs, sorted_machine_names);
     _collect_sorted_objs(other_list, sorted_machine_objs, sorted_machine_names);
@@ -2816,59 +2828,33 @@ void SelectMachineDialog::update_user_printer()
     }
 
     wxArrayString  sorted_machine_names;
-    _collect_sorted_machines(dev, m_list, sorted_machine_names);
-    m_comboBox_printer->Set(sorted_machine_names);
-
-    MachineObject* obj = dev->get_selected_machine();
-    if (!obj) {
+    MachineObject* best_one = nullptr;
+    _collect_sorted_machines(dev, m_list, sorted_machine_names, best_one);
+    if (!best_one) {
         dev->load_last_machine();
-        obj = dev->get_selected_machine();
+        best_one = dev->get_selected_machine();
     }
 
-    if (obj) {
-        if (obj->is_lan_mode_printer() && !obj->has_access_right()) {
-            m_printer_last_select = "";
-        }
-        else {
-           m_printer_last_select = obj->dev_id;
-        }
-
-    } else {
-        m_printer_last_select = "";
-    }
-
-    if (m_list.size() > 0) {
-        // select a default machine
-        if (m_printer_last_select.empty()) {
-            int def_selection = -1;
-            for (int i = 0; i < m_list.size(); i++) {
-                if (m_list[i]->is_lan_mode_printer() && !m_list[i]->has_access_right()) {
-                    continue;
-                }
-                else {
-                    def_selection = i;
-                }
-            }
-
-            if (def_selection >= 0) {
-                m_printer_last_select = m_list[def_selection]->dev_id;
-                m_comboBox_printer->SetSelection(def_selection);
-                wxCommandEvent event(wxEVT_COMBOBOX);
-                event.SetEventObject(m_comboBox_printer);
-                wxPostEvent(m_comboBox_printer, event);
-            }
-        }
-
-        for (auto i = 0; i < m_list.size(); i++) {
-            if (m_list[i]->dev_id == m_printer_last_select) {
+    // update the machine list, and select a default machine
+    m_comboBox_printer->Set(sorted_machine_names);
+    m_printer_last_select = best_one ? best_one->dev_id : "";
+    if (best_one)
+    {
+        m_printer_last_select = best_one->dev_id;
+        for (auto i = 0; i < m_list.size(); i++)
+        {
+            if (m_list[i] == best_one)
+            {
                 m_comboBox_printer->SetSelection(i);
                 wxCommandEvent event(wxEVT_COMBOBOX);
                 event.SetEventObject(m_comboBox_printer);
                 wxPostEvent(m_comboBox_printer, event);
+                break;
             }
         }
     }
-    else {
+    else
+    {
         m_printer_last_select = "";
         update_select_layout(nullptr);
         m_comboBox_printer->SetTextLabel("");
