@@ -12,6 +12,7 @@ struct ObjInfo {
     std::vector<RGBA> vertex_colors;
     std::vector<RGBA> face_colors;
     bool              is_single_mtl{false};
+    std::string       lost_material_name{""};
     std::vector<std::array<Vec2f,3>> uvs;
     std::string        obj_dircetory;
     std::map<std::string,bool>  pngs;
@@ -28,6 +29,7 @@ struct ObjDialogInOut
     unsigned char              first_extruder_id;
     bool                       deal_vertex_color;
     Model *                    model{nullptr};
+    std::string lost_material_name{""};
 };
 typedef std::function<void(ObjDialogInOut &in_out)> ObjImportColorFn;
 extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message);

@@ -272,6 +272,7 @@ Model Model::read_from_file(const std::string&                                  
         if (result){
             ObjDialogInOut in_out;
             in_out.model = &model;
+            in_out.lost_material_name = obj_info.lost_material_name;
             if (obj_info.vertex_colors.size() > 0) {
                 if (objFn) { // 1.result is ok and pop up a dialog
                     in_out.input_colors      = std::move(obj_info.vertex_colors);
@@ -3091,7 +3092,9 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             auto face_count    = volume->mesh().its.indices.size();
             volume->mmu_segmentation_facets.reset();
             volume->mmu_segmentation_facets.reserve(face_count);
-            if (volume->mesh().its.indices.size() != face_filament_ids.size()) { return false; }
+            if (volume->mesh().its.indices.size() != face_filament_ids.size()) {
+                return false;
+            }
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {
                 auto face         = volume->mesh().its.indices[i];
                 auto filament_id = face_filament_ids[i];

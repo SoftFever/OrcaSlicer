@@ -106,7 +106,7 @@ class ObjColorDialog : public Slic3r::GUI::DPIDialog
 {
 public:
     ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours);
-    wxBoxSizer* create_btn_sizer(long flags);
+    wxBoxSizer *create_btn_sizer(long flags, bool exist_error);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_layout();
 private:

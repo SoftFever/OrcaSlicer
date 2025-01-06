@@ -918,6 +918,21 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, error %4%") % assemble_object.path % (index + 1) % (obj_index + 1) % message;
                     return CLI_DATA_FILE_ERROR;
                 }
+                if (obj_info.lost_material_name != "") {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, mtl lost material: %4% ,please check mtl file") %
+                                                    assemble_object.path % (index + 1) % (obj_index + 1) % obj_info.lost_material_name;
+                    return CLI_DATA_FILE_ERROR;
+                }
+                if (obj_info.face_colors.size() > 0) {
+                    auto temp0         = obj_info.face_colors.size();
+                    auto temp1         = mesh.facets_count();
+                    bool some_face_no_color = temp0 < temp1;
+                    if (some_face_no_color) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, error:some_face_no_color,please check mtl file and obj file.") %
+                                                        assemble_object.path % (index + 1) % (obj_index + 1);
+                        return CLI_DATA_FILE_ERROR;
+                    }
+                }
                 object_name.erase(object_name.end() - 4, object_name.end());
                 object_1_name = object_name + "_1";
                 //process colors

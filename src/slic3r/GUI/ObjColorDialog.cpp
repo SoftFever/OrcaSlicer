@@ -46,29 +46,29 @@ const  StateColor ok_btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), Stat
 const StateColor  ok_btn_disable_bg(std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Pressed),
                                    std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Hovered),
                                    std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Normal));
-wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags)
+wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
 {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->AddSpacer(FromDIP(25));
-    wxStaticText *tips      = new wxStaticText(this, wxID_ANY, _L("Open Wiki for more information >"));
-   /* wxFont        font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
-    font.SetUnderlined(true);
-    tips->SetFont(font);*/
-    auto font = tips->GetFont();
-    font.SetUnderlined(true);
-    tips->SetFont(font);
-    tips->SetForegroundColour(wxColour(0,174,100));
-    tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-        if (is_zh) {
-            wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/import_obj");
-        }
-        else {
-            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/import_obj");
-        }
-    });
-    btn_sizer->Add(tips, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
-
+    if (!exist_error) {
+        btn_sizer->AddSpacer(FromDIP(25));
+        wxStaticText *tips = new wxStaticText(this, wxID_ANY, _L("Open Wiki for more information >"));
+        /* wxFont        font(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
+         font.SetUnderlined(true);
+         tips->SetFont(font);*/
+        auto font = tips->GetFont();
+        font.SetUnderlined(true);
+        tips->SetFont(font);
+        tips->SetForegroundColour(wxColour(0, 174, 100));
+        tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+            bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+            if (is_zh) {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/import_obj");
+            } else {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/import_obj");
+            }
+        });
+        btn_sizer->Add(tips, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    }
     btn_sizer->AddStretchSpacer();
 
     StateColor ok_btn_bd(
@@ -168,19 +168,47 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, -1));
 
-    m_panel_ObjColor = new ObjColorPanel(this, in_out, extruder_colours);
-    m_panel_ObjColor->set_layout_callback([this]() { update_layout();
-        });
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     // set min sizer width according to extruders count
     auto sizer_width = (int) (2.8 * OBJCOLOR_ITEM_WIDTH());
     sizer_width      = sizer_width > MIN_OBJCOLOR_DIALOG_WIDTH ? sizer_width : MIN_OBJCOLOR_DIALOG_WIDTH;
     m_main_sizer->SetMinSize(wxSize(sizer_width, -1));
-    m_main_sizer->Add(m_panel_ObjColor, 1, wxEXPAND | wxALL, 0);
+    bool some_face_no_color = false;
+    if (!in_out.deal_vertex_color) {
+        auto temp0 = in_out.input_colors.size();
+        auto temp1 = in_out.model->objects[0]->volumes[0]->mesh_ptr()->facets_count();
+        some_face_no_color = temp0 < temp1;
+    }
+    bool ok        = in_out.lost_material_name.empty() && !some_face_no_color;
+    if (ok) {
+        m_panel_ObjColor = new ObjColorPanel(this, in_out, extruder_colours);
+        m_panel_ObjColor->set_layout_callback([this]() { update_layout(); });
+        m_main_sizer->Add(m_panel_ObjColor, 1, wxEXPAND | wxALL, 0);
+    }
+    else {
+        wxBoxSizer *  error_mtl_sizer       = new wxBoxSizer(wxVERTICAL);
 
-    m_buttons_sizer = create_btn_sizer(wxOK | wxCANCEL);
-    {
+        wxStaticText *error_mtl_title       = new wxStaticText(this, wxID_ANY, _L("Some faces not define color."));
+        if (!in_out.lost_material_name.empty()) {
+            error_mtl_title->SetLabel(_L("mtl file exist error,could not find the material:") + " " + in_out.lost_material_name + ".");
+        }
+        error_mtl_title->SetFont(Label::Head_12);
+        error_mtl_sizer->Add(error_mtl_title, 0, wxALIGN_LEFT | wxBOTTOM | wxTOP, FromDIP(5));
+
+        wxStaticText *tip_title = new wxStaticText(this, wxID_ANY, _L("Please check obj or mtl file."));
+        tip_title->SetFont(Label::Head_12);
+        error_mtl_sizer->Add(tip_title, 0, wxALIGN_LEFT | wxBOTTOM | wxTOP, FromDIP(5));
+
+        m_main_sizer->Add(error_mtl_sizer, 1, wxEXPAND | wxLEFT, FromDIP(25));
+    }
+
+    m_buttons_sizer = create_btn_sizer(wxOK | wxCANCEL, !ok);
+    if (!ok) {
+        m_button_list[wxCANCEL]->Hide();
+        m_button_list[wxOK]->Enable(true);
+        m_button_list[wxOK]->SetBackgroundColor(ok_btn_bg);
+    } else {
         m_button_list[wxOK]->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
            if (m_panel_ObjColor->is_ok() == m_button_list[wxOK]->IsEnabled()) { return; }
            m_button_list[wxOK]->Enable(m_panel_ObjColor->is_ok());
@@ -193,6 +221,10 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
 
     if (this->FindWindowById(wxID_OK, this)) {
         this->FindWindowById(wxID_OK, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {// if OK button is clicked..
+              if (!m_panel_ObjColor) {
+                  EndModal(wxCANCEL);
+                  return;
+              }
               m_panel_ObjColor->send_new_filament_to_ui();
               EndModal(wxID_OK);
             }, wxID_OK);
@@ -200,6 +232,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     if (this->FindWindowById(wxID_CANCEL, this)) {
         update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
         this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            if (!m_panel_ObjColor) { return; }
             m_panel_ObjColor->cancel_paint_color();
            EndModal(wxCANCEL);
             });
@@ -207,6 +240,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
 
     wxGetApp().UpdateDlgDarkUI(this);
+    CenterOnParent();
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
