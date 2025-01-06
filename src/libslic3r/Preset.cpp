@@ -1174,6 +1174,7 @@ void PresetCollection::load_presets(
                             << "Error in a preset file: The preset \"" << preset.file
                             << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     }
+
                     preset.loaded = true;
                     //BBS: add some workaround for previous incorrect settings
                     if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
