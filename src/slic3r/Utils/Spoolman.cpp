@@ -12,6 +12,9 @@ namespace {
 template<class Type> Type get_opt(pt::ptree& data, string path) { return data.get_optional<Type>(path).value_or(Type()); }
 } // namespace
 
+// Max timout in seconds for Spoolman HTTP requests
+static constexpr long MAX_TIMEOUT = 5;
+
 //---------------------------------
 // Spoolman
 //---------------------------------
@@ -57,6 +60,7 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
             res_body = std::move(body);
             res      = true;
         })
+        .timeout_max(MAX_TIMEOUT)
         .perform_sync();
 
     if (!res)
@@ -100,6 +104,7 @@ pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptre
             res_body = std::move(body);
             res      = true;
         })
+        .timeout_max(MAX_TIMEOUT)
         .perform_sync();
 
     if (!res)
@@ -362,7 +367,9 @@ bool Spoolman::is_server_valid()
     Http::get(get_spoolman_api_url() + "info").on_complete([&res](std::string, unsigned http_status) {
         if (http_status == 200)
             res = true;
-    }).perform_sync();
+    })
+    .timeout_max(MAX_TIMEOUT)
+    .perform_sync();
     return res;
 }
 
