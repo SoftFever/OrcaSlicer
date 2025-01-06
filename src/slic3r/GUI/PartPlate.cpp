@@ -4153,7 +4153,7 @@ PartPlate* PartPlateList::get_plate(int index)
 {
 	PartPlate* plate = NULL;
 
-	if (index >= m_plate_list.size())
+	if (index >= m_plate_list.size() || index < 0)
 	{
 		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find index %1%, size %2%") % index % m_plate_list.size();
 		return NULL;

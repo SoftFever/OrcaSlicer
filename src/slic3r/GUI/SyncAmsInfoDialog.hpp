@@ -5,14 +5,17 @@
 #include <thread>
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
-#include "Widgets/Button.hpp"
+
+
 #include "SelectMachine.hpp"
 #include "DeviceManager.hpp"
 class Button;
 
 namespace Slic3r { namespace GUI {
+class CapsuleButton;
 class SyncAmsInfoDialog : public DPIDialog
 {
+    enum PageType { ptColorMap = 0, ptOverride };
     int               m_current_filament_id{0};
     int               m_print_plate_idx{0};
     int               m_print_plate_total{0};
@@ -133,7 +136,7 @@ protected:
     wxBoxSizer *m_filament_panel_right_sizer;
     wxBoxSizer *m_sizer_filament_2extruder;
 
-    wxGridSizer *m_sizer_ams_mapping{nullptr};
+    wxFlexGridSizer *m_sizer_ams_mapping{nullptr};
     wxGridSizer *m_sizer_ams_mapping_left{nullptr};
     wxGridSizer *m_sizer_ams_mapping_right{nullptr};
 
@@ -250,10 +253,19 @@ public:
     void show_sizer(wxSizer *sizer, bool show);
     void deal_ok();
     bool get_is_double_extruder();
+    bool is_dirty_filament();
+    bool is_need_show();
+    void set_check_dirty_fialment(bool flag) { m_check_dirty_fialment = flag; };
 
 private:
     wxBoxSizer *create_sizer_thumbnail(wxButton *image_button, bool left);
     void        update_when_change_plate(int);
+    void        update_when_change_map_mode(int);
+    void        update_when_change_map_mode(wxCommandEvent &e);
+    void        update_panel_status(PageType page);
+    void        show_color_panel(bool);
+    void        update_more_setting(bool layout = true);
+    void        add_two_image_control();
 
 private:
     SyncInfo & m_input_info;
@@ -261,8 +273,10 @@ private:
     Button *   m_button_ok     = nullptr;
     Button *   m_button_cancel = nullptr;
 
+    wxStaticText *m_attention_text{nullptr};
     wxStaticText* m_tip_text{nullptr};
-    wxStaticText*  m_used_colors_tip_text{nullptr};
+    //wxStaticText *m_specify_color_cluster_title = nullptr;
+    //wxStaticText*  m_used_colors_tip_text{nullptr};
     wxStaticText* m_warning_text{nullptr};
     wxBoxSizer *  m_left_sizer_thumbnail{nullptr};
     wxBoxSizer *  m_right_sizer_thumbnail{nullptr};
@@ -273,19 +287,35 @@ private:
     wxPanel *    m_rename_edit_panel  = nullptr;
     wxStaticText *  m_confirm_title                = nullptr;
     wxStaticText *  m_are_you_sure_title                = nullptr;
-    wxStaticText *  m_specify_color_cluster_title  = nullptr;
-    wxBoxSizer *    m_plate_combox_sizer          = nullptr;
-    wxBoxSizer *    m_sizer_two_image              = nullptr;
-    wxStaticText *  m_printer_title                = nullptr;
 
+    wxBoxSizer *    m_plate_combox_sizer          = nullptr;
+    wxBoxSizer *    m_mode_combox_sizer           = nullptr;
+    wxBoxSizer *    m_sizer_two_image              = nullptr;
+    wxBoxSizer *    m_sizer_line                   = nullptr;
+    wxStaticText *  m_printer_title                = nullptr;
+    wxStaticText *  m_printer_device_name          = nullptr;
+    wxStaticText *  m_printer_is_map_title         = nullptr;
+
+    CapsuleButton *  m_colormap_btn = nullptr;
+    CapsuleButton *  m_override_btn = nullptr;
+    wxStaticText *   m_more_setting_tips = nullptr;
     wxCheckBox* m_append_color_checkbox = nullptr;
     wxCheckBox* m_merge_color_checkbox = nullptr;
     bool m_is_empty_project = true;
-
+    bool m_is_same_printer  = true;
+    bool m_check_dirty_fialment  = true;
+    bool m_expand_more_settings  = false;
+    bool m_image_is_top          = false;
     std::vector<int> m_plate_choices;
     const int THUMBNAIL_SIZE_WIDTH = 200;
-    int      m_specify_plate_idx{-1};
+    int      m_specify_plate_idx{0};
     wxString m_printer_name;
+
+    enum class MapModeEnum {
+        ColorMap = 0,
+        Override,
+    };
+    MapModeEnum m_map_mode{MapModeEnum::ColorMap};
 };
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_

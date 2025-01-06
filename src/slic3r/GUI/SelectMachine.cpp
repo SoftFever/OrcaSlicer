@@ -3727,7 +3727,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
-
+        item->SetToolTip(_L("Top half of combobox: Original\nDown half of combobox: Filament of AMS\nAnd you can click it to modify"));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();

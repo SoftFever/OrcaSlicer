@@ -185,7 +185,7 @@ void AppConfig::set_defaults()
         set_bool("reverse_mouse_wheel_zoom", false);
 
      if (get("enable_append_color_by_sync_ams").empty())
-        set_bool("enable_append_color_by_sync_ams", true);
+        set_bool("enable_append_color_by_sync_ams", false);
     if (get("enable_merge_color_by_sync_ams").empty())
         set_bool("enable_merge_color_by_sync_ams", true);
 

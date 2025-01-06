@@ -24,7 +24,7 @@
 #include "BindDialog.hpp"
 
 namespace Slic3r { namespace GUI {
-#define MATERIAL_ITEM_SIZE wxSize(FromDIP(52), FromDIP(50))
+#define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
@@ -182,7 +182,8 @@ void MaterialItem::render(wxDC &dc)
 
     dc.SetTextForeground(wxColour(0x26, 0x2E, 0x30));
     dc.SetFont(::Label::Head_12);
-    dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(2), ((float)GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float)GetSize().y * 2 / 5));
+    m_text_pos_y =((float)GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float)GetSize().y * 2 / 5;
+    dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(6), m_text_pos_y));
 }
 
 
@@ -274,15 +275,14 @@ void MaterialItem::doRender(wxDC& dc)
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
 #endif
-    //arrow (remove arrow)
-    /*if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
-        (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(2), size.y - m_arraw_bitmap_white.GetBmpSize().y);
+    if (m_text_pos_y > 0) {
+        // arrow (remove arrow)
+        if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+        } else {
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+        }
     }
-    else {
-        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(2), size.y - m_arraw_bitmap_gray.GetBmpSize().y);
-    }*/
-
 
     //wheel
     dc.DrawBitmap(m_ams_wheel_mitem.bmp(), (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(3), ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4);

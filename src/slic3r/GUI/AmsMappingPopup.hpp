@@ -71,6 +71,7 @@ struct TrayData
 
 class MaterialItem: public wxPanel
 {
+    int m_text_pos_y = -1;
 public:
     MaterialItem(wxWindow *parent,wxColour mcolour, wxString mname);
     ~MaterialItem();
