@@ -440,7 +440,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     nozzle_type_map[NozzleType::ntHardenedSteel]    = _L("Hardened Steel");
     nozzle_type_map[NozzleType::ntStainlessSteel]   = _L("Stainless Steel");
 
-    nozzle_flow_map[NozzleFlowType::S_FLOW]         = _L("Normal flow");
+    nozzle_flow_map[NozzleFlowType::S_FLOW]         = _L("Standard");
     nozzle_flow_map[NozzleFlowType::H_FLOW]         = _L("High flow");
 
     nozzle_type_selection_map[NozzleType::ntHardenedSteel]  = 0;
