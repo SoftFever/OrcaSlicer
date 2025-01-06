@@ -310,19 +310,19 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
     if (m_type == Preset::TYPE_PRINTER) {
         int idx = selected_connected_printer();
         if (idx < 0) {
-            return GetString(index).ToUTF8().data();
+            return GetString(index);
         }
         else {
             DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) {
                 assert(false);
-                return GetString(index).ToUTF8().data();
+                return GetString(index);
             }
 
             std::map<std::string, MachineObject *> machine_list = dev->get_my_machine_list();
             if (machine_list.empty()) {
                 assert(false);
-                return GetString(index).ToUTF8().data();
+                return GetString(index);
             }
 
             auto iter = machine_list.begin();
@@ -334,7 +334,7 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
         }
     }
 
-    return GetString(index).ToUTF8().data();
+    return GetString(index);
 }
 
 wxString PresetComboBox::get_preset_name(const Preset & preset)
