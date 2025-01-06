@@ -1452,12 +1452,12 @@ WipeTower::box_coordinates WipeTower::align_perimeter(const WipeTower::box_coord
     box_coordinates aligned_box = perimeter_box;
 
     float spacing = m_extra_spacing * m_perimeter_width;
-    float up = perimeter_box.lu(1) - m_perimeter_width;
+    float up = perimeter_box.lu(1) - m_perimeter_width - EPSILON;
     up = align_ceil(up, spacing);
     up += m_perimeter_width;
     up = std::min(up, m_wipe_tower_depth);
 
-    float down = perimeter_box.ld(1) - m_perimeter_width;
+    float down = perimeter_box.ld(1) - m_perimeter_width + EPSILON;
     down = align_floor(down, spacing);
     down += m_perimeter_width;
     down = std::max(down, -m_y_shift);
