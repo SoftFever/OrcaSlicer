@@ -2974,7 +2974,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     for (auto it = j_module.begin(); it != j_module.end(); it++) {
                         ModuleVersionInfo ver_info;
                         ver_info.name = (*it)["name"].get<std::string>();
-                        ver_info.product_name = wxString::FromUTF8((*it).value("product_name", json()).get<string>());
+                        if ((*it).contains("product_name"))
+                            ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<string>());
                         if ((*it).contains("sw_ver"))
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
                         if ((*it).contains("sn"))
