@@ -4173,7 +4173,6 @@ void SelectMachineDialog::set_default_from_sdcard()
 
     m_comboBox_printer->SetValue(obj_->dev_name);
 
-
     m_print_plate_total = m_required_data_plate_data_list.size();
     update_page_turn_state(true);
 
@@ -4198,8 +4197,15 @@ void SelectMachineDialog::set_default_from_sdcard()
         brands.push_back(fo.brand);
     }
 
+    auto opt_nozzle_diameters = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto diameters_count      = opt_nozzle_diameters->size();
+    std::vector<int> filament_map;
+    if (m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionInts>("filament_map")){
+        filament_map = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionInts>("filament_map")->values;
+    }
+
     // ams mapping area
-    if (obj_->m_extder_data.total_extder_count > 1) {
+    if (diameters_count > 1) {
         m_filament_left_panel->Show();
         m_filament_right_panel->Show();
         m_filament_panel->Hide();
@@ -4237,14 +4243,32 @@ void SelectMachineDialog::set_default_from_sdcard()
 
     m_ams_mapping_result.clear();
     m_sizer_ams_mapping->Clear();
+    m_sizer_ams_mapping_left->Clear();
+    m_sizer_ams_mapping_right->Clear();
     m_materialList.clear();
     m_filaments.clear();
 
     for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
-        MaterialItem* item = new MaterialItem(m_filament_panel,  wxColour(fo.color), fo.type);
-        m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        MaterialItem* item = nullptr;
+
+        if (diameters_count > 1) {
+            if (fo.id < filament_map.size()) {
+                auto nozzle_id = filament_map[fo.id];
+
+                if (nozzle_id == 1) {
+                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.type);
+                    m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
+                } else if (nozzle_id == 2) {
+                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.type);
+                    m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
+                }
+            }
+        } else {
+            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.type);
+            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        }
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, fo](wxMouseEvent& e) {
