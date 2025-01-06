@@ -1994,7 +1994,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float& tag_nozzle_diameter) c
         auto used_filament_idxs = cur_plate->get_used_filaments();/*the index is started from 1*/
         for (int used_filament_idx : used_filament_idxs)
         {
-            int used_nozzle_idx = cur_plate->get_used_nozzle_by_filament_id(used_filament_idx);
+            int used_nozzle_idx = cur_plate->get_physical_extruder_by_filament_id(preset_bundle->project_config, used_filament_idx);
             if (used_nozzle_idx == -1)
             {
                 assert(0);
