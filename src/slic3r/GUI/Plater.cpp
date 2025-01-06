@@ -214,6 +214,18 @@ wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_PANEL_SIZE_WIDEN (wxSize(FromDIP(136), FromDIP(68)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
 
+static int get_diameter_index(float diameter)
+{
+    float eps = 1e-3;
+    std::vector<float> diameters = {0.2, 0.4, 0.6, 0.8};
+    for (int index = 0; index < diameters.size(); ++index) {
+        if (abs(diameters[index] - diameter) < eps) {
+            return index;
+        }
+    }
+    return 0;
+}
+
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -1243,6 +1255,30 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         });
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
+    const Preset &cur_preset  = preset_bundle->printers.get_selected_preset();
+    int extruder_nums = preset_bundle->get_printer_extruder_count();
+    std::vector<int> extruder_map(extruder_nums);
+    std::iota(extruder_map.begin(), extruder_map.end(), 0);
+    const ConfigOptionInts *physical_extruder_map = cur_preset.config.option<ConfigOptionInts>("physical_extruder_map");
+    if (physical_extruder_map != nullptr) {
+        assert(physical_extruder_map->values.size() == extruder_nums);
+        extruder_map = physical_extruder_map->values;
+    }
+    assert(obj->m_extder_data.extders.size() == extruder_nums);
+
+    std::vector<float> nozzle_diameters;
+    nozzle_diameters.resize(extruder_nums);
+    for (size_t index = 0; index < extruder_nums; ++index) {
+        int extruder_id = extruder_map[index];
+        nozzle_diameters[extruder_id] = obj->m_extder_data.extders[index].current_nozzle_diameter;
+        if (obj->m_extder_data.extders[index].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+            MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
+                              _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            continue;
+        }
+        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(obj->m_extder_data.extders[extruder_id].current_nozzle_flow_type - 1));
+    }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
     for (auto ams : obj->amsList) {
@@ -1265,6 +1301,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     }
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
+
+    left_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[0]));
+    right_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[1]));
+    switch_diameter(false);
     AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
