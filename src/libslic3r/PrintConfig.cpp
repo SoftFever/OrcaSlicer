@@ -731,7 +731,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack");
+        "Value 0 means the filament does not support to print on the Cool Plate SuperTack");
     def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
@@ -798,8 +798,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Textured Cool Plate");
-    def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
-    def->enum_labels.emplace_back(L("Smooth Cool Plate / PLA Plate"));
+    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
+    def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
@@ -3405,16 +3405,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     
-    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
-    				 "Allowed values: 1-5");
-    def->min = 1;
+    				 "Allowed values: 0.5-5");
+    def->min = 0.5;
     def->max = 5;
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(3));
+    def->set_default_value(new ConfigOptionFloat(3.0));
+    
+    def = this->add("extrusion_rate_smoothing_external_perimeter_only", coBool);
+    def->label = L("Apply only on external features");
+    def->tooltip = L("Applies extrusion rate smoothing only on external perimeters and overhangs. This can help reduce artefacts due to sharp speed transitions on externally visible "
+                     "overhangs without impacting the print speed of features that will not be visible to the user.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");

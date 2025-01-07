@@ -2215,6 +2215,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "extrusion-rate-smoothing");
 
     page = add_options_page(L("Support"), "custom-gcode_support"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Support"), L"param_support");
@@ -3339,12 +3340,12 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
-        line = {L("Bambu Cool Plate SuperTack"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack")};
+        line = {L("Cool Plate (SuperTack)"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate SuperTack")};
         line.append_option(optgroup->get_option("supertack_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("supertack_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Cool Plate / PLA Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
+        line = { L("Cool Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
@@ -3615,7 +3616,9 @@ void TabFilament::toggle_options()
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
+        // Orca: Enable the plates that should  be visible when multi bed support is enabled or a BBL printer is selected
         auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
+        toggle_line("supertack_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("textured_cool_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
@@ -3637,9 +3640,6 @@ void TabFilament::toggle_options()
 
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
         toggle_line("chamber_temperatures", support_chamber_temp_control);
-
-        for (auto el : {"supertack_plate_temp", "supertack_plate_temp_initial_layer", "cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
-            toggle_line(el, is_BBL_printer);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
