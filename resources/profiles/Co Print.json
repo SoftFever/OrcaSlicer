@@ -48,6 +48,14 @@
       "sub_path": "machine/Co Print ChromaSet 0.4 nozzle.json"
   },
   {
+      "name": "Co Print ChromaSet 0.4 nozzle - Ender-3 V3",
+      "sub_path": "machine/Co Print ChromaSet 0.4 nozzle - Ender-3 V3.json"
+  },
+  {
+      "name": "Co Print ChromaSet 0.4 nozzle - Ender-3 V3 Plus",
+      "sub_path": "machine/Co Print ChromaSet 0.4 nozzle - Ender-3 V3 Plus.json"
+  },
+  {
       "name": "Co Print ChromaSet 0.4 nozzle fast",
       "sub_path": "machine/Co Print ChromaSet 0.4 nozzle fast.json"
   }
