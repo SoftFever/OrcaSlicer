@@ -4190,4 +4190,24 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     printers.set_default_suppressed(default_suppressed);
 }
 
+bool PresetBundle::has_errors() const
+{
+    if (m_errors != 0 || printers.m_errors != 0 || filaments.m_errors != 0 || prints.m_errors != 0)
+        return true;
+
+    bool has_errors = false;
+    // Orca: check if all filament presets have compatible_printers setting
+    for (auto& preset : filaments) {
+        if (!preset.is_system)
+            continue;
+        auto* compatible_printers = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+        if (compatible_printers == nullptr || compatible_printers->values.empty()) {
+            has_errors = true;
+            BOOST_LOG_TRIVIAL(error) << "Filament preset \"" << preset.file << "\" is missing compatible_printers setting";
+        }
+    }
+
+    return has_errors;
+}
+
 } // namespace Slic3r
