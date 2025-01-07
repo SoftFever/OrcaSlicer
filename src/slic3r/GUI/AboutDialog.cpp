@@ -241,11 +241,18 @@ AboutDialog::AboutDialog()
 
     // version
     {
+
+        auto _build_string_font = Label::Body_10;
+        // _build_string_font.SetStyle(wxFONTSTYLE_ITALIC);
+
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
-        auto version_string = _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
+        auto version_string = _L("Orca Slicer") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on PrusaSlicer and BambuStudio"), wxDefaultPosition, wxDefaultSize);
-        bs_version->SetFont(Label::Body_12);
+        wxStaticText* credits_string = new wxStaticText(this, wxID_ANY,
+                                                        wxString::Format("Build %s.\nOrcaSlicer is based on PrusaSlicer and BambuStudio",
+                                                                         std::string(GIT_COMMIT_HASH)),
+                                                        wxDefaultPosition, wxDefaultSize);
+        credits_string->SetFont(_build_string_font);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
         version_font.SetPointSize(version_font.GetPointSize()-1);
@@ -255,13 +262,12 @@ AboutDialog::AboutDialog()
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
         version->SetForegroundColour(wxColour("#FFFFFD"));
-        bs_version->SetForegroundColour(wxColour("#FFFFFD"));
+        credits_string->SetForegroundColour(wxColour("#FFFFFD"));
         version->SetBackgroundColour(wxColour("#4d4d4d"));
-        bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
-
+        credits_string->SetBackgroundColour(wxColour("#4d4d4d"));
 
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-        vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        vesizer->Add(credits_string, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #if BBL_INTERNAL_TESTING
 //         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
 //         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
