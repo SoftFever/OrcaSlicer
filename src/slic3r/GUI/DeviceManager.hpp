@@ -58,6 +58,7 @@
 
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
+#define SUBSCRIBE_RETRY_COUNT   5
 
 inline int correct_filament_temperature(int filament_temp)
 {

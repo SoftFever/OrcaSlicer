@@ -2981,7 +2981,7 @@ void MachineObject::reset_update_time()
 {
     BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << dev_id;
     last_update_time = std::chrono::system_clock::now();
-    subscribe_counter = 3;
+    subscribe_counter = SUBSCRIBE_RETRY_COUNT;
 }
 
 void MachineObject::reset()

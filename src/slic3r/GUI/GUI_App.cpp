@@ -2187,7 +2187,7 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << obj->dev_id;
         }
     });
-    start_subscribe_timer->Start(4000, wxTIMER_ONE_SHOT);
+    start_subscribe_timer->Start(5000, wxTIMER_ONE_SHOT);
 }
 
 std::string GUI_App::get_local_models_path()
