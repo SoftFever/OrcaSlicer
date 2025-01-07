@@ -1,7 +1,8 @@
-# Copyright (C）2019 THE PACKAGE'S COPYRIGHT HOLDER
+# Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# REVISED Victor Lin, 2024
+# REVISED Victor Lin, 2024.
+# REVISED Shuwn Hsu, 2024.
 #
 msgid ""
 msgstr ""
@@ -341,10 +342,10 @@ msgid "Width"
 msgstr "寬度"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "翼偏角"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "凹槽角"
 
 msgid "Part"
 msgstr "零件"
@@ -727,7 +728,7 @@ msgstr "文字與字型不相容，請選擇其他的字型"
 msgid "Embossed text cannot contain only white spaces."
 msgstr "浮雕文字不能僅包含空白字元。"
 
-msgid "Text contains character glyph (represented by '?'）unknown by font."
+msgid "Text contains character glyph (represented by '?') unknown by font."
 msgstr "文字包含字型無法識別的字形（以 '?' 表示）。"
 
 msgid "Text input doesn't show font skew."
@@ -756,7 +757,7 @@ msgid "Font \"%1%\" can't be selected."
 msgstr "字型 \"%1%\" 無法選擇。"
 
 msgid "Operation"
-msgstr ""
+msgstr "操作"
 
 msgid "Join"
 msgstr "合併"
@@ -784,8 +785,8 @@ msgid "Change Text Type"
 msgstr "更改文字類型"
 
 #, boost-format
-msgid "Rename style(%1%）for embossing text"
-msgstr ""
+msgid "Rename style(%1%) for embossing text"
+msgstr "重新命名浮雕文字樣式 (%1%)"
 
 msgid "Name can't be empty."
 msgstr "名稱不可空白"
@@ -3397,7 +3398,7 @@ msgid ""
 msgstr "G-code 0,0 坐標相對於矩形框左前角的距離。"
 
 msgid ""
-"Diameter of the print bed. It is assumed that origin (0,0）is located in the "
+"Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
 msgstr "熱床直徑。假定原點（0,0）位於中心。"
 
@@ -3756,13 +3757,13 @@ msgstr "更新失敗。"
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
 "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU）is not allowed to be loaded."
+"TPU) is not allowed to be loaded."
 msgstr ""
 "目前設備內部溫度超過 45℃。為避免阻塞，不允許進料低溫線材（PLA / PETG / "
 "TPU）。"
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU）is loaded in the extruder.In order to "
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
@@ -4029,7 +4030,7 @@ msgid "Layer Height (mm)"
 msgstr "層高（mm）"
 
 msgid "Line Width (mm)"
-msgstr "線寬 (mm）"
+msgstr "線寬（mm）"
 
 msgid "Speed (mm/s)"
 msgstr "速度（mm/s）"
@@ -5815,12 +5816,12 @@ msgstr "是否儲存變更到 \"%1%\"？"
 
 #, fuzzy, c-format, boost-format
 msgid ""
-"Successfully unmounted. The device %s(%s）can now be safely removed from the "
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
 "computer."
 msgstr "卸載成功。設備 %s（%s）現在可能安全地從電腦移除。"
 
 #, c-format, boost-format
-msgid "Ejecting of device %s(%s）has failed."
+msgid "Ejecting of device %s(%s) has failed."
 msgstr "退出設備 %s（%s）失敗。"
 
 msgid "Previous unsaved project detected, do you want to restore it?"
@@ -8152,7 +8153,7 @@ msgid ""
 "changed. You could disable the auto-calculate in Orca Slicer > Preferences"
 msgstr ""
 
-msgid "Flushing volume (mm³）for each filament pair."
+msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在兩個線材間切換所需的廢料體積（mm³）"
 
 #, c-format, boost-format
@@ -8501,7 +8502,7 @@ msgid ""
 msgstr "按下「確定」後，下次啟動 Orca Slicer 時會更新網路插件"
 
 #, c-format, boost-format
-msgid "A new Network plug-in(%s）available, Do you want to install it?"
+msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "新版的網路插件（ %s）可用，是否要安裝？"
 
 msgid "New version of Orca Slicer"
@@ -9286,7 +9287,7 @@ msgstr "避免跨越外牆-最大繞行長度"
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
 "detour distance is large than this value. Detour length could be specified "
-"either as an absolute value or as percentage (for example 50%）of a direct "
+"either as an absolute value or as percentage (for example 50%) of a direct "
 "travel path. Zero to disable"
 msgstr ""
 "避免跨越外牆時的最大繞行距離。如果繞行距離大於該數值，則不繞行。繞行距離"
@@ -10324,7 +10325,7 @@ msgid ""
 msgstr "啟用壓力提前，一旦啟用會覆蓋自動校準的結果"
 
 #, fuzzy
-msgid "Pressure advance(Klipper）AKA Linear advance factor(Marlin)"
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "壓力提前（Klipper）或者線性提前（Marlin）"
 
 msgid "Enable adaptive pressure advance (beta)"
@@ -10333,7 +10334,7 @@ msgstr "啟用進階壓力提前 (beta)"
 #, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
-"the nozzle）and increasing accelerations, it has been observed that the "
+"the nozzle) and increasing accelerations, it has been observed that the "
 "effective PA value typically decreases. This means that a single PA value is "
 "not always 100% optimal for all features and a compromise value is usually "
 "used that does not cause too much bulging on features with lower flow speed "
@@ -10442,7 +10443,7 @@ msgid ""
 " 1. To avoid changes in shine when printing glossy filaments \n"
 "2. To avoid changes in external wall speed which may create slight wall "
 "artifacts that appear like z banding \n"
-"3. To avoid printing at speeds which cause VFAs (fine artifacts）on the "
+"3. To avoid printing at speeds which cause VFAs (fine artifacts) on the "
 "external walls\n"
 "\n"
 msgstr ""
@@ -10819,7 +10820,7 @@ msgstr "稀疏填充錨線長度"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
-"additional perimeter. If expressed as percentage (example: 15%）it is "
+"additional perimeter. If expressed as percentage (example: 15%) it is "
 "calculated over infill extrusion width. Orca Slicer tries to connect two "
 "close infill lines to a short perimeter segment. If no such perimeter "
 "segment shorter than infill_anchor_max is found, the infill line is "
@@ -10847,7 +10848,7 @@ msgstr "填充錨線的最大長度"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
-"additional perimeter. If expressed as percentage (example: 15%）it is "
+"additional perimeter. If expressed as percentage (example: 15%) it is "
 "calculated over infill extrusion width. Orca Slicer tries to connect two "
 "close infill lines to a short perimeter segment. If no such perimeter "
 "segment shorter than this parameter is found, the infill line is connected "
@@ -11645,7 +11646,7 @@ msgid ""
 "A value of 0 disables the feature. \n"
 "\n"
 "For a high speed, high flow direct drive printer (like the Bambu lab or "
-"Voron）this value is usually not needed. However it can provide some "
+"Voron) this value is usually not needed. However it can provide some "
 "marginal benefit in certain cases where feature speeds vary greatly. For "
 "example, when there are aggressive slowdowns due to overhangs. In these "
 "cases a high value of around 300-350mm3/s2 is recommended as this allows for "
@@ -12516,7 +12517,7 @@ msgstr "手動更換線材"
 
 msgid ""
 "Enable this option to omit the custom Change filament G-code only at the "
-"beginning of the print. The tool change command (e.g., T0）will be skipped "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
 "throughout the entire print. This is useful for manual multi-material "
 "printing, where we use M600/PAUSE to trigger the manual filament change "
 "action."
@@ -12586,7 +12587,7 @@ msgid "Z offset"
 msgstr "Z 偏移（Z offset）"
 
 msgid ""
-"This value will be added (or subtracted）from all the Z coordinates in the "
+"This value will be added (or subtracted) from all the Z coordinates in the "
 "output G-code. It is used to compensate for bad Z endstop position: for "
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
@@ -12602,8 +12603,8 @@ msgid "Enable support generation."
 msgstr "開啟支撐產生。"
 
 msgid ""
-"normal(auto）and tree(auto）is used to generate support automatically. If "
-"normal(manual）or tree(manual）is selected, only support enforcers are "
+"normal(auto) and tree(auto)is used to generate support automatically. If "
+"normal(manual)or tree(manual)is selected, only support enforcers are "
 "generated"
 msgstr ""
 "普通（自動）和樹狀（自動）用於自動產生支撐體。如果選擇普通（手動）或樹狀（手"
@@ -12766,7 +12767,7 @@ msgstr "支撐線距"
 msgid "Normal Support expansion"
 msgstr "普通支撐延伸"
 
-msgid "Expand (+）or shrink (-）the horizontal span of normal support"
+msgid "Expand (+) or shrink (-) the horizontal span of normal support"
 msgstr "在水平方向對普通支撐進行延伸（+）或收縮（-）"
 
 msgid "Speed of support"
@@ -14918,7 +14919,7 @@ msgid "Process Preset Template"
 msgstr "處理預設設定模板"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "返回第一頁"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
@@ -15684,7 +15685,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Sandwich mode]
 msgid ""
 "Sandwich mode\n"
-"Did you know that you can use sandwich mode (inner-outer-inner）to improve "
+"Did you know that you can use sandwich mode (inner-outer-inner) to improve "
 "precision and layer consistency if your model doesn't have very steep "
 "overhangs?"
 msgstr ""
@@ -16077,7 +16078,7 @@ msgstr ""
 
 #, fuzzy
 #~ msgid ""
-#~ "Decrease this value slightly(for example 0.9）to reduce the amount of "
+#~ "Decrease this value slightly(for example 0.9) to reduce the amount of "
 #~ "material for bridge, to improve sag"
 #~ msgstr "稍微減小這個數值（比如 0.9）可以減小橋接的線材量，來改善下垂。"
 
@@ -16114,7 +16115,7 @@ msgstr ""
 #~ msgstr "切換線材時，退料所需時間。只用於統計資訊。"
 
 #~ msgid ""
-#~ "Time for the printer firmware (or the Multi Material Unit 2.0）to load a "
+#~ "Time for the printer firmware (or the Multi Material Unit 2.0) to load a "
 #~ "new filament during a tool change (when executing the T code). This time "
 #~ "is added to the total print time by the G-code time estimator."
 #~ msgstr ""
@@ -16123,7 +16124,7 @@ msgstr ""
 #~ "上去。"
 
 #~ msgid ""
-#~ "Time for the printer firmware (or the Multi Material Unit 2.0）to unload "
+#~ "Time for the printer firmware (or the Multi Material Unit 2.0) to unload "
 #~ "a filament during a tool change (when executing the T code). This time is "
 #~ "added to the total print time by the G-code time estimator."
 #~ msgstr ""
@@ -16330,13 +16331,13 @@ msgstr ""
 #, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
-#~ "Would you like to keep these changed settings (new value）after switching "
+#~ "Would you like to keep these changed settings (new value) after switching "
 #~ "preset?"
 #~ msgstr "你已經更改了預設 \"%1%\"，是否在切換後要保留這些更改的預設參數？"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings (new value）after switching "
+#~ "Would you like to keep these changed settings (new value) after switching "
 #~ "preset?"
 #~ msgstr "你已經更改了預設參數，是否在切換後要保留這些更改的預設參數？"
 
