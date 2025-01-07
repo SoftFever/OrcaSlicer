@@ -81,11 +81,18 @@ jobs:
       - name: Install tools mac
         if: inputs.os == 'macos-14'
         run: |
-          brew install tree ninja libtool
+          brew install ninja libtool
           brew list
           mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}
           mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
-          tree ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
+
+      - name: Free disk space
+        if: inputs.os == 'macos-14'
+        run: |
+          df -hI /dev/disk3s1s1
+          sudo find /Applications -maxdepth 1 -type d -name "Xcode_*.app" ! -name "Xcode_15.4.app" -exec rm -rf {} +
+          sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/*
+          df -hI /dev/disk3s1s1
 
       - name: Build slicer mac
         if: inputs.os == 'macos-14'

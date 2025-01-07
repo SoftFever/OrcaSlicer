@@ -138,7 +138,8 @@ function SortUI()
 		//let bCheck=$("#MachineList input:first").prop("checked");
 		if( fModel=='')
 		{
-			bFind=true;
+			// Orca: hide
+			bFind=false;
 		}
 		else
 		{
