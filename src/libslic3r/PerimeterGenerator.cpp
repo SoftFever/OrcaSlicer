@@ -1058,7 +1058,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                         segment.reserve(current_ext.size());
                         extrusion.junctions.clear();
 
-                        const auto fuzzy_current_segment = [&segment, extrusion, &r, slice_z]() {
+                        const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z]() {
                             extrusion.junctions.push_back(segment.front());
                             const auto back = segment.back();
                             fuzzy_extrusion_line(segment, slice_z, r.first);
