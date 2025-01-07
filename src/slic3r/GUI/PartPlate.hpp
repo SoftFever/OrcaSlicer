@@ -913,6 +913,7 @@ public:
     void on_filament_deleted(int filament_count, int filament_id);
     void on_filament_added(int filament_count);
 
+    std::map<int, bool> m_allow_bed_type_in_double_nozzle;
     BedTextureInfo bed_texture_info[btCount];
     BedTextureInfo cali_texture_info;
     BedTextureInfo extruder_only_area_info[(unsigned char) Slic3r::ExtruderOnlyAreaType::btAreaCount];
