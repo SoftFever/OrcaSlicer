@@ -11126,7 +11126,7 @@ msgstr ""
 
 msgid ""
 "The minimum print speed to which the printer slows down "
-"to maintain the above-mentioned minimum layer time "
+"to maintain the minimum layer time defined above "
 "when the slowdown for better layer cooling is enabled."
 msgstr ""
 
