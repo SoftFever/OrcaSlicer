@@ -3395,7 +3395,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
-    def->tooltip = L("The minimum print speed to which the printer slows down to maintain the above-mentioned minimum layer time "
+    def->tooltip = L("The minimum print speed to which the printer slows down to maintain the minimum layer time defined above "
                      "when the slowdown for better layer cooling is enabled.");
     def->sidetext = L("mm/s");
     def->min = 0;
