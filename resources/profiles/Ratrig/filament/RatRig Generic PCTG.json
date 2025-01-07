@@ -34,7 +34,7 @@
         "8"
     ],
     "filament_flow_ratio": [
-        "0.94"
+        "0.93"
     ],
 	"filament_density": [
         "1.29"
@@ -52,7 +52,7 @@
         "0.045"
     ],
     "nozzle_temperature_initial_layer": [
-        "255"
+        "260"
     ],
     "nozzle_temperature": [
         "255"
