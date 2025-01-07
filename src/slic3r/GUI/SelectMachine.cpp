@@ -2726,10 +2726,8 @@ _compare_obj_names(MachineObject* obj1, MachineObject* obj2)
 static void
 _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
                          std::vector<MachineObject*>& sorted_machine_objs,
-                         wxArrayString& sorted_machine_names,
-                         MachineObject*& best_one)
+                         wxArrayString& sorted_machine_names)
 {
-    best_one = nullptr;
     sorted_machine_objs.clear();
     sorted_machine_names.clear();
     if (!dev_manager)
@@ -2752,10 +2750,6 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
     {
          if (obj == cur_selected_obj)
          {
-             if (obj->printer_type == printer_type && obj->is_avaliable())
-             {
-                 best_one = cur_selected_obj;;
-             }
              return;
          }
 
@@ -2799,12 +2793,6 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
         }
     };
 
-    // make the other as best
-    if (!best_one && !sorted_machine_objs.empty())
-    {
-        best_one = sorted_machine_objs.front();
-    }
-
     // the shown list, STUDIO-8235
     if (cur_selected_obj)
     {
@@ -2828,30 +2816,17 @@ void SelectMachineDialog::update_user_printer()
     }
 
     wxArrayString  sorted_machine_names;
-    MachineObject* best_one = nullptr;
-    _collect_sorted_machines(dev, m_list, sorted_machine_names, best_one);
-    if (!best_one) {
-        dev->load_last_machine();
-        best_one = dev->get_selected_machine();
-    }
+    _collect_sorted_machines(dev, m_list, sorted_machine_names);
 
     // update the machine list, and select a default machine
     m_comboBox_printer->Set(sorted_machine_names);
-    m_printer_last_select = best_one ? best_one->dev_id : "";
-    if (best_one)
+    if (!m_list.empty())
     {
-        m_printer_last_select = best_one->dev_id;
-        for (auto i = 0; i < m_list.size(); i++)
-        {
-            if (m_list[i] == best_one)
-            {
-                m_comboBox_printer->SetSelection(i);
-                wxCommandEvent event(wxEVT_COMBOBOX);
-                event.SetEventObject(m_comboBox_printer);
-                wxPostEvent(m_comboBox_printer, event);
-                break;
-            }
-        }
+        m_printer_last_select = m_list.front()->dev_id;
+        m_comboBox_printer->SetSelection(0);
+        wxCommandEvent event(wxEVT_COMBOBOX);
+        event.SetEventObject(m_comboBox_printer);
+        wxPostEvent(m_comboBox_printer, event);
     }
     else
     {
