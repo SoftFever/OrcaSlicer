@@ -4,7 +4,7 @@
     "name": "Creality Generic PLA High Speed @Hi-all",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Creality Generic PLA @Hi",
+    "inherits": "Creality Generic PLA @Hi-all",
     "filament_max_volumetric_speed": [
         "23"
     ],
