@@ -10,18 +10,18 @@
 		"0.4"
 	],
     "retract_before_wipe": [
-        "70%"
+        "0%"
     ],
 	"printable_area": [
 		"0x0",
-		"350x0",
-		"350x350",
-		"0x350"
+		"225x0",
+		"225x225",
+		"0x225"
 	],
-	"printable_height": "345",
+	"printable_height": "250",
 	"gcode_flavor": "klipper",
     "retraction_length": [
-        "1"
+        "0.5"
     ],
     "machine_max_speed_e": [
         "100"
@@ -33,7 +33,7 @@
         "500"
     ],
     "machine_max_speed_z": [
-        "20"
+        "10"
     ],
     "machine_max_acceleration_e": [
         "2500"
@@ -54,16 +54,16 @@
         "5000"
     ],
     "machine_max_acceleration_z": [
-        "500"
+        "100"
     ],
     "machine_max_jerk_e": [
         "2.5"
     ],
     "machine_max_jerk_x": [
-        "10"
+        "8"
     ],
     "machine_max_jerk_y": [
-        "10"
+        "8"
     ],
     "machine_max_jerk_z": [
         "0.2"
@@ -72,10 +72,10 @@
         "0.2"
     ],
 	"retraction_speed": [
-        "50"
+        "60"
     ],
 	"deretraction_speed": [
-        "50"
+        "30"
     ],
 	"retraction_minimum_travel": [
         "1"
@@ -89,6 +89,7 @@
 	"thumbnails": [
 		"300x300",
         "400x300",
+		"96x96",
         "32x32"
 	],
     "retract_lift_below": [
