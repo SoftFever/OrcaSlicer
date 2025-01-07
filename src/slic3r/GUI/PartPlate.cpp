@@ -1680,6 +1680,12 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 }
 
 /* -1 is invalid, return physical extruder idx*/
+
+/* machine has 1 extruder*/
+/* logical extruder: 1-unique*/
+/* physical extruder: 0-unique*/
+
+/* machine have 2 extruders*/
 /* logical extruder: 1-left, 2-right*/
 /* physical extruder: 0-right, 1-left*/
 int PartPlate::get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const
@@ -1690,16 +1696,14 @@ int PartPlate::get_physical_extruder_by_filament_id(const DynamicConfig& g_confi
 		return -1;
 	}
 
-	int logical_ext_idx = filament_map[idx - 1];
-	switch (logical_ext_idx)
+	const auto the_map = g_config.option<ConfigOptionInts>("physical_extruder_map");
+	if (!the_map)
 	{
-	    case 1: return 1;
-		case 2: return 0;
-	    default: break;
+		return -1;
 	}
 
-	assert(0);
-	return -1;
+	int zero_base_logical_idx = filament_map[idx - 1] - 1;
+	return the_map->values[zero_base_logical_idx];
 }
 
 std::vector<int> PartPlate::get_used_filaments()
