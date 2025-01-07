@@ -274,12 +274,7 @@ public:
     }
 
     // Orca: for validation only
-    bool has_errors() const
-    {
-        if (m_errors != 0 || printers.m_errors != 0 || filaments.m_errors != 0 || prints.m_errors != 0)
-            return true;
-        return false;
-    }
+    bool has_errors() const;
 
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
