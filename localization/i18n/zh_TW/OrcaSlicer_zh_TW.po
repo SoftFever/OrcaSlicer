@@ -1,7 +1,8 @@
-# Copyright (C）2019 THE PACKAGE'S COPYRIGHT HOLDER
+# Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# REVISED Victor Lin, 2024
+# REVISED Victor Lin, 2024.
+# REVISED Shuwn Hsu, 2024.
 #
 msgid ""
 msgstr ""
@@ -341,10 +342,10 @@ msgid "Width"
 msgstr "寬度"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "翼偏角"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "凹槽角"
 
 msgid "Part"
 msgstr "零件"
@@ -725,7 +726,8 @@ msgid "Embossed text cannot contain only white spaces."
 msgstr "浮雕文字不能僅包含空白字元。"
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
-msgstr ""
+msgstr "文字包含字型無法識別的字形（以 '?' 表示）。"
+
 
 msgid "Text input doesn't show font skew."
 msgstr ""
@@ -753,7 +755,7 @@ msgid "Font \"%1%\" can't be selected."
 msgstr "字型 \"%1%\" 無法選擇。"
 
 msgid "Operation"
-msgstr ""
+msgstr "操作"
 
 msgid "Join"
 msgstr "合併"
@@ -782,7 +784,8 @@ msgstr "更改文字類型"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
-msgstr ""
+msgstr "重新命名浮雕文字樣式 (%1%)"
+
 
 msgid "Name can't be empty."
 msgstr "名稱不可空白"
@@ -4073,7 +4076,7 @@ msgid "Layer Height (mm)"
 msgstr "層高（mm）"
 
 msgid "Line Width (mm)"
-msgstr "線寬 (mm）"
+msgstr "線寬（mm）"
 
 msgid "Speed (mm/s)"
 msgstr "速度（mm/s）"
@@ -5858,7 +5861,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
-msgstr ""
+msgstr "退出設備 %s（%s）失敗。"
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "偵測到有未儲存的專案，是否恢復此專案？"
@@ -8183,7 +8186,7 @@ msgid ""
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr ""
+msgstr "在兩個線材間切換所需的廢料體積（mm³）"
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
@@ -8532,7 +8535,7 @@ msgstr "按下「確定」後，下次啟動 Orca Slicer 時會更新網路插�
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
-msgstr ""
+msgstr "新版的網路插件（ %s）可用，是否要安裝？"
 
 msgid "New version of Orca Slicer"
 msgstr "新版本的 Orca Slicer"
@@ -10352,8 +10355,9 @@ msgid ""
 "enabled."
 msgstr "啟用壓力提前，一旦啟用會覆蓋自動校準的結果"
 
+#, fuzzy
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
-msgstr ""
+msgstr "壓力提前（Klipper）或者線性提前（Marlin）"
 
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "啟用進階壓力提前 (beta)"
@@ -12595,8 +12599,8 @@ msgid "Enable support generation."
 msgstr "開啟支撐產生。"
 
 msgid ""
-"normal(auto) and tree(auto) is used to generate support automatically. If "
-"normal(manual) or tree(manual) is selected, only support enforcers are "
+"normal(auto) and tree(auto)is used to generate support automatically. If "
+"normal(manual)or tree(manual)is selected, only support enforcers are "
 "generated"
 msgstr ""
 
@@ -12757,7 +12761,7 @@ msgid "Normal Support expansion"
 msgstr "普通支撐延伸"
 
 msgid "Expand (+) or shrink (-) the horizontal span of normal support"
-msgstr ""
+msgstr "在水平方向對普通支撐進行延伸（+）或收縮（-）"
 
 msgid "Speed of support"
 msgstr "支撐列印速度"
@@ -14889,7 +14893,7 @@ msgid "Process Preset Template"
 msgstr "處理預設設定模板"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "返回第一頁"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
@@ -16358,7 +16362,7 @@ msgstr ""
 
 #, fuzzy
 #~ msgid ""
-#~ "Decrease this value slightly(for example 0.9）to reduce the amount of "
+#~ "Decrease this value slightly(for example 0.9) to reduce the amount of "
 #~ "material for bridge, to improve sag"
 #~ msgstr "稍微減小這個數值（比如 0.9）可以減小橋接的線材量，來改善下垂。"
 
@@ -16395,7 +16399,7 @@ msgstr ""
 #~ msgstr "切換線材時，退料所需時間。只用於統計資訊。"
 
 #~ msgid ""
-#~ "Time for the printer firmware (or the Multi Material Unit 2.0）to load a "
+#~ "Time for the printer firmware (or the Multi Material Unit 2.0) to load a "
 #~ "new filament during a tool change (when executing the T code). This time "
 #~ "is added to the total print time by the G-code time estimator."
 #~ msgstr ""
@@ -16404,7 +16408,7 @@ msgstr ""
 #~ "上去。"
 
 #~ msgid ""
-#~ "Time for the printer firmware (or the Multi Material Unit 2.0）to unload "
+#~ "Time for the printer firmware (or the Multi Material Unit 2.0) to unload "
 #~ "a filament during a tool change (when executing the T code). This time is "
 #~ "added to the total print time by the G-code time estimator."
 #~ msgstr ""
@@ -16614,13 +16618,13 @@ msgstr ""
 #, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
-#~ "Would you like to keep these changed settings (new value）after switching "
+#~ "Would you like to keep these changed settings (new value) after switching "
 #~ "preset?"
 #~ msgstr "你已經更改了預設 \"%1%\"，是否在切換後要保留這些更改的預設參數？"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings (new value）after switching "
+#~ "Would you like to keep these changed settings (new value) after switching "
 #~ "preset?"
 #~ msgstr "你已經更改了預設參數，是否在切換後要保留這些更改的預設參數？"
 
