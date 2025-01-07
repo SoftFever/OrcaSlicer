@@ -545,6 +545,23 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
 }
 
 Transformation mat_around_a_point_rotate(const Transformation& innMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian);
+
+/**
+ * Checks if a given point is inside a corner of a polygon.
+ *
+ * The corner of a polygon is defined by three points A, B, C in counterclockwise order.
+ *
+ * Adapted from CuraEngine LinearAlg2D::isInsideCorner by Tim Kuipers @BagelOrb
+ * and @Ghostkeeper.
+ *
+ * @param a The first point of the corner.
+ * @param b The second point of the corner (the common vertex of the two edges forming the corner).
+ * @param c The third point of the corner.
+ * @param query_point The point to be checked if is inside the corner.
+ * @return True if the query point is inside the corner, false otherwise.
+ */
+bool is_point_inside_polygon_corner(const Point &a, const Point &b, const Point &c, const Point &query_point);
+
 } } // namespace Slicer::Geometry
 
 #endif
