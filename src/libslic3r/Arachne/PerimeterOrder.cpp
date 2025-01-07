@@ -1,10 +1,4 @@
-#include <stack>
-#include <algorithm>
-#include <cmath>
-
 #include "PerimeterOrder.hpp"
-#include "libslic3r/Arachne/utils/ExtrusionJunction.hpp"
-#include "libslic3r/Point.hpp"
 
 namespace Slic3r::Arachne::PerimeterOrder {
 
@@ -134,7 +128,7 @@ static std::vector<const PerimeterExtrusion *> ordered_perimeter_extrusions_to_m
             const Point         &extrusion_start_position = extrusion_line.junctions.front().p;
             const double         distance_sqr             = (current_position - extrusion_start_position).cast<double>().squaredNorm();
             if (distance_sqr < nearest_distance_sqr) {
-                if (extrusion_line.is_closed || (!extrusion_line.is_closed && nearest_distance_sqr == std::numeric_limits<double>::max()) || (!extrusion_line.is_closed && !is_nearest_closed)) {
+                if (extrusion_line.is_closed || (!extrusion_line.is_closed && nearest_distance_sqr != std::numeric_limits<double>::max()) || (!extrusion_line.is_closed && !is_nearest_closed)) {
                     nearest_extrusion_idx = extrusion_idx;
                     nearest_distance_sqr  = distance_sqr;
                     is_nearest_closed     = extrusion_line.is_closed;
@@ -190,7 +184,7 @@ static std::vector<size_t> order_of_grouped_perimeter_extrusions_to_minimize_dis
             const Point         &extrusion_start_position          = external_perimeter_extrusion_line.junctions.front().p;
             const double         distance_sqr                      = (current_position - extrusion_start_position).cast<double>().squaredNorm();
             if (distance_sqr < nearest_distance_sqr) {
-                if (external_perimeter_extrusion_line.is_closed || (!external_perimeter_extrusion_line.is_closed && nearest_distance_sqr == std::numeric_limits<double>::max()) || (!external_perimeter_extrusion_line.is_closed && !is_nearest_closed)) {
+                if (external_perimeter_extrusion_line.is_closed || (!external_perimeter_extrusion_line.is_closed && nearest_distance_sqr != std::numeric_limits<double>::max()) || (!external_perimeter_extrusion_line.is_closed && !is_nearest_closed)) {
                     nearest_grouped_extrusions_idx = grouped_extrusion_idx;
                     nearest_distance_sqr           = distance_sqr;
                     is_nearest_closed              = external_perimeter_extrusion_line.is_closed;
@@ -225,32 +219,33 @@ static PerimeterExtrusions extract_ordered_perimeter_extrusions(const PerimeterE
         while (!stack.empty()) {
             const PerimeterExtrusion *current_extrusion     = stack.top();
             const size_t              current_extrusion_idx = current_extrusion - sorted_perimeter_extrusions.data();
-
             stack.pop();
-            visited[current_extrusion_idx] = true;
 
-            if (current_extrusion->nearest_external_perimeter == &perimeter_extrusion) {
+            if (visited[current_extrusion_idx])
+                continue;
+
+            if (current_extrusion->nearest_external_perimeter == &perimeter_extrusion)
                 grouped_extrusions.back().extrusions.emplace_back(current_extrusion);
-            }
 
-            std::vector<const PerimeterExtrusion *> available_candidates;
-            for (const PerimeterExtrusion *adjacent_extrusion : current_extrusion->adjacent_perimeter_extrusions) {
-                const size_t adjacent_extrusion_idx = adjacent_extrusion - sorted_perimeter_extrusions.data();
-                if (!visited[adjacent_extrusion_idx] && !adjacent_extrusion->is_external_perimeter() && adjacent_extrusion->nearest_external_perimeter == &perimeter_extrusion) {
-                    available_candidates.emplace_back(adjacent_extrusion);
-                }
-            }
-
-            if (available_candidates.size() == 1) {
-                stack.push(available_candidates.front());
-            } else if (available_candidates.size() > 1) {
+            if (current_extrusion->adjacent_perimeter_extrusions.size() == 1) {
+                const PerimeterExtrusion *adjacent_extrusion = current_extrusion->adjacent_perimeter_extrusions.front();
+                stack.push(adjacent_extrusion);
+            } else if (current_extrusion->adjacent_perimeter_extrusions.size() > 1) {
                 // When there is more than one available candidate, then order candidates to minimize distances between
                 // candidates and also to minimize the distance from the current_position.
-                std::vector<const PerimeterExtrusion *> adjacent_extrusions = ordered_perimeter_extrusions_to_minimize_distances(Point::Zero(), available_candidates);
-                for (auto extrusion_it = adjacent_extrusions.rbegin(); extrusion_it != adjacent_extrusions.rend(); ++extrusion_it) {
-                    stack.push(*extrusion_it);
+                std::vector<const PerimeterExtrusion *> available_candidates;
+                for (const PerimeterExtrusion *adjacent_extrusion : current_extrusion->adjacent_perimeter_extrusions) {
+                    if (const size_t adjacent_extrusion_idx = adjacent_extrusion - sorted_perimeter_extrusions.data(); !visited[adjacent_extrusion_idx])
+                        available_candidates.emplace_back(adjacent_extrusion);
                 }
+
+                std::vector<const PerimeterExtrusion *> adjacent_extrusions = ordered_perimeter_extrusions_to_minimize_distances(Point::Zero(), available_candidates);
+                std::reverse(adjacent_extrusions.begin(), adjacent_extrusions.end());
+                for (const PerimeterExtrusion *adjacent_extrusion : adjacent_extrusions)
+                    stack.push(adjacent_extrusion);
             }
+
+            visited[current_extrusion_idx] = true;
         }
 
         if (!external_perimeters_first)
@@ -258,6 +253,7 @@ static PerimeterExtrusions extract_ordered_perimeter_extrusions(const PerimeterE
     }
 
     const std::vector<size_t> grouped_extrusion_order = order_of_grouped_perimeter_extrusions_to_minimize_distances(Point::Zero(), grouped_extrusions);
+    assert(grouped_extrusion_order.size() == grouped_ordered_extrusions.size());
 
     PerimeterExtrusions ordered_extrusions;
     for (size_t order_idx : grouped_extrusion_order) {

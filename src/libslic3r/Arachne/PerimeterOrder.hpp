@@ -1,14 +1,7 @@
 #ifndef slic3r_GCode_PerimeterOrder_hpp_
 #define slic3r_GCode_PerimeterOrder_hpp_
 
-#include <stddef.h>
-#include <limits>
-#include <vector>
-#include <cstddef>
-
-#include "libslic3r/Arachne/utils/ExtrusionLine.hpp"
-#include "libslic3r/BoundingBox.hpp"
-#include "libslic3r/Polygon.hpp"
+#include <Arachne/utils/ExtrusionLine.hpp>
 
 namespace Slic3r::Arachne::PerimeterOrder {
 
