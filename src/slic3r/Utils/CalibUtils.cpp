@@ -1078,7 +1078,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     int   extruder_id   = cali_infos.calib_datas[0].extruder_id;
     for (const auto& cali_info : cali_infos.calib_datas) {
         if (!is_approx(cali_diameter, cali_info.nozzle_diameter)) {
-            error_message = _L("Calibration using nozzles of different diameters is not supported.");
+            error_message = _L("Automatic calibration only supports cases where the left and right nozzle diameters are identical.");
             return false;
         }
     }
@@ -1099,7 +1099,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
     for (const auto &cali_info : cali_infos.calib_datas) {
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
-            error_message = _L("The selected diameter is inconsistent with the printer diameter.");
+            error_message = _L("The selected filament's nozzle diameter or type does not match the actual printer configuration.\n"
+                               "Please click the Sync button above and restart the calibration.");
             return false;
         }
 
@@ -1109,7 +1110,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 if (cali_info.extruder_id == 0) {
                     name = _L("right");
                 }
-                error_message = wxString::Format(_L("The nozzle type of the %s extruder is not set. Please set it first and then start calibration."), name);
+                error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
                 return false;
             }
 
@@ -1118,8 +1119,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 if (cali_info.extruder_id == 0) {
                     name = _L("right");
                 }
-                error_message = wxString::Format(_L("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
-                                                 "Please synchronize the printer information first and then start calibration."), name);
+                error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
+                                                    "Please click the Sync button above and restart the calibration."), name);
                 return false;
             }
         }
@@ -1147,7 +1148,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     }
 
     if (!is_approx(nozzle_diameter, diameter)) {
-        error_message = _L("The selected diameter is inconsistent with the printer diameter.");
+        error_message = _L("The selected filament's nozzle diameter or type does not match the actual printer configuration.\n"
+                           "Please click the Sync button above and restart the calibration.");
         return false;
     }
 
@@ -1155,16 +1157,15 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         if (nozzle_volume_types[cali_info.extruder_id] == NozzleFlowType::NONE_FLOWTYPE) {
             wxString name = _L("left");
             if (cali_info.extruder_id == 0) { name = _L("right"); }
-            error_message = wxString::Format("The nozzle type of the %s extruder is not set. Please set it first and then start calibration.", name);
+            error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
             return false;
         }
 
         if (NozzleVolumeType(nozzle_volume_types[cali_info.extruder_id] - 1) != cali_info.nozzle_volume_type) {
             wxString name = _L("left");
             if (cali_info.extruder_id == 0) { name = _L("right"); }
-            error_message = wxString::Format("The selected nozzle type of %s extruder is inconsistent with the actual nozzle type of the printer.\n"
-                                             "Please synchronize the printer information first and then start calibration.",
-                                             name);
+            error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
+                                                "Please click the Sync button above and restart the calibration."), name);
             return false;
         }
     }
