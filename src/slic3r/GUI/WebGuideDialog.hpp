@@ -73,7 +73,8 @@ public:
     bool IsFirstUse();
 
     //Model - Machine - Filaments
-    int LoadProfile();
+    int LoadProfileData();
+    int SaveProfileData();
     int LoadProfileFamily(std::string strVendor, std::string strFilePath);
     int SaveProfile();
     int GetFilamentInfo( std::string VendorDirectory,json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType);
