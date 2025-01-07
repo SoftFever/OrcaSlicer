@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFSL96_00",
-    "name": "Creality Generic PLA-CF @Hi",
+    "name": "Creality Generic PLA-CF @Hi-all",
     "from": "system",
     "instantiation": "true",
     "inherits": "Creality Generic PLA-CF",

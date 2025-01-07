@@ -1,7 +1,7 @@
 {
 	"type": "filament",
     "setting_id": "GFSA04_00",
-	"name": "Creality Generic ASA @Ender-3V3-all",
+	"name": "Creality Generic ASA @Hi-all",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "Creality Generic ASA",
