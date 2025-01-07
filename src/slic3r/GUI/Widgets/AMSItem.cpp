@@ -632,8 +632,7 @@ void AMSExtImage::doRender(wxDC& dc)
 //Ams Extruder
 AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, int nozzle_num, const wxPoint &pos, const wxSize &size)
 {
-    create(parent, id, pos, size);
-    m_nozzle_num = nozzle_num;
+    create(parent, id, pos, size, nozzle_num);
 }
 
  AMSextruder::~AMSextruder() {}
@@ -648,30 +647,12 @@ void AMSextruder::TurnOff()
     m_left_extruder->TurnOff();
 }
 
-void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int nozzle_num)
 {
     wxWindow::Create(parent, id, pos, wxSize(-1, FromDIP(36)), wxBORDER_NONE);
     SetBackgroundColour(*wxWHITE);
 
-    wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
-
-    m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_right_extruder = new AMSextruderImage(this, wxID_ANY, "right_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
-    m_right_extruder->setShowState(false);
-
-    if (m_nozzle_num >= 2){
-        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "left_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
-    }
-    else {
-        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
-    }
-    m_left_extruder->setShowState(true);
-    m_bitmap_sizer->Add(m_left_extruder, 0, wxLEFT | wxALIGN_TOP, 0);
-    m_bitmap_sizer->Add(m_right_extruder, 0, wxLEFT | wxALIGN_TOP, FromDIP(2));
-    SetSizer(m_bitmap_sizer);
-
-    Bind(wxEVT_PAINT, &AMSextruder::paintEvent, this);
+    updateNozzleNum(nozzle_num);
     Layout();
 }
 
@@ -713,66 +694,27 @@ void AMSextruder::updateNozzleNum(int nozzle_num)
     this->DestroyChildren();
 
     m_right_extruder = new AMSextruderImage(this, wxID_ANY, "right_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
-    m_right_extruder->setShowState(false);
-    if (m_nozzle_num >= 2) {
-        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "left_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
-    }
-    else {
-        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
-    }
-    wxBoxSizer *m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_bitmap_sizer->Add(m_left_extruder, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
-    if (m_nozzle_num >= 2){
+    wxBoxSizer* m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
+    if (m_nozzle_num >= 2)
+    {
+        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "left_nozzle", AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE);
+        m_left_extruder->setShowState(true);
+        m_right_extruder->setShowState(true);
+        m_bitmap_sizer->Add(m_left_extruder, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
         m_bitmap_sizer->Add(m_right_extruder, 0, wxLEFT | wxALIGN_TOP, FromDIP(2));
         m_bitmap_sizer->AddSpacer(2);
     }
-    else{
+    else
+    {
+        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
+        m_left_extruder->setShowState(true);
+        m_right_extruder->setShowState(false);
+        m_bitmap_sizer->Add(m_left_extruder, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
         m_bitmap_sizer->Add(m_right_extruder, 0, wxLEFT | wxALIGN_TOP, FromDIP(3));
     }
 
     SetSizer(m_bitmap_sizer);
-}
-
-void AMSextruder::paintEvent(wxPaintEvent& evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AMSextruder::render(wxDC& dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
-
-    {
-        wxGCDC dc2(memdc);
-        //doRender(dc2);
-    }
-    m_left_extruder->setShowState(true);
-    if (m_nozzle_num >= 2) {
-        m_right_extruder->setShowState(true);
-    }
-    else {
-        m_right_extruder->setShowState(false);
-    }
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
-
-}
-
-void AMSextruder::doRender(wxDC& dc)
-{
-    //m_current_colur =
-    wxSize size = GetSize();
-
 }
 
 void AMSextruder::msw_rescale()

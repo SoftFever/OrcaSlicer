@@ -319,16 +319,12 @@ public:
 class AMSextruder : public wxWindow
 {
 private:
-    int m_nozzle_num{ 1 };
+    int m_nozzle_num = -1;
 public:
     void TurnOn(wxColour col);
     void TurnOff();
-    void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void OnAmsLoading(bool load, int nozzle_id = 0, wxColour col = AMS_CONTROL_GRAY500);
-    void paintEvent(wxPaintEvent& evt);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
@@ -348,6 +344,9 @@ public:
     AMSextruderImage* m_right_extruder = nullptr;
     AMSextruder(wxWindow *parent, wxWindowID id, int nozzle_num, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruder();
+
+private:
+    void create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, int nozzle_num);
 };
 
 /*************************************************
