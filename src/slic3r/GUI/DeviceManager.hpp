@@ -918,6 +918,9 @@ public:
     bool is_recording();
 
 
+    int get_liveview_remote();
+    int get_file_remote();
+
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
 

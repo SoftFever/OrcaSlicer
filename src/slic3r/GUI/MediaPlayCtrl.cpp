@@ -150,7 +150,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
-        m_remote_proto   = obj->liveview_remote;
+        m_remote_proto   = obj->get_liveview_remote();
         m_lan_ip         = obj->dev_ip;
         m_lan_passwd     = obj->get_access_code();
         m_device_busy    = obj->is_camera_busy_off();

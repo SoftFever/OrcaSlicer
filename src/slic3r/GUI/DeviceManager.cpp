@@ -1640,6 +1640,21 @@ bool MachineObject::is_recording()
     return camera_recording;
 }
 
+int MachineObject::get_liveview_remote()
+{
+    if (is_support_agora) {
+        liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
+    }
+    return liveview_remote;
+}
+
+int MachineObject::get_file_remote()
+{
+    if (is_support_agora)
+        file_remote = file_remote == FR_None ? FR_Agora : file_remote == FR_Tutk ? FR_TutkAgora : file_remote;
+    return file_remote;
+}
+
 std::string MachineObject::parse_version()
 {
     auto ota_version = module_vers.find("ota");
@@ -3906,16 +3921,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
                                     char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
                                     liveview_remote = enum_index_of(ipcam["liveview"].value<std::string>("remote", "none").c_str(), remote_protos, 4, LiveviewRemote::LVR_None);
-                                    if (is_support_agora)
-                                        liveview_remote = liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
                                 }
                                 if (ipcam.contains("file")) {
                                     char const *local_protos[] = {"none", "local"};
                                     file_local  = enum_index_of(ipcam["file"].value<std::string>("local", "none").c_str(), local_protos, 2, FileLocal::FL_None);
                                     char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
                                     file_remote = enum_index_of(ipcam["file"].value<std::string>("remote", "none").c_str(), remote_protos, 4, FileRemote::FR_None);
-                                    if (is_support_agora)
-                                        file_remote = file_remote == FR_None ? FR_Agora : file_remote == FR_Tutk ? FR_TutkAgora : file_remote;
                                     file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
                                 }
                                 virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
