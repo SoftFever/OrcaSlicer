@@ -389,7 +389,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
-    if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+    if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
