@@ -44,7 +44,7 @@ wxString get_stage_string(int stage)
     case 2:
         return _L("Heatbed preheating");
     case 3:
-        return _L("Sweeping XY mech mode");
+        return _L("Vibration compensation");
     case 4:
         return _L("Changing filament");
     case 5:
@@ -88,7 +88,7 @@ wxString get_stage_string(int stage)
     case 24:
         return _L("Filament loading");
     case 25:
-        return _L("Motor noise calibration");
+        return _L("Motor noise cancellation");
     case 26:
         return _L("Paused due to AMS lost");
     case 27:
