@@ -4,17 +4,31 @@
 #include "FilamentMapPanel.hpp"
 #include <vector>
 #include "CapsuleButton.hpp"
+#include "Widgets/CheckBox.hpp"
 
-class SwitchButton;
-class ScalableButton;
 class Button;
-class wxStaticText;
 
 namespace Slic3r {
 class DynamicPrintConfig;
 
 namespace GUI {
 class DragDropPanel;
+class Plater;
+class PartPlate;
+
+/**
+ * @brief Try to pop up the filament map dialog before slicing.
+ * 
+ * Only pop up in multi extruder machines. If user don't want the pop up, we
+ * pop up if the applied filament map mode in manual
+ * 
+ * @param skip_plate_sync whether sync the map mode change to plate. In slice all, we should skip the sync and change on global param
+ * @param plater_ref Plater to get/set global filament map
+ * @param partplate_ref Partplate to get/set plate filament map mode
+ * @return whether continue slicing
+*/
+bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate* partplate_ref);
+
 
 class FilamentMapDialog : public wxDialog
 {
@@ -30,11 +44,16 @@ public:
         const std::vector<int> &filaments,
         const FilamentMapMode mode,
         bool machine_synced,
-        bool show_default=true
+        bool show_default=true,
+        bool with_checkbox = false
     );
 
     FilamentMapMode get_mode();
-    const std::vector<int>& get_filament_maps() const { return m_filament_map; }
+    std::vector<int> get_filament_maps() const {
+        if (m_page_type == PageType::ptManual)
+            return m_filament_map;
+        return {};
+    }
 
     int ShowModal();
     void set_modal_btn_labels(const wxString& left_label, const wxString& right_label);
@@ -42,6 +61,7 @@ private:
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
     void on_switch_mode(wxCommandEvent &event);
+    void on_checkbox(wxCommandEvent &event);
 
     void update_panel_status(PageType page);
 
@@ -56,6 +76,7 @@ private:
 
     Button* m_ok_btn;
     Button* m_cancel_btn;
+    CheckBox* m_checkbox;
 
     PageType m_page_type;
 

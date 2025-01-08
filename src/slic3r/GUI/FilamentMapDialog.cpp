@@ -1,13 +1,97 @@
 #include "FilamentMapDialog.hpp"
-#include "DragDropPanel.hpp"
 #include "Widgets/Button.hpp"
-#include "Widgets/SwitchButton.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "CapsuleButton.hpp"
-#include "SelectMachine.hpp"
+#include "MsgDialog.hpp"
 
 namespace Slic3r { namespace GUI {
+
+static bool get_pop_up_remind_flag()
+{
+    auto &app_config = wxGetApp().app_config;
+    return app_config->get_bool("pop_up_filament_map_dialog");
+}
+
+static void set_pop_up_remind_flag(bool remind)
+{
+    auto &app_config = wxGetApp().app_config;
+    app_config->set_bool("pop_up_filament_map_dialog", remind);
+}
+
+static FilamentMapMode get_applied_map_mode(DynamicConfig& proj_config, const Plater* plater_ref, const PartPlate* partplate_ref, const bool sync_plate)
+{
+    if (sync_plate)
+        return partplate_ref->get_real_filament_map_mode(proj_config);
+    return plater_ref->get_global_filament_map_mode();
+}
+
+static std::vector<int> get_applied_map(DynamicConfig& proj_config, const Plater* plater_ref, const PartPlate* partplate_ref, const bool sync_plate)
+{
+    if (sync_plate)
+        return partplate_ref->get_real_filament_maps(proj_config);
+    return plater_ref->get_global_filament_map();
+}
+
+
+bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate* partplate_ref)
+{
+    auto full_config = wxGetApp().preset_bundle->full_config();
+    const auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (nozzle_diameters->size() <= 1)
+        return true;
+
+    bool force_pop_up = get_pop_up_remind_flag();
+    bool sync_plate = !skip_plate_sync && partplate_ref->get_filament_map_mode() != fmmDefault;
+
+    std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
+    FilamentMapMode applied_mode = get_applied_map_mode(full_config, plater_ref,partplate_ref, sync_plate);
+    std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
+    applied_maps.resize(filament_colors.size(), 1);
+
+    if (!force_pop_up && applied_mode != fmmManual)
+        return true;
+
+    std::vector<int> filament_lists;
+    if (skip_plate_sync) {
+        filament_lists.resize(filament_colors.size());
+        std::iota(filament_lists.begin(), filament_lists.end(), 1);
+    }
+    else {
+        filament_lists = partplate_ref->get_extruders();
+    }
+
+    FilamentMapDialog map_dlg(plater_ref,
+        filament_colors,
+        applied_maps,
+        filament_lists,
+        applied_mode,
+        plater_ref->get_machine_sync_status(),
+        false,
+        force_pop_up
+    );
+    auto ret = map_dlg.ShowModal();
+
+    if (ret == wxID_OK) {
+        FilamentMapMode new_mode = map_dlg.get_mode();
+        std::vector<int> new_maps = map_dlg.get_filament_maps();
+        if (sync_plate) {
+            partplate_ref->set_filament_map_mode(new_mode);
+            if (new_mode == fmmManual)
+                partplate_ref->set_filament_maps(new_maps);
+        }
+        else {
+            plater_ref->set_global_filament_map_mode(new_mode);
+            if (new_mode == fmmManual)
+                plater_ref->set_global_filament_map(new_maps);
+        }
+        return true;
+    }
+    return false;
+}
+
+
+
 
 static const StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                                      std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
@@ -31,13 +115,14 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<int>         &filaments,
                                      const FilamentMapMode           mode,
                                      bool                            machine_synced,
-                                     bool                            show_default)
+                                     bool                            show_default,
+                                     bool                            with_checkbox)
     : wxDialog(parent, wxID_ANY, _L("Filament arrangement method"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_map(filament_map)
 {
     SetBackgroundColour(*wxWHITE);
 
-    SetMinSize(wxSize(FromDIP(550), -1));
-    SetMaxSize(wxSize(FromDIP(550), -1));
+    SetMinSize(wxSize(FromDIP(580), -1));
+    SetMaxSize(wxSize(FromDIP(580), -1));
 
     if (mode < fmmManual)
         m_page_type = PageType::ptAuto;
@@ -86,24 +171,50 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     if (show_default) panel_sizer->Add(m_default_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
     main_sizer->Add(panel_sizer, 0, wxEXPAND);
 
-    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_ok_btn                 = new Button(this, _L("OK"));
-    m_cancel_btn             = new Button(this, _L("Cancel"));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
-    m_ok_btn->SetFont(Label::Body_12);
-    m_cancel_btn->SetFont(Label::Body_12);
+    wxPanel* bottom_panel = new wxPanel(this);
+    bottom_panel->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_panel->SetSizer(bottom_sizer);
+    bottom_sizer->Fit(bottom_panel);
 
-    m_ok_btn->SetBackgroundColor(btn_bg_green);
-    m_ok_btn->SetBorderColor(btn_bd_green);
-    m_ok_btn->SetTextColor(btn_text_green);
-    m_cancel_btn->SetBackgroundColor(btn_bg_white);
-    m_cancel_btn->SetBorderColor(btn_bd_white);
-    m_cancel_btn->SetTextColor(btn_text_white);
+    if(with_checkbox)
+    {
+        auto* checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_checkbox = new CheckBox(bottom_panel);
+        m_checkbox->Bind(wxEVT_TOGGLEBUTTON, &FilamentMapDialog::on_checkbox, this);
+        checkbox_sizer->Add(m_checkbox, 0, wxALIGN_CENTER, 0);
 
-    button_sizer->Add(m_ok_btn, 0, wxALL, FromDIP(8));
-    button_sizer->Add(m_cancel_btn, 0, wxALL, FromDIP(8));
-    main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxALL, FromDIP(15));
+        auto* checkbox_label = new Label(bottom_panel, _L("Don't remind me again"));
+        checkbox_label->SetFont(Label::Body_12);
+        checkbox_sizer->Add(checkbox_label, 0, wxLEFT| wxALIGN_CENTER , FromDIP(3));
+
+        bottom_sizer->Add(checkbox_sizer, 0 ,  wxALIGN_CENTER | wxALL, FromDIP(15));
+    }
+
+    bottom_sizer->AddStretchSpacer();
+
+    {
+        wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_ok_btn                 = new Button(bottom_panel, _L("OK"));
+        m_cancel_btn             = new Button(bottom_panel, _L("Cancel"));
+        m_ok_btn->SetCornerRadius(FromDIP(12));
+        m_cancel_btn->SetCornerRadius(FromDIP(12));
+        m_ok_btn->SetFont(Label::Body_12);
+        m_cancel_btn->SetFont(Label::Body_12);
+
+        m_ok_btn->SetBackgroundColor(btn_bg_green);
+        m_ok_btn->SetBorderColor(btn_bd_green);
+        m_ok_btn->SetTextColor(btn_text_green);
+        m_cancel_btn->SetBackgroundColor(btn_bg_white);
+        m_cancel_btn->SetBorderColor(btn_bd_white);
+        m_cancel_btn->SetTextColor(btn_text_white);
+
+        button_sizer->Add(m_ok_btn, 1, wxRIGHT, FromDIP(4));
+        button_sizer->Add(m_cancel_btn, 1, wxLEFT, FromDIP(4));
+
+        bottom_sizer->Add(button_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
+    }
+    main_sizer->Add(bottom_panel, 0, wxEXPAND);
 
     m_ok_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_ok, this);
     m_cancel_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_cancle, this);
@@ -131,6 +242,19 @@ int FilamentMapDialog::ShowModal()
 {
     update_panel_status(m_page_type);
     return wxDialog::ShowModal();
+}
+
+void FilamentMapDialog::on_checkbox(wxCommandEvent &event)
+{
+    bool is_checked = m_checkbox->GetValue();
+    m_checkbox->SetValue(is_checked);
+    set_pop_up_remind_flag(!is_checked);
+
+    if (is_checked) {
+        MessageDialog dialog(nullptr, _L("No further pop-up will appear. You can reopen it in 'Preferences'"), _L("Tips"), wxICON_INFORMATION | wxOK);
+        dialog.ShowModal();
+        this->Close();
+    }
 }
 
 void FilamentMapDialog::on_ok(wxCommandEvent &event)

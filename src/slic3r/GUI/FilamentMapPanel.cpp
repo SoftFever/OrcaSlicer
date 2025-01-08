@@ -127,7 +127,7 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     auto label_sizer = new wxBoxSizer(wxHORIZONTAL);
     label_sizer->AddStretchSpacer();
     label_sizer->Add(m_btn, 0, wxALIGN_CENTER | wxEXPAND);
-    label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND);
+    label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND| wxALL, FromDIP(3));
     label_sizer->AddStretchSpacer();
 
     sizer->AddSpacer(FromDIP(32));

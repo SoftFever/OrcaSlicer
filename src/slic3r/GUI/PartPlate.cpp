@@ -3282,7 +3282,18 @@ FilamentMapMode PartPlate::get_filament_map_mode() const
 
 void PartPlate::set_filament_map_mode(const FilamentMapMode& mode)
 {
-    m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
+	const auto& proj_config = wxGetApp().preset_bundle->project_config;
+	FilamentMapMode global_mode = proj_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+	FilamentMapMode old_mode = get_filament_map_mode();
+	FilamentMapMode old_real_mode = old_mode == fmmDefault ? global_mode : old_mode;
+	FilamentMapMode new_real_mode = mode == fmmDefault ? global_mode : mode;
+
+	if (old_real_mode != new_real_mode)
+		clear_filament_map();
+	if (mode == fmmDefault)
+		clear_filament_map_mode();
+	else
+		m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
 }
 
 std::vector<int> PartPlate::get_filament_maps() const

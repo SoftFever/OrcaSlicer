@@ -512,7 +512,6 @@ public:
     void set_global_filament_map(const std::vector<int>& filament_map);
     std::vector<int> get_global_filament_map() const;
     FilamentMapMode get_global_filament_map_mode() const;
-    void on_filament_map_mode_change();
 
     void update_menus();
     // BBS
@@ -864,6 +863,7 @@ private:
 
     void cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
 
+    void on_filament_map_mode_change();
     friend class SuppressBackgroundProcessingUpdate;
     friend class PlaterDropTarget;
 };

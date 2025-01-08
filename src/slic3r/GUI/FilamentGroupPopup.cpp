@@ -3,6 +3,7 @@
 #include "MsgDialog.hpp"
 #include "wx/dcgraph.h"
 #include "I18N.hpp"
+#include "PartPlate.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -12,7 +13,8 @@ static const wxColour GreyColor = wxColour("#6B6B6B");
 static const wxColour GreenColor = wxColour("#00AE42");
 static const wxColour BackGroundColor = wxColour("#FFFFFF");
 
-static bool is_multi_extruder()
+
+static bool should_pop_up()
 {
     const auto &preset_bundle    = wxGetApp().preset_bundle;
     const auto &full_config      = preset_bundle->full_config();
@@ -20,7 +22,7 @@ static bool is_multi_extruder()
     return nozzle_diameters->size() > 1;
 }
 
-FilamentMapMode get_prefered_map_mode()
+static FilamentMapMode get_prefered_map_mode()
 {
     const static std::map<std::string, int> enum_keys_map = ConfigOptionEnum<FilamentMapMode>::get_enum_values();
     auto                                   &app_config    = wxGetApp().app_config;
@@ -44,25 +46,6 @@ static void set_prefered_map_mode(FilamentMapMode mode)
     app_config->set("prefered_filament_map_mode", mode_str);
 }
 
-static bool get_pop_up_remind_flag()
-{
-    auto &app_config = wxGetApp().app_config;
-    return app_config->get_bool("pop_up_filament_map_mode");
-}
-
-static void set_pop_up_remind_flag(bool remind)
-{
-    auto &app_config = wxGetApp().app_config;
-    app_config->set_bool("pop_up_filament_map_mode", remind);
-}
-
-bool is_pop_up_required()
-{
-    FilamentMapMode mode               = get_prefered_map_mode();
-    bool            is_manual_mode_    = FilamentMapMode::fmmManual == mode;
-    bool            is_multi_extruder_ = is_multi_extruder();
-    return is_multi_extruder_ && is_manual_mode_;
-}
 
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
@@ -161,20 +144,8 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         wiki_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) { wxLaunchDefaultBrowser("http//:example.com"); });
         wiki_sizer->Add(wiki_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
 
-        auto* checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        remind_checkbox = new CheckBox(this);
-        remind_checkbox->Bind(wxEVT_TOGGLEBUTTON, &FilamentGroupPopup::OnRemindBtn, this);
-        checkbox_sizer->Add(remind_checkbox, 0, wxALIGN_CENTER, 0);
-
-        auto checkbox_title = new Label(this, _L("Don't remind me again"));
-        checkbox_title->SetBackgroundColour(BackGroundColor);
-        checkbox_title->SetForegroundColour(GreyColor);
-        checkbox_title->SetFont(Label::Body_12);
-        checkbox_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
-
         button_sizer->Add(wiki_sizer, 0, wxLEFT, horizontal_margin);
         button_sizer->AddStretchSpacer();
-        button_sizer->Add(checkbox_sizer, 0, wxRIGHT, horizontal_margin);
 
         top_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, horizontal_margin);
     }
@@ -242,27 +213,22 @@ void FilamentGroupPopup::Init()
         button_desps[ButtonType::btForMatch]->SetLabel(MachineSyncTip);
     }
 
-    m_mode = get_prefered_map_mode();
+    m_mode = GetFilamentMapMode();
     if (m_mode == fmmAutoForMatch && !m_connected) {
-        set_prefered_map_mode(fmmAutoForFlush);
+        SetFilamentMapMode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
     }
-
-    bool check_state = get_pop_up_remind_flag() ? false : true;
-    remind_checkbox->SetValue(check_state);
 
     UpdateButtonStatus();
 }
 
-void FilamentGroupPopup::tryPopup(bool connect_status)
+void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool skip_plate_sync)
 {
-    auto canPopup = [this]() {
-        bool is_multi_extruder_ = is_multi_extruder();
-        bool pop_up_flag        = get_pop_up_remind_flag();
-        return is_multi_extruder_ && pop_up_flag;
-    };
-
-    if (canPopup()) {
+    if (should_pop_up()) {
+        bool connect_status = plater->get_machine_sync_status();
+        this->partplate_ref = partplate;
+        this->plater_ref = plater;
+        this->m_sync_plate = !skip_plate_sync && partplate->get_filament_map_mode() != fmmDefault;
         if (m_active) {
             if (m_connected != connect_status) { Init(); }
             m_connected = connect_status;
@@ -277,6 +243,25 @@ void FilamentGroupPopup::tryPopup(bool connect_status)
         }
     }
 }
+
+FilamentMapMode FilamentGroupPopup::GetFilamentMapMode() const
+{
+    const auto& proj_config = wxGetApp().preset_bundle->project_config;
+    if (m_sync_plate)
+        return partplate_ref->get_real_filament_map_mode(proj_config);
+
+    return plater_ref->get_global_filament_map_mode();
+}
+
+void FilamentGroupPopup::SetFilamentMapMode(const FilamentMapMode mode)
+{
+    if (m_sync_plate) {
+        partplate_ref->set_filament_map_mode(mode);
+        return;
+    }
+    plater_ref->set_global_filament_map_mode(mode);
+}
+
 
 void FilamentGroupPopup::tryClose() { StartTimer(); }
 
@@ -298,22 +283,9 @@ void FilamentGroupPopup::OnRadioBtn(int idx)
         return;
     m_mode = mode_list.at(idx);
 
-    set_prefered_map_mode(m_mode);
+    SetFilamentMapMode(m_mode);
 
     UpdateButtonStatus(m_mode);
-}
-
-void FilamentGroupPopup::OnRemindBtn(wxCommandEvent &event)
-{
-    bool is_checked = remind_checkbox->GetValue();
-    remind_checkbox->SetValue(is_checked);
-    set_pop_up_remind_flag(!is_checked);
-
-    if (is_checked) {
-        MessageDialog dialog(nullptr, _L("No further pop-up will appear. You can reopen it in 'Preferences'"), _L("Tips"), wxICON_INFORMATION | wxOK);
-        dialog.ShowModal();
-        Dismiss();
-    }
 }
 
 void FilamentGroupPopup::OnTimer(wxTimerEvent &event) { Dismiss(); }
@@ -361,11 +333,6 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
             button_labels[i]->SetFont(Label::Body_14);
         }
     }
-
-    if (m_mode == FilamentMapMode::fmmAutoForMatch)
-        remind_checkbox->Enable(false);
-    else
-        remind_checkbox->Enable(true);
 
     Layout();
     Fit();

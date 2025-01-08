@@ -311,8 +311,8 @@ void AppConfig::set_defaults()
         set_bool("ignore_ext_filament_in_filament_map", false);
     }
 
-    if (get("pop_up_filament_map_mode").empty()){
-        set_bool("pop_up_filament_map_mode", true);
+    if (get("pop_up_filament_map_dialog").empty()){
+        set_bool("pop_up_filament_map_dialog", true);
     }
 
     if (get("prefered_filament_map_mode").empty()){

@@ -1593,40 +1593,10 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             bool slice = true;
 
-            auto full_config = wxGetApp().preset_bundle->full_config();
-            std::vector<int>g_filament_map = full_config.option<ConfigOptionInts>("filament_map")->values;
-            FilamentMapMode g_filament_map_mode = get_prefered_map_mode();
-            if (is_pop_up_required()) {
-                auto filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
-                g_filament_map.resize(filament_colors.size());
-                std::vector<int> filament_lists(filament_colors.size());
-                std::iota(filament_lists.begin(), filament_lists.end(), 1);
-
-                FilamentMapDialog filament_dlg(this,
-                    filament_colors,
-                    g_filament_map,
-                    filament_lists,
-                    FilamentMapMode::fmmManual,
-                    m_plater->get_machine_sync_status(),
-                    false
-                );
-                auto ret = filament_dlg.ShowModal();
-                if (ret == wxID_OK) {
-                    g_filament_map_mode = filament_dlg.get_mode();
-                    g_filament_map = filament_dlg.get_filament_maps();
-                }
-                else {
-                    slice = false;
-                }
-            }
+            auto curr_plate = m_plater->get_partplate_list().get_curr_plate();
+            slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate);
 
             if (slice) {
-                if (m_plater->get_global_filament_map_mode() != g_filament_map_mode)
-                    m_plater->on_filament_map_mode_change();
-                m_plater->set_global_filament_map_mode(g_filament_map_mode);
-                if (g_filament_map_mode == FilamentMapMode::fmmManual)
-                    m_plater->set_global_filament_map(g_filament_map);
-
                 if (m_slice_select == eSliceAll)
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
                 else
@@ -1640,8 +1610,10 @@ wxBoxSizer* MainFrame::create_side_tools()
         pos.y += m_slice_btn->GetRect().height * 1.25;
         pos.x -= (m_slice_option_btn->GetRect().width + FromDIP(380) * 0.6);
 
+        auto curr_plate=this->m_plater->get_partplate_list().get_curr_plate();
+
         m_filament_group_popup->SetPosition(pos);
-        m_filament_group_popup->tryPopup(m_plater->get_machine_sync_status());
+        m_filament_group_popup->tryPopup(m_plater,curr_plate, m_slice_select == eSliceAll);
         });
 
     m_slice_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {

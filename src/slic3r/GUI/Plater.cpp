@@ -14635,7 +14635,11 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
 void Plater::set_global_filament_map_mode(FilamentMapMode mode)
 {
     auto& project_config = wxGetApp().preset_bundle->project_config;
-    project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value = mode;
+    auto mode_ptr = project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+    FilamentMapMode old_mode = mode_ptr->value;
+    if(mode != old_mode)
+        on_filament_map_mode_change();
+    mode_ptr->value = mode;
 }
 
 void Plater::set_global_filament_map(const std::vector<int>& filament_map)
@@ -15456,44 +15460,38 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
+
     auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
     auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
     if (plate_filament_maps.size() != filament_colors.size())  // refine it later, save filament map to app config
         plate_filament_maps.resize(filament_colors.size(), 1);
 
-    FilamentMapMode display_mode = force_manual ? FilamentMapMode::fmmManual : plate_filament_map_mode;
-
     FilamentMapDialog filament_dlg(this,
         filament_colors,
         plate_filament_maps,
         curr_plate->get_extruders(true),
-        display_mode,
+        plate_filament_map_mode,
         this->get_machine_sync_status(),
         true
     );
 
     if (filament_dlg.ShowModal() == wxID_OK) {
         std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
-        std::vector<int> old_filament_maps = curr_plate->get_filament_maps();
+        std::vector<int> old_filament_maps = curr_plate->get_real_filament_maps(project_config);
 
-        FilamentMapMode  old_map_mode = plate_filament_map_mode;
+        FilamentMapMode  old_map_mode = curr_plate->get_filament_map_mode();
         FilamentMapMode  new_map_mode = filament_dlg.get_mode();
+
+        if (new_map_mode != old_map_mode) {
+            curr_plate->set_filament_map_mode(new_map_mode);
+        }
+
+        if (new_map_mode == fmmManual && old_filament_maps != new_filament_maps){
+            curr_plate->set_filament_maps(new_filament_maps);
+        }
 
         bool need_invalidate = (old_map_mode != new_map_mode ||
                                 old_filament_maps != new_filament_maps);
-
-        if (old_map_mode != new_map_mode) {
-            curr_plate->set_filament_map_mode(new_map_mode);
-            curr_plate->clear_filament_map();
-        }
-
-        if (old_filament_maps != new_filament_maps && new_map_mode==fmmManual)
-            curr_plate->set_filament_maps(new_filament_maps);
-
-        if (new_map_mode == fmmDefault) {
-            curr_plate->clear_filament_map();
-            curr_plate->clear_filament_map_mode();
-        }
 
         if (need_invalidate) {
             if (need_slice) {
