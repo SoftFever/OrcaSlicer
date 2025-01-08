@@ -471,6 +471,7 @@ bool ObjColorPanel::is_ok() {
 
 void ObjColorPanel::send_new_filament_to_ui()
 {
+    update_new_add_final_colors();
     if (m_is_add_filament) {
         for (auto c : m_new_add_final_colors) {
             /*auto evt = new ColorEvent(EVT_ADD_CUSTOM_FILAMENT, c);
