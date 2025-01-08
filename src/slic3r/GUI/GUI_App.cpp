@@ -5597,7 +5597,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
         if (remember_choice)
             act_buttons |= ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        bool no_need_change = dlg.getUpdateItemCount() == 0 ? true : false;
+        if (!no_need_change && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         if (dlg.save_preset())  // save selected changes
