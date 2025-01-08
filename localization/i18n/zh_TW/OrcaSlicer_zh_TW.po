@@ -1563,7 +1563,7 @@ msgstr "Orca Slicer 版本過舊，需要更新到最新版本才能正常使用
 msgid "Privacy Policy Update"
 msgstr "隱私協議更新"
 
-mmsgid ""
+msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr "雲端儲存的用戶預設數量已超過上限，新的用戶預設僅能在本地使用。"
