@@ -1023,13 +1023,6 @@ void GUI_App::post_init()
             mainframe->refresh_plugin_tips();
         });
 
-    // update hms info
-    CallAfter([this] {
-            if (hms_query)
-                hms_query->check_hms_info();
-        });
-
-
     DeviceManager::load_filaments_blacklist_config();
 
     // remove old log files over LOG_FILES_MAX_NUM
@@ -3514,9 +3507,8 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     obj_list()->set_min_height();
     update_mode();
 
-    //check hms info for different language
-    if (hms_query)
-        hms_query->check_hms_info();
+    // clear previous hms query, so that the hms info can use different language
+    if (hms_query) hms_query->clear_hms_info();
 
     //BBS: trigger restore project logic here, and skip confirm
     plater_->trigger_restore_project(1);

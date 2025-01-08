@@ -16,9 +16,10 @@ namespace GUI {
 
 wxDEFINE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
 
-HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
+HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, HMSItem& item)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL) 
     , m_hms_item(item)
+    , dev_id(dev_id)
     , long_error_code(item.get_long_error_code())
     , m_url(get_hms_wiki_url(item.get_long_error_code()))
 {
@@ -40,7 +41,7 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
     m_hms_content->SetForegroundColour(*wxBLACK);
     m_hms_content->SetSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetMinSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
-    m_hms_content->SetLabelText(_L(wxGetApp().get_hms_query()->query_hms_msg(m_hms_item.get_long_error_code())));
+    m_hms_content->SetLabelText(wxGetApp().get_hms_query()->query_hms_msg(dev_id, m_hms_item.get_long_error_code()));
     m_hms_content->Wrap(HMS_NOTIFY_ITEM_TEXT_SIZE.GetX());
 
     m_bitmap_arrow = new wxStaticBitmap(m_panel_hms, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
@@ -185,9 +186,9 @@ HMSPanel::~HMSPanel() {
     ;
 }
 
-void HMSPanel::append_hms_panel(HMSItem& item) {
-    m_notify_item = new HMSNotifyItem(m_scrolledWindow, item);
-    wxString msg = wxGetApp().get_hms_query()->query_hms_msg(item.get_long_error_code());
+void HMSPanel::append_hms_panel(const std::string& dev_id, HMSItem& item) {
+    m_notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
+    wxString msg = wxGetApp().get_hms_query()->query_hms_msg(dev_id, item.get_long_error_code());
     if (!msg.empty())
         m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
     else {
@@ -221,7 +222,7 @@ void HMSPanel::update(MachineObject *obj)
                     temp_hms_list[key] = item;
                 }
 
-                append_hms_panel(item);
+                append_hms_panel(obj->dev_id, item);
             }
         }
         

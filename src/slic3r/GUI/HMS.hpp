@@ -14,6 +14,9 @@
 #include <mutex>
 
 namespace Slic3r {
+
+class MachineObject;
+
 namespace GUI {
 
 #define HMS_INFO_FILE	"hms.json"
@@ -23,30 +26,43 @@ namespace GUI {
 class HMSQuery {
 
 protected:
-	json m_hms_info_json;
-	json m_hms_action_json;
+    std::unordered_map<string, json> m_hms_info_jsons;  // key-> device id type, the first three digits of SN number
+    std::unordered_map<string, json> m_hms_action_jsons;// key-> device id type
     mutable std::mutex m_hms_mutex;
 
-    int download_hms_related(const std::string& hms_type, const std::string& dev_type, json *receive_json);
-    int load_from_local(const std::string& hms_type, const std::string& dev_type, json * receive_json, std::string& version_info);
-	int save_to_local(std::string lang, std::string hms_type, std::string dev_type, json save_json);
-    std::string get_hms_file(std::string hms_type, std::string lang = std::string("en"), std::string dev_type = "");
-	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = std::string("en")) const;
-    bool _query_error_msg(wxString &error_msg, std::string long_error_code, std::string lang_code = std::string("en"));
-    wxString _query_error_url_action(std::string long_error_code, std::string dev_id, std::vector<int>& button_action);
+public:
+    HMSQuery() { }
+    ~HMSQuery() { clear_hms_info(); };
 
 public:
-	HMSQuery() {}
-    int  check_hms_info(std::string dev_type = "00M");
-    wxString           query_hms_msg(std::string long_error_code) const;
-    bool query_print_error_msg(int print_error, wxString &error_msg);
-    wxString query_print_error_url_action(int print_error, std::string dev_id, std::vector<int>& button_action);
-	static std::string hms_language_code();
-	static std::string build_query_params(std::string& lang);
-    bool check_local_file(std::string dev_type);
+    // clear hms
+    void      clear_hms_info();
+
+    // query
+    wxString  query_hms_msg(const MachineObject* obj, const std::string& long_error_code);
+    wxString  query_hms_msg(const std::string& dev_id, const std::string& long_error_code);
+    wxString  query_print_error_msg(const MachineObject* obj, int print_error);
+    wxString  query_print_error_msg(const std::string& dev_id, int print_error);
+    wxString  query_print_error_url_action(const MachineObject* obj, int print_error, std::vector<int>& button_action);
+
+public:
+    static std::string hms_language_code();
+    static std::string build_query_params(std::string& lang);
 
 private:
+    // load hms
+    void init_hms_info(const std::string& dev_type_id);
     void copy_from_data_dir_to_local();
+    int  download_hms_related(const std::string& hms_type, const std::string& dev_id_type, json* receive_json);
+    int  load_from_local(const std::string& hms_type, const std::string& dev_id_type, json* receive_json, std::string& version_info);
+    int  save_to_local(std::string lang, std::string hms_type, std::string dev_id_type, json save_json);
+    std::string get_hms_file(std::string hms_type, std::string lang = std::string("en"), std::string dev_id_type = "");
+
+    // internal query
+    string    get_dev_id_type(const MachineObject* obj) const;
+    wxString _query_hms_msg(const string& dev_id_type, const string& long_error_code, const string& lang_code = std::string("en"));
+    wxString _query_error_msg(const string& dev_id_type, const std::string& long_error_code, const std::string& lang_code = std::string("en"));
+    wxString _query_error_url_action(const string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action);
 };
 
 int get_hms_info_version(std::string &version);
