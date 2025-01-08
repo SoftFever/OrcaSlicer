@@ -230,8 +230,8 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
 static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btPC, "bed_cool"},
     {BedType::btEP, "bed_engineering"},
-    {BedType::btPEI, "bed_pei"},
-    {BedType::btPTE, "bed_high_templ"},
+    {BedType::btPEI, "bed_high_templ"},
+    {BedType::btPTE, "bed_pei"},
     {BedType::btSuperTack, "bed_cool_supertack"}
 };
 
