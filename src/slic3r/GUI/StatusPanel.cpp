@@ -122,8 +122,8 @@ static wxImage fail_image;
 #define MISC_BUTTON_1FAN_SIZE (wxSize(FromDIP(132), FromDIP(51)))
 #define MISC_BUTTON_2FAN_SIZE (wxSize(FromDIP(66), FromDIP(51)))
 #define MISC_BUTTON_3FAN_SIZE (wxSize(FromDIP(44), FromDIP(51)))
-#define TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE (wxSize(FromDIP(122), FromDIP(52)))
-#define TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE (wxSize(FromDIP(122), FromDIP(48)))
+#define TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON (wxSize(FromDIP(125), FromDIP(52)))
+#define TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON (wxSize(FromDIP(145), FromDIP(48)))
 #define AXIS_MIN_SIZE (wxSize(FromDIP(258), FromDIP(258)))
 #define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(76)))
 
@@ -1431,7 +1431,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     wxWindowID nozzle_id = wxWindow::NewControlId();
     m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"),
                                       wxString("monitor_nozzle_temp_active"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
+    m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
     m_tempCtrl_nozzle->SetMinTemp(20);
     m_tempCtrl_nozzle->SetMaxTemp(300);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
@@ -1446,7 +1446,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     sizer->Add(m_tempCtrl_nozzle, 0, wxEXPAND | wxALL, 1);
     m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-    m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
+    m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
     m_tempCtrl_nozzle_deputy->SetMinTemp(20);
     m_tempCtrl_nozzle_deputy->SetMaxTemp(300);
     m_tempCtrl_nozzle_deputy->SetBorderWidth(FromDIP(2));
@@ -1467,7 +1467,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
         wxString("monitor_bed_temp_active"), wxDefaultPosition,wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
-    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
+    m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
     m_tempCtrl_bed->SetBorderWidth(FromDIP(2));
     m_tempCtrl_bed->SetTextColor(tempinput_text_colour);
     m_tempCtrl_bed->SetBorderColor(tempinput_border_colour);
@@ -1483,7 +1483,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_chamber->SetReadOnly(true);
     m_tempCtrl_chamber->SetMinTemp(default_champer_temp_min);
     m_tempCtrl_chamber->SetMaxTemp(default_champer_temp_max);
-    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE);
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
     m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
     m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
     m_tempCtrl_chamber->SetBorderColor(tempinput_border_colour);
@@ -2892,11 +2892,18 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_bed->SetIconNormal();
     }
 
+    bool to_update_layout = false;
     int nozzle_num = obj->m_extder_data.total_extder_count;
     if (nozzle_num == 1 && obj->m_extder_data.extders.size() > MAIN_NOZZLE_ID)
     {
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_NORMAL_TYPE);
         m_tempCtrl_nozzle->SetCurrTemp((int)obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp);
+        if (m_tempCtrl_nozzle->GetMinSize() != TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON)
+        {
+            to_update_layout = true;
+            m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
+        }
+
         m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_NORMAL_TYPE);
         m_tempCtrl_nozzle_deputy->SetLabel(TEMP_BLANK_STR);
         m_tempCtrl_nozzle_deputy->Hide();
@@ -2906,6 +2913,11 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_MAIN_NOZZLE_TYPE);
         m_tempCtrl_nozzle->Show();
         m_tempCtrl_nozzle->SetCurrTemp((int)obj->m_extder_data.extders[MAIN_NOZZLE_ID].temp);
+        if (m_tempCtrl_nozzle->GetMinSize() != TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON)
+        {
+            to_update_layout = true;
+            m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
+        }
 
         m_tempCtrl_nozzle_deputy->SetCurrType(TEMP_OF_DEPUTY_NOZZLE_TYPE);
         m_tempCtrl_nozzle_deputy->Show();
@@ -2958,6 +2970,11 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
     else {
         m_tempCtrl_chamber->SetIconNormal();
+    }
+
+    if (to_update_layout)
+    {
+        this->Layout();
     }
 }
 
@@ -5088,8 +5105,8 @@ void StatusPanel::msw_rescale()
 
 
     m_bpButton_xy->Rescale();
-    auto size = TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE;
-    if (obj && obj->m_extder_data.total_extder_count >= 2) size = TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE;
+    auto size = TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON;
+    if (obj && obj->m_extder_data.total_extder_count >= 2) size = TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON;
     m_tempCtrl_nozzle->SetMinSize(size);
     m_tempCtrl_nozzle->Rescale();
     m_tempCtrl_nozzle_deputy->SetMinSize(size);
