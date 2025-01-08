@@ -414,7 +414,7 @@ void MachineInfoPanel::init_bitmaps()
         m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
     }
 
-    m_img_air_pump       = ScalableBitmap(this, "printer_thumbnail", 160);/*TODO: replace the bitmap*/
+    m_img_air_pump       = ScalableBitmap(this, "air_pump", 160);
     m_img_laser          = ScalableBitmap(this, "laser", 160);
     m_img_cutting        = ScalableBitmap(this, "cut", 160);
 
@@ -446,7 +446,7 @@ MachineInfoPanel::~MachineInfoPanel()
         delete confirm_dlg;
 }
 
-void MachineInfoPanel::Update_printer_img(MachineObject* obj)
+void MachineInfoPanel::update_printer_imgs(MachineObject* obj)
 {
     if (!obj) {return;}
     auto img = obj->get_printer_thumbnail_img_str();
@@ -458,6 +458,7 @@ void MachineInfoPanel::Update_printer_img(MachineObject* obj)
         m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
 
     }
+
     m_img_printer = ScalableBitmap(this, img, 160);
     m_printer_img->SetBitmap(m_img_printer.bmp());
     m_printer_img->Refresh();
@@ -469,7 +470,7 @@ void MachineInfoPanel::Update_printer_img(MachineObject* obj)
 void MachineInfoPanel::update(MachineObject* obj)
 {
     if (m_obj != obj)
-        Update_printer_img(obj);
+        update_printer_imgs(obj);
 
     m_obj = obj;
     if (obj) {
@@ -1147,7 +1148,7 @@ void MachineInfoPanel::show_laszer(bool show)
 void MachineInfoPanel::on_sys_color_changed()
 {
     if (m_obj) {
-        Update_printer_img(m_obj);
+        update_printer_imgs(m_obj);
     }
 }
 

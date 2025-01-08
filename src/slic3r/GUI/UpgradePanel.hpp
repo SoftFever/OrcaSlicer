@@ -163,7 +163,7 @@ public:
     ~MachineInfoPanel();
 
     void on_sys_color_changed();
-    void Update_printer_img(MachineObject* obj);
+    void update_printer_imgs(MachineObject* obj);
     void init_bitmaps();
     void rescale_bitmaps();
 
