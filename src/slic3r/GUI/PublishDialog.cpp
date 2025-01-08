@@ -24,7 +24,7 @@ static wxString PUBLISH_STEP_STRING[STEP_COUNT] = {
     _L("Jump to model publish web page")
 };
 
-static wxString NOTE_STRING = _L("Note: The preparation may takes several minutes. Please be patiant.");
+static wxString NOTE_STRING = _L("Note: The preparation may takes several minutes. Please be patient.");
 
 PublishDialog::PublishDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Publish"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)

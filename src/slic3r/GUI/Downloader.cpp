@@ -145,9 +145,10 @@ void Downloader::start_download(const std::string& full_url)
     // Orca: Replace PS workaround for "mysterious slash" with a more dynamic approach
     // Windows seems to have fixed the issue and this provides backwards compatability for those it still affects
 	boost::regex re(R"(^(orcaslicer|prusaslicer|bambustudio|cura):\/\/open[\/]?\?file=)", boost::regbase::icase);
+	boost::regex re2(R"(^(bambustudioopen):\/\/)", boost::regex::icase);
     boost::smatch results;
 
-	if (!boost::regex_search(full_url, results, re)) {
+	if (!boost::regex_search(full_url, results, re) && !boost::regex_search(full_url, results, re2)) {
 		BOOST_LOG_TRIVIAL(error) << "Could not start download due to wrong URL: " << full_url;
         // Orca: show error
         NotificationManager* ntf_mngr = wxGetApp().notification_manager();
@@ -158,7 +159,7 @@ void Downloader::start_download(const std::string& full_url)
     size_t id = get_next_id();
     std::string escaped_url = FileGet::escape_url(full_url.substr(results.length()));
     if (is_bambustudio_open(full_url) || (is_orca_open(full_url) && is_makerworld_link(full_url)))
-        plater->request_model_download(escaped_url);
+        plater->request_model_download(wxString::FromUTF8(escaped_url));
     else {
         std::string text(escaped_url);
         m_downloads.emplace_back(std::make_unique<Download>(id, std::move(escaped_url), this, m_dest_folder));

@@ -312,6 +312,8 @@ public:
         {
         }
     };
+public:
+    int getUpdateItemCount() { return m_presetitems.size(); }  
 
 private:
     std::vector<PresetItem> m_presetitems;
@@ -459,7 +461,7 @@ public:
     std::string get_left_preset_name(Preset::Type type);
     std::string get_right_preset_name(Preset::Type type);
 
-    std::vector<std::string> get_selected_options(Preset::Type type) const { return std::move(m_tree->options(type, true)); }
+    std::vector<std::string> get_selected_options(Preset::Type type) const { return m_tree->options(type, true); }
 
     std::array<Preset::Type, 3>         types_list() const;
 
