@@ -3823,10 +3823,16 @@ LayerResult GCode::process_layer(
         return next_extruder;
     };
     
-    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic) {
-        for (const auto &layer_to_print : layers) {
-            m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
-                                                                layer_to_print.object_layer);
+    for (const auto &layer_to_print : layers) {
+        if (layer_to_print.object_layer) {
+            const auto& regions = layer_to_print.object_layer->regions();
+            const bool  enable_overhang_speed = std::any_of(regions.begin(), regions.end(), [](const LayerRegion* r) {
+                return r->has_extrusions() && r->region().config().enable_overhang_speed && !r->region().config().overhang_speed_classic;
+            });
+            if (enable_overhang_speed) {
+                m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
+                                                                    layer_to_print.object_layer);
+            }
         }
     }
 
