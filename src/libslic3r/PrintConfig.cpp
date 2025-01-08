@@ -3082,7 +3082,17 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("ironing_inset", coFloat);
+    def->label    = L("Ironing inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The distance to keep from the edges. A value of 0 sets this to half of the nozzle diameter");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
