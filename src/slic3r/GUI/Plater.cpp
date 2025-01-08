@@ -3268,7 +3268,7 @@ struct Plater::priv
     GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
-    bool check_ams_status_impl();  // Check whether the printer and ams status are consistent, for grouping algorithm
+    bool check_ams_status_impl(bool is_slice_all);  // Check whether the printer and ams status are consistent, for grouping algorithm
     bool get_machine_sync_status(); // check whether the printer is linked and the printer type is same as selected profile
 
     // BBS
@@ -4291,7 +4291,7 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         set_current_panel(view3D, no_slice);
     }
     else if (name == "Preview") {
-        if (!q->check_ams_status())
+        if (!q->check_ams_status(false))
             return;
 
         BOOST_LOG_TRIVIAL(info) << "select preview";
@@ -8134,7 +8134,7 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        if (!q->check_ams_status())
+        if (!q->check_ams_status(false))
             return;
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
@@ -8969,7 +8969,7 @@ void Plater::priv::reset_canvas_volumes()
         preview->get_canvas3d()->reset_volumes();
 }
 
-bool Plater::priv::check_ams_status_impl()
+bool Plater::priv::check_ams_status_impl(bool is_slice_all)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -9047,7 +9047,10 @@ bool Plater::priv::check_ams_status_impl()
             dlg.Fit();
             if (dlg.ShowModal() == wxID_YES) {
                 if (GUI::wxGetApp().sidebar().sync_extruder_list()) {
-                    wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                    if (is_slice_all)
+                        wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+                    else
+                        wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
                     wxGetApp().mainframe->m_tabpanel->SetSelection(MainFrame::TabPosition::tpPreview);
                 }
                 return false;
@@ -15928,10 +15931,10 @@ void Plater::update_objects_position_when_select_preset(const std::function<void
     //p->update_objects_position_when_select_preset(select_prest); // TODO: Orca hack
 }
 
-bool Plater::check_ams_status()
+bool Plater::check_ams_status(bool is_slice_all)
 {
     if (m_check_status == 0) {
-        if (!p->check_ams_status_impl()) {
+        if (!p->check_ams_status_impl(is_slice_all)) {
             m_check_status = 0;
             return false;
         }

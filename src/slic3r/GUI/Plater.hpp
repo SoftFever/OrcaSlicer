@@ -651,7 +651,7 @@ public:
     void post_process_string_object_exception(StringObjectException &err);
     void update_objects_position_when_select_preset(const std::function<void()> &select_prest);
 
-    bool check_ams_status();
+    bool check_ams_status(bool is_slice_all);
     // only check sync status and printer model id
     bool get_machine_sync_status();
 
