@@ -156,7 +156,7 @@ msgid "Height range"
 msgstr "高度範圍"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
@@ -294,7 +294,7 @@ msgid "Dowel"
 msgstr "銷釘"
 
 msgid "Snap"
-msgstr ""
+msgstr "卡扣"
 
 msgid "Prism"
 msgstr "錐體"
@@ -336,7 +336,7 @@ msgid "Depth"
 msgstr "深度"
 
 msgid "Groove"
-msgstr "溝槽"
+msgstr "凹槽"
 
 msgid "Width"
 msgstr "寬度"
@@ -364,7 +364,10 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
-msgstr "點擊翻轉切割面拖曳移動切割面右鍵點擊零件切換為另一側"
+msgstr ""
+"點擊翻轉切割平面\n"
+"拖曳移動切割平面\n"
+"右鍵點擊部件以將其分配到對側"
 
 msgid "Move cut plane"
 msgstr "移動切割面"
@@ -418,16 +421,16 @@ msgid "Remove connectors"
 msgstr "刪除所有連接件"
 
 msgid "Bulge"
-msgstr ""
+msgstr "凸起"
 
 msgid "Bulge proportion related to radius"
-msgstr ""
+msgstr "與半徑相關的凸起比例"
 
 msgid "Space"
 msgstr "空格鍵"
 
 msgid "Space proportion related to radius"
-msgstr ""
+msgstr "與半徑相關的空間佔比"
 
 msgid "Confirm connectors"
 msgstr "確認"
@@ -442,7 +445,7 @@ msgid "Flip cut plane"
 msgstr "翻轉切割面"
 
 msgid "Groove change"
-msgstr ""
+msgstr "凹槽調整"
 
 msgid "Reset"
 msgstr "重設"
@@ -499,12 +502,14 @@ msgstr "偵測到無效連接件"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
+msgstr[0] "有 %1$d 個連接件超出切割範圍"
+msgstr[1] "有 %1$d 個連接件超出切割範圍"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] "%1$d連接件在物件外"
+msgstr[0] "有 %1$d 個連接件不在物體範圍內"
+msgstr[1] "有 %1$d 個連接件不在物體範圍內"
 
 msgid "Some connectors are overlapped"
 msgstr "存在連接件相互重疊"
@@ -516,7 +521,7 @@ msgid "Cut plane is placed out of object"
 msgstr "切割面在物件外"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "帶有凹槽的切割平面無效"
 
 msgid "Connector"
 msgstr "連接件"
@@ -537,7 +542,7 @@ msgid "Delete connector"
 msgstr "刪除連接件"
 
 msgid "Mesh name"
-msgstr "Mesh名"
+msgstr "Mesh 名稱"
 
 msgid "Detail level"
 msgstr "細節等級"
@@ -609,26 +614,26 @@ msgstr "筆刷形狀"
 
 #, fuzzy
 msgid "Enforce seam"
-msgstr "新增Z縫產生區"
+msgstr "新增 Z 縫產生區"
 
 #, fuzzy
 msgid "Block seam"
-msgstr "不產生Z縫區"
+msgstr "不產生 Z 縫區"
 
 msgid "Seam painting"
-msgstr "Z縫筆刷"
+msgstr "Z 縫筆刷"
 
 msgid "Remove selection"
 msgstr "移除繪製"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "進入 Z 縫繪製模式"
 
 msgid "Leaving Seam painting"
-msgstr ""
+msgstr "退出 Z 縫繪製模式"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "Z 縫筆刷編輯"
 
 #. TRN - Input label. Be short as possible
 #. Select look of letter shape
@@ -682,13 +687,13 @@ msgid "Embossed text"
 msgstr "浮雕文字"
 
 msgid "Enter emboss gizmo"
-msgstr ""
+msgstr "進入浮雕工具"
 
 msgid "Leave emboss gizmo"
-msgstr ""
+msgstr "退出浮雕工具"
 
 msgid "Embossing actions"
-msgstr ""
+msgstr "浮雕操作"
 
 msgid "Emboss"
 msgstr "浮雕"
@@ -728,27 +733,26 @@ msgstr "浮雕文字不能僅包含空白字元。"
 msgid "Text contains character glyph (represented by '?') unknown by font."
 msgstr "文字包含字型無法識別的字形（以 '?' 表示）。"
 
-
 msgid "Text input doesn't show font skew."
-msgstr ""
+msgstr "文字輸入未呈現字體的傾斜效果。"
 
 msgid "Text input doesn't show font boldness."
-msgstr ""
+msgstr "文字輸入呈現示字體的粗體效果"
 
 msgid "Text input doesn't show gap between lines."
-msgstr ""
+msgstr "文字輸入未呈現行距效果"
 
 msgid "Too tall, diminished font height inside text input."
-msgstr ""
+msgstr "過高，已縮小文字輸入框內的字體高度。"
 
 msgid "Too small, enlarged font height inside text input."
-msgstr ""
+msgstr "太小，已增大文字輸入框內的字體高度"
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr ""
+msgstr "文字未呈現當前的水平對齊狀態。"
 
 msgid "Revert font changes."
-msgstr ""
+msgstr "還原字體設定變更。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
@@ -786,7 +790,6 @@ msgstr "更改文字類型"
 msgid "Rename style(%1%) for embossing text"
 msgstr "重新命名浮雕文字樣式 (%1%)"
 
-
 msgid "Name can't be empty."
 msgstr "名稱不可空白"
 
@@ -797,68 +800,68 @@ msgid "OK"
 msgstr "確認"
 
 msgid "Rename style"
-msgstr ""
+msgstr "更改樣式名稱"
 
 msgid "Rename current style."
-msgstr ""
+msgstr "更改目前樣式名稱。"
 
 msgid "Can't rename temporary style."
-msgstr ""
+msgstr "無法更改臨時樣式名稱。"
 
 msgid "First Add style to list."
-msgstr ""
+msgstr "首先將樣式添加到列表中。"
 
 #, boost-format
 msgid "Save %1% style"
-msgstr ""
+msgstr "儲存 %1% 的樣式。"
 
 msgid "No changes to save."
-msgstr ""
+msgstr "無需保存，因為沒有變更。"
 
 msgid "New name of style"
-msgstr ""
+msgstr "新樣式名稱。"
 
 msgid "Save as new style"
-msgstr ""
+msgstr "儲存為新的樣式。"
 
 msgid "Only valid font can be added to style."
-msgstr ""
+msgstr "只有有效字體才能加入樣式。"
 
 msgid "Add style to my list."
-msgstr ""
+msgstr "把樣式加入我的列表。"
 
 msgid "Save as new style."
-msgstr ""
+msgstr "儲存為全新的樣式。"
 
 msgid "Remove style"
-msgstr ""
+msgstr "刪除樣式。"
 
 msgid "Can't remove the last existing style."
-msgstr ""
+msgstr "無法刪除僅存的樣式。"
 
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
-msgstr ""
+msgstr "您確定要永久移除「%1%」樣式嗎？"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
-msgstr ""
+msgstr "刪除「%1%」樣式。"
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
-msgstr ""
+msgstr "無法刪除「%1%」，因為它是僅存的樣式。"
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr ""
+msgstr "無法刪除臨時樣式「%1%」。"
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr ""
+msgstr "已修改樣式「%1%」"
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr ""
+msgstr "當前樣式為「%1%」"
 
 #, boost-format
 msgid ""
@@ -866,13 +869,16 @@ msgid ""
 "\n"
 "Would you like to continue anyway?"
 msgstr ""
+"將樣式更改為「%1%」會捨棄當前的樣式修改。\n"
+"\n"
+"您確定要繼續嗎？"
 
 msgid "Not valid style."
-msgstr ""
+msgstr "無效的樣式。"
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
-msgstr ""
+msgstr "樣式「%1%」無法使用，將從列表中移除。"
 
 msgid "Unset italic"
 msgstr "取消斜體"
@@ -900,16 +906,16 @@ msgstr ""
 "請選擇其他字型。"
 
 msgid "Revert using of model surface."
-msgstr ""
+msgstr "還原模型表面的應用設定。"
 
 msgid "Revert Transformation per glyph."
-msgstr ""
+msgstr "重置每個字形的變更設定。"
 
 msgid "Set global orientation for whole text."
-msgstr ""
+msgstr "設定整段文字的全域座標。"
 
 msgid "Set position and orientation per glyph."
-msgstr ""
+msgstr "設定每個字形的位置和方向。"
 
 msgctxt "Alignment"
 msgid "Left"
@@ -958,13 +964,13 @@ msgid "Undo boldness"
 msgstr "恢復粗體"
 
 msgid "Tiny / Wide glyphs"
-msgstr ""
+msgstr "細小 / 寬大字形」"
 
 msgid "Undo letter's skew"
 msgstr "恢復文字變形"
 
 msgid "Italic strength ratio"
-msgstr ""
+msgstr "斜體效果的強度比例。"
 
 msgid "Undo translation"
 msgstr "恢復移動"
@@ -1002,7 +1008,7 @@ msgstr ""
 "指定字型才能啟用文字編輯。"
 
 msgid "No symbol"
-msgstr ""
+msgstr "沒有任何字符。"
 
 msgid "Loading"
 msgstr "載入中"
@@ -1042,12 +1048,12 @@ msgstr "行間距"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr ""
+msgstr "粗細"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr ""
+msgstr "傾斜比率"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1060,33 +1066,33 @@ msgstr "從面"
 #. TRN - Input label. Be short as possible
 #. Keep vector from bottom to top of text aligned with printer Y axis
 msgid "Keep up"
-msgstr ""
+msgstr "保持向上"
 
 #. TRN - Input label. Be short as possible.
 #. Some Font file contain multiple fonts inside and
 #. this is numerical selector of font inside font collections
 msgid "Collection"
-msgstr ""
+msgstr "字集"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr "SVG旋轉"
+msgstr "SVG 旋轉"
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
-msgstr "SVG移動"
+msgstr "SVG 移動"
 
 msgid "Enter SVG gizmo"
-msgstr ""
+msgstr "進入 SVG 工具"
 
 msgid "Leave SVG gizmo"
-msgstr ""
+msgstr "退出 SVG 工具"
 
 msgid "SVG actions"
-msgstr ""
+msgstr "SVG 操作"
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1106,13 +1112,13 @@ msgid "Radial gradient"
 msgstr "徑向漸層"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "打開填充路徑"
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "未定義的筆劃類型"
 
 msgid "Path can't be healed from self-intersection and multiple points."
-msgstr ""
+msgstr "無法修復具有自交錯和多點的路徑"
 
 msgid ""
 "Final shape contains self-intersection or multiple points with same "
@@ -1126,15 +1132,15 @@ msgstr "形狀被標記為隱形 (%1%)。"
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "形狀 (%1%) 的填充包含不支援的內容：%2%"
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr ""
+msgstr "形狀 (%1%) 的筆劃過細（最小寬度為 %2% 毫米）"
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "形狀 (%1%) 的筆劃包含不支援的內容：%2%。"
 
 msgid "Face the camera"
 msgstr "面向相機"
@@ -1163,14 +1169,16 @@ msgid ""
 "Do NOT save local path to 3MF file.\n"
 "Also disables 'reload from disk' option."
 msgstr ""
+"不要將本地路徑保存到 3MF 文件中。\n"
+"同時禁用「從磁碟重新載入」選項。"
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake"
-msgstr ""
+msgstr "固化"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr ""
+msgstr "固化至模型中作為不可編輯部分"
 
 msgid "Save as"
 msgstr "儲存為"
@@ -1182,18 +1190,18 @@ msgid "Save as '.svg' file"
 msgstr "儲存為 '.svg' 檔案"
 
 msgid "Size in emboss direction."
-msgstr ""
+msgstr "浮雕方向的尺寸"
 
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
+msgstr "縮放同時會改變曲線取樣數量（%1%）。"
 
 msgid "Width of SVG."
-msgstr "SVG寬"
+msgstr "SVG 寬"
 
 msgid "Height of SVG."
-msgstr "SVG高"
+msgstr "SVG 高"
 
 msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr "鎖定/解鎖 SVG 的長寬比。"
@@ -1211,7 +1219,7 @@ msgid "Reset rotation"
 msgstr "重置旋轉"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
-msgstr ""
+msgstr "拖曳於表面時，鎖定/解鎖旋轉角度"
 
 msgid "Mirror vertically"
 msgstr "垂直鏡像"
@@ -1280,13 +1288,13 @@ msgid "Delete"
 msgstr "刪除"
 
 msgid "Restart selection"
-msgstr ""
+msgstr "重新開始選取。"
 
 msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "在退出前取消功能。"
 
 msgid "Measure"
 msgstr "測量"
@@ -1296,14 +1304,14 @@ msgid ""
 msgstr ""
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "請選擇至少一個物件。"
 
 msgid "Edit to scale"
-msgstr ""
+msgstr "編輯比例"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "全部縮放"
 
 msgid "None"
 msgstr "無"
@@ -1318,17 +1326,19 @@ msgid "Selection"
 msgstr "所選項目"
 
 msgid " (Moving)"
-msgstr ""
+msgstr " (移動)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
+"選擇物件上的兩個面，使物件組裝在一起。"
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
+"選擇物件上的兩個點或圓，指定它們之間的距離。"
 
 msgid "Face"
 msgstr ""
@@ -13755,15 +13765,15 @@ msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "當層數 (第一層為一)"
 
 msgid "Layer z"
-msgstr "層z高"
+msgstr "層 z 高"
 
 msgid ""
 "Height of the current layer above the print bed, measured to the top of the "
 "layer."
-msgstr ""
+msgstr "目前這一層距離熱床的高度，從層頂開始計算。"
 
 msgid "Maximal layer z"
-msgstr ""
+msgstr "層的最大 Z 軸高度。"
 
 msgid "Height of the last layer above the print bed."
 msgstr ""
@@ -15996,7 +16006,7 @@ msgstr ""
 "你知道當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以降低翹曲的機率"
 "嗎？"
 
-#~ msgid "Text contains character glyph (represented by '?'）unknown by font."
+#~ msgid "Text contains character glyph (represented by '?') unknown by font."
 #~ msgstr "文字包含字型無法識別的字形（以 '?' 表示）。"
 
 #~ msgid "ShiftLeft mouse button"
@@ -16015,20 +16025,20 @@ msgstr ""
 #~ msgstr "）來定位目前工具頭位置，以防止移動時超出邊界造成設備損壞"
 
 #~ msgid ""
-#~ "Diameter of the print bed. It is assumed that origin (0,0）is located in "
+#~ "Diameter of the print bed. It is assumed that origin (0,0) is located in "
 #~ "the center."
 #~ msgstr "熱床直徑。假定原點（0,0）位於中心。"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
 #~ "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-#~ "TPU）is not allowed to be loaded."
+#~ "TPU) is not allowed to be loaded."
 #~ msgstr ""
 #~ "目前設備內部溫度超過 45℃。為避免阻塞，不允許進料低溫線材（PLA / PETG / "
 #~ "TPU）。"
 
 #~ msgid ""
-#~ "Low temperature filament(PLA/PETG/TPU）is loaded in the extruder.In order "
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
 #~ "to avoid extruder clogging,it is not allowed to set the chamber "
 #~ "temperature above 45℃."
 #~ msgstr ""
@@ -16037,24 +16047,24 @@ msgstr ""
 
 #, fuzzy, c-format, boost-format
 #~ msgid ""
-#~ "Successfully unmounted. The device %s(%s）can now be safely removed from "
+#~ "Successfully unmounted. The device %s(%s) can now be safely removed from "
 #~ "the computer."
 #~ msgstr "卸載成功。設備 %s（%s）現在可能安全地從電腦移除。"
 
 #, c-format, boost-format
-#~ msgid "Ejecting of device %s(%s）has failed."
+#~ msgid "Ejecting of device %s(%s) has failed."
 #~ msgstr "退出設備 %s（%s）失敗。"
 
 #~ msgid ""
 #~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
-#~ "model on Orca Slicer(windows）or CAD softwares."
+#~ "model on Orca Slicer(windows) or CAD softwares."
 #~ msgstr ""
 #~ "\"修復模型\"功能目前僅適用於 Windows 系統。請在 Windows 版本的 Orca "
 #~ "slicer 或 CAD 軟體上修復模型。"
 
 #, c-format, boost-format
 #~ msgid ""
-#~ "The selected printer (%s）is incompatible with the chosen printer profile "
+#~ "The selected printer (%s) is incompatible with the chosen printer profile "
 #~ "in the slicer (%s)."
 #~ msgstr "以選的機臺(%s)與切片軟體內所選的機臺預設(%s)不相容"
 
@@ -16064,17 +16074,17 @@ msgstr ""
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "強化抬Z策略"
 
-#~ msgid "Flushing volume (mm³）for each filament pair."
+#~ msgid "Flushing volume (mm³) for each filament pair."
 #~ msgstr "在兩個線材間切換所需的廢料體積（mm³）"
 
 #, c-format, boost-format
-#~ msgid "A new Network plug-in(%s）available, Do you want to install it?"
+#~ msgid "A new Network plug-in(%s) available, Do you want to install it?"
 #~ msgstr "新版的網路插件（ %s）可用，是否要安裝？"
 
 #~ msgid ""
 #~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
 #~ "detour distance is large than this value. Detour length could be "
-#~ "specified either as an absolute value or as percentage (for example 50%）"
+#~ "specified either as an absolute value or as percentage (for example 50%) "
 #~ "of a direct travel path. Zero to disable"
 #~ msgstr ""
 #~ "避免跨越外牆時的最大繞行距離。如果繞行距離大於該數值，則不繞行。繞行距離可"
@@ -16083,7 +16093,7 @@ msgstr ""
 #~ msgid ""
 #~ "This separate setting will affect the speed of perimeters having radius "
 #~ "<= small_perimeter_threshold (usually holes). If expressed as percentage "
-#~ "(for example: 80%）it will be calculated on the outer wall speed setting "
+#~ "(for example: 80%) it will be calculated on the outer wall speed setting "
 #~ "above. Set to zero for auto."
 #~ msgstr ""
 #~ "這個單獨的設定將影響半徑 <= small_perimeter_threshold（通常是圓孔）的周長"
@@ -16091,7 +16101,7 @@ msgstr ""
 #~ "算。 自動設定為零。"
 
 #, fuzzy
-#~ msgid "Pressure advance(Klipper）AKA Linear advance factor(Marlin)"
+#~ msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 #~ msgstr "壓力提前（Klipper）或者線性提前（Marlin）"
 
 #~ msgid ""
@@ -16102,7 +16112,7 @@ msgstr ""
 #~ " 1. To avoid changes in shine when printing glossy filaments \n"
 #~ "2. To avoid changes in external wall speed which may create slight wall "
 #~ "artifacts that appear like z banding \n"
-#~ "3. To avoid printing at speeds which cause VFAs (fine artifacts）on the "
+#~ "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the "
 #~ "external walls\n"
 #~ "\n"
 #~ msgstr ""
@@ -16116,7 +16126,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Connect an infill line to an internal perimeter with a short segment of "
-#~ "an additional perimeter. If expressed as percentage (example: 15%）it is "
+#~ "an additional perimeter. If expressed as percentage (example: 15%) it is "
 #~ "calculated over infill extrusion width. Orca Slicer tries to connect two "
 #~ "close infill lines to a short perimeter segment. If no such perimeter "
 #~ "segment shorter than infill_anchor_max is found, the infill line is "
@@ -16135,7 +16145,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Connect an infill line to an internal perimeter with a short segment of "
-#~ "an additional perimeter. If expressed as percentage (example: 15%）it is "
+#~ "an additional perimeter. If expressed as percentage (example: 15%) it is "
 #~ "calculated over infill extrusion width. Orca Slicer tries to connect two "
 #~ "close infill lines to a short perimeter segment. If no such perimeter "
 #~ "segment shorter than this parameter is found, the infill line is "
@@ -16153,13 +16163,13 @@ msgstr ""
 #~ "結果。"
 
 #~ msgid ""
-#~ "Enable this to add line number(Nx）at the beginning of each G-Code line"
+#~ "Enable this to add line number(Nx) at the beginning of each G-Code line"
 #~ msgstr "打開這個設定，G-code 的每一行的開頭會增加Nx標註行號。"
 
 #~ msgid ""
 #~ "This parameter smooths out sudden extrusion rate changes that happen when "
 #~ "the printer transitions from printing a high flow (high speed/larger "
-#~ "width）extrusion to a lower flow (lower speed/smaller width）extrusion "
+#~ "width) extrusion to a lower flow (lower speed/smaller width) extrusion "
 #~ "and vice versa.\n"
 #~ "\n"
 #~ "It defines the maximum rate by which the extruded volumetric flow in mm3/"
@@ -16169,7 +16179,7 @@ msgstr ""
 #~ "A value of 0 disables the feature. \n"
 #~ "\n"
 #~ "For a high speed, high flow direct drive printer (like the Bambu lab or "
-#~ "Voron）this value is usually not needed. However it can provide some "
+#~ "Voron) this value is usually not needed. However it can provide some "
 #~ "marginal benefit in certain cases where feature speeds vary greatly. For "
 #~ "example, when there are aggressive slowdowns due to overhangs. In these "
 #~ "cases a high value of around 300-350mm3/s2 is recommended as this allows "
@@ -16207,7 +16217,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Enable this option to omit the custom Change filament G-code only at the "
-#~ "beginning of the print. The tool change command (e.g., T0）will be "
+#~ "beginning of the print. The tool change command (e.g., T0) will be "
 #~ "skipped throughout the entire print. This is useful for manual multi-"
 #~ "material printing, where we use M600/PAUSE to trigger the manual filament "
 #~ "change action."
@@ -16217,7 +16227,7 @@ msgstr ""
 #~ "觸發手動線材更換動作。"
 
 #~ msgid ""
-#~ "This value will be added (or subtracted）from all the Z coordinates in "
+#~ "This value will be added (or subtracted) from all the Z coordinates in "
 #~ "the output G-code. It is used to compensate for bad Z endstop position: "
 #~ "for example, if your endstop zero actually leaves the nozzle 0.3mm far "
 #~ "from the print bed, set this to -0.3 (or fix your endstop)."
@@ -16227,14 +16237,14 @@ msgstr ""
 #~ "設定為 -0.3。"
 
 #~ msgid ""
-#~ "normal(auto）and tree(auto）is used to generate support automatically. If "
-#~ "normal(manual）or tree(manual）is selected, only support enforcers are "
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal(manual) or tree(manual) is selected, only support enforcers are "
 #~ "generated"
 #~ msgstr ""
 #~ "普通（自動）和樹狀（自動）用於自動產生支撐體。如果選擇普通（手動）或樹狀"
 #~ "（手動），僅會在支撐強制面上產生支撐。"
 
-#~ msgid "Expand (+）or shrink (-）the horizontal span of normal support"
+#~ msgid "Expand (+) or shrink (-) the horizontal span of normal support"
 #~ msgstr "在水平方向對普通支撐進行延伸（+）或收縮（-）"
 
 #~ msgid ""
@@ -16245,7 +16255,7 @@ msgstr ""
 #~ "for ABS and ASA. \n"
 #~ "\n"
 #~ "For PLA, PETG, TPU, PVA, and other low-temperature materials, this option "
-#~ "should be disabled (set to 0）as the chamber temperature should be low to "
+#~ "should be disabled (set to 0) as the chamber temperature should be low to "
 #~ "avoid extruder clogging caused by material softening at the heat break.\n"
 #~ "\n"
 #~ "If enabled, this parameter also sets a gcode variable named "
@@ -16271,7 +16281,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Search for almost-circular holes that span more than one layer and "
-#~ "convert the geometry to polyholes. Use the nozzle size and the (biggest）"
+#~ "convert the geometry to polyholes. Use the nozzle size and the (biggest)"
 #~ "diameter to compute the polyhole.\n"
 #~ "See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
 #~ msgstr ""
@@ -16281,7 +16291,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Width of the wall that will replace thin features (according to the "
-#~ "Minimum feature size）of the model. If the Minimum wall width is thinner "
+#~ "Minimum feature size) of the model. If the Minimum wall width is thinner "
 #~ "than the thickness of the feature, the wall will become as thick as the "
 #~ "feature itself. It's expressed as a percentage over nozzle diameter"
 #~ msgstr ""
@@ -16289,23 +16299,23 @@ msgstr ""
 #~ "徵的厚度，則牆將變得和特徵本身一樣厚。參數值表示為相對噴嘴直徑的百分比"
 
 #~ msgid ""
-#~ "No layers were detected. You might want to repair your STL file(s）or "
+#~ "No layers were detected. You might want to repair your STL file(s) or "
 #~ "check their size or thickness and retry.\n"
 #~ msgstr ""
 #~ "沒有切到層次。你可能需要修復 STL 檔案，或檢查模型尺寸、厚度等，之後再重"
 #~ "試。\n"
 
 #~ msgid ""
-#~ "Unknown file format. Input file must have .stl, .obj, .amf(.xml）"
+#~ "Unknown file format. Input file must have .stl, .obj, .amf(.xml)"
 #~ "extension."
 #~ msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .stl、.obj 或 .amf（.xml）。"
 
-#~ msgid "Use forward slashes ( / ）as a directory separator if needed."
+#~ msgid "Use forward slashes ( / ) as a directory separator if needed."
 #~ msgstr "如有需要，請使用正斜槓（ / ）作為目錄分隔符號。"
 
 #~ msgid ""
 #~ "Sandwich mode\n"
-#~ "Did you know that you can use sandwich mode (inner-outer-inner）to "
+#~ "Did you know that you can use sandwich mode (inner-outer-inner) to "
 #~ "improve precision and layer consistency if your model doesn't have very "
 #~ "steep overhangs?"
 #~ msgstr ""
@@ -16448,7 +16458,7 @@ msgstr ""
 #~ "Please note there are a few cases that will make the calibration result "
 #~ "not reliable: using a texture plate to do the calibration; the build "
 #~ "plate does not have good adhesion (please wash the build plate or apply "
-#~ "gluestick!）...You can find more from our wiki.\n"
+#~ "gluestick!) ...You can find more from our wiki.\n"
 #~ "\n"
 #~ "The calibration results have about 10 percent jitter in our test, which "
 #~ "may cause the result not exactly the same in each calibration. We are "
