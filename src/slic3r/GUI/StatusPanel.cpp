@@ -4890,6 +4890,13 @@ void StatusPanel::on_xyz_abs(wxCommandEvent &event)
 void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
 {
     if (obj) {
+
+        if (obj->is_in_printing() || obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+            MessageDialog dlg(nullptr, _L("The printer is busy on other print job"), _L("Error"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            return;
+        }
+
         obj->flag_update_nozzle = false;
         auto nozzle_id = event.GetInt();obj->command_select_extruder(nozzle_id);
     }
