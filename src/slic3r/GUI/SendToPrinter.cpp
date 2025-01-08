@@ -1189,7 +1189,7 @@ void SendToPrinterDialog::update_show_status()
             std::string dev_id = obj_->dev_ip;
             if (m_file_sys) {
                 if (dev_id == m_device_select) {
-                    if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && obj_->file_remote))
+                    if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && obj_->get_file_remote()))
                         m_file_sys->Retry();
                     return;
                 }
@@ -1656,7 +1656,7 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 
     std::string dev_ver = obj->get_ota_version();
     std::string dev_id = obj->dev_id;
-    int remote_proto = obj->file_remote;
+    int remote_proto = obj->get_file_remote();
     if (!remote_proto) {
         m_waiting_support = true;
         fs->SetUrl("0");
