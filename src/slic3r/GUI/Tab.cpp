@@ -881,7 +881,7 @@ void TabPrinter::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" | opt_key == "thumbnails") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "thumbnails") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
