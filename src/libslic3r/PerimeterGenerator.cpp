@@ -4,6 +4,7 @@
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include "PNGReadWrite.hpp"
 #include "PrintConfig.hpp"
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"
@@ -19,6 +20,9 @@
 #include <random>
 #include <unordered_set>
 #include <thread>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/log/trivial.hpp>
 #include "libslic3r/AABBTreeLines.hpp"
 #include "Print.hpp"
 #include "Algorithm/LineSplit.hpp"
@@ -45,6 +49,7 @@ static double random_value() {
     return dist(gen);
 }
 
+// Classic mode
 class UniformNoise: public noise::module::Module {
     public:
         UniformNoise(): Module (GetSourceModuleCount ()) {};
@@ -52,6 +57,140 @@ class UniformNoise: public noise::module::Module {
         virtual int GetSourceModuleCount() const { return 0; }
         virtual double GetValue(double x, double y, double z) const { return random_value() * 2 - 1; }
 };
+
+// The DisplacementMap class modifies the surface of a 3D print based on a greyscale PNG image.
+// This feature is based on work by the PrusaSlicer community member Poikilos, who initially implemented displacement and cube mapping.
+// The class reads a displacement map from a PNG file and uses it to adjust the surface of the object.
+// The displacement map is applied by mapping the surface points of the 3D model to the corresponding points on the 2D displacement map.
+//
+// The UV mapping in this implementation is simple: it treats the object's as a cube.
+// It determines which face of the cube the current line is on based on the direction of the bump (which is just perpendicular to the line).
+// The U coordinate is calculated based on the x, y coordinates of the point on the line relative to the bounding box and the determined face.
+// The V coordinate is based on the current layer's height. 
+// This method works surpsingly well for many objects but may fail for more complex shapes like ramps.
+class DisplacementMap: public noise::module::Module {
+public:
+    DisplacementMap(const FuzzySkinConfig& cfg, const PrintObject* object)
+            : Module(GetSourceModuleCount()), cfg(cfg), object(object)
+        {
+        // HACK HACK HACK: need to find a place where to store the image
+        static std::mutex mutex;
+        {
+            std::unique_lock<std::mutex> lck(mutex);
+            if (displacement_map == nullptr || cfg.displacement_map_path != displacement_map_path) {
+                auto tmp = std::make_shared<png::ImageGreyscale>();
+                int ret = read_png(cfg.displacement_map_path, *tmp);
+                if (ret != 0) {
+                    std::cerr << "Error: could not load the png '" << cfg.displacement_map_path << "' return code:" << ret << std::endl;
+                } else {
+                    std::cout << "Displacement map loaded: " << cfg.displacement_map_path << std::endl;
+                    displacement_map = tmp;
+                    displacement_map_path = cfg.displacement_map_path;
+                }
+            }
+        }
+    }
+    virtual ~DisplacementMap() {}
+    virtual int GetSourceModuleCount() const { return 0; }
+
+    virtual double GetValue(double x, double y, double z) const {
+        if (!displacement_map) // displacement map failed to load
+            return 0.0;
+
+        int height = displacement_map->rows;
+        double pixel_v = scaled<double>(z) / cfg.point_distance;  // Match v and u scale to fix y to x proportions (Each cfg.point_distance spans 1 pixel on x).
+        int pixel_y = (int)round(fmod(pixel_v, height)); // "Clamp" the texture using the "repeat" method (in graphics terms).
+        pixel_y %= displacement_map->rows; // round can make it out of bounds
+        pixel_y = height - 1 - pixel_y; // Flip it so the bottom pixel (height()-1) is at the first layer(s) (z=~0) of the print.
+
+        // determine the face:
+        auto flat_point = Point(scale_(x), scale_(y));
+        double pixel_u = cubemap_side_u(object->bounding_box(), flat_point, normal_radians) / cfg.point_distance;
+        int pixel_x = (int)round(fmod(pixel_u, displacement_map->cols)); // "Clamp" the texture using the "repeat" method (in graphics terms).
+        pixel_x %= displacement_map->cols; // round can make it out of bounds
+        int pixel_val = displacement_map->get(pixel_y, pixel_x); // caution: signature is get(y, x)
+        return ((255 - pixel_val) / (255.0/2.0)) - 1.0; // negate value and normalize to -1.0 to 1.0
+    }
+    // we need the to know which side of object this line segment is on
+    virtual void setNormalRadians(double _normal_radians) {
+        normal_radians = _normal_radians;
+    }
+
+protected:
+    /*!
+    Map a surface point to a 2d U (horizontal) value on a texture map, but expressed in millimeters due to the value's usage in PrusaSlicer.
+    The side matters since the texture should be wrapped around the whole object, not just one side, starting with the left,
+    to match the behavior of cube maps as used in the graphics field.
+    To reduce the number of calculations, the U value is not conformed to 0.0 to 1.0 like usual U values.
+    It is not 3D cube mapping but it will work for any point that is neither on the top nor bottom
+    (It would work but visibly behave like square mapping rather than cube mapping in those cases).
+    @param bounding_box The extents of the model from a top view.
+    @param flat_point The surface point from a top view (variance in depth relative to center only matters if it puts the point in a different side).
+    @param normal_radians The normal of the flat_point expressed in radians from the top view (X-Y plane).
+    */
+    static double cubemap_side_u(const BoundingBox& bounding_box, const Point& flat_point, const double normal_radians) {
+        double bbox_width = bounding_box.size().x();
+        double bbox_height = bounding_box.size().y();
+
+        double x = flat_point.x() - bounding_box.min.x();
+        double y = flat_point.y() - bounding_box.min.y();
+
+        // Compute the distance along the perimeter based on the angle
+        double distance;
+        if (normal_radians >= -M_PI_4 && normal_radians < M_PI_4) {
+            // Right face (positive x-direction)
+            distance = y;
+        } else if (normal_radians >= M_PI_4 && normal_radians < 3 * M_PI_4) {
+            // Back face (positive y-direction)
+            distance = bbox_height + x;
+        } else if (normal_radians >= -3 * M_PI_4 && normal_radians < -M_PI_4) {
+            // Front face (negative y-direction)
+            distance = bbox_height + bbox_width + bbox_width - x;
+        } else {
+            // Left face (negative x-direction)
+            distance = bbox_height + bbox_width + bbox_width + bbox_height - y;
+        }
+        return distance;
+    }
+
+    static int read_png(std::string png_file, png::ImageGreyscale& img)
+    {
+        if (!boost::filesystem::exists(png_file))
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("can not find file %1%")%png_file;
+            return -1;
+        }
+
+        const std::size_t &size  = boost::filesystem::file_size(png_file);
+        std::string png_buffer(size, '\0');
+        png_buffer.reserve(size);
+
+        boost::filesystem::ifstream ifs(png_file, std::ios::binary);
+        ifs.read(png_buffer.data(), png_buffer.size());
+        ifs.close();
+
+        Slic3r::png::ReadBuf rb{png_buffer.data(), png_buffer.size()};
+        BOOST_LOG_TRIVIAL(info) << boost::format("read png file %1%, size %2%")%png_file %size;
+
+        if ( !Slic3r::png::decode_png(rb, img))
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("decode png file %1% failed")%png_file;
+            return -2;
+        }
+
+        return 0;
+    }
+
+protected:
+    const FuzzySkinConfig& cfg;
+    const PrintObject* object;
+    double normal_radians = 0.0;
+    static std::shared_ptr<png::ImageGreyscale> displacement_map;
+    static std::string displacement_map_path;
+        
+};
+std::shared_ptr<png::ImageGreyscale> DisplacementMap::displacement_map;
+std::string DisplacementMap::displacement_map_path;
 
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
@@ -75,7 +214,7 @@ public:
     bool is_internal_contour() const;
 };
 
-static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinConfig& cfg) {
+static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinConfig& cfg, const PrintObject* object) {
     if (cfg.noise_type == NoiseType::Perlin) {
         auto perlin_noise = noise::module::Perlin();
         perlin_noise.SetFrequency(1 / cfg.noise_scale);
@@ -98,19 +237,26 @@ static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinCo
         voronoi_noise.SetFrequency(1 / cfg.noise_scale);
         voronoi_noise.SetDisplacement(1.0);
         return std::make_unique<noise::module::Voronoi>(voronoi_noise);
+    } else if (cfg.noise_type == NoiseType::DisplacementMap) {
+        return std::make_unique<DisplacementMap>(cfg, object);
     } else {
         return std::make_unique<UniformNoise>();
     }
 }
 
 // Thanks Cura developers for this function.
-static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
+static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg, const PrintObject* object)
 {
-    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
+    const bool noise_classic = cfg.noise_type == NoiseType::Classic;
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg, object);
 
-    const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
+    const double min_dist_between_points = noise_classic ? cfg.point_distance * 3. / 4. : cfg.point_distance; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
-    double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
+
+    double dist_left_over = 0.0;
+    if (noise_classic)
+        dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
+
     Point* p0 = &poly.back();
     Points out;
     out.reserve(poly.size());
@@ -126,8 +272,17 @@ static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const Fu
         Vec2d  p0p1      = (p1 - *p0).cast<double>();
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
+
+        // DisplacementMap needs to know on which side the bump is facing - calculate the normal
+        if (cfg.noise_type == NoiseType::DisplacementMap) {
+            Vec2d normal = perp(p0p1).normalized();
+            normal = -normal; // negate it because points in wrong direction
+            double normal_radians = atan2(normal.y(), normal.x());
+            reinterpret_cast<DisplacementMap*>(noise.get())->setNormalRadians(normal_radians);
+        }
+
         for (; p0pa_dist < p0p1_size;
-            p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist)
+            p0pa_dist += min_dist_between_points + (noise_classic ? random_value() * range_random_point_dist : 0.0))
         {
             Point pa = *p0 + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
             double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
@@ -148,13 +303,17 @@ static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const Fu
 }
 
 // Thanks Cura developers for this function.
-static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg)
+static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg, const PrintObject* object)
 {
-    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
+    const bool noise_classic = cfg.noise_type == NoiseType::Classic;
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg, object);
 
-    const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
+    const double min_dist_between_points = noise_classic ? cfg.point_distance * 3. / 4. : cfg.point_distance; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
-    double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
+
+    double dist_left_over = 0.0;
+    if (noise_classic)
+        dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
 
     auto* p0 = &ext_lines.front();
     std::vector<Arachne::ExtrusionJunction> out;
@@ -169,9 +328,18 @@ static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_li
         Vec2d  p0p1 = (p1.p - p0->p).cast<double>();
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
-        for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist) {
+
+        // DisplacementMap needs to know on which side the bump is facing - calculate the normal
+        if (cfg.noise_type == NoiseType::DisplacementMap) {
+            Vec2d normal = perp(p0p1).normalized();
+            double normal_radians = atan2(normal.y(), normal.x());
+            reinterpret_cast<DisplacementMap*>(noise.get())->setNormalRadians(normal_radians);
+        }
+
+        for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + (noise_classic ? random_value() * range_random_point_dist : 0.0)) {
             Point pa = p0->p + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
             double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
+            r = -r; // negate to make it behave the same as the classic wall generator
             out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
         }
         dist_left_over = p0pa_dist - p0p1_size;
@@ -530,6 +698,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     // turn each one into an ExtrusionLoop object
     ExtrusionEntityCollection   coll;
     Polygon                     fuzzified;
+
+    const PrintObject* object = perimeter_generator.object();
     
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
@@ -577,7 +747,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
-        const Polygon& polygon = *([&perimeter_generator, &loop, &fuzzified]() ->const Polygon* {
+        const Polygon& polygon = *([&perimeter_generator, &loop, &fuzzified, &object]() ->const Polygon* {
             const auto& regions = perimeter_generator.regions_by_fuzzify;
             if (regions.size() == 1) { // optimization
                 const auto& config  = regions.begin()->first;
@@ -587,7 +757,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 }
 
                 fuzzified = loop.polygon;
-                fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, config);
+                fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, config, object);
                 return &fuzzified;
             }
 
@@ -632,17 +802,17 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 // Fuzzy splitted polygon
                 if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
                     // The entire polygon is fuzzified
-                    fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, r.first);
+                    fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, r.first, object);
                 } else {
                     Points segment;
                     segment.reserve(splitted.size());
                     fuzzified.points.clear();
 
                     const auto slice_z = perimeter_generator.slice_z;
-                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r, slice_z]() {
+                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r, slice_z, &object]() {
                         fuzzified.points.push_back(segment.front());
                         const auto back = segment.back();
-                        fuzzy_polyline(segment, false, slice_z, r.first);
+                        fuzzy_polyline(segment, false, slice_z, r.first, object);
                         fuzzified.points.insert(fuzzified.points.end(), segment.begin(), segment.end());
                         fuzzified.points.push_back(back);
                         segment.clear();
@@ -1015,6 +1185,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
     const auto slice_z = perimeter_generator.slice_z;
+    const auto object = perimeter_generator.object();
 
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
@@ -1035,7 +1206,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             const auto& config = regions.begin()->first;
             const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
             if (fuzzify)
-                fuzzy_extrusion_line(extrusion->junctions, slice_z, config);
+                fuzzy_extrusion_line(extrusion->junctions, slice_z, config, object);
         } else {
             // Find all affective regions
             std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
@@ -1057,17 +1228,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     // Fuzzy splitted extrusion
                     if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
                         // The entire polygon is fuzzified
-                        fuzzy_extrusion_line(extrusion->junctions, slice_z, r.first);
+                        fuzzy_extrusion_line(extrusion->junctions, slice_z, r.first, object);
                     } else {
                         const auto current_ext = extrusion->junctions;
                         std::vector<Arachne::ExtrusionJunction> segment;
                         segment.reserve(current_ext.size());
                         extrusion->junctions.clear();
 
-                        const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z]() {
+                        const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z, &object]() {
                             extrusion->junctions.push_back(segment.front());
                             const auto back = segment.back();
-                            fuzzy_extrusion_line(segment, slice_z, r.first);
+                            fuzzy_extrusion_line(segment, slice_z, r.first, object);
                             extrusion->junctions.insert(extrusion->junctions.end(), segment.begin(), segment.end());
                             extrusion->junctions.push_back(back);
                             segment.clear();
@@ -1908,7 +2079,8 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
             region_config.fuzzy_skin_noise_type,
             region_config.fuzzy_skin_scale,
             region_config.fuzzy_skin_octaves,
-            region_config.fuzzy_skin_persistence
+            region_config.fuzzy_skin_persistence,
+            region_config.fuzzy_skin_displacement_map,
         };
         auto& surfaces = regions[cfg];
         for (const auto& surface : region->slices.surfaces) {

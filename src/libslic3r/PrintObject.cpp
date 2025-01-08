@@ -1121,6 +1121,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_scale"
             || opt_key == "fuzzy_skin_octaves"
             || opt_key == "fuzzy_skin_persistence"
+            || opt_key == "fuzzy_skin_displacement_map"
             || opt_key == "detect_overhang_wall"
             || opt_key == "overhang_reverse"
             || opt_key == "overhang_reverse_internal_only"

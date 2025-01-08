@@ -47,6 +47,7 @@ enum class NoiseType {
     Billow,
     RidgedMulti,
     Voronoi,
+    DisplacementMap,
 };
 
 enum PrintHostType {
@@ -930,6 +931,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_scale))
     ((ConfigOptionInt,                  fuzzy_skin_octaves))
     ((ConfigOptionFloat,                fuzzy_skin_persistence))
+    ((ConfigOptionString,               fuzzy_skin_displacement_map))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
