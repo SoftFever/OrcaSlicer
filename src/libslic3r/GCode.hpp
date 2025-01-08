@@ -445,8 +445,8 @@ private:
 		// For sequential print, the instance of the object to be printing has to be defined.
 		const size_t                     				 single_object_instance_idx);
 
-    std::string     extrude_perimeters(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region);
-    std::string     extrude_infill(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
+    std::string     extrude_perimeters(const PrintObject &print_object, const std::vector<ObjectByExtruder::Island::Region>& by_region);
+    std::string     extrude_infill(const PrintObject &print_object, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
     std::string     extrude_support(const ExtrusionEntityCollection& support_fills);
 
     // BBS
