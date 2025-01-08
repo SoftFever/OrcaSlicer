@@ -471,6 +471,8 @@ protected:
     StepIndicator*  m_calibration_flow;
 
     wxPanel *       m_machine_ctrl_panel;
+    wxPanel *       m_scale_panel;
+    wxStaticBitmap* m_img_filament_loading;
     PrintingTaskPanel *       m_project_task_panel;
 
     FilamentLoad* m_filament_step;
@@ -531,7 +533,8 @@ public:
     wxBoxSizer *create_settings_group(wxWindow *parent);
     wxBoxSizer* create_filament_group(wxWindow* parent);
 
-    void show_ams_group(bool show = true);
+	void           expand_filament_loading(wxMouseEvent &e);
+    void           show_ams_group(bool show = true);
     void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };

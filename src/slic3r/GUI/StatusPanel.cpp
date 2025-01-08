@@ -2007,24 +2007,51 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    auto sizer_box = new wxBoxSizer(wxVERTICAL);
 
-    m_filament_load_box = new StaticBox(parent);
+    auto sizer_scale_panel = new wxBoxSizer(wxHORIZONTAL);
+    m_scale_panel          = new wxPanel(parent);
+    m_scale_panel->SetMinSize(wxSize(FromDIP(586), FromDIP(50)));
+    m_scale_panel->SetMaxSize(wxSize(FromDIP(586), FromDIP(50)));
+    m_scale_panel->SetBackgroundColour(*wxWHITE);
+
+    auto m_title_filament_loading = new Label(m_scale_panel, _L("Filament loading..."));
+    m_title_filament_loading->SetBackgroundColour(*wxWHITE);
+    m_title_filament_loading->SetForegroundColour(wxColour(27, 136, 68));
+    m_title_filament_loading->SetFont(::Label::Body_14);
+
+    m_img_filament_loading = new wxStaticBitmap(m_scale_panel, wxID_ANY, create_scaled_bitmap("filament_load_fold", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+
+    sizer_scale_panel->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    sizer_scale_panel->Add(m_title_filament_loading, 0, wxALIGN_CENTER, 0);
+    sizer_scale_panel->Add(m_img_filament_loading, 0, wxALIGN_CENTER, 0);
+    m_scale_panel->SetSizer(sizer_scale_panel);
+    m_scale_panel->Layout();
+    m_scale_panel->Fit();
+    m_scale_panel->Hide();
+
+
+    m_title_filament_loading->Bind(wxEVT_LEFT_DOWN, &StatusBasePanel::expand_filament_loading, this);
+    m_scale_panel->Bind(wxEVT_LEFT_DOWN, &StatusBasePanel::expand_filament_loading, this);
+
+
+    auto sizer_box = new wxBoxSizer(wxVERTICAL);
 
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
 
+    m_filament_load_box = new StaticBox(parent);
     m_filament_load_box->SetBackgroundColor(box_colour);
     m_filament_load_box->SetBorderColor(box_border_colour);
     m_filament_load_box->SetCornerRadius(5);
     m_filament_load_box->SetMinSize(wxSize(FromDIP(586), -1));
     m_filament_load_box->SetMaxSize(wxSize(FromDIP(586), -1));
     m_filament_load_box->SetBackgroundColour(*wxWHITE);
+    m_filament_load_box->SetSizer(sizer_box);
 
     m_filament_step = new FilamentLoad(m_filament_load_box, wxID_ANY);
     m_filament_step->SetDoubleBuffered(true);
-    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(576), FromDIP(215))));
-    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(576), FromDIP(215))));
+    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(570), FromDIP(215))));
+    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(570), FromDIP(215))));
     m_filament_step->SetBackgroundColour(*wxWHITE);
 
     StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
@@ -2039,6 +2066,7 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
     m_button_retry->SetTextColor(btn_text_white);
     m_button_retry->SetMinSize(wxSize(FromDIP(80), FromDIP(31)));
     m_button_retry->SetBackgroundColor(btn_bg_white);
+    //m_button_retry->Hide();
 
     m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
@@ -2051,11 +2079,31 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
     sizer_box->Add(m_button_retry, 0, wxLEFT, FromDIP(28));
     sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_filament_load_box->SetBackgroundColour(*wxWHITE);
-    m_filament_load_box->SetSizer(sizer_box);
     m_filament_load_box->Layout();
     m_filament_load_box->Fit();
+    m_filament_load_box->Hide();
+    sizer->Add(m_scale_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
     sizer->Add(m_filament_load_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
     return sizer;
+}
+
+void StatusBasePanel::expand_filament_loading(wxMouseEvent& e)
+{
+    auto tag_show = false;
+    if (m_filament_load_box->IsShown()) {
+        tag_show = false;
+        m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_fold", this, 24));
+    } else {
+        tag_show = true;
+        m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_expand", this, 24));
+    }
+    m_filament_load_box->Show(tag_show);
+    ///m_button_retry->Show(tag_show);
+    m_filament_step->Show(tag_show);
+    Layout();
+    Fit();
+    wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
+    wxGetApp().mainframe->m_monitor->Layout();
 }
 
 void StatusBasePanel::show_ams_group(bool show)
@@ -2083,16 +2131,12 @@ void StatusBasePanel::show_ams_group(bool show)
 
 void StatusBasePanel::show_filament_load_group(bool show)
 {
-    if (m_filament_load_box->IsShown() != show) {
-        m_filament_load_box->Show(show);
-        m_button_retry->Show(show);
-    }
-
-    if (m_filament_step->IsShown() != show) {
-        m_filament_step->Show(show);
-    }
-
     if (m_show_filament_group != show ) {
+        if (!show) {
+            m_filament_load_box->Show(show);
+            m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_fold", this, 24));
+        }
+        m_scale_panel->Show(show);
         m_show_filament_group = show;
         Layout();
         Fit();
