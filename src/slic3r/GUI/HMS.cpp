@@ -123,21 +123,39 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
 void HMSQuery::copy_from_data_dir_to_local()
 {
     const fs::path& from_dir = fs::path(Slic3r::resources_dir()) / HMS_PATH;
-    const fs::path& to_dir = fs::path(Slic3r::data_dir()) / HMS_PATH;
-    for (const auto& entry : fs::directory_iterator(from_dir))
+    if (!fs::exists(from_dir))
     {
-        const fs::path& source_path = entry.path();
-        const fs::path& relative_path = fs::relative(source_path, from_dir);
-        const fs::path& dest_path = to_dir / relative_path;
-        if (fs::exists(dest_path))
-        {
-            continue;
-        }
+        assert(0);
+        return;
+    }
 
-        if (fs::is_regular_file(source_path))
+    const fs::path& to_dir = fs::path(Slic3r::data_dir()) / HMS_PATH;
+    if (!fs::exists(to_dir))
+    {
+        fs::create_directory(to_dir);
+    }
+
+    try
+    {
+        for (const auto& entry : fs::directory_iterator(from_dir))
         {
-            copy_file(source_path, dest_path);
+            const fs::path& source_path = entry.path();
+            const fs::path& relative_path = fs::relative(source_path, from_dir);
+            const fs::path& dest_path = to_dir / relative_path;
+            if (fs::exists(dest_path))
+            {
+                continue;
+            }
+
+            if (fs::is_regular_file(source_path))
+            {
+                copy_file(source_path, dest_path);
+            }
         }
+    }
+    catch (const std::exception&)
+    {
+
     }
 }
 
