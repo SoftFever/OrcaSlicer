@@ -128,7 +128,8 @@ static t_config_enum_values s_keys_map_NoiseType {
     { "perlin",         int(NoiseType::Perlin) },
     { "billow",         int(NoiseType::Billow) },
     { "ridgedmulti",    int(NoiseType::RidgedMulti) },
-    { "voronoi",        int(NoiseType::Voronoi) }
+    { "voronoi",        int(NoiseType::Voronoi) },
+    { "displacementmap",int(NoiseType::DisplacementMap) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
 
@@ -2653,13 +2654,22 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("billow");
     def->enum_values.push_back("ridgedmulti");
     def->enum_values.push_back("voronoi");
+    def->enum_values.push_back("displacementmap");
     def->enum_labels.push_back(L("Classic"));
     def->enum_labels.push_back(L("Perlin"));
     def->enum_labels.push_back(L("Billow"));
     def->enum_labels.push_back(L("Ridged Multifractal"));
     def->enum_labels.push_back(L("Voronoi"));
+    def->enum_labels.push_back(L("Displacement Map"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
+
+    def = this->add("fuzzy_skin_displacement_map", coString);
+    def->label = L("Fuzzy skin displacement map filepath");
+    def->tooltip = L("Must point to a 8bit Greyscale PNG file.");
+    def->category = L("Others");
+    def->set_default_value(new ConfigOptionString());
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("fuzzy_skin_scale", coFloat);
     def->label = L("Fuzzy skin feature size");

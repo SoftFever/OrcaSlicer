@@ -714,7 +714,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("fuzzy_skin_scale", has_fuzzy_skin && fuzzy_skin_noise_type != NoiseType::Classic);
     toggle_line("fuzzy_skin_octaves", has_fuzzy_skin && fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi);
     toggle_line("fuzzy_skin_persistence", has_fuzzy_skin && (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow));
-    
+    toggle_line("fuzzy_skin_displacement", has_fuzzy_skin && (fuzzy_skin_noise_type == NoiseType::DisplacementMap));
+
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
         "min_feature_size", "min_length_factor", "min_bead_width", "wall_distribution_count", "initial_layer_min_bead_width"})
