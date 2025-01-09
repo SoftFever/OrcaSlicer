@@ -1018,7 +1018,7 @@ void ExtruderGroup::update_ams()
             ams_info.ams_type = AMSModel::GENERIC_AMS;
             for (size_t i = 0; i < 4; ++i) {
                 Caninfo can_info;
-                can_info.material_colour = colors[i];
+                //can_info.material_colour = colors[i];
                 ams_info.cans.push_back(can_info);
             }
             ams[i]->Update(ams_info);
@@ -1037,7 +1037,7 @@ void ExtruderGroup::update_ams()
             AMSinfo ams_info;
             ams_info.ams_type = AMSModel::N3S_AMS;
             Caninfo can_info;
-            can_info.material_colour = wxColour(255, 110, 100);
+            //can_info.material_colour = wxColour(255, 110, 100);
             ams_info.cans.push_back(can_info);
             ams[i]->Update(ams_info);
             ams[i]->Refresh();
@@ -12948,9 +12948,11 @@ bool check_printer_initialized(MachineObject *obj)
 
     bool has_been_initialized = true;
     for (const Extder& extruder : obj->m_extder_data.extders) {
-        if (extruder.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
-            has_been_initialized = false;
-            break;
+        if (obj->is_multi_extruders()) {
+            if (extruder.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+                has_been_initialized = false;
+                break;
+            }
         }
         if (extruder.current_nozzle_type == NozzleType::ntUndefine) {
             has_been_initialized = false;
