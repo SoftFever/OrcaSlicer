@@ -3937,7 +3937,7 @@ msgid ""
 "Is it %s%% or %s %s?\n"
 "YES for %s%%, \n"
 "NO for %s %s."
-msgstr "“
+msgstr ""
 "是 %s%% 還是 %s %s？\n"
 "選「是」代表 %s%%，\n"
 "選「否」代表 %s %s。"
@@ -5122,8 +5122,8 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
-“檔案：%s\n”
-“標題：%s\n”
+"檔案：%s\n"
+"標題：%s\n"
 
 msgid "Download waiting..."
 msgstr "等待下載中..."
@@ -6034,7 +6034,7 @@ msgid ""
 msgstr ""
 "你正在嘗試刪除一個屬於切割物件的部分。\n"
 "此操作將破壞切割對應關係。\n"
-"模型的一致性可能無法保證。
+"模型的一致性可能無法保證。"
 
 msgid "The selected object couldn't be split."
 msgstr "選中的模型不可分割。"
@@ -7125,7 +7125,7 @@ msgstr "請排除上述錯誤，否則無法繼續列印。"
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
-msgstr "如果你仍然想繼續列印，請滑鼠左鍵點擊 確定 按鈕。"
+"如果你仍然想繼續列印，請滑鼠左鍵點擊「確定」按鈕。"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -7911,11 +7911,11 @@ msgid ""
 "\"%1%\"."
 msgstr ""
 "將所選的選項轉移至新選擇的預設\n"
-"「%1%」"。
+"「%1%」。"
 
 #, possible-boost-format
 msgid "Preset \"%1%\" contains the following unsaved changes:"
-msgstr "預設「%1%\」包含以下未儲存的變更："
+msgstr "預設「%1%」包含以下未儲存的變更："
 
 #, possible-boost-format
 msgid ""
@@ -7927,11 +7927,11 @@ msgstr "預設「%1%」與新的列印設備配置檔案不相容，且包含以
 msgid ""
 "Preset \"%1%\" is not compatible with the new process profile and it "
 "contains the following unsaved changes:"
-msgstr "預設 "%1%" 與新的列印參數配置檔案不相容，並包含以下未儲存的變更："
+msgstr "預設「%1%」與新的列印參數配置檔案不相容，並包含以下未儲存的變更："
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr "已更改預設 \"%1%\" 的一些設定。"
+msgstr "已更改預設「%1%」的一些設定。"
 
 msgid ""
 "\n"
@@ -7949,6 +7949,8 @@ msgstr ""
 "你可以儲存或放棄已修改的預設值，或選擇將修改的數值轉移到新的預設值。"
 
 msgid "You have previously modified your settings."
+msgstr "你之前已經對設定進行了修改。"
+
 msgid ""
 "\n"
 "You can discard the preset values you have modified, or choose to transfer "
@@ -7981,7 +7983,7 @@ msgid ""
 "Note: New modified presets will be selected in settings tabs after close "
 "this dialog."
 msgstr ""
-""所選的選項從左側預設移至右側。\n"
+"所選的選項從左側預設移至右側。\n"
 "注意：關閉此對話框後，修改後的預設將在設置頁面中自動選取。"
 
 msgid "Transfer values from left to right"
@@ -8109,7 +8111,7 @@ msgid "Cluster colors"
 msgstr ""
 
 msgid "Map Filament"
-msgstr ""映射線材"
+msgstr "映射線材"
 
 msgid ""
 "Note:The color has been selected, you can choose OK \n"
