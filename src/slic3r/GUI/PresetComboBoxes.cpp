@@ -443,7 +443,10 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         if (!printer_preset)
             continue;
         printer_preset->is_visible = true;
-        int item_id = Append(from_u8(iter->second->dev_name), wxNullBitmap, &m_first_printer_idx + std::distance(machine_list.begin(), iter));
+        auto printer_model = printer_preset->config.opt_string("printer_model");
+        boost::replace_all(printer_model, "Bambu Lab ", "");
+        auto text = iter->second->dev_name + " (" + printer_model + ")";
+        int  item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(machine_list.begin(), iter));
     }
     m_last_printer_idx = GetCount();
 }
@@ -1241,6 +1244,11 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
+    if (m_type == Preset::TYPE_PRINTER && !selected_system_preset.empty()) {
+        auto label = GetLabel();
+        label.Replace("Bambu Lab ", "");
+        SetLabel(label);
+    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {
