@@ -281,11 +281,12 @@ void FilamentGroupPopup::OnRadioBtn(int idx)
 {
     if (mode_list.at(idx) == FilamentMapMode::fmmAutoForMatch && !m_connected)
         return;
-    m_mode = mode_list.at(idx);
-
-    SetFilamentMapMode(m_mode);
-
-    UpdateButtonStatus(m_mode);
+    if (m_mode != mode_list.at(idx)) {
+        m_mode = mode_list.at(idx);
+        SetFilamentMapMode(m_mode);
+        plater_ref->schedule_background_process();
+        UpdateButtonStatus(m_mode);
+    }
 }
 
 void FilamentGroupPopup::OnTimer(wxTimerEvent &event) { Dismiss(); }
