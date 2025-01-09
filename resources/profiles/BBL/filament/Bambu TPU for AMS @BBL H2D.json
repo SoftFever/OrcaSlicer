@@ -9,8 +9,8 @@
         "40"
     ],
     "filament_deretraction_speed": [
-        "nil",
-        "nil"
+        "10",
+        "10"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -53,16 +53,16 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "2",
+        "2"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
         "nil"
     ],
     "filament_retraction_speed": [
-        "nil",
-        "nil"
+        "10",
+        "10"
     ],
     "filament_wipe": [
         "nil",

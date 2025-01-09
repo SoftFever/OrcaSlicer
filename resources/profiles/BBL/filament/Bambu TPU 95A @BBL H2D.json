@@ -5,10 +5,13 @@
     "from": "system",
     "setting_id": "GFSU01_03",
     "instantiation": "true",
-    "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
     "filament_deretraction_speed": [
-        "nil",
-        "nil"
+        "10",
+        "10"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "1",
@@ -26,6 +29,14 @@
         "nil",
         "nil"
     ],
+    "filament_retract_lift_above": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_below": [
+        "nil",
+        "nil"
+    ],
     "filament_retract_restart_extra": [
         "nil",
         "nil"
@@ -39,16 +50,16 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "2",
+        "2"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
         "nil"
     ],
     "filament_retraction_speed": [
-        "nil",
-        "nil"
+        "10",
+        "10"
     ],
     "filament_wipe": [
         "nil",
@@ -63,18 +74,6 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],

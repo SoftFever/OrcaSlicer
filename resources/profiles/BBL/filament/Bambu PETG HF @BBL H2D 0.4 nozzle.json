@@ -15,6 +15,10 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
     "filament_flow_ratio": [
         "0.95",
         "0.95"
@@ -24,10 +28,18 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "21",
-        "21"
+        "24",
+        "32"
     ],
     "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_above": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
@@ -68,18 +80,6 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
