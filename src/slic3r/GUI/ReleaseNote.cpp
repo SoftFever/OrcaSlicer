@@ -974,11 +974,23 @@ void PrintErrorDialog::update_text_image(const wxString& text, const wxString& e
     m_vebview_release_note->SetSizer(sizer_text_release_note);
 
     if (!image_url.empty()) {
-        web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
-        BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
-        if (web_request.GetState() == wxWebRequest::State_Idle)
-            web_request.Start();
-        BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+        if (!img.IsOk() && image_url.Contains("http"))
+        {
+            web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
+            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+            if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
+            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        }
+        else
+        {
+            const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+            m_error_prompt_pic_static->SetBitmap(wxBitmap(resize_img));
+
+            Layout();
+            Fit();
+        }
+
         m_error_prompt_pic_static->Show();
 
     }

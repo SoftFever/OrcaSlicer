@@ -28,6 +28,7 @@ class HMSQuery {
 protected:
     std::unordered_map<string, json> m_hms_info_jsons;  // key-> device id type, the first three digits of SN number
     std::unordered_map<string, json> m_hms_action_jsons;// key-> device id type
+    std::unordered_map<wxString, wxImage> m_hms_local_images; // key-> image name
     mutable std::mutex m_hms_mutex;
 
 public:
@@ -43,7 +44,10 @@ public:
     wxString  query_hms_msg(const std::string& dev_id, const std::string& long_error_code);
     wxString  query_print_error_msg(const MachineObject* obj, int print_error);
     wxString  query_print_error_msg(const std::string& dev_id, int print_error);
-    wxString  query_print_error_url_action(const MachineObject* obj, int print_error, std::vector<int>& button_action);
+    wxString  query_print_image_action(const MachineObject* obj, int print_error, std::vector<int>& button_action);
+
+    // query local images
+    wxImage   query_image_from_local(const wxString& image_name);
 
 public:
     static std::string hms_language_code();
@@ -62,7 +66,7 @@ private:
     string    get_dev_id_type(const MachineObject* obj) const;
     wxString _query_hms_msg(const string& dev_id_type, const string& long_error_code, const string& lang_code = std::string("en"));
     wxString _query_error_msg(const string& dev_id_type, const std::string& long_error_code, const std::string& lang_code = std::string("en"));
-    wxString _query_error_url_action(const string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action);
+    wxString _query_error_image_action(const string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action);
 };
 
 int get_hms_info_version(std::string &version);

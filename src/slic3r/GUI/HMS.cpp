@@ -4,6 +4,7 @@
 #include <boost/log/trivial.hpp>
 
 static const char* HMS_PATH = "hms";
+static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";
 
 namespace Slic3r {
 namespace GUI {
@@ -120,43 +121,49 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
     return 0;
 }
 
+
+static void
+_copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* the copy will not override files*/
+{
+    try
+    {
+	    if (!fs::exists(from_dir))
+	    {
+	        return;
+	    }
+	
+	    if (!fs::exists(to_dir))
+	    { 
+	        fs::create_directory(to_dir);
+	    }
+	
+	    for (const auto &entry : fs::directory_iterator(from_dir))
+	    {
+	        const fs::path &source_path   = entry.path();
+	        const fs::path &relative_path = fs::relative(source_path, from_dir);
+	        const fs::path &dest_path     = to_dir / relative_path;
+
+	        if (fs::is_regular_file(source_path) && !fs::exists(dest_path))
+            { 
+                copy_file(source_path, dest_path);
+            }
+            else if (fs::is_directory(source_path))
+            {
+                _copy_dir(source_path, dest_path);
+            }
+	    }
+    }
+    catch (...)
+    {
+    	
+    }
+}
+
 void HMSQuery::copy_from_data_dir_to_local()
 {
     const fs::path& from_dir = fs::path(Slic3r::resources_dir()) / HMS_PATH;
-    if (!fs::exists(from_dir))
-    {
-        assert(0);
-        return;
-    }
-
     const fs::path& to_dir = fs::path(Slic3r::data_dir()) / HMS_PATH;
-    if (!fs::exists(to_dir))
-    {
-        fs::create_directory(to_dir);
-    }
-
-    try
-    {
-        for (const auto& entry : fs::directory_iterator(from_dir))
-        {
-            const fs::path& source_path = entry.path();
-            const fs::path& relative_path = fs::relative(source_path, from_dir);
-            const fs::path& dest_path = to_dir / relative_path;
-            if (fs::exists(dest_path))
-            {
-                continue;
-            }
-
-            if (fs::is_regular_file(source_path))
-            {
-                copy_file(source_path, dest_path);
-            }
-        }
-    }
-    catch (const std::exception&)
-    {
-
-    }
+    _copy_dir(from_dir, to_dir);
 }
 
 int HMSQuery::load_from_local(const std::string& hms_type, const std::string& dev_id_type, json* load_json, std::string& load_version)
@@ -400,7 +407,7 @@ wxString HMSQuery::_query_error_msg(const std::string& dev_id_type,
     return wxEmptyString;
 }
 
-wxString HMSQuery::_query_error_url_action(const std::string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action)
+wxString HMSQuery::_query_error_image_action(const std::string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action)
 {
     init_hms_info(dev_id_type);
 
@@ -457,7 +464,8 @@ wxString HMSQuery::query_print_error_msg(const std::string& dev_id, int print_er
     return _query_error_msg(dev_id.substr(0, 3), std::string(buf), lang_code);
 }
 
-wxString HMSQuery::query_print_error_url_action(const MachineObject* obj, int print_error, std::vector<int>& button_action)
+
+wxString HMSQuery::query_print_image_action(const MachineObject* obj, int print_error, std::vector<int>& button_action)
 {
     if (!obj)
     {
@@ -467,7 +475,37 @@ wxString HMSQuery::query_print_error_url_action(const MachineObject* obj, int pr
     char buf[32];
     ::sprintf(buf, "%08X", print_error);
     //The first three digits of SN number
-    return _query_error_url_action(get_dev_id_type(obj),std::string(buf), button_action);
+    return _query_error_image_action(get_dev_id_type(obj),std::string(buf), button_action);
+}
+
+wxImage HMSQuery::query_image_from_local(const wxString& image_name)
+{
+    if (image_name.empty() || image_name.Contains("http"))
+    {
+        return wxImage();
+    }
+
+    if (m_hms_local_images.empty())
+    {
+        const fs::path& local_img_dir = fs::path(Slic3r::data_dir()) / HMS_LOCAL_IMG_PATH;
+        if (fs::exists(local_img_dir))
+        { 
+            for (const auto &entry : fs::directory_iterator(local_img_dir))
+            {
+                const fs::path& image_path = entry.path();
+                const fs::path& image_name = fs::relative(image_path, local_img_dir);
+                m_hms_local_images[image_name.string()] = wxImage(wxString::FromUTF8(image_path.string()));
+            }
+        }
+    }
+
+    auto iter = m_hms_local_images.find(image_name);
+    if (iter != m_hms_local_images.end())
+    {
+        return iter->second;
+    }
+
+    return wxImage();
 }
 
 void HMSQuery::clear_hms_info()
