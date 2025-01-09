@@ -245,7 +245,7 @@ public:
         bool not_show_again_check = false
     );
     void update_text(wxString text);
-    void update_text(std::vector<ConfirmBeforeSendInfo> texts);
+    void update_text(std::vector<ConfirmBeforeSendInfo> texts, bool enable_warning_clr = true);
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
@@ -253,13 +253,14 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect);
     void show_update_nozzle_button(bool show = false);
     void hide_button_ok();
-    void edit_cancel_button_txt(wxString txt);
+    void edit_cancel_button_txt(const wxString& txt, bool switch_green = false);
     void disable_button_ok();
     void enable_button_ok();
     wxString format_text(wxString str, int warp);
 
     ~ConfirmBeforeSendDialog();
 
+protected:
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow* m_vebview_release_note{ nullptr };
     Label* m_staticText_release_note{ nullptr };

@@ -2096,7 +2096,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
 
     std::vector<ConfirmBeforeSendInfo> confirm_text;
-    confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please check the following:")));
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
@@ -2252,66 +2251,72 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-    if (has_slice_warnings) {
-        wxString confirm_title = _L("Warning");
-        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
-
-        if(is_printing_block){
+    if (has_slice_warnings)
+    {
+        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
+        if (is_printing_block)
+        {
             confirm_dlg.hide_button_ok();
-            confirm_dlg.edit_cancel_button_txt(_L("Close"));
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), ConfirmBeforeSendInfo::InfoLevel::Warning));
+            confirm_dlg.edit_cancel_button_txt(_L("Close"), true);
         }
-        else {
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));
-        }
-
-        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
-            confirm_dlg.on_hide();
-           /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-                this->connect_printer_mqtt();
-            }
-            else {*/
+        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e)
+            {
+                confirm_dlg.on_hide();
                 this->on_send_print();
-            //}
-        });
+            });
 
-        //confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
-        //    if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
-        //        try
-        //        {
-        //            float diameter = std::stof(nozzle_diameter);
-        //            diameter = round(diameter * 10) / 10;
-        //            obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
-        //        }
-        //        catch (...) {}
-        //    }
-        //    });
-
-       
-        wxString info_msg = wxEmptyString;
-
-        for (auto i = 0; i < confirm_text.size(); i++) {
-            if (i == 0) {
-                //info_msg += confirm_text[i];
-            }
-            else if (i == confirm_text.size() - 1) {
-                //info_msg += confirm_text[i];
-            }
-            else {
-                confirm_text[i].text = wxString::Format("%d. %s",i, confirm_text[i].text);
+        // STUDIO-9580
+        /* use warning color if there are warning and normal messages* /
+        /* use indexes if there are several messages*/
+        /* add header and ending if there are several messages or has none block warnings*/
+        if (confirm_text.size() > 1 || !is_printing_block)
+        {
+            bool has_warning_msg = false;
+            bool has_normal_msg = false;
+            if (confirm_text.size() > 1)
+            {
+                for (auto i = 0; i < confirm_text.size(); i++)
+                {
+                    confirm_text[i].text = wxString::Format("%d. %s", i + 1, confirm_text[i].text);
+                    if (confirm_text[i].level == ConfirmBeforeSendInfo::InfoLevel::Warning)
+                    {
+                        has_warning_msg = true;
+                    }
+                    else
+                    {
+                        has_normal_msg = true;
+                    }
+                }
             }
 
+            std::vector<ConfirmBeforeSendInfo> shown_infos;
+            shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please check the following:")));
+            for (const auto& item : confirm_text)
+            {
+                shown_infos.emplace_back(item);
+            }
+
+            if (is_printing_block)
+            {
+                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), ConfirmBeforeSendInfo::InfoLevel::Warning));
+            }
+            else
+            {
+                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));
+            }
+
+            confirm_dlg.update_text(shown_infos, has_warning_msg&& has_normal_msg);
         }
-        confirm_dlg.update_text(confirm_text);
-        confirm_dlg.on_show();
+        else
+        {
+            confirm_dlg.update_text(confirm_text, false);
+        }
 
-    } else {
-        /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-             this->connect_printer_mqtt();
-         }
-         else {*/
-            this->on_send_print();
-        //}
+        confirm_dlg.on_show();
+    } 
+    else
+    {
+        this->on_send_print();
     }
 }
 

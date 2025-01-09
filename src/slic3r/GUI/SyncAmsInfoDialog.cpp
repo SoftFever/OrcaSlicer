@@ -2379,7 +2379,7 @@ void SyncAmsInfoDialog::on_ok_btn(wxCommandEvent &event)
 
         if (is_printing_block) {
             confirm_dlg.hide_button_ok();
-            confirm_dlg.edit_cancel_button_txt(_L("Close"));
+            confirm_dlg.edit_cancel_button_txt(_L("Close"), true);
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), ConfirmBeforeSendInfo::InfoLevel::Warning));
         } else {
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));

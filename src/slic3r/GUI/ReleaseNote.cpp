@@ -1322,30 +1322,31 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
     Fit();
 }
 
-void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts)
+void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts, bool enable_warning_clr /*= true*/)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
 
+
     auto height = 0;
     for (auto text : texts) {
         auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
-        if (text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
+        if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
             label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
         }
-        label_item->SetMaxSize(wxSize(FromDIP(380), -1));
-        label_item->SetMinSize(wxSize(FromDIP(380), -1));
-        label_item->Wrap(FromDIP(380));
+        label_item->SetMaxSize(wxSize(FromDIP(500), -1));
+        label_item->SetMinSize(wxSize(FromDIP(500), -1));
+        label_item->Wrap(FromDIP(500));
         label_item->Layout();
         sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         height += label_item->GetSize().y;
     }
 
     m_vebview_release_note->Layout();
-    if (height < FromDIP(380))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), height + FromDIP(25)));
+    if (height < FromDIP(500))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), height + FromDIP(25)));
     else {
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), FromDIP(500)));
     }
 
     Layout();
@@ -1418,9 +1419,19 @@ void ConfirmBeforeSendDialog::hide_button_ok()
     m_button_ok->Hide();
 }
 
-void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
+void ConfirmBeforeSendDialog::edit_cancel_button_txt(const wxString& txt, bool switch_green)
 {
     m_button_cancel->SetLabel(txt);
+
+    if (switch_green)
+    {
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_cancel->SetBackgroundColor(btn_bg_green);
+        m_button_cancel->SetBorderColor(*wxWHITE);
+        m_button_cancel->SetTextColor(wxColour("#FFFFFE"));
+    }
 }
 
 void ConfirmBeforeSendDialog::disable_button_ok()
