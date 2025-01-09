@@ -2519,7 +2519,6 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 void StatusPanel::error_info_reset()
 {
     m_project_task_panel->error_info_reset();
-    before_error_code = 0;
 }
 
 void StatusPanel::on_print_error_clean(wxCommandEvent &event)
