@@ -16,7 +16,7 @@
 #include "imgui/imgui_internal.h"
 #include "slic3r/GUI/Field.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
-#include "FixModelByWin10.hpp"
+#include "FixModel.hpp"
 
 namespace Slic3r {
 namespace GUI {

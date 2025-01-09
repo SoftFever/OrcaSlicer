@@ -14,7 +14,7 @@
 #include <winrt/windows.storage.provider.h>
 #include <winrt/windows.graphics.printing3d.h>
 
-#include "FixModelByWin10.hpp"
+#include "FixModel.hpp"
 
 #include <atomic>
 #include <chrono>
