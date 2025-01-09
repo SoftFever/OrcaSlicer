@@ -2538,7 +2538,7 @@ msgstr "已取消自動擺放。"
 msgid ""
 "Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr ""
-msgstr "已完成自動擺放，但是有未被擺到列印板內的物件，可縮小物件間距後再重試。"
+"已完成自動擺放，但是有未被擺到列印板內的物件，可縮小物件間距後再重試。"
 
 msgid "Arranging done."
 msgstr "已完成自動擺放。"
@@ -3000,10 +3000,7 @@ msgstr "此列印設備目前不支援自動補料功能。"
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
-msgstr "此列印設備目前不支援自動切換備用線材。"
-
-msgid "AMS filament backup is not enabled, please enable it in the AMS settings."
-msgstr "AMS 備用線材自動切換未啟用，請在 AMS 設定中啟用。"
+msgstr "AMS 線材備份功能尚未啟用，請在 AMS 設定中開啟。"
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
