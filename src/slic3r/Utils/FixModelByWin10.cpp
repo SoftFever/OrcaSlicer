@@ -444,4 +444,14 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 
 } // namespace Slic3r
 
+bool is_repair_available()
+{
+    return is_windows10();
+}
+
+bool fix_model(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& progress_dialog, const wxString& msg_header, std::string& fix_result)
+{
+    fix_model_by_win10_sdk_gui(model_object, volume_idx, progress_dialog, msg_header, fix_result);
+}
+
 #endif /* HAS_WIN10SDK */
