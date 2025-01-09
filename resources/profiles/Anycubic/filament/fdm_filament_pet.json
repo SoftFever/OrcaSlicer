@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_type": [
+        "PETG"
+    ],
     "cool_plate_temp": [
         "60"
     ],
@@ -33,9 +36,6 @@
     ],
     "filament_max_volumetric_speed": [
         "25"
-    ],
-    "filament_type": [
-        "PETG"
     ],
     "filament_density": [
         "1.27"

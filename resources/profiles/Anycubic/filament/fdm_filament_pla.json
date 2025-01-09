@@ -4,14 +4,14 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_type": [
+        "PLA"
+    ],
     "fan_cooling_layer_time": [
         "100"
     ],
     "filament_max_volumetric_speed": [
         "12"
-    ],
-    "filament_type": [
-        "PLA"
     ],
     "filament_density": [
         "1.24"

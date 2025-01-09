@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_type": [
+        "PC"
+    ],
     "cool_plate_temp": [
         "0"
     ],
@@ -33,9 +36,6 @@
     ],
     "filament_max_volumetric_speed": [
         "23.2"
-    ],
-    "filament_type": [
-        "PC"
     ],
     "filament_density": [
         "1.04"

@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_type": [
+        "ASA"
+    ],
     "cool_plate_temp": [
         "105"
     ],
@@ -33,9 +36,6 @@
     ],
     "filament_max_volumetric_speed": [
         "28.6"
-    ],
-    "filament_type": [
-        "ASA"
     ],
     "filament_density": [
         "1.04"
