@@ -3085,10 +3085,11 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         if (layer_result.empty()) {
             // there is nothing to merge finish_layer with
             layer_result.emplace_back(std::move(finish_layer_tcr));
-        } else {
+        }
+        else if (is_valid_gcode(finish_layer_tcr.gcode)) {
             if (insert_finish_layer_idx == -1)
                 layer_result[0] = merge_tcr(finish_layer_tcr, layer_result[0]);
-            else if (is_valid_gcode(finish_layer_tcr.gcode))
+            else
                 layer_result[insert_finish_layer_idx] = merge_tcr(layer_result[insert_finish_layer_idx], finish_layer_tcr);
         }
 
@@ -3237,7 +3238,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 
     float wipe_tower_depth = m_layer_info->depth + m_perimeter_width;
     if (is_new_mode && m_enable_timelapse_print)
-        wipe_tower_depth = m_wipe_tower_width;
+        wipe_tower_depth = m_wipe_tower_depth;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
     if (m_use_gap_wall)
