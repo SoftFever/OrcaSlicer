@@ -707,10 +707,10 @@ msgid "ITALIC"
 msgstr "斜體"
 
 msgid "SWISS"
-msgstr ""
+msgstr "SWISS"
 
 msgid "MODERN"
-msgstr ""
+msgstr "MODERN"
 
 msgid "First font"
 msgstr ""
@@ -944,7 +944,7 @@ msgstr "恢復對。"
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr "pt"
+msgstr "點"
 
 msgid "Revert gap between characters"
 msgstr "恢復字元間距"
@@ -10944,7 +10944,7 @@ msgstr ""
 "此數值是基於填充擠出寬度進行計算。Orca Slicer 會嘗試將兩條靠近的填充線連接到一段較短的牆。"
 "如果沒有找到比 infill_anchor_max 更短的牆，則填充線會只連接到一側的牆，"
 "且該段的長度受此參數限制，但不會超過 anchor_length_max。 \n"
-"將此參數設為 0 可禁用單條填充線與牆的錨接功能。
+"將此參數設為 0 可禁用單條填充線與牆的錨接功能。"
 
 #, fuzzy
 msgid "0 (no open anchors)"
@@ -10972,7 +10972,7 @@ msgstr ""
 "此數值是基於填充擠出寬度進行計算。Orca Slicer 會嘗試將兩條靠近的填充線連接到一段較短的牆。"
 "如果沒有找到短於此參數的牆，則填充線會只連接到單側牆，且該牆的長度受 infill_anchor 限制，"
 "但不會超過此參數的設定值。
-"若此參數設定為 0，將啟用舊版填充連接算法，並生成與設置為 1000 和 0 相同的結果。
+"若此參數設定為 0，將啟用舊版填充連接算法，並生成與設置為 1000 和 0 相同的結果。"
 
 msgid "0 (Simple connect)"
 msgstr "0（簡單連接）"
@@ -11007,7 +11007,7 @@ msgid ""
 "(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr "稀疏填充的加速度。如果該值表示為百分比（例如 100%），則將根據預設加速度進行計算。"
 
-sgid ""
+msgid ""
 "Acceleration of internal solid infill. If the value is expressed as a "
 "percentage (e.g. 100%), it will be calculated based on the default "
 "acceleration."
@@ -11105,7 +11105,7 @@ msgstr ""
 "風扇速度會從第「close_fan_the_first_x_layers」層開始，"
 "從零速以線性方式逐漸增加，直到第「full_fan_speed_layer」層達到最大速度。"
 "如果「full_fan_speed_layer」的設定值小於「close_fan_the_first_x_layers」，"
-"則「full_fan_speed_layer」會被忽略，此時風扇會在「close_fan_the_first_x_layers + 1」層以允許的最高速度運行。
+"則「full_fan_speed_layer」會被忽略，此時風扇會在「close_fan_the_first_x_layers + 1」層以允許的最高速度運行。"
 
 
 msgid "layer"
@@ -11323,7 +11323,7 @@ msgstr ""
 "若設置為 0，將停用此功能。"
 "\n"
 "譯者補充：風扇啟動時間通常是指風扇從靜止狀態到穩定運轉所需的時間\n"
-"這個設定可以確保風扇在低轉速時順利啟動，避免因功率不足而無法正常運行。
+"這個設定可以確保風扇在低轉速時順利啟動，避免因功率不足而無法正常運行。"
 
 msgid "Time cost"
 msgstr "時間成本"
@@ -11378,7 +11378,7 @@ msgstr "若您需要切換使用不同的列印床類型，請啟用此選項"
 msgid "Label objects"
 msgstr "標註物件"
 
-msgid "Enable this to add comments into the G-Code labeling print moves with what object they belong to, which is useful for the Octoprint CancelObject plugin. This settings is NOT compatiblmsgid ""
+msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
 "object they belong to, which is useful for the Octoprint CancelObject "
 "plugin. This settings is NOT compatible with Single Extruder Multi Material "
@@ -11409,10 +11409,11 @@ msgstr "合併填充"
 msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
 "reduce time. Wall is still printed with original layer height."
-msgstr "自動合併若干層稀疏填充一起列印以可縮短時間。內外牆依然保持原始層高列印。"
+msgstr ""
+"自動將多層稀疏填充合併列印，以縮短列印時間。同時，周邊仍保持原層高列印。"
 
 msgid "Infill combination - Max layer height"
-msgstr "填充組合 - 最大層高"
+msgstr "合併填充 - 最大層高"
 
 msgid ""
 "Maximum layer height for the combined sparse infill. \n"
@@ -11426,26 +11427,49 @@ msgid ""
 "Use either absolute mm values (eg. 0.32mm for a 0.4mm nozzle) or % values "
 "(eg 80%). This value must not be larger than the nozzle diameter."
 msgstr ""
+"設定稀疏填充合併列印最大層高。\n"
+"\n"
+"你可以將其設為 0 或 100% 來使用噴嘴直徑（以最大程度縮短列印時間），或者設定為大約 80% 來增強稀疏填充的強度。"
+"結合的層數會根據此值與層高的比值計算，並向下取整到最接近的位數。"\n""
+"\n"
+"可以使用絕對值（例如 0.32mm，對應 0.4mm 的噴嘴）或百分比（例如 80%）。注意，此值不能超過噴嘴的直徑。"
+
 
 msgid "Filament to print internal sparse infill."
 msgstr "列印內部稀疏填充的線材。"
 
-msgid "Line width of internal sparse infill. If expressed as a %, it will be computed over the nozzle diameter."
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
 msgstr "內部稀疏填充的線寬。如果以%表示，它將以噴嘴直徑為基準來計算。"
 
 msgid "Infill/Wall overlap"
 msgstr "填充/牆 重疊"
 
 #, no-c-format, no-boost-format
-msgid "Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgid ""
+"Infill area is enlarged slightly to overlap with wall for better bonding. "
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
+"為了增強填充與周邊的結合，填充區域會略微擴大，與周邊產生重疊。"
+"此百分比值是基於稀疏填充的線寬來計算的。建議將該值設置在 10-15% 左右，以減少過擠出或材料堆積的可能性"
+"從而避免列印出粗糙的頂部表面。
 
 msgid "Top/Bottom solid infill/wall overlap"
-msgstr ""
+msgstr "頂部/底部實心填充部分和周邊重疊區域設定"
 
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill"
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimizing the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
 msgstr ""
+"頂部實心填充的區域會略微擴大，與周邊部分重疊，以增強結合效果並減少填充與周邊接合處出現針孔的可能性。"
+"建議從 25-30% 的設定值開始，這通常能有效減少針孔現象。此百分比值是基於稀疏填充的線寬來計算的。"
 
 msgid "Speed of internal sparse infill"
 msgstr "內部稀疏填充的列印速度"
@@ -11453,7 +11477,10 @@ msgstr "內部稀疏填充的列印速度"
 msgid "Interface shells"
 msgstr "接觸面外殼"
 
-msgid "Force the generation of solid shells between adjacent materials/volumes. Useful for multi-extruder prints with translucent materials or manual soluble support material"
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
 msgstr "強制在相鄰材料/體積之間產生實體殼。 適用於使用半透明材料或手動可溶支撐材料的多擠出機列印"
 
 msgid "Maximum width of a segmented region"
@@ -11463,45 +11490,68 @@ msgid "Maximum width of a segmented region. Zero disables this feature."
 msgstr "分隔區域的最大寬度。零表示禁用此功能。"
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "分隔區域的互鎖深度"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\"is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature."
+msgid ""
+"Interlocking depth of a segmented region. It will be ignored if "
+"\"mmu_segmented_region_max_width\" is zero or if "
+"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
+"設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，"
+"或者「mmu_segmented_region_interlocking_depth」的值大於「mmu_segmented_region_max_width」，"
+"此功能將被忽略。將此值設為 0 可完全關閉該功能。"
+"\n"
+"譯者補充：此設定通常用於控制多部分或模塊化結構之間的互鎖程度，以增強連接穩定性或結合效果。"
 
 msgid "Use beam interlocking"
-msgstr ""
+msgstr "使用梁式互鎖"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
 msgstr ""
+"在不同材料的耗材接觸點生成互鎖梁結構，增強耗材之間的附著力，特別適用於不同材料列印的模型。"
+"\n"
+"譯者補充：此設定通常用於提升結構穩定性，透過梁式設計讓不同部分更緊密地連接在一起，常見於模組化或多材料列印中。"
 
 msgid "Interlocking beam width"
-msgstr ""
+msgstr "梁式互鎖寬度"
 
 msgid "The width of the interlocking structure beams."
 msgstr ""
+"梁式互鎖結構寬度"
 
 msgid "Interlocking direction"
-msgstr ""
+msgstr "梁式互鎖方向"
 
 msgid "Orientation of interlock beams."
-msgstr ""
+msgstr "梁式互鎖結構的排列方向。"
 
 msgid "Interlocking beam layers"
-msgstr ""
+msgstr "梁式互鎖層數"
 
-msgid "The height of the beams of the interlocking structure, measured in number of layers. Less layers is stronger, but more prone to defects."
-msgstr ""
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr "梁式互鎖的高度，以層數計算。層數越少，結構越強，但更容易出現缺陷。"
 
 msgid "Interlocking depth"
-msgstr ""
+msgstr "梁式互鎖深度"
 
-msgid "The distance from the boundary between filaments to generate interlocking structure, measured in cells. Too few cells will result in poor adhesion."
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
 msgstr ""
+"互鎖結構與耗材邊界之間的距離，以單元數為單位計算。若單元數過少，可能會導致附著力不足。"
 
 msgid "Interlocking boundary avoidance"
-msgstr ""
+msgstr "梁式互鎖的邊界避讓"
 
-msgid "The distance from the outside of a model where interlocking structures will not be generated, measured in cells."
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
 msgstr ""
 
 msgid "Ironing Type"
