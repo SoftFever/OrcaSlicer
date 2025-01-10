@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <exception>
 #include <thread>
+#include <cstdio>
 
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -21,10 +22,37 @@ namespace Slic3r {
 
 bool is_repair_available()
 {
-    // TODO: check if meshlabserver is in path
-    //       meshlabserver returns -1 (255) on 'meshlabserver -h'
-    //       so it is posseble we need to use popen to check its output
-    return true;
+    static int test_executed = 0;
+
+    if (test_executed == 0) {
+        bool found = false;
+        int r;
+        char *line = nullptr;
+        size_t linelen = 0;
+
+        const std::string marker{"MeshLabServer version:"};
+
+        FILE *f = popen("meshlabserver", "r");
+        if (!f)
+            return false;
+
+        while((r = getline(&line, &linelen, f)) > 0) {
+            //fprintf(stderr, "%i: %s", r, line);
+
+            if (strncmp(line, marker.c_str(), marker.size()) == 0) {
+                found = true;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << line;
+                // do not break, read output till the end
+            }
+        }
+
+        free(line);
+        pclose(f);
+
+        test_executed = found ? 1 : -1;
+    }
+
+    return test_executed > 0;
 }
 
 typedef std::function<void ()> ThrowOnCancelFn;
