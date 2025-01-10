@@ -143,12 +143,12 @@ bool fix_model(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& p
                 boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
                 path_dst += ".stl";
 
-                on_progress(L("Exported object #d for repair"), (progress += progress_step));
+                on_progress(L("Exported object for repair"), (progress += progress_step));
 
                 fix_model_by_meshlab(path_src.string(), path_dst.string(),
                                      [&canceled]() { if (canceled) throw RepairCanceledException(); });
 
-                on_progress(L("Loading repaired object #d"), (progress += progress_step));
+                on_progress(L("Loading repaired object"), (progress += progress_step));
 
                 Model model;
                 bool loaded = Slic3r::load_stl(path_dst.string().c_str(), &model);
