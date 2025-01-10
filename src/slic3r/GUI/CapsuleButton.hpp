@@ -21,6 +21,9 @@ private:
     wxBitmapButton *m_btn;
     Label          *m_label;
 
+    wxBitmap tag_on_bmp;
+    wxBitmap tag_off_bmp;
+
     bool m_hovered;
     bool m_selected;
 };

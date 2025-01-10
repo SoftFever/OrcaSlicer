@@ -78,18 +78,23 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     button_labels.resize(ButtonType::btCount);
     button_desps.resize(ButtonType::btCount);
     detail_infos.resize(ButtonType::btCount);
+    global_mode_tags.resize(ButtonType::btCount);
+
     std::vector<wxString> btn_texts    = {AutoForFlushLabel, AutoForMatchLabel, ManualLabel};
     std::vector<wxString> btn_desps    = {AutoForFlushDesp, AutoForMatchDesp, ManualDesp};
     std::vector<wxString> mode_details = {AutoForFlushDetail, AutoForMatchDetail, ManualDetail};
 
     top_sizer->AddSpacer(vertical_margin);
-
-    auto checked_bmp   = create_scaled_bitmap("map_mode_on", nullptr, 16);
-    auto unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
+    checked_bmp = create_scaled_bitmap("map_mode_on", nullptr, 16);;
+    unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
+    disabled_bmp = create_scaled_bitmap("map_mode_disabled", nullptr, 16);
+    checked_hover_bmp = create_scaled_bitmap("map_mode_on_hovered", nullptr, 16);
+    unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
+    global_tag_bmp = create_scaled_bitmap("global_map_mode_tag", nullptr, 16);
 
     for (size_t idx = 0; idx < ButtonType::btCount; ++idx) {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-        radio_btns[idx]          = new wxBitmapButton(this, idx, unchecked_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+        radio_btns[idx]          = new wxBitmapButton(this, wxID_ANY, unchecked_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
         radio_btns[idx]->SetBackgroundColour(BackGroundColor);
 
         button_labels[idx] = new Label(this, btn_texts[idx]);
@@ -102,10 +107,16 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         button_desps[idx]->SetForegroundColour(LabelEnableColor);
         button_desps[idx]->SetFont(Label::Body_14);
 
-        button_sizer->Add(radio_btns[idx], 0, wxALIGN_CENTER_VERTICAL);
+        global_mode_tags[idx] = new wxBitmapButton(this, wxID_ANY, global_tag_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+        global_mode_tags[idx]->SetBackgroundColour(BackGroundColor);
+        global_mode_tags[idx]->SetToolTip(_L("Global settings"));
+
+        button_sizer->Add(radio_btns[idx], 0, wxALIGN_CENTER);
         button_sizer->AddSpacer(ratio_spacing);
-        button_sizer->Add(button_labels[idx], 0, wxALIGN_CENTER_VERTICAL);
-        button_sizer->Add(button_desps[idx], 0, wxALIGN_CENTER_VERTICAL);
+        button_sizer->Add(button_labels[idx], 0, wxALIGN_CENTER);
+        button_sizer->Add(button_desps[idx], 0, wxALIGN_CENTER);
+        button_sizer->AddSpacer(ratio_spacing);
+        button_sizer->Add(global_mode_tags[idx], 0, wxALIGN_CENTER);
 
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -170,22 +181,10 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
     HWND hwnd = GetHWND();
     if (hwnd) {
         HRGN hrgn = CreateRoundRectRgn(0, 0, GetRect().GetWidth(), GetRect().GetHeight(), radius, radius);
-        SetWindowRgn(hwnd, hrgn, TRUE);
+        SetWindowRgn(hwnd, hrgn, FALSE);
 
         SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
         SetLayeredWindowAttributes(hwnd, 0, 0, LWA_COLORKEY);
-    }
-#else
-    wxClientDC         dc(this);
-    wxGraphicsContext *gc = wxGraphicsContext::Create(dc);
-    if (gc) {
-        gc->SetBrush(*wxWHITE_BRUSH);
-        gc->SetPen(*wxTRANSPARENT_PEN);
-        wxRect         rect(0, 0, GetSize().GetWidth(), GetSize().GetHeight());
-        wxGraphicsPath path = wxGraphicsRenderer::GetDefaultRenderer()->CreatePath();
-        path.AddRoundedRectangle(0, 0, rect.width, rect.height, radius);
-        gc->DrawPath(path);
-        delete gc;
     }
 #endif
 }
@@ -195,8 +194,6 @@ void FilamentGroupPopup::Init()
     const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
     const wxString MachineSyncTip = _L("(Please sync printer)");
 
-    auto disabled_bmp = create_scaled_bitmap("map_mode_disabled", nullptr, 16);
-    auto unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
     radio_btns[ButtonType::btForMatch]->Enable(m_connected);
     if (m_connected) {
         button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
@@ -239,6 +236,7 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool skip_
             m_active = true;
             Init();
             ResetTimer();
+            DrawRoundedCorner(16);
             PopupWindow::Popup();
         }
     }
@@ -308,13 +306,12 @@ void FilamentGroupPopup::OnEnterWindow(wxMouseEvent &) { ResetTimer(); }
 
 void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
-    auto checked_bmp         = create_scaled_bitmap("map_mode_on", nullptr, 16);
-    auto unchecked_bmp       = create_scaled_bitmap("map_mode_off", nullptr, 16);
-    auto checked_hover_bmp = create_scaled_bitmap("map_mode_on_hovered", nullptr, 16);
-    auto unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
-
-
+    auto global_mode = plater_ref->get_global_filament_map_mode();
     for (int i = 0; i < ButtonType::btCount; ++i) {
+        if (mode_list.at(i) == global_mode)
+            global_mode_tags[i]->Show();
+        else
+            global_mode_tags[i]->Hide();
         if (ButtonType::btForMatch == i && !m_connected) {
             button_labels[i]->SetFont(Label::Body_14);
             continue;

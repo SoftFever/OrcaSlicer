@@ -24,10 +24,10 @@ CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &la
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    std::string icon_name = selected ? "capsule_tag_on" : "capsule_tag_off";
-    auto        bmp       = create_scaled_bitmap(icon_name, nullptr, FromDIP(16));
+    tag_on_bmp = create_scaled_bitmap("capsule_tag_on", nullptr, FromDIP(16));
+    tag_off_bmp = create_scaled_bitmap("capsule_tag_off", nullptr, FromDIP(16));
 
-    m_btn = new wxBitmapButton(this, wxID_ANY, bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    m_btn = new wxBitmapButton(this, wxID_ANY, selected?tag_on_bmp:tag_off_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
     m_btn->SetBackgroundColour(*wxWHITE);
 
     m_label = new Label(this, label);
@@ -109,15 +109,13 @@ void CapsuleButton::OnLeaveWindow(wxMouseEvent &event)
 
 void CapsuleButton::UpdateStatus()
 {
-    std::string icon_name = m_selected ? "capsule_tag_on" : "capsule_tag_off";
-    auto        bmp       = create_scaled_bitmap(icon_name, nullptr, FromDIP(16));
-    m_btn->SetBitmap(bmp);
-
     if (m_selected) {
+        m_btn->SetBitmap(tag_on_bmp);
         m_label->SetForegroundColour(TextSelectColor);
         m_label->SetBackgroundColour(BgSelectColor);
         m_btn->SetBackgroundColour(BgSelectColor);
     } else {
+        m_btn->SetBitmap(tag_off_bmp);
         m_label->SetForegroundColour(TextNormalColor);
         m_label->SetBackgroundColour(BgNormalColor);
         m_btn->SetBackgroundColour(BgNormalColor);

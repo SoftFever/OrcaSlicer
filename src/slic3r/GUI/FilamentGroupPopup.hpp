@@ -48,10 +48,19 @@ private:
     FilamentMapMode m_mode;
     wxTimer        *m_timer;
 
-    std::vector<wxBitmapButton *> radio_btns;
+    std::vector<wxBitmapButton*> radio_btns;
+    std::vector<wxBitmapButton*> global_mode_tags;
     std::vector<Label *>   button_labels;
     std::vector<Label *>   button_desps;
     std::vector<Label *>   detail_infos;
+
+    wxBitmap checked_bmp;
+    wxBitmap unchecked_bmp;
+    wxBitmap disabled_bmp;
+    wxBitmap checked_hover_bmp;
+    wxBitmap unchecked_hover_bmp;
+    wxBitmap global_tag_bmp;
+
 
     wxStaticText *wiki_link;
 

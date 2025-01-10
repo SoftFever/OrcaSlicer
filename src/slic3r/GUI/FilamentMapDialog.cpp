@@ -92,8 +92,6 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
 }
 
 
-
-
 static const StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                                      std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                                      std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));

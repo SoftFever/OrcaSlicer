@@ -52,6 +52,9 @@ private:
 
     void UpdateStatus();
 
+    wxBitmap icon_enabled;
+    wxBitmap icon_disabled;
+
     wxBitmapButton *m_btn;
     wxStaticText   *m_label;
     Label          *m_detail;

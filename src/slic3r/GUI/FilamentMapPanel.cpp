@@ -115,9 +115,10 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_icon_path = icon;
-    auto bmp = create_scaled_bitmap(icon, nullptr, 20);
-    m_btn    = new wxBitmapButton(this, wxID_ANY, bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    icon_enabled = create_scaled_bitmap(icon, nullptr, 20);
+    icon_disabled = create_scaled_bitmap(icon + "_disabled", nullptr, 20);
+
+    m_btn    = new wxBitmapButton(this, wxID_ANY, icon_enabled, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
     m_btn->SetBackgroundColour(*wxWHITE);
 
     m_label = new wxStaticText(this, wxID_ANY, label);
@@ -204,13 +205,13 @@ void FilamentMapBtnPanel::UpdateStatus()
         m_detail->SetBackgroundColour(BgNormalColor);
     }
     if (!m_enabled) {
-        m_btn->SetBitmap(create_scaled_bitmap(m_icon_path + "_disabled", nullptr, 20));
+        m_btn->SetBitmap(icon_disabled);
         m_btn->SetForegroundColour(BgDisableColor);
         m_label->SetForegroundColour(TextDisableColor);
         m_detail->SetForegroundColour(TextDisableColor);
     }
     else {
-        m_btn->SetBitmap(create_scaled_bitmap(m_icon_path, nullptr, 20));
+        m_btn->SetBitmap(icon_enabled);
         m_btn->SetForegroundColour(BgNormalColor);
         m_label->SetForegroundColour(TextNormalBlackColor);
         m_detail->SetForegroundColour(TextNormalGreyColor);
