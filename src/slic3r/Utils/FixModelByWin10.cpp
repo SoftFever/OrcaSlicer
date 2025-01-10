@@ -454,7 +454,7 @@ bool is_repair_available()
 
 bool fix_model(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& progress_dialog, const wxString& msg_header, std::string& fix_result)
 {
-    fix_model_by_win10_sdk_gui(model_object, volume_idx, progress_dialog, msg_header, fix_result);
+    return fix_model_by_win10_sdk_gui(model_object, volume_idx, progress_dialog, msg_header, fix_result);
 }
 
 } // namespace Slic3r
