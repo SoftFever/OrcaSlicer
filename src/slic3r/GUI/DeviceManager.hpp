@@ -802,6 +802,8 @@ public:
     wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, ModuleVersionInfo> get_ams_version();
+
+    void clear_version_info();
     void store_version_info(const ModuleVersionInfo& info);
 
     /* printing */

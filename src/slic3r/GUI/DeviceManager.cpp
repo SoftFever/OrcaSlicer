@@ -1379,6 +1379,14 @@ std::map<int, MachineObject::ModuleVersionInfo> MachineObject::get_ams_version()
     return result;
 }
 
+void MachineObject::clear_version_info()
+{
+    air_pump_version_info = ModuleVersionInfo();
+    laser_version_info = ModuleVersionInfo();
+    cutting_module_version_info = ModuleVersionInfo();
+    module_vers.clear();
+}
+
 void MachineObject::store_version_info(const ModuleVersionInfo& info)
 {
     if (info.isAirPump())
@@ -3153,7 +3161,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
             if (j.contains("info")) {
                 if (j["info"].contains("command") && j["info"]["command"].get<std::string>() == "get_version") {
                     json j_module = j["info"]["module"];
-                    module_vers.clear();
+                    clear_version_info();
                     for (auto it = j_module.begin(); it != j_module.end(); it++) {
                         ModuleVersionInfo ver_info;
                         ver_info.name = (*it)["name"].get<std::string>();
