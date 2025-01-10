@@ -28,6 +28,10 @@
         "25x0,350x0,350x320,25x320"
     ],
     "machine_load_filament_time": "24",
+    "unprintable_filament_types" : [
+        "TPU",
+        "PPS-CF,PPA-CF"
+    ],
     "machine_max_acceleration_x": [
         "16000",
         "16000",

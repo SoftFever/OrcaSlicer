@@ -285,9 +285,23 @@ PrinterArch get_printer_arch_by_str(std::string arch_str)
 
 void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
 {
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr)
+        return;
+
     if (tag_type == "TPU" && ams_id != VIRTUAL_TRAY_MAIN_ID) {
+        wxString extruder_name = _L("left");
+        if (obj->is_main_extruder_on_left()) {
+            extruder_name = _L("right");
+        }
+        wxString info_str = wxString::Format(_L("TPU is not supported by %s extruder for this printer."), extruder_name);
+
         ac           = "prohibition";
-        info         = wxString(_L("TPU is not supported by deputy extruder.")).ToUTF8().data();
+        info         = info_str.ToUTF8().data();
         in_blacklist = true;
     }
 }
@@ -7080,7 +7094,6 @@ void DeviceManager::load_last_machine()
 json DeviceManager::filaments_blacklist = json::object();
 
 
-
 std::string DeviceManager::parse_printer_type(std::string type_str)
 {
     return get_value_from_config<std::string>(type_str, "printer_type");
@@ -7243,8 +7256,54 @@ bool DeviceManager::is_virtual_slot(int ams_id)
     return false;
 }
 
+bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        return true;
+    }
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr || !obj->is_multi_extruders()) {
+        return true;
+    }
+
+    Preset *printer_preset = GUI::get_printer_preset(obj);
+    if (!printer_preset)
+        return true;
+
+    ConfigOptionStrings *unprintable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("unprintable_filament_types"));
+    if (!unprintable_filament_types_op)
+        return true;
+
+    ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
+    if (!physical_extruder_map_op)
+        return true;
+
+    std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
+    for (size_t idx = 0; idx < unprintable_filament_types_op->values.size(); ++idx) {
+        if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
+            std::vector<std::string> filament_types = split_string(unprintable_filament_types_op->values.at(idx), ',');
+            auto iter = std::find(filament_types.begin(), filament_types.end(), tag_type);
+            if (iter != filament_types.end()) {
+                wxString extruder_name = idx == 0 ? _L("left") : _L("right");
+                ac                     = "prohibition";
+                info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
+                in_blacklist           = true;
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, bool& in_blacklist, std::string& ac, std::string& info)
 {
+    if (!check_filaments_printable(tag_vendor, tag_type, ams_id, in_blacklist, ac, info)) {
+        return;
+    }
+
     if (DeviceManager::is_virtual_slot(ams_id)) {
         check_filaments_for_vt_slot(tag_vendor, tag_type, ams_id, in_blacklist, ac, info);
         return;

@@ -55,6 +55,26 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
     return false;
 }
 
+bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, const PrintConfig *print_config)
+{
+    for (unsigned int filament_id : used_filaments) {
+        std::string filament_type = print_config->filament_type.get_at(filament_id);
+        for (size_t idx = 0; idx < print_config->unprintable_filament_types.values.size(); ++idx) {
+            if (filament_maps[filament_id] == idx) {
+                std::vector<std::string> limit_types = split_string(print_config->unprintable_filament_types.get_at(idx), ',');
+                auto                     iter        = std::find(limit_types.begin(), limit_types.end(), filament_type);
+                if (iter != limit_types.end()) {
+                    std::string error_msg;
+                    std::string extruder_name = idx == 0 ? "left" : "right";
+                    error_msg                 = "Grouping error: " + filament_type + " can not be placed in the " + extruder_name + " extruder";
+                    throw Slic3r::RuntimeError(error_msg);
+                }
+            }
+        }
+    }
+    return true;
+}
+
 // Return a zero based extruder from the region, or extruder_override if overriden.
 unsigned int LayerTools::wall_filament(const PrintRegion &region) const
 {
@@ -1046,6 +1066,14 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             fg.get_custom_seq = get_custom_seq;
             ret = fg.calc_filament_group();
         }
+
+        // todo: need calculated based on already grouped filaments
+        // PPS-CF/PPA-CF can only be placed on the left extruder
+        for (unsigned int filament_id : used_filaments) {
+            if (print_config.filament_type.get_at(filament_id) == "PPS-CF" || print_config.filament_type.get_at(filament_id) == "PPA-CF") {
+                ret[filament_id] = 0;
+            }
+        }
     }
 
     return ret;
@@ -1128,6 +1156,8 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             m_print->update_filament_maps_to_config(filament_maps);
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
+
+        check_filament_printable_after_group(used_filaments, filament_maps, print_config);
 
         if (!check_tpu_group(used_filaments, filament_maps, print_config)) {
             if (map_mode == FilamentMapMode::fmmManual) {

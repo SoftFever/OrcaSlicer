@@ -152,6 +152,7 @@ enum class NotificationType
 	BBLPreviewOnlyMode,
     BBLPrinterConfigUpdateAvailable,
 	BBLUserPresetExceedLimit,
+    BBLFilamentPrintableError,
     BBLSliceLimitError,
     BBLSliceMultiExtruderHeightOutside,
     NotificationTypeCount

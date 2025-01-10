@@ -46,6 +46,10 @@
         "320",
         "325"
     ],
+    "unprintable_filament_types" : [
+        "",
+        ""
+    ],
     "extruder_type": [
         "Direct Drive",
         "Direct Drive"

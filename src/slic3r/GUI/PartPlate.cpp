@@ -1727,6 +1727,29 @@ std::vector<int> PartPlate::get_used_filaments()
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
+bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxString& error_message)
+{
+    error_message.clear();
+    std::vector<int> used_filaments = get_extruders(true);  // 1 base
+    if (!used_filaments.empty()) {
+        for (auto filament_idx : used_filaments) {
+            int filament_id = filament_idx - 1;
+            std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            std::vector<int> filament_map  = get_real_filament_maps(config);
+            int extruder_idx = filament_map[filament_id] - 1;
+            std::string filament_types_str = config.option<ConfigOptionStrings>("unprintable_filament_types")->values.at(extruder_idx);
+            std::vector<string> filament_types = split_string(filament_types_str, ',');
+            auto iter = std::find(filament_types.begin(), filament_types.end(), filament_type);
+            if (iter != filament_types.end()) {
+                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+                error_message = wxString::Format(_L("Filament %s cannot be placed in the %s extruder for printing."), filament_type, extruder_name);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)
 {
     bool tpu_valid = true;

@@ -37,6 +37,7 @@
     ],
     "extruder_printable_area": [],
     "extruder_printable_height": [],
+	"unprintable_filament_types" : [""],
     "extruder_type": [
         "Direct Drive"
     ],

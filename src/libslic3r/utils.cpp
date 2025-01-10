@@ -1126,6 +1126,18 @@ std::string normalize_utf8_nfc(const char *src)
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
+std::vector<std::string> split_string(const std::string &str, char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string substr;
+
+    while (std::getline(ss, substr, delimiter)) {
+        result.push_back(substr);
+    }
+    return result;
+}
+
 namespace PerlUtils {
     // Get a file name including the extension.
     std::string path_to_filename(const char *src)       { return boost::filesystem::path(src).filename().string(); }
