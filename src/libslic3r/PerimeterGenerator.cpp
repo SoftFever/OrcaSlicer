@@ -95,8 +95,8 @@ class DisplacementMap: public noise::module::Module {
             double pixel_u = cubemap_side_u(object->bounding_box(), flat_point, normal_radians) / cfg.point_distance;
             double pixel_x = (double)((int)(pixel_u+.5) % displacement_map->cols); // +.5 to round; "Clamp" the texture using the "repeat" method (in graphics terms).
 
-            double pixel_val = displacement_map->get((int)(pixel_y+.5), (int)(pixel_x+.5)); // caution: signature is get(y, x)
-            return (255 - pixel_val) / 255.0; // inverse and normalize to 0.0 to 1.0
+            int pixel_val = displacement_map->get((int)(pixel_y+.5), (int)(pixel_x+.5)); // caution: signature is get(y, x)
+            return ((255 - pixel_val) / (255.0/2.0)) - 1.0; // negate value and normalize to -1.0 to 1.0
         }
         // we need the to know which side of object this line segment is on
         virtual void setNormalRadians(double _normal_radians) {
