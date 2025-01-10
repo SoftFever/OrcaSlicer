@@ -3654,6 +3654,10 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == L("Multimaterial")) {
         // Orca: hide specific settings for BBL printers
+        for (auto el : {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
+                        "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
+                        "filament_cooling_initial_speed", "filament_cooling_final_speed"})
+            toggle_option(el, !is_BBL_printer);
     }
 }
 
@@ -3782,9 +3786,15 @@ void TabPrinter::build_fff()
 
                         if (errors != enum_bitmask<ThumbnailError>()) {
                             // TRN: First argument is parameter name, the second one is the value.
+                            std::string error_str = format(_u8L("Invalid value provided for parameter %1%: %2%"), "thumbnails", val);
                             error_str += GCodeThumbnails::get_error_string(errors);
                             InfoDialog(parent(), _L("G-code flavor is switched"), from_u8(error_str)).ShowModal();
                         }
+                        
+                        if (!thumbnails_list.empty()) {
+                            GCodeThumbnailsFormat old_format = GCodeThumbnailsFormat(m_config->option("thumbnails_format")->getInt());
+                            GCodeThumbnailsFormat new_format = thumbnails_list.begin()->first;
+                            if (old_format != new_format) {
                                 DynamicPrintConfig new_conf = *m_config;
 
                                 auto* opt = m_config->option("thumbnails_format")->clone();
@@ -4395,7 +4405,11 @@ if (is_marlin_flavor)
                 //line.append_widget(reset_to_filament_color);
                 //optgroup->append_line(line);
     #endif
-}
+    }
+}   
+    // BBS. No extra extruder page for single physical extruder machine
+    // # remove extra pages
+    if (m_extruders_count < m_extruders_count_old)
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
 

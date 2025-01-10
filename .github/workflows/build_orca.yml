@@ -292,20 +292,20 @@ jobs:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
           asset_path: ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           asset_name: OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
-      # - name: Deploy orca_custom_preset_tests
-      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
-      #   with:
-      #     upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
-      #     release_id: 137995723
-      #     asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
-      #     asset_name: orca_custom_preset_tests.zip
-      #     asset_content_type: application/octet-stream
-      #     max_releases: 1
+      - name: Deploy orca_custom_preset_tests
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
+        uses: WebFreak001/deploy-nightly@v3.1.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
+          asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
+          asset_name: orca_custom_preset_tests.zip
+          asset_content_type: application/octet-stream
+          max_releases: 1
