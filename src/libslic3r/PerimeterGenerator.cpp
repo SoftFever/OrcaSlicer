@@ -333,6 +333,7 @@ static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_li
             }
 
             double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
+            r = -r; // negate to make it behave the same as the classic wall generator
             out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
         }
         dist_left_over = p0pa_dist - p0p1_size;
