@@ -3314,7 +3314,13 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 8) { obj->command_go_home(); }
+    if (event.GetInt() == 8) {
+        if (obj->is_enable_np) {
+            obj->command_go_home2();
+        } else {
+            obj->command_go_home();
+        }
+    }
 
     //check is at home
     if (event.GetInt() == 1

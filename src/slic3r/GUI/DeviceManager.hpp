@@ -946,6 +946,7 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
+    int command_go_home2();
     int command_control_fan(FanType fan_type, bool on_off);
     int command_control_fan_val(FanType fan_type, int val);
     int command_task_abort();

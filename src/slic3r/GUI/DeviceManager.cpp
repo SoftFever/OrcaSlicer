@@ -1824,6 +1824,15 @@ int MachineObject::command_go_home()
     return this->publish_gcode("G28 \n");
 }
 
+int MachineObject::command_go_home2()
+{
+    BOOST_LOG_TRIVIAL(info) << "New protocol of command_go_home2";
+    json j;
+    j["print"]["command"]     = "back_to_center";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_control_fan(FanType fan_type, bool on_off)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
