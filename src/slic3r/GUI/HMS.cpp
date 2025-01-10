@@ -6,6 +6,10 @@
 static const char* HMS_PATH = "hms";
 static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";
 
+// the local HMS info
+static unordered_set<string> package_dev_id_types{ "094" };
+static unordered_set<string> cloud_dev_id_types{ "00M", "00W", "03W", "01P", "01S", "030", "039" };
+
 namespace Slic3r {
 namespace GUI {
 
@@ -181,15 +185,46 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
     std::string dir_str = (hms_folder / filename).make_preferred().string();
     std::ifstream json_file(encode_path(dir_str.c_str()));
     try {
-        if (json_file.is_open()) {
-            json_file >> (*load_json);
-            if ((*load_json).contains("version")) {
-                load_version = (*load_json)["version"].get<std::string>();
-                return 0;
-            } else {
-                BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
-                return 0;
+        if (json_file.is_open())
+        {
+            if (package_dev_id_types.count(dev_id_type) != 0) /*temp for 094, the local file structure is different from saved cloud file*/
+            {
+                if (hms_type == QUERY_HMS_INFO)
+                {
+                    const json& j = json::parse(json_file);
+                    if (j.contains("data"))
+                    {
+                        *load_json = j["data"];
+                    }
+                }
+                else
+                {
+                    json_file >> (*load_json);
+                }
+
+                if ((*load_json).contains("ver"))
+                {
+                    load_version = (*load_json)["ver"].get<std::string>();
+                } 
+                else
+                {
+                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
+                }
             }
+            else
+            {
+                json_file >> (*load_json);
+                if ((*load_json).contains("version"))
+                {
+                    load_version = (*load_json)["version"].get<std::string>();
+                }
+                else
+                {
+                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
+                }
+            }
+
+            return 0;
         }
     } catch(...) {
         load_version = "0";
@@ -523,7 +558,6 @@ void HMSQuery::init_hms_info(const std::string& dev_type_id)
         return;
     }
 
-    static unordered_set<string> package_dev_id_types { "094" };
     if (package_dev_id_types.count(dev_type_id) != 0)
     {
         copy_from_data_dir_to_local();// STUDIO-9512
@@ -537,7 +571,6 @@ void HMSQuery::init_hms_info(const std::string& dev_type_id)
         load_from_local(QUERY_HMS_ACTION, dev_type, &m_hms_action_jsons[dev_type], load_version);
     }
 
-    static unordered_set<string> cloud_dev_id_types{ "00M", "00W", "03W", "01P", "01S", "030", "039" };
     if (cloud_dev_id_types.count(dev_type_id) != 0)
     {
         if (m_hms_info_jsons.count(dev_type_id) == 0)
