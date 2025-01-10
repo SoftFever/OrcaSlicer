@@ -2348,13 +2348,13 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
 
         optgroup->append_single_option_line("fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin_noise_type");
+        optgroup->append_single_option_line("fuzzy_skin_displacement_map");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
         optgroup->append_single_option_line("fuzzy_skin_scale");
         optgroup->append_single_option_line("fuzzy_skin_octaves");
         optgroup->append_single_option_line("fuzzy_skin_persistence");
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
-        optgroup->append_single_option_line("fuzzy_skin_displacement_map");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
