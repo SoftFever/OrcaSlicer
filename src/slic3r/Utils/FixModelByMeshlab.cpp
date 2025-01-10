@@ -64,12 +64,25 @@ public:
 
 void fix_model_by_meshlab(const std::string &path_src, const std::string &path_dst, ThrowOnCancelFn throw_on_cancel)
 {
-    // TODO: actual meshlabserver call
-    std::string cmd = "/usr/bin/cp -f " + path_src + " " + path_dst;
-    fprintf(stderr, "%s\n", cmd.c_str());
-    if (system(cmd.c_str())) {
+    int r;
+    char *line = nullptr;
+    size_t linelen = 0;
+    const std::string cmd = "meshlabserver -i " + path_src
+                            + " -o "  + path_dst
+                            + " -s " + resources_dir() + "/meshlab/meshlab-model-fix.mlx";
+
+    FILE *f = popen(cmd.c_str(), "r");
+    if (!f) {
         throw_on_cancel();
+        return;
     }
+
+    while((r = getline(&line, &linelen, f)) > 0) {
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << line;
+    }
+
+    free(line);
+    pclose(f);
 }
 
 // returt FALSE, if fixing was canceled
