@@ -14200,11 +14200,11 @@ void Plater::show_object_info()
     int non_manifold_edges = 0;
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
 
-    #ifndef __WINDOWS__
-    if (non_manifold_edges > 0) {
-        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Orca Slicer(windows) or CAD softwares."));
+    if (non_manifold_edges > 0 && !is_repair_available()) {
+        info_manifold += into_u8("\n" + _L("Tips:") + "\n"
+                                 +_L("\"Fix Model\" is not available: ") + _L(repair_not_available_reason()) + "\n"
+                                 +_L("Please repair the model on Orca Slicer(windows) or CAD softwares."));
     }
-    #endif //APPLE & LINUX
 
     info_manifold = "<Error>" + info_manifold + "</Error>";
     info_text += into_u8(info_manifold);

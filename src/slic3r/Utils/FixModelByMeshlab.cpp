@@ -20,6 +20,11 @@
 
 namespace Slic3r {
 
+char const * repair_not_available_reason()
+{
+    return "meshlabserver not found";
+}
+
 bool is_repair_available()
 {
     static int test_executed = 0;

@@ -444,6 +444,11 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 
 } // namespace Slic3r
 
+char const * repair_not_available_reason()
+{
+    return "Windows 10 required";
+}
+
 bool is_repair_available()
 {
     return is_windows10();
