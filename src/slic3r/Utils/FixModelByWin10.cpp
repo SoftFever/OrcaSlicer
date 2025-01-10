@@ -442,8 +442,6 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	return !canceled;
 }
 
-} // namespace Slic3r
-
 char const * repair_not_available_reason()
 {
     return "Windows 10 required";
@@ -458,5 +456,7 @@ bool fix_model(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& p
 {
     fix_model_by_win10_sdk_gui(model_object, volume_idx, progress_dialog, msg_header, fix_result);
 }
+
+} // namespace Slic3r
 
 #endif /* HAS_WIN10SDK */
