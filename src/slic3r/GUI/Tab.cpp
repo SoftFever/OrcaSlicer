@@ -881,7 +881,7 @@ void TabPrinter::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" | opt_key == "thumbnails") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "thumbnails") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -2064,6 +2064,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
+        optgroup->append_single_option_line("ironing_inset");
         optgroup->append_single_option_line("ironing_angle");
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
@@ -5123,17 +5124,13 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         // Orca: update presets for the selected printer
+        load_current_preset();
+
         if (m_type == Preset::TYPE_PRINTER && wxGetApp().app_config->get_bool("remember_printer_config")) {
             m_preset_bundle->update_selections(*wxGetApp().app_config);
-            int extruders_count = m_preset_bundle->printers.get_edited_preset().config.opt<ConfigOptionFloats>("nozzle_diameter")->values.size();
-            if (extruders_count > 1) {
-                // multi tool
-                wxGetApp().plater()->sidebar().on_filaments_change(extruders_count);
-            } else {
-                wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
-            }
+            wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
         }
-        load_current_preset();
+        
 
         if (delete_third_printer) {
             wxGetApp().CallAfter([filament_presets, process_presets]() {
@@ -6113,9 +6110,8 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 #ifdef __WXMSW__
     if (!m_show) return;
     // BBS: fix field control position
-    auto groups = this->m_optgroups;
-    wxTheApp->CallAfter([groups]() {
-        for (auto group : groups) {
+    wxTheApp->CallAfter([this]() {
+        for (auto group : m_optgroups) {
             if (group->custom_ctrl) group->custom_ctrl->fixup_items_positions();
         }
     });
