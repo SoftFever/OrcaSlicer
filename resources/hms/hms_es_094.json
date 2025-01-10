@@ -1,38 +1,454 @@
 {
     "result": 0,
-    "t": 1736345976,
-    "ver": 202501081628,
+    "t": 1736436183,
+    "ver": 202502042359,
     "data": {
         "device_error": {
-            "ver": 202501081619,
+            "ver": 202502042359,
             "es": [
                 {
-                    "ecode": "0500807A",
-                    "intro": "La función de detección de objetos extranjeros no está funcionando. Puedes continuar la tarea o ver al asistente para solucionar problemas."
+                    "ecode": "0C004041",
+                    "intro": "La calibración de LiDAR falló. Asegúrese de que la superficie del objetivo de calibración esté limpia y sin daños, luego vuelva a ejecutar el proceso de calibración."
                 },
                 {
-                    "ecode": "0C008016",
-                    "intro": "La función de detección de objetos extraños no está funcionando. Puedes continuar la tarea o ver al asistente para solucionar problemas."
+                    "ecode": "07018007",
+                    "intro": "Fallo al extruir el filamento. Por favor verifica si el extrusor está atascado."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "El tipo de plataforma no coincide, lo que puede resultar en datos de medición de altura inexactos. Por favor, coloca la plataforma láser correctamente, luego vuelve a medir la altura en el software e inicia la tarea."
+                    "ecode": "07018012",
+                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Fallo al extruir el filamento. Por favor verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07FF8005",
+                    "intro": "Fallo al alimentar el filamento fuera del AMS. Por favor corta el extremo del filamento de manera plana y verifica si el carrete está atascado."
+                },
+                {
+                    "ecode": "07FE8005",
+                    "intro": "Fallo al alimentar el filamento fuera del AMS. Por favor corta el extremo del filamento de forma plana y verifica si el carrete está atascado."
+                },
+                {
+                    "ecode": "03008042",
+                    "intro": "Tarea pausada porque la puerta o la tapa superior están abiertas."
+                },
+                {
+                    "ecode": "07FF8020",
+                    "intro": "Fallo en el cambio de extrusor; por favor consulta al asistente."
+                },
+                {
+                    "ecode": "0500805C",
+                    "intro": "El tipo de tapete de corte no coincide; por favor coloca un tapete de corte LightGrip."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Tipo de plataforma incorrecto. Coloque la plataforma láser para la calibración del láser."
+                },
+                {
+                    "ecode": "05008059",
+                    "intro": "La base de la plataforma de corte no está alineada correctamente. Asegúrese de que las cuatro esquinas de la plataforma estén alineadas con la cama caliente."
+                },
+                {
+                    "ecode": "07FF8013",
+                    "intro": "Tiempo de espera al purgar el filamento viejo del extrusor derecho: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07FF8001",
+                    "intro": "No se pudo cortar el filamento del extrusor derecho. Por favor, revise el cortador."
+                },
+                {
+                    "ecode": "0500806C",
+                    "intro": "Por favor, coloque la plataforma de corte correctamente y asegúrese de que el marcador esté expuesto."
+                },
+                {
+                    "ecode": "07FE8024",
+                    "intro": "La calibración de la posición del extrusor ha fallado; por favor, consulte al asistente."
+                },
+                {
+                    "ecode": "07018013",
+                    "intro": "Tiempo de espera al purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "0500805A",
+                    "intro": "Por favor, coloque la alfombrilla de corte sobre la base de protección de corte."
+                },
+                {
+                    "ecode": "07068013",
+                    "intro": "Tiempo de espera al purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Tiempo de espera al purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está cloggeado."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Fallo al retroceder el filamento del extrusor derecho. Por favor, verifica si el filamento está atascado dentro del extrusor izquierdo."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18FE8024",
+                    "intro": "La calibración de la posición del extrusor falló; por favor, consulta al asistente."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor verifica si el filamento está atorado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18FE8001",
+                    "intro": "Error al cortar el filamento del extrusor izquierdo. Por favor verifica el cortador."
+                },
+                {
+                    "ecode": "18FF8013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo del extrusor derecho: Por favor verifica si el filamento está atorado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07048013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor verifica si el filamento está atorado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "05008071",
+                    "intro": "No se detectó la plataforma de corte. Por favor, confirma que está colocada correctamente."
+                },
+                {
+                    "ecode": "05008073",
+                    "intro": "El bloque de límite del heatbed está obstruido o contaminado. Por favor, limpia y asegúrate de que el bloque de límite sea visible; de lo contrario, la detección del desplazamiento de posición de la plataforma puede ser inexacta."
                 },
                 {
                     "ecode": "05004075",
-                    "intro": "No se detectó la plataforma láser, lo que puede resultar en mediciones de altura inexactas. Por favor, coloca la plataforma láser correctamente, luego vuelve a medir la altura en el software y reinicia la tarea. Además, asegúrate de que el marcador final de la plataforma no esté bloqueado por material."
+                    "intro": "No se detectó la plataforma láser, lo que puede afectar la precisión de la medición de altura. Por favor, coloca la plataforma láser correctamente y asegúrate de que los marcadores traseros no estén bloqueados, luego reinicia la medición de altura en el software antes de iniciar la tarea."
+                },
+                {
+                    "ecode": "18FF8010",
+                    "intro": "Verifica si el carrete de filamento externo derecho o el filamento están atascados."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "La función de detección de objetos extraños no está funcionando. Puedes continuar con la tarea o consultar al asistente para solucionar problemas."
+                },
+                {
+                    "ecode": "05008068",
+                    "intro": "Por favor, coloca la alfombrilla de corte de agarre fuerte correctamente y asegúrate de que el marcador esté expuesto."
+                },
+                {
+                    "ecode": "0500807C",
+                    "intro": "Por favor, coloca la plataforma de corte (base de protección de corte + alfombrilla de corte de agarre fuerte)."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "La plataforma láser fue detectada, por favor reemplaza la plataforma de corte (base de protección de corte + alfombrilla de corte de agarre fuerte)."
+                },
+                {
+                    "ecode": "05008067",
+                    "intro": "Por favor, coloca una alfombrilla de corte LightGrip sobre la base de protección de corte."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentarlo."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Fallo al extrudir el filamento. Por favor, verifique si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentarlo."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Fallo al retroceder el filamento del extrusor izquierdo. Por favor, verifique si el filamento está atascado dentro del extrusor izquierdo."
+                },
+                {
+                    "ecode": "07FE8013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo del extrusor izquierdo: Por favor, verifique si el filamento está atascado o si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07FE8010",
+                    "intro": "Verifique si el carrete de filamento externo izquierdo o el filamento están atascados."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "No se pudo obtener la tabla de mapeo; por favor haga clic en \"Reanudar\" para reintentarlo."
+                },
+                {
+                    "ecode": "07FE8002",
+                    "intro": "El cortador del extrusor izquierdo está atascado. Por favor, saca la manija del cortador."
+                },
+                {
+                    "ecode": "07FE8020",
+                    "intro": "Fallo en el cambio de extrusor; por favor, consulte al asistente."
+                },
+                {
+                    "ecode": "07FE8001",
+                    "intro": "Fallo al cortar el filamento del extrusor izquierdo. Por favor, verifique la cortadora."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Plataforma láser detectada. Por favor, coloque la plataforma de corte para calibración."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Error al retraer el filamento del extrusor derecho. Por favor, verifique si el filamento está atascado dentro del extrusor izquierdo."
+                },
+                {
+                    "ecode": "07FF8002",
+                    "intro": "El cortador del extrusor derecho está atascado. Por favor, saque el mango del cortador."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Plataforma láser detectada. Por favor, coloque la plataforma de corte (base de protección de corte + alfombrilla de corte LightGrip)."
+                },
+                {
+                    "ecode": "07FF8024",
+                    "intro": "La calibración de la posición del extrusor falló; por favor, consulte al asistente."
+                },
+                {
+                    "ecode": "07008013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07028013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "07038013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifique si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "0500806F",
+                    "intro": "El tipo de alfombrilla de corte no coincide; por favor, coloque una alfombrilla de corte StrongGrip."
+                },
+                {
+                    "ecode": "18FE8020",
+                    "intro": "El cambio de extrusor falló; por favor, consulte al asistente."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18FE8013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo del extrusor izquierdo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18FE8005",
+                    "intro": "Error al alimentar el filamento fuera del AMS-HT. Por favor, corta el extremo del filamento en plano y verifica si el carrete está atascado."
+                },
+                {
+                    "ecode": "18FE8010",
+                    "intro": "Verifica si el carrete de filamento externo izquierdo o el filamento están atascados."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07058013",
+                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Error al retirar el filamento del extrusor izquierdo. Por favor, verifica si el filamento está atascado dentro del extrusor izquierdo."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "No se pudo obtener la tabla de mapeo; por favor, haz clic en \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "18FF8002",
+                    "intro": "El cortador del extrusor derecho está atascado. Por favor, saca el mango del cortador."
+                },
+                {
+                    "ecode": "18FF8020",
+                    "intro": "Cambio de extrusor fallido; por favor, consulta al asistente."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07078013",
+                    "intro": "Tiempo de espera agotado al purgar el filamento viejo: por favor, verifica si el filamento está atascado o si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Tiempo de espera agotado al purgar el filamento viejo: por favor, verifica si el filamento está atascado o si el extrusor está atascado."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "18FE8002",
+                    "intro": "El cortador del extrusor izquierdo está atascado. Por favor, saca la manija del cortador."
+                },
+                {
+                    "ecode": "18FF8024",
+                    "intro": "La calibración de la posición del extrusor ha fallado; por favor consulta al asistente."
+                },
+                {
+                    "ecode": "18FF8005",
+                    "intro": "Error al sacar el filamento fuera del AMS-HT. Por favor, corta el extremo del filamento en plano y verifica si el carrete está atascado."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está atascado."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Tiempo de espera al purgar el filamento viejo: Por favor verifica si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18FF8001",
+                    "intro": "Error al cortar el filamento del extrusor derecho. Por favor, verifica el cortador."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para intentar de nuevo."
                 },
                 {
                     "ecode": "05004076",
-                    "intro": "Plataforma desconocida durante la operación, lo que puede resultar en datos de medición de altura inexactos. Por favor, coloca la plataforma láser correctamente y verifica si la cámara BirdsEye está obstruida, luego vuelve a medir la altura en el software y reinicia la tarea."
+                    "intro": "Plataforma desconocida en la tarea, lo que puede afectar la precisión de la medición de altura. Por favor, coloque correctamente la plataforma láser y asegúrese de que la cámara BirdsEye esté sin obstrucciones, luego vuelva a medir la altura en el software y reinicie la tarea."
                 },
                 {
-                    "ecode": "0C008018",
-                    "intro": "La función de detección de objetos extranjeros no está funcionando. Puedes continuar la tarea o ver al asistente para solucionar problemas."
+                    "ecode": "07FF8010",
+                    "intro": "Verifique si el carrete de filamento externo o el filamento están atascados."
                 },
                 {
                     "ecode": "03004052",
-                    "intro": "Error de retorno a cero del cortador: por favor, vuelve a cero nuevamente."
+                    "intro": "Falló el homing del eje Z de la cuchilla."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Tarea pausada porque la ventana lateral está abierta."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Por favor, coloque una base de corte StrongGrip sobre la base de protección de corte."
+                },
+                {
+                    "ecode": "05008058",
+                    "intro": "Por favor, coloque correctamente la base de corte de agarre ligero y asegúrese de que el marcador esté expuesto."
+                },
+                {
+                    "ecode": "0500807B",
+                    "intro": "Por favor, coloque la plataforma de corte (base de protección de corte + base de corte de agarre ligero)."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "La función de detección de objetos extraños no está funcionando. Puede continuar con la tarea o consultar al asistente para solucionar problemas."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "El tipo de plataforma no coincide, lo que puede resultar en datos de medición de altura inexactos. Por favor, coloque correctamente la plataforma láser, luego vuelva a medir la altura en el software e inicie la tarea."
+                },
+                {
+                    "ecode": "0C008018",
+                    "intro": "La función de detección de objetos extraños no está funcionando. Puede continuar con la tarea o consultar al asistente para solucionar problemas."
                 },
                 {
                     "ecode": "0500805B",
@@ -251,10 +667,6 @@
                     "intro": "AMS B está asistiendo en la inserción del filamento. No se puede iniciar el secado. Por favor, intenta de nuevo más tarde."
                 },
                 {
-                    "ecode": "0500806C",
-                    "intro": "Tipo de base de protección de corte desconocido. Por favor, reemplázala con la base de protección de corte correcta."
-                },
-                {
                     "ecode": "0701406C",
                     "intro": "AMS B está en Modo de Asistencia de Alimentación. No se puede iniciar el secado. Por favor, intenta de nuevo más tarde."
                 },
@@ -347,56 +759,16 @@
                     "intro": "El material actual no coincide con la configuración del archivo cortado. Por favor, cargue el material correcto y asegúrese de que el código QR en el material no esté dañado ni sucio."
                 },
                 {
-                    "ecode": "07FE8010",
-                    "intro": "Verifica si el carrete de filamento externo izquierdo o el filamento están atascados. Después de solucionar el problema, haz clic en el botón 'Reintentar'."
-                },
-                {
                     "ecode": "0500403F",
                     "intro": "Error al descargar el trabajo de impresión; por favor verifica tu conexión a la red."
-                },
-                {
-                    "ecode": "18FE8010",
-                    "intro": "Verifica si el carrete de filamento externo izquierdo o el filamento están atascados. Después de solucionar el problema, haz clic en el botón 'Reintentar'."
-                },
-                {
-                    "ecode": "05008073",
-                    "intro": "El bloque de límite de la cama caliente está obstruido o sucio. Por favor, expón el bloque de límite, de lo contrario, informará erróneamente de una falla en la detección de nivelación de la cama."
-                },
-                {
-                    "ecode": "18FF8010",
-                    "intro": "Verifica si el carrete de filamento externo derecho o el filamento están atascados. Después de solucionar el problema, haz clic en el botón 'Reintentar'."
-                },
-                {
-                    "ecode": "07FF8010",
-                    "intro": "Verifica si el carrete de filamento externo derecho o el filamento están atascados. Después de solucionar el problema, haz clic en el botón 'Reintentar'."
-                },
-                {
-                    "ecode": "03008042",
-                    "intro": "Tarea pausada porque la puerta, la tapa superior o la ventana lateral están abiertas."
                 },
                 {
                     "ecode": "05008074",
                     "intro": "La plataforma láser está desalineada. Por favor, asegúrate de que las cuatro esquinas de la plataforma estén alineadas con la cama caliente."
                 },
                 {
-                    "ecode": "05008059",
-                    "intro": "La base de protección de corte está desplazada. Por favor asegúrese de que las cuatro esquinas de la placa base estén alineadas con la cama caliente."
-                },
-                {
-                    "ecode": "05008056",
-                    "intro": "El tipo de base de protección de corte actual es incorrecto. Por favor coloque una placa de acero de protección de corte para llevar a cabo la calibración de corte con cuchilla."
-                },
-                {
                     "ecode": "05008063",
                     "intro": "La plataforma no se detecta durante la calibración; por favor asegúrese de que la placa láser esté colocada correctamente."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "El tipo de base actual de protección de corte no coincide con la configuración en el slicer. Por favor coloque la placa de acero de protección de corte."
-                },
-                {
-                    "ecode": "05008071",
-                    "intro": "No se detectó la placa de acero de protección de corte. Por favor confirma que ha sido colocada correctamente."
                 },
                 {
                     "ecode": "0C00803F",
@@ -431,16 +803,8 @@
                     "intro": "La tarea fue cancelada."
                 },
                 {
-                    "ecode": "0500805C",
-                    "intro": "El tipo de tapete adhesivo no coincide; por favor use un tapete de corte LightGrip."
-                },
-                {
                     "ecode": "07FF8011",
                     "intro": "El filamento externo conectado al extrusor derecho se ha agotado; por favor, cargue un nuevo filamento."
-                },
-                {
-                    "ecode": "0500806F",
-                    "intro": "El tipo de tapete adhesivo no coincide; por favor use un tapete de corte StrongGrip."
                 },
                 {
                     "ecode": "18FF8011",
@@ -539,14 +903,6 @@
                     "intro": "La cámara de vista en vivo está bloqueada."
                 },
                 {
-                    "ecode": "18048007",
-                    "intro": "No se pudo extruir el filamento. Verifica si el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "No se pudo extruir el filamento. Verifica si el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT no logró retroceder el filamento. Esto podría ser debido a que el carrete esté atascado o que el extremo del filamento esté bloqueando el camino."
                 },
@@ -555,24 +911,12 @@
                     "intro": "AMS-HT no logró retroceder el filamento. Esto podría deberse a que el carrete esté atascado o que el extremo del filamento esté bloqueando el camino."
                 },
                 {
-                    "ecode": "18FF8012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haz clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "18058016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor consulta con el Asistente. Después de solucionar el problema, si los defectos son aceptables, haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D se está secando. Por favor detén el proceso de secado antes de cargar o descargar el material."
-                },
-                {
-                    "ecode": "18018012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haz clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "18068007",
-                    "intro": "No se pudo extruir el filamento. Verifica si el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18048011",
@@ -595,56 +939,24 @@
                     "intro": "El extrusor no está extruyendo de manera normal; por favor refiérase al Asistente. Después de la solución de problemas, si los defectos son aceptables, por favor haga clic en el botón \"Reintentar\"."
                 },
                 {
-                    "ecode": "18078013",
-                    "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, compruebe si el filamento está atascado o si el extrusor está obstruido. Después de la solución de problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Por favor, saque el filamento del soporte de carrete del extrusor izquierdo. Si este mensaje persiste, por favor revise si hay un filamento roto dentro del extrusor o del tubo de PTFE. (Conecte un tubo de PTFE si está a punto de usar un AMS)"
-                },
-                {
-                    "ecode": "18FF8001",
-                    "intro": "Falló el corte del filamento del extrusor derecho. Por favor, revise el corte. Después de la solución de problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Falló al obtener la tabla de mapeo AMS; por favor haga clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "07048005",
                     "intro": "El AMS no pudo enviar filamento. Puede cortar el extremo plano de su filamento y volver a insertarlo. Si este mensaje persiste, por favor revise los tubos de PTFE en AMS en busca de signos de desgaste."
                 },
                 {
-                    "ecode": "18028012",
-                    "intro": "Falló al obtener la tabla de asignación de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "18028005",
                     "intro": "El AMS-HT no pudo enviar filamento. Puede cortar el extremo plano de su filamento y volver a insertarlo. Si este mensaje persiste, por favor revise los tubos de PTFE en AMS-HT en busca de signos de desgaste."
-                },
-                {
-                    "ecode": "18FE8002",
-                    "intro": "El cortador del extrusor izquierdo está atascado. Por favor tire del mango del cortador y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18038010",
                     "intro": "El motor de asistencia del AMS-HT está sobrecargado. Esto podría ser debido a un filamento enredado o una bobina atascada."
                 },
                 {
-                    "ecode": "07048007",
-                    "intro": "Falló al extruir el filamento. Por favor revise si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18FF8024",
-                    "intro": "Falló la calibración de la posición del extrusor; por favor consulte al asistente. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18008016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor consulte al Asistente. Después de solucionar el problema, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18FF8005",
-                    "intro": "Falló el suministro de filamento fuera del AMS-HT. Por favor corte el extremo del filamento plano y revise si la bobina está atascada. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18058005",
@@ -679,10 +991,6 @@
                     "intro": "No se puede alimentar el filamento en el extrusor. Esto puede deberse a un filamento enredado o a una bobina atascada. Si no es así, por favor verifique si el tubo de PTFE de AMS-HT está conectado."
                 },
                 {
-                    "ecode": "07048013",
-                    "intro": "Tiempo de espera para purgar el viejo filamento: Por favor, verifique si el filamento está atascado o el extrusor está obstruido. Después de resolver el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18FF8006",
                     "intro": "Por favor, coloca filamento en el tubo PTFE del extrusor derecho hasta que no pueda ser empujado más."
                 },
@@ -697,10 +1005,6 @@
                 {
                     "ecode": "18018016",
                     "intro": "El extrusor no está extruyendo normalmente. Por favor, consulta con el asistente para solucionar el problema. Después de hacer las revisiones necesarias, si los defectos son aceptables, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18018013",
-                    "intro": "Tiempo de espera agotado para purgar el antiguo filamento: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido. Después de hacer las revisiones necesarias, haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18018005",
@@ -719,20 +1023,8 @@
                     "intro": "AMS-HT no pudo retroceder el filamento. Esto podría deberse a que el carrete esté atascado o que el extremo del filamento esté atascado en la trayectoria."
                 },
                 {
-                    "ecode": "18FE8001",
-                    "intro": "Error al cortar el filamento del extrusor izquierdo. Por favor, revisa el cortador. Después de resolver el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07078013",
-                    "intro": "Tiempo de espera agotado para purgar el filamento viejo. Por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de resolver el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18068011",
                     "intro": "El filamento AMS-HT se ha agotado. Por favor, inserta un nuevo filamento en el mismo slot de AMS."
-                },
-                {
-                    "ecode": "18FF8013",
-                    "intro": "Tiempo de espera agotado para purgar el filamento viejo del extrusor derecho. Por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de resolver el problema, haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07078006",
@@ -763,32 +1055,12 @@
                     "intro": "Por favor, introduzca el filamento en el tubo PTFE del extrusor izquierdo hasta que ya no se pueda empujar más."
                 },
                 {
-                    "ecode": "18078012",
-                    "intro": "Error al obtener la tabla de asignación de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Error al extraer el filamento. Por favor, verifique si el extrusor está obstruido. Después de solucionar los problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07068011",
                     "intro": "El filamento de AMS se ha acabado. Por favor, inserte un nuevo filamento en el mismo espacio de AMS."
                 },
                 {
                     "ecode": "0C004027",
                     "intro": "Error en la calibración de la cámara de vista en vivo. Por favor, consulte con el asistente para obtener detalles y recalibre la cámara después de procesar."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Error al extruir el filamento. Por favor, verifique si el extrusor está obstruido. Después de solucionar los problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Error al extruir el filamento. Por favor, verifique si el extrusor está obstruido. Después de solucionar los problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18FF8020",
-                    "intro": "Error en el cambio de extrusor; por favor, consulte con el asistente. Después de solucionar los problemas, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07048006",
@@ -805,14 +1077,6 @@
                 {
                     "ecode": "18028006",
                     "intro": "No se puede alimentar el filamento en el extrusor. Esto podría deberse a un filamento enredado o a un carrete atascado. Si no es así, por favor revise si el tubo PTFE de AMS-HT está conectado."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor haga clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "18FEC006",
@@ -835,16 +1099,8 @@
                     "intro": "AMS-HT no pudo retirar el filamento. Esto puede ser debido a un rollo de filamento atascado o a que el extremo del filamento se encuentra atascado en el camino."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Falló al obtener la tabla de mapeo de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "07078004",
                     "intro": "AMS no pudo retirar el filamento. Esto puede ser debido a un rollo de filamento atascado o a que el extremo del filamento se encuentra atascado en el camino."
-                },
-                {
-                    "ecode": "18FF8002",
-                    "intro": "El cortador del extrusor derecho está atascado. Por favor saque la manija del cortador y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0C00402A",
@@ -853,10 +1109,6 @@
                 {
                     "ecode": "07058010",
                     "intro": "El motor de asistencia AMS está sobrecargado. Esto puede ser debido a un filamento enredado o a un rollo de filamento atascado."
-                },
-                {
-                    "ecode": "18038007",
-                    "intro": "Falla al extruir el filamento. Por favor verifique si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18018010",
@@ -891,24 +1143,12 @@
                     "intro": "No se puede alimentar el filamento en el extrusor. Esto podría deberse a un filamento enredado o una bobina atascada. Si no es así, por favor revise si el tubo de PTFE AMS-HT está conectado."
                 },
                 {
-                    "ecode": "18038012",
-                    "intro": "La tabla de mapeo de AMS no se ha podido obtener. Por favor, haga clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "07048003",
                     "intro": "No se pudo sacar el filamento del extrusor. Esto podría ser causado por un extrusor obstruido o un filamento roto en el interior del extrusor."
                 },
                 {
-                    "ecode": "18058013",
-                    "intro": "Tiempo de espera agotado al purgar el filamento viejo: por favor compruebe si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18008005",
                     "intro": "AMS-HT no pudo enviar el filamento. Puede recortar el extremo de su filamento de manera plana y volver a insertarlo. Si este mensaje persiste, por favor revise las tuberías de PTFE en AMS en busca de cualquier signo de desgaste."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "No se pudo extruir el filamento. Por favor verifique si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18FFC009",
@@ -923,14 +1163,6 @@
                     "intro": "El extrusor no está extruyendo normalmente; por favor consulte al asistente. Después de solucionar el problema, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "No se pudo retirar el filamento del extrusor derecho. Por favor verifique si el filamento está atascado dentro del extrusor izquierdo. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "Se terminó el filamento de AMS-HT. Por favor inserte un nuevo filamento en el mismo espacio de AMS."
                 },
@@ -941,14 +1173,6 @@
                 {
                     "ecode": "18078003",
                     "intro": "No se pudo sacar el filamento del extrusor. Esto puede ser causado por un extrusor obstruido o un filamento roto en el interior del extrusor."
-                },
-                {
-                    "ecode": "18FE8012",
-                    "intro": "No se ha podido obtener la tabla de mapeo; por favor, haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "18FE8024",
-                    "intro": "Falló la calibración de la posición del extrusor; por favor, consulte al asistente. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07058005",
@@ -965,10 +1189,6 @@
                 {
                     "ecode": "18FEC009",
                     "intro": "Por favor, introduzca el filamento en el tubo de PTFE del extrusor izquierdo hasta que no se pueda empujar más."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Falló la operación de retroceder el filamento del extrusor izquierdo. Por favor, compruebe si el filamento está atascado dentro del extrusor izquierdo. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18FEC003",
@@ -995,10 +1215,6 @@
                     "intro": "El motor de asistencia AMS-HT está sobrecargado. Esto podría deberse a un filamento enredado o un carrete atascado."
                 },
                 {
-                    "ecode": "07058013",
-                    "intro": "Tiempo de espera para expulsar el filamento antiguo: Por favor verifique si el filamento está atascado o si el extrusor está obstruido. Después de solucionar los problemas, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18048016",
                     "intro": "El extrusor no está extruyendo normalmente, por favor consulte al Asistente. Después de solucionar los problemas, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
                 },
@@ -1011,10 +1227,6 @@
                     "intro": "AMS-HT no pudo recoger el filamento. Esto puede deberse a que el carrete esté atascado o que el extremo del filamento esté bloqueando el camino."
                 },
                 {
-                    "ecode": "18078007",
-                    "intro": "Fallo al extruir el filamento. Por favor, revise si el extrusor está obstruido. Después de realizar las comprobaciones, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18FEC00A",
                     "intro": "Por favor, observe la boquilla del extrusor izquierdo. Si el filamento ha sido extruido, haga clic en \"Hecho\"; si no es así, empuje ligeramente el filamento hacia adelante y luego haga clic en \"Reintentar\"."
                 },
@@ -1023,16 +1235,8 @@
                     "intro": "El motor de asistencia AMS-HT está sobrecargado. Esto puede deberse a un filamento enredado o a un carrete atascado."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "07048016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulte al asistente. Después de realizar las comprobaciones necesarias, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18048012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "07068016",
@@ -1041,10 +1245,6 @@
                 {
                     "ecode": "18008003",
                     "intro": "No se pudo retirar el filamento del extrusor. Esto podría ser causado por un extrusor obstruido o un filamento roto dentro del extrusor."
-                },
-                {
-                    "ecode": "07078007",
-                    "intro": "Error al extruir el filamento. Por favor, compruebe si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07048010",
@@ -1057,10 +1257,6 @@
                 {
                     "ecode": "18078011",
                     "intro": "Se agotó el filamento AMS-HT. Por favor, inserte un nuevo filamento en el mismo slot AMS."
-                },
-                {
-                    "ecode": "18028013",
-                    "intro": "Tiempo de espera agotado para limpiar el filamento anterior: compruebe si el filamento está atascado o si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07058004",
@@ -1103,44 +1299,12 @@
                     "intro": "El filamento de AMS se ha agotado. Por favor, inserte un nuevo filamento en el mismo slot de AMS."
                 },
                 {
-                    "ecode": "18008013",
-                    "intro": "Tiempo de espera para purgar el filamento antiguo: Por favor verifique si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18048013",
-                    "intro": "Tiempo de espera para purgar el filamento antiguo: Por favor verifique si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18FE8005",
-                    "intro": "No se pudo alimentar el filamento fuera del AMS-HT. Por favor corte el extremo del filamento y verifique si el carrete está atascado. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18038003",
                     "intro": "No fue posible extraer el filamento del extrusor. Esto podría deberse a que el extrusor está obstruido o que el filamento se ha roto dentro del extrusor."
                 },
                 {
                     "ecode": "07068003",
                     "intro": "No se pudo extraer el filamento del extrusor. Esto podría deberse a que el extrusor está obstruido o que el filamento se ha roto dentro del extrusor."
-                },
-                {
-                    "ecode": "18068012",
-                    "intro": "No se pudo obtener la tabla de asignación de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "07068013",
-                    "intro": "Tiempo de espera para expulsar el filamento antiguo: Por favor compruebe si el filamento está atascado o si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07008007",
-                    "intro": "No se pudo extruir el filamento. Por favor compruebe si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18038013",
-                    "intro": "Tiempo de espera para expulsar el filamento antiguo: Por favor compruebe si el filamento está atascado o si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "18FE8013",
-                    "intro": "Tiempo de espera para expulsar el filamento antiguo del extrusor izquierdo: Por favor compruebe si el filamento está atascado o si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18018004",
@@ -1151,16 +1315,8 @@
                     "intro": "El filamento de AMS se agotó. Por favor, inserte un nuevo filamento en la misma ranura de AMS."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Fallo al extruir el filamento. Por favor, compruebe si el extrusor está obstruido. Después de solucionarlo, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18068005",
                     "intro": "El AMS-HT falló al enviar el filamento. Puede cortar el extremo del filamento plano y volver a insertarlo. Si este mensaje persiste, por favor verifique los tubos de PTFE en el AMS en busca de signos de desgaste."
-                },
-                {
-                    "ecode": "18FE8020",
-                    "intro": "Ha fallado el cambio de extrusor, por favor consulte con el asistente. Después de intentar solucionarlo, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18008011",
@@ -1169,10 +1325,6 @@
                 {
                     "ecode": "18028011",
                     "intro": "Se agotó el filamento en el AMS-HT. Por favor, inserte un nuevo filamento en el mismo slot del AMS."
-                },
-                {
-                    "ecode": "18068013",
-                    "intro": "Tiempo de espera agotado purgando el filamento anterior: Por favor, verifique si el filamento está atascado o el extrusor está obstruido. Después de solucionarlo, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0C008015",
@@ -1259,10 +1411,6 @@
                     "intro": "Se produjo un error durante el secado de AMS-HT F. Por favor vaya al Asistente para más detalles."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Tipo de plataforma incorrecta. Por favor, coloque la plataforma de corte para la calibración láser."
-                },
-                {
                     "ecode": "1001C001",
                     "intro": "El timelapse no es compatible porque el modo Spiral vase está habilitado en los ajustes de corte."
                 },
@@ -1277,14 +1425,6 @@
                 {
                     "ecode": "07FEC00A",
                     "intro": "Por favor observe la boquilla del extrusor izquierdo. Si el filamento ha sido extruido, haga clic en \"Hecho\"; si no, por favor empuje el filamento un poco hacia adelante y luego haga clic en \"Reintentar\"."
-                },
-                {
-                    "ecode": "07FF8020",
-                    "intro": "Cambio del extrusor fallido; por favor consulte con el asistente, después de solucionar el problema haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07FE8020",
-                    "intro": "Cambio de extrusor fallido; por favor refiérase al asistente y después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "05008053",
@@ -1363,20 +1503,12 @@
                     "intro": "El extrusor no está extruyendo de manera normal; por favor consulte al Asistente. Después de resolver el problema, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
                 },
                 {
-                    "ecode": "07FE8024",
-                    "intro": "La calibración de la posición del extrusor ha fallado; por favor consulte al Asistente. Después de resolver el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07028016",
                     "intro": "El extrusor no está extruyendo de manera normal; por favor consulte al Asistente. Después de solucionar el problema, si los defectos son aceptables, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "05024003",
                     "intro": "La impresora está imprimiendo actualmente y la función de mejora de la precisión del movimiento no se puede activar o desactivar."
-                },
-                {
-                    "ecode": "07FF8024",
-                    "intro": "La calibración de la posición del extrusor ha fallado; por favor consulte al Asistente. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0500806E",
@@ -1389,10 +1521,6 @@
                 {
                     "ecode": "03008049",
                     "intro": "La placa actual es inválida."
-                },
-                {
-                    "ecode": "07FE8004",
-                    "intro": "No se pudo retroceder el filamento del extrusor izquierdo. Verifique si el filamento se ha atascado dentro del extrusor izquierdo. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07FF8003",
@@ -1425,14 +1553,6 @@
                 {
                     "ecode": "0300801C",
                     "intro": "La resistencia de extrusión es anormal. El extrusor puede estar obstruido, por favor consulte la guía de asistente. Después de solucionar el problema, puede presionar el botón \"Reanudar\" para continuar la impresión."
-                },
-                {
-                    "ecode": "07FE8002",
-                    "intro": "El cortador del extrusor izquierdo está atascado. Por favor, sáque el mango del cortador y haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Error al retroceder el filamento del extrusor derecho. Por favor, verifique si el filamento está atascado en el interior del extrusor izquierdo. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0500400A",
@@ -1469,10 +1589,6 @@
                 {
                     "ecode": "03008047",
                     "intro": "Tiempo de espera de detección de palanca de liberación rápida agotado: por favor, reinicie la impresora."
-                },
-                {
-                    "ecode": "0500805A",
-                    "intro": "Por favor, coloca la base de corte."
                 },
                 {
                     "ecode": "03008008",
@@ -1515,10 +1631,6 @@
                     "intro": "El extrusor no está extruyendo normalmente; sigue las instrucciones del asistente. Después de resolver los problemas, si consideras que los defectos son aceptables, presiona el botón \"Continuar\" para continuar con la impresión."
                 },
                 {
-                    "ecode": "07FF8002",
-                    "intro": "El cortador del extrusor derecho está bloqueado. Por favor, tira del mango del cortador y haz clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "03008001",
                     "intro": "La impresión se pausó debido a que se agregó el comando de pausa en el archivo de impresión."
                 },
@@ -1545,22 +1657,6 @@
                 {
                     "ecode": "0300400F",
                     "intro": "El voltaje de suministro de energía no coincide con la impresora."
-                },
-                {
-                    "ecode": "07018013",
-                    "intro": "Tiempo de espera agotado para desechar el filamento anterior: por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07008013",
-                    "intro": "Tiempo de espera agotado para desechar el filamento anterior: Por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07028013",
-                    "intro": "Tiempo de espera agotado para desechar el filamento anterior: Por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07038013",
-                    "intro": "Tiempo de espera agotado para desechar el filamento anterior: Por favor, comprueba si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "05024004",
@@ -1671,20 +1767,12 @@
                     "intro": "Por favor, alimente el filamento en el tubo PTFE del extrusor derecho hasta que no pueda empujarse más."
                 },
                 {
-                    "ecode": "07FF8013",
-                    "intro": "Tiempo de espera agotado para purgar el antiguo filamento del extrusor derecho: por favor verifique si el filamento está atascado o el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07038004",
                     "intro": "AMS falló al retroceder el filamento. Esto podría deberse a que la bobina está atascada o el extremo del filamento está atascado en la ruta."
                 },
                 {
                     "ecode": "07018003",
                     "intro": "No se pudo extraer el filamento del extrusor. Esto podría deberse a un extrusor obstruido o a que el filamento se haya roto dentro del extrusor."
-                },
-                {
-                    "ecode": "07FF8001",
-                    "intro": "No se pudo cortar el filamento del extrusor derecho. Por favor, compruebe el cortador. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "07038003",
@@ -1775,10 +1863,6 @@
                     "intro": "El AMS se está utilizando actualmente para imprimir y no se puede iniciar el secado."
                 },
                 {
-                    "ecode": "07FE8001",
-                    "intro": "No se pudo cortar el filamento del extrusor izquierdo. Por favor, compruebe el cortador. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "03008063",
                     "intro": "La temperatura de la cámara es demasiado alta. Abra la cubierta superior y la puerta frontal para enfriar."
                 },
@@ -1795,16 +1879,8 @@
                     "intro": "Por favor, alimenta el filamento en el tubo PTFE del extrusor izquierdo hasta que no pueda ser empujado más lejos."
                 },
                 {
-                    "ecode": "07FE8005",
-                    "intro": "Falló el suministro del filamento fuera del AMS. Por favor, recorta el extremo del filamento plano y revisa si la bobina está atascada. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0C00800B",
                     "intro": "No se detectó el marcador de la cama térmica. Por favor, elimina todos los objetos y retira la colchoneta. Asegúrate de que el marcador no está obstruido."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Falló al obtener la tabla de mapeo; por favor, haz clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "07FEC009",
@@ -1817,10 +1893,6 @@
                 {
                     "ecode": "05014038",
                     "intro": "La configuración regional no coincide con la impresora, por favor revise la configuración regional de la impresora."
-                },
-                {
-                    "ecode": "07FE8013",
-                    "intro": "Tiempo de espera agotado al eliminar el filamento antiguo del extrusor izquierdo: por favor revise si el filamento está atascado o si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0C008005",
@@ -1867,10 +1939,6 @@
                     "intro": "La AMS no pudo enviar el filamento. Puede cortar el extremo de su filamento de manera plana y volverlo a insertar. Si este mensaje persiste, por favor revise los tubos de PTFE en la AMS en busca de signos de desgaste."
                 },
                 {
-                    "ecode": "07038007",
-                    "intro": "No se puede extruir el filamento. Por favor, revise si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07038010",
                     "intro": "El motor de asistencia de la AMS está sobrecargado. Esto podría deberse a un filamento enredado o a una bobina atascada."
                 },
@@ -1879,32 +1947,12 @@
                     "intro": "El filamento de AMS se terminó. Por favor, inserte un nuevo filamento en el mismo espacio de la AMS."
                 },
                 {
-                    "ecode": "07038012",
-                    "intro": "No se pudo obtener la tabla de mapeo de la AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "07FF8005",
-                    "intro": "Error al alimentar el filamento fuera del AMS. Por favor corte el extremo del filamento de manera plana y verifique si el carrete está atascado. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haga clic en \"Reintentar\" para continuar."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Error al extruir el filamento. Por favor verifique si el extrusor está obstruido. Después de solucionar el problema, haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07028010",
                     "intro": "El motor de asistencia AMS está sobrecargado. Esto podría deberse a un filamento enredado o a un carrete atascado."
                 },
                 {
                     "ecode": "07028011",
                     "intro": "El filamento de AMS se agotó. Por favor inserte un nuevo filamento en el mismo espacio de AMS."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "07028005",
@@ -1919,10 +1967,6 @@
                     "intro": "El AMS no pudo enviar el filamento. Puede cortar el extremo del filamento de manera plana y volver a insertarlo. Si este mensaje persiste, por favor verifique los tubos de PTFE en el AMS en busca de signos de desgaste."
                 },
                 {
-                    "ecode": "07018007",
-                    "intro": "No se pudo extruir el filamento. Por favor revisa si el extrusor está obstruido. Después de solucionar el problema, haz clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "07018010",
                     "intro": "El motor de ayuda AMS está sobrecargado. Esto podría ser debido a un filamento enredado o a una bobina atascada."
                 },
@@ -1931,16 +1975,8 @@
                     "intro": "El filamento del AMS se ha agotado. Por favor inserta un nuevo filamento en el mismo espacio del AMS."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "No se pudo obtener la tabla de mapeo del AMS; por favor haz clic en \"Reintentar\" para continuar."
-                },
-                {
                     "ecode": "07008011",
                     "intro": "El filamento del AMS se ha terminado. Por favor inserte un nuevo filamento en el mismo espacio del AMS."
-                },
-                {
-                    "ecode": "07008012",
-                    "intro": "No se ha podido obtener la tabla de mapeo del AMS; por favor haga clic en \"Reintentar\" para continuar."
                 },
                 {
                     "ecode": "07008003",
@@ -2235,6 +2271,10 @@
                     "intro": "Hubo un trabajo de impresión incompleto cuando la impresora perdió energía. Si el modelo todavía está adherido a la placa de construcción, puedes intentar reanudar el trabajo de impresión."
                 },
                 {
+                    "ecode": "0300800A",
+                    "intro": "Se detectó un atasco de filamento por la IA de Monitoreo de Impresión. Por favor, limpie el filamento de la salida de desechos."
+                },
+                {
                     "ecode": "0300800B",
                     "intro": "El cortador está atascado. Por favor, asegúrate de que el mango del cortador esté hacia afuera, y revisa la conexión del cable del sensor del filamento."
                 },
@@ -2269,11 +2309,187 @@
             ]
         },
         "device_hms": {
-            "ver": 202501081628,
+            "ver": 202502042359,
             "es": [
                 {
+                    "ecode": "07FF700000020003",
+                    "intro": "Por favor, verifica si el material está saliendo por la boquilla correcta. Si no, empuja suavemente el material y intenta extruir nuevamente."
+                },
+                {
+                    "ecode": "07FE700000020003",
+                    "intro": "Por favor, verifica si el material está saliendo por la boquilla izquierda. Si no, empuja suavemente el material y intenta extruir nuevamente."
+                },
+                {
+                    "ecode": "18FF700000020003",
+                    "intro": "Por favor, verifica si el material está saliendo por la boquilla derecha. Si no, empuja suavemente el material y intenta extruir nuevamente."
+                },
+                {
+                    "ecode": "18FE700000020003",
+                    "intro": "Por favor, verifica si el material está saliendo por la boquilla izquierda. Si no, empuja suavemente el material y intenta extruir nuevamente."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "El filamento de AMS se acabó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "El filamento de AMS-HT se acabó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "El tipo de plataforma de corte no coincide; por favor, coloca la plataforma de corte correcta."
+                },
+                {
+                    "ecode": "050004000002004C",
+                    "intro": "Tipo de base de protección contra cortes desconocido. Por favor, reemplázalo con la base de protección contra cortes correcta."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Tipo de plataforma incorrecto. Por favor, coloca la plataforma láser para la calibración láser."
+                },
+                {
+                    "ecode": "0300D00000010002",
+                    "intro": "El soporte de la cuchilla se ha caído; por favor, reinstálalo."
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Tipo de material no reconocido."
+                },
+                {
+                    "ecode": "050005000001000F",
+                    "intro": "Accesorio no certificado detectado. Por favor, usa accesorios oficiales."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS AMS utiliza energía MC para el secado durante la carga o impresión de filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS AMS utiliza energía MC para el secado durante la carga o impresión de filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS AMS utiliza energía MC para el secado durante la carga o impresión de filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para garantizar resultados óptimos."
+                },
+                {
+                    "ecode": "07FE600000020001",
+                    "intro": "El carrete externo conectado al extrusor izquierdo puede estar enredado o atascado."
+                },
+                {
+                    "ecode": "07FF600000020001",
+                    "intro": "El carrete externo conectado al extrusor derecho puede estar enredado o atascado."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "050004000002004D",
+                    "intro": "No se detectó la base de protección contra cortes. Por favor, confirma que está correctamente colocada."
+                },
+                {
+                    "ecode": "0300D00000010001",
+                    "intro": "La base del módulo de corte se ha caído; por favor, reinstálala."
+                },
+                {
+                    "ecode": "0300280000010005",
+                    "intro": "La homing del eje Z falló en modo de corte. Por favor, verifica si hay objetos extraños en el deslizador del eje Z y en la polea sincrónica del eje Z."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "AMS no certificado detectado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS utiliza energía de MC para secar durante la carga de filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS utiliza energía de MC para secar durante la carga de filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS utiliza energía de MC para secar durante la carga de filamento o la impresión. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "18FF600000020001",
+                    "intro": "El carrete externo conectado al extrusor derecho puede estar enredado o atascado."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS utiliza energía de MC para secar durante la carga de filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "La cámara BirdEye no está certificada. Por favor, utiliza los accesorios de Bambu Lab."
+                },
+                {
+                    "ecode": "050005000001000E",
+                    "intro": "El módulo láser no está certificado. Por favor, utiliza accesorios de Bambu Lab."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS utiliza energía de MC para secar durante la carga de filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secado para asegurar resultados óptimos."
+                },
+                {
+                    "ecode": "18FE600000020001",
+                    "intro": "El carrete externo conectado al extrusor izquierdo puede estar enredado o atascado."
+                },
+                {
                     "ecode": "0300280000010008",
-                    "intro": "La homing del eje Z ha fallado. Por favor, verifica si el movimiento del soporte de la cuchilla es suave y asegúrate de que no haya objetos extraños en la posición de contacto en la cama calefaccionada."
+                    "intro": "Fallo en la homing del eje Z. Por favor, verifica si el movimiento del soporte de la cuchilla es suave y asegúrate de que no haya objetos extraños en la posición de contacto en la cama caliente."
                 },
                 {
                     "ecode": "0300280000010001",
@@ -2281,7 +2497,7 @@
                 },
                 {
                     "ecode": "0300280000010004",
-                    "intro": "Datos del sensor de fuerza anormales en el módulo de corte, el imán en el soporte de la cuchilla puede haberse caído."
+                    "intro": "Los datos del sensor de fuerza son anormales en el módulo de corte, el imán en el soporte de la cuchilla puede haberse caído."
                 },
                 {
                     "ecode": "0300280000010007",
@@ -2289,35 +2505,35 @@
                 },
                 {
                     "ecode": "1800240000020009",
-                    "intro": "La cubierta frontal de AMS HT A está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La tapa frontal de AMS HT A está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1807240000020009",
-                    "intro": "La cubierta frontal de AMS HT H está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT H está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1801240000020009",
-                    "intro": "La cubierta frontal de AMS HT B está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT B está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1806240000020009",
-                    "intro": "La cubierta frontal de AMS HT G está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La tapa frontal de AMS HT G está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1802240000020009",
-                    "intro": "La cubierta frontal de AMS HT C está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT C está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1805240000020009",
-                    "intro": "La cubierta frontal de AMS HT F está abierta. Esto puede afectar el rendimiento de secado o causar que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT F está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1804240000020009",
-                    "intro": "La tapa frontal del AMS HT E está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT E está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "1803240000020009",
-                    "intro": "La tapa frontal del AMS HT D está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
+                    "intro": "La cubierta frontal del AMS HT D está abierta. Esto puede afectar el rendimiento de secado o hacer que el filamento absorba humedad."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -2328,48 +2544,12 @@
                     "intro": "La capacidad de la unidad flash USB es insuficiente para almacenar archivos de impresión."
                 },
                 {
-                    "ecode": "0701250000020009",
-                    "intro": "AMS utiliza energía MC para secar durante la carga del filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secar y garantizar resultados de secado óptimos."
-                },
-                {
-                    "ecode": "0706250000020009",
-                    "intro": "AMS utiliza energía MC para secar durante la carga del filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secar y garantizar resultados de secado óptimos."
-                },
-                {
-                    "ecode": "0705250000020009",
-                    "intro": "AMS utiliza energía MC para secar durante la carga del filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secar y asegurar resultados de secado óptimos."
-                },
-                {
-                    "ecode": "0300280000010005",
-                    "intro": "Falló la homing del eje Z del módulo de corte. Por favor, verifica si hay objetos extraños en el slider del eje Z y en la polea sincrónica del eje Z."
-                },
-                {
                     "ecode": "0300280000010003",
-                    "intro": "Fallo de comunicación entre el módulo de corte y el cabezal de herramienta durante la homing del eje Z. Por favor, verifica si el cable de señal del módulo de corte está suelto o roto, o comprueba si la bobina del sensor de fuerza está intacta."
-                },
-                {
-                    "ecode": "0703250000020009",
-                    "intro": "AMS utiliza energía MC para secar durante la carga del filamento o la impresión. Esto puede afectar el rendimiento de secado. Se recomienda conectar un adaptador para secar y asegurar resultados de secado óptimos."
-                },
-                {
-                    "ecode": "0702250000020009",
-                    "intro": "AMS AMS utiliza energía de MC para el secado durante la carga o impresión del filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
-                },
-                {
-                    "ecode": "0704250000020009",
-                    "intro": "AMS AMS utiliza energía de MC para el secado durante la carga o impresión del filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
-                },
-                {
-                    "ecode": "0700250000020009",
-                    "intro": "AMS AMS utiliza energía de MC para el secado durante la carga o impresión del filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
+                    "intro": "Fallo de comunicación entre el módulo de corte y la cabeza de herramienta durante la homing en el eje Z. Por favor, verifica si el cable de señal del módulo de corte está suelto o roto, o comprueba si la bobina del sensor de fuerza está intacta."
                 },
                 {
                     "ecode": "0C00010000020015",
                     "intro": ""
-                },
-                {
-                    "ecode": "0707250000020009",
-                    "intro": "AMS AMS utiliza energía de MC para el secado durante la carga o impresión del filamento. Esto puede afectar el rendimiento del secado. Se recomienda conectar un adaptador para el secado para asegurar resultados óptimos."
                 },
                 {
                     "ecode": "0702200000020006",
@@ -2524,10 +2704,6 @@
                     "intro": "El tubo de PTFE se ha desprendido. Por favor, verifica si el tubo de PTFE está conectado de AMS-HT al extrusor."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Tipo de base de protección de corte desconocido; por favor, reemplázalo con la base de protección de corte correcta."
-                },
-                {
                     "ecode": "03009E0000030001",
                     "intro": "La detección de puertas abiertas para este trabajo de impresión se establecerá en nivel \"Notificación\"."
                 },
@@ -2650,14 +2826,6 @@
                 {
                     "ecode": "0300D00000010003",
                     "intro": "El cable del módulo de corte se ha aflojado; por favor, verifique la conexión del cable."
-                },
-                {
-                    "ecode": "0300D00000010002",
-                    "intro": "La herramienta de corte se ha caído; por favor, vuelva a instalarla."
-                },
-                {
-                    "ecode": "0300D00000010001",
-                    "intro": "El accesorio de corte se ha desprendido; por favor, vuelva a instalarlo."
                 },
                 {
                     "ecode": "18FE800000020002",
@@ -3136,24 +3304,12 @@
                     "intro": "Se detectó una incompatibilidad de boquilla durante la impresión. Inicie la impresión después de volver a generar el archivo de impresión, o continúe la impresión después de reemplazar la boquilla correcta. Precaución: la temperatura del hotend es alta."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "El tipo de plataforma no coincide; por favor coloque una base de corte."
-                },
-                {
                     "ecode": "05FE040000020042",
                     "intro": "Se ha detectado una inconsistencia de boquilla durante la impresión. Inicie la impresión después de volver a cortar o continúe después de reemplazar la boquilla correcta. Precaución: la temperatura de la boquilla está alta."
                 },
                 {
                     "ecode": "0500040000020049",
                     "intro": "El tipo de plataforma es desconocido. Por favor reemplácelo por el correcto y revise si la cámara BirdsEye está obstruida."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Tipo de plataforma incorrecto. Por favor coloque la plataforma de corte para la calibración por láser."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "La base de protección de corte no se detecta. Por favor asegúrese de que está colocada correctamente."
                 },
                 {
                     "ecode": "050004000002004F",
@@ -3720,10 +3876,6 @@
                     "intro": "No se pudo sacar el filamento de AMS-HT H; esto puede ser debido a que el filamento se agotó o se sacó de manera incorrecta."
                 },
                 {
-                    "ecode": "1801700000020007",
-                    "intro": "El filamento de AMS-HT se terminó. Por favor, ponga un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "1803700000020031",
                     "intro": "No se pudo alimentar el filamento en el extrusor del cabezal de la herramienta D de AMS-HT; esto puede ser debido a que el filamento se desgastó y causó que el motor asistente se resbalara. Por favor, corte la sección desgastada del filamento."
                 },
@@ -3738,10 +3890,6 @@
                 {
                     "ecode": "1807700000020061",
                     "intro": "AMS-HT H: Fallido el agarre del filamento por la extrusora auxiliar, posiblemente debido a una resistencia excesiva en el buffer. Por favor, revisar si el buffer está atascado, si el rollo de filamento está inclinado y si el tubo de filamento está despejado."
-                },
-                {
-                    "ecode": "18FE700000020003",
-                    "intro": "El filamento del extrusor izquierdo se ha agotado; por favor introduzca un nuevo filamento."
                 },
                 {
                     "ecode": "1802700000020022",
@@ -4612,10 +4760,6 @@
                     "intro": "El suministro de filamento a la rueda de extrusión del motor auxiliar de AMS G ha fallado. Esto podría deberse a una desconexión del motor DC. Por favor, verifique la conexión del enchufe del motor DC."
                 },
                 {
-                    "ecode": "1804700000020007",
-                    "intro": "Se agotó el filamento de AMS-HT. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "1803700000020030",
                     "intro": "El suministro de filamento al extrusor de la herramienta en AMS-HT D ha fallado; esto podría deberse a que el filamento está bloqueado en la entrada de la herramienta. Por favor, revise el enchufe del tubo de filamento de la herramienta."
                 },
@@ -5208,10 +5352,6 @@
                     "intro": "AMS-HT H Ha fallado la alimentación del filamento al extrusor de la cabeza de la herramienta; esto podría deberse a una resistencia excesiva del filamento. Por favor, compruebe si el carrete del filamento está inclinado o si el tubo del filamento está obstruido."
                 },
                 {
-                    "ecode": "1803700000020007",
-                    "intro": "El filamento AMS-HT se ha agotado. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0705700000020014",
                     "intro": "La inserción del filamento AMS F en la rueda de extrusión del motor de asistencia ha fallado. Esto podría ser debido a un pequeño trozo de filamento roto que entró en el tubo de alimentación. Por favor, retire el filamento roto del tubo de alimentación."
                 },
@@ -5422,10 +5562,6 @@
                 {
                     "ecode": "1802300000030003",
                     "intro": "El RFID no se puede leer debido a un error de hardware o estructura."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "El filamento en AMS se ha agotado. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "18FE800000020003",
@@ -6308,10 +6444,6 @@
                     "intro": "Fallo del chip de encriptación."
                 },
                 {
-                    "ecode": "0705700000020007",
-                    "intro": "El filamento de AMS se agotó. Coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0706310000030003",
                     "intro": "No se puede leer el RFID debido a un error de hardware o estructural."
                 },
@@ -6816,10 +6948,6 @@
                     "intro": "La adquisición de comunicación de la señal del sensor Hall de posición del motor de cambio de extrusor es anómala."
                 },
                 {
-                    "ecode": "1807700000020007",
-                    "intro": "Se ha agotado el filamento AMS-HT. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Falló al sacar el filamento AMS-G; esto puede deberse a que se ha agotado el filamento o ha sido sacado de forma incorrecta."
                 },
@@ -7144,10 +7272,6 @@
                     "intro": "AMS-HT H: La extracción del filamento ha fallado; esto podría deberse a que el filamento se ha desgastado y ha hecho que el motor auxiliar se resbale. Por favor, recorte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT: Se ha agotado el filamento. Por favor, introduzca un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "1803700000020060",
                     "intro": "AMS-HT D: La asistencia para que el extrusor tome el filamento ha fallado; esto podría deberse a que el motor auxiliar se ha resbalado. Por favor, recorte la sección desgastada del filamento."
                 },
@@ -7366,10 +7490,6 @@
                 {
                     "ecode": "0706700000020012",
                     "intro": "AMS G Falló el suministro de filamento a la rueda de extrusión del motor de asistencia. Esto podría deberse a una resistencia excesiva en el filamento. Por favor, revise si la bobina está inclinada, el filamento está enredado, o si la rotación de la bobina no es suave."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT se acabó el filamento. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0706700000020032",
@@ -7928,16 +8048,8 @@
                     "intro": "La alimentación del filamento al buffer ha fallado en la AMS H; esto puede deberse a que el filamento se ha desprendido. Por favor, compruebe si el tubo del filamento está conectado de forma incorrecta o si el tubo se ha desgastado."
                 },
                 {
-                    "ecode": "1802700000020007",
-                    "intro": "El filamento de la AMS-HT se ha agotado. Por favor, coloque un nuevo filamento en la AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "1805700000020046",
                     "intro": "La extracción del filamento ha fallado en la AMS-HT F; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si el carrete del filamento está inclinado o deformado, y si el tubo del filamento está despejado."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "El filamento de la AMS se ha agotado. Por favor, coloque un nuevo filamento en la AMS y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -8256,10 +8368,6 @@
                     "intro": "AMS H Ha fallado la alimentación del filamento a la rueda de extrusión del motor de asistencia. Esto podría deberse a una obstrucción en el tubo de alimentación. Por favor, verifica si el tubo de alimentación y el centro del filamento están despejados."
                 },
                 {
-                    "ecode": "0706700000020007",
-                    "intro": "El filamento de AMS se agotó. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0706700000020040",
                     "intro": "La extracción del filamento de AMS G ha fallado; esto puede deberse a una resistencia excesiva en el motor CC. Por favor verifique si el carrete del filamento está inclinado o deformado, o si el tubo del filamento está bloqueado."
                 },
@@ -8448,10 +8556,6 @@
                     "intro": "El motor de la ranura 1 de AMS-HT D se ha deslizado. La rueda de extrusión puede no funcionar correctamente, o el filamento puede ser demasiado delgado."
                 },
                 {
-                    "ecode": "1800700000020007",
-                    "intro": "Se ha agotado el filamento de AMS-HT. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "18FE810000020001",
                     "intro": "La acción de cambio del extrusor no es normal. Por favor, compruebe si hay algo atascado en la cabeza de la herramienta."
                 },
@@ -8490,10 +8594,6 @@
                 {
                     "ecode": "1807310000010004",
                     "intro": "Fallo del chip de cifrado"
-                },
-                {
-                    "ecode": "18FF700000020003",
-                    "intro": "El filamento del extrusor derecho se ha agotado; por favor alimente nuevo filamento."
                 },
                 {
                     "ecode": "1803700000020043",
@@ -8574,10 +8674,6 @@
                 {
                     "ecode": "050004000001004F",
                     "intro": "Módulo desconocido detectado, por favor intente actualizar el firmware a la última versión."
-                },
-                {
-                    "ecode": "07FF700000020003",
-                    "intro": "El filamento del extrusor derecho se ha agotado; por favor, inserte nuevo filamento."
                 },
                 {
                     "ecode": "0C00040000010020",
@@ -9398,10 +9494,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "La desviación en el valor de calibración de posicionamiento del extrusor es demasiado grande; por favor recalibrar."
-                },
-                {
-                    "ecode": "07FE700000020003",
-                    "intro": "El filamento del extrusor izquierdo se ha agotado; por favor, inserte nuevo filamento."
                 },
                 {
                     "ecode": "0500030000020010",
@@ -14580,10 +14672,6 @@
                     "intro": "Falló al sacar el filamento del extrusor. Posibles causas: extrusor obstruido o filamento roto. Consulte al Asistente para obtener más detalles."
                 },
                 {
-                    "ecode": "0703700000020007",
-                    "intro": "El filamento de AMS se agotó. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Falló al obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentar."
                 },
@@ -14616,20 +14704,12 @@
                     "intro": "No se pudo retirar el filamento del extrusor. Posibles causas: extrusor obstruido o filamento roto. Consulte al Asistente para obtener más detalles."
                 },
                 {
-                    "ecode": "0702700000020007",
-                    "intro": "El filamento AMS se agotó. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "No se pudo obtener la tabla de mapeo AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
                 },
                 {
                     "ecode": "0701700000020001",
                     "intro": "No se pudo retirar el filamento del extrusor. Posibles causas: extrusor obstruido o filamento roto. Consulte al Asistente para obtener más detalles."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "El filamento AMS se agotó. Por favor, coloque un nuevo filamento en AMS y haga clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14686,10 +14766,6 @@
                 {
                     "ecode": "0700700000020001",
                     "intro": "No se pudo sacar el filamento del extrusor. Posibles causas: extrusor obstruido o filamento roto. Consulte al Asistente para más detalles."
-                },
-                {
-                    "ecode": "0700700000020007",
-                    "intro": "El filamento de AMS se ha terminado. Por favor, coloca un nuevo filamento en AMS y haz clic en el botón \"Reintentar\"."
                 },
                 {
                     "ecode": "0700700000020008",

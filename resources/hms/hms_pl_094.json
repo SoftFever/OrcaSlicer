@@ -1,38 +1,454 @@
 {
     "result": 0,
-    "t": 1736345976,
-    "ver": 202501081628,
+    "t": 1736436183,
+    "ver": 202502042359,
     "data": {
         "device_error": {
-            "ver": 202501081619,
+            "ver": 202502042359,
             "pl": [
                 {
-                    "ecode": "0500807A",
-                    "intro": "Funkcja detekcji obcych przedmiotów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
+                    "ecode": "0C004041",
+                    "intro": "Kalibracja LiDAR-a nie powiodła się. Proszę upewnić się, że powierzchnia celu kalibracyjnego jest czysta i nieuszkodzona, a następnie ponownie uruchomić proces kalibracji."
                 },
                 {
-                    "ecode": "0C008016",
-                    "intro": "Funkcja detekcji obcych przedmiotów nie działa. Możesz kontynuować zadanie lub skorzystać z asystenta w celu rozwiązania problemu."
+                    "ecode": "07018007",
+                    "intro": "Nie udało się wyciskać filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Typ platformy się nie zgadza, co może prowadzić do nieprawidłowych danych pomiaru wysokości. Proszę prawidłowo umieścić platformę laserową, a następnie ponownie zmierzyć wysokość w oprogramowaniu i rozpocząć zadanie."
+                    "ecode": "07018012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Nie udało się wyciskać filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07FF8005",
+                    "intro": "Nie udało się wprowadzić filamentu poza AMS. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy szpula jest zablokowana."
+                },
+                {
+                    "ecode": "07FE8005",
+                    "intro": "Nie udało się wprowadzić filamentu zewnętrznego do AMS. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy szpulka jest zablokowana."
+                },
+                {
+                    "ecode": "03008042",
+                    "intro": "Zadanie wstrzymane, ponieważ drzwi lub górna pokrywa są otwarte."
+                },
+                {
+                    "ecode": "07FF8020",
+                    "intro": "Zmiana ekstrudera nie powiodła się; proszę skontaktować się z asystentem."
+                },
+                {
+                    "ecode": "0500805C",
+                    "intro": "Typ maty do cięcia nie pasuje; proszę umieścić matę do cięcia LightGrip."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Nieprawidłowy typ platformy. Proszę umieścić platformę laserową do kalibracji lasera."
+                },
+                {
+                    "ecode": "05008059",
+                    "intro": "Podstawa platformy tnącej nie jest prawidłowo wyrównana. Proszę upewnić się, że cztery narożniki platformy są wyrównane z powierzchnią grzejną."
+                },
+                {
+                    "ecode": "07FF8013",
+                    "intro": "Przekroczono czas wyczyszczania starego filamentu z prawego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "07FF8001",
+                    "intro": "Nie udało się przeciąć filamentu z prawego ekstrudera. Proszę sprawdzić nóż."
+                },
+                {
+                    "ecode": "0500806C",
+                    "intro": "Proszę prawidłowo umieścić platformę do cięcia i upewnić się, że znacznik jest odsłonięty."
+                },
+                {
+                    "ecode": "07FE8024",
+                    "intro": "Kalibracja pozycji ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "07018013",
+                    "intro": "Przekroczono czas wyczyszczania starego filamentu: Proszę sprawdzić, czy filament jest zablokowany, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "0500805A",
+                    "intro": "Proszę umieścić matę tnącą na podstawie ochrony cięcia."
+                },
+                {
+                    "ecode": "07068013",
+                    "intro": "Limit czasu na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatyka."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Limit czasu na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Limit czasu na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zatkany."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Nie udało się cofnąć filamentu z prawego ekstrudera. Proszę sprawdzić, czy filament jest zablokowany w lewym ekstruderze."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć „Wznów”, aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18FE8024",
+                    "intro": "Nie udało się skalibrować pozycji ekstrudera; proszę skorzystać z asystenta."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu: Sprawdź, czy filament jest zablokowany lub czy dysza ekstrudera jest zablokowana."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Sprawdź, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Sprawdź, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18FE8001",
+                    "intro": "Nie udało się przeciąć filamentu lewego ekstrudera. Sprawdź nóż."
+                },
+                {
+                    "ecode": "18FF8013",
+                    "intro": "Czas na usunięcie starego filamentu z prawego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "07048013",
+                    "intro": "Czas na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Nie udało się wyekstruzować filamentu. Proszę sprawdzić, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Nie udało się wyekstrudować filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "05008071",
+                    "intro": "Nie wykryto platformy tnącej. Proszę potwierdzić, że została prawidłowo umieszczona."
+                },
+                {
+                    "ecode": "05008073",
+                    "intro": "Blok ogranicznika podgrzewanej platformy jest zablokowany lub zanieczyszczony. Proszę wyczyścić i upewnić się, że blok ogranicznika jest widoczny, w przeciwnym razie wykrywanie przesunięcia pozycji platformy może być niedokładne."
                 },
                 {
                     "ecode": "05004075",
-                    "intro": "Nie wykryto platformy laserowej, co może prowadzić do nieprawidłowego pomiaru wysokości. Proszę prawidłowo umieścić platformę laserową, a następnie ponownie zmierzyć wysokość w oprogramowaniu i zrestartować zadanie. Upewnij się również, że koniec platformy nie jest zasłonięty przez materiał."
+                    "intro": "Nie wykryto platformy laserowej, co może wpłynąć na dokładność pomiaru wysokości. Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie uruchomić pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "18FF8010",
+                    "intro": "Sprawdź, czy prawy zewnętrzny szpul filamentu lub filament jest zablokowany."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub sprawdzić pomocnika w celu rozwiązania problemu."
+                },
+                {
+                    "ecode": "05008068",
+                    "intro": "Proszę poprawnie umieścić matę do cięcia ze mocnym uchwytem i upewnić się, że znacznik jest odsłonięty."
+                },
+                {
+                    "ecode": "0500807C",
+                    "intro": "Proszę umieścić platformę tnącą (podstawę ochronną + matę tnącą StrongGrip)."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Wykryto platformę laserową, proszę wymienić ją na platformę tnącą (podstawa ochronna do cięcia + mata do cięcia StrongGrip)."
+                },
+                {
+                    "ecode": "05008067",
+                    "intro": "Proszę umieścić matę tnącą LightGrip na podstawie ochronnej."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Sprawdź, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Nie udało się cofnąć filamentu z lewego ekstrudera. Sprawdź, czy filament utknął wewnątrz lewego ekstrudera."
+                },
+                {
+                    "ecode": "07FE8013",
+                    "intro": "Przekroczono czas usuwania starego filamentu z lewego ekstrudera: Sprawdź, czy filament utknął lub czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07FE8010",
+                    "intro": "Sprawdź, czy lewy zewnętrzny szpul filamentu lub filament jest zablokowany."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Nie udało się pobrać tabeli mapowania; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07FE8002",
+                    "intro": "Nożyk lewego ekstrudera jest zablokowany. Wyciągnij uchwyt nożyka."
+                },
+                {
+                    "ecode": "07FE8020",
+                    "intro": "Zmienność ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "07FE8001",
+                    "intro": "Nie udało się przeciąć filamentu w lewym ekstruderze. Proszę sprawdzić nóż."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Wykryto platformę laserową. Proszę ustawić platformę tnącą do kalibracji."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Nie udało się cofnąć filamentu z prawego ekstrudera. Proszę sprawdzić, czy filament nie jest zablokowany wewnątrz lewego ekstrudera."
+                },
+                {
+                    "ecode": "07FF8002",
+                    "intro": "Nożyk prawego ekstrudera jest zablokowany. Proszę wyciągnąć uchwyt nożyka."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Wykryto platformę laserową. Proszę ustawić platformę tnącą (podstawa ochronna + mata tnąca LightGrip)."
+                },
+                {
+                    "ecode": "07FF8024",
+                    "intro": "Kalibracja pozycji ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "07008013",
+                    "intro": "Przekroczono czas usuwania starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "07028013",
+                    "intro": "Przekroczono czas przy usuwaniu starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "07038013",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu: Proszę sprawdzić, czy filament nie jest zablokowany lub czy ekstruder nie jest zapchany."
+                },
+                {
+                    "ecode": "0500806F",
+                    "intro": "Typ maty do cięcia nie pasuje; proszę umieścić matę StrongGrip."
+                },
+                {
+                    "ecode": "18FE8020",
+                    "intro": "Zmiana ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Czas na oczyszczenie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18FE8013",
+                    "intro": "Czas na oczyszczenie starego filamentu lewego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18FE8005",
+                    "intro": "Nie udało się podać filamentu poza AMS-HT. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy szpula jest zablokowana."
+                },
+                {
+                    "ecode": "18FE8010",
+                    "intro": "Sprawdź, czy zewnętrzna szpula filamentu po lewej stronie lub filament są zablokowane."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07058013",
+                    "intro": "Przekroczono czas przy usuwaniu starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Nie udało się wycofać filamentu z lewego ekstrudera. Proszę sprawdzić, czy filament jest zablokowany wewnątrz lewego ekstrudera."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Nie udało się pobrać tabeli mapowania; proszę kliknąć \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Sprawdź, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18FF8002",
+                    "intro": "Nóż prawego ekstrudera jest zablokowany. Proszę wyciągnąć uchwyt noża."
+                },
+                {
+                    "ecode": "18FF8020",
+                    "intro": "Zmiana ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07078013",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu: Sprawdź, czy filament jest zablokowany lub ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu: Sprawdź, czy filament jest zablokowany lub ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
+                },
+                {
+                    "ecode": "18FE8002",
+                    "intro": "Wykrawacz lewego ekstrudera jest zablokowany. Proszę wyciągnąć uchwyt wykrawacza."
+                },
+                {
+                    "ecode": "18FF8024",
+                    "intro": "Kalibracja pozycji ekstrudera nie powiodła się; proszę skonsultować się z asystentem."
+                },
+                {
+                    "ecode": "18FF8005",
+                    "intro": "Nie udało się wprowadzić filamentu poza AMS-HT. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy szpula nie jest zablokowana."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub czy ekstruder jest zablokowany."
+                },
+                {
+                    "ecode": "18FF8001",
+                    "intro": "Nie udało się przeciąć filamentu w prawym ekstruderze. Proszę sprawdzić wykrawacz."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Nie udało się wytłoczyć filamentu. Proszę sprawdzić, czy ekstruder jest zapchany."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
                 },
                 {
                     "ecode": "05004076",
-                    "intro": "Nieznana platforma podczas pracy, co może prowadzić do nieprawidłowych danych pomiaru wysokości. Proszę prawidłowo umieścić platformę laserową i sprawdzić, czy kamera BirdsEye nie jest zasłonięta, a następnie ponownie zmierzyć wysokość w oprogramowaniu i zrestartować zadanie."
+                    "intro": "Nieznana platforma w zadaniu, co może wpłynąć na dokładność pomiaru wysokości. Proszę poprawnie umieścić platformę laserową i upewnić się, że kamera BirdsEye nie jest zasłonięta, następnie ponownie zmierz wysokość w oprogramowaniu i wznowić zadanie."
                 },
                 {
-                    "ecode": "0C008018",
-                    "intro": "Funkcja detekcji obcych przedmiotów nie działa. Możesz kontynuować zadanie lub skorzystać z asystenta w celu rozwiązania problemu."
+                    "ecode": "07FF8010",
+                    "intro": "Sprawdź, czy odpowiedni zewnętrzny szpulka filamentu lub filament jest zacięty."
                 },
                 {
                     "ecode": "03004052",
-                    "intro": "Błąd zerowego powrotu noża: proszę wrócić do zera ponownie."
+                    "intro": "Nieudane ustawienie osi Z ostrza."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Zadanie wstrzymane, ponieważ okno boczne jest otwarte."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Proszę umieścić matę do cięcia StrongGrip na podstawie ochronnej do cięcia."
+                },
+                {
+                    "ecode": "05008058",
+                    "intro": "Proszę poprawnie umieścić matę do cięcia light grip i upewnić się, że znacznik jest odsłonięty."
+                },
+                {
+                    "ecode": "0500807B",
+                    "intro": "Proszę umieścić platformę tnącą (podstawę ochrony cięcia + matę tnącą LightGrip)."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Typ platformy się nie zgadza, co może skutkować niedokładnymi danymi pomiaru wysokości. Proszę poprawnie umieścić platformę laserową, następnie ponownie zmierz wysokość w oprogramowaniu i rozpocznij zadanie."
+                },
+                {
+                    "ecode": "0C008018",
+                    "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
                 },
                 {
                     "ecode": "0500805B",
@@ -251,10 +667,6 @@
                     "intro": "AMS B wspiera w wkładaniu filamentu. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
                 },
                 {
-                    "ecode": "0500806C",
-                    "intro": "Nieznanego rodzaju podstawka ochronna do cięcia. Proszę wymienić na odpowiednią podstawkę ochronną."
-                },
-                {
                     "ecode": "0701406C",
                     "intro": "AMS B jest w trybie pomocy w podawaniu. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
                 },
@@ -347,56 +759,16 @@
                     "intro": "Aktualny materiał nie pasuje do ustawień pliku krojonego. Proszę załadować odpowiedni materiał i upewnić się, że kod QR na materiale nie jest uszkodzony ani brudny."
                 },
                 {
-                    "ecode": "07FE8010",
-                    "intro": "Sprawdź, czy lewy zewnętrzny szpula filamentu lub filament jest zablokowany. Po rozwiązaniu problemu kliknij przycisk 'Powtórz'."
-                },
-                {
                     "ecode": "0500403F",
                     "intro": "Nie udało się pobrać zadania drukowania; sprawdź swoje połączenie sieciowe."
-                },
-                {
-                    "ecode": "18FE8010",
-                    "intro": "Sprawdź, czy lewy zewnętrzny szpula filamentu lub filament jest zablokowany. Po rozwiązaniu problemu kliknij przycisk 'Powtórz'."
-                },
-                {
-                    "ecode": "05008073",
-                    "intro": "Blok ograniczający podgrzewanej podstawy jest zablokowany lub brudny. Proszę odsłonić blok ograniczający, w przeciwnym razie będzie fałszywie zgłaszać błąd wykrywania poziomowania stołu."
-                },
-                {
-                    "ecode": "18FF8010",
-                    "intro": "Sprawdź, czy prawy zewnętrzny szpula filamentu lub filament jest zablokowany. Po rozwiązaniu problemu kliknij przycisk 'Powtórz'."
-                },
-                {
-                    "ecode": "07FF8010",
-                    "intro": "Sprawdź, czy prawy zewnętrzny szpula filamentu lub filament jest zablokowany. Po rozwiązaniu problemu kliknij przycisk 'Powtórz'."
-                },
-                {
-                    "ecode": "03008042",
-                    "intro": "Zadanie wstrzymane, ponieważ drzwi, górna pokrywa lub boczne okno są otwarte."
                 },
                 {
                     "ecode": "05008074",
                     "intro": "Platforma laserowa jest przesunięta. Proszę upewnić się, że cztery rogi platformy są wyrównane z podgrzewaną podstawą."
                 },
                 {
-                    "ecode": "05008059",
-                    "intro": "Baza ochronna tnika jest przesunięta. Proszę upewnić się, że cztery narożniki płyty bazowej są wyrównane z łóżkiem grzejnym."
-                },
-                {
-                    "ecode": "05008056",
-                    "intro": "Aktualny typ bazy ochronnej tnika jest nieprawidłowy. Proszę umieścić stalową płytę ochronną tnika do kalibracji cięcia nożem."
-                },
-                {
                     "ecode": "05008063",
                     "intro": "Podczas kalibracji nie wykryto platformy; proszę upewnić się, że płyta laserowa jest właściwie umieszczona."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Aktualny typ bazy ochronnej tnika nie pasuje do ustawień w programie do obróbki wstępnej. Proszę umieścić stalową płytę ochronną tnika."
-                },
-                {
-                    "ecode": "05008071",
-                    "intro": "Nie wykryto blachy stalowej ochronnej cięcia. Proszę potwierdź, czy została ona poprawnie umieszczona."
                 },
                 {
                     "ecode": "0C00803F",
@@ -431,16 +803,8 @@
                     "intro": "Zadanie zostało anulowane."
                 },
                 {
-                    "ecode": "0500805C",
-                    "intro": "Nieodpowiedni typ maty tnącej dla chwytaka; proszę umieścić matę tnącą LightGrip."
-                },
-                {
                     "ecode": "07FF8011",
                     "intro": "Zewnętrzny filament podłączony do prawego ekstrudera się skończył; proszę załaduj nowy filament."
-                },
-                {
-                    "ecode": "0500806F",
-                    "intro": "Nieodpowiedni typ maty tnącej dla chwytaka; proszę umieścić matę tnącą StrongGrip."
                 },
                 {
                     "ecode": "18FF8011",
@@ -539,14 +903,6 @@
                     "intro": "Kamera LiveView jest zablokowana."
                 },
                 {
-                    "ecode": "18048007",
-                    "intro": "Niepowodzenie wyciągania filamentu. Sprawdź, czy ekstruder jest zatkany. Po wyeliminowaniu problemów kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Niepowodzenie wyciskania filamentu. Proszę sprawdzić, czy nie jest zatkanie w ekstruderze. Po rozwiązaniu problemu kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT nie powiodło się cofanie filamentu. Może to być spowodowane przyczepieniem się szpuli lub zablokowaniem końca filamentu na drodze."
                 },
@@ -555,24 +911,12 @@
                     "intro": "AMS-HT niepowodzenie z wycofaniem filamentu. Mogło to być spowodowane zablokowaniem szpuli lub zatrzymaniem końca filamentu na drodze."
                 },
                 {
-                    "ecode": "18FF8012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć przycisk \"Ponów próbę\", aby kontynuować."
-                },
-                {
                     "ecode": "18058016",
                     "intro": "Ekstruder nie ekstruduje normalnie; proszę skonsultować się z asystentem. Po rozwiązaniu problemu, jeśli występują wady akceptowalne, proszę kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D jest w trakcie suszenia. Przed załadowaniem/wyładowaniem materiału proszę zatrzymać proces suszenia."
-                },
-                {
-                    "ecode": "18018012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć przycisk \"Ponów próbę\", aby kontynuować."
-                },
-                {
-                    "ecode": "18068007",
-                    "intro": "Nie udało się wypchnąć filamentu. Proszę sprawdzić, czy nie ma zatkania w ekstruderze. Po rozwiązaniu problemu, proszę kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18048011",
@@ -595,56 +939,24 @@
                     "intro": "Ekstruder nie wyciska materiału w normalny sposób; proszę skontaktować się z asystentem. Po wykonaniu kroków diagnostycznych, jeśli niedoskonałości są akceptowalne, proszę kliknąć przycisk \"Powtórz\"."
                 },
                 {
-                    "ecode": "18078013",
-                    "intro": "Limit czasu czyszczenia starego filamentu: Sprawdź, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu, kliknij przycisk \"Powtórz\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Proszę wyjąć filament z uchwytu roli z lewego ekstrudera. Jeśli ten komunikat będzie się powtarzać, sprawdź, czy w ekstruderze lub rurce PTFE nie ma złamanego filamentu. (Po podłączeniu rurki PTFE, gdy masz zamiar użyć AMS)"
-                },
-                {
-                    "ecode": "18FF8001",
-                    "intro": "Nie udało się odciąć filamentu prawego ekstrudera. Proszę sprawdzić nożyk tnący. Po rozwiązaniu problemu, kliknąć przycisk \"Powtórz\"."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Powtórz\", aby kontynuować."
                 },
                 {
                     "ecode": "07048005",
                     "intro": "AMS nie udało się wysłać filamentu. Możesz przyciąć koniec filamentu na płasko i ponownie włożyć. Jeśli ta wiadomość nadal się pojawia, proszę sprawdzić rurki PTFE w AMS pod kątem oznak zużycia."
                 },
                 {
-                    "ecode": "18028012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknij \"Ponów\", aby kontynuować."
-                },
-                {
                     "ecode": "18028005",
                     "intro": "AMS-HT nie udało się wysłać filamentu. Możesz przyciąć koniec filamentu na płasko i ponownie włożyć. Jeśli ta wiadomość nadal się pojawia, proszę sprawdzić rurki PTFE w AMS-HT pod kątem oznak zużycia."
-                },
-                {
-                    "ecode": "18FE8002",
-                    "intro": "Przycinarka lewego ekstrudera jest zablokowana. Proszę wyjąć uchwyt przycinarki i kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "18038010",
                     "intro": "Silnik pomocniczy AMS-HT jest przeciążony. Może to być spowodowane skrzyżowaniem się filamentu lub zablokowanym kłębkiem."
                 },
                 {
-                    "ecode": "07048007",
-                    "intro": "Nie udało się wycisnąć filamentu. Proszę sprawdzić, czy ekstruder jest zapchany. Po rozwiązaniu problemu należy kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "18FF8024",
-                    "intro": "Kalibracja pozycji ekstrudera nie powiodła się. Proszę skontaktować się z asystentem. Po rozwiązaniu problemu należy kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18008016",
                     "intro": "Ekstruder nie wyciska filamentu poprawnie. Proszę skontaktować się z asystentem. Po rozwiązaniu problemu, jeśli defekty są akceptowalne, należy kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "18FF8005",
-                    "intro": "Nie udało się wydostać filamentu z zewnątrz AMS-HT. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy kłębek jest zablokowany. Po rozwiązaniu problemu należy kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "18058005",
@@ -679,10 +991,6 @@
                     "intro": "Nie można wprowadzić filamentu do ekstrudera. Może to być spowodowane splątanym filamentem lub zablokowanym kółkiem nawojowym. Jeśli to nie pomaga, proszę sprawdzić, czy rura PTFE AMS-HT jest podłączona."
                 },
                 {
-                    "ecode": "07048013",
-                    "intro": "Limit czasu wyczyszczania starego filamentu został przekroczony. Proszę sprawdzić, czy filament jest uwięziony lub ekstruder jest zatkany. Po wykonaniu czynności diagnostycznych, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18FF8006",
                     "intro": "Proszę wysunąć filament do rurki PTFE prawego ekstrudera, aż nie będzie można go dalej wcisnąć."
                 },
@@ -697,10 +1005,6 @@
                 {
                     "ecode": "18018016",
                     "intro": "Ekstruder nie ekstruduje poprawnie. Proszę skonsultować się z Asystentem od rozwiązywania problemów. Po rozwiązaniu problemu, jeśli defekty są akceptowalne, proszę kliknąć przycisk „Ponów”."
-                },
-                {
-                    "ecode": "18018013",
-                    "intro": "Przekroczony limit czasu na wyczyszczenie starego filamentu. Proszę sprawdzić, czy filament jest zablokowany, a ekstruder jest zatkany. Po rozwiązaniu problemu, proszę kliknąć przycisk „Ponów”."
                 },
                 {
                     "ecode": "18018005",
@@ -719,20 +1023,8 @@
                     "intro": "AMS-HT nie był w stanie wycofać filamentu. Może to być spowodowane zablokowanym kłębkiem lub zatknięciem końca filamentu na drodze."
                 },
                 {
-                    "ecode": "18FE8001",
-                    "intro": "Nie udało się odciąć filamentu z lewego ekstrudera. Proszę sprawdzić tnące ostrze. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07078013",
-                    "intro": "Przekroczony czas usuwania starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zawalony. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18068011",
                     "intro": "Wyczerpany filament AMS-HT. Proszę włożyć nowy filament do tego samego miejsca AMS."
-                },
-                {
-                    "ecode": "18FF8013",
-                    "intro": "Przekroczony czas usuwania starego filamentu z prawego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zawalony. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "07078006",
@@ -763,32 +1055,12 @@
                     "intro": "Proszę wprowadzić filament do rurki PTFE lewego ekstrudera, aż przestanie można go popychać."
                 },
                 {
-                    "ecode": "18078012",
-                    "intro": "Odczytanie tabeli mapowania AMS nie powiodło się; proszę kliknąć \"Ponów\", aby kontynuować."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Ekstruzja filamentu nie powiodła się. Proszę sprawdzić, czy ekstruder nie jest zapchany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "07068011",
                     "intro": "Minął filament AMS. Proszę włożyć nowy filament do tego samego gniazda AMS."
                 },
                 {
                     "ecode": "0C004027",
                     "intro": "Kalibracja kamery podglądu na żywo nie powiodła się. Proszę odnieść się do asystenta po szczegóły i przekalibrować kamerę po processing'u."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Ekstruzja filamentu nie powiodła się. Proszę sprawdzić, czy ekstruder nie jest zapchany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Ekstruzja filamentu nie powiodła się. Proszę sprawdzić, czy ekstruder nie jest zapchany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "18FF8020",
-                    "intro": "Wymiana ekstrudera nie powiodła się; proszę odnieść się do asystenta. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "07048006",
@@ -805,14 +1077,6 @@
                 {
                     "ecode": "18028006",
                     "intro": "Nie można wprowadzić filamentu do ekstrudera. Może to być spowodowane zamotanym filamentem lub zablokowanym kłębkiem. Jeśli nie, proszę sprawdzić, czy rura PTFE AMS-HT jest podłączona."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS. Proszę kliknąć \"Ponów próbę\", aby kontynuować."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS. Proszę kliknąć \"Ponów próbę\", aby kontynuować."
                 },
                 {
                     "ecode": "18FEC006",
@@ -835,16 +1099,8 @@
                     "intro": "AMS-HT nie mógł wycofać filamentu. Może to być spowodowane przyciętą rolką lub końcem filamentu utkniętym na drodze."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Ponów próbę\", aby kontynuować."
-                },
-                {
                     "ecode": "07078004",
                     "intro": "AMS nie mógł wciągnąć filamentu. Może to być spowodowane przyciętą rolką lub końcem filamentu utkniętym na drodze."
-                },
-                {
-                    "ecode": "18FF8002",
-                    "intro": "Przycinak prawego ekstrudera jest zablokowany. Proszę wyciągnąć uchwyt przycinaka i kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "0C00402A",
@@ -853,10 +1109,6 @@
                 {
                     "ecode": "07058010",
                     "intro": "Silnik pomocniczy AMS jest przeciążony. Może to być spowodowane splątanym filamentem lub przyciętą rolką."
-                },
-                {
-                    "ecode": "18038007",
-                    "intro": "Nie udało się wydrukować filamentu. Proszę sprawdzić, czy ekstruder jest zapchany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18018010",
@@ -891,24 +1143,12 @@
                     "intro": "Nie można wprowadzić filamentu do ekstrudera. Może to być spowodowane splątanymi filamentami lub zablokowanym kloszem. Jeśli nie, sprawdź, czy wężyk PTFE AMS-HT jest podłączony."
                 },
                 {
-                    "ecode": "18038012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS. Proszę kliknąć przycisk \"Retry\" (ponów próbę), aby kontynuować."
-                },
-                {
                     "ecode": "07048003",
                     "intro": "Nie udało się wyjąć filamentu z ekstrudera. Może to być spowodowane zatkaniem ekstrudera lub przerwaniem filamentu wewnątrz ekstrudera."
                 },
                 {
-                    "ecode": "18058013",
-                    "intro": "Przekroczony czas oczekiwania na wyczyszczenie starej nici: Sprawdź, czy zawieszona jest nić lub zatkany jest ekstruder. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18008005",
                     "intro": "AMS-HT nie udało się wysłać filamentu. Możesz przyciąć końcówkę swojej nici na płasko i włożyć ponownie. Jeśli ta wiadomość będzie się powtarzać, sprawdź węże PTFE w AMS pod kątem oznak zużycia."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Nieudane wytłoczenie filamentu. Sprawdź, czy nastąpiło zatknięcie ekstrudera. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "18FFC009",
@@ -923,14 +1163,6 @@
                     "intro": "Ekstruder nie wytłacza normalnie; proszę skontaktować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, kliknij przycisk \"Ponów\"."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Nie udało się wycofać filamentu z prawego ekstrudera. Proszę sprawdzić, czy nić nie zablokowała się w lewym ekstrudera. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Nie można pobrać tabeli mapowania AMS; proszę kliknąć przycisk \"Ponów\", aby kontynuować."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "Wyczerpała się nici AMS-HT. Proszę włożyć nowy filament do tego samego gniazda AMS."
                 },
@@ -941,14 +1173,6 @@
                 {
                     "ecode": "18078003",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Może to być spowodowane zatkaniem ekstrudera lub przerwaniem filamentu wewnątrz ekstrudera."
-                },
-                {
-                    "ecode": "18FE8012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania; proszę kliknąć \"Ponów\", aby kontynuować."
-                },
-                {
-                    "ecode": "18FE8024",
-                    "intro": "Kalibracja pozycji ekstrudera nie powiodła się; proszę skonsultować się z asystentem. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "07058005",
@@ -965,10 +1189,6 @@
                 {
                     "ecode": "18FEC009",
                     "intro": "Proszę włożyć filament do rurki PTFE lewego ekstrudera, aż nie będzie można go wcisnąć dalej."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Nie udało się cofnąć filamentu z lewego ekstrudera. Proszę sprawdzić, czy filament utknął wewnątrz lewego ekstrudera. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "18FEC003",
@@ -995,10 +1215,6 @@
                     "intro": "Motor pomocniczy AMS-HT jest przeciążony. Może to być spowodowane splątanym filamentem lub przyklejoną szpulą."
                 },
                 {
-                    "ecode": "07058013",
-                    "intro": "Przekroczony czas oczekiwania na wypłukanie starego filamentu: sprawdź, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu, kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18048016",
                     "intro": "Ekstruder nie wytłacza filamentu w sposób normalny; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli niedoskonałości są akceptowalne, kliknij przycisk \"Ponów próbę\"."
                 },
@@ -1011,10 +1227,6 @@
                     "intro": "AMS-HT nie powiodło się w wycofaniu filamentu. Może to być spowodowane zablokowaniem na rolce lub zablokowaniem końca filamentu na drodze."
                 },
                 {
-                    "ecode": "18078007",
-                    "intro": "Nie udało się wydrukować filamentu. Proszę sprawdzić, czy ekstruder jest zatkany. Po wykonaniu diagnostyki kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18FEC00A",
                     "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wydrukowany, kliknąć \"Gotowe\"; w przeciwnym wypadku należy nieco wysunąć filament do przodu, a następnie kliknąć \"Ponów próbę\"."
                 },
@@ -1023,16 +1235,8 @@
                     "intro": "Nadmierne obciążenie silnika asystenta AMS-HT. Może to być spowodowane splątaną nićą lub zablokowaniem na rolce."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Ponów próbę\", aby kontynuować."
-                },
-                {
                     "ecode": "07048016",
                     "intro": "Ekstruder nie wydrukuje poprawnie; proszę odwołać się do asystenta. Po wykonaniu diagnostyki, jeśli defekty są dopuszczalne, proszę kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "18048012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę kliknąć \"Ponów próbę\", aby kontynuować."
                 },
                 {
                     "ecode": "07068016",
@@ -1041,10 +1245,6 @@
                 {
                     "ecode": "18008003",
                     "intro": "Nie udało się wyjąć filamentu z ekstrudera. Może to być spowodowane zatkaniem ekstrudera lub złamanym filamentem wewnątrz ekstrudera."
-                },
-                {
-                    "ecode": "07078007",
-                    "intro": "Nie udało się wycisnąć filamentu. Sprawdź, czy ekstruder jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "07048010",
@@ -1057,10 +1257,6 @@
                 {
                     "ecode": "18078011",
                     "intro": "Wyczerpał się filament AMS-HT. Włóż nowy filament do tego samego slotu AMS."
-                },
-                {
-                    "ecode": "18028013",
-                    "intro": "Przekroczony czas na oczyszczenie starego filamentu. Sprawdź, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "07058004",
@@ -1103,44 +1299,12 @@
                     "intro": "Wyczerpał się filament AMS. Włóż nowy filament do tego samego slotu AMS."
                 },
                 {
-                    "ecode": "18008013",
-                    "intro": "Przekroczony czas wykorzystywania starego filamentu: Proszę sprawdzić, czy filament jest uwięziony lub ekstrudera jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "18048013",
-                    "intro": "Przekroczony czas usuwania starego filamentu: Proszę sprawdzić, czy filament jest uwięziony lub ekstruder jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "18FE8005",
-                    "intro": "Nie udało się podać filamentu poza AMS-HT. Proszę przyciąć koniec filamentu płasko i sprawdzić, czy rolka jest uwięziony. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18038003",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Może to być spowodowane zapchanym ekstruderem lub przerwanym filamentem wewnątrz ekstrudera."
                 },
                 {
                     "ecode": "07068003",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Może to być spowodowane zapchanym ekstruderem lub przerwanym filamentem wewnątrz ekstrudera."
-                },
-                {
-                    "ecode": "18068012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS; aby kontynuować, kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "07068013",
-                    "intro": "Przekroczony czas na wypłukanie starego filamentu: Sprawdź, czy filament jest zablokowany lub ekstruder jest zapchany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "07008007",
-                    "intro": "Nie udało się wycisnąć filamentu. Sprawdź, czy ekstruder jest zapchany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "18038013",
-                    "intro": "Przekroczony czas na wypłukanie starego filamentu: Sprawdź, czy filament jest zablokowany lub ekstruder jest zapchany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "18FE8013",
-                    "intro": "Przekroczony czas na wypłukanie starego filamentu z lewego ekstrudera: Sprawdź, czy filament jest zablokowany lub ekstruder jest zapchany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18018004",
@@ -1151,16 +1315,8 @@
                     "intro": "AMS nie ma już filamentu. Umieść nowy filament w tym samym slocie AMS."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Nieudane wypychanie filamentu. Sprawdź, czy ekstruder się zatkał. Po usunięciu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18068005",
                     "intro": "AMS-HT nieudanie wysyła filamentu. Możesz przyciąć końcówkę filamentu na płasko i spróbować ponownie go włożyć. Jeśli ta wiadomość nadal się pojawia, sprawdź w AMS rurki PTFE pod kątem śladów zużycia."
-                },
-                {
-                    "ecode": "18FE8020",
-                    "intro": "Nie udało się zmienić ekstrudera; proszę skonsultować się z asystentem. Po rozwiązaniu problemu, kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18008011",
@@ -1169,10 +1325,6 @@
                 {
                     "ecode": "18028011",
                     "intro": "Wymagana nowa cewka filamentu AMS-HT. Proszę włożyć nowy filament do tej samej szpuli AMS."
-                },
-                {
-                    "ecode": "18068013",
-                    "intro": "Upłynął czas oczekiwania na usuwanie starego filamentu: Sprawdź, czy filament jest zakleszczony lub ekstruder zatkany. Po usunięciu problemu kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "0C008015",
@@ -1259,10 +1411,6 @@
                     "intro": "Wystąpił błąd podczas suszenia AMS-HT F. Przejdź do asystenta po więcej szczegółów."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Niewłaściwy typ platformy. Proszę umieścić platformę tnącą do kalibracji laserowej."
-                },
-                {
                     "ecode": "1001C001",
                     "intro": "Timelapse nie jest obsługiwane, ponieważ w ustawieniach cięcia włączony jest tryb Spiralnej wazy."
                 },
@@ -1277,14 +1425,6 @@
                 {
                     "ecode": "07FEC00A",
                     "intro": "Proszę zwrócić uwagę na dyszę lewego ekstrudera. Jeśli filament został wydrukowany, kliknij \"Gotowe\"; jeśli nie, proszę delikatnie przesunąć filament do przodu i kliknąć \"Powtórz\"."
-                },
-                {
-                    "ecode": "07FF8020",
-                    "intro": "Zmiana ekstrudera nie powiodła się; proszę skorzystać z asystenta, a po rozwiązaniu problemu kliknąć przycisk \"Powtórz\"."
-                },
-                {
-                    "ecode": "07FE8020",
-                    "intro": "Zmiana ekstrudera nie powiodła się; proszę skorzystać z asystenta, a po rozwiązaniu problemu kliknąć przycisk \"Powtórz\"."
                 },
                 {
                     "ecode": "05008053",
@@ -1363,20 +1503,12 @@
                     "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
                 },
                 {
-                    "ecode": "07FE8024",
-                    "intro": "Kalibracja pozycjonowania ekstrudera nie powiodła się; proszę odwołać się do Asystenta. Po rozwiązaniu problemu, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "07028016",
                     "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "05024003",
                     "intro": "Drukarka w tym momencie drukuje i funkcja ulepszania dokładności ruchu nie może zostać włączona lub wyłączona."
-                },
-                {
-                    "ecode": "07FF8024",
-                    "intro": "Kalibracja pozycjonowania ekstrudera nie powiodła się; proszę odwołać się do Asystenta. Po rozwiązaniu problemu, proszę kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "0500806E",
@@ -1389,10 +1521,6 @@
                 {
                     "ecode": "03008049",
                     "intro": "Aktualna płyta jest nieprawidłowa."
-                },
-                {
-                    "ecode": "07FE8004",
-                    "intro": "Nie udało się wycofać filamentu z lewego ekstrudera. Proszę sprawdzić, czy filament jest uwięziony w lewym ekstruderze. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "07FF8003",
@@ -1425,14 +1553,6 @@
                 {
                     "ecode": "0300801C",
                     "intro": "Opor przy ekstruzji jest nieprawidłowy. Może to oznaczać zatkanie ekstrudera. Proszę skonsultować się z asystentem, a po rozwiązaniu problemu, kliknąć przycisk \"Wznów\", aby wznowić drukowanie."
-                },
-                {
-                    "ecode": "07FE8002",
-                    "intro": "Nożyczki lewego ekstrudera są zablokowane. Proszę wyciągnąć uchwyt nożyc i kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Nie udało się wycofać filamentu z prawego ekstrudera. Proszę sprawdzić, czy filament nie jest uwięziony w lewym ekstruderze. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "0500400A",
@@ -1469,10 +1589,6 @@
                 {
                     "ecode": "03008047",
                     "intro": "Przekroczony czas wykrywania dźwigni szybkiego zwalniania: proszę zrestartować drukarkę."
-                },
-                {
-                    "ecode": "0500805A",
-                    "intro": "Proszę umieścić matę tnącą."
                 },
                 {
                     "ecode": "03008008",
@@ -1515,10 +1631,6 @@
                     "intro": "Etruzja nie działa normalnie; proszę skorzystać z asystenta. Po rozwiązaniu problemów, jeśli defekty są akceptowalne, należy nacisnąć przycisk \"Wznów\", aby kontynuować zadanie drukowania."
                 },
                 {
-                    "ecode": "07FF8002",
-                    "intro": "Nożyczki prawego ekstrudera utknęły. Proszę wyciągnąć rączkę nożyc i kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "03008001",
                     "intro": "Drukowanie wstrzymane z powodu komendy pauzy dodanej w pliku drukowania."
                 },
@@ -1545,22 +1657,6 @@
                 {
                     "ecode": "0300400F",
                     "intro": "Napięcie zasilania nie odpowiada drukarce."
-                },
-                {
-                    "ecode": "07018013",
-                    "intro": "Limit czasu czyszczenia starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07008013",
-                    "intro": "Limit czasu czyszczenia starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07028013",
-                    "intro": "Osiągnięto limit czasu czyszczenia starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07038013",
-                    "intro": "Limit czasu czyszczenia starego filamentu: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "05024004",
@@ -1671,20 +1767,12 @@
                     "intro": "Proszę nawinąć filament do rękawa PTFE prawego ekstrudera, aż do osiągnięcia końca rękawa."
                 },
                 {
-                    "ecode": "07FF8013",
-                    "intro": "Przekroczony czas na usunięcie starego filamentu z prawego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder jest zatkany. Po rozwiązaniu problemu, kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "07038004",
                     "intro": "AMS nie udało się wciągnąć filamentu z powrotem. Może to być spowodowane zablokowaną rolką lub końcem filamentu utknęło w drodze."
                 },
                 {
                     "ecode": "07018003",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Może to być spowodowane zatkaniem ekstrudera lub złamaniem filamentu wewnątrz ekstrudera."
-                },
-                {
-                    "ecode": "07FF8001",
-                    "intro": "Nie udało się uciąć filamentu prawego ekstrudera. Proszę sprawdzić nożyczki tnące. Po rozwiązaniu problemu kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "07038003",
@@ -1775,10 +1863,6 @@
                     "intro": "Urządzenie AMS jest obecnie używane do drukowania i nie można uruchomić suszenia."
                 },
                 {
-                    "ecode": "07FE8001",
-                    "intro": "Nie udało się przyciąć filamentu lewego ekstrudera. Proszę sprawdzić tnące urządzenie. Po rozwiązaniu problemu, kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "03008063",
                     "intro": "Temperatura komory jest zbyt wysoka. Otwórz górną klapę i drzwi przednie, aby ją schłodzić."
                 },
@@ -1795,16 +1879,8 @@
                     "intro": "Proszę podać filament do rurki PTFE lewego ekstrudera aż do momentu, gdy nie będzie można wcisnąć go dalej."
                 },
                 {
-                    "ecode": "07FE8005",
-                    "intro": "Nie udało się podać filamentu na zewnątrz AMS. Proszę przyciąć koniec filamentu na płasko i sprawdzić, czy rolka się nie zacięła. Po rozwiązaniu problemu kliknij przycisk \"Powtórz\"."
-                },
-                {
                     "ecode": "0C00800B",
                     "intro": "Nie wykryto znacznika stołu grzejnego. Proszę usunąć wszystkie przedmioty i zdjąć matę. Upewnij się, że znacznik nie jest zablokowany."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Nie udało się uzyskać tabeli odwzorowań; proszę kliknąć przycisk \"Powtórz\", aby kontynuować."
                 },
                 {
                     "ecode": "07FEC009",
@@ -1817,10 +1893,6 @@
                 {
                     "ecode": "05014038",
                     "intro": "Ustawienia regionalne nie odpowiadają drukarce, proszę sprawdzić ustawienia regionalne drukarki."
-                },
-                {
-                    "ecode": "07FE8013",
-                    "intro": "Przekroczono czas usuwania starego filamentu z lewego ekstrudera: Proszę sprawdzić, czy filament jest zablokowany lub ekstruder zatłuszczony. Po rozwiązaniu problemu kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "0C008005",
@@ -1867,10 +1939,6 @@
                     "intro": "AMS nie mógł wysłać filamentu. Możesz przyciąć koniec filamentu na płasko i ponownie włożyć. Jeśli ten komunikat będzie się pojawiał, sprawdź wewnętrzne rurki PTFE w AMS pod kątem oznak zużycia."
                 },
                 {
-                    "ecode": "07038007",
-                    "intro": "Nie udało się wycisnąć filamentu. Sprawdź, czy nie wystąpiło zablokowanie ekstrudera. Po rozwiązaniu problemu kliknij przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "07038010",
                     "intro": "Przeciążenie silnika AMS. Może to wynikać z wiązki filamentu lub zablokowanego kawałka filamentu."
                 },
@@ -1879,32 +1947,12 @@
                     "intro": "Koniec filamentu w AMS. Proszę włożyć nowy filament do tego samego gniazda AMS."
                 },
                 {
-                    "ecode": "07038012",
-                    "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij przycisk \"Ponów\", aby kontynuować."
-                },
-                {
-                    "ecode": "07FF8005",
-                    "intro": "Nie udało się wysunąć filamentu poza AMS. Proszę obciąć koniec filamentu równo i sprawdzić, czy szpula jest zablokowana. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć przycisk \"Ponów\" aby kontynuować."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Nie udało się wycisnąć filamentu. Proszę sprawdzić, czy ekstruder jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "07028010",
                     "intro": "Silnik pomocniczy AMS jest przeciążony. To może być spowodowane splątanym filamentem lub zablokowaną szpulą."
                 },
                 {
                     "ecode": "07028011",
                     "intro": "Filament AMS się skończył. Proszę włożyć nowy filament w ten sam slot AMS."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć przycisk \"Ponów\" aby kontynuować."
                 },
                 {
                     "ecode": "07028005",
@@ -1919,10 +1967,6 @@
                     "intro": "AMS nie udało się wysłać filamentu. Można obciąć koniec filamentu równo i ponownie go włożyć. Jeśli ten komunikat nadal się pojawia, proszę sprawdzić rurki PTFE w AMS, czy nie ma śladów zużycia."
                 },
                 {
-                    "ecode": "07018007",
-                    "intro": "Nie udało się wycisnąć filamentu. Sprawdź, czy ekstruder jest zatkany. Po rozwiązaniu problemu kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "07018010",
                     "intro": "Nadmiernie obciążony został silnik pomocniczy AMS. Może to być spowodowane splątanymi filamentami lub przyklejonymi szpulami."
                 },
@@ -1931,16 +1975,8 @@
                     "intro": "Brakuje filamentu AMS. Włóż nowy filament do tego samego slotu AMS."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS. Kliknij przycisk \"Ponów próbę\", aby kontynuować."
-                },
-                {
                     "ecode": "07008011",
                     "intro": "Brakuje filamentu AMS. Włóż nowy filament do tego samego slotu w AMS."
-                },
-                {
-                    "ecode": "07008012",
-                    "intro": "Nie udało się pobrać tabeli mapowania AMS. Kliknij \"Ponów\", aby kontynuować."
                 },
                 {
                     "ecode": "07008003",
@@ -2235,6 +2271,10 @@
                     "intro": "W momencie, gdy drukarka straciła zasilanie, drukowanie zostało przerwane. Jeśli model wciąż przylega do podłoża drukarki, możliwe jest podjęcie próby wznowienia druku."
                 },
                 {
+                    "ecode": "0300800A",
+                    "intro": "Wykryto zator filamentów przez AI Print Monitoring. Proszę oczyścić filament z rynny na odpady."
+                },
+                {
                     "ecode": "0300800B",
                     "intro": "Nożyczki są zablokowane. Upewnij się, że uchwyt nożyc jest wysunięty oraz sprawdź połączenie kabla czujnika filamentu."
                 },
@@ -2269,55 +2309,231 @@
             ]
         },
         "device_hms": {
-            "ver": 202501081628,
+            "ver": 202502042359,
             "pl": [
                 {
+                    "ecode": "07FF700000020003",
+                    "intro": "Proszę sprawdzić, czy materiał wychodzi z odpowiedniej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
+                },
+                {
+                    "ecode": "07FE700000020003",
+                    "intro": "Proszę sprawdzić, czy materiał wychodzi z lewej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
+                },
+                {
+                    "ecode": "18FF700000020003",
+                    "intro": "Proszę sprawdzić, czy materiał wychodzi z prawej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
+                },
+                {
+                    "ecode": "18FE700000020003",
+                    "intro": "Proszę sprawdzić, czy materiał wychodzi z lewej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Typ platformy tnącej się nie zgadza; proszę umieścić odpowiednią platformę tnącą."
+                },
+                {
+                    "ecode": "050004000002004C",
+                    "intro": "Nieznany typ podstawy ochrony przed cięciem. Proszę wymienić na odpowiednią podstawę ochrony przed cięciem."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Nieprawidłowy typ platformy. Proszę umieścić platformę laserową do kalibracji lasera."
+                },
+                {
+                    "ecode": "0300D00000010002",
+                    "intro": "Uchwyt ostrza odpadł; proszę go ponownie zamontować."
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Typ materiału nieznany."
+                },
+                {
+                    "ecode": "050005000001000F",
+                    "intro": "Wykryto niecertyfikowany akcesorium. Proszę używać oficjalnych akcesoriów."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na skuteczność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na efektywność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
+                },
+                {
+                    "ecode": "07FE600000020001",
+                    "intro": "Zewnętrzna szpula podłączona do lewego ekstrudera może być zaplątana lub zacięta."
+                },
+                {
+                    "ecode": "07FF600000020001",
+                    "intro": "Zewnętrzna szpula podłączona do prawego ekstrudera może być zaplątana lub zacięta."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "Filament AMS się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
+                },
+                {
+                    "ecode": "050004000002004D",
+                    "intro": "Nie wykryto podstawy ochronnej przed cięciem. Proszę potwierdzić, że została poprawnie umieszczona."
+                },
+                {
+                    "ecode": "0300D00000010001",
+                    "intro": "Moduł podstawy cięcia spadł; proszę go ponownie zainstalować."
+                },
+                {
+                    "ecode": "0300280000010005",
+                    "intro": "Nie udało się zresetować osi Z w trybie cięcia. Proszę sprawdzić, czy w suwakach osi Z i synchronizujących kołach zębatych osi Z nie ma obcych przedmiotów."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Wykryto niecertyfikowany AMS. Nie można pracować z tą drukarką."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
+                },
+                {
+                    "ecode": "18FF600000020001",
+                    "intro": "Zewnętrzny szpula podłączona do prawego ekstrudera może być zaplątana lub zablokowana."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "Kamera BirdEye nie jest certyfikowana. Proszę używać akcesoriów Bambu Lab."
+                },
+                {
+                    "ecode": "050005000001000E",
+                    "intro": "Moduł lasera nie jest certyfikowany. Proszę używać akcesoriów Bambu Lab."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
+                },
+                {
+                    "ecode": "18FE600000020001",
+                    "intro": "Zewnętrzny szpula podłączona do lewego ekstrudera może być zaplątana lub zablokowana."
+                },
+                {
                     "ecode": "0300280000010008",
-                    "intro": "Błąd homowania osi Z. Proszę sprawdzić, czy ruch uchwytu ostrza jest płynny i upewnić się, że w miejscu kontaktu na podgrzewanej powierzchni nie ma obcych przedmiotów."
+                    "intro": "Nie udało się zreferować osi Z. Proszę sprawdzić, czy ruch uchwytu ostrza jest płynny i upewnić się, że w miejscu kontaktu z płytą grzewczą nie ma obcych przedmiotów."
                 },
                 {
                     "ecode": "0300280000010001",
-                    "intro": "Dane z czujnika siły abnormalne w module tnącym, magnes na uchwycie ostrza mógł odpaść."
+                    "intro": "Dane z czujnika siły są nieprawidłowe w module tnącym, magnes na uchwycie ostrza mógł odpaść."
                 },
                 {
                     "ecode": "0300280000010004",
-                    "intro": "Dane z czujnika siły abnormalne w module tnącym, magnes na uchwycie ostrza mógł odpaść."
+                    "intro": "Dane z czujnika siły są nieprawidłowe w module tnącym, magnes na uchwycie ostrza mógł odpaść."
                 },
                 {
                     "ecode": "0300280000010007",
-                    "intro": "Błąd komunikacji między modułem tnącym a modułem narzędziowym. Proszę sprawdzić, czy przewód sygnałowy modułu tnącego jest luźny lub uszkodzony. Może to też być spowodowane uszkodzoną cewką czujnika siły."
+                    "intro": "Awaria komunikacji między modułem tnącym a modułem głowicy narzędziowej. Proszę sprawdzić, czy kabel sygnałowy modułu tnącego jest luźny lub uszkodzony. Może to być również spowodowane uszkodzoną cewką czujnika siły."
                 },
                 {
                     "ecode": "1800240000020009",
-                    "intro": "AMS HT A przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT A pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1807240000020009",
-                    "intro": "AMS HT H przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT H pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1801240000020009",
-                    "intro": "AMS HT B przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT B pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1806240000020009",
-                    "intro": "AMS HT G przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT G pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1802240000020009",
-                    "intro": "AMS HT C przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT C pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1805240000020009",
-                    "intro": "AMS HT F przednia pokrywa jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "AMS HT F pokrywa z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1804240000020009",
-                    "intro": "Okładka AMS HT E z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "Okładka przednia AMS HT E jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "1803240000020009",
-                    "intro": "Okładka AMS HT D z przodu jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
+                    "intro": "Okładka przednia AMS HT D jest otwarta. Może to wpłynąć na wydajność suszenia lub spowodować, że filament wchłonie wilgoć."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -2325,51 +2541,15 @@
                 },
                 {
                     "ecode": "0500030000020020",
-                    "intro": "Pojemność pamięci USB jest niewystarczająca, aby zbuforować pliki do druku."
-                },
-                {
-                    "ecode": "0701250000020009",
-                    "intro": "AMS AMS wykorzystuje zasilanie MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0706250000020009",
-                    "intro": "AMS AMS wykorzystuje zasilanie MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0705250000020009",
-                    "intro": "AMS AMS wykorzystuje zasilanie MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0300280000010005",
-                    "intro": "Nie udało się zresetować modułu cięcia na osi Z. Proszę sprawdzić, czy w suwaku osi Z i w jednym z kół zębatych osi Z nie ma obcych przedmiotów."
+                    "intro": "Pojemność pamięci USB jest niewystarczająca do buforowania plików drukowanych."
                 },
                 {
                     "ecode": "0300280000010003",
-                    "intro": "Błąd komunikacji między modułem cięcia a głowicą narzędzia podczas resetowania osi Z. Proszę sprawdzić, czy kabel sygnałowy modułu cięcia jest luźny lub uszkodzony, lub zweryfikować, czy cewka czujnika siły jest w dobrym stanie."
-                },
-                {
-                    "ecode": "0703250000020009",
-                    "intro": "AMS AMS wykorzystuje zasilanie MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0702250000020009",
-                    "intro": "AMS AMS używa mocy MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na efektywność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0704250000020009",
-                    "intro": "AMS AMS używa mocy MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na efektywność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0700250000020009",
-                    "intro": "AMS AMS używa mocy MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na efektywność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
+                    "intro": "Wystąpiła awaria komunikacji między modułem tnącym a głowicą narzędzia podczas ustalania położenia w osi Z. Proszę sprawdzić, czy kabel sygnałowy modułu tnącego jest luźny lub uszkodzony, lub upewnić się, czy cewka czujnika siły jest w dobrym stanie."
                 },
                 {
                     "ecode": "0C00010000020015",
                     "intro": ""
-                },
-                {
-                    "ecode": "0707250000020009",
-                    "intro": "AMS AMS używa mocy MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
                 },
                 {
                     "ecode": "0702200000020006",
@@ -2524,10 +2704,6 @@
                     "intro": "Rurka PTFE została odłączona. Proszę sprawdzić, czy rurka PTFE jest podłączona od AMS-HT do ekstrudera."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Nieznany typ podstawy ochrony przed cięciem; proszę wymienić na odpowiednią podstawę ochrony przed cięciem."
-                },
-                {
                     "ecode": "03009E0000030001",
                     "intro": "Wykrywanie otwartych drzwi dla tego zadania wydrukowania będzie ustawione na poziom \"Powiadomienie\"."
                 },
@@ -2650,14 +2826,6 @@
                 {
                     "ecode": "0300D00000010003",
                     "intro": "Kabel modułu tnącego się poluzował; proszę sprawdzić połączenie kabla."
-                },
-                {
-                    "ecode": "0300D00000010002",
-                    "intro": "Narzędzie tnące się wysunęło; proszę ponownie zainstalować."
-                },
-                {
-                    "ecode": "0300D00000010001",
-                    "intro": "Układ mocujący modułu tnącego się wysunął; proszę ponownie go zamocować."
                 },
                 {
                     "ecode": "18FE800000020002",
@@ -3136,24 +3304,12 @@
                     "intro": "Podczas drukowania wykryto nieodpowiednie dopasowanie dyszy. Przed rozpoczęciem drukowania wykonaj ponowne szlifowanie, lub kontynuuj drukowanie po wymianie właściwej dyszy. Uwaga: temperatura hotendu jest wysoka."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Typ platformy nie pasuje; proszę ułożyć matę tnącą."
-                },
-                {
                     "ecode": "05FE040000020042",
                     "intro": "Podczas drukowania wykryto nieodpowiednie dopasowanie dyszy. Proszę zainicjować drukowanie po ponownym przyszykowaniu modelu lub kontynuować drukowanie po wymianie właściwej dyszy. Uwaga: temperatura hotendu jest wysoka."
                 },
                 {
                     "ecode": "0500040000020049",
                     "intro": "Nieznany typ platformy; proszę wymienić na właściwą oraz sprawdzić, czy kamera BirdsEye nie jest zablokowana."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Niepoprawny typ platformy. Proszę umieścić platformę tnącą do kalibracji laserowej."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Ochrona podkładki tnącej nie została wykryta; proszę upewnić się, że jest ona umieszczona poprawnie."
                 },
                 {
                     "ecode": "050004000002004F",
@@ -3720,10 +3876,6 @@
                     "intro": "Nie udało się wycofać filamentu z AMS-HT, slot H. Może to być spowodowane wyczerpaniem się filamentu lub próbą wyciągnięcia go na siłę."
                 },
                 {
-                    "ecode": "1801700000020007",
-                    "intro": "W AMS-HT skończył się filament. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "1803700000020031",
                     "intro": "Nie udało się doładować filamentu w maszynie AMS-HT, slot D. Może to być spowodowane zużyciem filamentu i poślizgiem silnika pomocniczego. Proszę odciąć zużyty odcinek filamentu."
                 },
@@ -3738,10 +3890,6 @@
                 {
                     "ecode": "1807700000020061",
                     "intro": "AMS-HT H Pomoc wyciągnięciu filamentu z ekstrudera nie powiodła się, prawdopodobnie z powodu nadmiernego oporu z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona oraz czy rurka filamentowa jest czysta."
-                },
-                {
-                    "ecode": "18FE700000020003",
-                    "intro": "Wykorzystano cały filament w lewym ekstruderze; proszę podać nowy filament."
                 },
                 {
                     "ecode": "1802700000020022",
@@ -4612,10 +4760,6 @@
                     "intro": "AMS G Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane rozłączeniem silnika prądu stałego. Sprawdź połączenie wtyczki silnika prądu stałego."
                 },
                 {
-                    "ecode": "1804700000020007",
-                    "intro": "Brak filamentu AMS-HT. Proszę włożyć nowy filament do systemu AMS-HT i kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "1803700000020030",
                     "intro": "AMS-HT D Podawanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędzia. Sprawdź wtyczkę rurki filamentowej przy głowicy narzędzia."
                 },
@@ -5208,10 +5352,6 @@
                     "intro": "AMS-HT: Podajnik filamentu do ekstrudera głowicy narzędzi nie działa poprawnie. Może to być spowodowane zbyt dużym oporem filamentu. Sprawdź, czy zwijak jest przechylony lub czy rura filamentowa jest zablokowana."
                 },
                 {
-                    "ecode": "1803700000020007",
-                    "intro": "Wymienił się filament AMS-HT. Umieść nowy filament w AMS i kliknij przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "0705700000020014",
                     "intro": "Podawanie filamentu AMS F do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem małego kawałka zepsutego filamentu do rurki podającej. Proszę usunąć zepsuty filament z rurki podającej."
                 },
@@ -5422,10 +5562,6 @@
                 {
                     "ecode": "1802300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "AMS nitka się skończyła. Proszę włożyć nową nitkę do AMS i kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18FE800000020003",
@@ -6308,10 +6444,6 @@
                     "intro": "Awaria chipa szyfrującego."
                 },
                 {
-                    "ecode": "0705700000020007",
-                    "intro": "W AMS skończył się filament. Włóż do AMS nowy filament i kliknij przycisk „Ponów próbę”."
-                },
-                {
                     "ecode": "0706310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
@@ -6816,10 +6948,6 @@
                     "intro": "Komunikacja sygnału halla pozycji silnika przestawiającego ekstruder jest niestabilna."
                 },
                 {
-                    "ecode": "1807700000020007",
-                    "intro": "Wycinak AMS-HT wyczerpał filament. Włóż nowy filament do AMS i kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Nie udało się wyjąć filamentu z AMS G; może to być spowodowane brakiem filamentu lub próbą wymuszenia wyciągnięcia."
                 },
@@ -7144,10 +7272,6 @@
                     "intro": "Nie powiodło się wyciąganie filamentu AMS-HT H, może to być spowodowane przez zużycie filamentu, co powoduje poślizg silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
                 },
                 {
-                    "ecode": "1806700000020007",
-                    "intro": "Skończył się filament AMS-HT. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "1803700000020060",
                     "intro": "Nie powiodło się chwytanie filamentu przez ekstruder z pomocą AMS-HT D, może to być spowodowane poślizgiem silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
                 },
@@ -7366,10 +7490,6 @@
                 {
                     "ecode": "0706700000020012",
                     "intro": "AMS G Podawanie filamentu do koła ekstrudera silnika asystującego nie powiodło się. Może to być spowodowane zbyt dużym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona, czy filament jest splątany lub czy rotacja rolki filamentu jest niesprawna."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT skończył się filament. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "0706700000020032",
@@ -7928,16 +8048,8 @@
                     "intro": "AMS H Wkładanie filamentu do bufora nie powiodło się; może to być spowodowane odłączeniem filamentu. Proszę sprawdzić, czy rura z filamentem jest niewłaściwie podłączona lub czy rura jest zużyta."
                 },
                 {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT filament się skończył. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "1805700000020046",
                     "intro": "AMS-HT F Wyjęcie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Proszę sprawdzić, czy cewka z filamentem jest przechylona lub zniekształcona, a rura z filamentem jest czysta."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS filament się skończył. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -8256,10 +8368,6 @@
                     "intro": "AMS H Zasilanie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdź, czy rurka zasilająca i piasta filamentu są czyste."
                 },
                 {
-                    "ecode": "0706700000020007",
-                    "intro": "Wymieniono kończącą się rolkę filamentu AMS. Proszę włożyć nową rolkę do AMS i kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "0706700000020040",
                     "intro": "Wyciągnięcie filamentu z AMS G nie powiodło się; przyczyną może być nadmierne opory w silniku prądu stałego. Proszę sprawdzić czy szpula z filamentem jest pochylona lub zdeformowana lub czy rura filamentowa jest zablokowana."
                 },
@@ -8448,10 +8556,6 @@
                     "intro": "AMS-HT W gnieździe D silnik w slocie 1 poślizgnął się. Koło wyciskające może być uszkodzone, lub taśma światłoczuła może być zbyt cienka."
                 },
                 {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT Skończyła się taśma światłoczuła. Proszę włożyć nową taśmę światłoczułą do AMS i kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18FE810000020001",
                     "intro": "Akcja zmiany wyciskania jest nietypowa. Proszę sprawdzić, czy coś nie utknęło w głowicy narzędzia."
                 },
@@ -8490,10 +8594,6 @@
                 {
                     "ecode": "1807310000010004",
                     "intro": "Awaria układu szyfrującego"
-                },
-                {
-                    "ecode": "18FF700000020003",
-                    "intro": "Zużycie filamentu przez prawidłowy ekstruder; proszę podać nowy filament."
                 },
                 {
                     "ecode": "1803700000020043",
@@ -8574,10 +8674,6 @@
                 {
                     "ecode": "050004000001004F",
                     "intro": "Wykryto nieznany moduł, proszę spróbuj zaktualizować firmware do najnowszej wersji."
-                },
-                {
-                    "ecode": "07FF700000020003",
-                    "intro": "Użyto cały filament prawego ekstrudera, proszę podać nowy filament."
                 },
                 {
                     "ecode": "0C00040000010020",
@@ -9398,10 +9494,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "Odchylenie w wartości kalibracji pozycjonowania ekstrudera jest zbyt duże; proszę przeprowadzić ponowną kalibrację."
-                },
-                {
-                    "ecode": "07FE700000020003",
-                    "intro": "Polewydłacz filamentu z lewej strony jest już wyczerpany. Proszę podać nowy filament."
                 },
                 {
                     "ecode": "0500030000020010",
@@ -14580,10 +14672,6 @@
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Możliwe przyczyny to zatkany ekstruder lub złamany filament. Szczegóły dostępne u Asystenta."
                 },
                 {
-                    "ecode": "0703700000020007",
-                    "intro": "Zabrakło filamentu AMS. Proszę włożyć nowy filament do AMS i kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę kliknąć przycisk \"Wznów\", aby spróbować ponownie."
                 },
@@ -14616,20 +14704,12 @@
                     "intro": "Nie udało się wyjąć filamentu z ekstrudera. Możliwe przyczyny to zatkany ekstruder lub połamany filament. Szczegóły znajdziesz w Asystencie."
                 },
                 {
-                    "ecode": "0702700000020007",
-                    "intro": "Zabrakło filamentu AMS. Proszę włożyć nowy filament do AMS i kliknąć przycisk „Ponów”."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Nie udało się pobrać tabeli mapowania AMS. Proszę kliknąć przycisk „Wznów”, aby spróbować ponownie."
                 },
                 {
                     "ecode": "0701700000020001",
                     "intro": "Nie udało się wyjąć filamentu z ekstrudera. Możliwe przyczyny to zatkany ekstruder lub połamany filament. Szczegóły znajdziesz w Asystencie."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "Zabrakło filamentu AMS. Proszę włożyć nowy filament do AMS i kliknąć przycisk „Ponów”."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14686,10 +14766,6 @@
                 {
                     "ecode": "0700700000020001",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Możliwe przyczyny to zatkanie ekstrudera lub uszkodzony filament. Szczegóły można sprawdzić, korzystając z asystenta."
-                },
-                {
-                    "ecode": "0700700000020007",
-                    "intro": "Wymiana zewnętrznego filamentu AMS. Prosimy umieścić nowy filament w urządzeniu AMS i kliknąć przycisk \"Retry\"."
                 },
                 {
                     "ecode": "0700700000020008",

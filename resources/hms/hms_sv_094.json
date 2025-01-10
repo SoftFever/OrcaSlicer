@@ -1,38 +1,454 @@
 {
     "result": 0,
-    "t": 1736345976,
-    "ver": 202501081628,
+    "t": 1736436184,
+    "ver": 202502042359,
     "data": {
         "device_error": {
-            "ver": 202501081619,
+            "ver": 202502042359,
             "sv": [
                 {
-                    "ecode": "0500807A",
-                    "intro": "Funktionen för detektering av främmande objekt fungerar inte. Du kan fortsätta uppgiften eller visa assistenten för felsökning."
+                    "ecode": "0C004041",
+                    "intro": "LiDAR-kalibreringen misslyckades. Vänligen se till att kalibreringsmålens yta är ren och odammagerad, och kör sedan kalibreringsprocessen igen."
                 },
                 {
-                    "ecode": "0C008016",
-                    "intro": "Funktionen för detektering av främmande objekt fungerar inte. Du kan fortsätta uppgiften eller visa assistenten för felsökning."
+                    "ecode": "07018007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Plattformstypen matchar inte, vilket kan resultera i felaktiga höjdmätningsdata. Vänligen placera laserplattformen korrekt, mät sedan om höjden i mjukvaran och initiera uppgiften."
+                    "ecode": "07018012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07FF8005",
+                    "intro": "Misslyckades med att mata filamentet utanför AMS. Vänligen klipp änden av filamentet platt och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "07FE8005",
+                    "intro": "Misslyckades med att mata ut filamentet utanför AMS. Var vänlig klipp av änden av filamentet plant och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "03008042",
+                    "intro": "Uppgiften pausad eftersom dörren eller ovansidan är öppen."
+                },
+                {
+                    "ecode": "07FF8020",
+                    "intro": "Extruderbyte misslyckades; vänligen hänvisa till assistenten."
+                },
+                {
+                    "ecode": "0500805C",
+                    "intro": "Typen av greppskärmatta matchar inte; vänligen placera en LightGrip skärmatta."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Felaktig plattype. Vänligen placera laserplattan för laser kalibrering."
+                },
+                {
+                    "ecode": "05008059",
+                    "intro": "Skärningsplattformens bas är inte korrekt inriktad. Vänligen se till att de fyra hörnen av plattformen är i linje med värmebädden."
+                },
+                {
+                    "ecode": "07FF8013",
+                    "intro": "Tidsgräns för att rensa gammalt filament från den högra extrudern: Vänligen kontrollera om filamentet är fast eller om extrudern är tilltäppt."
+                },
+                {
+                    "ecode": "07FF8001",
+                    "intro": "Misslyckades med att klippa filamentet från den högra extrudern. Vänligen kontrollera klippen."
+                },
+                {
+                    "ecode": "0500806C",
+                    "intro": "Vänligen placera skärningsplattformen korrekt och se till att markören är exponerad."
+                },
+                {
+                    "ecode": "07FE8024",
+                    "intro": "Kalibrering av extruderpositionen misslyckades; vänligen hänvisa till assistenten."
+                },
+                {
+                    "ecode": "07018013",
+                    "intro": "Tidsgräns för att rensa gammalt filament: Vänligen kontrollera om filamentet är fast eller om extrudern är tilltäppt."
+                },
+                {
+                    "ecode": "0500805A",
+                    "intro": "Vänligen placera skärplattan på skärskyddsbasen."
+                },
+                {
+                    "ecode": "07068013",
+                    "intro": "Tidsgräns för att rensa gammalt filament: Vänligen kontrollera om filamentet är fast eller om extrudern är tilltäppt."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Tidsgräns för att rensa gammalt filament: Var vänlig kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Timeout för att rensa gammalt filament: Vänligen kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Timeout för att rensa gammalt filament: Vänligen kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Timeout för att rensa gammalt filament: Vänligen kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet fastnat inne i den vänstra extrudern."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Misslyckades med att hämta AMS-kartläggningstabellen; var vänlig klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18FE8024",
+                    "intro": "Kalibrering av extruderpositionen misslyckades; var vänlig hänvisa till assistenten."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Timeout rensar gammal filament: Vänligen kontrollera om filamentet har fastnat eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Misslyckades med att hämta AMS-kartläggningstabellen; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Misslyckades med att hämta AMS-kartläggningstabellen; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18FE8001",
+                    "intro": "Misslyckades med att klippa filamentet från vänster extruder. Vänligen kontrollera klipparen."
+                },
+                {
+                    "ecode": "18FF8013",
+                    "intro": "Tidsgräns för att rensa gammalt filament från den högra extrudern: Var vänlig kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07048013",
+                    "intro": "Timeout rensar gammal filament från höger extruder: Vänligen kontrollera om filamentet har fastnat eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Misslyckades med att extrudera filamentet. Var vänlig kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Misslyckades med att hämta AMS-kartläggningstabellen; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "05008071",
+                    "intro": "Ingen skärplattform upptäcktes. Vänligen bekräfta att den har placerats korrekt."
+                },
+                {
+                    "ecode": "05008073",
+                    "intro": "Värmebäddens gränsblock är blockerat eller förorenat. Vänligen rengör och se till att gränsblocket är synligt, annars kan avkänning av plattformens positionsförskjutning bli felaktig."
                 },
                 {
                     "ecode": "05004075",
-                    "intro": "Ingen laserplattform detekterad, vilket kan resultera i felaktig höjdmäting. Vänligen placera laserplattformen korrekt, mät sedan om höjden i mjukvaran och starta om uppgiften. Kontrollera också att slutmarkören på plattformen inte är blockerad av material."
+                    "intro": "Ingen laserskärmplattform upptäcktes, vilket kan påverka noggrannheten i höjdmätningen. Vänligen placera laserskärmplattformen korrekt och se till att de bakre markörerna inte är blockerade, och återstarta sedan höjdmätningen i programvaran innan du påbörjar uppgiften."
+                },
+                {
+                    "ecode": "18FF8010",
+                    "intro": "Kontrollera om den högra externa filamentspolen eller filamentet sitter fast."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "Funktionen för upptäckta främmande föremål fungerar inte. Du kan fortsätta med uppgiften eller kontrollera assistenten för felsökning."
+                },
+                {
+                    "ecode": "05008068",
+                    "intro": "Var vänlig placera den starka skärmatta korrekt och säkerställ att markören är exponerad."
+                },
+                {
+                    "ecode": "0500807C",
+                    "intro": "Var vänlig placera skärplattformen (skärskyddsbas + StrongGrip skärmatta)."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Laserplattformen har upptäckts, var vänlig byt ut den mot skärplattformen (skärskyddsbas + StrongGrip skärmatta)."
+                },
+                {
+                    "ecode": "05008067",
+                    "intro": "Vänligen placera en LightGrip skärmatta på skärskyddsbasen."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är blockerad."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i den vänstra extrudern."
+                },
+                {
+                    "ecode": "07FE8013",
+                    "intro": "Timeout vid rengöring av gammalt filament från den vänstra extrudern: Vänligen kontrollera om filamentet sitter fast eller om extrudern är blockerad."
+                },
+                {
+                    "ecode": "07FE8010",
+                    "intro": "Kontrollera om den vänstra externa filamentrullen eller filamentet sitter fast."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Misslyckades med att hämta mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07FE8002",
+                    "intro": "Snitseln från den vänstra extrudern är fast. Vänligen dra ut snitselhastageln."
+                },
+                {
+                    "ecode": "07FE8020",
+                    "intro": "Extruderbyte misslyckades; vänligen hänvisa till assistenten."
+                },
+                {
+                    "ecode": "07FE8001",
+                    "intro": "Misslyckades med att skära filamentet från den vänstra extrudern. Vänligen kontrollera snittverktyget."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Laserplattformen upptäcktes. Vänligen placera skärplattformen för kalibrering."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet fastnat i den vänstra extrudern."
+                },
+                {
+                    "ecode": "07FF8002",
+                    "intro": "Klippverktyget på den högra extrudern är fast. Vänligen dra ut klippverktygets handtag."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Laserplattformen upptäcktes. Vänligen placera skärplattformen (skärskyddsbas + LightGrip skärmatta)."
+                },
+                {
+                    "ecode": "07FF8024",
+                    "intro": "Kalibrering av extruderposition misslyckades; vänligen kontakta assistenten."
+                },
+                {
+                    "ecode": "07008013",
+                    "intro": "Timeout för att rengöra gammalt filament: Vänligen kontrollera om filamentet är fastnat eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07028013",
+                    "intro": "Tidsgräns för att rensa gammalt filament: Var vänlig kontrollera om filamentet är fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07038013",
+                    "intro": "Timeout för att rengöra gammalt filament: Vänligen kontrollera om filamentet är fastnat eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "0500806F",
+                    "intro": "Typen av skärmatta matchar inte; vänligen lägg en StrongGrip skärmatta."
+                },
+                {
+                    "ecode": "18FE8020",
+                    "intro": "Byte av extruder misslyckades; vänligen kontakta assistenten."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Timeout rensar gammal filament: Kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FE8013",
+                    "intro": "Timeout rensar gammal filament från vänster extruder: Kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FE8005",
+                    "intro": "Misslyckades med att mata filamentet utanför AMS-HT. Klipp änden av filamentet platt och kontrollera om spolrullen sitter fast."
+                },
+                {
+                    "ecode": "18FE8010",
+                    "intro": "Kontrollera om den vänstra externa filamentspolen eller filamentet sitter fast."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07058013",
+                    "intro": "Timeout rensar gammal filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i den vänstra extrudern."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Misslyckades med att hämta kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är blockerad."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18FF8002",
+                    "intro": "Klipparen på den högra extrudern är fast. Vänligen dra ut klipparens handtag."
+                },
+                {
+                    "ecode": "18FF8020",
+                    "intro": "Extruderbyte misslyckades; vänligen hänvisa till assistenten."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är blockerad."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07078013",
+                    "intro": "Timeout rensar gammal filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Timeout rensar gammal filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Återuppta\" för att försöka igen."
+                },
+                {
+                    "ecode": "18FE8002",
+                    "intro": "Klipparen på den vänstra extrudern sitter fast. Vänligen dra ut klipparhandtaget."
+                },
+                {
+                    "ecode": "18FF8024",
+                    "intro": "Kalibrering av extruderposition misslyckades; vänligen kontakta assistenten."
+                },
+                {
+                    "ecode": "18FF8005",
+                    "intro": "Misslyckades med att mata ut filamentet utanför AMS-HT. Vänligen klipp änden av filamentet plant och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Tidsgräns för att rensa gammalt filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FF8001",
+                    "intro": "Misslyckades med att klippa filamentet på den högra extrudern. Vänligen kontrollera klipparen."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
                 },
                 {
                     "ecode": "05004076",
-                    "intro": "Okänd plattform under drift, vilket kan resultera i felaktiga höjdmätningsdata. Vänligen placera laserplattformen korrekt och kontrollera om BirdsEye-kameran är blockerad, mät sedan om höjden i mjukvaran och starta om uppgiften."
+                    "intro": "Okänd plattform i uppgiften, vilket kan påverka höjdmätningsnoggrannheten. Vänligen placera laserplattformen korrekt och se till att BirdsEye-kameran inte är blockerad, och mät sedan om höjden i programvaran och starta om uppgiften."
                 },
                 {
-                    "ecode": "0C008018",
-                    "intro": "Funktionen för detektering av främmande objekt fungerar inte. Du kan fortsätta uppgiften eller visa assistenten för felsökning."
+                    "ecode": "07FF8010",
+                    "intro": "Kontrollera om den rätta externa filamentspolen eller filamentet är fast."
                 },
                 {
                     "ecode": "03004052",
-                    "intro": "Cutter nollåterställningsfel: vänligen återvänd till noll igen."
+                    "intro": "Blade Z-axel hemning misslyckades."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Uppgiften pausad eftersom sidofönstret är öppet."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Vänligen placera en StrongGrip skärmatta på skärskyddsbasen."
+                },
+                {
+                    "ecode": "05008058",
+                    "intro": "Vänligen placera light grip skärmatta korrekt och se till att markören är exponerad."
+                },
+                {
+                    "ecode": "0500807B",
+                    "intro": "Vänligen placera skärplattan (skärskyddsbas + LightGrip skärmatta)."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "Funktionen för att upptäcka främmande objekt fungerar inte. Du kan fortsätta uppgiften eller se assistenten för felsökning."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Plattforms typen stämmer inte överens, vilket kan leda till oförankrade höjdmätningsdata. Vänligen placera laserplattformen korrekt, mät sedan höjden i mjukvaran och starta uppgiften."
+                },
+                {
+                    "ecode": "0C008018",
+                    "intro": "Funktionen för att upptäcka främmande objekt fungerar inte. Du kan fortsätta uppgiften eller se assistenten för felsökning."
                 },
                 {
                     "ecode": "0500805B",
@@ -251,10 +667,6 @@
                     "intro": "AMS B assisterar med filamentinsättning. Kan inte börja torka. Försök igen senare."
                 },
                 {
-                    "ecode": "0500806C",
-                    "intro": "Okänd typ av skärskyddsbas. Vänligen byt ut den mot rätt skärskyddsbas."
-                },
-                {
                     "ecode": "0701406C",
                     "intro": "AMS B är i matningsassistansläge. Kan inte börja torka. Försök igen senare."
                 },
@@ -347,56 +759,16 @@
                     "intro": "Det nuvarande materialet matchar inte inställningarna för den skivade filen. Vänligen ladda det rätta materialet och se till att QR-koden på materialet inte är skadad eller smutsig."
                 },
                 {
-                    "ecode": "07FE8010",
-                    "intro": "Kontrollera om den vänstra externa filamentspolen eller filamentet sitter fast. Efter felsökning, klicka på knappen 'Försök igen'."
-                },
-                {
                     "ecode": "0500403F",
                     "intro": "Misslyckades med att ladda ner utskriftsjobbet; vänligen kontrollera din nätverksanslutning."
-                },
-                {
-                    "ecode": "18FE8010",
-                    "intro": "Kontrollera om den vänstra externa filamentspolen eller filamentet sitter fast. Efter felsökning, klicka på knappen 'Försök igen'."
-                },
-                {
-                    "ecode": "05008073",
-                    "intro": "Begränsningsblocket för värmebädden är blockerat eller smutsigt. Vänligen exponera begränsningsblocket, annars kommer det att felaktigt rapportera ett misslyckande vid nivåmätning av bädden."
-                },
-                {
-                    "ecode": "18FF8010",
-                    "intro": "Kontrollera om den högra externa filamentspolen eller filamentet sitter fast. Efter felsökning, klicka på knappen 'Försök igen'."
-                },
-                {
-                    "ecode": "07FF8010",
-                    "intro": "Kontrollera om den högra externa filamentspolen eller filamentet sitter fast. Efter felsökning, klicka på knappen 'Försök igen'."
-                },
-                {
-                    "ecode": "03008042",
-                    "intro": "Uppgiften har pausats eftersom dörren, toppskyddet eller sidofönstret är öppet."
                 },
                 {
                     "ecode": "05008074",
                     "intro": "Laserplattformen är förskjuten. Vänligen säkerställ att de fyra hörnen av plattformen är i linje med värmebädden."
                 },
                 {
-                    "ecode": "05008059",
-                    "intro": "Den skärande skyddsbasen är förskjuten. Se till att de fyra hörnen på basplattan är justerade mot uppvärmningsbädden."
-                },
-                {
-                    "ecode": "05008056",
-                    "intro": "Nuvarande skärande skyddsbastyp är felaktig. Placera en skärande skyddsstålplatta för att utföra kalibreringen av knivskärningen."
-                },
-                {
                     "ecode": "05008063",
                     "intro": "Plattformen upptäcks inte under kalibreringen; se till att laserplattan är korrekt placerad."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Nuvarande skärande skyddsbastyp matchar inte inställningarna i skivverktyget. Placera skärande skyddsstålplattan."
-                },
-                {
-                    "ecode": "05008071",
-                    "intro": "Ingen skärskydd stålplatta detekterad. Vänligen bekräfta att den har placerats korrekt."
                 },
                 {
                     "ecode": "0C00803F",
@@ -431,16 +803,8 @@
                     "intro": "Uppgiften avbröts."
                 },
                 {
-                    "ecode": "0500805C",
-                    "intro": "Typen av gripande skärmatta matchar inte; vänligen lägg en skärmatta med lätt grepp."
-                },
-                {
                     "ecode": "07FF8011",
                     "intro": "Den externa filamenten som är ansluten till höger extruder har tagit slut; vänligen ladda en ny filament."
-                },
-                {
-                    "ecode": "0500806F",
-                    "intro": "Typen av gripande skärmatta matchar inte; vänligen lägg en skärmatta med kraftigt grepp."
                 },
                 {
                     "ecode": "18FF8011",
@@ -539,14 +903,6 @@
                     "intro": "Liveview-kameran är blockerad."
                 },
                 {
-                    "ecode": "18048007",
-                    "intro": "Misslyckades att extrudera filamentet. Kontrollera om extrudern är igensatt. Klicka på \"Försök igen\"-knappen efter felsökning."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Misslyckades att extrudera filamentet. Kontrollera om extrudern är igensatt. Klicka på \"Försök igen\"-knappen efter felsökning."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT kunde inte dra tillbaka filamentet. Detta kan bero på en fastnat spole eller att filamentets ände sitter fast i vägen."
                 },
@@ -555,24 +911,12 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filamentet. Detta kan bero på en fastnat spole eller att slutet på filamentet sitter fast i vägen."
                 },
                 {
-                    "ecode": "18FF8012",
-                    "intro": "Misslyckades att hämta AMS kartläggningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "18058016",
                     "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D torkar. Vänligen stoppa torkningsprocessen innan du laddar/lossar material."
-                },
-                {
-                    "ecode": "18018012",
-                    "intro": "Misslyckades att hämta AMS kartläggningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "18068007",
-                    "intro": "Misslyckades att extrudera filamentet. Kontrollera om extrudern är igensatt. Klicka på \"Försök igen\"-knappen efter felsökning."
                 },
                 {
                     "ecode": "18048011",
@@ -595,56 +939,24 @@
                     "intro": "Extrudern matar inte ut normalt; var vänlig kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
                 },
                 {
-                    "ecode": "18078013",
-                    "intro": "Timeout för borttagning av gammalt filament: Var vänlig och kontrollera om filamentet fastnat eller om extrudern är igensatt. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Var god dra ut filamentet från rullhållaren till vänster om extrudern. Om detta meddelande kvarstår, var vänlig och kontrollera om det finns filament som gått sönder i extrudern eller PTFE-röret. (Anslut ett PTFE-rör om du ska använda en AMS)"
-                },
-                {
-                    "ecode": "18FF8001",
-                    "intro": "Misslyckades med att klippa av filamentet från höger extruder. Var vänlig och kontrollera klipparen. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Misslyckades med att hämta AMS-kartläggningstabell; Klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "07048005",
                     "intro": "AMS misslyckades att sända ut filament. Du kan klippa av slutet på ditt filament platt, och sätta tillbaka den. Om detta meddelande kvarstår, kontrollera vänligen PTFE-rören i AMS för några tecken på slitage."
                 },
                 {
-                    "ecode": "18028012",
-                    "intro": "Misslyckades att hämta AMS-mappningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "18028005",
                     "intro": "AMS-HT misslyckades att sända ut filament. Du kan klippa av slutet på ditt filament platt, och sätta tillbaka den. Om detta meddelande kvarstår, kontrollera vänligen PTFE-rören i AMS för några tecken på slitage."
-                },
-                {
-                    "ecode": "18FE8002",
-                    "intro": "Vänster extruders skärare sitter fast. Dra ut skärarhandtaget och klicka på knappen \"Försök igen\"."
                 },
                 {
                     "ecode": "18038010",
                     "intro": "AMS-HT assistansmotor är överbelastad. Detta kan bero på trasslat filament eller en fastsittande rulle."
                 },
                 {
-                    "ecode": "07048007",
-                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera vänligen om extrudern är igensatt. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
-                    "ecode": "18FF8024",
-                    "intro": "Kalibrering av extruderposition misslyckades; kontakta assistenten. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18008016",
                     "intro": "Extrudern extruderar inte normalt; vänligen kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
-                },
-                {
-                    "ecode": "18FF8005",
-                    "intro": "Misslyckades med att mata ut filamentet utanför AMS-HT. Klipp av slutet på filamentet platt och kontrollera om rullen sitter fast. Efter felsökning, klicka på knappen \"Försök igen\"."
                 },
                 {
                     "ecode": "18058005",
@@ -679,10 +991,6 @@
                     "intro": "Kan inte mata in filament i extrudern. Detta kan bero på trasslat filament eller en fastnat spole. Om det inte beror på det, kontrollera att AMS-HT PTFE-röret är anslutet."
                 },
                 {
-                    "ecode": "07048013",
-                    "intro": "Timeout för rensning av gammalt filament. Vänligen kontrollera om filamentet är fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\" knappen."
-                },
-                {
                     "ecode": "18FF8006",
                     "intro": "Vänligen mata tråden in i PTFE-tuben på högra extrudern tills den inte kan tryckas längre."
                 },
@@ -697,10 +1005,6 @@
                 {
                     "ecode": "18018016",
                     "intro": "Extrudern fungerar inte normalt. Vänligen kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18018013",
-                    "intro": "Timeout vid rensning av gammal filament: Kontrollera om filamentet är fastnat eller om extrudern är igentäppt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18018005",
@@ -719,20 +1023,8 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filament. Detta kan bero på en fastnat rulle eller att filamentet är fast i vägen."
                 },
                 {
-                    "ecode": "18FE8001",
-                    "intro": "Misslyckades att klippa tråden av vänster extruder. Var vänlig kontrollera skäraren. Klicka på \"Försök igen\"-knappen efter felsökning."
-                },
-                {
-                    "ecode": "07078013",
-                    "intro": "Timeout vid rensning av gammal filament: Vänligen kontrollera om filamentet fastnat eller om extrudern är igensatt. Klicka på \"Försök igen\"-knappen när felsökning är klar."
-                },
-                {
                     "ecode": "18068011",
                     "intro": "AMS-HT filament har tagit slut. Vänligen sätt in en ny filament i samma AMS-plats."
-                },
-                {
-                    "ecode": "18FF8013",
-                    "intro": "Timeout vid rensning av gammalt filament i höger extruder: Vänligen kontrollera om filamentet fastnat eller om extrudern är igensatt. Klicka på \"Försök igen\"-knappen när felsökning är klar."
                 },
                 {
                     "ecode": "07078006",
@@ -763,32 +1055,12 @@
                     "intro": "Var snäll och mata in filament i vänster extruderns PTFE-rör tills det inte går att trycka in mer."
                 },
                 {
-                    "ecode": "18078012",
-                    "intro": "Det gick inte att hämta AMS-kartläggningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Det gick inte att extrudera filamentet. Var god kontrollera om extrudern har stoppats. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "07068011",
                     "intro": "AMS-filamentet tog slut. Var god sätt in ett nytt filament i samma AMS-fack."
                 },
                 {
                     "ecode": "0C004027",
                     "intro": "Kalibreringen av Live View-kameran misslyckades. Se assistenten för detaljer och kalibrera kameran igen efter bearbetning."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Det gick inte att extrudera filamentet. Vänligen kontrollera om extrudern har blockerats. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Det uppstod ett problem vid extrudering av filamentet. Kontrollera om extrudern har blockerats och försök sedan igen genom att klicka på \"Försök igen\"."
-                },
-                {
-                    "ecode": "18FF8020",
-                    "intro": "Extruderbytet misslyckades. Se assistenten för mer information och försök sedan igen genom att klicka på \"Försök igen\"."
                 },
                 {
                     "ecode": "07048006",
@@ -805,14 +1077,6 @@
                 {
                     "ecode": "18028006",
                     "intro": "Kan inte mata in tråden i extrudern. Detta kan bero på en trasslad tråd eller en fastnat spole. Om det inte är fallet, var god kontrollera om AMS-HT PTFE-röret är anslutet."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Det gick inte att hämta AMS-kartläggningstabellen, var god klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Det gick inte att hämta AMS-kartläggningstabellen, var god klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "18FEC006",
@@ -835,16 +1099,8 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filamentet. Det kan bero på att rullen är fastklämd eller att änden av filamentet är fastklämd i banan."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Misslyckades med att hämta AMS kartläggningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "07078004",
                     "intro": "AMS misslyckades med att dra tillbaka filamentet. Det kan bero på att rullen är fastklämd eller att änden av filamentet är fastklämd i banan."
-                },
-                {
-                    "ecode": "18FF8002",
-                    "intro": "Huggverktyget på höger extruder är fastnat. Dra ut huggverks-handtaget och klicka sedan på knappen \"Försök igen\"."
                 },
                 {
                     "ecode": "0C00402A",
@@ -853,10 +1109,6 @@
                 {
                     "ecode": "07058010",
                     "intro": "AMS-assistansmotorn är överbelastad. Det kan bero på att filamentet är trasslat eller att rullen är fastklämd."
-                },
-                {
-                    "ecode": "18038007",
-                    "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt. Efter felsökning, klicka på knappen \"Försök igen\"."
                 },
                 {
                     "ecode": "18018010",
@@ -891,24 +1143,12 @@
                     "intro": "Det går inte att mata in filament i extrudern. Detta kan bero på trasslat filament eller fastnat spole. Om inte, kontrollera om AMS-HT PTFE-slangen är ansluten."
                 },
                 {
-                    "ecode": "18038012",
-                    "intro": "Ett fel uppstod när AMS-mappningstabellen skulle hämtas. Klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "07048003",
                     "intro": "Det gick inte att dra ut filamentet från extrudern. Detta kan bero på att extrudern är igensatt eller att filamentet är brutet inne i extrudern."
                 },
                 {
-                    "ecode": "18058013",
-                    "intro": "Timeout vid rensning av gammalt filament: Kontrollera om filamentet fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18008005",
                     "intro": "AMS-HT misslyckades att mata ut filamentet. Du kan klippa av slutet på ditt filament platt, och sätta tillbaka den igen. Om detta meddelande kvarstår, vänligen kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Misslyckades att mata ut filamentet. Vänligen kontrollera om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18FFC009",
@@ -923,14 +1163,6 @@
                     "intro": "Extrudern matar inte ut material normalt; vänligen kontakta assistenten för att felsöka. Efter felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från höger extruder. Vänligen kontrollera om filamentet fastnat inne i vänster extruder. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Misslyckades att hämta AMS-kartläggningstabellen; vänligen klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
                 },
@@ -941,14 +1173,6 @@
                 {
                     "ecode": "18078003",
                     "intro": "Det gick inte att dra ut filamentet från extrudern. Detta kan orsakas av en tilltäppt extruder eller att filamentet har brutits inne i extrudern."
-                },
-                {
-                    "ecode": "18FE8012",
-                    "intro": "Det gick inte att hämta kartläggningstabellen. Klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "18FE8024",
-                    "intro": "Kalibrering av extruderposition misslyckades. Var god se assistenten. Efter felsökning, klicka på \"Försök igen\"."
                 },
                 {
                     "ecode": "07058005",
@@ -965,10 +1189,6 @@
                 {
                     "ecode": "18FEC009",
                     "intro": "Vänligen mata in filament i vänster extruders PTFE-rör tills det inte längre kan skjutas in."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Det gick inte att dra tillbaka filamentet från vänster extruder. Kontrollera om filamentet fastnat inne i vänster extruder. Efter felsökning klickar du på \"Försök igen\"."
                 },
                 {
                     "ecode": "18FEC003",
@@ -995,10 +1215,6 @@
                     "intro": "Assistansmotorn för AMS-HT är överbelastad. Detta kan bero på trasslat filament eller en fastnat spole."
                 },
                 {
-                    "ecode": "07058013",
-                    "intro": "Timeout vid rengöring av gammalt filament: Vänligen kontrollera om filamentet har fastnat eller om extrudern är igensatt. Efter att ha felsökt, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18048016",
                     "intro": "Extrudern extruderar inte normalt. Vänligen se assistenten för hjälp med felsökning. Om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
                 },
@@ -1011,10 +1227,6 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filamentet. Detta kan bero på att rullen är fast eller att slutet på filamentet sitter fast i vägen."
                 },
                 {
-                    "ecode": "18078007",
-                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\" knappen."
-                },
-                {
                     "ecode": "18FEC00A",
                     "intro": "Observera munstycket på vänster extruder. Om filamentet har extruderats klicka på \"Klar\", om inte, skjut filamentet lite framåt och klicka sedan på \"Försök igen\"."
                 },
@@ -1023,16 +1235,8 @@
                     "intro": "AMS-HT assisterande motor är överbelastad. Detta kan bero på trasslat filament eller en fastspänd rulle."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Misslyckades med att hämta AMS-mappningstabellen. Vänligen klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "07048016",
                     "intro": "Extrudern extruderar inte normalt. Vänligen kontakta assistenten för support. Efter felavhjälpning, om defekterna är acceptabla, klicka på \"Försök igen\" knappen."
-                },
-                {
-                    "ecode": "18048012",
-                    "intro": "Misslyckades med att hämta AMS-mappningstabellen. Vänligen klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "07068016",
@@ -1041,10 +1245,6 @@
                 {
                     "ecode": "18008003",
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Detta kan orsakas av en igensatt extruder eller att filamentet har brutits inne i extrudern."
-                },
-                {
-                    "ecode": "07078007",
-                    "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igentäppt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "07048010",
@@ -1057,10 +1257,6 @@
                 {
                     "ecode": "18078011",
                     "intro": "AMS-HT filamentet är slut. Vänligen sätt in en ny filament i samma AMS-fack."
-                },
-                {
-                    "ecode": "18028013",
-                    "intro": "Timeout vid förrensning av gammalt filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igentäppt. Efter att ha åtgärdat eventuella problem, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "07058004",
@@ -1103,44 +1299,12 @@
                     "intro": "AMS-filamentet tog slut. Sätt in en ny filament i samma AMS-spår."
                 },
                 {
-                    "ecode": "18008013",
-                    "intro": "Timeout för rensning av gammalt filament: Kontrollera om filamentet har fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18048013",
-                    "intro": "Timeout för rensning av gammalt filament: Kontrollera om filamentet har fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18FE8005",
-                    "intro": "Misslyckades med att mata ut filamentet utanför AMS-HT. Klipp av änden på filamentet platt och kontrollera om spolen är fast. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18038003",
                     "intro": "Misslyckades dra ut filament från extrudern. Detta kan bero på igensatt extruder eller att filamentet har gått av inuti extrudern."
                 },
                 {
                     "ecode": "07068003",
                     "intro": "Misslyckades dra ut filament från extrudern. Detta kan bero på igensatt extruder eller att filamentet har gått av inuti extrudern."
-                },
-                {
-                    "ecode": "18068012",
-                    "intro": "Misslyckades med att hämta AMS-mappningstabell; klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "07068013",
-                    "intro": "Timeout vid rensning av gammalt filament: Kontrollera om filamentet fastnar eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07008007",
-                    "intro": "Misslyckades med att extrudera filament. Kontrollera om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18038013",
-                    "intro": "Timeout vid rensning av gammalt filament: Kontrollera om filamentet fastnar eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18FE8013",
-                    "intro": "Timeout vid rensning av gammalt filament i vänstra extrudern: Kontrollera om filamentet fastnar eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18018004",
@@ -1151,16 +1315,8 @@
                     "intro": "AMS-filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Misslyckades att extrudera filamenten. Vänligen kontrollera om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18068005",
                     "intro": "AMS-HT misslyckades att mata ut filamentet. Du kan klippa av änden på filamentet plant och sätta tillbaka det. Om detta meddelande kvarstår, vänligen kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
-                },
-                {
-                    "ecode": "18FE8020",
-                    "intro": "Byte av extruder misslyckades, vänligen kontakta assistenten. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18008011",
@@ -1169,10 +1325,6 @@
                 {
                     "ecode": "18028011",
                     "intro": "AMS-HT-filamentet tog slut. Vänligen sätt in en ny filament i samma AMS-plats."
-                },
-                {
-                    "ecode": "18068013",
-                    "intro": "Timeout vid utrensning av gammalt filament: Vänligen kontrollera om filamentet är fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0C008015",
@@ -1259,10 +1411,6 @@
                     "intro": "Ett fel inträffade under torkning med AMS-HT F. Gå till Assistenten för mer detaljer."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Felaktig plattformstyp. Vänligen placera skärplattformen för laserinställning."
-                },
-                {
                     "ecode": "1001C001",
                     "intro": "Timelapse stöds inte eftersom Spiralvasläge är aktiverat i skivinställningarna."
                 },
@@ -1277,14 +1425,6 @@
                 {
                     "ecode": "07FEC00A",
                     "intro": "Observera munstycket på vänster extruder. Om filamentet har extruderats, klicka på \"Klart\"; om inte, tryck fram filamentet lätt och klicka sedan på \"Försök igen\"."
-                },
-                {
-                    "ecode": "07FF8020",
-                    "intro": "Extruderbytet misslyckades; hänvisa till assistenten och klicka sedan på \"Försök igen\" efter felsökning."
-                },
-                {
-                    "ecode": "07FE8020",
-                    "intro": "Extruderbyte misslyckades; hänvisa till assistenten och klicka på \"Försök igen\" efter felsökning."
                 },
                 {
                     "ecode": "05008053",
@@ -1363,20 +1503,12 @@
                     "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
                 },
                 {
-                    "ecode": "07FE8024",
-                    "intro": "Kalibreringen av extruderpositionen misslyckades; vänligen hänvisa till Assistenten för felsökning. Efter att problemet är identifierat, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "07028016",
                     "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "05024003",
                     "intro": "Skrivaren är för tillfället i utskrift och funktionen för förbättrad rörelseprecision kan inte aktiveras eller avaktiveras."
-                },
-                {
-                    "ecode": "07FF8024",
-                    "intro": "Kalibreringen av extruderpositionen misslyckades; vänligen hänvisa till Assistenten för felsökning. Efter att problemet är identifierat, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0500806E",
@@ -1389,10 +1521,6 @@
                 {
                     "ecode": "03008049",
                     "intro": "Den aktuella plattan är ogiltig."
-                },
-                {
-                    "ecode": "07FE8004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från vänstra extrudern. Kontrollera om filamentet sitter fast i vänstra extrudern. Efter problemavhjälpning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "07FF8003",
@@ -1425,14 +1553,6 @@
                 {
                     "ecode": "0300801C",
                     "intro": "Extrudermotståndet är onormalt. Extrudern kan vara igensatt, vänligen kontakta assistenten. Efter felsökning kan du klicka på \"Återuppta\" -knappen för att återuppta utskriftsjobbet."
-                },
-                {
-                    "ecode": "07FE8002",
-                    "intro": "Vänster extruders skärare har fastnat. Dra ut skärarhandtaget och klicka på \"Försök igen\" -knappen."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från höger extruder. Kontrollera om filamentet sitter fast i vänster extruder. Efter felsökning, klicka på \"Försök igen\" -knappen."
                 },
                 {
                     "ecode": "0500400A",
@@ -1469,10 +1589,6 @@
                 {
                     "ecode": "03008047",
                     "intro": "Quick-release spakdetektering timeout: vänligen starta om skrivaren."
-                },
-                {
-                    "ecode": "0500805A",
-                    "intro": "Var snäll och lägg skärmattan."
                 },
                 {
                     "ecode": "03008008",
@@ -1515,10 +1631,6 @@
                     "intro": "Extrudern matar inte ut normalt; vänligen kontakta assistenten. Om problemen är acceptabla efter felsökning, tryck på \"Återuppta\"-knappen för att återuppta utskriftsjobbet."
                 },
                 {
-                    "ecode": "07FF8002",
-                    "intro": "Saxen för höger extruder sitter fast. Dra ut saxhandtaget och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "03008001",
                     "intro": "Utskrift pausad på grund av pauskommando som lagts till i utskriftsfilen."
                 },
@@ -1545,22 +1657,6 @@
                 {
                     "ecode": "0300400F",
                     "intro": "Strömförsörjningsspänningen matchar inte skrivaren."
-                },
-                {
-                    "ecode": "07018013",
-                    "intro": "Timeout vid rensning av gammalt filament: Kontrollera om filamentet fastnat eller om extrudern är igentäppt. Efter felsökning, klicka på knappen \"Försök igen\"."
-                },
-                {
-                    "ecode": "07008013",
-                    "intro": "Timeout vid bortrensning av gammalt filament: Kontrollera om filamentet är blockerat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07028013",
-                    "intro": "Timeout vid rensning av gammalt filament: Kontrollera om filamentet är fastnat eller extrudern är igentäppt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07038013",
-                    "intro": "Timeout vid bortrensning av gammalt filament: Kontrollera om filamentet är fastnat eller om extrudern är igentäppt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "05024004",
@@ -1671,20 +1767,12 @@
                     "intro": "Vänligen mata in filamentet i PTFE-röret för höger extruder tills det inte kan tryckas längre."
                 },
                 {
-                    "ecode": "07FF8013",
-                    "intro": "Timeout vid utrensning av gammalt filament från höger extruder: Kontrollera om filamentet är fast eller om extrudern är igensatt. Klicka på \"Försök igen\" efter felsökningen är klar."
-                },
-                {
                     "ecode": "07038004",
                     "intro": "AMS kunde inte dra tillbaka filamentet. Detta kan bero på att rullen är fast eller att slutet på filamentet sitter fast i vägen."
                 },
                 {
                     "ecode": "07018003",
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Detta kan bero på en igentäppt extruder eller att filamentet har gått av innanför extrudern."
-                },
-                {
-                    "ecode": "07FF8001",
-                    "intro": "Misslyckades med att klippa av filamentet på högra extrudern. Vänligen kontrollera skäraren. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "07038003",
@@ -1775,10 +1863,6 @@
                     "intro": "AMS används för närvarande för utskrift och kan inte börja torka."
                 },
                 {
-                    "ecode": "07FE8001",
-                    "intro": "Misslyckades med att skära av filamentet från vänster extruder. Kontrollera skäraren. Efter felsökning, klicka på \"Försök igen\" knappen."
-                },
-                {
                     "ecode": "03008063",
                     "intro": "Kammartemperaturen är för hög. Öppna topplocket och framdörren för att kyla ner."
                 },
@@ -1795,16 +1879,8 @@
                     "intro": "Var god mata filament i PTFE-röret på vänster extruder tills det inte kan tryckas längre."
                 },
                 {
-                    "ecode": "07FE8005",
-                    "intro": "Misslyckades med att mata fram filamentet utanför AMS. Var god klipp av slutet av filamentet plant och kontrollera om rullen sitter fast. Efter felsökning, klicka på \"Försök igen\" knappen."
-                },
-                {
                     "ecode": "0C00800B",
                     "intro": "Heatbed-markören upptäcktes inte. Vänligen ta bort alla objekt och mattan. Se till att markören inte är blockerad."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Misslyckades att hämta kartläggningstabell, vänligen klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "07FEC009",
@@ -1817,10 +1893,6 @@
                 {
                     "ecode": "05014038",
                     "intro": "Regioninställningarna matchar inte skrivaren, kontrollera skrivarens regioninställningar."
-                },
-                {
-                    "ecode": "07FE8013",
-                    "intro": "Timeout för rensning av gammalt material från vänster extruder: Kontrollera om materialet har fastnat eller om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0C008005",
@@ -1867,10 +1939,6 @@
                     "intro": "AMS misslyckades med att mata ut filamentet. Klipp av änden på filamentet plant och sätt i det igen. Om det här meddelandet kvarstår, kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
                 },
                 {
-                    "ecode": "07038007",
-                    "intro": "Misslyckades med att extrudera filamentet. Kontrollera om extrudern är igensatt. Efter felsökning klickar du på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "07038010",
                     "intro": "AMS-assistansmotorn är överbelastad. Detta kan bero på trasslat filament eller en fastklämd rulle."
                 },
@@ -1879,32 +1947,12 @@
                     "intro": "AMS-filamentet tog slut. Sätt in ett nytt filament i samma AMS-plats."
                 },
                 {
-                    "ecode": "07038012",
-                    "intro": "Misslyckades med att hämta AMS-mappningstabell. Klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "07FF8005",
-                    "intro": "Misslyckades att mata fram filamentet utanför AMS:en. Klipp av änden på filamentet platt och kontrollera om spolen sitter fast. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Misslyckades att få AMS-mappningstabell. Klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Misslyckades att extrudera filamentet. Kontrollera om extrudern är igentäppt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "07028010",
                     "intro": "AMS-assistansmotorn är överbelastad. Det kan bero på trassligt filament eller en fastsittande spole."
                 },
                 {
                     "ecode": "07028011",
                     "intro": "AMS-filamentet tog slut. Sätt i ett nytt filament i samma AMS-plats."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Misslyckades att hämta AMS-mappningstabell. Klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "07028005",
@@ -1919,10 +1967,6 @@
                     "intro": "AMS misslyckades med att skicka ut filamentet. Du kan klippa av änden på ditt filament platt och sätta tillbaka det. Om detta meddelande kvarstår, kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
                 },
                 {
-                    "ecode": "07018007",
-                    "intro": "Misslyckades att extrudera filamentet. Kontrollera om extrudern är igensatt. Efter felsökning, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "07018010",
                     "intro": "AMS-assistansmotorn är överbelastad. Detta kan bero på trasslat filament eller en fastspänd trådrulle."
                 },
@@ -1931,16 +1975,8 @@
                     "intro": "AMS-filamentet har tagit slut. Vänligen sätt in nytt filament i samma AMS-plats."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Kunde inte få AMS-kartläggningstabellen. Klicka på \"Försök igen\" för att fortsätta."
-                },
-                {
                     "ecode": "07008011",
                     "intro": "AMS-filamentet har tagit slut. Vänligen sätt in nytt filament i samma AMS-plats."
-                },
-                {
-                    "ecode": "07008012",
-                    "intro": "Kunde inte hämta AMS-kartläggningstabell. Klicka på \"Försök igen\" för att fortsätta."
                 },
                 {
                     "ecode": "07008003",
@@ -2235,6 +2271,10 @@
                     "intro": "Det fanns en ofullständig utskriftsjobb när skrivaren förlorade ström. Om modellen fortfarande sitter fast på byggplattan kan du försöka återuppta utskriftsjobbet."
                 },
                 {
+                    "ecode": "0300800A",
+                    "intro": "En filamentuppbyggnad har upptäckts av AI Print Monitoring. Vänligen rengör filamentet från avfallsröret."
+                },
+                {
                     "ecode": "0300800B",
                     "intro": "Kniven är fast. Se till att knivhandtaget är ute och kontrollera anslutningen till filamentgivarkabeln."
                 },
@@ -2269,55 +2309,231 @@
             ]
         },
         "device_hms": {
-            "ver": 202501081628,
+            "ver": 202502042359,
             "sv": [
                 {
+                    "ecode": "07FF700000020003",
+                    "intro": "Kontrollera om materialet kommer ut ur rätt munstycke. Om inte, tryck försiktigt på materialet och försök att extrudera igen."
+                },
+                {
+                    "ecode": "07FE700000020003",
+                    "intro": "Kontrollera om materialet kommer ut ur det vänstra munstycket. Om inte, tryck försiktigt på materialet och försök att extrudera igen."
+                },
+                {
+                    "ecode": "18FF700000020003",
+                    "intro": "Kontrollera om materialet kommer ut ur det högra munstycket. Om inte, tryck försiktigt på materialet och försök att extrudera igen."
+                },
+                {
+                    "ecode": "18FE700000020003",
+                    "intro": "Kontrollera om materialet kommer ut ur det vänstra munstycket. Om inte, tryck försiktigt på materialet och försök att extrudera igen."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "AMS filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "AMS filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "AMS filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "AMS filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Typen av skärplattform matchar inte; vänligen placera den rätta skärplattformen."
+                },
+                {
+                    "ecode": "050004000002004C",
+                    "intro": "Okänd typ av skärskyddsbas. Vänligen ersätt den med rätt skärskyddsbas."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Fel plattformstyp. Vänligen placera laserplattformen för laserkalibrering."
+                },
+                {
+                    "ecode": "0300D00000010002",
+                    "intro": "Bladhållaren har ramlat av; vänligen montera den igen."
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Materialtyp oigenkänd"
+                },
+                {
+                    "ecode": "050005000001000F",
+                    "intro": "Ett icke-certifierat tillbehör har upptäckts. Vänligen använd officiella tillbehör."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS AMS använder MC-effekt för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att koppla en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "07FE600000020001",
+                    "intro": "Extern spole ansluten till vänster extruder kan vara trasslad eller blockerad."
+                },
+                {
+                    "ecode": "07FF600000020001",
+                    "intro": "Extern spole ansluten till höger extruder kan vara trasslad eller blockerad."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "AMS-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "AMS-HT-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "AMS-HT-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "AMS-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "AMS-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "AMS-HT-filen tog slut. Vänligen sätt i en ny filament i samma slot i AMS och fortsätt."
+                },
+                {
+                    "ecode": "050004000002004D",
+                    "intro": "Ingen skärskyddsbas upptäcktes. Vänligen bekräfta att den har placerats korrekt."
+                },
+                {
+                    "ecode": "0300D00000010001",
+                    "intro": "Skärmodulens bas har fallit av; vänligen installera om den."
+                },
+                {
+                    "ecode": "0300280000010005",
+                    "intro": "Z-axelns hemning misslyckades i skärläge. Vänligen kontrollera om det finns några främmande föremål i Z-axels glidare och Z-axelns synkronpulley."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Ej certifierad AMS upptäcktes. Kan inte använda denna skrivare."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "18FF600000020001",
+                    "intro": "Extern spole ansluten till höger extruder kan vara trasslad eller blockerad."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "BirdEye-kamera är inte certifierad. Vänligen använd Bambu Lab-tillbehör."
+                },
+                {
+                    "ecode": "050005000001000E",
+                    "intro": "Laser Modul är inte certifierad. Vänligen använd Bambu Lab-tillbehör."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
+                },
+                {
+                    "ecode": "18FE600000020001",
+                    "intro": "Extern spole ansluten till vänster extruder kan vara trasslad eller blockerad."
+                },
+                {
                     "ecode": "0300280000010008",
-                    "intro": "Z-axel hemning misslyckades. Kontrollera om bladfäste rörelsen är smidig och se till att det inte finns några främmande föremål vid kontaktpositionen på värmebordet."
+                    "intro": "Z-axel hemning misslyckades. Vänligen kontrollera om bladhållarens rörelse är smidig och se till att det inte finns några främmande objekt vid kontaktpunkten på värmepaden."
                 },
                 {
                     "ecode": "0300280000010001",
-                    "intro": "Kraftsensor data avviker i skärmodulen, magneten på bladfästet kan ha lossnat."
+                    "intro": "Kraftsensor data onormala i skärmodulen, magneten på bladhållaren kan ha ramlat av."
                 },
                 {
                     "ecode": "0300280000010004",
-                    "intro": "Kraftsensor data avviker i skärmodulen, magneten på bladfäste kan ha lossnat."
+                    "intro": "Kraftsensordata onormala i skärmodulen, magneten på bladhållaren kan ha ramlat av."
                 },
                 {
                     "ecode": "0300280000010007",
-                    "intro": "Kommunikationsfel mellan skärmodulen och verktygshuvudmodulen. Kontrollera om signalledningen till skärmodulen är lös eller trasig. Det kan också bero på en trasig kraftsensorkabel."
+                    "intro": "Kommunikationsfel mellan skärmodulen och verktygshuvudmodulen. Vänligen kontrollera om signal kabeln till skärmodulen är lös eller trasig. Det kan också bero på en trasig kraftsensorkoila."
                 },
                 {
                     "ecode": "1800240000020009",
-                    "intro": "AMS HT A frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT A framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1807240000020009",
-                    "intro": "AMS HT H frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT H framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1801240000020009",
-                    "intro": "AMS HT B frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT B framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1806240000020009",
-                    "intro": "AMS HT G frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT G framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1802240000020009",
-                    "intro": "AMS HT C frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT C framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1805240000020009",
-                    "intro": "AMS HT F frontlock är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT F framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
                 },
                 {
                     "ecode": "1804240000020009",
-                    "intro": "AMS HT E-framsidan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT E framsidan är öppen. Detta kan påverka torkprestandan eller få filamentet att absorbera fukt."
                 },
                 {
                     "ecode": "1803240000020009",
-                    "intro": "AMS HT D-framsidan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                    "intro": "AMS HT D framsidan är öppen. Detta kan påverka torkprestandan eller få filamentet att absorbera fukt."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -2325,51 +2541,15 @@
                 },
                 {
                     "ecode": "0500030000020020",
-                    "intro": "USB-minnets kapacitet är otillräcklig för att cacha utskriftsfiler."
-                },
-                {
-                    "ecode": "0701250000020009",
-                    "intro": "AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkarresultat."
-                },
-                {
-                    "ecode": "0706250000020009",
-                    "intro": "AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkningsresultat."
-                },
-                {
-                    "ecode": "0705250000020009",
-                    "intro": "AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0300280000010005",
-                    "intro": "Skärmodulens Z-axishomning misslyckades. Vänligen kontrollera om det finns några föremål i Z-axisslider och Z-axissynkronpulley."
+                    "intro": "USB-flashenhetens kapacitet är otillräcklig för att cache lagra utskriftsfiler."
                 },
                 {
                     "ecode": "0300280000010003",
-                    "intro": "Kommunikationsfel mellan skärmodulen och verktygshuvudet under Z-axishomning. Vänligen kontrollera om signal kabeln till skärmodulen är lös eller bruten, eller verifiera om trycksensorert är intakt."
-                },
-                {
-                    "ecode": "0703250000020009",
-                    "intro": "AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0702250000020009",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att koppla en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0704250000020009",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0700250000020009",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att koppla en adapter för torkning för att säkerställa optimala torkresultat."
+                    "intro": "Kommunikationsfel mellan skärmodulen och verktygs huvudet under Z-axel hemning. Vänligen kontrollera om skärmodulens signalkabel är lös eller bruten, eller verifiera om kraftsensor spolen är intakt."
                 },
                 {
                     "ecode": "0C00010000020015",
                     "intro": ""
-                },
-                {
-                    "ecode": "0707250000020009",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
                 },
                 {
                     "ecode": "0702200000020006",
@@ -2524,10 +2704,6 @@
                     "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Okänd typ av skärskyddsbas; vänligen byt ut mot rätt skärskyddsbas."
-                },
-                {
                     "ecode": "03009E0000030001",
                     "intro": "Öppna dörrdetektering för detta utskriftsjobb kommer att ställas in på \"Notifierings\"-nivå."
                 },
@@ -2650,14 +2826,6 @@
                 {
                     "ecode": "0300D00000010003",
                     "intro": "Kabeln till klippmodulen har lossnat, vänligen kontrollera kabelanslutningen."
-                },
-                {
-                    "ecode": "0300D00000010002",
-                    "intro": "Verktyget för att klippa har fallit bort, vänligen installera det igen."
-                },
-                {
-                    "ecode": "0300D00000010001",
-                    "intro": "Fästet för klipp fixering har lossnat, vänligen installera det igen."
                 },
                 {
                     "ecode": "18FE800000020002",
@@ -3136,24 +3304,12 @@
                     "intro": "Ingenzzlemismatch upptäcktes under utskrift. Starta utskriften efter omskivning eller fortsätt utskriften efter att ha bytt ut rätt munstycke. Varning: Hettopstemperaturen är hög."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Typen av plattform matchar inte; vänligen placera en skärmatta."
-                },
-                {
                     "ecode": "05FE040000020042",
                     "intro": "Detected nozzle mismatch under utskrift. Vänligen starta utskriften igen efter om-slicing eller byt ut rätt munstycke för att fortsätta utskrifterna. Varning: var noga med att värmen på hotend är hög."
                 },
                 {
                     "ecode": "0500040000020049",
                     "intro": "Plattformstypen är okänd. Vänligen byt till rätt typ och kontrollera om BirdsEye-kameran är blockerad."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Fel plattformstyp. Vänligen placera skärplattformen för laserjustering."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Skyddsbasen för skärningen upptäcks inte. Vänligen se till att den är korrekt placerad."
                 },
                 {
                     "ecode": "050004000002004F",
@@ -3720,10 +3876,6 @@
                     "intro": "AMS-HT H Misslyckades att dra ut filament; detta kan bero på att filamentet har tagit slut eller dragits ut."
                 },
                 {
-                    "ecode": "1801700000020007",
-                    "intro": "AMS-HT filament tog slut. Vänligen sätt i ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "1803700000020031",
                     "intro": "AMS-HT D Det gick inte att mata fram filament till verktygshuvudets extruder; detta kan bero på att filamentet har slitit ut och orsakat att assistmotor glider. Vänligen klipp av det slitna avsnittet av filamentet."
                 },
@@ -3738,10 +3890,6 @@
                 {
                     "ecode": "1807700000020061",
                     "intro": "AMS-HT H Assisterande extruder som griper tråden misslyckades, möjligen på grund av överdriven motstånd från bufferten. Kontrollera om bufferten är fastnade, om trådrullen lutar och om trådröret är klart."
-                },
-                {
-                    "ecode": "18FE700000020003",
-                    "intro": "Vänster extruders filament har tagit slut; mata in nytt filament."
                 },
                 {
                     "ecode": "1802700000020022",
@@ -4612,10 +4760,6 @@
                     "intro": "AMS G Matning av filament till hjälpmotorns extruderingshjul har misslyckats. Detta kan bero på frånkoppling av DC-motorn. Kontrollera anslutningen på DC-motorpluggen."
                 },
                 {
-                    "ecode": "1804700000020007",
-                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "1803700000020030",
                     "intro": "AMS-HT D Matning av filament till verktygshuvudets extruder har misslyckats; detta kan bero på att filamentet är blockerat vid verktygshuvudets ingång. Kontrollera verktygshuvudets slangpropp för filament."
                 },
@@ -5208,10 +5352,6 @@
                     "intro": "AMS-HT H: Matning av filament till verktygshuvudets extruder misslyckades; detta kan bero på överdriven resistans från filamentet. Kontrollera om filamentrullen är lutad eller om filametröret är hinder."
                 },
                 {
-                    "ecode": "1803700000020007",
-                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt i en ny filament i AMS och klicka på \"Försök igen\" knappen."
-                },
-                {
                     "ecode": "0705700000020014",
                     "intro": "AMS F Feeding filament till hjälpmotorns extruderhjul misslyckades. Detta kan bero på att en liten bit bruten filament har kommit in i matningstuben. Var god ta bort det brutna filamentet från matningstuben."
                 },
@@ -5422,10 +5562,6 @@
                 {
                     "ecode": "1802300000030003",
                     "intro": "RFID kan inte läsas på grund av en hårdvaru- eller strukturell felaktighet."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "AMS tråd tog slut. Vänligen sätt i en ny tråd i AMS och klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18FE800000020003",
@@ -6308,10 +6444,6 @@
                     "intro": "Fel på krypteringschip."
                 },
                 {
-                    "ecode": "0705700000020007",
-                    "intro": "AMS-filamentet tog slut. Vänligen sätt i ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "0706310000030003",
                     "intro": "RFID kan inte läsas på grund av ett hårdvaru- eller strukturellt fel."
                 },
@@ -6816,10 +6948,6 @@
                     "intro": "Akvireringen av kommunikationssignalen för positions hall för extruder-switchmotor är onormal."
                 },
                 {
-                    "ecode": "1807700000020007",
-                    "intro": "AMS-HT har slutat producera filament. Vänligen sätt in ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Borttagning av filament från AMS G har misslyckats; detta kan bero på att filamentet har tagit slut eller att det har dragits ut."
                 },
@@ -7144,10 +7272,6 @@
                     "intro": "AMS-HT H Utdrag av filament har misslyckats; detta kan bero på att filamentet slitits ut och orsakat att assistmotor har släppt. Vänligen klipp av den slitna delen av filamentet."
                 },
                 {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT filament tog slut. Vänligen sätt i ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "1803700000020060",
                     "intro": "AMS-HT D Assisterande extruder kunde inte gripa filamentet; detta kan bero på att assistmotorn slirar. Vänligen klipp av den slitna delen av filamentet."
                 },
@@ -7366,10 +7490,6 @@
                 {
                     "ecode": "0706700000020012",
                     "intro": "AMS GMatning av filament till hjälp-motorns extrusionshjul har misslyckats. Detta kan bero på för högt filamentmotstånd. Kontrollera om rullen är sned, filamentet är trasslat, eller om rulldrehen inte är jämn."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT filament tog slut. Vänligen sätt in nytt filament i AMS och klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0706700000020032",
@@ -7928,16 +8048,8 @@
                     "intro": "AMS H Matning av filament till bufferten har misslyckats; detta kan bero på att filamentet har lossnat. Vänligen kontrollera om filamentröret är felaktigt anslutet eller om röret har slitits igenom."
                 },
                 {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT filament tog slut. Vänligen sätt i ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "1805700000020046",
                     "intro": "AMS-HT F Uttagning av filament har misslyckats; detta kan bero på överdrivet motstånd i den assisterande motorn. Vänligen kontrollera om filamentrullen är lutad eller deformerad, och om filamentröret är klart."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS filament tog slut. Vänligen sätt i ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -8256,10 +8368,6 @@
                     "intro": "AMS H Matning av filament till assistmotor utmatningshjulet har misslyckats. Detta kan bero på en blockering i matningsslangen. Var god kontrollera om matningsslangen och filamentnavet är rena."
                 },
                 {
-                    "ecode": "0706700000020007",
-                    "intro": "AMS filamentet tog slut. Sätt i en ny filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "0706700000020040",
                     "intro": "AMS G Dragning av filamentet misslyckades; detta kan bero på överdriven motstånd i DC-motorn. Se till att filamentspolen inte är lutad eller deformerad eller att filamentröret är blockerat."
                 },
@@ -8448,10 +8556,6 @@
                     "intro": "AMS-HT D Spår 1 motorn har slirat. Extruderratten kan vara felaktig, eller så kan filamentet vara för tunt."
                 },
                 {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT filamentet tog slut. Sätt in en ny filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18FE810000020001",
                     "intro": "Extruderväxlingsåtgärden är onormal. Kontrollera om det finns något fastnat i verktygshuvudet."
                 },
@@ -8490,10 +8594,6 @@
                 {
                     "ecode": "1807310000010004",
                     "intro": "Krypteringschipfel"
-                },
-                {
-                    "ecode": "18FF700000020003",
-                    "intro": "Höger extruder filament är slut; mata in ny filament."
                 },
                 {
                     "ecode": "1803700000020043",
@@ -8574,10 +8674,6 @@
                 {
                     "ecode": "050004000001004F",
                     "intro": "Okänt modul upptäckt, försök uppdatera firmware till den senaste versionen."
-                },
-                {
-                    "ecode": "07FF700000020003",
-                    "intro": "Filamentet till höger extruder är slut; mata in nytt filament."
                 },
                 {
                     "ecode": "0C00040000010020",
@@ -9398,10 +9494,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "Avvikelsen i justeringsvärdet för extruderpositioneringen är för stor; kalibrera om."
-                },
-                {
-                    "ecode": "07FE700000020003",
-                    "intro": "Vänstra extruderns filament har tagit slut; mata in nytt filament."
                 },
                 {
                     "ecode": "0500030000020010",
@@ -14580,10 +14672,6 @@
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: stoppad extruder eller brutet filament. Hänvisa till Assistanten för detaljer."
                 },
                 {
-                    "ecode": "0703700000020007",
-                    "intro": "AMS-filamenten tog slut. Sätt in ett nytt AMS-filament och klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Misslyckades med att hämta AMS-mappningsbordet; klicka på \"Återuppta\" för att försöka igen."
                 },
@@ -14616,20 +14704,12 @@
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruderare eller trasigt filament. Hänvisa till assistenten för detaljer."
                 },
                 {
-                    "ecode": "0702700000020007",
-                    "intro": "AMS-filamentet tog slut. Lägg in ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Kunde inte hämta AMS kartläggningstabell; klicka på \"Återuppta\" för att försöka igen."
                 },
                 {
                     "ecode": "0701700000020001",
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruderare eller trasigt filament. Hänvisa till assistenten för detaljer."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "AMS-filamentet tog slut. Lägg in ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14686,10 +14766,6 @@
                 {
                     "ecode": "0700700000020001",
                     "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller trasigt filament. Se hjälpfunktionen för mer information."
-                },
-                {
-                    "ecode": "0700700000020007",
-                    "intro": "AMS-filamentet tog slut. Sätt in ett nytt filament i AMS och klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "0700700000020008",

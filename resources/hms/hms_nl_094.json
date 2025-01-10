@@ -1,38 +1,454 @@
 {
     "result": 0,
-    "t": 1736345976,
-    "ver": 202501081628,
+    "t": 1736436183,
+    "ver": 202502042359,
     "data": {
         "device_error": {
-            "ver": 202501081619,
+            "ver": 202502042359,
             "nl": [
                 {
-                    "ecode": "0500807A",
-                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. U kunt de taak voortzetten of de assistent bekijken voor probleemoplossing."
+                    "ecode": "0C004041",
+                    "intro": "LiDAR-kalibratie is mislukt. Zorg ervoor dat het kalibratiedoeloppervlak schoon en onbeschadigd is, en voer vervolgens het kalibratieproces opnieuw uit."
                 },
                 {
-                    "ecode": "0C008016",
-                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. U kunt de taak voortzetten of de assistent bekijken voor probleemoplossing."
+                    "ecode": "07018007",
+                    "intro": "Kon niet het filament extruderen. Controleer of de extruder verstopt is."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Het type platform komt niet overeen, wat kan leiden tot onjuiste hoogte-meetgegevens. Plaats het laserplatform correct, meet vervolgens de hoogte opnieuw in de software en start de taak."
+                    "ecode": "07018012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FF8005",
+                    "intro": "Kon het filament buiten de AMS niet voeren. Knip de punt van het filament plat en controleer of de spoel vastzit."
+                },
+                {
+                    "ecode": "07FE8005",
+                    "intro": "Het is niet gelukt om het filament buiten de AMS te voeren. Knip de punt van het filament vlak af en controleer of de spoel vastzit."
+                },
+                {
+                    "ecode": "03008042",
+                    "intro": "Taak gepauzeerd omdat de deur of het bovenpaneel open is."
+                },
+                {
+                    "ecode": "07FF8020",
+                    "intro": "Wijziging van de extruder mislukt; raadpleeg de assistent."
+                },
+                {
+                    "ecode": "0500805C",
+                    "intro": "Het type grip snijmat komt niet overeen; plaats een LightGrip snijmat."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Onjuiste platformtype. Plaats het laserplatform voor laserafstelling."
+                },
+                {
+                    "ecode": "05008059",
+                    "intro": "De basis van het snijplatform is niet correct uitgelijnd. Zorg ervoor dat de vier hoeken van het platform zijn uitgelijnd met het verwarmde bed."
+                },
+                {
+                    "ecode": "07FF8013",
+                    "intro": "Time-out bij het doorspoelen van oud filament van de rechter extruder: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07FF8001",
+                    "intro": "Het is niet gelukt om het filament van de rechter extruder te snijden. Controleer de snijder."
+                },
+                {
+                    "ecode": "0500806C",
+                    "intro": "Plaats het snijplatform correct en zorg ervoor dat de marker zichtbaar is."
+                },
+                {
+                    "ecode": "07FE8024",
+                    "intro": "Uitlijning van de extruderpositie mislukt; raadpleeg de assistent."
+                },
+                {
+                    "ecode": "07018013",
+                    "intro": "Time-out bij het doorspoelen van oud filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "0500805A",
+                    "intro": "Plaats de snijmat op de snijbeschermbasis."
+                },
+                {
+                    "ecode": "07068013",
+                    "intro": "Timeout bij het doorspoelen van oud filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Time-out bij het doorspoelen van oud filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Mislukt om de filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Timeout bij het purgen van oude filament: Controleer of het filament vast zit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Timeout bij het purgen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Timeout bij het purgen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Mislukt om AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Mislukt om de filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Mislukt om de filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Het is niet gelukt om het filament terug te trekken uit de rechter extruder. Controleer of het filament vastzit in de linkse extruder."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik op \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FE8024",
+                    "intro": "Kalibratie van de extruderpositie is mislukt; raadpleeg de assistent."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Timeout opruimen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FE8001",
+                    "intro": "Mislukt om het filament van de linker extruder te snijden. Controleer de snijder."
+                },
+                {
+                    "ecode": "18FF8013",
+                    "intro": "Timeout opruimen van oude filament van de rechter extruder: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07048013",
+                    "intro": "Timeout opruimen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Het is niet gelukt om het filament uit te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "05008071",
+                    "intro": "Er werd geen snijplatform gedetecteerd. Bevestig alstublieft dat het correct is geplaatst."
+                },
+                {
+                    "ecode": "05008073",
+                    "intro": "De limietblok van de verwarmde bed is obstructief of vervuild. Maak het schoon en zorg ervoor dat de limietblok zichtbaar is, anders kan de detectie van de positie-afwijking van het platform onnauwkeurig zijn."
                 },
                 {
                     "ecode": "05004075",
-                    "intro": "Geen laserplatform gedetecteerd, wat kan leiden tot onjuiste hoogte-meting. Plaats het laserplatform correct, meet vervolgens de hoogte opnieuw in de software en herstart de taak. Zorg er ook voor dat de eindmarker van het platform niet geblokkeerd is door materiaal."
+                    "intro": "Er werd geen laserplatform gedetecteerd, wat de nauwkeurigheid van de hoogtemeting kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de achterste markeringen niet geblokkeerd zijn, start dan de hoogtemeting opnieuw in de software voordat je de taak aanvraagt."
+                },
+                {
+                    "ecode": "18FF8010",
+                    "intro": "Controleer of de juiste externe filamentspoel of filament vastzit."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
+                },
+                {
+                    "ecode": "05008068",
+                    "intro": "Plaats het sterke grip snijmat correct en zorg ervoor dat de marker zichtbaar is."
+                },
+                {
+                    "ecode": "0500807C",
+                    "intro": "Plaats alstublieft het snijplatform (snijbeschermingsbasis + StrongGrip snijmat)."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Het laserplatform is gedetecteerd, vervang het alstublieft door het snijplatform (snijbeschermbasis + StrongGrip snijmat)."
+                },
+                {
+                    "ecode": "05008067",
+                    "intro": "Plaats alstublieft een LightGrip snijmat op de snijbeschermbasis."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Kon het filament niet terugtrekken uit de linker extruder. Controleer of het filament vastzit in de linker extruder."
+                },
+                {
+                    "ecode": "07FE8013",
+                    "intro": "Time-out bij het schoonmaken van het oude filament van de linker extruder: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07FE8010",
+                    "intro": "Controleer of de linker externe filamentspoel of het filament vastzit."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Kon de mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FE8002",
+                    "intro": "De snijder van de linker extruder zit vast. Trek de snijderhandgreep eruit."
+                },
+                {
+                    "ecode": "07FE8020",
+                    "intro": "Verandering van de extruder is mislukt; raadpleeg de assistent."
+                },
+                {
+                    "ecode": "07FE8001",
+                    "intro": "Het is niet gelukt om het filament van de linkse extruder te snijden. Controleer de snijder."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Laserplatform gedetecteerd. Plaats de snijplatform voor kalibratie."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Het is niet gelukt om het filament terug te trekken uit de rechter extruder. Controleer of het filament vastzit in de linker extruder."
+                },
+                {
+                    "ecode": "07FF8002",
+                    "intro": "De snijder van de rechter extruder zit vast. Trek de snijdhandgreep eruit."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Laserplatform gedetecteerd. Plaats de snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
+                },
+                {
+                    "ecode": "07FF8024",
+                    "intro": "Kalibratie van de extruderpositie mislukt; neem contact op met de assistent."
+                },
+                {
+                    "ecode": "07008013",
+                    "intro": "Time-out bij het verwijderen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07028013",
+                    "intro": "Timeout bij het verwijderen van oud filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07038013",
+                    "intro": "Time-out bij het reinigen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "0500806F",
+                    "intro": "Het type snijmat komt niet overeen; plaats een StrongGrip snijmat."
+                },
+                {
+                    "ecode": "18FE8020",
+                    "intro": "Verandering van de extruder mislukt; neem contact op met de assistent."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Timeout het verwijderen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Het is niet gelukt om het filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FE8013",
+                    "intro": "Timeout het verwijderen van oude filament van de linker extruder: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FE8005",
+                    "intro": "Het is niet gelukt om het filament buiten de AMS-HT te voeren. Knip het uiteinde van het filament plat en controleer of de spoel vastzit."
+                },
+                {
+                    "ecode": "18FE8010",
+                    "intro": "Controleer of de linker externe filamentspoel of het filament vastzit."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07058013",
+                    "intro": "Timeout het verwijderen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Niet gelukt om het filament terug te trekken uit de linker extruder. Controleer of het filament vastzit in de linker extruder."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Het is niet gelukt om de mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FF8002",
+                    "intro": "De snijder van de rechter extruder zit vast. Trek alstublieft de snijderhandgreep eruit."
+                },
+                {
+                    "ecode": "18FF8020",
+                    "intro": "Extruderwissel mislukt; raadpleeg alstublieft de assistent."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07078013",
+                    "intro": "Time-out bij het spoelen van oud filament: controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Time-out bij het reinigen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FE8002",
+                    "intro": "De snijder van de linker extruder zit vast. Trek alstublieft de snijderhandgreep eruit."
+                },
+                {
+                    "ecode": "18FF8024",
+                    "intro": "Kalibratie van de extruderpositie is mislukt; raadpleeg alstublieft de assistent."
+                },
+                {
+                    "ecode": "18FF8005",
+                    "intro": "Kon het filament niet buiten de AMS-HT invoeden. Knip alstublieft de uiteinden van het filament plat en controleer of de spoel vastzit."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Kon het filament niet extruderen. Controleer alstublieft of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Timeout bij het doorspoelen van oud filament: Controleer alstublieft of het filament vastzit of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FF8001",
+                    "intro": "Kon het filament van de rechter extruder niet snijden. Controleer alstublieft de snijder."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Niet gelukt om het filament te extruderen. Controleer of de extruder verstopt is."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "05004076",
-                    "intro": "Onbekend platform tijdens de operatie, wat kan leiden tot onjuiste hoogte-meetgegevens. Plaats het laserplatform correct en controleer of de BirdsEye-camera geblokkeerd is, meet vervolgens de hoogte opnieuw in de software en herstart de taak."
+                    "intro": "Onbekend platform in de taak, wat de nauwkeurigheid van de hoogte-metingen kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de BirdsEye-camera niet wordt belemmerd, meet vervolgens de hoogte opnieuw in de software en start de taak opnieuw."
                 },
                 {
-                    "ecode": "0C008018",
-                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. U kunt de taak voortzetten of de assistent bekijken voor probleemoplossing."
+                    "ecode": "07FF8010",
+                    "intro": "Controleer of de juiste externe filamentspoel of filament vastzit."
                 },
                 {
                     "ecode": "03004052",
-                    "intro": "Cutter nul terugkeerfout: keer alstublieft opnieuw terug naar nul."
+                    "intro": "Blade Z-as home-functie mislukt."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Taak gepauseerd omdat het zijraam open is."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Plaats een StrongGrip snijmat op de snijbeschermingsbasis."
+                },
+                {
+                    "ecode": "05008058",
+                    "intro": "Plaats de light grip snijmat correct en zorg ervoor dat de marker blootligt."
+                },
+                {
+                    "ecode": "0500807B",
+                    "intro": "Plaats het snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "De functie voor het detecteren van vreemde objecten werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Het plattformatype komt niet overeen, wat kan leiden tot onjuiste hoogte-meetgegevens. Plaats het laserplatform correct, meet vervolgens de hoogte opnieuw in de software en start de taak."
+                },
+                {
+                    "ecode": "0C008018",
+                    "intro": "De functie voor het detecteren van vreemde objecten werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
                 },
                 {
                     "ecode": "0500805B",
@@ -251,10 +667,6 @@
                     "intro": "AMS B helpt bij het invoeren van filament. Droger kan niet starten. Probeer het later opnieuw."
                 },
                 {
-                    "ecode": "0500806C",
-                    "intro": "Onbekend type snijbeschermingsbasis. Vervang het door de juiste snijbeschermingsbasis."
-                },
-                {
                     "ecode": "0701406C",
                     "intro": "AMS B is in Feed Assist Mode. Droger kan niet starten. Probeer het later opnieuw."
                 },
@@ -347,56 +759,16 @@
                     "intro": "Huidig materiaal komt niet overeen met de instellingen van het gesneden bestand. Laad het juiste materiaal en zorg ervoor dat de QR-code op het materiaal niet beschadigd of vies is."
                 },
                 {
-                    "ecode": "07FE8010",
-                    "intro": "Controleer of de linker externe filamentspoel of het filament vastzit. Klik na het oplossen van het probleem op de knop 'Opnieuw proberen'."
-                },
-                {
                     "ecode": "0500403F",
                     "intro": "Kan afdruktaak niet downloaden; controleer uw netwerkverbinding."
-                },
-                {
-                    "ecode": "18FE8010",
-                    "intro": "Controleer of de linker externe filamentspoel of het filament vastzit. Klik na het oplossen van het probleem op de knop 'Opnieuw proberen'."
-                },
-                {
-                    "ecode": "05008073",
-                    "intro": "Het hittebedlimietblok is geblokkeerd of vuil. Maak het limietblok bloot, anders rapporteert het ten onrechte een fout bij het niveau van het bed."
-                },
-                {
-                    "ecode": "18FF8010",
-                    "intro": "Controleer of de rechter externe filamentspoel of het filament vastzit. Klik na het oplossen van het probleem op de knop 'Opnieuw proberen'."
-                },
-                {
-                    "ecode": "07FF8010",
-                    "intro": "Controleer of de rechter externe filamentspoel of het filament vastzit. Klik na het oplossen van het probleem op de knop 'Opnieuw proberen'."
-                },
-                {
-                    "ecode": "03008042",
-                    "intro": "Taak gepauzeerd omdat de deur, bovenklep of zijraam open is."
                 },
                 {
                     "ecode": "05008074",
                     "intro": "Het laserplatform is verschoven. Zorg ervoor dat de vier hoeken van het platform zijn uitgelijnd met het hittebed."
                 },
                 {
-                    "ecode": "05008059",
-                    "intro": "De snijbeschermingsbasis is versprongen. Zorg er alstublieft voor dat de vier hoeken van de basisplaat zijn uitgelijnd met het verwarmingsbed."
-                },
-                {
-                    "ecode": "05008056",
-                    "intro": "Het huidige type snijbeschermingsbasis is onjuist. Plaats alstublieft een snijbeschermings stalen plaat om de mes kalibratie uit te voeren."
-                },
-                {
                     "ecode": "05008063",
                     "intro": "Het platform wordt niet gedetecteerd tijdens kalibratie; zorg er alstublieft voor dat de laserplaat goed is geplaatst."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Het huidige type snijbeschermingsbasis komt niet overeen met de instellingen in de slicer. Plaats alstublieft de snijbeschermings stalen plaat."
-                },
-                {
-                    "ecode": "05008071",
-                    "intro": "Geen snijbeschermingsstalen plaat gedetecteerd. Bevestig dat deze correct is geplaatst."
                 },
                 {
                     "ecode": "0C00803F",
@@ -431,16 +803,8 @@
                     "intro": "De taak werd geannuleerd."
                 },
                 {
-                    "ecode": "0500805C",
-                    "intro": "Het type snijmat van de grip komt niet overeen; gelieve een LightGrip snijmat te plaatsen."
-                },
-                {
                     "ecode": "07FF8011",
                     "intro": "De externe filament die verbonden is met de rechter extruder is op; gelieve een nieuwe filament te laden."
-                },
-                {
-                    "ecode": "0500806F",
-                    "intro": "Het type snijmat van de grip komt niet overeen; gelieve een StrongGrip snijmat te plaatsen."
                 },
                 {
                     "ecode": "18FF8011",
@@ -539,14 +903,6 @@
                     "intro": "Liveview camera is geblokkeerd."
                 },
                 {
-                    "ecode": "18048007",
-                    "intro": "Het extruderen van het filament is mislukt. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Het extruderen van het filament is mislukt. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT kon het filament niet terughalen. Dit kan te wijten zijn aan een vastgelopen spoel of doordat het einde van het filament vastzit in de weg."
                 },
@@ -555,24 +911,12 @@
                     "intro": "AMS-HT kon het filament niet terughalen. Dit kan te wijten zijn aan een vastgelopen spoel of doordat het einde van het filament vastzit in de weg."
                 },
                 {
-                    "ecode": "18FF8012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt. Klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "18058016",
                     "intro": "De extruder extrudeert niet normaal. Raadpleeg de Assistent voor hulp bij het oplossen van het probleem. Als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D is aan het drogen. Stop het droogproces voordat u het materiaal gaat laden/lossen."
-                },
-                {
-                    "ecode": "18018012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt. Klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "18068007",
-                    "intro": "Het extruderen van het filament is mislukt. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" nadat het probleem is verholpen."
                 },
                 {
                     "ecode": "18048011",
@@ -595,56 +939,24 @@
                     "intro": "De extruder voert niet normaal uit; raadpleeg de Assistent. Na het oplossen van het probleem, als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
                 },
                 {
-                    "ecode": "18078013",
-                    "intro": "Time-out bij het reinigen van oude filamentresten: controleer of het filament vastzit of de extruder verstopt is. Nadat het probleem is opgelost, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Haal het filament uit de houder van de linker extruder. Als dit bericht blijft verschijnen, controleer dan of het filament in de extruder of PTFE-buis gebroken is. (Sluit een PTFE-buis aan als je van plan bent om een AMS te gebruiken)"
-                },
-                {
-                    "ecode": "18FF8001",
-                    "intro": "Niet gelukt om het filament van de rechter extruder af te snijden. Controleer de snijder. Nadat je het probleem hebt opgelost, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Kan AMS mapping tabel niet ophalen; klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "07048005",
                     "intro": "De AMS slaagde er niet in om filament uit te sturen. Je kunt het uiteinde van je filament platknippen en opnieuw invoeren. Als dit bericht aanhoudt, controleer dan de PTFE-buizen in AMS op tekenen van slijtage."
                 },
                 {
-                    "ecode": "18028012",
-                    "intro": "Laden van AMS-mappingtabel mislukt; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "18028005",
                     "intro": "De AMS-HT slaagde er niet in om filament uit te sturen. Je kunt het uiteinde van je filament platknippen en opnieuw invoeren. Als dit bericht aanhoudt, controleer dan de PTFE-buizen in AMS-HT op tekenen van slijtage."
-                },
-                {
-                    "ecode": "18FE8002",
-                    "intro": "De snijder van de linkse extruder is vastgelopen. Trek de handgreep van de snijder uit en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18038010",
                     "intro": "De AMS-HT assist-motor is overbelast. Dit kan te wijten zijn aan verstrengeld filament of een vastzittende spoel."
                 },
                 {
-                    "ecode": "07048007",
-                    "intro": "Filament kon niet worden geëxtrudeerd. Controleer of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18FF8024",
-                    "intro": "Kalibratie van extruderpositie mislukt; raadpleeg de assistent. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18008016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Na het oplossen van het probleem, indien de defecten acceptabel zijn, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18FF8005",
-                    "intro": "Filament kon niet buiten de AMS-HT worden gevoed. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18058005",
@@ -679,10 +991,6 @@
                     "intro": "Kan geen filament in de extruder plaatsen. Dit kan komen door verward filament of een vastzittende spoel. Als dit niet het geval is, controleer dan of de AMS-HT PTFE-buis is aangesloten."
                 },
                 {
-                    "ecode": "07048013",
-                    "intro": "Time-out bij het verwijderen van oude filament: controleer of het filament vastzit of de extruder verstopt is. Klik na probleemoplossing op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18FF8006",
                     "intro": "Voer het filament in de PTFE-buis van de rechter extruder in totdat het niet verder kan worden geduwd."
                 },
@@ -697,10 +1005,6 @@
                 {
                     "ecode": "18018016",
                     "intro": "De extruder voert niet normaal uit; raadpleeg de assistent. Na het oplossen van het probleem, indien de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18018013",
-                    "intro": "Time-out tijdens het legen van oud filament: Controleer of het filament vastzit of de extruder verstopt is. Nadat het probleem is verholpen, klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18018005",
@@ -719,20 +1023,8 @@
                     "intro": "AMS-HT kon het filament niet terugtrekken. Dit kan te wijten zijn aan een vastzittende haspel of het vastzitten van het uiteinde van het filament in de weg."
                 },
                 {
-                    "ecode": "18FE8001",
-                    "intro": "De filament van de linker extruder kon niet worden afgesneden. Controleer de snijder. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
-                    "ecode": "07078013",
-                    "intro": "Time-out bij het reinigen van het oude filament. Controleer of de filament vastzit of dat de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
                     "ecode": "18068011",
                     "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
-                },
-                {
-                    "ecode": "18FF8013",
-                    "intro": "Time-out bij het reinigen van het oude filament van de rechter extruder. Controleer of de filament vastzit of dat de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "07078006",
@@ -763,32 +1055,12 @@
                     "intro": "Voer alsjeblieft filament in de PTFE-buis van de linkse extruder tot het niet verder geduwd kan worden."
                 },
                 {
-                    "ecode": "18078012",
-                    "intro": "Kan AMS toewijzingstabel niet ophalen; klik op \"Opnieuw\" om door te gaan."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Het filament kon niet geëxtrudeerd worden. Controleer of de extruder verstopt is. Klik op \"Opnieuw\" nadat het probleem verholpen is om door te gaan."
-                },
-                {
                     "ecode": "07068011",
                     "intro": "AMS-filament is op. Voeg een nieuwe filament toe in dezelfde AMS-sleuf."
                 },
                 {
                     "ecode": "0C004027",
                     "intro": "Het kalibreren van de Live View Camera is mislukt. Raadpleeg de assistent voor details en kalibreer de camera opnieuw na het verwerken."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Het filament kon niet geëxtrudeerd worden. Controleer of de extruder verstopt is. Klik op \"Opnieuw\" nadat het probleem is verholpen om door te gaan."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Het filament kon niet geëxtrudeerd worden. Controleer of de extruder verstopt is. Klik op \"Opnieuw\" nadat het probleem verholpen is om door te gaan."
-                },
-                {
-                    "ecode": "18FF8020",
-                    "intro": "Extruderwissel is mislukt; raadpleeg de assistent. Klik op \"Opnieuw\" nadat het probleem verholpen is om door te gaan."
                 },
                 {
                     "ecode": "07048006",
@@ -805,14 +1077,6 @@
                 {
                     "ecode": "18028006",
                     "intro": "Het is niet mogelijk om filament in de extruder te voeren. Dit kan worden veroorzaakt door een verstrengelde filament of een vastzittende spoel. Als dit niet het geval is, controleer dan of de AMS-HT PTFE-buis is aangesloten."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Het is niet gelukt om de AMS mapping tabel te krijgen; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Het is niet gelukt om de AMS mapping tabel op te halen; klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "18FEC006",
@@ -835,16 +1099,8 @@
                     "intro": "AMS-HT slaagde er niet in om het filament terug te trekken. Dit kan komen doordat de spoel vastzit of omdat het einde van het filament vastzit in de baan."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Kon AMS-toewijzingstabel niet ophalen, klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "07078004",
                     "intro": "AMS slaagde er niet in om het filament terug te trekken. Dit kan komen doordat de spoel vastzit of omdat het einde van het filament vastzit in de baan."
-                },
-                {
-                    "ecode": "18FF8002",
-                    "intro": "De snijder van de rechter extruder zit vast. Trek de snijder handgreep naar buiten en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "0C00402A",
@@ -853,10 +1109,6 @@
                 {
                     "ecode": "07058010",
                     "intro": "De AMS-assistentmotor is overbelast. Dit kan komen door verward filament of een vastzittende spoel."
-                },
-                {
-                    "ecode": "18038007",
-                    "intro": "Extrusie van filament mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18018010",
@@ -891,24 +1143,12 @@
                     "intro": "Het is niet mogelijk om filament in de extruder te voeren. Dit kan worden veroorzaakt door verstrikt filament of een vastzittende spoel. Als dit niet het geval is, controleer dan of de AMS-HT PTFE-buis is aangesloten."
                 },
                 {
-                    "ecode": "18038012",
-                    "intro": "Mislukt om AMS-mappingtabel te krijgen; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "07048003",
                     "intro": "Het is niet gelukt om het filament uit de extruder te trekken. Dit kan worden veroorzaakt door een verstopte extruder of filament dat binnenin de extruder is gebroken."
                 },
                 {
-                    "ecode": "18058013",
-                    "intro": "Time-out bij het reinigen van de oude filament: Controleer of het filament vastzit of de extruder verstopt is. Nadat je het probleem hebt opgelost, klik je op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18008005",
                     "intro": "AMS-HT slaagde er niet in om filament uit te sturen. Knip het uiteinde van je filament plat en steek het opnieuw in. Als dit bericht blijft verschijnen, controleer dan de PTFE-buizen in AMS op tekenen van slijtage."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Mislukte extrusie van filament. Controleer of de extruder is verstopt. Nadat je het probleem hebt opgelost, klik je op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18FFC009",
@@ -923,14 +1163,6 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Nadat je problemen hebt opgelost, klik je op de knop \"Opnieuw proberen\" als de defecten acceptabel zijn."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Mislukte terugtrekking van filament uit de rechter extruder. Controleer of het filament vastzit in de linker extruder. Nadat je problemen hebt opgelost, klik je op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "AMS-mappingtabel ophalen mislukt; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "AMS-HT filament is op. Steek een nieuw filament in dezelfde AMS-sleuf."
                 },
@@ -941,14 +1173,6 @@
                 {
                     "ecode": "18078003",
                     "intro": "Het uittrekken van het filament uit de extruder is mislukt. Dit kan worden veroorzaakt door een verstopte extruder of gebroken filament binnenin de extruder."
-                },
-                {
-                    "ecode": "18FE8012",
-                    "intro": "Het ophalen van de mapping tabel is mislukt; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "18FE8024",
-                    "intro": "De kalibratie van de extruderpositie is mislukt; raadpleeg de assistent. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "07058005",
@@ -965,10 +1189,6 @@
                 {
                     "ecode": "18FEC009",
                     "intro": "Voer filament in de PTFE-buis van de linker extruder totdat het niet verder kan worden geduwd."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Het terughalen van de filament uit de linker extruder is mislukt. Controleer of het filament vastzit in de linker extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18FEC003",
@@ -995,10 +1215,6 @@
                     "intro": "De AMS-HT hulpmotor is overbelast. Dit kan te wijten zijn aan verstrengeld filament of een vastzittende spoel."
                 },
                 {
-                    "ecode": "07058013",
-                    "intro": "Time-out voor het verwijderen van oud filament: Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18048016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Na het oplossen van het probleem, als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
                 },
@@ -1011,10 +1227,6 @@
                     "intro": "AMS-HT kon de filament niet terugtrekken. Dit kan te wijten zijn aan een vastzittende spoel of het uiteinde van de filament zit vast in de weg."
                 },
                 {
-                    "ecode": "18078007",
-                    "intro": "Kon de filament niet extruderen. Controleer of de extruder verstopt is. Na het oplossen van problemen, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18FEC00A",
                     "intro": "Let op de nozzle van de linker extruder. Als de filament is geëxtrudeerd, klik dan op \"Klaar\"; indien niet, duw de filament dan iets naar voren en klik op \"Opnieuw proberen\"."
                 },
@@ -1023,16 +1235,8 @@
                     "intro": "De AMS-HT assistent motor is overbelast. Dit kan te wijten zijn aan wielen filament of een vastzittende spoel."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Kon AMS mapping tabel niet verkrijgen; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "07048016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Na het oplossen van problemen, als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18048012",
-                    "intro": "Kon AMS mapping tabel niet verkrijgen; klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "07068016",
@@ -1041,10 +1245,6 @@
                 {
                     "ecode": "18008003",
                     "intro": "Kon de filament niet uit de extruder trekken. Dit kan worden veroorzaakt door een verstopte extruder of filament dat gebroken is binnenin de extruder."
-                },
-                {
-                    "ecode": "07078007",
-                    "intro": "Falende extrusie van filament. Controleer of de extruder verstopt is. Klik op \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "07048010",
@@ -1057,10 +1257,6 @@
                 {
                     "ecode": "18078011",
                     "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde AMS gleuf."
-                },
-                {
-                    "ecode": "18028013",
-                    "intro": "Time-out bij het verwijderen van oud filament: controleer of het filament vastzit of dat de extruder verstopt is. Klik op \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "07058004",
@@ -1103,44 +1299,12 @@
                     "intro": "AMS filament is op. Plaats alstublieft een nieuwe filament in dezelfde AMS-sleuf."
                 },
                 {
-                    "ecode": "18008013",
-                    "intro": "Time-out bij het reinigen van het oude filament: controleer of het filament vastzit of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18048013",
-                    "intro": "Time-out bij het reinigen van het oude filament: controleer of het filament vastzit of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "18FE8005",
-                    "intro": "Het invoeren van filament buiten de AMS-HT is mislukt. Knip het uiteinde van de filament af en controleer of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18038003",
                     "intro": "Kon de draad niet uit de extruder trekken. Dit kan worden veroorzaakt door een verstopte extruder of een gebroken draad in de extruder."
                 },
                 {
                     "ecode": "07068003",
                     "intro": "Het is niet gelukt om de filament uit de extruder te halen. Dit kan veroorzaakt worden door een verstopte extruder of een filament dat binnenin de extruder gebroken is."
-                },
-                {
-                    "ecode": "18068012",
-                    "intro": "Kan AMS-mappingtabel niet ophalen; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "07068013",
-                    "intro": "Time-out bij het opschonen van oude filamenten: controleer of de filament vastzit of de extruder verstopt is. Na het oplossen van het probleem klik op de knop 'Opnieuw proberen'."
-                },
-                {
-                    "ecode": "07008007",
-                    "intro": "Kan de filament niet extruderen. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
-                    "ecode": "18038013",
-                    "intro": "Time-out bij het opschonen van oude filamenten: controleer of de filament vastzit of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
-                    "ecode": "18FE8013",
-                    "intro": "Time-out bij het opschonen van oude filamenten van de linker extruder: controleer of de filament vastzit of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "18018004",
@@ -1151,16 +1315,8 @@
                     "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Mislukt om het filament uit te drukken. Controleer of de extruder verstopt is. Klik op \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
                     "ecode": "18068005",
                     "intro": "AMS-HT kon geen filament uitsturen. Je kunt het uiteinde van het filament platknippen en opnieuw invoeren. Als dit bericht aanhoudt, controleer dan de PTFE-buizen in AMS op tekenen van slijtage."
-                },
-                {
-                    "ecode": "18FE8020",
-                    "intro": "Wisselen van extruder is mislukt; raadpleeg de assistent. Klik op \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "18008011",
@@ -1169,10 +1325,6 @@
                 {
                     "ecode": "18028011",
                     "intro": "AMS-HT filament is op. Voeg een nieuw filament toe in dezelfde AMS-sleuf."
-                },
-                {
-                    "ecode": "18068013",
-                    "intro": "Time-out bij het legen van oud filament: controleer of het filament vastzit of de extruder verstopt is. Klik op \"Opnieuw proberen\" na het oplossen van het probleem."
                 },
                 {
                     "ecode": "0C008015",
@@ -1259,10 +1411,6 @@
                     "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT F. Ga naar Assistant voor meer details."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Onjuist platformtype. Plaats het snijplatform voor de laserkalibratie."
-                },
-                {
                     "ecode": "1001C001",
                     "intro": "Timelapse wordt niet ondersteund omdat Spiral vaasmodus is ingeschakeld in de slicer instellingen."
                 },
@@ -1277,14 +1425,6 @@
                 {
                     "ecode": "07FEC00A",
                     "intro": "Let alstublieft op de spuitmond van de linker extruder. Als de filament geëxtrudeerd is, klik dan op \"Gereed\"; als dit niet het geval is, duw de filament iets naar voren en klik dan op \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07FF8020",
-                    "intro": "Extruderwissel mislukt; raadpleeg de assistent en klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07FE8020",
-                    "intro": "Extruderwissel mislukt; raadpleeg de assistent en klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "05008053",
@@ -1363,20 +1503,12 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent voor probleemoplossing. Als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
                 },
                 {
-                    "ecode": "07FE8024",
-                    "intro": "Kalibratie van extruderpositie is mislukt; raadpleeg de assistent voor probleemoplossing. Na probleemoplossing, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "07028016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent voor probleemoplossing. Als de defecten acceptabel zijn, klik dan op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "05024003",
                     "intro": "De printer is momenteel aan het printen en de functie voor verbetering van de bewegingsnauwkeurigheid kan niet worden in- of uitgeschakeld."
-                },
-                {
-                    "ecode": "07FF8024",
-                    "intro": "Kalibratie van extruderpositie is mislukt; raadpleeg de assistent voor probleemoplossing. Na probleemoplossing, klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "0500806E",
@@ -1389,10 +1521,6 @@
                 {
                     "ecode": "03008049",
                     "intro": "De huidige plaat is ongeldig."
-                },
-                {
-                    "ecode": "07FE8004",
-                    "intro": "Het terugtrekken van filament uit de linker extruder is mislukt. Controleer of het filament vastzit in de linker extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "07FF8003",
@@ -1425,14 +1553,6 @@
                 {
                     "ecode": "0300801C",
                     "intro": "De extrusieweerstand is abnormaal. De extruder kan verstopt zijn, raadpleeg de assistent. Na probleemoplossing kunt u op de knop \"Hervatten\" tikken om de afdruktaak te hervatten."
-                },
-                {
-                    "ecode": "07FE8002",
-                    "intro": "De snijder van de linker extruder zit vast. Trek de handgreep van de snijder eruit en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Kan het filament van de rechter extruder niet terugtrekken. Controleer of het filament vastzit in de linker extruder. Klik op de knop \"Opnieuw proberen\" na probleemoplossing."
                 },
                 {
                     "ecode": "0500400A",
@@ -1469,10 +1589,6 @@
                 {
                     "ecode": "03008047",
                     "intro": "Time-out voor snelontgrendelingshendel detectie: start de printer opnieuw."
-                },
-                {
-                    "ecode": "0500805A",
-                    "intro": "Plaats de snijmat alstublieft."
                 },
                 {
                     "ecode": "03008008",
@@ -1515,10 +1631,6 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Als de defecten na het oplossen acceptabel zijn, tik dan op de knop \"Doorgaan\" om de afdruktaak te hervatten."
                 },
                 {
-                    "ecode": "07FF8002",
-                    "intro": "De snijder van de rechter extruder zit vast. Trek alstublieft aan de snijder handgreep en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "03008001",
                     "intro": "Afdrukken is gepauzeerd vanwege het pauzecommando dat in het afdrukbestand is toegevoegd."
                 },
@@ -1545,22 +1657,6 @@
                 {
                     "ecode": "0300400F",
                     "intro": "De voedingsspanning komt niet overeen met de printer."
-                },
-                {
-                    "ecode": "07018013",
-                    "intro": "Timeout voor oude filamentopruiming: controleer of het filament vastzit of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07008013",
-                    "intro": "Timeout voor oude filamentopruiming: controleer of het filament vastzit of de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07028013",
-                    "intro": "Timeout voor het schoonmaken van oud filament: Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
-                },
-                {
-                    "ecode": "07038013",
-                    "intro": "Time-out bij het doorspoelen van oud filament: Controleer of het filament vastzit of de extruder verstopt is. Nadat het probleem is opgelost, klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "05024004",
@@ -1671,20 +1767,12 @@
                     "intro": "Voer alstublieft filament in de PTFE-buis van de rechter extruder totdat het niet verder geduwd kan worden."
                 },
                 {
-                    "ecode": "07FF8013",
-                    "intro": "Time-out bij het reinigen van het oude filament van de rechter extruder: Controleer of het filament vastzit of de extruder verstopt is. Na het oplossen van het probleem, klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "07038004",
                     "intro": "AMS kon het filament niet terugtrekken. Dit kan te wijten zijn aan een vastzittende spoel of het uiteinde van het filament dat vastzit in het pad."
                 },
                 {
                     "ecode": "07018003",
                     "intro": "Het lukte niet om het filament uit de extruder te trekken. Dit kan veroorzaakt worden door een verstopte extruder of gebroken filament in de extruder."
-                },
-                {
-                    "ecode": "07FF8001",
-                    "intro": "Het filament van de rechter extruder kon niet afgesneden worden. Controleer de knipper. Na de probleemoplossing klik je op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "07038003",
@@ -1775,10 +1863,6 @@
                     "intro": "AMS wordt op dit moment gebruikt voor het printen en kan het droogproces niet starten."
                 },
                 {
-                    "ecode": "07FE8001",
-                    "intro": "Het is niet gelukt om het filament van de linkerextruder af te snijden. Controleer de snijder. Klik op de \"Opnieuw\" knop na het oplossen van het probleem."
-                },
-                {
                     "ecode": "03008063",
                     "intro": "De kamertemperatuur is te hoog. Open het bovenste deksel en de voordeur om af te koelen."
                 },
@@ -1795,16 +1879,8 @@
                     "intro": "Voer alsjeblieft filament in de PTFE-buis van de linker extruder in totdat het niet verder geduwd kan worden."
                 },
                 {
-                    "ecode": "07FE8005",
-                    "intro": "Het lukte niet om de filament buiten de AMS te voeren. Knip het uiteinde van de filament vlak en controleer of de spoel vastzit. Klik op 'Opnieuw proberen' nadat je eventuele problemen hebt opgelost."
-                },
-                {
                     "ecode": "0C00800B",
                     "intro": "De heatbed marker werd niet gedetecteerd. Verwijder alle objecten en het matje. Zorg ervoor dat de marker niet geblokkeerd is."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Kon de mapping tabel niet ophalen; klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "07FEC009",
@@ -1817,10 +1893,6 @@
                 {
                     "ecode": "05014038",
                     "intro": "De regionale instellingen komen niet overeen met de printer, controleer de regionale instellingen van de printer."
-                },
-                {
-                    "ecode": "07FE8013",
-                    "intro": "Time-out bij het verwijderen van oude filament van de linker extruder: Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "0C008005",
@@ -1867,10 +1939,6 @@
                     "intro": "De AMS kon geen filament uitsturen. U kunt het uiteinde van uw filament knippen en platmaken, en opnieuw invoeren. Als dit probleem blijft bestaan, controleer dan de PTFE-buizen in AMS op tekenen van slijtage."
                 },
                 {
-                    "ecode": "07038007",
-                    "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is. Na het oplossen van het probleem klikt u op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "07038010",
                     "intro": "De AMS hulpmotor is overbelast. Dit kan veroorzaakt worden door verward filament of een vastzittende spoel."
                 },
@@ -1879,32 +1947,12 @@
                     "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
                 },
                 {
-                    "ecode": "07038012",
-                    "intro": "Kon de mappingtabel van de AMS niet ophalen; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "07FF8005",
-                    "intro": "Het is niet gelukt om de filament buiten de AMS te voeren. Knip de uiteinde van de filament plat en controleer of de spoel vastzit. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt; klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Het is niet gelukt om de filament te extruderen. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
                     "ecode": "07028010",
                     "intro": "De AMS-hulpmotor is overbelast. Dit kan komen door verwarde filament of een vastzittende spoel."
                 },
                 {
                     "ecode": "07028011",
                     "intro": "AMS-filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt; klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "07028005",
@@ -1919,10 +1967,6 @@
                     "intro": "De AMS kon geen filament uitsturen. Knip het uiteinde van de filament plat en steek het opnieuw in. Als dit bericht blijft verschijnen, controleer dan de PTFE-slangen in de AMS op tekenen van slijtage."
                 },
                 {
-                    "ecode": "07018007",
-                    "intro": "Het extruderen van filament is mislukt. Controleer of de extruder verstopt is. Klik op de knop \"Opnieuw proberen\" na het oplossen van het probleem."
-                },
-                {
                     "ecode": "07018010",
                     "intro": "De AMS-hulpmotor is overbelast. Dit kan worden veroorzaakt door verward filament of vastzittende klos."
                 },
@@ -1931,16 +1975,8 @@
                     "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt. Klik op \"Opnieuw proberen\" om door te gaan."
-                },
-                {
                     "ecode": "07008011",
                     "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde AMS-sleuf."
-                },
-                {
-                    "ecode": "07008012",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt. Klik op \"Opnieuw proberen\" om door te gaan."
                 },
                 {
                     "ecode": "07008003",
@@ -2235,6 +2271,10 @@
                     "intro": "Er was een onvoltooide printtaak toen de printer zonder stroom kwam te zitten. Als het model nog steeds aan het bouwplatform kleeft, kan je proberen de printtaak te hervatten."
                 },
                 {
+                    "ecode": "0300800A",
+                    "intro": "Er is een filamentopbouw gedetecteerd door de AI Print Monitoring. Gelieve het filament uit de afvalgoot te verwijderen."
+                },
+                {
                     "ecode": "0300800B",
                     "intro": "De snijder zit vast. Zorg ervoor dat de handgreep van de snijder uit is en controleer de verbinding van de filament sensor kabel."
                 },
@@ -2269,55 +2309,231 @@
             ]
         },
         "device_hms": {
-            "ver": 202501081628,
+            "ver": 202502042359,
             "nl": [
                 {
+                    "ecode": "07FF700000020003",
+                    "intro": "Controleer of het materiaal uit de juiste nozzle komt. Als dat niet het geval is, duw het materiaal voorzichtig en probeer opnieuw te extruderen."
+                },
+                {
+                    "ecode": "07FE700000020003",
+                    "intro": "Controleer of het materiaal uit de linkse nozzle komt. Als dat niet het geval is, duw het materiaal voorzichtig en probeer opnieuw te extruderen."
+                },
+                {
+                    "ecode": "18FF700000020003",
+                    "intro": "Controleer of het materiaal uit de rechte nozzle komt. Als dat niet het geval is, duw het materiaal voorzichtig en probeer opnieuw te extruderen."
+                },
+                {
+                    "ecode": "18FE700000020003",
+                    "intro": "Controleer of het materiaal uit de linker nozzle komt. Als dat niet het geval is, duw het materiaal voorzichtig en probeer opnieuw te extruderen."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuwe filament in dezelfde sleuf in AMS te plaatsen en doorgaan."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuwe filament in dezelfde sleuf in AMS te plaatsen en te hervatten."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Het type snijplatform komt niet overeen; gelieve het juiste snijplatform te plaatsen."
+                },
+                {
+                    "ecode": "050004000002004C",
+                    "intro": "Onbekend type snijbeschermingsbasis. Vervang het met de juiste snijbeschermingsbasis."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Onjuist platformtype. Gelieve het laserplatform te plaatsen voor lasercalibratie."
+                },
+                {
+                    "ecode": "0300D00000010002",
+                    "intro": "De meshouder is gevallen; installeer het alstublieft opnieuw."
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Materiaaltype niet herkend"
+                },
+                {
+                    "ecode": "050005000001000F",
+                    "intro": "Niet-gecertificeerd accessoire gedetecteerd. Gebruik alstublieft officiële accessoires."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS gebruikt MC-vermogen voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS gebruikt MC-vermogen voor drogen tijdens het laden of afdrukken van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te waarborgen."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS gebruikt MC-vermogen voor drogen tijdens het laden of afdrukken van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten voor optimale droogresultaten."
+                },
+                {
+                    "ecode": "07FE600000020001",
+                    "intro": "Externe spoel verbonden met de linker extruder kan verstrengeld of geblokkeerd zijn."
+                },
+                {
+                    "ecode": "07FF600000020001",
+                    "intro": "De externe spoel die op de rechter extruder is aangesloten, kan verward of geblokkeerd zijn."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "050004000002004D",
+                    "intro": "Er is geen snijbeschermingsbasis gedetecteerd. Gelieve te bevestigen dat deze correct is geplaatst."
+                },
+                {
+                    "ecode": "0300D00000010001",
+                    "intro": "De snijmodule basis is losgevallen; gelieve deze opnieuw te installeren."
+                },
+                {
+                    "ecode": "0300280000010005",
+                    "intro": "Z-as homing mislukt in snijmodus. Controleer alstublieft of er vreemde voorwerpen in de Z-as glijder en de Z-as synchronisatiepulley zitten."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Ongecertificeerde AMS gedetecteerd. Niet in staat om met deze printer te werken."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS AMS gebruikt MC-vermogen voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS AMS gebruikt MC-vermogen voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS AMS gebruikt MC-vermogen voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
+                },
+                {
+                    "ecode": "18FF600000020001",
+                    "intro": "Externe spoel verbonden met de rechter extruder kan verward of verstopt zijn."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS gebruikt MC-vermogen voor drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aangeraden een adapter voor drogen aan te sluiten om optimale droogresultaten te waarborgen."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "BirdEye-camera is niet gecertificeerd. Gebruik alstublieft Bambu Lab-accessoires."
+                },
+                {
+                    "ecode": "050005000001000E",
+                    "intro": "Laser Module is niet gecertificeerd. Gelieve Bambu Lab accessoires te gebruiken."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS AMS gebruikt MC-vermogen voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
+                },
+                {
+                    "ecode": "18FE600000020001",
+                    "intro": "Externe spoel verbonden met de linker extruder kan verward of vastzitten."
+                },
+                {
                     "ecode": "0300280000010008",
-                    "intro": "Z-as thuisomgeving mislukt. Controleer of de beweging van de meshouder soepel is en zorg ervoor dat er geen vreemde voorwerpen op de contactpositie van de verwarmde bed liggen."
+                    "intro": "Z-as homing mislukt. Controleer of de beweging van de bladhouder soepel is en zorg ervoor dat er geen vreemde objecten op de contactplaats op de verwarmde bed liggen."
                 },
                 {
                     "ecode": "0300280000010001",
-                    "intro": "Krachtsensor gegevens abnormaal in snijmodule, magneet op meshouder is mogelijk losgekomen."
+                    "intro": "Force sensor gegevens abnormaal in de snijmodule, magneet op de bladhouder kan zijn losgekomen."
                 },
                 {
                     "ecode": "0300280000010004",
-                    "intro": "Krachtsensorgegevens abnormaal in snijmodule, magneet op meshouder kan zijn losgevallen."
+                    "intro": "Force sensor gegevens abnormaal in de snijmodule, magneet op de bladhouder kan zijn losgekomen."
                 },
                 {
                     "ecode": "0300280000010007",
-                    "intro": "Communicatiefout tussen snijmodule en gereedschapshoudermodule. Controleer of de signaalkabel van de snijmodule los of beschadigd is. Het kan ook te wijten zijn aan een beschadigde krachtsensor spoel."
+                    "intro": "Communicatie fout tussen de snijmodule en de gereedschapshouder module. Controleer of de signaalkabel van de snijmodule los of kapot is. Het kan ook te wijten zijn aan een defecte force sensor spoel."
                 },
                 {
                     "ecode": "1800240000020009",
-                    "intro": "AMS HT A voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT De frontklep is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1807240000020009",
-                    "intro": "AMS HT H voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT De frontklep is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1801240000020009",
-                    "intro": "AMS HT B voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT B voorste deksel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1806240000020009",
-                    "intro": "AMS HT G voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT De frontklep is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1802240000020009",
-                    "intro": "AMS HT C voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT C voorste deksel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1805240000020009",
-                    "intro": "AMS HT F voorpaneel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat de filament vocht absorbeert."
+                    "intro": "AMS HT F voorste deksel is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1804240000020009",
-                    "intro": "AMS HT E voorblad is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht opneemt."
+                    "intro": "AMS HT E voorkant is open. Dit kan de droogprestatie beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "1803240000020009",
-                    "intro": "AMS HT D voorblad is open. Dit kan de droogprestaties beïnvloeden of ervoor zorgen dat het filament vocht opneemt."
+                    "intro": "AMS HT D voorkant is open. Dit kan de droogprestatie beïnvloeden of ervoor zorgen dat het filament vocht absorbeert."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -2325,51 +2541,15 @@
                 },
                 {
                     "ecode": "0500030000020020",
-                    "intro": "De capaciteit van de USB-flashdrive is onvoldoende om afdrukbestanden op te slaan."
-                },
-                {
-                    "ecode": "0701250000020009",
-                    "intro": "AMS gebruikt MC-vermogen voor het drogen tijdens het laden van filament of bij het afdrukken. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
-                },
-                {
-                    "ecode": "0706250000020009",
-                    "intro": "AMS gebruikt MC-vermogen voor het drogen tijdens het laden van filament of bij het afdrukken. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
-                },
-                {
-                    "ecode": "0705250000020009",
-                    "intro": "AMS gebruikt MC-vermogen voor het drogen tijdens het laden van filament of bij het afdrukken. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
-                },
-                {
-                    "ecode": "0300280000010005",
-                    "intro": "Falen van het homing van de Z-as van de snijmodule. Controleer of er vreemde voorwerpen in de Z-as schuif en de Z-as synchroonschijf zitten."
+                    "intro": "De capaciteit van de USB-flashdrive is onvoldoende om printbestanden op te slaan."
                 },
                 {
                     "ecode": "0300280000010003",
-                    "intro": "Communicatiefout tussen de snijmodule en de gereedschaphouder tijdens het homing van de Z-as. Controleer of de signaalkabel van de snijmodule los of beschadigd is, of verifieer of de krachtsensorwikkeling intact is."
-                },
-                {
-                    "ecode": "0703250000020009",
-                    "intro": "AMS gebruikt MC-vermogen voor het drogen tijdens het laden van filament of bij het afdrukken. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
-                },
-                {
-                    "ecode": "0702250000020009",
-                    "intro": "AMS AMS gebruikt MC-energie voor het drogen tijdens het vullen of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
-                },
-                {
-                    "ecode": "0704250000020009",
-                    "intro": "AMS AMS gebruikt MC-energie voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te waarborgen."
-                },
-                {
-                    "ecode": "0700250000020009",
-                    "intro": "AMS AMS gebruikt MC-energie voor het drogen tijdens het laden van filament of printen. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te waarborgen."
+                    "intro": "Communicatiefout tussen het snijmodule en de toolhead tijdens het Z-as homing. Controleer of de signaalkabel van het snijmodule los of beschadigd is, of verifieer of de krachtsensor spoel intact is."
                 },
                 {
                     "ecode": "0C00010000020015",
                     "intro": ""
-                },
-                {
-                    "ecode": "0707250000020009",
-                    "intro": "AMS AMS gebruikt MC-energie voor het drogen tijdens het laden of printen van filament. Dit kan de droogprestaties beïnvloeden. Het wordt aanbevolen om een adapter voor het drogen aan te sluiten om optimale droogresultaten te garanderen."
                 },
                 {
                     "ecode": "0702200000020006",
@@ -2524,10 +2704,6 @@
                     "intro": "PTFE-slang losgemaakt. Controleer of de PTFE-slang verbonden is van AMS-HT naar de extruder."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Onbekend type snijbescherming basis; vervang deze door de juiste snijbescherming basis."
-                },
-                {
                     "ecode": "03009E0000030001",
                     "intro": "De open deurdetectie voor deze afdruktaak wordt ingesteld op het niveau \"Melding\"."
                 },
@@ -2650,14 +2826,6 @@
                 {
                     "ecode": "0300D00000010003",
                     "intro": "De kabel van het snijmodule is losgekomen; controleer a.u.b. de kabelverbinding."
-                },
-                {
-                    "ecode": "0300D00000010002",
-                    "intro": "Het snijgereedschap is eraf gevallen; installeer het opnieuw a.u.b."
-                },
-                {
-                    "ecode": "0300D00000010001",
-                    "intro": "Het snijhulpstuk is eraf gevallen; installeer het opnieuw a.u.b."
                 },
                 {
                     "ecode": "18FE800000020002",
@@ -3136,24 +3304,12 @@
                     "intro": "Er is een nozzlemismatch gedetecteerd tijdens het afdrukken. Start de afdruk opnieuw na het opnieuw slicen of vervang de juiste nozzle en ga door met printen. Let op: de hotend-temperatuur is hoog."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Het platformtype komt niet overeen; plaats een snijmat."
-                },
-                {
                     "ecode": "05FE040000020042",
                     "intro": "Tijdens het printen is er een spuitmond verschil gedetecteerd. Start de print opnieuw na opnieuw te snijden of vervang de juiste spuitmond en ga dan verder met printen. Let op: de temperatuur van de hotend is hoog."
                 },
                 {
                     "ecode": "0500040000020049",
                     "intro": "Het platformtype is onbekend; vervang het met de juiste en controleer of de BirdsEye-camera geblokkeerd is."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Onjuist platformtype. Plaats de snijtafel voor laserkalibratie."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "De snijbeschermingsbasis wordt niet gedetecteerd; zorg ervoor dat deze correct is geplaatst."
                 },
                 {
                     "ecode": "050004000002004F",
@@ -3720,10 +3876,6 @@
                     "intro": "AMS-HT H Het uittrekken van de filament is mislukt. Dit kan te wijten zijn aan het einde van de filament of doordat de filament eruit is getrokken."
                 },
                 {
-                    "ecode": "1801700000020007",
-                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "1803700000020031",
                     "intro": "AMS-HT D Het voeden van filament naar de extruder van de toolhead is mislukt. Dit kan te wijten zijn aan slijtage van de filament waardoor de assistent motor slipt. Knip het versleten gedeelte van de filament af."
                 },
@@ -3738,10 +3890,6 @@
                 {
                     "ecode": "1807700000020061",
                     "intro": "AMS-HT H Assisterende extruder greep het filament niet, mogelijk door overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "18FE700000020003",
-                    "intro": "Het filament van de linker extruder is op; voer alstublieft nieuw filament toe."
                 },
                 {
                     "ecode": "1802700000020022",
@@ -4612,10 +4760,6 @@
                     "intro": "Het toevoeren van filament aan het hulpmotor extrusiewiel van AMS G is mislukt. Dit kan te wijten zijn aan een losgekoppeld DC-motor. Controleer de verbinding van de DC-motorplug."
                 },
                 {
-                    "ecode": "1804700000020007",
-                    "intro": "Het filament van AMS-HT is op. Plaats alstublieft een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "1803700000020030",
                     "intro": "Het toevoeren van filament aan de gereedschapkop-extruder van AMS-HT D is mislukt; dit kan te wijten zijn aan een verstopping van het filament bij de ingang van de gereedschapkop. Controleer de stekker van de filamentbuis van de gereedschapkop."
                 },
@@ -5208,10 +5352,6 @@
                     "intro": "AMS-HT H: Het toevoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de spoel scheef staat of de filamentbuis verstopt is."
                 },
                 {
-                    "ecode": "1803700000020007",
-                    "intro": "AMS-HT filament is op. Plaats alstublieft een nieuwe filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0705700000020014",
                     "intro": "Het invoeren van een filament naar het hulpmotor-extrusiewiel van AMS F is mislukt. Dit kan komen door een klein stukje gebroken filament dat in de invoerbuis terechtkwam. Verwijder het gebroken filament uit de invoerbuis alstublieft."
                 },
@@ -5422,10 +5562,6 @@
                 {
                     "ecode": "1802300000030003",
                     "intro": "De RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "De AMS filament is op. Plaats alstublieft een nieuwe AMS filament in en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "18FE800000020003",
@@ -6308,10 +6444,6 @@
                     "intro": "Falen van de encryptiechip."
                 },
                 {
-                    "ecode": "0705700000020007",
-                    "intro": "AMS-filament op. Plaats een nieuwe filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0706310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
@@ -6816,10 +6948,6 @@
                     "intro": "De communicatie verwerving van het positie hall signaal van de extruder switchende motor is abnormaal."
                 },
                 {
-                    "ecode": "1807700000020007",
-                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Het verwijderen van het filament uit AMS G is mislukt; dit kan te wijten zijn aan een tekort aan filament of doordat het filament eruit getrokken werd."
                 },
@@ -7144,10 +7272,6 @@
                     "intro": "AMS-HT H Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan het verslijten van de filament en het laten slippen van de hulpmotor. Knip alsjeblieft het versleten gedeelte van de filament af."
                 },
                 {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT Filament is op. Plaats alstublieft een nieuwe filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "1803700000020060",
                     "intro": "AMS-HT D Het assisteren van de extruder bij het grijpen van de filament is mislukt. Dit kan te wijten zijn aan het slippen van de hulpmotor. Knip alsjeblieft het versleten gedeelte van de filament af."
                 },
@@ -7366,10 +7490,6 @@
                 {
                     "ecode": "0706700000020012",
                     "intro": "AMS G Het toevoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament verstrikt is of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT-filament is op. Plaats een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "0706700000020032",
@@ -7928,16 +8048,8 @@
                     "intro": "AMS H Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan losraken van het filament. Controleer of de filamentbuis niet goed is aangesloten of dat de buis is versleten."
                 },
                 {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT Filament is op. Plaats een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "1805700000020046",
                     "intro": "AMS-HT F Het verwijderen van het filament is mislukt; dit kan te wijten zijn aan de overmatige weerstand in de assistent motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS Filament is op. Plaats een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -8256,10 +8368,6 @@
                     "intro": "AMS H Het invoeren van filament naar het hulp motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de invoerbuis. Controleer of de invoerbuis en het filamentnaven duidelijk zijn."
                 },
                 {
-                    "ecode": "0706700000020007",
-                    "intro": "AMS-filament is op. Plaats alstublieft een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0706700000020040",
                     "intro": "Het uittrekken van de AMS G-filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
                 },
@@ -8448,10 +8556,6 @@
                     "intro": "De motor van AMS-HT D Sleuf 1 is doorgedraaid. Het extrusiewiel kan defect zijn of het filament kan te dun zijn."
                 },
                 {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18FE810000020001",
                     "intro": "De extruderschakelactie is abnormaal. Controleer of er iets vastzit in de gereedschapskop."
                 },
@@ -8490,10 +8594,6 @@
                 {
                     "ecode": "1807310000010004",
                     "intro": "Fout in encryptiechip"
-                },
-                {
-                    "ecode": "18FF700000020003",
-                    "intro": "Het filament van de rechter extruder is op; vervang alstublieft het filament."
                 },
                 {
                     "ecode": "1803700000020043",
@@ -8574,10 +8674,6 @@
                 {
                     "ecode": "050004000001004F",
                     "intro": "Onbekende module gedetecteerd, probeer de firmware bij te werken naar de nieuwste versie."
-                },
-                {
-                    "ecode": "07FF700000020003",
-                    "intro": "Het filament van de rechter extruder is op; voer alstublieft nieuw filament toe."
                 },
                 {
                     "ecode": "0C00040000010020",
@@ -9398,10 +9494,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "De afwijking in de positioneringskalibratiewaarde van de extruder is te groot; kalibreer opnieuw."
-                },
-                {
-                    "ecode": "07FE700000020003",
-                    "intro": "De filament van de linker extruder is op; voer alstublieft nieuwe filament toe."
                 },
                 {
                     "ecode": "0500030000020010",
@@ -14580,10 +14672,6 @@
                     "intro": "Het is niet gelukt om het filament uit de extruder te trekken. Mogelijke oorzaken: verstopte extruder of gebroken filament. Raadpleeg de assistent voor meer informatie."
                 },
                 {
-                    "ecode": "0703700000020007",
-                    "intro": "AMS filament is op. Plaats alstublieft een nieuw filament in AMS en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Kan de kaarttabel van AMS niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
@@ -14616,20 +14704,12 @@
                     "intro": "Het is niet gelukt om de filament uit de extruder te halen. Mogelijke oorzaken: verstopte extruder of gebroken filament. Zie de assistent voor meer details."
                 },
                 {
-                    "ecode": "0702700000020007",
-                    "intro": "AMS filament is op. Plaats een nieuwe AMS-filament in en klik op de knop \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Het is niet gelukt om de AMS-toewijzingstabel op te halen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "0701700000020001",
                     "intro": "Het is niet gelukt om de filament uit de extruder te halen. Mogelijke oorzaken: verstopte extruder of gebroken filament. Zie de assistent voor meer details."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "AMS-filament is op. Plaats een nieuwe AMS-filament in en klik op de knop \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14686,10 +14766,6 @@
                 {
                     "ecode": "0700700000020001",
                     "intro": "Het is niet gelukt om de filament uit de extruder te trekken. Mogelijke oorzaken: verstopte extruder of gebroken filament. Raadpleeg de assistent voor meer details."
-                },
-                {
-                    "ecode": "0700700000020007",
-                    "intro": "AMS filament is opgeraakt. Gelieve een nieuw filament in AMS te plaatsen en op de \"Opnieuw\" knop te klikken."
                 },
                 {
                     "ecode": "0700700000020008",

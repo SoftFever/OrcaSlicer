@@ -1,14 +1,442 @@
 {
     "result": 0,
-    "t": 1736345976,
-    "ver": 202501081628,
+    "t": 1736436183,
+    "ver": 202502042359,
     "data": {
         "device_error": {
-            "ver": 202501081619,
+            "ver": 202502042359,
             "en": [
                 {
+                    "ecode": "0C004041",
+                    "intro": "LiDAR calibration failed. Please ensure the calibration target surface is clean and undamaged, then re-run the calibration process."
+                },
+                {
+                    "ecode": "07018007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "07018012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07028007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FF8005",
+                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck."
+                },
+                {
+                    "ecode": "07FE8005",
+                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck."
+                },
+                {
+                    "ecode": "03008042",
+                    "intro": "Task paused because the door or top cover is open."
+                },
+                {
+                    "ecode": "07FF8020",
+                    "intro": "Extruder change failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "0500805C",
+                    "intro": "The grip cutting mat type does not match; please place a LightGrip cutting mat."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Incorrect platform type. Please place the laser platform for laser calibration."
+                },
+                {
+                    "ecode": "05008059",
+                    "intro": "Cutting platform base is not correctly aligned. Please ensure that the four corners of the platform are aligned with the heatbed."
+                },
+                {
+                    "ecode": "07FF8013",
+                    "intro": "Timeout purging old filament of the right extruder: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07FF8001",
+                    "intro": "Failed to cut the filament of the right extruder. Please check the cutter."
+                },
+                {
+                    "ecode": "0500806C",
+                    "intro": "Please place the cutting platform correctly and ensure the marker is exposed."
+                },
+                {
+                    "ecode": "07FE8024",
+                    "intro": "Extruder position calibration failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "07018013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "0500805A",
+                    "intro": "Please place the cutting mat on cutting protection base."
+                },
+                {
+                    "ecode": "07068013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18058007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07078007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18078007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FE8024",
+                    "intro": "Extruder position calibration failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07058007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18018007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FE8001",
+                    "intro": "Failed to cut the filament of the left extruder. Please check the cutter."
+                },
+                {
+                    "ecode": "18FF8013",
+                    "intro": "Timeout purging old filament of the right extruder: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07048013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07048007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18048007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "05008071",
+                    "intro": "No cutting platform was detected. Please confirm that it has been correctly placed."
+                },
+                {
+                    "ecode": "05008073",
+                    "intro": "Heatbed limit block is obstructed or contaminated. Please clean and ensure the limit block is visible, otherwise platform position offset detection may be inaccurate."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "No laser platform was detected, which may affect height measurement accuracy. Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the height measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "18FF8010",
+                    "intro": "Check if the right external filament spool or filament is stuck."
+                },
+                {
                     "ecode": "0500807A",
-                    "intro": "The foreign object detection function is not working. You can continue the task or view the assistant for troubleshooting."
+                    "intro": "The foreign object detection function is not working. You can continue the task, or check the assistant for troubleshooting."
+                },
+                {
+                    "ecode": "05008068",
+                    "intro": "Please place the strong grip cutting mat correctly and ensure the marker is exposed."
+                },
+                {
+                    "ecode": "0500807C",
+                    "intro": "Please place the cutting platform (cutting protection base + StrongGrip cutting mat)."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "The laser platform detected, please replace it the cutting platform (cutting protection base + StrongGrip cutting mat)."
+                },
+                {
+                    "ecode": "05008067",
+                    "intro": "Please place a LightGrip cutting mat on the cutting protection base."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07038007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder."
+                },
+                {
+                    "ecode": "07FE8013",
+                    "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07FE8010",
+                    "intro": "Check if the left external filament spool or filament is stuck."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Failed to get mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FE8002",
+                    "intro": "The cutter of the left extruder is stuck. Please pull out the cutter handle."
+                },
+                {
+                    "ecode": "07FE8020",
+                    "intro": "Extruder change failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "07FE8001",
+                    "intro": "Failed to cut the filament of the left extruder. Please check the cutter."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Laser platform detected. Please place the cutting platform for calibration."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder."
+                },
+                {
+                    "ecode": "07FF8002",
+                    "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Laser platform detected. Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
+                },
+                {
+                    "ecode": "07FF8024",
+                    "intro": "Extruder position calibration failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "07008013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07028013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07038013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "0500806F",
+                    "intro": "The grip cutting mat type does not match; please place a StrongGrip cutting mat."
+                },
+                {
+                    "ecode": "18FE8020",
+                    "intro": "Extruder change failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07008007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18FE8013",
+                    "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18FE8005",
+                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck."
+                },
+                {
+                    "ecode": "18FE8010",
+                    "intro": "Check if the left external filament spool or filament is stuck."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07058013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Failed to get mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18038007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FF8002",
+                    "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle."
+                },
+                {
+                    "ecode": "18FF8020",
+                    "intro": "Extruder change failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "18028007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18008007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "07078013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FE8002",
+                    "intro": "The cutter of the left extruder is stuck. Please pull out the cutter handle."
+                },
+                {
+                    "ecode": "18FF8024",
+                    "intro": "Extruder position calibration failed; please refer to the assistant."
+                },
+                {
+                    "ecode": "18FF8005",
+                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck."
+                },
+                {
+                    "ecode": "18068007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
+                },
+                {
+                    "ecode": "18FF8001",
+                    "intro": "Failed to cut the filament of the right extruder. Please check the cutter."
+                },
+                {
+                    "ecode": "07068007",
+                    "intro": "Failed to extrude the filament. Please check if the extruder clogged."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Unknown platform in the task, which may affect height measurement accuracy. Please place the laser platform correctly, and ensure the BirdsEye camera is unobstructed, then re-measure the height in software and restart the task."
+                },
+                {
+                    "ecode": "07FF8010",
+                    "intro": "Check if the right external filament spool or filament is stuck."
+                },
+                {
+                    "ecode": "03004052",
+                    "intro": "Blade Z-axis homing failed"
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Task paused because the side window is open."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Please place a StrongGrip cutting mat on the cutting protection base."
+                },
+                {
+                    "ecode": "05008058",
+                    "intro": "Please place the light grip cutting mat correctly and ensure the marker is exposed."
+                },
+                {
+                    "ecode": "0500807B",
+                    "intro": "Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
                 },
                 {
                     "ecode": "0C008016",
@@ -19,20 +447,8 @@
                     "intro": "The platform type does not match, which may result in inaccurate height measurement data. Please place the laser platform correctly, then re-measure the height in software and initiate the task."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "No laser platform detected, which may result in inaccurate height measurement. Please place the laser platform correctly, then re-measure the height in software and restart the task. Also, make sure the end marker of platform is not blocked by material."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Unknown platform during operation, which may result in inaccurate height measurement data. Please place the laser platform correctly, and check if the BirdsEye camera is obstructed, then re-measure the height in software and restart the task."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "The foreign object detection function is not working. You can continue the task or view the assistant for troubleshooting."
-                },
-                {
-                    "ecode": "03004052",
-                    "intro": "Cutter zero return error: please return to zero again."
                 },
                 {
                     "ecode": "0500805B",
@@ -251,10 +667,6 @@
                     "intro": "AMS B is assisting in filament insertion. Unable to start drying. Please try again later."
                 },
                 {
-                    "ecode": "0500806C",
-                    "intro": "Unknown cutting protection base type. Please replace it with the correct cutting protection base."
-                },
-                {
                     "ecode": "0701406C",
                     "intro": "AMS B is in Feed Assist Mode. Unable to start drying. Please try again later."
                 },
@@ -347,56 +759,16 @@
                     "intro": "Current material does not match the sliced file settings. Please load the correct material and ensure the QR code on the material is not damaged or dirty."
                 },
                 {
-                    "ecode": "07FE8010",
-                    "intro": "Check if the left external filament spool or filament is stuck. After troubleshooting, click the 'Retry' button."
-                },
-                {
                     "ecode": "0500403F",
                     "intro": "Failed to download print job; please check your network connection."
-                },
-                {
-                    "ecode": "18FE8010",
-                    "intro": "Check if the left external filament spool or filament is stuck. After troubleshooting, click the 'Retry' button."
-                },
-                {
-                    "ecode": "05008073",
-                    "intro": "The heatbed limit block is obstructed or dirty. Please expose the limit block, otherwise it will falsely report bed leveling detection failure."
-                },
-                {
-                    "ecode": "18FF8010",
-                    "intro": "Check if the right external filament spool or filament is stuck. After troubleshooting, click the 'Retry' button."
-                },
-                {
-                    "ecode": "07FF8010",
-                    "intro": "Check if the right external filament spool or filament is stuck. After troubleshooting, click the 'Retry' button."
-                },
-                {
-                    "ecode": "03008042",
-                    "intro": "Task paused because the door, top cover, or side window is open."
                 },
                 {
                     "ecode": "05008074",
                     "intro": "The laser platform is offset. Please ensure that the four corners of the platform are aligned with the heatbed."
                 },
                 {
-                    "ecode": "05008059",
-                    "intro": "The cutting protection base is offset. Please ensure that the four corners of the base plate are aligned with the heatbed."
-                },
-                {
-                    "ecode": "05008056",
-                    "intro": "The current cutting protection base type is incorrect. Please place a cutting protection steel plate to perform the knife cutting calibration."
-                },
-                {
                     "ecode": "05008063",
                     "intro": "The platform is not detected during calibration; please make sure the laser plate is properly placed."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "The current cutting protection base type does not match the settings in slicer. Please place the cutting protection steel plate."
-                },
-                {
-                    "ecode": "05008071",
-                    "intro": "No cutting protection steel plate detected. Please confirm that it has been correctly placed."
                 },
                 {
                     "ecode": "0C00803F",
@@ -431,16 +803,8 @@
                     "intro": "The task was canceled."
                 },
                 {
-                    "ecode": "0500805C",
-                    "intro": "The grip cutting mat type does not match; please place a lightgrip cutting mat."
-                },
-                {
                     "ecode": "07FF8011",
                     "intro": "The external filament connected to the right extruder has run out; please load a new filament."
-                },
-                {
-                    "ecode": "0500806F",
-                    "intro": "The grip cutting mat type does not match; please place a strong grip cutting mat."
                 },
                 {
                     "ecode": "18FF8011",
@@ -539,14 +903,6 @@
                     "intro": "Liveview camera is blocked"
                 },
                 {
-                    "ecode": "18048007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07068007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
@@ -555,24 +911,12 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18FF8012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "18058016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D is drying. Please stop drying process before loading/unloading material."
-                },
-                {
-                    "ecode": "18018012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "18068007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18048011",
@@ -595,56 +939,24 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
-                    "ecode": "18078013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Please pull out the filament on the spool holder of the left extruder. If this message persists, please check to see if there is filament broken in the extruder or PTFE tube. (Connect a PTFE tube if you are about to use an AMS)"
-                },
-                {
-                    "ecode": "18FF8001",
-                    "intro": "Failed to cut the filament of the right extruder. Please check the cutter. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "07048005",
                     "intro": "The AMS failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
-                    "ecode": "18028012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "18028005",
                     "intro": "The AMS-HT failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
-                },
-                {
-                    "ecode": "18FE8002",
-                    "intro": "The cutter of the left extruder is stuck. Please pull out the cutter handle and click the \"Retry\" button."
                 },
                 {
                     "ecode": "18038010",
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "07048007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18FF8024",
-                    "intro": "Extruder position calibration failed; please refer to the assistant. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18008016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "18FF8005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18058005",
@@ -679,10 +991,6 @@
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS-HT PTFE tube is connected."
                 },
                 {
-                    "ecode": "07048013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18FF8006",
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
                 },
@@ -697,10 +1005,6 @@
                 {
                     "ecode": "18018016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "18018013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18018005",
@@ -719,20 +1023,8 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18FE8001",
-                    "intro": "Failed to cut the filament of the left extruder. Please check the cutter. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07078013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18068011",
                     "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "18FF8013",
-                    "intro": "Timeout purging old filament of the right extruder: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07078006",
@@ -763,32 +1055,12 @@
                     "intro": "Please feed filament into the PTFE tube of the left extruder until it can not be pushed any farther."
                 },
                 {
-                    "ecode": "18078012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "18028007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07068011",
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
                     "ecode": "0C004027",
                     "intro": "The Live View Camera calibration failed. Please refer to the assistant for details and recalibrate the camera after processing."
-                },
-                {
-                    "ecode": "18008007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18018007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18FF8020",
-                    "intro": "Extruder change failed; please refer to the assistant, after troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07048006",
@@ -805,14 +1077,6 @@
                 {
                     "ecode": "18028006",
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS-HT PTFE tube is connected."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "18FEC006",
@@ -835,16 +1099,8 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "07078004",
                     "intro": "AMS failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
-                },
-                {
-                    "ecode": "18FF8002",
-                    "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle and click the \"Retry\" button."
                 },
                 {
                     "ecode": "0C00402A",
@@ -853,10 +1109,6 @@
                 {
                     "ecode": "07058010",
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
-                },
-                {
-                    "ecode": "18038007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18018010",
@@ -891,24 +1143,12 @@
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS-HT PTFE tube is connected."
                 },
                 {
-                    "ecode": "18038012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "07048003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
                 },
                 {
-                    "ecode": "18058013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18008005",
                     "intro": "The AMS-HT failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
-                },
-                {
-                    "ecode": "07058007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18FFC009",
@@ -923,14 +1163,6 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
                 },
@@ -941,14 +1173,6 @@
                 {
                     "ecode": "18078003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
-                },
-                {
-                    "ecode": "18FE8012",
-                    "intro": "Failed to get mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "18FE8024",
-                    "intro": "Extruder position calibration failed; please refer to the assistant. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07058005",
@@ -965,10 +1189,6 @@
                 {
                     "ecode": "18FEC009",
                     "intro": "Please feed filament into the PTFE tube of the left extruder until it can not be pushed any farther."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18FEC003",
@@ -995,10 +1215,6 @@
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "07058013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18048016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
@@ -1011,10 +1227,6 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18078007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18FEC00A",
                     "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
@@ -1023,16 +1235,8 @@
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "07048016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "18048012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "07068016",
@@ -1041,10 +1245,6 @@
                 {
                     "ecode": "18008003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
-                },
-                {
-                    "ecode": "07078007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07048010",
@@ -1057,10 +1257,6 @@
                 {
                     "ecode": "18078011",
                     "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "18028013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07058004",
@@ -1103,44 +1299,12 @@
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
-                    "ecode": "18008013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18048013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18FE8005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18038003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
                 },
                 {
                     "ecode": "07068003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
-                },
-                {
-                    "ecode": "18068012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "07068013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07008007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18038013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "18FE8013",
-                    "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18018004",
@@ -1151,16 +1315,8 @@
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
-                    "ecode": "18058007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "18068005",
                     "intro": "The AMS-HT failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
-                },
-                {
-                    "ecode": "18FE8020",
-                    "intro": "Extruder change failed; please refer to the assistant, after troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "18008011",
@@ -1169,10 +1325,6 @@
                 {
                     "ecode": "18028011",
                     "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "18068013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "0C008015",
@@ -1259,10 +1411,6 @@
                     "intro": "An error occurred during AMS-HT F drying. Please go to Assistant for more details."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Incorrect platform type. Please place the cutting platform for laser calibration."
-                },
-                {
                     "ecode": "1001C001",
                     "intro": "Timelapse is not supported because Spiral vase mode is enabled in slicing presets."
                 },
@@ -1277,14 +1425,6 @@
                 {
                     "ecode": "07FEC00A",
                     "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
-                    "ecode": "07FF8020",
-                    "intro": "Extruder change failed; please refer to the assistant, after troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07FE8020",
-                    "intro": "Extruder change failed; please refer to the assistant, after troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "05008053",
@@ -1363,20 +1503,12 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
-                    "ecode": "07FE8024",
-                    "intro": "Extruder position calibration failed; please refer to the assistant. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07028016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "05024003",
                     "intro": "The printer is currently printing and the motion accuracy enhancement feature cannot be turned on or off."
-                },
-                {
-                    "ecode": "07FF8024",
-                    "intro": "Extruder position calibration failed; please refer to the assistant. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "0500806E",
@@ -1389,10 +1521,6 @@
                 {
                     "ecode": "03008049",
                     "intro": "The current plate is invalid."
-                },
-                {
-                    "ecode": "07FE8004",
-                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07FF8003",
@@ -1425,14 +1553,6 @@
                 {
                     "ecode": "0300801C",
                     "intro": "The extrusion resistance is abnormal. The extruder may be clogged, please refer to the assistant, after trouble shooting, you can tap the \"Resume\" button to resume the print job."
-                },
-                {
-                    "ecode": "07FE8002",
-                    "intro": "The cutter of the left extruder is stuck. Please pull out the cutter handle and click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "0500400A",
@@ -1469,10 +1589,6 @@
                 {
                     "ecode": "03008047",
                     "intro": "Quick-release lever detection time out: please restart the printer."
-                },
-                {
-                    "ecode": "0500805A",
-                    "intro": "Please place the cutting mat."
                 },
                 {
                     "ecode": "03008008",
@@ -1515,10 +1631,6 @@
                     "intro": "The extruder is not extruding normally; please refer to the assistant. After trouble shooting, if the defects are acceptable, please tap the \"Resume\" button to resume the print job."
                 },
                 {
-                    "ecode": "07FF8002",
-                    "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle and click the \"Retry\" button."
-                },
-                {
                     "ecode": "03008001",
                     "intro": "Printing paused due to the pause command added in the printing file."
                 },
@@ -1545,22 +1657,6 @@
                 {
                     "ecode": "0300400F",
                     "intro": "The power supply voltage does not match the printer."
-                },
-                {
-                    "ecode": "07018013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07008013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07028013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07038013",
-                    "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "05024004",
@@ -1671,20 +1767,12 @@
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
                 },
                 {
-                    "ecode": "07FF8013",
-                    "intro": "Timeout purging old filament of the right extruder: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07038004",
                     "intro": "AMS failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
                     "ecode": "07018003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
-                },
-                {
-                    "ecode": "07FF8001",
-                    "intro": "Failed to cut the filament of the right extruder. Please check the cutter. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "07038003",
@@ -1775,10 +1863,6 @@
                     "intro": "The AMS is currently being used for printing and cannot initiate drying."
                 },
                 {
-                    "ecode": "07FE8001",
-                    "intro": "Failed to cut the filament of the left extruder. Please check the cutter. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "03008063",
                     "intro": "The chamber temperature is too high. Please open the top cover and front door to cool down."
                 },
@@ -1795,16 +1879,8 @@
                     "intro": "Please feed filament into the PTFE tube of the left extruder until it can not be pushed any farther."
                 },
                 {
-                    "ecode": "07FE8005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "0C00800B",
                     "intro": "The heatbed marker was not detected. Please clear all objects and remove the mat. Make sure the marker is not obstructed."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Failed to get mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "07FEC009",
@@ -1817,10 +1893,6 @@
                 {
                     "ecode": "05014038",
                     "intro": "The regional settings do not match the printer, please check the printer's regional settings."
-                },
-                {
-                    "ecode": "07FE8013",
-                    "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged. After troubleshooting, click the \"Retry\" button."
                 },
                 {
                     "ecode": "0C008005",
@@ -1867,10 +1939,6 @@
                     "intro": "The AMS failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
-                    "ecode": "07038007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07038010",
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
@@ -1879,32 +1947,12 @@
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
-                    "ecode": "07038012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "07FF8005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. After troubleshooting, click the \"Retry\" button."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
-                    "ecode": "07028007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07028010",
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
                     "ecode": "07028011",
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "07028005",
@@ -1919,10 +1967,6 @@
                     "intro": "The AMS failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
-                    "ecode": "07018007",
-                    "intro": "Failed to extrude the filament. Please check if the extruder clogged. After troubleshooting, click the \"Retry\" button."
-                },
-                {
                     "ecode": "07018010",
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
@@ -1931,16 +1975,8 @@
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
-                },
-                {
                     "ecode": "07008011",
                     "intro": "AMS filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "07008012",
-                    "intro": "Failed to get AMS mapping table; please click \"Retry\" to continue."
                 },
                 {
                     "ecode": "07008003",
@@ -2235,6 +2271,10 @@
                     "intro": "There was an unfinished print job when the printer lost power. If the model is still adhered to the build plate, you can try resuming the print job."
                 },
                 {
+                    "ecode": "0300800A",
+                    "intro": "A Filament pile-up was detected by the AI Print Monitoring. Please clean the filament from the waste chute."
+                },
+                {
                     "ecode": "0300800B",
                     "intro": "The cutter is stuck. Please make sure the cutter handle is out, and check the filament sensor cable connection."
                 },
@@ -2269,8 +2309,184 @@
             ]
         },
         "device_hms": {
-            "ver": 202501081628,
+            "ver": 202502042359,
             "en": [
+                {
+                    "ecode": "07FF700000020003",
+                    "intro": "Please check if the material is coming out of the right nozzle. If not, gently push the material and try to extrude again."
+                },
+                {
+                    "ecode": "07FE700000020003",
+                    "intro": "Please check if the material is coming out of the left nozzle. If not, gently push the material and try to extrude again."
+                },
+                {
+                    "ecode": "18FF700000020003",
+                    "intro": "Please check if the material is coming out of the right nozzle. If not, gently push the material and try to extrude again."
+                },
+                {
+                    "ecode": "18FE700000020003",
+                    "intro": "Please check if the material is coming out of the left nozzle. If not, gently push the material and try to extrude again."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "The cutting platform type does not match; please place the correct cutting platform."
+                },
+                {
+                    "ecode": "050004000002004C",
+                    "intro": "Unknown cutting protection base type. Please replace it with the correct cutting protection base."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Incorrect platform type. Please place the laser platform for laser calibration."
+                },
+                {
+                    "ecode": "0300D00000010002",
+                    "intro": "The blade holder has fallen off; please reinstall it."
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Material type unrecognized"
+                },
+                {
+                    "ecode": "050005000001000F",
+                    "intro": "Uncertified accessory detected. Please use official accessories."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "07FE600000020001",
+                    "intro": "External spool connected to left extruder may be tangled or jammed."
+                },
+                {
+                    "ecode": "07FF600000020001",
+                    "intro": "External spool connected to right extruder may be tangled or jammed."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
+                },
+                {
+                    "ecode": "050004000002004D",
+                    "intro": "No cutting protection base was detected. Please confirm that it has been correctly placed."
+                },
+                {
+                    "ecode": "0300D00000010001",
+                    "intro": "The cutting module base has fallen off; please reinstall it."
+                },
+                {
+                    "ecode": "0300280000010005",
+                    "intro": "Z-axis homing failed in cutting mode. Please check if there are any foreign objects in the Z-axis slider and Z-axis synchronous pulley."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Uncertified AMS detected. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "18FF600000020001",
+                    "intro": "External spool connected to right extruder may be tangled or jammed."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "BirdEye camera is not certified. Please use Bambu Lab accessories."
+                },
+                {
+                    "ecode": "050005000001000E",
+                    "intro": "Laser Module is not certified. Please use Bambu Lab accessories."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
+                },
+                {
+                    "ecode": "18FE600000020001",
+                    "intro": "External spool connected to left extruder may be tangled or jammed."
+                },
                 {
                     "ecode": "0300280000010008",
                     "intro": "Z-axis homing failed. Please check if the blade holder movement is smooth and ensure no foreign objects are at the contact position on the heatbed."
@@ -2328,48 +2544,12 @@
                     "intro": "USB flash drive capacity is insufficient to cache print files."
                 },
                 {
-                    "ecode": "0701250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0706250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0705250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0300280000010005",
-                    "intro": "Cutting module Z-axis homing failed. Please check if there are any foreign objects in the Z-axis slider and Z-axis synchronous pulley."
-                },
-                {
                     "ecode": "0300280000010003",
                     "intro": "Communication failure between cutting module and toolhead during Z-axis homing. Please check if the cutting module signal cable is loose or broken, or verify if the force sensor coil is intact."
                 },
                 {
-                    "ecode": "0703250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0702250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0704250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0700250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
                     "ecode": "0C00010000020015",
                     "intro": ""
-                },
-                {
-                    "ecode": "0707250000020009",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
                 },
                 {
                     "ecode": "0702200000020006",
@@ -2524,10 +2704,6 @@
                     "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Unknown type of cutting protection base; please replace with the correct cutting protection base."
-                },
-                {
                     "ecode": "03009E0000030001",
                     "intro": "Open door detection for this print job will be set to \"Notification\" level."
                 },
@@ -2650,14 +2826,6 @@
                 {
                     "ecode": "0300D00000010003",
                     "intro": "The cutting module cable has come loose; please check the cable connection."
-                },
-                {
-                    "ecode": "0300D00000010002",
-                    "intro": "The cutting tool has fallen off; please reinstall it."
-                },
-                {
-                    "ecode": "0300D00000010001",
-                    "intro": "The cutting fixture has fallen off; please reinstall it."
                 },
                 {
                     "ecode": "18FE800000020002",
@@ -3136,24 +3304,12 @@
                     "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "The platform type does not match; please place a cutting mat."
-                },
-                {
                     "ecode": "05FE040000020042",
                     "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
                 {
                     "ecode": "0500040000020049",
                     "intro": "The platform type is unknown; please replace it with the correct one and check if the BirdsEye camera is obstructed."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Incorrect platform type. Please place the cutting platform for laser calibration."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "The cutting protection base is not detected; please make sure it is placed correctly."
                 },
                 {
                     "ecode": "050004000002004F",
@@ -3720,10 +3876,6 @@
                     "intro": "AMS-HT H Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
-                    "ecode": "1801700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "1803700000020031",
                     "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
@@ -3738,10 +3890,6 @@
                 {
                     "ecode": "1807700000020061",
                     "intro": "AMS-HT H Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "18FE700000020003",
-                    "intro": "The left extruder filament is used up; please feed new filament."
                 },
                 {
                     "ecode": "1802700000020022",
@@ -4612,10 +4760,6 @@
                     "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
                 },
                 {
-                    "ecode": "1804700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "1803700000020030",
                     "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
                 },
@@ -5208,10 +5352,6 @@
                     "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
                 {
-                    "ecode": "1803700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0705700000020014",
                     "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
@@ -5422,10 +5562,6 @@
                 {
                     "ecode": "1802300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
                 },
                 {
                     "ecode": "18FE800000020003",
@@ -6308,10 +6444,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0705700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0706310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
@@ -6816,10 +6948,6 @@
                     "intro": "The position hall signal communication acquisition of the extruder switching motor is abnormal."
                 },
                 {
-                    "ecode": "1807700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "AMS G Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
@@ -7144,10 +7272,6 @@
                     "intro": "AMS-HT H Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "1803700000020060",
                     "intro": "AMS-HT D Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
@@ -7366,10 +7490,6 @@
                 {
                     "ecode": "0706700000020012",
                     "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
                 },
                 {
                     "ecode": "0706700000020032",
@@ -7928,16 +8048,8 @@
                     "intro": "AMS H Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
                 },
                 {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "1805700000020046",
                     "intro": "AMS-HT F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -8256,10 +8368,6 @@
                     "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
-                    "ecode": "0706700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0706700000020040",
                     "intro": "AMS G Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
                 },
@@ -8448,10 +8556,6 @@
                     "intro": "The AMS-HT D slot 1 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
                 },
                 {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "18FE810000020001",
                     "intro": "The extruder switching action is abnormal. Please check whether there is something stuck in the toolhead."
                 },
@@ -8490,10 +8594,6 @@
                 {
                     "ecode": "1807310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "18FF700000020003",
-                    "intro": "The right extruder filament is used up; please feed new filament."
                 },
                 {
                     "ecode": "1803700000020043",
@@ -8574,10 +8674,6 @@
                 {
                     "ecode": "050004000001004F",
                     "intro": "Unknown module detected, please try updating the firmware to the latest version."
-                },
-                {
-                    "ecode": "07FF700000020003",
-                    "intro": "The right extruder filament is used up; please feed new filament."
                 },
                 {
                     "ecode": "0C00040000010020",
@@ -9398,10 +9494,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "The deviation in the positioning calibration value of the extruder is too large; please recalibrate."
-                },
-                {
-                    "ecode": "07FE700000020003",
-                    "intro": "The left extruder filament is used up; please feed new filament."
                 },
                 {
                     "ecode": "0500030000020010",
@@ -14580,10 +14672,6 @@
                     "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
-                    "ecode": "0703700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
@@ -14616,20 +14704,12 @@
                     "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
-                    "ecode": "0702700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "0701700000020001",
                     "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14686,10 +14766,6 @@
                 {
                     "ecode": "0700700000020001",
                     "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
-                    "ecode": "0700700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into AMS and click the \"Retry\" button."
                 },
                 {
                     "ecode": "0700700000020008",
