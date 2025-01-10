@@ -344,22 +344,22 @@ void StepMeshDialog::stop_task()
 
 void StepMeshDialog::update_mesh_number_text()
 {
-    if (m_last_linear == get_linear_defletion() && m_last_angle == get_angle_defletion())
+    if ((m_last_linear == get_linear_defletion()) && (m_last_angle == get_angle_defletion()) && (m_mesh_number != 0))
         return;
     wxString newText = wxString::Format(_L("Calculating, please wait..."));
     mesh_face_number_text->SetLabel(newText);
 
     stop_task();
     task = std::async(std::launch::async, [&] {
-        unsigned int number = m_file.get_triangle_num(get_linear_defletion(), get_angle_defletion());
-        if (number != 0) {
-            wxString number_text = wxString::Format("%d", number);
+        unsigned int m_mesh_number = m_file.get_triangle_num(get_linear_defletion(), get_angle_defletion());
+        if (m_mesh_number != 0) {
+            wxString number_text = wxString::Format("%d", m_mesh_number);
             wxCommandEvent event(wxEVT_THREAD_DONE);
             event.SetString(number_text);
             wxPostEvent(this, event);
             m_last_linear = get_linear_defletion();
             m_last_angle  = get_angle_defletion();
         }
-        return number;
+        return m_mesh_number;
     });
 }

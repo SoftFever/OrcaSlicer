@@ -43,6 +43,7 @@ private:
     wxStaticText* mesh_face_number_text;
     double m_last_linear = 0.003;
     double m_last_angle = 0.5;
+    unsigned int m_mesh_number = 0;
     std::future<unsigned int> task;
     bool validate_number_range(const wxString& value, double min, double max);
     void update_mesh_number_text();
