@@ -3906,9 +3906,17 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         });
                                 }
                                 if (upgrade_display_hold_count > 0)
+                                {
                                     upgrade_display_hold_count--;
+                                }
                                 else
+                                {
                                     upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
+                                    if ((upgrade_display_state == 1) && is_lan_mode_printer())
+                                    {
+                                        upgrade_display_state = (int) UpgradingDisplayState::UpgradingUnavaliable;
+                                    }
+                                }
                             }
                             else {
                                 if (upgrade_display_hold_count > 0)
