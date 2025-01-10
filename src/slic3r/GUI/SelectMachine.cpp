@@ -2313,7 +2313,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
 
         confirm_dlg.on_show();
-    } 
+    }
     else
     {
         this->on_send_print();
@@ -4185,7 +4185,6 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_sizer_ams_mapping_right->Layout();
         m_filament_panel_right_sizer->Layout();
         m_filament_right_panel->Layout();
-        m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
 
     } else {
         m_filament_left_panel->Hide();
@@ -4194,7 +4193,6 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_sizer_ams_mapping->SetCols(8);
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();
-        m_mapping_popup.set_show_type(ShowType::RIGHT);
     }
 
     //init MaterialItem
@@ -4237,7 +4235,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         }
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, fo](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, diameters_count, filament_map, fo](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id = iter->first;
@@ -4262,6 +4260,16 @@ void SelectMachineDialog::set_default_from_sdcard()
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
+
+                if (diameters_count > 1) {
+                    if (obj_ && can_hybrid_mapping(obj_->m_extder_data)) {
+                        m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+                    } else if (filament_map[m_current_filament_id] == 1) {
+                        m_mapping_popup.set_show_type(ShowType::LEFT);
+                    } else if (filament_map[m_current_filament_id] == 2) {
+                        m_mapping_popup.set_show_type(ShowType::RIGHT);
+                    }
+                }
 
                 if (obj_ &&
                     obj_->has_ams() &&
