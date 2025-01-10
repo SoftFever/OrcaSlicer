@@ -101,7 +101,7 @@ jobs:
       if: ${{github.ref == 'refs/heads/main'}}
       uses: WebFreak001/deploy-nightly@v3.1.0
       with:
-        upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+        upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
         release_id: 137995723
         asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
