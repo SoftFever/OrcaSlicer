@@ -9,6 +9,7 @@
         "0.4"
     ],
     "printer_variant": "0.4",
+    "best_object_pos": "0.3x0.5",
     "bed_exclude_area": [],
     "default_filament_profile": [
         "Bambu PLA Basic @BBL H2D"
