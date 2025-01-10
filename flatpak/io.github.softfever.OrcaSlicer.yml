@@ -124,7 +124,7 @@ modules:
         cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
     sources:
       - type: git
-        url: https://github.com/SoftFever/Orca-deps-wxWidgets
+        url: https://github.com/gingeradditive/Orca-deps-wxWidgets
         branch: master
         path: ../
       - type: patch
@@ -191,7 +191,7 @@ modules:
 
       # GMP
       - type: file
-        url: https://github.com/SoftFever/OrcaSlicer_deps/releases/download/gmp-6.2.1/gmp-6.2.1.tar.bz2
+        url: https://github.com/gingeradditive/OrcaSlicer_deps/releases/download/gmp-6.2.1/gmp-6.2.1.tar.bz2
         dest: external-packages/GMP
         sha256: eae9326beb4158c386e39a356818031bd28f3124cf915f8c5b1dc4c7a36b4d7c
 
