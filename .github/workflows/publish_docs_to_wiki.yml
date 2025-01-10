@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global user.name "$USER_NAME"
           git config --global user.email "$USER_NAME"@users.noreply.github.com
-          git clone https://"$USER_TOKEN"@github.com/SoftFever/"$REPOSITORY_NAME".wiki.git tmp_wiki
+          git clone https://"$USER_TOKEN"@github.com/gingeradditive/"$REPOSITORY_NAME".wiki.git tmp_wiki
       # 4. Synchronize differences between `doc` & `tmp_wiki`
       # 5. Push new Wiki content
       - name: Push main repo content to wiki
