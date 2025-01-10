@@ -74,7 +74,8 @@ void fix_model_by_meshlab(const std::string &path_src, const std::string &path_d
     size_t linelen = 0;
     const std::string cmd = "meshlabserver -i " + path_src
                             + " -o "  + path_dst
-                            + " -s " + resources_dir() + "/meshlab/meshlab-model-fix.mlx";
+                            + " -s " + resources_dir() + "/meshlab/meshlab-model-fix.mlx"
+                            + " 2>&1";
 
     FILE *f = popen(cmd.c_str(), "r");
     if (!f) {
