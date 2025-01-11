@@ -2382,7 +2382,7 @@ bool MachineObject::is_support_command_calibration()
     return true;
 }
 
-int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise)
+int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise, bool nozzle_cali, bool bed_cali)
 {
     if (!is_support_command_calibration()) {
         // fixed gcode file
@@ -2395,7 +2395,9 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
         json j;
         j["print"]["command"] = "calibration";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["option"]=       (motor_noise  ? 1 << 3 : 0)
+        j["print"]["option"]=       (bed_cali     ? 1 << 5 : 0)
+                                +   (nozzle_cali  ? 1 << 4 : 0)
+                                +   (motor_noise  ? 1 << 3 : 0)
                                 +   (vibration    ? 1 << 2 : 0)
                                 +   (bed_leveling ? 1 << 1 : 0)
                                 +   (xcam_cali    ? 1 << 0 : 0);
@@ -3285,6 +3287,16 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj["support_lidar_calibration"].is_boolean()) {
                         is_support_lidar_calibration = jj["support_lidar_calibration"].get<bool>();
                     }
+                }
+
+                if (jj.contains("support_nozzle_offset_calibration") && jj["support_nozzle_offset_calibration"].is_boolean())
+                {
+                    is_support_nozzle_offset_cali = jj["support_nozzle_offset_calibration"].get<bool>();
+                }
+
+                if (jj.contains("support_high_tempbed_calibration") && jj["support_high_tempbed_calibration"].is_boolean())
+                {
+                    is_support_high_tempbed_cali = jj["support_high_tempbed_calibration"].get<bool>();
                 }
 
                 if (jj.contains("support_build_plate_marker_detect")) {

@@ -979,6 +979,8 @@ public:
     bool is_support_mqtt_alive {false};
     bool is_support_tunnel_mqtt{false};
     bool is_support_motor_noise_cali{false};
+    bool is_support_nozzle_offset_cali{ false };
+    bool is_support_high_tempbed_cali{ false };
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
     //bool is_support_p1s_plus{false};
@@ -1130,7 +1132,7 @@ public:
     int command_extruder_control(int nozzle_id, double val);
     // calibration printer
     bool is_support_command_calibration();
-    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise);
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise, bool nozzle_cali, bool bed_cali);
 
     // PA calibration
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode

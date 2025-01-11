@@ -46,18 +46,20 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_step_select_title->SetBackgroundColour(BG_COLOR);
     cali_left_sizer->Add(cali_step_select_title, 0, wxLEFT, FromDIP(15));
 
-    select_xcam_cali    = create_check_option(_L("Nozzle offset calibration"), cali_left_panel, _L("Nozzle offset calibration"),            "xcam_cali");
+    select_xcam_cali    = create_check_option(_L("Micro lidar calibration"), cali_left_panel, _L("Micro lidar calibration"), "xcam_cali");
     select_bed_leveling = create_check_option(_L("Bed leveling"),            cali_left_panel, _L("Bed leveling"),                       "bed_leveling");
     select_vibration    = create_check_option(_L("Vibration compensation"), cali_left_panel, _L("Vibration compensation"), "vibration");
     select_motor_noise  = create_check_option(_L("Motor noise cancellation"), cali_left_panel, _L("Motor noise cancellation"), "motor_noise");
-
-    
+    select_nozzle_cali  = create_check_option(_L("Nozzle offset calibration"), cali_left_panel, _L("Nozzle offset calibration"), "nozzle_cali");
+    select_heatbed_cali = create_check_option(_L("High-temperature Heatbed Calibration"), cali_left_panel, _L("High-temperature Heatbed Calibration"), "bed_cali");
 
     cali_left_sizer->Add(0, FromDIP(18), 0, wxEXPAND, 0);
     cali_left_sizer->Add(select_xcam_cali, 0, wxLEFT, FromDIP(15));
     cali_left_sizer->Add(select_bed_leveling, 0, wxLEFT, FromDIP(15));
     cali_left_sizer->Add(select_vibration, 0, wxLEFT, FromDIP(15));
     cali_left_sizer->Add(select_motor_noise, 0, wxLEFT, FromDIP(15));
+    cali_left_sizer->Add(select_nozzle_cali, 0, wxLEFT, FromDIP(15));
+    cali_left_sizer->Add(select_heatbed_cali, 0, wxLEFT, FromDIP(15));
     cali_left_sizer->Add(0, FromDIP(30), 0, wxEXPAND, 0);
 
     auto cali_left_text_top = new wxStaticText(cali_left_panel, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
@@ -234,6 +236,22 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         m_checkbox_list["motor_noise"]->SetValue(false);
     }
 
+    if (obj->is_support_nozzle_offset_cali) {
+        select_nozzle_cali->Show();
+    } else {
+        select_nozzle_cali->Hide();
+        m_checkbox_list["nozzle_cali"]->SetValue(false);
+    }
+
+    if (obj->is_support_high_tempbed_cali)
+    {
+        select_heatbed_cali->Show();
+    }
+    else
+    {
+        select_heatbed_cali->Hide();
+        m_checkbox_list["bed_cali"]->SetValue(false);
+    }
 
     if (obj->is_calibration_running() || obj->is_calibration_done()) {
         if (obj->is_calibration_done()) {
@@ -270,6 +288,16 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         }
         m_calibration_flow->DeleteAllItems();
         m_calibration_btn->SetLabel(_L("Start Calibration"));
+        if (!m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
+            !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue() &&
+            !m_checkbox_list["nozzle_cali"]->GetValue() && !m_checkbox_list["bed_cali"]->GetValue())
+        {
+            m_calibration_btn->Disable();
+            m_calibration_btn->SetLabel(_L("No step selected"));
+        }
+        else {
+            m_calibration_btn->Enable();
+        }
     }
     if (!obj->is_calibration_running() && !m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
         !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue()) {
@@ -307,7 +335,9 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
                 m_checkbox_list["vibration"]->GetValue(),
                 m_checkbox_list["bed_leveling"]->GetValue(),
                 m_checkbox_list["xcam_cali"]->GetValue(),
-                m_checkbox_list["motor_noise"]->GetValue()
+                m_checkbox_list["motor_noise"]->GetValue(),
+                m_checkbox_list["nozzle_cali"]->GetValue(),
+                m_checkbox_list["bed_cali"]->GetValue()
                 );
         }
     }
