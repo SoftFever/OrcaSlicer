@@ -418,7 +418,10 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
     bool is_valid = true;
     wxString err_msg;
     // Check if the input value is valid and save to m_calib_results
-    save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
+    if (m_obj && m_obj->is_multi_extruders())
+        save_to_result_from_widgets(m_multi_extruder_grid_panel, &is_valid, &err_msg);
+    else
+        save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
     if (is_valid) {
         /*
         std::vector<PACalibResult> to_save_result;
