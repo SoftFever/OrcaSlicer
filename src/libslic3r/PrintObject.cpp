@@ -294,10 +294,42 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
     if(extruder_size == 1)
         return std::vector<std::set<int>>(1, std::set<int>());
 
-    std::vector<tbb::concurrent_unordered_set<int>> tbb_geometric_unprintables(extruder_size);
+    std::vector<std::set<int>> geometric_unprintables(extruder_size); // the container to return
+
+    std::vector<double> printable_height_per_extruder = m_print->config().extruder_printable_height.values;
+    assert(printable_height_per_extruder.size() == extruder_size);
+
+    // check unprintable filaments caused by printable height limit
+    for (size_t extruder_id = 0; extruder_id < printable_height_per_extruder.size(); ++extruder_id) {
+        double printable_height = printable_height_per_extruder[extruder_id];
+        for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
+            auto layer = m_layers[layer_idx];
+            if (layer->print_z <= printable_height)
+                continue;
+            for (auto layerm : layer->regions()) {
+                auto region = layerm->region();
+                int wall_filament = region.config().wall_filament;
+                int solid_infill_filament = region.config().solid_infill_filament;
+                int sparse_infill_filament = region.config().sparse_infill_filament;
+
+                if (!layerm->fills.entities.empty()) {
+                    if (solid_infill_filament > 0)
+                        geometric_unprintables[extruder_id].insert(solid_infill_filament - 1);
+                    if (sparse_infill_filament > 0)
+                        geometric_unprintables[extruder_id].insert(sparse_infill_filament - 1);
+                }
+                if (!layerm->perimeters.entities.empty() && wall_filament > 0)
+                    geometric_unprintables[extruder_id].insert(wall_filament - 1);
+            }
+        }
+    }
+
+    std::vector<tbb::concurrent_unordered_set<int>> tbb_geometric_unprintables(extruder_size); // the container used in tbb
+
     std::vector<Polygons> unprintable_area_in_obj_coord =  m_print->get_extruder_unprintable_polygons();
     std::vector<BoundingBox> unprintable_area_bbox;
 
+    // transform the unprintable areas to obj coord is cheaper than thransform obj into world coord
     for (auto& polys : unprintable_area_in_obj_coord) {
         for (auto& poly : polys) {
             poly.translate(-m_instances.front().shift_without_plate_offset());
@@ -305,6 +337,7 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
         unprintable_area_bbox.emplace_back(get_extents(polys));
     }
 
+    // check unprintbale filaments caused by printable area limit
     tbb::parallel_for(tbb::blocked_range<int>(0, m_layers.size()),
         [this, &tbb_geometric_unprintables, &unprintable_area_in_obj_coord, &unprintable_area_bbox](const tbb::blocked_range<int>& range) {
             for (int j = range.begin(); j < range.end(); ++j) {
@@ -344,6 +377,7 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
 
                         bool do_wall_filament_detect = wall_filament > 0 && tbb_geometric_unprintables[idx].count(wall_filament - 1) == 0;
                         if (!layerm->perimeters.entities.empty() && do_wall_filament_detect) {
+                            // if infill is unprintable, no need to check wall since wall contour surrounds infill contour
                             if (infill_unprintable) {
                                 tbb_geometric_unprintables[idx].insert(wall_filament - 1);
                                 continue;
@@ -368,10 +402,12 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
             }
         });
 
-    std::vector<std::set<int>> ret(tbb_geometric_unprintables.size());
-    for (size_t idx = 0; idx < ret.size(); ++idx)
-        ret[idx] = std::set<int>(tbb_geometric_unprintables[idx].begin(), tbb_geometric_unprintables[idx].end());
-    return ret;
+    // add the elems in tbb container to final contianer
+    for (size_t idx = 0; idx < extruder_size; ++idx) {
+        geometric_unprintables[idx].insert(tbb_geometric_unprintables[idx].begin(), tbb_geometric_unprintables[idx].end());
+    }
+
+    return geometric_unprintables;
 }
 
 // 1) Merges typed region slices into stInternal type.
