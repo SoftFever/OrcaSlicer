@@ -53,6 +53,20 @@ struct FilamentInfo
     /*for new ams mapping*/
     std::string ams_id;
     std::string slot_id;
+
+public:
+    int get_amd_id() const
+    {
+        if (ams_id.empty()) { return -1; };
+
+        try
+        {
+            return stoi(ams_id);
+        }
+        catch (...) {};
+
+        return -1;
+    };
 };
 
 class BBLSliceInfo {

@@ -1199,7 +1199,7 @@ bool MachineObject::need_SD_card() const
 
 int MachineObject::get_extruder_id_by_ams_id(const std::string &ams_id)
 {
-    if (ams_id.empty())
+    if (ams_id.empty() || (ams_id == "-1"))
         return 0;
 
     auto it = amsList.find(ams_id);
