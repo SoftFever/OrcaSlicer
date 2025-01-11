@@ -1178,7 +1178,7 @@ public:
     bool is_connecting();
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
-    bool is_info_ready() const;
+    bool is_info_ready(bool check_version = true) const;
     bool is_camera_busy_off();
 
     std::vector<std::string> get_resolution_supported();

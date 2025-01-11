@@ -1093,7 +1093,7 @@ bool Sidebar::priv::sync_extruder_list()
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
-    if (obj == nullptr || !obj->is_info_ready()) {
+    if (obj == nullptr || !obj->is_info_ready(false)) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
         dlg.ShowModal();
         return false;

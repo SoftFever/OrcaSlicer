@@ -2885,9 +2885,9 @@ void MachineObject::set_online_state(bool on_off)
     if (!on_off) m_active_state = NotActive;
 }
 
-bool MachineObject::is_info_ready() const
+bool MachineObject::is_info_ready(bool check_version) const
 {
-    if (module_vers.empty())
+    if (check_version && module_vers.empty())
         return false;
 
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
