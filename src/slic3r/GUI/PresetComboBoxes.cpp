@@ -1244,11 +1244,6 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
-    if (m_type == Preset::TYPE_PRINTER && !selected_system_preset.empty()) {
-        auto label = GetLabel();
-        label.Replace("Bambu Lab ", "");
-        SetLabel(label);
-    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {
