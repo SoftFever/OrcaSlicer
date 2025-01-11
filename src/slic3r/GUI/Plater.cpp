@@ -1176,10 +1176,12 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         return;
     }
 
+    bool printer_synced = false;
     // 1. update printer status
     const Preset &cur_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
         panel_printer_preset->ShowBadge(true);
+        printer_synced = true;
     } else {
         clear_all_sync_status();
         return;
@@ -1257,24 +1259,43 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
 
+    std::vector<bool> extruder_synced(extruder_nums, false);
     if (extruder_nums == 1) {
-        if (extruder_infos == machine_extruder_infos)
+        if (extruder_infos == machine_extruder_infos) {
             single_extruder->ShowBadge(true);
+            extruder_synced[0] = true;
+        }
         else
             single_extruder->ShowBadge(false);
     }
     else if (extruder_nums == 2) {
-        if (extruder_infos[0] == machine_extruder_infos[0])
+        if (extruder_infos[0] == machine_extruder_infos[0]) {
             left_extruder->ShowBadge(true);
+            extruder_synced[0] = true;
+        }
         else
             left_extruder->ShowBadge(false);
 
-        if (extruder_infos[1] == machine_extruder_infos[1])
+        if (extruder_infos[1] == machine_extruder_infos[1]) {
             right_extruder->ShowBadge(true);
+            extruder_synced[1] = true;
+        }
         else
             right_extruder->ShowBadge(false);
     }
-}
+
+    StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
+    StateColor not_synced_colour(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Normal));
+    bool all_extruder_synced = std::all_of(extruder_synced.begin(), extruder_synced.end(), [](bool value) { return value; });
+    if (printer_synced && all_extruder_synced) {
+        btn_sync_printer->SetBorderColor(synced_colour);
+        btn_sync_printer->SetIcon("ams_nozzle_sync");
+    }
+    else {
+        btn_sync_printer->SetBorderColor(not_synced_colour);
+        btn_sync_printer->SetIcon("printer_sync");
+    }
+ }
 
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
 #define PRINTER_THUMBNAIL_SIZE_SMALL (wxSize(FromDIP(32), FromDIP(32)))
