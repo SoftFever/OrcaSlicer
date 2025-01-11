@@ -458,6 +458,7 @@ bool MonitorPanel::Show(bool show)
                     GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
+                //select_machine(obj->dev_id);
             }
         }
     } else {
