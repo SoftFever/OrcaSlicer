@@ -95,6 +95,7 @@ filament_vendors = [
     'Francofil',
     'FilamentOne',
     'Fil X',
+    'FusRock',
     'GEEETECH',
     'Giantarm',
     'Gizmo Dorks',
