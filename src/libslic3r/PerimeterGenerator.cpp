@@ -272,8 +272,8 @@ static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const Fu
         {
             Point pa = *p0 + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
 
-            // for the first line segment we calculate the normal which we need to figure out which side of the object we are on
-            if (p0pa_dist == dist_left_over && cfg.noise_type == NoiseType::DisplacementMap) {
+            // DisplacementMap needs to know on which side the bump is facing - calculate the normal
+            if (cfg.noise_type == NoiseType::DisplacementMap) {
                 Point normal_point = *p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized()).cast<coord_t>();
                 double normal_radians = atan2(normal_point.y() - pa.y(), normal_point.x() - pa.x());
                 reinterpret_cast<DisplacementMap*>(noise.get())->setNormalRadians(normal_radians);
@@ -325,8 +325,8 @@ static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_li
         for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + (add_rand_offset ? random_value() * range_random_point_dist : 0.0)) {
             Point pa = p0->p + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
 
-            // for the first line segment we calculate the normal which we need to figure out which side of the object we are on
-            if (p0pa_dist == dist_left_over && cfg.noise_type == NoiseType::DisplacementMap) {
+            // DisplacementMap needs to know on which side the bump is facing - calculate the normal
+            if (cfg.noise_type == NoiseType::DisplacementMap) {
                 Point normal_point = p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized()).cast<coord_t>();
                 double normal_radians = atan2(normal_point.y() - pa.y(), normal_point.x() - pa.x());
                 reinterpret_cast<DisplacementMap*>(noise.get())->setNormalRadians(normal_radians);
