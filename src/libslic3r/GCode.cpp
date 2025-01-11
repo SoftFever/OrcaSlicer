@@ -4802,13 +4802,13 @@ LayerResult GCode::process_layer(
         if (m_support_traditional_timelapse && printer_structure == PrinterStructure::psI3)
             m_support_traditional_timelapse = false;
 
-        gcode += this->retract(false, false, LiftType::NormalLift);
+        gcode += this->retract(false, false, LiftType::SpiralLift);
         m_writer.add_object_change_labels(gcode);
 
         std::string timepals_gcode = insert_timelapse_gcode();
         if(!timepals_gcode.empty()){
         gcode += timepals_gcode;
-        m_writer.set_current_position_clear(false);
+        m_writer.set_current_position_clear(true);
         //BBS: check whether custom gcode changes the z position. Update if changed
         double temp_z_after_timepals_gcode;
         if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
