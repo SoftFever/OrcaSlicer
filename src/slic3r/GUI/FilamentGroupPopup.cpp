@@ -217,6 +217,7 @@ void FilamentGroupPopup::Init()
     }
 
     UpdateButtonStatus();
+    GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
 void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool skip_plate_sync)
