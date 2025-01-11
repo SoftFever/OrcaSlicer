@@ -3040,6 +3040,14 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
         /*style*/
         m_nozzle_btn_panel->Show();
+        if (!obj->is_in_printing() && obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE)
+        {
+            m_nozzle_btn_panel->Enable();
+        }
+        else
+        {
+            m_nozzle_btn_panel->Disable();
+        }
 
         m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
 
