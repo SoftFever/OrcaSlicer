@@ -9748,7 +9748,7 @@ static Points to_points(const std::vector<Vec2d> &dpts)
     return pts;
 }
 
-static Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
+Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
 {
     Polygon result;
     for (int index = 0; index < extruder_polys.size(); index++)

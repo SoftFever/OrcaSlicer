@@ -401,15 +401,7 @@ public:
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
     BoundingBoxf3 get_plate_box() {return get_build_volume();}
-    // Orca: support non-rectangular bed
-    BoundingBoxf3 get_build_volume()
-    {
-        auto  eps=Slic3r::BuildVolume::SceneEpsilon;
-        Vec3d         up_point  = m_bounding_box.max + Vec3d(eps, eps, m_origin.z() + m_height + eps);
-        Vec3d         low_point = m_bounding_box.min + Vec3d(-eps, -eps, m_origin.z() - eps);
-        BoundingBoxf3 plate_box(low_point, up_point);
-        return plate_box;
-    }
+    BoundingBoxf3 get_build_volume(bool use_share = false);
 
     const std::vector<BoundingBoxf3>& get_exclude_areas() { return m_exclude_bounding_box; }
 
