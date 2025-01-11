@@ -1630,6 +1630,34 @@
             "sub_path": "filament/PolyLite PLA @BBL A1 0.2 nozzle.json"
         },
         {
+            "name": "FusRock PLA Matte @base",
+            "sub_path": "filament/FusRock/FusRock PLA Matte @base.json"
+        },
+        {
+            "name": "FusRock PLA+ @base",
+            "sub_path": "filament/FusRock/FusRock PLA+ @base.json"
+        },
+        {
+            "name": "FusRock PLA+ 2.0 @base",
+            "sub_path": "filament/FusRock/FusRock PLA+ 2.0 @base.json"
+        },
+        {
+            "name": "FusRock Silk PLA+ @base",
+            "sub_path": "filament/FusRock/FusRock Silk PLA+ @base.json"
+        },
+        {
+            "name": "FusRock Marble PLA @base",
+            "sub_path": "filament/FusRock/FusRock Marble PLA @base.json"
+        },
+        {
+            "name": "FusRock Wood PLA @base",
+            "sub_path": "filament/FusRock/FusRock Wood PLA @base.json"
+        },
+        {
+            "name": "FusRock PETG @base",
+            "sub_path": "filament/FusRock/FusRock PETG @base.json"
+        },
+        {
             "name": "Generic PLA",
             "sub_path": "filament/Generic PLA.json"
         },
