@@ -1373,8 +1373,16 @@
             "sub_path": "filament/Creality Generic ASA @Hi-all.json"
         },
         {
+            "name": "Creality Generic ASA-CF @Hi-all",
+            "sub_path": "filament/Creality Generic ASA-CF @Hi-all.json"
+        },
+        {
             "name": "Creality Generic PETG @Hi-all",
             "sub_path": "filament/Creality Generic PETG @Hi-all.json"
+        },
+        {
+            "name": "Creality Generic PETG-CF @Hi-all",
+            "sub_path": "filament/Creality Generic PETG-CF @Hi-all.json"
         },
         {
             "name": "Creality Generic PLA @Hi-all",
