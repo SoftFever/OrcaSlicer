@@ -70,15 +70,15 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
-      fail-fast: false
       volumes:
         - /usr/local/lib/android:/usr/local/lib/android
         - /usr/share/dotnet:/usr/share/dotnet
         - /opt/ghc:/opt/ghc1
         - /usr/local/share/boost:/usr/local/share/boost1
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      fail-fast: false
     steps:
     - name: "Remove unneeded stuff to free disk space"
       run:
