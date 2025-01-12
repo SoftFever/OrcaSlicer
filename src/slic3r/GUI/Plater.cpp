@@ -9495,18 +9495,23 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
 
     // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
-    double speed = CalibPressureAdvance::find_optimal_PA_speed(
-                            wxGetApp().preset_bundle->full_config(),
-                            (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
-                                (nozzle_diameter * 1.125) :
-                                print_config.get_abs_value("line_width", nozzle_diameter),
-                            print_config.get_abs_value("layer_height"), 0);
-    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
     if (speeds.empty()) {
+        double speed = CalibPressureAdvance::find_optimal_PA_speed(
+            wxGetApp().preset_bundle->full_config(),
+            (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
+                (nozzle_diameter * 1.125) :
+                print_config.get_abs_value("line_width", nozzle_diameter),
+            print_config.get_abs_value("layer_height"), 0);
+        print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
+
         speeds.assign({speed});
         const auto msg{_L("INFO:") + "\n" +
                        _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + _L("mm/s")};
         get_notification_manager()->push_notification(msg.ToStdString());
+    } else if (speeds.size() == 1) {
+        // If we have single value provided, set speed using global configuration.
+        // per-object config is not set in this case
+        print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speeds.front()));
     }
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9581,8 +9586,10 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         obj->name.assign(std::string("pa_pattern_") + std::to_string(int(tspd)) + std::string("_") + std::to_string(int(tacc)));
 
         auto &obj_config = obj->config;
-        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(tspd));
-        obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(tacc));
+        if (speeds.size() > 1)
+            obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(tspd));
+        if (accels.size() > 1)
+            obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(tacc));
 
         auto cur_plate = get_partplate_list().get_plate(plate_idx);
         if (!cur_plate) {
