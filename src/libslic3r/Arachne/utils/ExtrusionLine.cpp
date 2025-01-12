@@ -2,10 +2,21 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 #include "ExtrusionLine.hpp"
-#include "linearAlg2D.hpp"
 #include "../../VariableWidth.hpp"
+#include "libslic3r/Arachne/utils/ExtrusionJunction.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+
+namespace Slic3r {
+class Flow;
+}  // namespace Slic3r
 
 namespace Slic3r::Arachne
 {
@@ -27,15 +38,6 @@ int64_t ExtrusionLine::getLength() const
         len += (front().p - back().p).cast<int64_t>().norm();
 
     return len;
-}
-
-coord_t ExtrusionLine::getMinimalWidth() const
-{
-    return std::min_element(junctions.cbegin(), junctions.cend(),
-                            [](const ExtrusionJunction& l, const ExtrusionJunction& r)
-                            {
-                                return l.w < r.w;
-                            })->w;
 }
 
 void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const int64_t allowed_error_distance_squared, const int64_t maximum_extrusion_area_deviation)
@@ -262,9 +264,10 @@ bool ExtrusionLine::is_contour() const
     return poly.is_clockwise();
 }
 
-double ExtrusionLine::area() const
-{
-    assert(this->is_closed);
+double ExtrusionLine::area() const {
+    if (!this->is_closed)
+        return 0.;
+
     double a = 0.;
     if (this->junctions.size() >= 3) {
         Vec2d p1 = this->junctions.back().p.cast<double>();
@@ -274,7 +277,23 @@ double ExtrusionLine::area() const
             p1 = p2;
         }
     }
+
     return 0.5 * a;
+}
+
+Points to_points(const ExtrusionLine &extrusion_line) {
+    Points points;
+    points.reserve(extrusion_line.junctions.size());
+    for (const ExtrusionJunction &junction : extrusion_line.junctions)
+        points.emplace_back(junction.p);
+    return points;
+}
+
+BoundingBox get_extents(const ExtrusionLine &extrusion_line) {
+    BoundingBox bbox;
+    for (const ExtrusionJunction &junction : extrusion_line.junctions)
+        bbox.merge(junction.p);
+    return bbox;
 }
 
 } // namespace Slic3r::Arachne

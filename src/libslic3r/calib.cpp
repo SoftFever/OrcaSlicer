@@ -453,8 +453,8 @@ std::string CalibPressureAdvanceLine::generate_test(double start_pa /*= 0*/, dou
     }
 
     auto        bed_sizes = mp_gcodegen->config().printable_area.values;
-    const auto &w         = bed_ext.size().x();
-    const auto &h         = bed_ext.size().y();
+    const auto  w         = bed_ext.size().x();
+    const auto  h         = bed_ext.size().y();
     count                 = std::min(count, int((h - 10) / m_space_y));
 
     m_length_long = 40 + std::min(w - 120.0, 0.0);
