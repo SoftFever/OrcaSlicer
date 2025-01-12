@@ -39,7 +39,7 @@
     "infill_combination": "0",
     "sparse_infill_line_width": "0.45",
     "infill_wall_overlap": "30%",
-    "sparse_infill_speed": "350",
+    "sparse_infill_speed": "270",
     "interface_shells": "0",
     "ironing_flow": "8%",
     "ironing_spacing": "0.15",
@@ -54,8 +54,9 @@
     "overhang_3_4_speed": "30",
     "overhang_4_4_speed": "10",
     "only_one_wall_top": "1",
+    "precise_outer_wall": "1",
     "inner_wall_line_width": "0.45",
-    "inner_wall_speed": "350",
+    "inner_wall_speed": "300",
     "wall_loops": "2",
     "raft_layers": "0",
     "seam_position": "aligned",
@@ -105,5 +106,12 @@
     "prime_tower_width": "40",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
-    "gcode_label_objects": "0"
+    "gcode_label_objects": "0",
+    "default_jerk": "12",
+    "outer_wall_jerk": "8",
+    "inner_wall_jerk": "8",
+    "infill_jerk": "12",
+    "top_surface_jerk": "8",
+    "initial_layer_jerk": "8",
+    "travel_jerk": "12"
 }
