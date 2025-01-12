@@ -1300,10 +1300,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
         dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
-        //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(7), m_radius);
-        dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(m_radius - 1), m_radius);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius);
 #else
-        //dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), size.x - FromDIP(6), size.y - FromDIP(6), m_radius);
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius);
 #endif
         if (m_selected) {
@@ -1313,12 +1311,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
                 dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 3, wxPENSTYLE_SOLID));
             }
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            if (m_radius == 0) {
-                dc.DrawRectangle(0, 0, size.x, size.y);
-            }
-            else {
-                dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
-            }
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(2), 0);
+#else
+            dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
+#endif
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(wxBrush(tmp_lib_colour));
@@ -1327,13 +1324,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
         if (!m_selected && m_hover) {
             dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 3, wxPENSTYLE_SOLID));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            if (m_radius == 0) {
-                dc.DrawRectangle(0, 0, size.x, size.y);
-            }
-            else {
-                dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
-            }
-
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(2), 0);
+#else
+            dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
+#endif
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(wxBrush(tmp_lib_colour));
         }
@@ -1435,14 +1430,13 @@ void AMSLib::render_generic_lib(wxDC &dc)
 #ifdef __APPLE__
 
             //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
-            if (top < m_radius) {
+            if (top < m_radius){
                 dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
             }
-            else {
-                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, 0);
+            else{
+                dc.DrawRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
             }
 #else
-            //dc.DrawRoundedRectangle(FromDIP(2),  top, FromDIP(size.x - 4), curr_height, m_radius - 1);
             if (top < m_radius) {
                 dc.DrawRoundedRectangle(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height, m_radius - 1);
             }
@@ -1497,10 +1491,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
     dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
-    //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(7), m_radius);
-    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(m_radius - 1), m_radius);
+    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius);
 #else
-    //dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), size.x - FromDIP(6), size.y - FromDIP(6), m_radius);
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius);
 #endif
 
@@ -1511,13 +1503,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
             dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 3, wxPENSTYLE_SOLID));
         }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, size.x, size.y);
-        }
-        else {
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(2), 0);
+#else
             dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
-        }
-
+#endif
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
@@ -1525,13 +1515,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
     if (!m_selected && m_hover) {
         dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 3, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, size.x, size.y);
-        }
-        else {
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(2), 0);
+#else
             dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
-        }
-
+#endif
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(wxBrush(tmp_lib_colour));
     }
