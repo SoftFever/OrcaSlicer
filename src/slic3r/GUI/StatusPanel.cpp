@@ -2888,12 +2888,21 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     // update extruder icon
     update_extruder_status(obj);
 
-    bool is_suppt_part_fun = true;
-    bool is_suppt_aux_fun = obj->is_support_aux_fan;
-    bool is_suppt_cham_fun = obj->is_support_chamber_fan;
-    if (m_fan_control_popup) {
-        m_fan_control_popup->update_fan_data(obj);
+    if (obj->is_fdm_type()) {
+        if (!m_fan_panel->IsShown())
+            m_fan_panel->Show();
+        bool is_suppt_part_fun = true;
+        bool is_suppt_aux_fun  = obj->is_support_aux_fan;
+        bool is_suppt_cham_fun = obj->is_support_chamber_fan;
+        if (m_fan_control_popup) { m_fan_control_popup->update_fan_data(obj); }
+    } else {
+        if (m_fan_panel->IsShown()) {
+            m_fan_panel->Hide();
+        }
+        if (m_fan_control_popup && m_fan_control_popup->Show())
+            m_fan_control_popup->Hide();
     }
+
     //update cham fan
 
     /*other*/

@@ -175,7 +175,7 @@ public:
 class FanControlPopupNew : public PopupWindow
 {
 public:
-    FanControlPopupNew(wxWindow* parent, MachineObject* obj, AirDuctData data);
+    FanControlPopupNew(wxWindow* parent, MachineObject* obj, const AirDuctData& data);
     ~FanControlPopupNew() {};
     
 

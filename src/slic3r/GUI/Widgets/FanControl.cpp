@@ -563,8 +563,8 @@ void FanControlNew::post_event()
 Description:FanControlPopupNew
 **************************************************/
 static void nop_deleter_fan_control_popup(FanControlPopupNew *) {}
-FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirDuctData data)
-    :PopupWindow(parent, wxBORDER_NONE)
+FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj, const AirDuctData& data)
+    : PopupWindow(parent, wxBORDER_NONE)
 {
     SetBackgroundColour(*wxWHITE);
     init_names();
@@ -573,8 +573,12 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj,AirD
     m_obj = obj;
 
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    int part_size = data.parts.size();
+    int grid_column = part_size > 1 ? 2 : 1;
+
     m_radio_btn_sizer  = new wxGridSizer(0, 2, FromDIP(3), FromDIP(3));
-    m_sizer_fanControl = new wxGridSizer(0, 2, FromDIP(3), FromDIP(10));
+    m_sizer_fanControl = new wxGridSizer(0, grid_column, FromDIP(3), FromDIP(10));
 
     m_mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 

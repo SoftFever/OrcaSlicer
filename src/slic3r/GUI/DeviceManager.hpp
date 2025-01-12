@@ -1027,6 +1027,9 @@ public:
 
     bool is_makeworld_subtask();
 
+    /* device type */
+    bool        is_fdm{ true };
+    inline bool is_fdm_type() const { return is_fdm; }
 
     int m_plate_index { -1 };
     std::string m_gcode_file;
