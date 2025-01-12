@@ -1,14 +1,214 @@
 {
     "result": 0,
-    "t": 1736436183,
+    "t": 1736653649,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "fr": [
                 {
+                    "ecode": "05008064",
+                    "intro": "Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas bloqués pour la calibration laser."
+                },
+                {
+                    "ecode": "07018016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "07048016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Veuillez observer la buse de l'extrudeuse droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament en avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "18028016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Veuillez observer la buse de l'extrudeuse gauche. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament en avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "07078016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18018016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18008016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Veuillez observer la buse de l'extrudeuse droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament en avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "05004031",
+                    "intro": "Un accessoire non certifié a été détecté, et l'appareil ne peut pas continuer à fonctionner."
+                },
+                {
+                    "ecode": "0702800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS C à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0706800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS G à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1801800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT B à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1804800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT E à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1802800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT C à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0704800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS E à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1800800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT A à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0705800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS F à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1806800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT G à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Veuillez observer la buse de l'extrudeuse de gauche. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "0C004021",
+                    "intro": "La configuration de la caméra BirdsEye a échoué ; veuillez redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Veuillez observer la buse de l'extrudeuse de gauche. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Plateforme de découpe détectée. Veuillez placer la plateforme laser pour la calibration du laser."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Veuillez observer la buse de l'extrudeuse de droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "0C004026",
+                    "intro": "L'initialisation de la caméra Live View a échoué ; veuillez redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "07008016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "07038016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "07028016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "07068016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18048016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Veuillez observer la buse de l'extrudeuse gauche. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
+                },
+                {
+                    "ecode": "18068016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18078016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18038016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "07058016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "18058016",
+                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Plateforme de découpe détectée, ce qui peut affecter la précision de mesure de la hauteur. Veuillez placer la plateforme laser, puis redémarrez la mesure de hauteur dans le logiciel avant de commencer la tâche."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas bloqués, puis redémarrez la mesure de hauteur dans le logiciel avant de commencer la tâche."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Veuillez observer la buse de l'extrudeuse droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
+                },
+                {
                     "ecode": "0C004041",
-                    "intro": "L'étalonnage LiDAR a échoué. Veuillez vous assurer que la surface de la cible d'étalonnage est propre et non endommagée, puis relancez le processus d'étalonnage."
+                    "intro": "L'étalonnage de la caméra Toolhead a échoué. Veuillez vous assurer que le marqueur d'étalonnage est propre et indemne, puis relancez le processus d'étalonnage."
+                },
+                {
+                    "ecode": "1803800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT D à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0C00402C",
+                    "intro": "Erreur de lien de données de l'appareil. Veuillez redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0500C032",
+                    "intro": "Module laser/coupe connecté à la tête d'outil. Le processus de séchage a été automatiquement arrêté."
+                },
+                {
+                    "ecode": "0700800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS A à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0C00402D",
+                    "intro": "La caméra de la tête d'outil ne fonctionne pas correctement ; veuillez redémarrer l'appareil."
+                },
+                {
+                    "ecode": "1807800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT H à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1805800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS-HT F à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0707800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS H à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0703800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de l'AMS D à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0701800A",
+                    "intro": "Déconnexion du tube PTFE détectée. Veuillez vérifier si le tube PTFE de AMS B à l'extrudeuse est correctement connecté."
                 },
                 {
                     "ecode": "07018007",
@@ -49,10 +249,6 @@
                 {
                     "ecode": "0500805C",
                     "intro": "Le type de tapis de découpe ne correspond pas ; veuillez placer un tapis de découpe LightGrip."
-                },
-                {
-                    "ecode": "05008055",
-                    "intro": "Type de plateforme incorrect. Veuillez placer la plateforme laser pour la calibration du laser."
                 },
                 {
                     "ecode": "05008059",
@@ -411,10 +607,6 @@
                     "intro": "Échec de l'obtention du tableau de correspondance AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "05004076",
-                    "intro": "Plateforme inconnue dans la tâche, ce qui peut affecter la précision de la mesure de hauteur. Veuillez placer correctement la plateforme laser et vous assurer que la caméra BirdsEye est dégagée, puis re-mesurez la hauteur dans le logiciel et redémarrez la tâche."
-                },
-                {
                     "ecode": "07FF8010",
                     "intro": "Vérifiez si la bonne bobine de filament externe ou le filament est coincé."
                 },
@@ -443,10 +635,6 @@
                     "intro": "La fonction de détection d'objets étrangers ne fonctionne pas. Vous pouvez continuer la tâche ou consulter l'assistant pour le dépannage."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Le type de plateforme ne correspond pas, ce qui peut entraîner des données de mesure de hauteur inexactes. Veuillez placer correctement la plateforme laser, puis re-mesurez la hauteur dans le logiciel et lancez la tâche."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "La fonction de détection d'objets étrangers ne fonctionne pas. Vous pouvez continuer la tâche ou consulter l'assistant pour le dépannage."
                 },
@@ -465,10 +653,6 @@
                 {
                     "ecode": "05008069",
                     "intro": "Les hotends gauche et droit ne peuvent pas être identifiés, probablement en raison du marqueur de buse endommagé. Veuillez définir manuellement le type de hotend."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Le type de plateforme est inconnu lors de la calibration ; veuillez le remplacer par le bon."
                 },
                 {
                     "ecode": "05FE8069",
@@ -497,10 +681,6 @@
                 {
                     "ecode": "1887406D",
                     "intro": "AMS-HT H assiste à l'insertion du filament. Impossible de commencer le séchage. Veuillez réessayer plus tard."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Veuillez observer la buse de l'extrudeuse droite. Si le filament a été extrudé, cliquez sur \"Fait\" ; sinon, veuillez pousser légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
                 },
                 {
                     "ecode": "1882406A",
@@ -621,10 +801,6 @@
                 {
                     "ecode": "1880406E",
                     "intro": "Le moteur AMS-HT A effectue un autotest. Impossible de commencer le séchage. Veuillez réessayer plus tard."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Veuillez observer la buse de l'extrudeuse de droite. Si le filament a été extrudé, cliquez sur \"Terminé\" ; sinon, poussez légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
                 },
                 {
                     "ecode": "1887406C",
@@ -911,10 +1087,6 @@
                     "intro": "AMS-HT n'a pas réussi à retirer le filament. Ceci pourrait être dû à une bobine bloquée ou à l'extrémité du filament coincée dans le chemin."
                 },
                 {
-                    "ecode": "18058016",
-                    "intro": "L'extrudeur n'extrude pas normalement. Veuillez vous référer à l'Assistant. Après avoir effectué les vérifications nécessaires, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18038017",
                     "intro": "AMS-HT D est en train de sécher. Veuillez arrêter le processus de séchage avant de charger/décharger le matériau."
                 },
@@ -935,10 +1107,6 @@
                     "intro": "Le moteur d'assistance AMS-HT est surchargé. Cela peut être dû à un filament emmêlé ou à une bobine bloquée."
                 },
                 {
-                    "ecode": "07058016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous référer à l'Assistant. Après avoir résolu le problème, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeur gauche. Si ce message persiste, veuillez vérifier s'il y a un filament cassé dans l'extrudeur ou le tube PTFE. (Connectez un tube PTFE si vous êtes sur le point d'utiliser un AMS)"
                 },
@@ -955,20 +1123,12 @@
                     "intro": "Le moteur d'assistance de l'AMS-HT est surchargé. Cela pourrait être dû à un filament emmêlé ou à une bobine bloquée."
                 },
                 {
-                    "ecode": "18008016",
-                    "intro": "L'extrudeur n'extrude pas normalement ; veuillez vous référer à l'assistant. Après avoir résolu le problème, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18058005",
                     "intro": "L'AMS-HT n'a pas réussi à envoyer le filament. Vous pouvez aplatir l'extrémité de votre filament et le réinsérer. Si ce message persiste, veuillez vérifier les tubes PTFE dans l'AMS pour tout signe d'usure."
                 },
                 {
                     "ecode": "18028010",
                     "intro": "Le moteur d'assistance AMS-HT est en surcharge. Cela pourrait être dû à un filament emmêlé ou à une bobine bloquée."
-                },
-                {
-                    "ecode": "18038016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous adresser à l'Assistant. Après le dépannage, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
                 },
                 {
                     "ecode": "18008010",
@@ -995,16 +1155,8 @@
                     "intro": "Veuillez introduire le filament dans le tube PTFE de l'extrudeur droit jusqu'à ce qu'il ne puisse plus être poussé davantage."
                 },
                 {
-                    "ecode": "07078016",
-                    "intro": "L'extrudeur ne fonctionne pas normalement, veuillez contacter l'Assistant. Après avoir effectué le dépannage, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18078006",
                     "intro": "Impossible d'introduire le filament dans l'extrudeur. Cela peut être dû à un filament emmêlé ou à une bobine coincée. Sinon, veuillez vérifier si le tube PTFE AMS-HT est connecté."
-                },
-                {
-                    "ecode": "18018016",
-                    "intro": "L'extrudeur ne fonctionne pas normalement, veuillez contacter l'Assistant. Après dépannage, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
                 },
                 {
                     "ecode": "18018005",
@@ -1037,10 +1189,6 @@
                 {
                     "ecode": "18048003",
                     "intro": "Impossible de retirer le filament de l'extrudeuse. Cela peut être causé par une extrudeuse obstruée ou un filament cassé à l'intérieur de l'extrudeuse."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Veuillez observer la buse de l'extrudeuse gauche. Si le filament a été extrudé, cliquez sur \"Terminé\" ; sinon, poussez légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
                 },
                 {
                     "ecode": "0C00403E",
@@ -1155,14 +1303,6 @@
                     "intro": "Veuillez insérer le filament dans le tube PTFE de l'extrudeur droit jusqu'à ce qu'il ne puisse plus être poussé plus loin."
                 },
                 {
-                    "ecode": "18078016",
-                    "intro": "L'extrudeur n'extrude pas normalement. Veuillez vous référer à l'Assistant. Après avoir résolu le problème, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
-                },
-                {
-                    "ecode": "18028016",
-                    "intro": "L'extrudeur n'extrude pas normalement. Veuillez vous référer à l'Assistant. Après avoir résolu le problème, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "Le filament de l'AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement de l'AMS."
                 },
@@ -1179,10 +1319,6 @@
                     "intro": "L'AMS n'a pas réussi à envoyer du filament. Vous pouvez couper l'extrémité de votre filament à plat et réinsérer. Si ce message persiste, veuillez vérifier les tuyaux PTFE dans l'AMS pour tout signe d'usure."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Veuillez observer la buse de l'extrudeur droit. Si le filament a été extrudé, cliquez sur \"Terminé\" ; s'il ne l'est pas, poussez légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
-                },
-                {
                     "ecode": "07068004",
                     "intro": "AMS n'a pas réussi à retirer le filament. Cela pourrait être dû à une bobine coincée ou à l'extrémité du filament coincée dans la voie."
                 },
@@ -1193,10 +1329,6 @@
                 {
                     "ecode": "18FEC003",
                     "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeuse gauche. Si ce message persiste, vérifiez s'il y a du filament cassé dans l'extrudeuse ou le tube PTFE. (Connectez un tube PTFE si vous êtes sur le point d'utiliser un AMS)"
-                },
-                {
-                    "ecode": "18068016",
-                    "intro": "L'extrudeuse n'extrude pas normalement ; veuillez consulter l'Assistant. Après le dépannage, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
                 },
                 {
                     "ecode": "18058004",
@@ -1215,10 +1347,6 @@
                     "intro": "Le moteur d'assistance de l'AMS-HT est surchargé. Cela pourrait être dû à un filament emmêlé ou une bobine coincée."
                 },
                 {
-                    "ecode": "18048016",
-                    "intro": "L'extrudeur n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après la résolution de problèmes, si les défauts sont acceptables, cliquez sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "18FFC008",
                     "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeuse droite. Si ce message persiste, vérifiez s'il y a du filament cassé dans l'extrudeuse ou le tube PTFE. (Connectez un tube PTFE si vous êtes sur le point d'utiliser un AMS)"
                 },
@@ -1227,20 +1355,8 @@
                     "intro": "AMS-HT n'a pas réussi à ramener le fil. Cela peut être dû à une bobine coincée ou à l'extrémité du filament qui est bloquée dans le chemin."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Veuillez observer la buse de l'extrudeur gauche. Si le filament a été extrudé, cliquez sur \"Terminé\" ; sinon, poussez légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
-                },
-                {
                     "ecode": "18058010",
                     "intro": "Le moteur d'assistance AMS-HT est surchargé. Cela peut être dû à un filament emmêlé ou à une bobine coincée."
-                },
-                {
-                    "ecode": "07048016",
-                    "intro": "L'extrudeur n'extrude pas normalement ; veuillez vous référer à l'assistant. Après le dépannage, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
-                    "ecode": "07068016",
-                    "intro": "L'extrudeur n'extrude pas de manière normale ; veuillez vous référer à l'assistant. Après le dépannage, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
                 },
                 {
                     "ecode": "18008003",
@@ -1331,10 +1447,6 @@
                     "intro": "Des objets ont été détectés sur la plateforme, veuillez les nettoyer dans les meilleurs délais."
                 },
                 {
-                    "ecode": "0C004026",
-                    "intro": "L'initialisation de la caméra de vue en direct a échoué, veuillez vous assurer que la caméra est correctement installée."
-                },
-                {
                     "ecode": "05024006",
                     "intro": "Module inconnu détecté, veuillez essayer de mettre à jour le firmware vers la dernière version."
                 },
@@ -1423,10 +1535,6 @@
                     "intro": "Veuillez retirer le filament du support de bobine de l'extrudeur gauche. Si ce message persiste, veuillez vérifier s'il y a du filament cassé dans l'extrudeur ou dans le tube PTFE. (Connectez un tube PTFE si vous êtes sur le point d'utiliser un AMS)"
                 },
                 {
-                    "ecode": "07FEC00A",
-                    "intro": "Veuillez observer la buse de l'extrudeur gauche. Si le filament a été extrudé, cliquez sur \"Terminé\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
-                },
-                {
                     "ecode": "05008053",
                     "intro": "Un déséquilibre a été détecté entre les buses gauche et droite pendant l'impression. Veuillez relancer l'impression après une nouvelle découpe, ou poursuivez l'impression après avoir remplacé la buse correcte. Attention : la température de la tête d'impression est élevée."
                 },
@@ -1491,22 +1599,6 @@
                     "intro": "Le périphérique a été connecté au module de laser ou de découpe et ne peut pas lancer une tâche d'impression 3D."
                 },
                 {
-                    "ecode": "07008016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous référer à l'assistant. Après avoir résolu les problèmes, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
-                    "ecode": "07018016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous référer à l'assistant. Après avoir résolu les problèmes, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
-                    "ecode": "07038016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous référer à l'assistant. Après avoir résolu les problèmes, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
-                    "ecode": "07028016",
-                    "intro": "L'extrudeur n'extrude pas normalement; veuillez vous référer à l'assistant. Après avoir résolu les problèmes, si les défauts sont acceptables, veuillez cliquer sur le bouton \"Réessayer\"."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "L'imprimante est en train d'imprimer et la fonction d'amélioration de la précision des mouvements ne peut pas être activée ou désactivée."
                 },
@@ -1547,10 +1639,6 @@
                     "intro": "Impossible d'obtenir l'adresse IP, cela peut être dû à des interférences sans fil entraînant une défaillance de la transmission de données ou à l'épuisement de la plage d'adresses DHCP du routeur. Déplacez l'imprimante plus près du routeur et réessayez. Si le problème persiste, vérifiez les paramètres du routeur pour voir si les adresses IP sont épuisées."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Veuillez observer la buse de l'extrudeur gauche. Si le filament a été extrudé, cliquez sur \"Terminé\"; sinon, poussez légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
-                },
-                {
                     "ecode": "0300801C",
                     "intro": "La résistance à l'extrusion est anormale. L'extrudeur peut être obstrué, veuillez consulter l'assistant. Après avoir résolu le problème, vous pouvez appuyer sur le bouton \"Reprendre\" pour reprendre l'impression."
                 },
@@ -1573,10 +1661,6 @@
                 {
                     "ecode": "07FE8003",
                     "intro": "Veuillez retirer le filament du support de bobine de l'extrudeur gauche. Si ce message persiste, vérifiez s'il y a un filament cassé dans l'extrudeur. (Connectez un tube PTFE si vous êtes sur le point d'utiliser un système d'alimentation automatique.)"
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Veuillez observer la buse de l'extrudeur droit. Si le filament a été extrudé, cliquez sur \"Terminé\"; sinon, poussez légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
                 },
                 {
                     "ecode": "03008014",
@@ -1677,10 +1761,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "L'installation de la caméra BirdsEye a échoué. Veuillez vérifier si le module laser fonctionne correctement."
-                },
-                {
-                    "ecode": "0C004021",
-                    "intro": "La configuration de la caméra BirdsEye a échoué. Veuillez vérifier si la caméra est correctement installée."
                 },
                 {
                     "ecode": "0C004020",
@@ -2312,6 +2392,146 @@
             "ver": 202502042359,
             "fr": [
                 {
+                    "ecode": "0701200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS B à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0702200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS C à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Nouvel AMS détecté. Veuillez le configurer avant utilisation."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Une nouvelle caméra BirdsEye ou un changement d'angle de caméra a été détecté. Veuillez compléter la configuration avant utilisation."
+                },
+                {
+                    "ecode": "1801200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT B à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Nouvel AMS-HT détecté. Veuillez le configurer avant utilisation."
+                },
+                {
+                    "ecode": "0705200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS F à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage lors du chargement/impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage lors du chargement/impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage lors du chargement/impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage lors du chargement/impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage lors du chargement/impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "1803240000010007",
+                    "intro": "La détection de la porte D d'AMS-HT est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "0700200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS A à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0703200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS D à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1805200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT F à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1802200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT C à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1807200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT H à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1803200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT D à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0706200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS G à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0707200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS H à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1806200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT G à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1800200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT A à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0704200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS E à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "1804200000020006",
+                    "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT E à l'extrudeuse est correctement connecté."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage pendant le chargement/l'impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage pendant le chargement/l'impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "AMS détecté utilisant l'alimentation de l'imprimante pour le séchage pendant le chargement/l'impression. Pour de meilleures performances de séchage, veuillez connecter un adaptateur secteur."
+                },
+                {
+                    "ecode": "1806240000010007",
+                    "intro": "La détection de la porte de l'AMS-HT G est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1801240000010007",
+                    "intro": "La détection de la porte de l'AMS-HT B est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1805240000010007",
+                    "intro": "La détection de porte AMS-HT F est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1802240000010007",
+                    "intro": "La détection de porte AMS-HT C est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1804240000010007",
+                    "intro": "La détection de porte AMS-HT E est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1807240000010007",
+                    "intro": "La détection de porte AMS-HT H est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
+                    "ecode": "1800240000010007",
+                    "intro": "La détection de porte AMS-HT A est anormale, la connexion du capteur Hall peut être lâche ou déconnectée."
+                },
+                {
                     "ecode": "07FF700000020003",
                     "intro": "Veuillez vérifier si le matériau sort de la bonne buse. Si ce n'est pas le cas, poussez doucement le matériau et essayez d'extruder à nouveau."
                 },
@@ -2388,18 +2608,6 @@
                     "intro": "Accessoire non certifié détecté. Veuillez utiliser des accessoires officiels."
                 },
                 {
-                    "ecode": "0705250000020001",
-                    "intro": "AMS AMS utilise l'alimentation MC pour le séchage lors du chargement ou de l'impression des filaments. Cela peut affecter les performances de séchage. Il est recommandé de connecter un adaptateur de séchage pour garantir des résultats de séchage optimaux."
-                },
-                {
-                    "ecode": "0707250000020001",
-                    "intro": "AMS AMS utilise l'alimentation MC pour le séchage lors du chargement ou de l'impression des filaments. Cela peut affecter les performances de séchage. Il est recommandé de connecter un adaptateur de séchage pour garantir des résultats de séchage optimaux."
-                },
-                {
-                    "ecode": "0704250000020001",
-                    "intro": "AMS AMS utilise l'alimentation MC pour le séchage lors du chargement ou de l'impression de filaments. Cela peut affecter les performances de séchage. Il est recommandé de connecter un adaptateur de séchage pour garantir des résultats de séchage optimaux."
-                },
-                {
                     "ecode": "07FE600000020001",
                     "intro": "La bobine externe connectée à l'extrudeuse de gauche peut être emmêlée ou coincée."
                 },
@@ -2452,24 +2660,8 @@
                     "intro": "AMS non certifié détecté. Impossible de fonctionner avec cette imprimante."
                 },
                 {
-                    "ecode": "0703250000020001",
-                    "intro": "AMS utilise l'alimentation MC pour le séchage pendant le chargement de filament ou l'impression. Cela peut affecter la performance de séchage. Il est recommandé de connecter un adaptateur pour le séchage afin d'assurer des résultats de séchage optimaux."
-                },
-                {
-                    "ecode": "0700250000020001",
-                    "intro": "AMS utilise l'alimentation MC pour le séchage pendant le chargement de filament ou l'impression. Cela peut affecter la performance de séchage. Il est recommandé de connecter un adaptateur pour le séchage afin d'assurer des résultats de séchage optimaux."
-                },
-                {
-                    "ecode": "0701250000020001",
-                    "intro": "AMS utilise l'alimentation MC pour le séchage pendant le chargement de filament ou l'impression. Cela peut affecter la performance de séchage. Il est recommandé de connecter un adaptateur pour le séchage afin d'assurer des résultats de séchage optimaux."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "La bobine externe connectée à l'extrudeuse de droite peut être emmêlée ou coincée."
-                },
-                {
-                    "ecode": "0706250000020001",
-                    "intro": "AMS utilise l'alimentation MC pour le séchage pendant le chargement de filament ou l'impression. Cela peut affecter la performance de séchage. Il est recommandé de connecter un adaptateur pour le séchage afin d'assurer des résultats de séchage optimaux."
                 },
                 {
                     "ecode": "050005000001000D",
@@ -2478,10 +2670,6 @@
                 {
                     "ecode": "050005000001000E",
                     "intro": "Le module laser n'est pas certifié. Veuillez utiliser les accessoires Bambu Lab."
-                },
-                {
-                    "ecode": "0702250000020001",
-                    "intro": "AMS utilise l'alimentation MC pour le séchage pendant le chargement de filament ou l'impression. Cela peut affecter la performance de séchage. Il est recommandé de connecter un adaptateur pour le séchage afin d'assurer des résultats de séchage optimaux."
                 },
                 {
                     "ecode": "18FE600000020001",
@@ -2552,14 +2740,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0702200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
-                    "ecode": "0703200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
                     "ecode": "0702010000020006",
                     "intro": "AMS C Les fils du moteur d'assistance triphasé ne sont pas connectés. Le connecteur du moteur d'assistance peut avoir un mauvais contact."
                 },
@@ -2596,30 +2776,6 @@
                     "intro": "Le type de plaque d'impression est inconnu ; veuillez la remplacer par la bonne plaque."
                 },
                 {
-                    "ecode": "1805200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "1807200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "1803200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "0706200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
-                    "ecode": "1800200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "0704200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
                     "ecode": "0500040000020041",
                     "intro": "Le hotend gauche et le hotend droit ne peuvent pas être identifiés, probablement en raison d'un hotend non officiel. Il se peut également que le marquage du hotend soit flou."
                 },
@@ -2634,14 +2790,6 @@
                 {
                     "ecode": "0500040000020053",
                     "intro": "Type de matériau inconnu"
-                },
-                {
-                    "ecode": "0700200000020006",
-                    "intro": "Le tube PTFE est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
-                    "ecode": "0701200000020006",
-                    "intro": "Tube PTFE détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
                 },
                 {
                     "ecode": "0500060000020008",
@@ -2678,30 +2826,6 @@
                 {
                     "ecode": "0707010000020006",
                     "intro": "AMS H Les fils du moteur d'assistance triphasé ne sont pas connectés. Le connecteur du moteur d'assistance peut avoir un mauvais contact."
-                },
-                {
-                    "ecode": "1802200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "1801200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "0707200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
-                    "ecode": "1806200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
-                },
-                {
-                    "ecode": "0705200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS à l'extrudeuse."
-                },
-                {
-                    "ecode": "1804200000020006",
-                    "intro": "Le tube PTFE s'est détaché. Veuillez vérifier si le tube PTFE est connecté de l'AMS-HT à l'extrudeuse."
                 },
                 {
                     "ecode": "03009E0000030001",
@@ -3278,10 +3402,6 @@
                 {
                     "ecode": "0300030000020002",
                     "intro": "La vitesse du ventilateur de refroidissement Hotend est lente. Il pourrait être bloqué et nécessiter un nettoyage."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "Une nouvelle caméra BirdsEye ou un changement d'angle de caméra a été détecté. Veuillez aller dans les paramètres avant utilisation."
                 },
                 {
                     "ecode": "0500040000020042",
@@ -6662,10 +6782,6 @@
                 {
                     "ecode": "1800230000020001",
                     "intro": "Le filament de la fente 4 A d'AMS-HT est terminé. Veuillez insérer un nouveau filament."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nouvel AMS-HT connecté ; veuillez le configurer avant l'utilisation."
                 },
                 {
                     "ecode": "0705700000020050",
@@ -10262,10 +10378,6 @@
                 {
                     "ecode": "0703950000010001",
                     "intro": "AMS D : Le capteur de température du chauffage 2 ne fonctionne pas correctement, ce qui pourrait être dû à un mauvais contact du connecteur."
-                },
-                {
-                    "ecode": "0700550000020001",
-                    "intro": "Nouvelle AMS connectée; veuillez la configurer avant utilisation."
                 },
                 {
                     "ecode": "0703350000010002",

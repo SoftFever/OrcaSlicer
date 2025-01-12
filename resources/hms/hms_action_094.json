@@ -1,8 +1,56 @@
 {
     "result": 0,
-    "t": 1736436045,
+    "t": 1736653331,
     "ver": 202502042359,
     "data": [
+        {
+            "ecode": "0C004041",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500C032",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C004026",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C004020",
+            "image": "f35ac8877cd7bf12367f79c5126e0567.png",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C004021",
+            "image": "fd6afcb3c322267736d59eca6149c8bb.png",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C004022",
+            "image": "65f375b32ab6932771ef03c03b7bc9d3.png",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
         {
             "ecode": "0500806F",
             "image": "876a5d7dbf4cba916046034817c83349.png",
@@ -260,18 +308,18 @@
             "device": "094"
         },
         {
-            "ecode": "03008062",
-            "image": "63eb2465bf54ea2f5454da378155ca79.png",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0500806E",
             "image": "",
             "actions": [
                 21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008062",
+            "image": "63eb2465bf54ea2f5454da378155ca79.png",
+            "actions": [
+                4
             ],
             "device": "094"
         },
@@ -386,14 +434,6 @@
             "device": "094"
         },
         {
-            "ecode": "0C004020",
-            "image": "f35ac8877cd7bf12367f79c5126e0567.png",
-            "actions": [
-                6
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008063",
             "image": "d7c1c7f9109500b16aa9d8d82fe9be4e.png",
             "actions": [
@@ -407,14 +447,6 @@
             "actions": [
                 22,
                 21
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "0C004021",
-            "image": "fd6afcb3c322267736d59eca6149c8bb.png",
-            "actions": [
-                6
             ],
             "device": "094"
         },
@@ -512,14 +544,6 @@
             "actions": [
                 23,
                 24
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "0C004022",
-            "image": "65f375b32ab6932771ef03c03b7bc9d3.png",
-            "actions": [
-                6
             ],
             "device": "094"
         },
@@ -721,19 +745,18 @@
             "device": "094"
         },
         {
-            "ecode": "0500403E",
+            "ecode": "0500040000020034",
             "image": "",
             "actions": [
-                11
+                15
             ],
             "device": "094"
         },
         {
-            "ecode": "07FE8010",
+            "ecode": "0500040000020035",
             "image": "",
             "actions": [
-                4,
-                6
+                16
             ],
             "device": "094"
         },
@@ -747,18 +770,19 @@
             "device": "094"
         },
         {
-            "ecode": "0500040000020035",
+            "ecode": "07FE8010",
             "image": "",
             "actions": [
-                16
+                4,
+                6
             ],
             "device": "094"
         },
         {
-            "ecode": "0500040000020034",
+            "ecode": "0500403E",
             "image": "",
             "actions": [
-                15
+                11
             ],
             "device": "094"
         },
@@ -787,6 +811,22 @@
                 4
             ],
             "device": "094"
+        },
+        {
+            "ecode": "0C00402D",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0C00402C",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "default"
         },
         {
             "ecode": "05004003",

@@ -1,14 +1,214 @@
 {
     "result": 0,
-    "t": 1736436184,
+    "t": 1736653649,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "sv": [
                 {
+                    "ecode": "05008064",
+                    "intro": "Vänligen placera laserplattan korrekt och se till att bakmarkeringarna inte blockeras för laserkalibrering."
+                },
+                {
+                    "ecode": "07018016",
+                    "intro": "Extrudern extruderar inte som vanligt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "07048016",
+                    "intro": "Extrudern fungerar inte normalt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om det inte har det, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "18028016",
+                    "intro": "Extrudern fungerar inte normalt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Vänligen observera munstycket på den vänstra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om det inte har det, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "07078016",
+                    "intro": "Extrudern fungerar inte normalt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "18018016",
+                    "intro": "Extrudern extruderar inte som vanligt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18008016",
+                    "intro": "Extrudern fungerar inte normalt; vänligen hänvisa till assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "05004031",
+                    "intro": "En icke-certifierad tillbehör upptäcktes, och enheten kan inte fortsätta arbeta."
+                },
+                {
+                    "ecode": "0702800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS C till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0706800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS G till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1801800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS-HT B till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1804800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS-HT E till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1802800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS-HT C till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0704800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS E till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1800800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS-HT A till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0705800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS F till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1806800A",
+                    "intro": "PTFE-slangkoppling upptäcktes. Vänligen kontrollera om PTFE-slangen från AMS-HT G till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Vänligen observera munstycket på den vänstra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om det inte har det, vänligen tryck filamentet framåt lite, och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "0C004021",
+                    "intro": "Inställningen av BirdsEye-kameran misslyckades; vänligen starta om skrivaren."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Vänligen observera munstycket på den vänstra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Klippplattform detekterad. Vänligen placera laserplattformen för laser kalibrering."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om det inte har det, vänligen tryck filamentet framåt lite, och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "0C004026",
+                    "intro": "Initiering av Live View-kameran misslyckades; vänligen starta om skrivaren."
+                },
+                {
+                    "ecode": "07008016",
+                    "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "07038016",
+                    "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning. Om defekterna är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "07028016",
+                    "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning, om defekterna är acceptabla, vänligen återuppta."
+                },
+                {
+                    "ecode": "07068016",
+                    "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning, om defekterna är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18048016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Vänligen observera munstycket på vänster extruder. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
+                    "ecode": "18068016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18078016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18038016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "07058016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "18058016",
+                    "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Skäroverflaten har upptäckts, vilket kan påverka höjdmätningsnoggrannheten. Vänligen placera laserplattformen, och starta sedan om höjdmätingen i mjukvaran innan du påbörjar uppgiften."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Vänligen placera laserplattformen korrekt och se till att de bakre markörerna inte är blockerade, och starta sedan om höjdmätingen i mjukvaran innan du påbörjar uppgiften."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Vänligen observera munstycket på höger extruder. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
+                },
+                {
                     "ecode": "0C004041",
-                    "intro": "LiDAR-kalibreringen misslyckades. Vänligen se till att kalibreringsmålens yta är ren och odammagerad, och kör sedan kalibreringsprocessen igen."
+                    "intro": "Verktygshuvudets kamerakalibrering misslyckades. Vänligen se till att kalibreringsmarkören är ren och oskadad, och kör sedan kalibreringsprocessen igen."
+                },
+                {
+                    "ecode": "1803800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS-HT D till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0C00402C",
+                    "intro": "Enhetsdataförbindelsefel. Vänligen starta om skrivaren."
+                },
+                {
+                    "ecode": "0500C032",
+                    "intro": "Laser-/skärmodul ansluten till verktygshuvudet. Torkprocessen har automatiskt stoppats."
+                },
+                {
+                    "ecode": "0700800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS A till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0C00402D",
+                    "intro": "Verktygshuvudets kamera fungerar inte som den ska; vänligen starta om enheten."
+                },
+                {
+                    "ecode": "1807800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS-HT H till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "1805800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS-HT F till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0707800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS H till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0703800A",
+                    "intro": "PTFE-rörets frånkoppling upptäcktes. Vänligen kontrollera om PTFE-röret från AMS D till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0701800A",
+                    "intro": "PTFE-röravbrott detekterat. Vänligen kontrollera om PTFE-röret från AMS B till extrudern är korrekt anslutet."
                 },
                 {
                     "ecode": "07018007",
@@ -49,10 +249,6 @@
                 {
                     "ecode": "0500805C",
                     "intro": "Typen av greppskärmatta matchar inte; vänligen placera en LightGrip skärmatta."
-                },
-                {
-                    "ecode": "05008055",
-                    "intro": "Felaktig plattype. Vänligen placera laserplattan för laser kalibrering."
                 },
                 {
                     "ecode": "05008059",
@@ -411,10 +607,6 @@
                     "intro": "Misslyckades med att hämta AMS kartläggningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
                 },
                 {
-                    "ecode": "05004076",
-                    "intro": "Okänd plattform i uppgiften, vilket kan påverka höjdmätningsnoggrannheten. Vänligen placera laserplattformen korrekt och se till att BirdsEye-kameran inte är blockerad, och mät sedan om höjden i programvaran och starta om uppgiften."
-                },
-                {
                     "ecode": "07FF8010",
                     "intro": "Kontrollera om den rätta externa filamentspolen eller filamentet är fast."
                 },
@@ -443,10 +635,6 @@
                     "intro": "Funktionen för att upptäcka främmande objekt fungerar inte. Du kan fortsätta uppgiften eller se assistenten för felsökning."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Plattforms typen stämmer inte överens, vilket kan leda till oförankrade höjdmätningsdata. Vänligen placera laserplattformen korrekt, mät sedan höjden i mjukvaran och starta uppgiften."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "Funktionen för att upptäcka främmande objekt fungerar inte. Du kan fortsätta uppgiften eller se assistenten för felsökning."
                 },
@@ -465,10 +653,6 @@
                 {
                     "ecode": "05008069",
                     "intro": "Vänster och höger hotend kan inte identifieras, eventuellt på grund av den skadade munstycksmärkningen. Vänligen ställ in hotend-typ manuellt."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Typen av plattform är okänd under kalibreringen; vänligen byt ut den mot rätt typ."
                 },
                 {
                     "ecode": "05FE8069",
@@ -497,10 +681,6 @@
                 {
                     "ecode": "1887406D",
                     "intro": "AMS-HT H hjälper till med insättning av filament. Kan inte starta torkningen. Vänligen försök igen senare."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Bekräfta\"; om inte, tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
                 },
                 {
                     "ecode": "1882406A",
@@ -621,10 +801,6 @@
                 {
                     "ecode": "1880406E",
                     "intro": "AMS-HT A-motorn genomför självtest. Kan inte påbörja torkning. Vänligen försök igen senare."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Klar\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
                 },
                 {
                     "ecode": "1887406C",
@@ -911,10 +1087,6 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filamentet. Detta kan bero på en fastnat spole eller att slutet på filamentet sitter fast i vägen."
                 },
                 {
-                    "ecode": "18058016",
-                    "intro": "Extrudern extruderar inte normalt; vänligen hänvisa till Assistenten. Efter felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18038017",
                     "intro": "AMS-HT D torkar. Vänligen stoppa torkningsprocessen innan du laddar/lossar material."
                 },
@@ -935,10 +1107,6 @@
                     "intro": "Hjälpmotorn för AMS-HT är överbelastad. Detta kan bero på trasslat filament eller en fastnat spole."
                 },
                 {
-                    "ecode": "07058016",
-                    "intro": "Extrudern matar inte ut normalt; var vänlig kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Var god dra ut filamentet från rullhållaren till vänster om extrudern. Om detta meddelande kvarstår, var vänlig och kontrollera om det finns filament som gått sönder i extrudern eller PTFE-röret. (Anslut ett PTFE-rör om du ska använda en AMS)"
                 },
@@ -955,20 +1123,12 @@
                     "intro": "AMS-HT assistansmotor är överbelastad. Detta kan bero på trasslat filament eller en fastsittande rulle."
                 },
                 {
-                    "ecode": "18008016",
-                    "intro": "Extrudern extruderar inte normalt; vänligen kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18058005",
                     "intro": "AMS-HT misslyckades att sända ut filament. Du kan klippa av slutet på ditt filament platt, och sätta tillbaka den. Om detta meddelande kvarstår, kontrollera vänligen PTFE-rören i AMS för några tecken på slitage."
                 },
                 {
                     "ecode": "18028010",
                     "intro": "AMS-HT-assisterande motorn är överbelastad. Detta kan bero på trasslad filament eller en fastnat spole."
-                },
-                {
-                    "ecode": "18038016",
-                    "intro": "Extrudern matar inte ut material normalt. Vänligen kontakta assistenten för felsökning. Om defekterna är acceptabla klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18008010",
@@ -995,16 +1155,8 @@
                     "intro": "Vänligen mata tråden in i PTFE-tuben på högra extrudern tills den inte kan tryckas längre."
                 },
                 {
-                    "ecode": "07078016",
-                    "intro": "Extrudern fungerar inte normalt. Vänligen kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18078006",
                     "intro": "Kan inte mata in tråd i extrudern. Detta kan bero på trassel eller en fastnat rulle. Om inte, vänligen kontrollera om AMS-HT PTFE-tuben är ansluten."
-                },
-                {
-                    "ecode": "18018016",
-                    "intro": "Extrudern fungerar inte normalt. Vänligen kontakta assistenten. Efter felsökning, om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
                 },
                 {
                     "ecode": "18018005",
@@ -1037,10 +1189,6 @@
                 {
                     "ecode": "18048003",
                     "intro": "Misslyckades att dra ut filamentet från extrudern. Detta kan bero på igensatt extruder eller att filamentet har gått av inne i extrudern."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Var god och observera munstycket på vänster extruder. Om filamentet har matats ut, klicka på \"Klar\"; om det inte har det, var vänlig skjut fram filamentet lite och klicka sedan på \"Försök igen\"."
                 },
                 {
                     "ecode": "0C00403E",
@@ -1155,14 +1303,6 @@
                     "intro": "Vänligen mata filamentet in i PTFE-röret på höger extruder tills det inte längre går att trycka in."
                 },
                 {
-                    "ecode": "18078016",
-                    "intro": "Extrudern matar inte ut material normalt; vänligen kontakta assistenten för att felsöka. Efter felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "18028016",
-                    "intro": "Extrudern matar inte ut material normalt; vänligen kontakta assistenten för att felsöka. Efter felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
                 },
@@ -1179,10 +1319,6 @@
                     "intro": "AMS misslyckades med att skicka ut filamentet. Du kan klippa änden av filamentet platt och sätta tillbaka det. Om detta meddelande kvarstår, kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Observera munstycket på höger extruder. Om filamentet har extruderats, klicka på \"Klart\"; om inte, skjut fram filamentet lite och klicka sedan på \"Försök igen\"."
-                },
-                {
                     "ecode": "07068004",
                     "intro": "AMS misslyckades med att dra tillbaka filamentet. Detta kan bero på att rullen fastnat eller att slutet på filamentet fastnat i sökvägen."
                 },
@@ -1193,10 +1329,6 @@
                 {
                     "ecode": "18FEC003",
                     "intro": "Vänligen dra ut filamentet från spolhållaren på den vänstra extrudern. Om detta meddelande kvarstår, vänligen kontrollera om det finns brutet filament i extrudern eller PTFE-röret. (Anslut en PTFE-rör om du ska använda en AMS)"
-                },
-                {
-                    "ecode": "18068016",
-                    "intro": "Extrudern extruderar inte normalt. Vänligen se assistenten för hjälp med felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"."
                 },
                 {
                     "ecode": "18058004",
@@ -1215,10 +1347,6 @@
                     "intro": "Assistansmotorn för AMS-HT är överbelastad. Detta kan bero på trasslat filament eller en fastnat spole."
                 },
                 {
-                    "ecode": "18048016",
-                    "intro": "Extrudern extruderar inte normalt. Vänligen se assistenten för hjälp med felsökning. Om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
-                },
-                {
                     "ecode": "18FFC008",
                     "intro": "Vänligen dra ut filamentet från spolhållaren på den högra extrudern. Om detta meddelande kvarstår, vänligen kontrollera om det finns brutet filament i extrudern eller PTFE-röret. (Anslut en PTFE-rör om du ska använda en AMS)"
                 },
@@ -1227,20 +1355,8 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filamentet. Detta kan bero på att rullen är fast eller att slutet på filamentet sitter fast i vägen."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Observera munstycket på vänster extruder. Om filamentet har extruderats klicka på \"Klar\", om inte, skjut filamentet lite framåt och klicka sedan på \"Försök igen\"."
-                },
-                {
                     "ecode": "18058010",
                     "intro": "AMS-HT assisterande motor är överbelastad. Detta kan bero på trasslat filament eller en fastspänd rulle."
-                },
-                {
-                    "ecode": "07048016",
-                    "intro": "Extrudern extruderar inte normalt. Vänligen kontakta assistenten för support. Efter felavhjälpning, om defekterna är acceptabla, klicka på \"Försök igen\" knappen."
-                },
-                {
-                    "ecode": "07068016",
-                    "intro": "Extrudern extruderar inte normalt. Vänligen kontakta assistenten för support. Efter felsökning, om defekterna är acceptabla, klicka på \"Försök igen\" knappen."
                 },
                 {
                     "ecode": "18008003",
@@ -1331,10 +1447,6 @@
                     "intro": "Föremål upptäckta på plattformen, vänligen rensa upp dem i tid."
                 },
                 {
-                    "ecode": "0C004026",
-                    "intro": "Initiering av Live View-kameran Misslyckades; vänligen se till att kameran är korrekt installerad."
-                },
-                {
                     "ecode": "05024006",
                     "intro": "Okänt modulidentifierare identifierad, vänligen försök uppdatera firmware till den senaste versionen."
                 },
@@ -1423,10 +1535,6 @@
                     "intro": "Vänligen dra ut filamentet på spolehållaren för vänster extruder. Om detta meddelande fortsätter, kontrollera om det finns filament som är brutet i extrudern eller PTFE-röret. (Anslut en PTFE-slang om du ska använda en AMS)"
                 },
                 {
-                    "ecode": "07FEC00A",
-                    "intro": "Observera munstycket på vänster extruder. Om filamentet har extruderats, klicka på \"Klart\"; om inte, tryck fram filamentet lätt och klicka sedan på \"Försök igen\"."
-                },
-                {
                     "ecode": "05008053",
                     "intro": "Skillnad i munstyckstyp upptäcktes under utskrift. Starta utskriften igen efter att skiva om eller fortsätt att skriva ut efter att ha bytt till korrekt munstycke. Observera att hetta är hög."
                 },
@@ -1491,22 +1599,6 @@
                     "intro": "Enheten har anslutits till laser- eller skärmaskinsmodulen och kan inte initiera en 3D-utskriftsuppgift."
                 },
                 {
-                    "ecode": "07008016",
-                    "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07018016",
-                    "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07038016",
-                    "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
-                    "ecode": "07028016",
-                    "intro": "Extrudern matar inte ut normalt; vänligen hänvisa till Assistenten för felsökning. Om defekterna är acceptabla, klicka på \"Försök igen\"-knappen."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "Skrivaren är för tillfället i utskrift och funktionen för förbättrad rörelseprecision kan inte aktiveras eller avaktiveras."
                 },
@@ -1547,10 +1639,6 @@
                     "intro": "Misslyckades att få IP-adress, vilket kan bero på trådlös störning som resulterar i dataöverföringsfel eller att DHCP-adresspoolen på routern är full. Flytta skrivaren närmare routern och försök igen. Om problemet kvarstår, kontrollera routerinställningarna för att se om IP-adresserna har tagit slut."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Var god observera munstycket på vänster extruder. Om filamentet har extruderats, klicka på \"Klar\"; Om inte, tryck fram filamentet lite och klicka sedan på \"Försök igen\"."
-                },
-                {
                     "ecode": "0300801C",
                     "intro": "Extrudermotståndet är onormalt. Extrudern kan vara igensatt, vänligen kontakta assistenten. Efter felsökning kan du klicka på \"Återuppta\" -knappen för att återuppta utskriftsjobbet."
                 },
@@ -1573,10 +1661,6 @@
                 {
                     "ecode": "07FE8003",
                     "intro": "Vänligen dra ut filamentet på spollhållaren för vänster extruder. Om detta meddelande kvarstår, vänligen kontrollera om filamentet är brutet i extrudern. (Anslut en PTFE-tub om du ska använda en AMS.)"
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Observera munstycket för höger extruder. Om tråden har exruderats, klicka på \"Klar\"; om inte, skjut fram tråden lite och klicka sedan på \"Försök igen\"."
                 },
                 {
                     "ecode": "03008014",
@@ -1677,10 +1761,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "Installationen av BirdsEye-kameran misslyckades. Kontrollera om lasermodulet fungerar korrekt."
-                },
-                {
-                    "ecode": "0C004021",
-                    "intro": "Installationen av BirdsEye-kameran misslyckades. Kontrollera om kameran är korrekt installerad."
                 },
                 {
                     "ecode": "0C004020",
@@ -2312,6 +2392,146 @@
             "ver": 202502042359,
             "sv": [
                 {
+                    "ecode": "0701200000020006",
+                    "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS B till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0702200000020006",
+                    "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS C till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Ny AMS upptäcktes. Vänligen ställ in innan användning."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "En ny BirdsEye-kamera eller en kameravinkeländring upptäcktes. Vänligen slutför installationen innan användning."
+                },
+                {
+                    "ecode": "1801200000020006",
+                    "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS-HT B till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Ny AMS-HT upptäcktes. Vänligen ställ in innan användning."
+                },
+                {
+                    "ecode": "0705200000020006",
+                    "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS F till extrudern är korrekt anslutet."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "Upptäckte AMS som använder skrivareffekt för torkning under inladdning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "Upptäckte AMS som använder skrivareffekt för torkning under inladdning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "Upptäckte AMS som använder skrivareffekt för torkning under inladdning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "Upptäckte AMS som använder skrivarens ström för torkning under lastning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "Upptäckte AMS som använder skrivarens ström för torkning under lastning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "1803240000010007",
+                    "intro": "AMS-HT D dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "0700200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS A till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0703200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS D till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1805200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS-HT F till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1802200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS-HT C till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1807200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS-HT H till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "1803200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS-HT D till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0706200000020006",
+                    "intro": "PTFE-slang frånkoppling upptäcktes under filamentlastning. Vänligen kontrollera om PTFE-slangen från AMS G till extrudern är ordentligt ansluten."
+                },
+                {
+                    "ecode": "0707200000020006",
+                    "intro": "PTFE-slangavbrott upptäckt under filamentinmatning. Vänligen kontrollera om PTFE-slangen från AMS H till extrudern är korrekt ansluten."
+                },
+                {
+                    "ecode": "1806200000020006",
+                    "intro": "PTFE-slangavbrott upptäckt under filamentinmatning. Vänligen kontrollera om PTFE-slangen från AMS-HT G till extrudern är korrekt ansluten."
+                },
+                {
+                    "ecode": "1800200000020006",
+                    "intro": "PTFE-slangavbrott upptäckt under filamentinmatning. Vänligen kontrollera om PTFE-slangen från AMS-HT A till extrudern är korrekt ansluten."
+                },
+                {
+                    "ecode": "0704200000020006",
+                    "intro": "PTFE-slangavbrott upptäckt under filamentinmatning. Vänligen kontrollera om PTFE-slangen från AMS E till extrudern är korrekt ansluten."
+                },
+                {
+                    "ecode": "1804200000020006",
+                    "intro": "PTFE-slangavbrott upptäckt under filamentinmatning. Vänligen kontrollera om PTFE-slangen från AMS-HT E till extrudern är korrekt ansluten."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "Upptäckte AMS som använder skrivartillströmning för torkning under inmatning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "Upptäckte AMS som använder skrivartillströmning för torkning under inmatning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "Upptäckte AMS som använder skrivartillströmning för torkning under inmatning/utskrift. För bättre torkprestanda, vänligen anslut en strömadapter."
+                },
+                {
+                    "ecode": "1806240000010007",
+                    "intro": "AMS-HT G dörrdetektering är onormal, Hall-sensoranslutningen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1801240000010007",
+                    "intro": "AMS-HT B dörrdetektering är onormal, Hall-sensoranslutningen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1805240000010007",
+                    "intro": "AMS-HT F dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1802240000010007",
+                    "intro": "AMS-HT C dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1804240000010007",
+                    "intro": "AMS-HT E dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1807240000010007",
+                    "intro": "AMS-HT H dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
+                    "ecode": "1800240000010007",
+                    "intro": "AMS-HT A dörrdetektering är onormal, Hall-sensorkopplingen kan vara lös eller frånkopplad."
+                },
+                {
                     "ecode": "07FF700000020003",
                     "intro": "Kontrollera om materialet kommer ut ur rätt munstycke. Om inte, tryck försiktigt på materialet och försök att extrudera igen."
                 },
@@ -2388,18 +2608,6 @@
                     "intro": "Ett icke-certifierat tillbehör har upptäckts. Vänligen använd officiella tillbehör."
                 },
                 {
-                    "ecode": "0705250000020001",
-                    "intro": "AMS AMS använder MC-effekt för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att koppla en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0707250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0704250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning under filamentinmatning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
                     "ecode": "07FE600000020001",
                     "intro": "Extern spole ansluten till vänster extruder kan vara trasslad eller blockerad."
                 },
@@ -2452,24 +2660,8 @@
                     "intro": "Ej certifierad AMS upptäcktes. Kan inte använda denna skrivare."
                 },
                 {
-                    "ecode": "0703250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0700250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
-                    "ecode": "0701250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "Extern spole ansluten till höger extruder kan vara trasslad eller blockerad."
-                },
-                {
-                    "ecode": "0706250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
                 },
                 {
                     "ecode": "050005000001000D",
@@ -2478,10 +2670,6 @@
                 {
                     "ecode": "050005000001000E",
                     "intro": "Laser Modul är inte certifierad. Vänligen använd Bambu Lab-tillbehör."
-                },
-                {
-                    "ecode": "0702250000020001",
-                    "intro": "AMS AMS använder MC-ström för torkning vid filamentinladdning eller utskrift. Detta kan påverka torkprestandan. Det rekommenderas att ansluta en adapter för torkning för att säkerställa optimala torkresultat."
                 },
                 {
                     "ecode": "18FE600000020001",
@@ -2552,14 +2740,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0702200000020006",
-                    "intro": "PTFE-röret har lossnat. Vänligen kontrollera om PTFE-röret är anslutet från AMS till extrudern."
-                },
-                {
-                    "ecode": "0703200000020006",
-                    "intro": "PTFE-röret har lossnat. Vänligen kontrollera om PTFE-röret är anslutet från AMS till extrudern."
-                },
-                {
                     "ecode": "0702010000020006",
                     "intro": "AMS C Assisterande motorns trefasledningar är inte anslutna. Assisterande motorkontakten kan ha dålig kontakt."
                 },
@@ -2596,30 +2776,6 @@
                     "intro": "Typen av tryckplåt är okänd; vänligen ersätt den med rätt plåt."
                 },
                 {
-                    "ecode": "1805200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "1807200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "1803200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "0706200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS till extrudern."
-                },
-                {
-                    "ecode": "1800200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "0704200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS till extrudern."
-                },
-                {
                     "ecode": "0500040000020041",
                     "intro": "Vänster och höger hotend kan inte identifieras, möjligtvis på grund av en icke-officiell hotend. Det kan också bero på att markeringen på hotenden är otydlig."
                 },
@@ -2634,14 +2790,6 @@
                 {
                     "ecode": "0500040000020053",
                     "intro": "Okänt materialtyp"
-                },
-                {
-                    "ecode": "0700200000020006",
-                    "intro": "PTFE-röret har lossnat. Vänligen kontrollera om PTFE-röret är ansluten från AMS till extrudern."
-                },
-                {
-                    "ecode": "0701200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS till extrudern."
                 },
                 {
                     "ecode": "0500060000020008",
@@ -2678,30 +2826,6 @@
                 {
                     "ecode": "0707010000020006",
                     "intro": "AMS H Hjälpmotorns trefasledningar är inte anslutna. Hjälpmotoranslutningen kan ha dålig kontakt."
-                },
-                {
-                    "ecode": "1802200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "1801200000020006",
-                    "intro": "PTFE-röret har lossnat. Vänligen kontrollera om PTFE-röret är anslutet från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "0707200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS till extrudern."
-                },
-                {
-                    "ecode": "1806200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
-                },
-                {
-                    "ecode": "0705200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS till extrudern."
-                },
-                {
-                    "ecode": "1804200000020006",
-                    "intro": "PTFE-slangen har lossnat. Vänligen kontrollera om PTFE-slangen är ansluten från AMS-HT till extrudern."
                 },
                 {
                     "ecode": "03009E0000030001",
@@ -3278,10 +3402,6 @@
                 {
                     "ecode": "0300030000020002",
                     "intro": "Kylfläktens hastighet på hotenden är låg. Den kan vara fast och behöver rengöras."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "En ny BirdsEye-kamera eller en kameravinkeljustering har upptäckts. Gå till inställningarna innan användning."
                 },
                 {
                     "ecode": "0500040000020042",
@@ -6662,10 +6782,6 @@
                 {
                     "ecode": "1800230000020001",
                     "intro": "AMS-HT A fack 4:s filament har tagit slut. Vänligen sätt in nytt filament."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Ny AMS-HT ansluten; vänligen konfigurera innan användning."
                 },
                 {
                     "ecode": "0705700000020050",
@@ -10262,10 +10378,6 @@
                 {
                     "ecode": "0703950000010001",
                     "intro": "AMS D, temperatursensorn till värmare 2 fungerar inte korrekt, vilket kan bero på dålig kontakt med anslutningen."
-                },
-                {
-                    "ecode": "0700550000020001",
-                    "intro": "Ny AMS ansluten, vänligen konfigurera innan användning."
                 },
                 {
                     "ecode": "0703350000010002",

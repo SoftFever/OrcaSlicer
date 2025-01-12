@@ -1,14 +1,214 @@
 {
     "result": 0,
-    "t": 1736436183,
+    "t": 1736653650,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "pl": [
                 {
+                    "ecode": "05008064",
+                    "intro": "Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane podczas kalibracji lasera."
+                },
+                {
+                    "ecode": "07018016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnozie. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "07048016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnostyce. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wyekstrudowany, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "18028016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnozie. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wyekstrudowany, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "07078016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnostyce. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18018016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnozie. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18008016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnozie. Jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wyekstrudowany, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "05004031",
+                    "intro": "Wykryto niecertyfikowany dodatek, a urządzenie nie może kontynuować działania."
+                },
+                {
+                    "ecode": "0702800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS C do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0706800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS G do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1801800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS-HT B do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1804800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS-HT E do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1802800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS-HT C do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0704800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS E do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1800800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS-HT A do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0705800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS F do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1806800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS-HT G do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filamenti został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, delikatnie przesuń filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "0C004021",
+                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się; proszę zrestartować drukarkę."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, delikatnie przesuń filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Wykryto platformę do cięcia. Proszę umieścić platformę laserową do kalibracji lasera."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, delikatnie przesuń filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
+                },
+                {
+                    "ecode": "0C004026",
+                    "intro": "Inicjalizacja kamery Live View nie powiodła się; proszę zrestartować drukarkę."
+                },
+                {
+                    "ecode": "07008016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "07038016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "07028016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "07068016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, proszę wznowić."
+                },
+                {
+                    "ecode": "18048016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknąć \"Ponów\"."
+                },
+                {
+                    "ecode": "18068016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "18078016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "18038016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po przeprowadzeniu diagnostyki. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "07058016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "18058016",
+                    "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Wykryto platformę tnącą, co może wpłynąć na dokładność pomiaru wysokości. Proszę umieścić platformę laserową, a następnie zrestartować pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie zrestartować pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknąć \"Ponów\"."
+                },
+                {
                     "ecode": "0C004041",
-                    "intro": "Kalibracja LiDAR-a nie powiodła się. Proszę upewnić się, że powierzchnia celu kalibracyjnego jest czysta i nieuszkodzona, a następnie ponownie uruchomić proces kalibracji."
+                    "intro": "Nie powiodła się kalibracja kamery głowicy narzędzia. Upewnij się, że znacznik kalibracyjny jest czysty i nieuszkodzony, a następnie powtórz proces kalibracji."
+                },
+                {
+                    "ecode": "1803800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS-HT D do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0C00402C",
+                    "intro": "Błąd łącza danych urządzenia. Proszę zrestartować drukarkę."
+                },
+                {
+                    "ecode": "0500C032",
+                    "intro": "Moduł laserowy/cutting podłączony do głowicy narzędzia. Proces suszenia został automatycznie zatrzymany."
+                },
+                {
+                    "ecode": "0700800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS A do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0C00402D",
+                    "intro": "Kamera głowicy narzędzia nie działa prawidłowo; proszę zrestartować urządzenie."
+                },
+                {
+                    "ecode": "1807800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS-HT H do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1805800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS-HT F do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0707800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS H do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0703800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE z AMS D do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0701800A",
+                    "intro": "Wykryto rozłączenie rurki PTFE. Proszę sprawdzić, czy rurka PTFE od AMS B do ekstrudera jest prawidłowo podłączona."
                 },
                 {
                     "ecode": "07018007",
@@ -49,10 +249,6 @@
                 {
                     "ecode": "0500805C",
                     "intro": "Typ maty do cięcia nie pasuje; proszę umieścić matę do cięcia LightGrip."
-                },
-                {
-                    "ecode": "05008055",
-                    "intro": "Nieprawidłowy typ platformy. Proszę umieścić platformę laserową do kalibracji lasera."
                 },
                 {
                     "ecode": "05008059",
@@ -411,10 +607,6 @@
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij \"Wznów\", aby spróbować ponownie."
                 },
                 {
-                    "ecode": "05004076",
-                    "intro": "Nieznana platforma w zadaniu, co może wpłynąć na dokładność pomiaru wysokości. Proszę poprawnie umieścić platformę laserową i upewnić się, że kamera BirdsEye nie jest zasłonięta, następnie ponownie zmierz wysokość w oprogramowaniu i wznowić zadanie."
-                },
-                {
                     "ecode": "07FF8010",
                     "intro": "Sprawdź, czy odpowiedni zewnętrzny szpulka filamentu lub filament jest zacięty."
                 },
@@ -443,10 +635,6 @@
                     "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Typ platformy się nie zgadza, co może skutkować niedokładnymi danymi pomiaru wysokości. Proszę poprawnie umieścić platformę laserową, następnie ponownie zmierz wysokość w oprogramowaniu i rozpocznij zadanie."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
                 },
@@ -465,10 +653,6 @@
                 {
                     "ecode": "05008069",
                     "intro": "Lewy i prawy hotend nie mogą być zidentyfikowane, prawdopodobnie z powodu uszkodzonego znacznika dyszy. Proszę ręcznie ustawić typ hotendu."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Typ platformy jest nieznany podczas kalibracji; proszę go wymienić na odpowiedni."
                 },
                 {
                     "ecode": "05FE8069",
@@ -497,10 +681,6 @@
                 {
                     "ecode": "1887406D",
                     "intro": "AMS-HT H pomaga w wprowadzaniu filamentu. Nie można rozpocząć suszenia. Proszę spróbować później."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Proszę sprawdzić dyszę prawego ekstrudera. Jeśli filament został wyekstrudowany, kliknij \"Gotowe\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "1882406A",
@@ -621,10 +801,6 @@
                 {
                     "ecode": "1880406E",
                     "intro": "Silnik AMS-HT A wykonuje test samodzielny. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Gotowe\"; jeśli nie, proszę delikatnie przepchnąć filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
                 },
                 {
                     "ecode": "1887406C",
@@ -911,10 +1087,6 @@
                     "intro": "AMS-HT niepowodzenie z wycofaniem filamentu. Mogło to być spowodowane zablokowaniem szpuli lub zatrzymaniem końca filamentu na drodze."
                 },
                 {
-                    "ecode": "18058016",
-                    "intro": "Ekstruder nie ekstruduje normalnie; proszę skonsultować się z asystentem. Po rozwiązaniu problemu, jeśli występują wady akceptowalne, proszę kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18038017",
                     "intro": "AMS-HT D jest w trakcie suszenia. Przed załadowaniem/wyładowaniem materiału proszę zatrzymać proces suszenia."
                 },
@@ -935,10 +1107,6 @@
                     "intro": "Silnik pomocniczy AMS-HT jest przeciążony. Może to być spowodowane splątanym filamentem lub zablokowaną rolką."
                 },
                 {
-                    "ecode": "07058016",
-                    "intro": "Ekstruder nie wyciska materiału w normalny sposób; proszę skontaktować się z asystentem. Po wykonaniu kroków diagnostycznych, jeśli niedoskonałości są akceptowalne, proszę kliknąć przycisk \"Powtórz\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Proszę wyjąć filament z uchwytu roli z lewego ekstrudera. Jeśli ten komunikat będzie się powtarzać, sprawdź, czy w ekstruderze lub rurce PTFE nie ma złamanego filamentu. (Po podłączeniu rurki PTFE, gdy masz zamiar użyć AMS)"
                 },
@@ -955,20 +1123,12 @@
                     "intro": "Silnik pomocniczy AMS-HT jest przeciążony. Może to być spowodowane skrzyżowaniem się filamentu lub zablokowanym kłębkiem."
                 },
                 {
-                    "ecode": "18008016",
-                    "intro": "Ekstruder nie wyciska filamentu poprawnie. Proszę skontaktować się z asystentem. Po rozwiązaniu problemu, jeśli defekty są akceptowalne, należy kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18058005",
                     "intro": "AMS-HT nie udało się wysłać filamentu. Możesz przyciąć koniec filamentu na płasko i ponownie włożyć. Jeśli ta wiadomość nadal się pojawia, proszę sprawdzić rurki PTFE w AMS pod kątem oznak zużycia."
                 },
                 {
                     "ecode": "18028010",
                     "intro": "Silnik pomocniczy AMS-HT jest przeciążony. Może to być spowodowane splątanym filamentem lub zablokowanym kółkiem nawojowym."
-                },
-                {
-                    "ecode": "18038016",
-                    "intro": "Ekstruzja nie przebiega prawidłowo; proszę skontaktować się z asystentem. Po wykonaniu czynności diagnostycznych, jeśli wady są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
                 },
                 {
                     "ecode": "18008010",
@@ -995,16 +1155,8 @@
                     "intro": "Proszę wysunąć filament do rurki PTFE prawego ekstrudera, aż nie będzie można go dalej wcisnąć."
                 },
                 {
-                    "ecode": "07078016",
-                    "intro": "Ekstruder nie ekstruduje poprawnie. Proszę skonsultować się z Asystentem od rozwiązywania problemów. Po rozwiązaniu problemu, jeśli defekty są akceptowalne, proszę kliknąć przycisk „Ponów”."
-                },
-                {
                     "ecode": "18078006",
                     "intro": "Nie można podać filamentu do ekstrudera. Może to być spowodowane splątanymi filamentami lub zablokowanym kłębkiem. Jeśli nie, proszę sprawdzić, czy rurka PTFE AMS-HT jest podłączona."
-                },
-                {
-                    "ecode": "18018016",
-                    "intro": "Ekstruder nie ekstruduje poprawnie. Proszę skonsultować się z Asystentem od rozwiązywania problemów. Po rozwiązaniu problemu, jeśli defekty są akceptowalne, proszę kliknąć przycisk „Ponów”."
                 },
                 {
                     "ecode": "18018005",
@@ -1037,10 +1189,6 @@
                 {
                     "ecode": "18048003",
                     "intro": "Nie udało się wyciągnąć filamentu z ekstrudera. Może to być spowodowane zapchanym ekstruderem lub filamentem, który zerwał się wewnątrz ekstrudera."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wypchnięty, kliknij \"Gotowe\"; jeśli nie, proszę nieznacznie przesunąć filament do przodu, a następnie kliknąć \"Ponów\"."
                 },
                 {
                     "ecode": "0C00403E",
@@ -1155,14 +1303,6 @@
                     "intro": "Proszę wprowadzić filament do węża PTFE prawego ekstrudera, aż nie będzie można go wcisnąć dalej."
                 },
                 {
-                    "ecode": "18078016",
-                    "intro": "Ekstruder nie wytłacza normalnie; proszę skontaktować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, kliknij przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "18028016",
-                    "intro": "Ekstruder nie wytłacza normalnie; proszę skontaktować się z Asystentem. Po rozwiązaniu problemu, jeśli wady są akceptowalne, kliknij przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "Wyczerpała się nici AMS-HT. Proszę włożyć nowy filament do tego samego gniazda AMS."
                 },
@@ -1179,10 +1319,6 @@
                     "intro": "AMS nie był w stanie przesłać filamentu. Możesz przyciąć koniec filamentu na płasko i spróbować ponownie. Jeśli ten komunikat nadal się pojawia, sprawdź w AMS rurki PTFE pod kątem oznak zużycia."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wypchnięty, kliknij \"Gotowe\"; jeśli go tam nie ma, przesuń filament lekko do przodu i kliknij \"Ponów\"."
-                },
-                {
                     "ecode": "07068004",
                     "intro": "AMS nie był w stanie cofnąć filamentu. Może to być spowodowane zablokowaną szpulą lub przyczepieniem się końca filamentu w drodze."
                 },
@@ -1193,10 +1329,6 @@
                 {
                     "ecode": "18FEC003",
                     "intro": "Proszę wyciągnij filament z uchwytu szpuli lewego ekstrudera. Jeśli ta wiadomość będzie się pojawiać, sprawdź, czy nie ma filamentu zepsutego w ekstrudorze lub rurce PTFE. (Podłącz rurkę PTFE, jeśli zamierzasz użyć AMS)."
-                },
-                {
-                    "ecode": "18068016",
-                    "intro": "Ekstruder nie wytłacza filamentu w sposób normalny; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli niedoskonałości są akceptowalne, kliknij przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18058004",
@@ -1215,10 +1347,6 @@
                     "intro": "Motor pomocniczy AMS-HT jest przeciążony. Może to być spowodowane splątanym filamentem lub przyklejoną szpulą."
                 },
                 {
-                    "ecode": "18048016",
-                    "intro": "Ekstruder nie wytłacza filamentu w sposób normalny; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu, jeśli niedoskonałości są akceptowalne, kliknij przycisk \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18FFC008",
                     "intro": "Proszę wyciągnij filament z uchwytu szpuli prawego ekstrudera. Jeśli ta wiadomość będzie się pojawiać, sprawdź, czy nie ma zepsutego filamentu w ekstrudorze lub rurce PTFE. (Podłącz rurkę PTFE, jeśli zamierzasz użyć AMS)."
                 },
@@ -1227,20 +1355,8 @@
                     "intro": "AMS-HT nie powiodło się w wycofaniu filamentu. Może to być spowodowane zablokowaniem na rolce lub zablokowaniem końca filamentu na drodze."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wydrukowany, kliknąć \"Gotowe\"; w przeciwnym wypadku należy nieco wysunąć filament do przodu, a następnie kliknąć \"Ponów próbę\"."
-                },
-                {
                     "ecode": "18058010",
                     "intro": "Nadmierne obciążenie silnika asystenta AMS-HT. Może to być spowodowane splątaną nićą lub zablokowaniem na rolce."
-                },
-                {
-                    "ecode": "07048016",
-                    "intro": "Ekstruder nie wydrukuje poprawnie; proszę odwołać się do asystenta. Po wykonaniu diagnostyki, jeśli defekty są dopuszczalne, proszę kliknąć przycisk \"Ponów próbę\"."
-                },
-                {
-                    "ecode": "07068016",
-                    "intro": "Ekstruder nie wydrukuje poprawnie; proszę odwołać się do asystenta. Po wykonaniu diagnostyki, jeśli defekty są dopuszczalne, proszę kliknąć przycisk \"Ponów próbę\"."
                 },
                 {
                     "ecode": "18008003",
@@ -1331,10 +1447,6 @@
                     "intro": "Wykryto obiekty na platformie; proszę o dokładne ich sprzątnięcie w odpowiednim czasie."
                 },
                 {
-                    "ecode": "0C004026",
-                    "intro": "Błąd inicjacji kamery Live View; proszę upewnij się, że kamera jest prawidłowo zainstalowana."
-                },
-                {
                     "ecode": "05024006",
                     "intro": "Wykryto nieznany moduł, spróbuj zaktualizować oprogramowanie do najnowszej wersji."
                 },
@@ -1423,10 +1535,6 @@
                     "intro": "Proszę wyjąć filament z uchwytu szpuli lewej ekstrudera. Jeśli ta wiadomość nadal się pojawia, sprawdź, czy w ekstruderze lub w rurce PTFE nie ma zepsutego filametu. (Podłącz rurkę PTFE, jeśli planujesz korzystać z AMS)."
                 },
                 {
-                    "ecode": "07FEC00A",
-                    "intro": "Proszę zwrócić uwagę na dyszę lewego ekstrudera. Jeśli filament został wydrukowany, kliknij \"Gotowe\"; jeśli nie, proszę delikatnie przesunąć filament do przodu i kliknąć \"Powtórz\"."
-                },
-                {
                     "ecode": "05008053",
                     "intro": "Podczas druku wykryto niezgodność dyszy lewej i prawej. Proszę rozpocząć drukowanie po ponownym wycięciu modelu lub kontynuować drukowanie po wymianie właściwej dyszy. Uwaga: temperatura hotendu jest wysoka."
                 },
@@ -1491,22 +1599,6 @@
                     "intro": "Urządzenie zostało podłączone do modułu lasera lub tnącego i nie można zainicjować zadania drukowania 3D."
                 },
                 {
-                    "ecode": "07008016",
-                    "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07018016",
-                    "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07038016",
-                    "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
-                    "ecode": "07028016",
-                    "intro": "Ekstrudowanie przez ekstruder nie jest normalne; proszę zwrócić się do Asystenta. Po rozwiązaniu problemu, jeśli błędy są akceptowalne, proszę kliknąć przycisk \"Ponów\"."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "Drukarka w tym momencie drukuje i funkcja ulepszania dokładności ruchu nie może zostać włączona lub wyłączona."
                 },
@@ -1547,10 +1639,6 @@
                     "intro": "Nie udało się uzyskać adresu IP, co może być spowodowane zakłóceniami w sieci bezprzewodowej lub wyczerpaniem puli adresów DHCP routera. Proszę zbliżyć drukarkę do routera i spróbować ponownie. Jeśli problem nadal występuje, proszę sprawdzić ustawienia routera, aby zobaczyć, czy adresy IP zostały wyczerpane."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Proszę zwrócić uwagę na dyszę lewego ekstrudera. Jeśli filament został już wypuszczony, kliknij \"Gotowe\"; jeśli nie, proszę przesunąć filament lekko do przodu, a następnie kliknąć \"Ponów\"."
-                },
-                {
                     "ecode": "0300801C",
                     "intro": "Opor przy ekstruzji jest nieprawidłowy. Może to oznaczać zatkanie ekstrudera. Proszę skonsultować się z asystentem, a po rozwiązaniu problemu, kliknąć przycisk \"Wznów\", aby wznowić drukowanie."
                 },
@@ -1573,10 +1661,6 @@
                 {
                     "ecode": "07FE8003",
                     "intro": "Proszę wyjąć filament z uchwytu szpulowego lewego ekstrudera. Jeśli komunikat ten będzie się pojawiał ponownie, proszę sprawdzić, czy filament został uszkodzony w ekstruderze. (Podłącz rurkę PTFE, jeśli zamierzasz użyć AMS.)"
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Proszę zwrócić uwagę na dyszę prawego ekstrektora. Jeśli materiał ekstrudowany jest widoczny, kliknąć \"Gotowe\"; jeśli nie, należy nieco przesunąć filament do przodu, a następnie kliknąć \"Ponów\"."
                 },
                 {
                     "ecode": "03008014",
@@ -1677,10 +1761,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Proszę sprawdzić, czy moduł laserowy działa prawidłowo."
-                },
-                {
-                    "ecode": "0C004021",
-                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Sprawdź, czy kamera jest poprawnie zainstalowana."
                 },
                 {
                     "ecode": "0C004020",
@@ -2312,6 +2392,146 @@
             "ver": 202502042359,
             "pl": [
                 {
+                    "ecode": "0701200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS B do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0702200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS C do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Wykryto nowe AMS. Proszę skonfigurować przed użyciem."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Wykryto nową kamerę BirdsEye lub zmianę kąta kamery. Proszę ukończyć konfigurację przed użyciem."
+                },
+                {
+                    "ecode": "1801200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT B do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Wykryto nowe AMS-HT. Proszę skonfigurować przed użyciem."
+                },
+                {
+                    "ecode": "0705200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS F do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "Wykryto AMS korzystające z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "Wykryto AMS korzystające z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "Wykryto AMS korzystające z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "Wykryto AMS korzystające z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "Wykryto AMS korzystające z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "1803240000010007",
+                    "intro": "Wykrycie drzwi D AMS-HT jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
+                    "ecode": "0700200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS A do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0703200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS D do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1805200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT F do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1802200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT C do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1807200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT H do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1803200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT D do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0706200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS G do ekstrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0707200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS H do extrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1806200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT G do extrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1800200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT A do extrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0704200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS E do extrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "1804200000020006",
+                    "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT E do extrudera jest prawidłowo podłączona."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "Wykryto, że AMS korzysta z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "Wykryto, że AMS korzysta z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "Wykryto, że AMS korzysta z zasilania drukarki do suszenia podczas ładowania/drukowania. Aby poprawić wydajność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "1806240000010007",
+                    "intro": "Wykryto nieprawidłowe działanie czujnika drzwi AMS-HT G, połączenie czujnika Hall może być luźne lub rozłączone."
+                },
+                {
+                    "ecode": "1801240000010007",
+                    "intro": "Wykryto nieprawidłowe działanie czujnika drzwi AMS-HT B, połączenie czujnika Hall może być luźne lub rozłączone."
+                },
+                {
+                    "ecode": "1805240000010007",
+                    "intro": "Wykrywanie drzwi AMS-HT F jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
+                    "ecode": "1802240000010007",
+                    "intro": "Wykrywanie drzwi AMS-HT C jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
+                    "ecode": "1804240000010007",
+                    "intro": "Wykrywanie drzwi AMS-HT E jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
+                    "ecode": "1807240000010007",
+                    "intro": "Wykrywanie drzwi AMS-HT H jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
+                    "ecode": "1800240000010007",
+                    "intro": "Wykrywanie drzwi AMS-HT A jest nieprawidłowe, połączenie czujnika Halla może być luźne lub odłączone."
+                },
+                {
                     "ecode": "07FF700000020003",
                     "intro": "Proszę sprawdzić, czy materiał wychodzi z odpowiedniej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
                 },
@@ -2388,18 +2608,6 @@
                     "intro": "Wykryto niecertyfikowany akcesorium. Proszę używać oficjalnych akcesoriów."
                 },
                 {
-                    "ecode": "0705250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na skuteczność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0707250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania lub drukowania filamentu. Może to wpłynąć na efektywność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
-                },
-                {
-                    "ecode": "0704250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
-                },
-                {
                     "ecode": "07FE600000020001",
                     "intro": "Zewnętrzna szpula podłączona do lewego ekstrudera może być zaplątana lub zacięta."
                 },
@@ -2452,24 +2660,8 @@
                     "intro": "Wykryto niecertyfikowany AMS. Nie można pracować z tą drukarką."
                 },
                 {
-                    "ecode": "0703250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
-                    "ecode": "0700250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
-                },
-                {
-                    "ecode": "0701250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "Zewnętrzny szpula podłączona do prawego ekstrudera może być zaplątana lub zablokowana."
-                },
-                {
-                    "ecode": "0706250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki."
                 },
                 {
                     "ecode": "050005000001000D",
@@ -2478,10 +2670,6 @@
                 {
                     "ecode": "050005000001000E",
                     "intro": "Moduł lasera nie jest certyfikowany. Proszę używać akcesoriów Bambu Lab."
-                },
-                {
-                    "ecode": "0702250000020001",
-                    "intro": "AMS AMS używa zasilania MC do suszenia podczas ładowania filamentu lub drukowania. Może to wpłynąć na wydajność suszenia. Zaleca się podłączenie adaptera do suszenia, aby zapewnić optymalne wyniki suszenia."
                 },
                 {
                     "ecode": "18FE600000020001",
@@ -2552,14 +2740,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0702200000020006",
-                    "intro": "Rura PTFE odłączona. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
-                    "ecode": "0703200000020006",
-                    "intro": "Rura PTFE odłączona. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
                     "ecode": "0702010000020006",
                     "intro": "AMS C. Przewody trójfazowe silnika pomocniczego nie są podłączone. Złącze silnika pomocniczego może mieć słaby kontakt."
                 },
@@ -2596,30 +2776,6 @@
                     "intro": "Typ płyty drukarskiej jest nieznany; proszę zastąpić ją odpowiednią płytą."
                 },
                 {
-                    "ecode": "1805200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "1807200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "1803200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "0706200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
-                    "ecode": "1800200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "0704200000020006",
-                    "intro": "Rura PTFE odłączyła się. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
                     "ecode": "0500040000020041",
                     "intro": "Lewy i prawy hotend nie mogą być zidentyfikowane, prawdopodobnie z powodu nieoficjalnego hotendu. Może też być tak, że oznaczenie hotendu jest nieczytelne."
                 },
@@ -2634,14 +2790,6 @@
                 {
                     "ecode": "0500040000020053",
                     "intro": "Nieznany typ materiału"
-                },
-                {
-                    "ecode": "0700200000020006",
-                    "intro": "Rura PTFE odczepiona. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do wytłaczarki."
-                },
-                {
-                    "ecode": "0701200000020006",
-                    "intro": "Rura PTFE odczepiona. Proszę sprawdzić, czy rura PTFE jest podłączona od AMS do wytłaczarki."
                 },
                 {
                     "ecode": "0500060000020008",
@@ -2678,30 +2826,6 @@
                 {
                     "ecode": "0707010000020006",
                     "intro": "AMS H Przewody trójfazowe silnika pomocniczego nie są podłączone. Złącze silnika pomocniczego może mieć słaby kontakt."
-                },
-                {
-                    "ecode": "1802200000020006",
-                    "intro": "Rurka PTFE odłączona. Sprawdź, czy rurka PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "1801200000020006",
-                    "intro": "Rurka PTFE odłączona. Sprawdź, czy rurka PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "0707200000020006",
-                    "intro": "Rurka PTFE została odłączona. Proszę sprawdzić, czy rurka PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
-                    "ecode": "1806200000020006",
-                    "intro": "Rurka PTFE została odłączona. Proszę sprawdzić, czy rurka PTFE jest podłączona od AMS-HT do ekstrudera."
-                },
-                {
-                    "ecode": "0705200000020006",
-                    "intro": "Rurka PTFE została odłączona. Proszę sprawdzić, czy rurka PTFE jest podłączona od AMS do ekstrudera."
-                },
-                {
-                    "ecode": "1804200000020006",
-                    "intro": "Rurka PTFE została odłączona. Proszę sprawdzić, czy rurka PTFE jest podłączona od AMS-HT do ekstrudera."
                 },
                 {
                     "ecode": "03009E0000030001",
@@ -3278,10 +3402,6 @@
                 {
                     "ecode": "0300030000020002",
                     "intro": "Prędkość wentylatora chłodzenia hotendu jest powolna. Może być zablokowany i wymaga czyszczenia."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "Wykryto nową kamerę BirdsEye lub zmianę kąta kamery. Przed użyciem przejdź do konfiguracji."
                 },
                 {
                     "ecode": "0500040000020042",
@@ -6662,10 +6782,6 @@
                 {
                     "ecode": "1800230000020001",
                     "intro": "Filament w slocie AMS-HT A4 się skończył. Proszę włożyć nowy filament."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nowy AMS-HT podłączony; proszę skonfigurować przed użyciem."
                 },
                 {
                     "ecode": "0705700000020050",
@@ -10262,10 +10378,6 @@
                 {
                     "ecode": "0703950000010001",
                     "intro": "AMS D czujnik temperatury grzejnika 2 jest uszkodzony, co może być spowodowane słabym kontaktem złącza."
-                },
-                {
-                    "ecode": "0700550000020001",
-                    "intro": "Nowy AMS podłączony; proszę skonfiguruj przed użyciem."
                 },
                 {
                     "ecode": "0703350000010002",

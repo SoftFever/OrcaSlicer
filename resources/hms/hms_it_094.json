@@ -1,14 +1,214 @@
 {
     "result": 0,
-    "t": 1736436183,
+    "t": 1736653650,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "it": [
                 {
+                    "ecode": "05008064",
+                    "intro": "Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marker posteriori non siano bloccati per la calibrazione del laser."
+                },
+                {
+                    "ecode": "07018016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo aver risolto i problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "07048016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo aver risolto i problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, cliccare su \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare su \"Riprova\"."
+                },
+                {
+                    "ecode": "18028016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Si prega di osservare l'ugello dell'estrusore sinistro. Se il filamento è stato estruso, cliccare su \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare su \"Riprova\"."
+                },
+                {
+                    "ecode": "07078016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18018016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo aver risolto i problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18008016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di contattare l'Assistente. Dopo aver risolto i problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, cliccare su \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare su \"Riprova\"."
+                },
+                {
+                    "ecode": "05004031",
+                    "intro": "È stato rilevato un accessorio non certificato e il dispositivo non può continuare a funzionare."
+                },
+                {
+                    "ecode": "0702800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS C all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0706800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS G all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1801800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS-HT B all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1804800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS-HT E all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1802800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS-HT C all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0704800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS E all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1800800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS-HT A all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0705800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS F all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1806800A",
+                    "intro": "Rilevata disconnessione del tubo in PTFE. Controlla se il tubo in PTFE da AMS-HT G all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Si prega di osservare l'ugello del estrusore sinistro. Se il filamento è stato estruso, cliccare \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare \"Riprova\"."
+                },
+                {
+                    "ecode": "0C004021",
+                    "intro": "La configurazione della BirdsEye Camera è fallita; si prega di riavviare la stampante."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Si prega di osservare l'ugello dell'estrusore sinistro. Se il filamento è stato estruso, cliccare \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare \"Riprova\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Piattaforma di taglio rilevata. Si prega di posizionare la piattaforma laser per la calibrazione del laser."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, cliccare \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare \"Riprova\"."
+                },
+                {
+                    "ecode": "0C004026",
+                    "intro": "L'inizializzazione della Live View Camera è fallita; si prega di riavviare la stampante."
+                },
+                {
+                    "ecode": "07008016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "07038016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo aver risolto i problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "07028016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "07068016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18048016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Si prega di osservare l'ugello del fusore sinistro. Se il filamento è stato estruso, fare clic su \"Continua\"; in caso contrario, spingere leggermente in avanti il filamento e poi fare clic su \"Riprova\"."
+                },
+                {
+                    "ecode": "18068016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18078016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18038016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo aver risolto il problema. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "07058016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "18058016",
+                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Piattaforma di taglio rilevata, il che potrebbe influire sull'accuratezza della misurazione dell'altezza. Si prega di posizionare la piattaforma laser, quindi riavviare la misurazione dell'altezza nel software prima di avviare il compito."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marker posteriori non siano bloccati, quindi riavviare la misurazione dell'altezza nel software prima di avviare il compito."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Si prega di osservare l'ugello del fusore destro. Se il filamento è stato estruso, fare clic su \"Continua\"; in caso contrario, spingere leggermente in avanti il filamento e poi fare clic su \"Riprova\"."
+                },
+                {
                     "ecode": "0C004041",
-                    "intro": "La calibrazione del LiDAR è fallita. Assicurati che la superficie del target di calibrazione sia pulita e non danneggiata, poi ripeti il processo di calibrazione."
+                    "intro": "La calibrazione della telecamera del toolhead non è riuscita. Assicurati che il marker di calibrazione sia pulito e non danneggiato, quindi ripeti il processo di calibrazione."
+                },
+                {
+                    "ecode": "1803800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS-HT D all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0C00402C",
+                    "intro": "Errore del collegamento dati del dispositivo. Riavvia la stampante."
+                },
+                {
+                    "ecode": "0500C032",
+                    "intro": "Modulo laser/di taglio collegato al toolhead. Il processo di asciugatura è stato interrotto automaticamente."
+                },
+                {
+                    "ecode": "0700800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS A all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0C00402D",
+                    "intro": "La telecamera del toolhead non funziona correttamente; riavvia il dispositivo."
+                },
+                {
+                    "ecode": "1807800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS-HT H all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1805800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS-HT F all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0707800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS H all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0703800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Controlla se il tubo PTFE dall'AMS D all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0701800A",
+                    "intro": "Disconnessione del tubo PTFE rilevata. Si prega di controllare se il tubo PTFE da AMS B all'estrusore è collegato correttamente."
                 },
                 {
                     "ecode": "07018007",
@@ -49,10 +249,6 @@
                 {
                     "ecode": "0500805C",
                     "intro": "Il tipo di tappetino da taglio non corrisponde; si prega di posizionare un tappetino da taglio LightGrip."
-                },
-                {
-                    "ecode": "05008055",
-                    "intro": "Tipo di piattaforma non corretto. Si prega di posizionare la piattaforma laser per la calibrazione del laser."
                 },
                 {
                     "ecode": "05008059",
@@ -411,10 +607,6 @@
                     "intro": "Impossibile ottenere la tabella di mappatura AMS; si prega di fare clic su \"Riprendi\" per riprovare."
                 },
                 {
-                    "ecode": "05004076",
-                    "intro": "Piattaforma sconosciuta nel compito, che potrebbe influenzare l'accuratezza della misurazione dell'altezza. Si prega di posizionare correttamente la piattaforma laser e assicurarsi che la camera BirdsEye sia libera da ostacoli, quindi rieseguire la misurazione dell'altezza nel software e riavviare il compito."
-                },
-                {
                     "ecode": "07FF8010",
                     "intro": "Controlla se il giusto rocchetto di filamento esterno o il filamento è bloccato."
                 },
@@ -443,10 +635,6 @@
                     "intro": "La funzione di rilevamento di oggetti estranei non funziona. Puoi continuare il compito o consultare l'assistente per la risoluzione dei problemi."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Il tipo di piattaforma non corrisponde, il che potrebbe causare dati di misurazione dell'altezza imprecisi. Si prega di posizionare correttamente la piattaforma laser, quindi rimisurare l'altezza nel software e avviare l'attività."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "La funzione di rilevamento oggetti estranei non funziona. Puoi continuare il compito o visualizzare l'assistente per la risoluzione dei problemi."
                 },
@@ -465,10 +653,6 @@
                 {
                     "ecode": "05008069",
                     "intro": "L'hotend sinistro e destro non possono essere identificati, probabilmente a causa del marcatore dell'ugello danneggiato. Si prega di impostare manualmente il tipo di hotend."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Il tipo di piattaforma è sconosciuto durante la calibrazione; si prega di sostituirlo con quello corretto."
                 },
                 {
                     "ecode": "05FE8069",
@@ -497,10 +681,6 @@
                 {
                     "ecode": "1887406D",
                     "intro": "AMS-HT H sta assistendo nell'inserimento del filamento. Impossibile avviare l'essiccazione. Per favore riprova più tardi."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, fai clic su \"Fatto\"; se no, spingi leggermente il filamento in avanti e poi fai clic su \"Riprova\"."
                 },
                 {
                     "ecode": "1882406A",
@@ -621,10 +801,6 @@
                 {
                     "ecode": "1880406E",
                     "intro": "Il motore AMS-HT A sta effettuando un'autodiagnosi. Impossibile avviare l'asciugatura. Riprova più tardi."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, clicca su \"Fatto\"; se no, spingi leggermente il filamento in avanti e poi clicca su \"Riprova\"."
                 },
                 {
                     "ecode": "1887406C",
@@ -911,10 +1087,6 @@
                     "intro": "AMS-HT non è riuscito a tirare indietro il filamento. Ciò potrebbe essere dovuto ad un rullino bloccato o alla fine del filamento bloccato nel percorso."
                 },
                 {
-                    "ecode": "18058016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; fare riferimento all'Assistente. Dopo aver risolto i problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18038017",
                     "intro": "AMS-HT D si sta asciugando. Interrompere il processo di essiccazione prima di caricare/scaricare il materiale."
                 },
@@ -935,10 +1107,6 @@
                     "intro": "Il motore di assistenza AMS-HT è sovraccarico. Ciò potrebbe essere causato da un filamento ingarbugliato o da un rotolo bloccato."
                 },
                 {
-                    "ecode": "07058016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Si prega di tirare fuori il filamento dal supporto della bobina dell'estrusore sinistro. Se questo messaggio persiste, si prega di controllare se il filamento è rotto nell'estrusore o nel tubo PTFE. (Collegare un tubo PTFE se si sta per utilizzare un AMS)"
                 },
@@ -955,20 +1123,12 @@
                     "intro": "Il motore di assistenza AMS-HT è sovraccarico. Ciò potrebbe essere dovuto a un filamento ingarbugliato o a un rocchetto bloccato."
                 },
                 {
-                    "ecode": "18008016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18058005",
                     "intro": "L'AMS-HT non riesce a far uscire il filamento. Puoi tagliare piatto l'estremità del filamento e reinserirlo. Se il messaggio continua a comparire, controlla i tubi PTFE nell'AMS per verificare eventuali segni di usura."
                 },
                 {
                     "ecode": "18028010",
                     "intro": "Il motore di assistenza AMS-HT è in sovraccarico. Ciò potrebbe essere dovuto a un filamento impigliato o a un supporto bloccato."
-                },
-                {
-                    "ecode": "18038016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
                 },
                 {
                     "ecode": "18008010",
@@ -995,16 +1155,8 @@
                     "intro": "Si prega di inserire il filamento nel tubo PTFE dell'estrusore destro fino a quando non può essere spinto ulteriormente."
                 },
                 {
-                    "ecode": "07078016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18078006",
                     "intro": "Impossibile inserire il filamento nell'estrusore. Ciò potrebbe essere dovuto a un filamento impigliato o ad un rotolo bloccato. In caso contrario, verificare se il tubo PTFE AMS-HT è collegato."
-                },
-                {
-                    "ecode": "18018016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
                 },
                 {
                     "ecode": "18018005",
@@ -1037,10 +1189,6 @@
                 {
                     "ecode": "18048003",
                     "intro": "Impossibile estrarre il filamento dall'estrusore. Ciò potrebbe essere causato da un estrusore ostruito o da un filamento rotto all'interno dell'estrusore."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Si prega di osservare la boccola dell'estrusore sinistro. Se il filamento è stato estruso, fare clic su \"Fatto\"; altrimenti, spingere leggermente il filamento in avanti e fare clic su \"Riprova\"."
                 },
                 {
                     "ecode": "0C00403E",
@@ -1155,14 +1303,6 @@
                     "intro": "Si prega di inserire il filamento nel tubo di PTFE dell'estrusore destro fino a quando non si può spingere oltre."
                 },
                 {
-                    "ecode": "18078016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
-                    "ecode": "18028016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "Il filamento AMS-HT è terminato. Si prega di inserire un nuovo filamento nello stesso slot AMS."
                 },
@@ -1179,10 +1319,6 @@
                     "intro": "L'AMS non è riuscito a mandare fuori il filamento. Puoi appiattire la fine del tuo filamento con delle pinze e reinserirlo. Se questo messaggio persiste, controlla i tubi PTFE nell'AMS per verificare eventuali segni di usura."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Osserva la testa dell'ugello del lato destro dell'estrusore. Se il filamento è stato estruso, clicca su \"Fatto\"; se non lo è, spingi leggermente in avanti il filamento, quindi clicca su \"Riprova\"."
-                },
-                {
                     "ecode": "07068004",
                     "intro": "L'AMS non è riuscito a far indietreggiare il filamento. Ciò potrebbe essere dovuto ad un avvolgimento incastrato o alla fine del filamento bloccata nel percorso."
                 },
@@ -1193,10 +1329,6 @@
                 {
                     "ecode": "18FEC003",
                     "intro": "Si prega di rimuovere il filamento dal supporto della bobina dell'estrusore sinistro. Se il messaggio persiste, verificare se ci sono frammenti di filamento nell'estrusore o nel tubo PTFE. (Collegare un tubo PTFE se si sta per utilizzare un AMS)"
-                },
-                {
-                    "ecode": "18068016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
                 },
                 {
                     "ecode": "18058004",
@@ -1215,10 +1347,6 @@
                     "intro": "Il motore ausiliario AMS-HT è sovraccarico. Ciò potrebbe essere causato da un filamento intrecciato o da una bobina bloccata."
                 },
                 {
-                    "ecode": "18048016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "18FFC008",
                     "intro": "Si prega di rimuovere il filamento dal supporto della bobina dell'estrusore destro. Se il messaggio persiste, verificare se ci sono frammenti di filamento nell'estrusore o nel tubo PTFE. (Collegare un tubo PTFE se si sta per utilizzare un AMS)."
                 },
@@ -1227,20 +1355,8 @@
                     "intro": "AMS-HT non è riuscito a ritirare il filamento. Questo potrebbe essere dovuto ad un filo avvolto attorno al rullo o ad una ostruzione del percorso del filamento."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Si prega di osservare la testina dell'estrusore sinistro. Se il filamento è stato estruso, fare clic su \"Fatto\"; in caso contrario, spingere leggermente in avanti il filamento e poi fare clic su \"Riprova\"."
-                },
-                {
                     "ecode": "18058010",
                     "intro": "Il motore assistente AMS-HT è sovraccarico. Ciò potrebbe essere dovuto ad un filamento annodato o ad un rullo che non gira."
-                },
-                {
-                    "ecode": "07048016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
-                },
-                {
-                    "ecode": "07068016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; si prega di fare riferimento all'Assistente. Dopo la risoluzione dei problemi, se i difetti sono accettabili, fare clic sul pulsante \"Riprova\"."
                 },
                 {
                     "ecode": "18008003",
@@ -1331,10 +1447,6 @@
                     "intro": "Oggetti rilevati sulla piattaforma; si prega di rimuoverli tempestivamente."
                 },
                 {
-                    "ecode": "0C004026",
-                    "intro": "L'inizializzazione della telecamera Live View è fallita; si prega di assicurarsi che la telecamera sia installata correttamente."
-                },
-                {
                     "ecode": "05024006",
                     "intro": "Modulo sconosciuto rilevato, si prega di provare ad aggiornare il firmware all'ultima versione disponibile."
                 },
@@ -1423,10 +1535,6 @@
                     "intro": "Si prega di tirare fuori il filamento dal supporto della bobina del lato dell'estrusore sinistro. Se il messaggio persiste, controllare se ci sono frammenti di filamento nell'estrusore o nel tubo in PTFE. (Collegare un tubo in PTFE se si sta per utilizzare un AMS)"
                 },
                 {
-                    "ecode": "07FEC00A",
-                    "intro": "Si prega di osservare l'ugello dell'estrusore sinistro. Se il filamento è stato estruso, fare clic su \"Fatto\"; altrimenti, spingere leggermente in avanti il filamento e quindi fare clic su \"Riprova\"."
-                },
-                {
                     "ecode": "05008053",
                     "intro": "Sono stati rilevati problemi di incompatibilità dell'ugello destro e sinistro durante la stampa. Fare clic su \"Stampa\" dopo aver rielaborato il file di stampa, o continuare a stampare dopo aver sostituito l'ugello corretto. Attenzione: la temperatura dell'hotend è elevata."
                 },
@@ -1491,22 +1599,6 @@
                     "intro": "Il dispositivo è stato connesso al modulo laser o taglierina e non può avviare un'attività di stampa 3D."
                 },
                 {
-                    "ecode": "07008016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; consulta l'Assistente per la risoluzione dei problemi. Dopo aver risolto il problema, se i difetti sono accettabili, premi il pulsante \"Riprova\"."
-                },
-                {
-                    "ecode": "07018016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; consulta l'Assistente per la risoluzione dei problemi. Dopo aver risolto il problema, se i difetti sono accettabili, premi il pulsante \"Riprova\"."
-                },
-                {
-                    "ecode": "07038016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; consulta l'Assistente per la risoluzione dei problemi. Dopo aver risolto il problema, se i difetti sono accettabili, premi il pulsante \"Riprova\"."
-                },
-                {
-                    "ecode": "07028016",
-                    "intro": "L'estrusore non sta estrudendo normalmente; consulta l'Assistente per la risoluzione dei problemi. Dopo aver risolto il problema, se i difetti sono accettabili, premi il pulsante \"Riprova\"."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "La stampante sta attualmente stampando e la funzione di miglioramento della precisione del movimento non può essere attivata o disattivata."
                 },
@@ -1547,10 +1639,6 @@
                     "intro": "Impossibile ottenere l'indirizzo IP, ciò potrebbe essere causato da un'interferenza wireless che provoca un errore nella trasmissione dei dati o dal fatto che il pool di indirizzi DHCP del router sia pieno. Si prega di avvicinare la stampante al router e riprovare. Se il problema persiste, si prega di verificare le impostazioni del router per vedere se gli indirizzi IP sono esauriti."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Si prega di osservare la testina dell'estrusore sinistro. Se il filamento è stato estruso, fare clic su \"Fatto\"; se non lo è, si prega di spingere leggermente in avanti il filamento e quindi fare clic su \"Riprova\"."
-                },
-                {
                     "ecode": "0300801C",
                     "intro": "La resistenza dell'estrusione è anormale. L'estrusore potrebbe essere intasato, si prega di fare riferimento all'assistente e, dopo aver risolto il problema, premere il pulsante \"Riprendi\" per riprendere il lavoro di stampa."
                 },
@@ -1573,10 +1661,6 @@
                 {
                     "ecode": "07FE8003",
                     "intro": "Si prega di tirare fuori il filamento dal porta-filo dell'estrusore sinistro. Se questo messaggio persiste, si prega di verificare se il filamento si è rotto nell'estrusore. (Se si sta per usare un AMS, collegare un tubo PTFE.)"
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Si prega di osservare la ugello dell'estrusore destro. Se il filamento è stato estruso, fare clic su \"Fatto\"; se non lo è, spingere leggermente avanti il filamento e fare clic su \"Riprova\"."
                 },
                 {
                     "ecode": "03008014",
@@ -1677,10 +1761,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "La configurazione della fotocamera BirdsEye è fallita. Si prega di verificare se il modulo laser funziona correttamente."
-                },
-                {
-                    "ecode": "0C004021",
-                    "intro": "L'installazione della fotocamera BirdsEye è fallita. Si prega di verificare se la fotocamera è stata installata correttamente."
                 },
                 {
                     "ecode": "0C004020",
@@ -2312,6 +2392,146 @@
             "ver": 202502042359,
             "it": [
                 {
+                    "ecode": "0701200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS B all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0702200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS C all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Nuovo AMS rilevato. Si prega di configurarlo prima dell'uso."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "È stata rilevata una nuova BirdsEye Camera o un cambio di angolazione della camera. Si prega di completare la configurazione prima dell'uso."
+                },
+                {
+                    "ecode": "1801200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS-HT B all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Nuovo AMS-HT rilevato. Si prega di configurarlo prima dell'uso."
+                },
+                {
+                    "ecode": "0705200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS F all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per l'asciugatura durante il caricamento/stampa. Per migliori prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per l'asciugatura durante il caricamento/stampa. Per migliori prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per l'asciugatura durante il caricamento/stampa. Per migliori prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per l'asciugatura durante il caricamento/stampa. Per migliorare le prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per l'asciugatura durante il caricamento/stampa. Per migliorare le prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "1803240000010007",
+                    "intro": "Rilevamento porta D di AMS-HT anomalo, la connessione del sensore Hall potrebbe essere allentata o scollegata."
+                },
+                {
+                    "ecode": "0700200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS A all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0703200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS D all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1805200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS-HT F all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1802200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS-HT C all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1807200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS-HT H all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "1803200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS-HT D all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0706200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE da AMS G all'estrusore è correttamente collegato."
+                },
+                {
+                    "ecode": "0707200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di verificare se il tubo PTFE dall'AMS H all'estrusore è collegato correttamente."
+                },
+                {
+                    "ecode": "1806200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di verificare se il tubo PTFE dall'AMS-HT G all'estrusore è collegato correttamente."
+                },
+                {
+                    "ecode": "1800200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di verificare se il tubo PTFE dall'AMS-HT A all'estrusore è collegato correttamente."
+                },
+                {
+                    "ecode": "0704200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di verificare se il tubo PTFE dall'AMS E all'estrusore è collegato correttamente."
+                },
+                {
+                    "ecode": "1804200000020006",
+                    "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di verificare se il tubo PTFE dall'AMS-HT E all'estrusore è collegato correttamente."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per asciugare durante il caricamento/stampa. Per migliorare le prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per asciugare durante il caricamento/stampa. Per migliori prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "Rilevato AMS che utilizza l'alimentazione della stampante per asciugare durante il caricamento/stampa. Per migliori prestazioni di asciugatura, si prega di collegare un adattatore di alimentazione."
+                },
+                {
+                    "ecode": "1806240000010007",
+                    "intro": "La rilevazione della porta AMS-HT G è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1801240000010007",
+                    "intro": "La rilevazione della porta AMS-HT B è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1805240000010007",
+                    "intro": "La rilevazione della porta AMS-HT F è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1802240000010007",
+                    "intro": "La rilevazione della porta AMS-HT C è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1804240000010007",
+                    "intro": "La rilevazione della porta AMS-HT E è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1807240000010007",
+                    "intro": "La rilevazione della porta AMS-HT H è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
+                    "ecode": "1800240000010007",
+                    "intro": "La rilevazione della porta AMS-HT A è anomala, la connessione del sensore Hall potrebbe essere allentata o disconnessa."
+                },
+                {
                     "ecode": "07FF700000020003",
                     "intro": "Controlla se il materiale esce dall'ugello giusto. Se no, spingi delicatamente il materiale e prova a estrudere di nuovo."
                 },
@@ -2388,18 +2608,6 @@
                     "intro": "Accessorio non certificato rilevato. Si prega di utilizzare accessori ufficiali."
                 },
                 {
-                    "ecode": "0705250000020001",
-                    "intro": "AMS AMS utilizza potenza MC per l'asciugatura durante il caricamento o la stampa del filamento. Ciò può influenzare le prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
-                    "ecode": "0707250000020001",
-                    "intro": "AMS AMS utilizza potenza MC per l'asciugatura durante il caricamento o la stampa del filamento. Ciò può influenzare le prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
-                    "ecode": "0704250000020001",
-                    "intro": "AMS AMS utilizza potenza MC per l'asciugatura durante il caricamento o la stampa del filamento. Ciò può influenzare le prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
                     "ecode": "07FE600000020001",
                     "intro": "La bobina esterna collegata all'estrusore sinistro potrebbe essere aggrovigliata o bloccata."
                 },
@@ -2452,24 +2660,8 @@
                     "intro": "AMS non certificato rilevato. Impossibile utilizzare questa stampante."
                 },
                 {
-                    "ecode": "0703250000020001",
-                    "intro": "AMS utilizza energia MC per l'asciugatura durante il caricamento del filamento o la stampa. Questo può influire sulle prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
-                    "ecode": "0700250000020001",
-                    "intro": "AMS utilizza energia MC per l'asciugatura durante il caricamento del filamento o la stampa. Questo può influire sulle prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
-                    "ecode": "0701250000020001",
-                    "intro": "AMS utilizza energia MC per l'asciugatura durante il caricamento del filamento o la stampa. Questo può influire sulle prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "La bobina esterna collegata all'estrusore destro potrebbe essere aggrovigliata o inceppata."
-                },
-                {
-                    "ecode": "0706250000020001",
-                    "intro": "AMS utilizza energia MC per l'asciugatura durante il caricamento del filamento o la stampa. Questo può influire sulle prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
                 },
                 {
                     "ecode": "050005000001000D",
@@ -2478,10 +2670,6 @@
                 {
                     "ecode": "050005000001000E",
                     "intro": "Il modulo laser non è certificato. Si prega di utilizzare accessori Bambu Lab."
-                },
-                {
-                    "ecode": "0702250000020001",
-                    "intro": "AMS utilizza energia MC per l'asciugatura durante il caricamento del filamento o la stampa. Questo può influire sulle prestazioni di asciugatura. Si consiglia di collegare un adattatore per l'asciugatura per garantire risultati ottimali."
                 },
                 {
                     "ecode": "18FE600000020001",
@@ -2552,14 +2740,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0702200000020006",
-                    "intro": "Il tubo in PTFE si è staccato. Si prega di controllare se il tubo in PTFE è collegato dall'AMS all'estrusore."
-                },
-                {
-                    "ecode": "0703200000020006",
-                    "intro": "Il tubo in PTFE si è staccato. Si prega di verificare se il tubo in PTFE è collegato dall'AMS all'estrusore."
-                },
-                {
                     "ecode": "0702010000020006",
                     "intro": "AMS C I cavi trifase del motore ausiliario non sono collegati. Il connettore del motore ausiliario potrebbe avere un cattivo contatto."
                 },
@@ -2596,30 +2776,6 @@
                     "intro": "Il tipo di piastra di stampa è sconosciuto; per favore sostituiscila con quella corretta."
                 },
                 {
-                    "ecode": "1805200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "1807200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "1803200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "0706200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS all'estrusore."
-                },
-                {
-                    "ecode": "1800200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "0704200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato da AMS all'estrusore."
-                },
-                {
                     "ecode": "0500040000020041",
                     "intro": "L'hotend sinistro e destro non possono essere identificati, probabilmente a causa di un hotend non ufficiale. Potrebbe anche essere che il marcatore dell'hotend sia poco chiaro."
                 },
@@ -2634,14 +2790,6 @@
                 {
                     "ecode": "0500040000020053",
                     "intro": "Tipo di materiale sconosciuto"
-                },
-                {
-                    "ecode": "0700200000020006",
-                    "intro": "Tubo in PTFE staccato. Si prega di verificare se il tubo in PTFE è collegato dall'AMS all'estrusore."
-                },
-                {
-                    "ecode": "0701200000020006",
-                    "intro": "Tubo in PTFE staccato. Si prega di controllare se il tubo in PTFE è collegato dall'AMS all'estrusore."
                 },
                 {
                     "ecode": "0500060000020008",
@@ -2678,30 +2826,6 @@
                 {
                     "ecode": "0707010000020006",
                     "intro": "AMS H I fili del motore di assistenza trifase non sono collegati. Il connettore del motore di assistenza potrebbe avere un cattivo contatto."
-                },
-                {
-                    "ecode": "1802200000020006",
-                    "intro": "Il tubo PTFE si è staccato. Si prega di verificare se il tubo PTFE è collegato dall'AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "1801200000020006",
-                    "intro": "Il tubo PTFE si è staccato. Controlla se il tubo PTFE è collegato da AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "0707200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato dall'AMS all'estrusore."
-                },
-                {
-                    "ecode": "1806200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato dall'AMS-HT all'estrusore."
-                },
-                {
-                    "ecode": "0705200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato dall'AMS all'estrusore."
-                },
-                {
-                    "ecode": "1804200000020006",
-                    "intro": "Tubo PTFE staccato. Controlla se il tubo PTFE è collegato dall'AMS-HT all'estrusore."
                 },
                 {
                     "ecode": "03009E0000030001",
@@ -3278,10 +3402,6 @@
                 {
                     "ecode": "0300030000020002",
                     "intro": "La velocità della ventola di raffreddamento del hotend è lenta. Potrebbe essere bloccata e avere bisogno di pulizia."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "È stata rilevata una nuova telecamera BirdsEye o un cambiamento di angolazione della telecamera. Si prega di andare alla configurazione prima dell'uso."
                 },
                 {
                     "ecode": "0500040000020042",
@@ -6662,10 +6782,6 @@
                 {
                     "ecode": "1800230000020001",
                     "intro": "Il filamento dello Slot 4 AMS-HT A si è esaurito. Si prega di inserire un nuovo filamento."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nuovo dispositivo AMS-HT collegato; si prega di configurarlo prima dell'uso."
                 },
                 {
                     "ecode": "0705700000020050",
@@ -10262,10 +10378,6 @@
                 {
                     "ecode": "0703950000010001",
                     "intro": "AMS D Il sensore di temperatura del riscaldatore 2 non funziona correttamente, ciò potrebbe essere dovuto ad un cattivo contatto del connettore."
-                },
-                {
-                    "ecode": "0700550000020001",
-                    "intro": "Nuovo AMS connesso; configurarlo prima dell'uso."
                 },
                 {
                     "ecode": "0703350000010002",

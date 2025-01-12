@@ -1,14 +1,214 @@
 {
     "result": 0,
-    "t": 1736436183,
+    "t": 1736653649,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "en": [
                 {
+                    "ecode": "05008064",
+                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked for laser calibration."
+                },
+                {
+                    "ecode": "07018016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "07048016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
+                },
+                {
+                    "ecode": "18028016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
+                },
+                {
+                    "ecode": "07078016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18018016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18008016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
+                },
+                {
+                    "ecode": "05004031",
+                    "intro": "An uncertified accessory was detected, and the device cannot continue working."
+                },
+                {
+                    "ecode": "0702800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS C to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0706800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS G to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1801800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT B to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1804800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT E to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1802800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT C to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0704800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS E to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1800800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT A to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0705800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS F to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1806800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT G to the extruder is properly connected."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
+                },
+                {
+                    "ecode": "0C004021",
+                    "intro": "The setup of BirdsEye Camera failed; please reboot the printer."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Cutting platform detected. Please place the laser platform for laser calibration."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
+                },
+                {
+                    "ecode": "0C004026",
+                    "intro": "The Live View Camera initialization failed; please reboot the printer."
+                },
+                {
+                    "ecode": "07008016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "07038016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "07028016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "07068016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18048016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
+                },
+                {
+                    "ecode": "18068016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18078016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18038016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "07058016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "18058016",
+                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Cutting platform detected, which may affect height measurement accuracy. Please place the laser platform, then restart the height measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the height measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
+                },
+                {
                     "ecode": "0C004041",
-                    "intro": "LiDAR calibration failed. Please ensure the calibration target surface is clean and undamaged, then re-run the calibration process."
+                    "intro": "Toolhead camera calibration failed. Please ensure the calibration marker is clean and undamaged, then re-run the calibration process."
+                },
+                {
+                    "ecode": "1803800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT D to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0C00402C",
+                    "intro": "Device data link error. Please reboot the printer."
+                },
+                {
+                    "ecode": "0500C032",
+                    "intro": "Laser/Cutting module connected to the toolhead. The drying process has been automatically stopped."
+                },
+                {
+                    "ecode": "0700800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS A to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0C00402D",
+                    "intro": "The toolhead camera is not working properly; please reboot the device."
+                },
+                {
+                    "ecode": "1807800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT H to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1805800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT F to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0707800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS H to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0703800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS D to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0701800A",
+                    "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS B to the extruder is properly connected."
                 },
                 {
                     "ecode": "07018007",
@@ -49,10 +249,6 @@
                 {
                     "ecode": "0500805C",
                     "intro": "The grip cutting mat type does not match; please place a LightGrip cutting mat."
-                },
-                {
-                    "ecode": "05008055",
-                    "intro": "Incorrect platform type. Please place the laser platform for laser calibration."
                 },
                 {
                     "ecode": "05008059",
@@ -411,10 +607,6 @@
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
-                    "ecode": "05004076",
-                    "intro": "Unknown platform in the task, which may affect height measurement accuracy. Please place the laser platform correctly, and ensure the BirdsEye camera is unobstructed, then re-measure the height in software and restart the task."
-                },
-                {
                     "ecode": "07FF8010",
                     "intro": "Check if the right external filament spool or filament is stuck."
                 },
@@ -443,10 +635,6 @@
                     "intro": "The foreign object detection function is not working. You can continue the task or view the assistant for troubleshooting."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "The platform type does not match, which may result in inaccurate height measurement data. Please place the laser platform correctly, then re-measure the height in software and initiate the task."
-                },
-                {
                     "ecode": "0C008018",
                     "intro": "The foreign object detection function is not working. You can continue the task or view the assistant for troubleshooting."
                 },
@@ -465,10 +653,6 @@
                 {
                     "ecode": "05008069",
                     "intro": "The left and right hotend can't be identified, possibly due to the damaged nozzle marker. Please manually set the hotend type."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "The platform type is unknown during calibration; please replace it with the correct one."
                 },
                 {
                     "ecode": "05FE8069",
@@ -497,10 +681,6 @@
                 {
                     "ecode": "1887406D",
                     "intro": "AMS-HT H is assisting in filament insertion. Unable to start drying. Please try again later."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
                 {
                     "ecode": "1882406A",
@@ -621,10 +801,6 @@
                 {
                     "ecode": "1880406E",
                     "intro": "AMS-HT A motor is performing self-test. Unable to start drying. Please try again later."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
                 {
                     "ecode": "1887406C",
@@ -911,10 +1087,6 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18058016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18038017",
                     "intro": "AMS-HT D is drying. Please stop drying process before loading/unloading material."
                 },
@@ -935,10 +1107,6 @@
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "07058016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18FEC008",
                     "intro": "Please pull out the filament on the spool holder of the left extruder. If this message persists, please check to see if there is filament broken in the extruder or PTFE tube. (Connect a PTFE tube if you are about to use an AMS)"
                 },
@@ -955,20 +1123,12 @@
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "18008016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18058005",
                     "intro": "The AMS-HT failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
                     "ecode": "18028010",
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
-                },
-                {
-                    "ecode": "18038016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "18008010",
@@ -995,16 +1155,8 @@
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
                 },
                 {
-                    "ecode": "07078016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18078006",
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS-HT PTFE tube is connected."
-                },
-                {
-                    "ecode": "18018016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "18018005",
@@ -1037,10 +1189,6 @@
                 {
                     "ecode": "18048003",
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
                 },
                 {
                     "ecode": "0C00403E",
@@ -1155,14 +1303,6 @@
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
                 },
                 {
-                    "ecode": "18078016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "18028016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18038011",
                     "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
                 },
@@ -1179,10 +1319,6 @@
                     "intro": "The AMS failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Done\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
-                },
-                {
                     "ecode": "07068004",
                     "intro": "AMS failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
@@ -1193,10 +1329,6 @@
                 {
                     "ecode": "18FEC003",
                     "intro": "Please pull out the filament on the spool holder of the left extruder. If this message persists, please check to see if there is filament broken in the extruder or PTFE tube. (Connect a PTFE tube if you are about to use an AMS)"
-                },
-                {
-                    "ecode": "18068016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "18058004",
@@ -1215,10 +1347,6 @@
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "18048016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "18FFC008",
                     "intro": "Please pull out the filament on the spool holder of the right extruder. If this message persists, please check to see if there is filament broken in the extruder or PTFE tube. (Connect a PTFE tube if you are about to use an AMS)"
                 },
@@ -1227,20 +1355,8 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
                     "ecode": "18058010",
                     "intro": "The AMS-HT assist motor is overloaded. This could be due to entangled filament or a stuck spool."
-                },
-                {
-                    "ecode": "07048016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "07068016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
                 },
                 {
                     "ecode": "18008003",
@@ -1331,10 +1447,6 @@
                     "intro": "Objects detected on the platform; please clean them up in a timely manner."
                 },
                 {
-                    "ecode": "0C004026",
-                    "intro": "The Live View Camera initialization failed; please ensure the camera is properly installed."
-                },
-                {
                     "ecode": "05024006",
                     "intro": "Unknown module detected, please try updating the firmware to the latest version."
                 },
@@ -1423,10 +1535,6 @@
                     "intro": "Please pull out the filament on the spool holder of the left extruder. If this message persists, please check to see if there is filament broken in the extruder or PTFE tube. (Connect a PTFE tube if you are about to use an AMS)"
                 },
                 {
-                    "ecode": "07FEC00A",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
                     "ecode": "05008053",
                     "intro": "The left and right nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
@@ -1491,22 +1599,6 @@
                     "intro": "The device has been connected to the laser or cutter module and cannot initiate a 3D printing task."
                 },
                 {
-                    "ecode": "07008016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "07018016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "07038016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
-                    "ecode": "07028016",
-                    "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please click \"Retry\" button."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "The printer is currently printing and the motion accuracy enhancement feature cannot be turned on or off."
                 },
@@ -1547,10 +1639,6 @@
                     "intro": "Failed to obtain IP address, which may be caused by wireless interference resulting in data transmission failure or the DHCP address pool of the router being full. Please move the printer closer to the router and try again. If the issue persists, please check router settings to see whether the IP addresses have been exhausted."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Done\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
-                },
-                {
                     "ecode": "0300801C",
                     "intro": "The extrusion resistance is abnormal. The extruder may be clogged, please refer to the assistant, after trouble shooting, you can tap the \"Resume\" button to resume the print job."
                 },
@@ -1573,10 +1661,6 @@
                 {
                     "ecode": "07FE8003",
                     "intro": "Please pull out the filament on the spool holder  of the left extruder. If this message persists, please check to see if there is filament broken in the extruder. (Connect a PTFE tube if you are about to use an AMS.)"
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Done\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
                 },
                 {
                     "ecode": "03008014",
@@ -1677,10 +1761,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "The setup of BirdsEye Camera failed.  Please check if the laser module is working properly."
-                },
-                {
-                    "ecode": "0C004021",
-                    "intro": "The setup of BirdsEye Camera failed.  Please check if the camera is installed correctly."
                 },
                 {
                     "ecode": "0C004020",
@@ -2312,6 +2392,146 @@
             "ver": 202502042359,
             "en": [
                 {
+                    "ecode": "0701200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS B to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0702200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS C to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "New AMS detected. Please set up before use."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "A new BirdsEye Camera or a camera angle shift was detected. Please complete the setup before use."
+                },
+                {
+                    "ecode": "1801200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT B to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "New AMS-HT detected. Please set up before use."
+                },
+                {
+                    "ecode": "0705200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS F to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0701250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0706250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0705250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0707250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0704250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "1803240000010007",
+                    "intro": "AMS-HT D door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "0700200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS A to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0703200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS D to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1805200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT F to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1802200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT C to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1807200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT H to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1803200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT D to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0706200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS G to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0707200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS H to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1806200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT G to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1800200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT A to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0704200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS E to the extruder is properly connected."
+                },
+                {
+                    "ecode": "1804200000020006",
+                    "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT E to the extruder is properly connected."
+                },
+                {
+                    "ecode": "0703250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0700250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "0702250000020001",
+                    "intro": "Detected AMS using printer power for drying during loading/printing. For better drying performance, please connect a power adapter."
+                },
+                {
+                    "ecode": "1806240000010007",
+                    "intro": "AMS-HT G door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1801240000010007",
+                    "intro": "AMS-HT B door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1805240000010007",
+                    "intro": "AMS-HT F door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1802240000010007",
+                    "intro": "AMS-HT C door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1804240000010007",
+                    "intro": "AMS-HT E door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1807240000010007",
+                    "intro": "AMS-HT H door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
+                    "ecode": "1800240000010007",
+                    "intro": "AMS-HT A door detection is abnormal, the Hall sensor connection may be loose or disconnected."
+                },
+                {
                     "ecode": "07FF700000020003",
                     "intro": "Please check if the material is coming out of the right nozzle. If not, gently push the material and try to extrude again."
                 },
@@ -2388,18 +2608,6 @@
                     "intro": "Uncertified accessory detected. Please use official accessories."
                 },
                 {
-                    "ecode": "0705250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0707250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0704250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
                     "ecode": "07FE600000020001",
                     "intro": "External spool connected to left extruder may be tangled or jammed."
                 },
@@ -2452,24 +2660,8 @@
                     "intro": "Uncertified AMS detected. Unable to operate with this printer."
                 },
                 {
-                    "ecode": "0703250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0700250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
-                    "ecode": "0701250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "External spool connected to right extruder may be tangled or jammed."
-                },
-                {
-                    "ecode": "0706250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
                 },
                 {
                     "ecode": "050005000001000D",
@@ -2478,10 +2670,6 @@
                 {
                     "ecode": "050005000001000E",
                     "intro": "Laser Module is not certified. Please use Bambu Lab accessories."
-                },
-                {
-                    "ecode": "0702250000020001",
-                    "intro": "AMS AMS uses MC power for drying during filament loading or printing. This may affect the drying performance. It is recommended to connect an adapter for drying to ensure optimal drying results."
                 },
                 {
                     "ecode": "18FE600000020001",
@@ -2552,14 +2740,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0702200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
-                    "ecode": "0703200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
                     "ecode": "0702010000020006",
                     "intro": "AMS C The assist motor three-phase wires are not connected. The assist motor connector may have poor contact."
                 },
@@ -2596,30 +2776,6 @@
                     "intro": "The print plate type is unknown; please replace it with the correct plate."
                 },
                 {
-                    "ecode": "1805200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "1807200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "1803200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "0706200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
-                    "ecode": "1800200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "0704200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
                     "ecode": "0500040000020041",
                     "intro": "The left and right hotend can't be identified, possibly due non-official hotend. It could also be hotend marker is unclear."
                 },
@@ -2634,14 +2790,6 @@
                 {
                     "ecode": "0500040000020053",
                     "intro": "Unknown material type"
-                },
-                {
-                    "ecode": "0700200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
-                    "ecode": "0701200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
                 },
                 {
                     "ecode": "0500060000020008",
@@ -2678,30 +2826,6 @@
                 {
                     "ecode": "0707010000020006",
                     "intro": "AMS H The assist motor three-phase wires are not connected. The assist motor connector may have poor contact."
-                },
-                {
-                    "ecode": "1802200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "1801200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "0707200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
-                    "ecode": "1806200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
-                },
-                {
-                    "ecode": "0705200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS to extruder"
-                },
-                {
-                    "ecode": "1804200000020006",
-                    "intro": "PTFE tube detached. Please check if the PTFE tube is connected from AMS-HT to extruder"
                 },
                 {
                     "ecode": "03009E0000030001",
@@ -3278,10 +3402,6 @@
                 {
                     "ecode": "0300030000020002",
                     "intro": "The hotend cooling fan speed is slow. It may be stuck and need cleaning."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "A new BirdsEye Camera or a camera angle shift was detected. Please go to setup before use."
                 },
                 {
                     "ecode": "0500040000020042",
@@ -6662,10 +6782,6 @@
                 {
                     "ecode": "1800230000020001",
                     "intro": "AMS-HT A Slot 4 filament has run out. Please insert a new filament."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "New AMS-HT connected; please set up before use."
                 },
                 {
                     "ecode": "0705700000020050",
@@ -10262,10 +10378,6 @@
                 {
                     "ecode": "0703950000010001",
                     "intro": "AMS D The temperature sensor of heater 2 is malfunctioning, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0700550000020001",
-                    "intro": "New AMS connected; please set up before use."
                 },
                 {
                     "ecode": "0703350000010002",
