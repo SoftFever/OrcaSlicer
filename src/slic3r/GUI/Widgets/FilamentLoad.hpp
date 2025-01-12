@@ -16,7 +16,9 @@
 
 namespace Slic3r {  namespace GUI {
 
-
+ //  The filament load panel
+ // (1) Load from empty, empty -> filled
+ // (2) Switch filament, fila_A -> fila_B*/
 class FilamentLoad : public wxSimplebook
 {
 public:

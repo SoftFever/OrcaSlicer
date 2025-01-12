@@ -124,15 +124,13 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
     step_control->SetSlotInformation(slot_info);
 }
 
-void FilamentLoad::UpdateStepCtrl(bool is_extrusion_exist) {
+void FilamentLoad::UpdateStepCtrl(bool has_fila_to_switch) {
     m_filament_load_steps->DeleteAllItems();
     m_filament_unload_steps->DeleteAllItems();
     m_filament_vt_load_steps->DeleteAllItems();
 
-    is_extrusion = true;    //Forgot what it means, need to update dynamically
-
     if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::N3F_AMS) {
-        if (is_extrusion) {
+        if (has_fila_to_switch) {
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
