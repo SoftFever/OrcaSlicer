@@ -9417,7 +9417,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
 void Plater::_calib_pa_pattern(const Calib_Params& params)
 {
-    std::vector<double> flows{params.speeds};
+    std::vector<double> speeds{params.speeds};
     std::vector<double> accels{params.accelerations};
     std::vector<size_t> object_idxs{};
     /* Set common parameters */
@@ -9494,21 +9494,17 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
 
     // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
-    const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
-    auto line_width = (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
-                            (nozzle_diameter * 1.125) :
-                            print_config.get_abs_value("line_width", nozzle_diameter);
-    auto layer_height = print_config.get_abs_value("layer_height");
-    auto volumetric_to_linear_speed = [line_width, layer_height, &full_config](float volumetric_speed) {
-        Flow flow(line_width, layer_height, full_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
-        return volumetric_speed / flow.mm3_per_mm();
-    };
-    double flow = CalibPressureAdvance::find_optimal_PA_flow(full_config, line_width, layer_height, 0);
-    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(volumetric_to_linear_speed(flow)));
-    if (flows.empty()) {
-        flows.assign({flow});
+    double speed = CalibPressureAdvance::find_optimal_PA_speed(
+                            wxGetApp().preset_bundle->full_config(),
+                            (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
+                                (nozzle_diameter * 1.125) :
+                                print_config.get_abs_value("line_width", nozzle_diameter),
+                            print_config.get_abs_value("layer_height"), 0);
+    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(speed));
+    if (speeds.empty()) {
+        speeds.assign({speed});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No speeds provided for calibration. Use default optimal flow ") + std::to_string(long(flow)) + _L("mm³/s")};
+                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + _L("mm/s")};
         get_notification_manager()->push_notification(msg.ToStdString());
     }
 
@@ -9519,6 +9515,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
+    const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl_machine = preset_bundle->is_bbl_vendor();
     auto cur_plate = get_partplate_list().get_plate(0);
@@ -9553,7 +9550,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         ap.all_objects_are_short = true;
         Points bedpts = arrangement::get_shrink_bedpts(&full_config, ap);
 
-        for(size_t i = 0; i < flows.size() * accels.size(); i++) {
+        for(size_t i = 0; i < speeds.size() * accels.size(); i++) {
             arrangement::ArrangePolygon p;
             cube->instances[0]->get_arrange_polygon(&p);
             p.bed_idx = 0;
@@ -9574,8 +9571,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     for(size_t test_idx = 0; test_idx < arranged_items.size(); test_idx++) {
         const auto &ai = arranged_items[test_idx];
         size_t plate_idx = arranged_items[test_idx].bed_idx;
-        auto tspd = flows[test_idx % flows.size()];
-        auto tacc = accels[test_idx / flows.size()];
+        auto tspd = speeds[test_idx % speeds.size()];
+        auto tacc = accels[test_idx / speeds.size()];
 
         /* make an own copy of anchor cube for each test */
         auto obj = test_idx == 0 ? cube : model().add_object(*cube);
@@ -9583,7 +9580,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         obj->name.assign(std::string("pa_pattern_") + std::to_string(int(tspd)) + std::string("_") + std::to_string(int(tacc)));
 
         auto &obj_config = obj->config;
-        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(volumetric_to_linear_speed(tspd)));
+        obj_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(tspd));
         obj_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(tacc));
 
         auto cur_plate = get_partplate_list().get_plate(plate_idx);
