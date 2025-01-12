@@ -1734,6 +1734,8 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
             label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
         }
 
+        label_txt->Wrap(FromDIP(label_txt->GetMinWidth()));
+        label_txt->Layout();
         identical_filament->Hide();
     }
 
