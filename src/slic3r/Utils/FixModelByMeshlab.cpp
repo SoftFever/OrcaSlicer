@@ -7,6 +7,7 @@
 #include <thread>
 #include <cstdio>
 
+#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 
