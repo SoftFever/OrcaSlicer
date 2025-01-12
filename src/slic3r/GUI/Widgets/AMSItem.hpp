@@ -178,6 +178,27 @@ struct Caninfo
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+
+public:
+    bool operator==(const Caninfo& other) const
+    {
+        if (can_id == other.can_id &&
+            material_name == other.material_name &&
+            material_colour == other.material_colour &&
+            material_state == other.material_state &&
+            ctype == other.ctype &&
+            material_remain == other.material_remain &&
+            cali_idx == other.cali_idx &&
+            filament_id == other.filament_id &&
+            k == other.k &&
+            n == other.n &&
+            material_cols == other.material_cols)
+        {
+            return true;
+        }
+
+        return false;
+    };
 };
 
 struct AMSinfo
@@ -193,6 +214,26 @@ public:
     int                     ams_humidity = 0;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
+
+public:
+    bool operator== (const AMSinfo& other) const
+    {
+        if (ams_id == other.ams_id &&
+            cans == other.cans &&
+            nozzle_id == other.nozzle_id &&
+            current_can_id == other.current_can_id &&
+            current_step == other.current_step &&
+            current_action == other.current_action &&
+            curreent_filamentstep == other.curreent_filamentstep &&
+            ams_humidity == other.ams_humidity &&
+            ams_type == other.ams_type &&
+            ext_type == other.ext_type)
+        {
+            return true;
+        }
+
+        return false;
+    };
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
     void parse_ext_info(MachineObject* obj, AmsTray tray);

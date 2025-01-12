@@ -2389,6 +2389,11 @@ void AMSPreview::Close()
 
 void AMSPreview::Update(AMSinfo amsinfo)
 {
+    if (m_amsinfo == amsinfo)
+    {
+        return;
+    }
+
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
@@ -2399,6 +2404,8 @@ void AMSPreview::Update(AMSinfo amsinfo)
         SetMinSize(AMS_PREV_SINGLE_SIZE);
         SetMaxSize(AMS_PREV_SINGLE_SIZE);
     }
+
+    Refresh();
 }
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
