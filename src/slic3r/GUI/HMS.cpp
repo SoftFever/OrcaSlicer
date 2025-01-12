@@ -127,7 +127,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
 
 
 static void
-_copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* the copy will not override files*/
+_copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override with local files*/
 {
     try
     {
@@ -147,8 +147,13 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* the copy will not
 	        const fs::path &relative_path = fs::relative(source_path, from_dir);
 	        const fs::path &dest_path     = to_dir / relative_path;
 
-	        if (fs::is_regular_file(source_path) && !fs::exists(dest_path))
+	        if (fs::is_regular_file(source_path))
             { 
+                if (fs::exists(dest_path))
+                {
+                    fs::remove(dest_path);
+                }
+
                 copy_file(source_path, dest_path);
             }
             else if (fs::is_directory(source_path))
