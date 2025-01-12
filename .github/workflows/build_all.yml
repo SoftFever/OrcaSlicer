@@ -70,6 +70,10 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      fail-fast: false
       volumes:
         - /usr/local/lib/android:/usr/local/lib/android
         - /usr/share/dotnet:/usr/share/dotnet
@@ -92,6 +96,16 @@ jobs:
         echo "ver_pure=$ver_pure" >> $GITHUB_ENV
         echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
       shell: bash
+    - name: Install deps
+      if: ${{ matrix.arch != 'x86_64' }}
+      run: |
+        dnf -y install docker
+    - name: Set up QEMU
+      if: ${{ matrix.arch != 'x86_64' }}
+      id: qemu
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
