@@ -514,8 +514,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     m_multi_extruder_grid_panel->SetSizer(grid_sizer, true);
     m_multi_extruder_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { SetFocusIgnoringChildren(); });
 
-    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, "Left extruder");
-    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, "Right extruder");
+    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Left extruder"));
+    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Right extruder"));
     grid_sizer->Add(left_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
     grid_sizer->Add(right_sizer);
@@ -569,9 +569,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
 
             if (extruder_id == 0) {
-                default_name += L("Right");
+                default_name += L("Right Nozzle");
             } else if (extruder_id == 1){
-                default_name += L("Left");
+                default_name += L("Left Nozzle");
             }
         }
 

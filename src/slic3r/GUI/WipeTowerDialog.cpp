@@ -273,7 +273,7 @@ wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
     if (m_nozzle_nums == 2) {
-        ComboBox *extruder_combo = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+        ComboBox *extruder_combo = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(130), FromDIP(24)), 0, nullptr, wxCB_READONLY);
         extruder_combo->AppendString(_L("Left extruder"));
         extruder_combo->AppendString(_L("Right extruder"));
         extruder_combo->SetSelection(0);

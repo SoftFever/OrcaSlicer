@@ -1478,6 +1478,13 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
             []() { return true; }, m_parent);
     }
 
+    if (init) {
+        append_menu_item(
+            menu, wxID_ANY, _L("Delete"), _L("Delete this filament"), [](wxCommandEvent&) {
+                plater()->sidebar().delete_filament(-2); }, "menu_delete", nullptr,
+            []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
+    }
+
     const int item_id = menu->FindItem(_L("Delete then replace with"));
     if (item_id != wxNOT_FOUND)
         menu->Destroy(item_id);
@@ -1497,14 +1504,7 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
             []() { return true; }, m_parent);
     }
     append_submenu(menu, sub_menu, wxID_ANY, _L("Delete then replace with"), "", "",
-        [filaments_cnt]() { return filaments_cnt > 1; }, m_parent, 1);
-
-    if (init) {
-        append_menu_item(
-            menu, wxID_ANY, _L("Delete"), _L("Delete this filament"), [](wxCommandEvent&) {
-                plater()->sidebar().delete_filament(-2); }, "menu_delete", nullptr,
-            []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
-    }
+        [filaments_cnt]() { return filaments_cnt > 1; }, m_parent);
 }
 
 //BBS: add part plate related logic

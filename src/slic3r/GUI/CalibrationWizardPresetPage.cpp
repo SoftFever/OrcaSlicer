@@ -599,10 +599,10 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
         //nozzle_volume_sizer->AddSpacer(FromDIP(10));
 
         wxBoxSizer *      type_sizer  = new wxBoxSizer(wxHORIZONTAL);
-        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, "Left");
+        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L("Left Nozzle"));
         {
             //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"));
             nozzle_diameter_text->SetFont(Label::Head_14);
             nozzle_diameter_text->Wrap(-1);
 
@@ -616,7 +616,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             m_left_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
 
             //wxBoxSizer *nozzle_volume_sizer   = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"));
             nozzle_volume_type_text->SetFont(Label::Head_14);
             nozzle_volume_type_text->Wrap(-1);
 
@@ -633,10 +633,10 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             //m_left_nozzle_volume_type_sizer->Add(nozzle_volume_sizer);
         }
 
-        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, "Right");
+        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L("Right Nozzle"));
         {
             //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"));
             nozzle_diameter_text->SetFont(Label::Head_14);
             nozzle_diameter_text->Wrap(-1);
 
@@ -650,7 +650,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             m_right_nozzle_volume_type_sizer->AddSpacer(FromDIP(5));
 
             //wxBoxSizer *nozzle_volume_sizer     = new wxBoxSizer(wxHORIZONTAL);
-            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"), 0, CALIBRATION_LABEL_SIZE);
+            auto        nozzle_volume_type_text = new Label(m_multi_nozzle_info_panel, _L("Nozzle Flow"));
             nozzle_volume_type_text->SetFont(Label::Head_14);
             nozzle_volume_type_text->Wrap(-1);
 
@@ -1041,14 +1041,14 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
 
     m_multi_exturder_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
     if (m_main_extruder_on_left) {
-        m_main_sizer->GetStaticBox()->SetLabel("Left");
-        m_deputy_sizer->GetStaticBox()->SetLabel("Right");
+        m_main_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
+        m_deputy_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
         m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
         m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
     }
     else {
-        m_main_sizer->GetStaticBox()->SetLabel("Right");
-        m_deputy_sizer->GetStaticBox()->SetLabel("Left");
+        m_main_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
+        m_deputy_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
         m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
         m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
     }
@@ -1995,8 +1995,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
 
-            m_main_sizer->GetStaticBox()->SetLabel("Right");
-            m_deputy_sizer->GetStaticBox()->SetLabel("Left");
+            m_main_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
@@ -2006,8 +2006,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Detach(m_main_sizer);
             m_multi_exturder_ams_sizer->Detach(m_deputy_sizer);
 
-            m_main_sizer->GetStaticBox()->SetLabel("Left");
-            m_deputy_sizer->GetStaticBox()->SetLabel("Right");
+            m_main_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
             m_multi_exturder_ams_sizer->Add(m_main_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_deputy_sizer, 1, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 

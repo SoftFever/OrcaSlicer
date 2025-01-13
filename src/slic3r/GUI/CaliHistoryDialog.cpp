@@ -111,7 +111,7 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
     m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
     m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetLabels(_L("Left"), _L("Right"));
+    m_extruder_switch_btn->SetLabels(_L("Left Nozzle"), _L("Right Nozzle"));
     m_extruder_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &HistoryWindow::on_switch_extruder, this);
     m_extruder_switch_btn->SetValue(false);
     scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
@@ -720,8 +720,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
         m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         wxArrayString extruder_items;
-        extruder_items.push_back("Left");
-        extruder_items.push_back("Right");
+        extruder_items.push_back(_L("Left"));
+        extruder_items.push_back(_L("Right"));
         m_comboBox_extruder->Set(extruder_items);
         m_comboBox_extruder->SetSelection(-1);
         flex_sizer->Add(extruder_name_title);
