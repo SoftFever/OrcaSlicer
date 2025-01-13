@@ -12,6 +12,7 @@ class StepMeshDialog : public Slic3r::GUI::DPIDialog
 {
 public:
     StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double linear_init, double angle_init);
+    ~StepMeshDialog() override;
     void on_dpi_changed(const wxRect& suggested_rect) override;
     inline double get_linear_defletion() {
         double value;
@@ -44,7 +45,7 @@ private:
     double m_last_linear = 0.003;
     double m_last_angle = 0.5;
     unsigned int m_mesh_number = 0;
-    std::future<unsigned int> task;
+    boost::thread* m_task {nullptr};
     bool validate_number_range(const wxString& value, double min, double max);
     void update_mesh_number_text();
     void on_task_done(wxCommandEvent& event);

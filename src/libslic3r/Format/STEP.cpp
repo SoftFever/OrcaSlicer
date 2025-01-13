@@ -464,25 +464,30 @@ void Step::clean_mesh_data()
 unsigned int Step::get_triangle_num(double linear_defletion, double angle_defletion)
 {
     unsigned int tri_num = 0;
-    Handle(StepProgressIncdicator) progress = new StepProgressIncdicator(m_stop_mesh);
-    clean_mesh_data();
-    IMeshTools_Parameters param;
-    param.Deflection = linear_defletion;
-    param.Angle = angle_defletion;
-    param.InParallel = true;
-    for (int i = 0; i < m_name_solids.size(); ++i) {
-        BRepMesh_IncrementalMesh mesh(m_name_solids[i].solid, param, progress->Start());
-        for (TopExp_Explorer anExpSF(m_name_solids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
-            TopLoc_Location aLoc;
-            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
-            if (!aTriangulation.IsNull()) {
-                tri_num += aTriangulation->NbTriangles();
+    try {
+        Handle(StepProgressIncdicator) progress = new StepProgressIncdicator(m_stop_mesh);
+        clean_mesh_data();
+        IMeshTools_Parameters param;
+        param.Deflection = linear_defletion;
+        param.Angle = angle_defletion;
+        param.InParallel = true;
+        for (int i = 0; i < m_name_solids.size(); ++i) {
+            BRepMesh_IncrementalMesh mesh(m_name_solids[i].solid, param, progress->Start());
+            for (TopExp_Explorer anExpSF(m_name_solids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+                TopLoc_Location aLoc;
+                Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
+                if (!aTriangulation.IsNull()) {
+                    tri_num += aTriangulation->NbTriangles();
+                }
+            }
+            if (m_stop_mesh.load()) {
+                return 0;
             }
         }
-        if (m_stop_mesh.load()) {
-            return 0;
-        }
+    } catch(Exception e) {
+        return 0;
     }
+    
     return tri_num;
 }
 

@@ -19,6 +19,7 @@ static int _scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit(
 static int _ITEM_WIDTH() { return _scale(30); }
 #define MIN_DIALOG_WIDTH        FromDIP(400)
 #define SLIDER_WIDTH            FromDIP(200)
+#define SLIDER_HEIGHT           FromDIP(25)
 #define TEXT_CTRL_WIDTH         FromDIP(70)
 #define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
 #define BUTTON_BORDER           FromDIP(int(400 - 58 * 2) / 8)
@@ -139,7 +140,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     wxSlider* linear_slider = new wxSlider(this, wxID_ANY,
                                            SLIDER_SCALE(get_linear_defletion()),
                                            1, 100, wxDefaultPosition,
-                                           wxSize(SLIDER_WIDTH, -1),
+                                           wxSize(SLIDER_WIDTH, SLIDER_HEIGHT),
                                            wxSL_HORIZONTAL);
     linear_sizer->Add(linear_slider, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
 
@@ -191,7 +192,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     wxSlider* angle_slider = new wxSlider(this, wxID_ANY,
                                            SLIDER_SCALE_10(get_angle_defletion()),
                                            1, 100, wxDefaultPosition,
-                                           wxSize(SLIDER_WIDTH, -1),
+                                           wxSize(SLIDER_WIDTH, SLIDER_HEIGHT),
                                            wxSL_HORIZONTAL);
     angle_sizer->Add(angle_slider, 0, wxALIGN_RIGHT | wxLEFT, FromDIP(5));
 
@@ -303,7 +304,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     bSizer->Add(bSizer_button, 1, wxEXPAND | wxALL, LEFT_RIGHT_PADING);
 
     this->SetSizer(bSizer);
-    update_mesh_number_text();
+    // update_mesh_number_text();
     this->Layout();
     bSizer->Fit(this);
 
@@ -322,22 +323,34 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+StepMeshDialog::~StepMeshDialog()
+{
+    stop_task();
+}
+
 void StepMeshDialog::on_task_done(wxCommandEvent& event)
 {
     wxString text = event.GetString();
     mesh_face_number_text->SetLabel(text);
-    if (task.valid()) {
-        task.get();
+    if(m_task) {
+        if (m_task->joinable()) {
+            m_task->join();
+            delete m_task;
+            m_task = nullptr;
+        }
     }
 }
 
 void StepMeshDialog::stop_task()
 {
-    if (task.valid()) {
+    if(m_task) {
         m_file.m_stop_mesh.store(true);
-        unsigned int test = task.get();
+        if (m_task->joinable()) {
+            m_task->join();
+            delete m_task;
+            m_task = nullptr;
+        }
         m_file.m_stop_mesh.store(false);
-        std::cout << test << std::endl;
     }
 
 }
@@ -348,18 +361,18 @@ void StepMeshDialog::update_mesh_number_text()
         return;
     wxString newText = wxString::Format(_L("Calculating, please wait..."));
     mesh_face_number_text->SetLabel(newText);
-
     stop_task();
-    task = std::async(std::launch::async, [&] {
-        unsigned int m_mesh_number = m_file.get_triangle_num(get_linear_defletion(), get_angle_defletion());
-        if (m_mesh_number != 0) {
-            wxString number_text = wxString::Format("%d", m_mesh_number);
-            wxCommandEvent event(wxEVT_THREAD_DONE);
-            event.SetString(number_text);
-            wxPostEvent(this, event);
-            m_last_linear = get_linear_defletion();
-            m_last_angle  = get_angle_defletion();
-        }
-        return m_mesh_number;
-    });
+    if (!m_task) {
+        m_task = new boost::thread(Slic3r::create_thread([this]() -> void {
+            m_mesh_number = m_file.get_triangle_num(get_linear_defletion(), get_angle_defletion());
+            if (m_mesh_number != 0) {
+                wxString number_text = wxString::Format("%d", m_mesh_number);
+                wxCommandEvent event(wxEVT_THREAD_DONE);
+                event.SetString(number_text);
+                wxPostEvent(this, event);
+                m_last_linear = get_linear_defletion();
+                m_last_angle  = get_angle_defletion();
+            }
+        }));
+    }
 }
