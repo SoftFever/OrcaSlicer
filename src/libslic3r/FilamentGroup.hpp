@@ -93,7 +93,12 @@ namespace Slic3r
         } machine_info;
     };
 
-    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists, const std::vector<unsigned int>& used_filaments, const std::vector<FilamentGroupUtils::Color>& used_filament_colors_, const std::vector<std::vector<FilamentGroupUtils::Color>>& ams_filament_colros_,const double color_delta_threshold = 20);
+    std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
+        const std::vector<unsigned int>& used_filaments,
+        const std::vector<FilamentGroupUtils::Color>& used_filament_colors,
+        const std::vector<std::string>& used_filament_types,
+        const std::vector<std::vector<FilamentGroupUtils::FilamentInfo>>& machine_filament_info,
+        const double color_delta_threshold = 20);
 
     std::vector<int> optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, const std::vector<int>& filament_map);
 
