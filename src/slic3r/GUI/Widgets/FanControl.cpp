@@ -189,7 +189,16 @@ void FanOperate::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
 void FanOperate::on_left_down(wxMouseEvent& event)
 {
-     auto mouse_pos = ClientToScreen(event.GetPosition());
+
+     auto mouse_pos = wxPoint(0,0);
+
+#ifdef __APPLE__
+     mouse_pos= GetParent()->GetParent()->ClientToScreen(event.GetPosition());
+#else
+     mouse_pos = ClientToScreen(event.GetPosition());
+#endif // __APPLE__
+
+
      auto win_pos = ClientToScreen(wxPoint(0, 0));
 
      auto decrease_fir = FromDIP(24);
@@ -401,6 +410,10 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
     m_sizer_main->Add(sizer_control, 0, wxALIGN_CENTER, 0);
     update_mode();
 
+#if __APPLE__
+    Bind(wxEVT_LEFT_DOWN, &FanControlNew::on_left_down, this);
+#endif
+
     this->SetSizer(m_sizer_main);
     this->Layout();
     m_sizer_main->Fit(this);
@@ -409,9 +422,9 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
 
 void FanControlNew::on_left_down(wxMouseEvent& evt)
 {
-    auto mouse_pos = ClientToScreen(evt.GetPosition());
-    auto tag_pos = m_fan_operate->ScreenToClient(mouse_pos);
-    evt.SetPosition(tag_pos);
+    //auto mouse_pos = GetParent()->ClientToScreen(evt.GetPosition());
+    //auto tag_pos = m_fan_operate->ScreenToClient(mouse_pos);
+    //evt.SetPosition(tag_pos);
     m_fan_operate->on_left_down(evt);
 }
 
@@ -796,6 +809,16 @@ void FanControlPopupNew::on_left_down(wxMouseEvent& evt)
 {
     auto mouse_pos = ClientToScreen(evt.GetPosition());
 
+    for (SendModeSwitchButton* sw_it : m_mode_switch_btn_list) {
+        auto win_pos = sw_it->ClientToScreen(wxPoint(0, 0));
+        auto size    = sw_it->GetSize();
+        if (mouse_pos.x > win_pos.x && mouse_pos.x < (win_pos.x + sw_it->GetSize().x) && mouse_pos.y > win_pos.y &&
+            mouse_pos.y < (win_pos.y + sw_it->GetSize().y)) {
+            evt.SetId(sw_it->GetId());
+            on_mode_changed(evt);
+        }
+    }
+
     for (auto fan_it : m_fan_control_list){
         auto fan     = fan_it.second;
         auto win_pos = fan->m_switch_button->ClientToScreen(wxPoint(0, 0));
@@ -804,6 +827,8 @@ void FanControlPopupNew::on_left_down(wxMouseEvent& evt)
             mouse_pos.y < (win_pos.y + fan->m_switch_button->GetSize().y)) {
             fan->on_swith_fan(evt);
         }
+
+        fan->on_left_down(evt);
     }
 
     evt.Skip();
