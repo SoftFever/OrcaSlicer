@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-01 08:07+0100\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1260,9 +1260,6 @@ msgstr "Center of edge"
 msgid "Center of circle"
 msgstr "Center of circle"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Select feature"
 
@@ -1278,18 +1275,25 @@ msgstr "Restart selection"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
+msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
 msgstr "Measure"
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Edit to scale"
 msgstr "Edit to scale"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Átméretezés"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Sehol"
@@ -1302,6 +1306,42 @@ msgstr "Hossz"
 
 msgid "Selection"
 msgstr "Selection"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
@@ -1317,6 +1357,27 @@ msgstr "Direct distance"
 
 msgid "Distance XYZ"
 msgstr "Distance XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2729,7 +2790,7 @@ msgstr ""
 msgid "About %s"
 msgstr "%s névjegye"
 
-msgid "Orca Slicer "
+msgid "Orca Slicer"
 msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
@@ -3558,9 +3619,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -7725,8 +7786,16 @@ msgstr "Fúvóka"
 msgid "Nozzle temperature when printing"
 msgstr "Fúvóka hőmérséklete nyomtatáskor"
 
-msgid "Cool plate"
-msgstr "Cool plate"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7948,7 +8017,7 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Rétegmagasság limitek"
 
-msgid "Lift Z Enforcement"
+msgid "Z-Hop"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -9594,6 +9663,11 @@ msgstr "Első réteg asztalhőmérséklete"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "A kezdőréteg asztalhőmérséklete. A 0 érték azt jelenti, hogy a filament nem "
@@ -11107,8 +11181,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Gyorsulás a ritkás kitöltéseknél. Ha az érték százalékban van megadva (pl. "
 "100%), akkor az alapértelmezett gyorsulás alapján kerül kiszámításra."
@@ -12258,8 +12332,8 @@ msgstr ""
 "Experimental feature. Retraction length before cutting off during filament "
 "change"
 
-msgid "Z hop when retract"
-msgstr "Z-tengely emelés visszahúzáskor"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12290,6 +12364,9 @@ msgid ""
 msgstr ""
 "Ha ez az érték pozitív, a Z-emelés csak akkor történik meg, ha az emelés "
 "mértéke a „Z-emelés alsó határánál“ nagyobb, de kisebb ennél az értéknél"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -13515,9 +13592,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -16349,8 +16426,15 @@ msgstr ""
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
-#~ msgid "Cool Plate"
-#~ msgstr "Cool Plate"
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Átméretezés"
+
+#~ msgid "Cool plate"
+#~ msgstr "Cool plate"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Z-tengely emelés visszahúzáskor"
 
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
@@ -16978,11 +17062,11 @@ msgstr ""
 #~ msgstr "Hibakeresés szintje"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
-#~ "info, 4:debug, 5:trace\n"
+#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, "
+#~ "3:info, 4:debug, 5:trace\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"

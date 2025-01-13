@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-01 08:07+0100\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1280,9 +1280,6 @@ msgstr "Center of edge"
 msgid "Center of circle"
 msgstr "円の中心"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Select feature"
 
@@ -1298,18 +1295,25 @@ msgstr "Restart selection"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "選択解除"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "Measure"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "Edit to scale"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "スケール"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "無し"
@@ -1322,6 +1326,42 @@ msgstr "長さ"
 
 msgid "Selection"
 msgstr "Selection"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "コピー"
@@ -1337,6 +1377,27 @@ msgstr "Direct distance"
 
 msgid "Distance XYZ"
 msgstr "Distance XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2718,7 +2779,7 @@ msgstr ""
 msgid "About %s"
 msgstr "%s について"
 
-msgid "Orca Slicer "
+msgid "Orca Slicer"
 msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
@@ -3516,9 +3577,9 @@ msgstr "値が小さすぎます、0.5に戻します"
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -7589,7 +7650,15 @@ msgstr "ノズル"
 msgid "Nozzle temperature when printing"
 msgstr "ノズル温度"
 
-msgid "Cool plate"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
 msgstr "常温プレート"
 
 msgid ""
@@ -7807,7 +7876,7 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "積層ピッチの制限"
 
-msgid "Lift Z Enforcement"
+msgid "Z-Hop"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -9402,6 +9471,11 @@ msgstr "1層目ベッド温度"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "1層目のベッド温度です。値が0の場合、フィラメントが常温プレートに使用できない"
@@ -10879,11 +10953,11 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 
 msgid ""
 "Acceleration of internal solid infill. If the value is expressed as a "
@@ -11992,8 +12066,8 @@ msgstr ""
 "Experimental feature. Retraction length before cutting off during filament "
 "change"
 
-msgid "Z hop when retract"
-msgstr "リトラクト時にZ方向調整"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12022,6 +12096,9 @@ msgid ""
 msgstr ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -13218,9 +13295,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -16034,8 +16111,18 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 
-#~ msgid "Cool Plate"
+#~ msgid "Unselect"
+#~ msgstr "選択解除"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "スケール"
+
+#~ msgid "Cool plate"
 #~ msgstr "常温プレート"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "リトラクト時にZ方向調整"
 
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
@@ -16647,8 +16734,8 @@ msgstr ""
 #~ msgstr "デバッグ レベル"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "デバッグロギングレベルを設定します。0:fatal、1:error、2:warning、3:info、"
 #~ "4:debug、5:trace。\n"

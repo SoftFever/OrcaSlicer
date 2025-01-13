@@ -34,7 +34,7 @@
         "8"
     ],
     "filament_flow_ratio": [
-        "0.94"
+        "0.93"
     ],
 	"filament_density": [
         "1.29"
@@ -52,7 +52,7 @@
         "0.045"
     ],
     "nozzle_temperature_initial_layer": [
-        "255"
+        "260"
     ],
     "nozzle_temperature": [
         "255"
@@ -62,5 +62,32 @@
     ],
 	"temperature_vitrification": [
         "90"
+    ],
+    "compatible_printers": [
+      "RatRig V-Core 3 200 0.4 nozzle",
+      "RatRig V-Core 3 300 0.4 nozzle",
+      "RatRig V-Core 3 400 0.4 nozzle",
+      "RatRig V-Core 3 500 0.4 nozzle",
+      "RatRig V-Minion 0.4 nozzle",
+      "RatRig V-Cast 0.4 nozzle",
+      "RatRig V-Cast 0.6 nozzle",
+      "RatRig V-Core 4 300 0.4 nozzle",
+      "RatRig V-Core 4 300 0.5 nozzle",
+      "RatRig V-Core 4 300 0.6 nozzle",
+      "RatRig V-Core 4 400 0.4 nozzle",
+      "RatRig V-Core 4 400 0.5 nozzle",
+      "RatRig V-Core 4 400 0.6 nozzle",
+      "RatRig V-Core 4 500 0.4 nozzle",
+      "RatRig V-Core 4 500 0.5 nozzle",
+      "RatRig V-Core 4 500 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.6 nozzle"
     ]
 }
