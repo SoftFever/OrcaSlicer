@@ -385,7 +385,7 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
 {
     m_map_mode = (MapModeEnum) idx;
     if (m_map_mode == MapModeEnum::ColorMap) {
-        m_are_you_sure_title->SetLabel(_L("Are you sure to synchronize according to the current effect?"));
+        m_are_you_sure_title->SetLabel(_L("Are you sure to synchronize the filaments?"));
         show_color_panel(true);
     } else if (m_map_mode == MapModeEnum::Override) {
         m_are_you_sure_title->SetLabel(_L("Are you sure to directly override current filaments?"));
@@ -556,7 +556,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         if (m_is_empty_project == false) {
             //use map mode
             m_mode_combox_sizer = new wxBoxSizer(wxHORIZONTAL);
-            m_colormap_btn      = new CapsuleButton(this, PageType::ptColorMap, _L("Maping"), true);
+            m_colormap_btn      = new CapsuleButton(this, PageType::ptColorMap, _L("Mapping"), true);
             m_override_btn      = new CapsuleButton(this, PageType::ptOverride, _L("Overwriting"), false);
             m_mode_combox_sizer->AddSpacer(FromDIP(25));
             m_mode_combox_sizer->AddStretchSpacer();
@@ -1164,7 +1164,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         wxBoxSizer *tip_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_attention_text      = new wxStaticText(this, wxID_ANY, _L("Attention") + ": ");
         tip_sizer->Add(m_attention_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
-        m_tip_text            = new wxStaticText(this, wxID_ANY, _L("The mapping only influences filament type and color,without AMS slot information."));
+        m_tip_text            = new wxStaticText(this, wxID_ANY, _L("Only synchronize filament type and color, not included AMS slot info."));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         tip_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 
@@ -1181,7 +1181,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         });
         more_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
 
-        m_append_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Unmatched AMS filaments should also be synchronized into thhe filaments list"), wxDefaultPosition, wxDefaultSize, 0);
+        m_append_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Unused AMS filaments should also be added to the filament list."), wxDefaultPosition, wxDefaultSize, 0);
         m_append_color_checkbox->SetToolTip(_L("When you click ok button,it will append unmapped color."));
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
@@ -1192,7 +1192,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_append_color_checkbox->Hide();
         more_setting_sizer->Add(m_append_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
 
-        m_merge_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Automatically merge the same colors in the model after matching"), wxDefaultPosition, wxDefaultSize, 0);
+        m_merge_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Automatically merge the same colors in the model after mapping."), wxDefaultPosition, wxDefaultSize, 0);
         m_merge_color_checkbox->SetToolTip(_L("When you click ok button,it will merge same ams to only one color."));
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
@@ -1212,7 +1212,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         //m_confirm_title->Wrap(FromDIP(SyncAmsInfoDialogWidth - 50));
         //m_confirm_title->SetFont(Label::Head_14);
         confirm_boxsizer->Add(m_confirm_title, 0, wxALIGN_LEFT | wxTOP | wxRIGHT, FromDIP(10));
-        m_are_you_sure_title = new wxStaticText(this, wxID_ANY,_L("Are you sure to synchronize the filament?"));
+        m_are_you_sure_title = new wxStaticText(this, wxID_ANY,_L("Are you sure to synchronize the filaments?"));
         //m_are_you_sure_title->SetFont(Label::Head_14);
         confirm_boxsizer->Add(m_are_you_sure_title, 0, wxALIGN_LEFT | wxTOP, FromDIP(0));
         bSizer->Add(confirm_boxsizer, 0, wxALIGN_LEFT | wxLEFT, FromDIP(25));
@@ -3819,7 +3819,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
 
                 auto tip1_text = new wxStaticText(m_filament_panel, wxID_ANY, _L("AMS"));
                 tip1_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
             }
             m_sizer_ams_mapping->Add(ams_tip_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
             contronal_index++;
