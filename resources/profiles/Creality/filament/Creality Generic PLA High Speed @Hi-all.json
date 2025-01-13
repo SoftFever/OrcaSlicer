@@ -5,6 +5,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Creality Generic PLA @Hi-all",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "filament_max_volumetric_speed": [
         "23"
     ],
