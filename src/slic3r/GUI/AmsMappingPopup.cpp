@@ -285,7 +285,7 @@ void MaterialItem::doRender(wxDC& dc)
     }
 
     //wheel
-    dc.DrawBitmap(m_ams_wheel_mitem.bmp(), (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(3), ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4);
+    dc.DrawBitmap(m_ams_wheel_mitem.bmp(), (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2), ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4);
 }
 
 AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
