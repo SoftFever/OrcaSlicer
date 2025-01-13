@@ -58,13 +58,20 @@ public:
     bool is_enable {true};
 
 public:
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
-    void on_left_down(wxMouseEvent &evt);
-    void Enable(){is_enable = true;Refresh();};
-    void Disable(){is_enable = false;Refresh();};
+    void Enable();
+    void Disable();
     bool IsEnabled(){return is_enable;};
+
+    void SetAutoDisableWhenSwitch() { auto_disable_when_switch = true; };
+
+protected:
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+    void on_left_down(wxMouseEvent& evt);
+
+private:
+    bool auto_disable_when_switch = false;
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

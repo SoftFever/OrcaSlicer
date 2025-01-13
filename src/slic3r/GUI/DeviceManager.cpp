@@ -5968,7 +5968,12 @@ void MachineObject::parse_new_info(json print)
             extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 4);
             extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 3);
 
-            if (extder_data.switch_extder_state != ExtruderSwitchState::ES_SWITCHING && extder_data.target_extder_id == extder_data.current_extder_id) {
+            if (m_extder_data.current_extder_id != extder_data.current_extder_id)
+            {
+                flag_update_nozzle = true;
+            }
+            else if (extder_data.switch_extder_state == ES_SWITCHING_FAILED)
+            {
                 flag_update_nozzle = true;
             }
 

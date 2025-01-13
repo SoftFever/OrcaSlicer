@@ -235,7 +235,7 @@ void SwitchBoard::doRender(wxDC &dc)
 
 	/*left*/
     if (switch_left) {
-        dc.SetBrush(wxBrush(wxColour(0, 174, 66)));
+        is_enable ? dc.SetBrush(wxBrush(wxColour(0, 174, 66))) : dc.SetBrush(disable_color);
         dc.DrawRoundedRectangle(0, 0, GetSize().x / 2, GetSize().y, 8);
 	}
 
@@ -285,9 +285,36 @@ void SwitchBoard::on_left_down(wxMouseEvent &evt)
         switch_right = true;
         index = 0;
     }
+
+    if (auto_disable_when_switch)
+    {
+        is_enable = false;// make it disable while switching
+    }
     Refresh();
 
     wxCommandEvent event(wxCUSTOMEVT_SELECT_NOZZLE_POS);
     event.SetInt(index);
     wxPostEvent(this, event);
+}
+
+void SwitchBoard::Enable()
+{
+    if (is_enable == true)
+    {
+        return;
+    }
+
+    is_enable = true;
+    Refresh();
+}
+
+void SwitchBoard::Disable()
+{
+    if (is_enable == false)
+    { 
+        return;
+    }
+
+    is_enable = false;
+    Refresh();
 }

@@ -230,7 +230,13 @@ void ExtruderImage::setExtruderCount(int nozzle_num)
 void ExtruderImage::setExtruderUsed(std::string loc)
 {
     //current_nozzle_idx = nozzle_id;
+    if (current_nozzle_loc == loc)
+    {
+        return;
+    }
+
     current_nozzle_loc = loc;
+    Refresh();
 }
 
 void ExtruderImage::update(ExtruderState single_state)
@@ -1705,6 +1711,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
 
     m_nozzle_btn_panel = new SwitchBoard(panel, _L("Left"), _L("Right"), wxSize(FromDIP(126), FromDIP(26)));
+    m_nozzle_btn_panel->SetAutoDisableWhenSwitch();
 
     m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, FromDIP(22));
     m_bpButton_e_10->SetBorderWidth(2);
@@ -2821,15 +2828,6 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
         /*style*/
         m_nozzle_btn_panel->Show();
-        if (!obj->is_in_printing() && obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE)
-        {
-            m_nozzle_btn_panel->Enable();
-        }
-        else
-        {
-            m_nozzle_btn_panel->Disable();
-        }
-
         m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
 
         assert(obj->m_extder_data.extders.size() > 1);
@@ -2853,6 +2851,21 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
                 m_extruderImage[select_index]->setExtruderUsed("left");
                 m_nozzle_btn_panel->updateState("left");
             }
+
+            targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;// the switching is finished
+            obj->flag_update_nozzle = false;
+        }
+
+        /*enable status*/
+        if (obj->is_in_printing() ||
+            obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE || 
+            targ_nozzle_id_from_pc != INVALID_NOZZLE_ID)
+        { 
+            m_nozzle_btn_panel->Disable();
+        }
+        else
+        {
+            m_nozzle_btn_panel->Enable();
         }
     } else {
         m_nozzle_btn_panel->Hide();
@@ -4738,9 +4751,15 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
             return;
         }
 
-        obj->flag_update_nozzle = false;
-        auto nozzle_id = event.GetInt();obj->command_select_extruder(nozzle_id);
+        auto nozzle_id = event.GetInt();
+        if(obj->command_select_extruder(nozzle_id) == 0)
+        {
+            targ_nozzle_id_from_pc = nozzle_id;
+            return;
+        }
     }
+    
+    m_nozzle_btn_panel->Enable();
 }
 
 void StatusPanel::on_show_print_options(wxCommandEvent& event)
