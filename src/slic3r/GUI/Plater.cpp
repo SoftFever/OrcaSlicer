@@ -2626,6 +2626,7 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 
 void Sidebar::sync_ams_list()
 {
+    wxBusyCursor cursor;
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj)
@@ -2749,6 +2750,10 @@ void Sidebar::sync_ams_list()
         }
     }
     Layout();
+
+    NotificationManager *notify_manager = p->plater->get_notification_manager();
+    std::string          info_text      = _u8L("Sync filaments with AMS successfully.");
+    notify_manager->bbl_show_seqprintinfo_notification(info_text);
 }
 
 void Sidebar::show_SEMM_buttons(bool bshow)
