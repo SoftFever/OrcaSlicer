@@ -56,7 +56,7 @@ CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &la
     Bind(wxEVT_ENTER_WINDOW, &CapsuleButton::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &CapsuleButton::OnLeaveWindow, this);
 
-    GUI::wxGetApp().UpdateDarkUIWin(this);
+    UpdateStatus();
 }
 void CapsuleButton::OnPaint(wxPaintEvent &event)
 {
