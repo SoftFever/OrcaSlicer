@@ -273,12 +273,12 @@ void GUI::FilamentMapBtnPanel::Show()
 
 FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced) : wxPanel(parent)
 {
-    static const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
-                                                  "by calculating the best arrangement for the left and right "
-                                                  "nozzles. Arrange the filaments on the printer based on "
-                                                  "the slicing results.");
-    static const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, arrange the "
-                                                  "filaments to the left and right nozzles.");
+    const wxString AutoForFlushDetail = _L("Calculate the best filament arrangement "
+        "to minimize usage. Need to manually arrange filaments on the printer "
+        "based on slicing results.");
+    const wxString AutoForMatchDetail = _L("Use AMS filaments to automatically assign filament "
+        "to the left or right nozzle.");
+
     auto                  sizer              = new wxBoxSizer(wxHORIZONTAL);
     m_flush_panel                            = new FilamentMapBtnPanel(this, _L("Filament-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
     m_match_panel                            = new FilamentMapBtnPanel(this, _L("Convenient Mode"), AutoForMatchDetail, "match_mode_panel_icon");

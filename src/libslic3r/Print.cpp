@@ -2712,7 +2712,7 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
             tpu_filaments.insert(f);
     }
     if (tpu_filaments.size() > 1) {
-        throw Slic3r::RuntimeError(std::string("Only supports up to one TPU filament."));
+        throw Slic3r::RuntimeError(_u8L("Only supports up to one TPU filament."));
     }
 
     int extruder_num = m_config.nozzle_diameter.size();

@@ -1730,6 +1730,13 @@ std::vector<int> PartPlate::get_used_filaments()
 bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxString& error_message)
 {
     error_message.clear();
+    FilamentMapMode mode = config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+    bool has_valid_result = this->is_slice_result_valid();
+
+    // only check printablity if we have explicit map result
+    if (!has_valid_result && mode != fmmManual)
+        return true;
+
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
@@ -1742,7 +1749,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             auto iter = std::find(filament_types.begin(), filament_types.end(), filament_type);
             if (iter != filament_types.end()) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message = wxString::Format(_L("Filament %s cannot be placed in the %s extruder for printing."), filament_type, extruder_name);
+                error_message = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
                 return false;
             }
         }

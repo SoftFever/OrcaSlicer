@@ -113,10 +113,18 @@ float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleF
 #undef Convex
 #endif
 
-std::string object_limited_text = _u8L("An object is laid on the left/right extruder only area.\n"
-    "Please make sure the filaments used by this object on this area are not mapped to the other extruders.");
-std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
-    "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
+
+std::string& get_object_limited_text() {
+    static std::string object_limited_text = _u8L("An object is laid on the left/right nozzle only area.\n"
+            "Please make sure the filaments used by this object on this area are not mapped to the other nozzles.");
+    return object_limited_text;
+}
+
+std::string& get_object_clashed_text() {
+    static std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
+    return object_clashed_text;
+}
 
 wxString filament_printable_error_msg;
 
@@ -1415,7 +1423,7 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFil
     ModelInstanceEPrintVolumeState state;
     m_volumes.check_outside_state(m_bed.build_volume(), &state, object_results);
 
-    construct_error_string(*object_results, object_clashed_text);
+    construct_error_string(*object_results, get_object_clashed_text());
     return state;
 }
 
@@ -2911,7 +2919,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
             const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
-            construct_error_string(object_results, object_clashed_text);
+            construct_error_string(object_results, get_object_clashed_text());
 
             _set_warning_notification(EWarning::ObjectClashed, partlyOut || !object_results.filaments.empty());
             _set_warning_notification(EWarning::ObjectLimited, objectLimited);
@@ -9807,6 +9815,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         SLICING_LIMIT_ERROR,
         SLICING_HEIGHT_OUTSIDE
     };
+    const static std::vector<std::string> extruder_name_list= {_u8L("left nozzle"), _u8L("right nozzle")};  // in ui, we treat extruder as nozzle
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
     const ModelObject* conflictObj=nullptr;
@@ -9832,11 +9841,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::TPUPrintableError: {
-        int master_extruder_id = 0;  // main extruder is left or right
+        int master_extruder_id = 1;  // main extruder is left or right
         if (m_config->has("master_extruder_id"))
             master_extruder_id = m_config->opt_int("master_extruder_id"); // base 1
-        std::string extruder_name = master_extruder_id == 1 ? "Left extruder" : "Right extruder";
-        text = (boost::format(_u8L("Multiple TPU filaments are not allowed to print at the same time, and the TPU filament must be placed in the virtual slot of %s.")) %extruder_name).str();
+        std::string extruder_name = extruder_name_list[master_extruder_id-1];
+        text = (boost::format(_u8L("Only the %s with external filament spool can print TPU")) %extruder_name).str();
         error = ErrorType::SLICING_ERROR;
         break;
     }
@@ -9880,7 +9889,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     }
                 }
             }
-            std::string extruder_name = extruder_id == 1 ? "Left extruder" : "Right extruder";
+            std::string extruder_name = extruder_name_list[extruder_id-1];
             if (error_iter->second.size() == 1) {
                 text += (boost::format(_u8L("Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
@@ -9937,7 +9946,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     }
                 }
             }
-            std::string extruder_name = extruder_id == 1 ? "Left extruder" : "Right extruder";
+            std::string extruder_name = extruder_name_list[extruder_id-1];
             if (error_iter->second.size() == 1) {
                 text += (boost::format(_u8L("Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
             } else {
@@ -9956,11 +9965,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
-        text = object_clashed_text;
+        text = get_object_clashed_text();
         error = ErrorType::PLATER_ERROR;
         break;
     case EWarning::ObjectLimited:
-        text = object_limited_text;
+        text = get_object_limited_text();
         break;
     case EWarning::FilamentUnPrintableOnFirstLayer: {
         std::string             warning;

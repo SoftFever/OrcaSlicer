@@ -53,18 +53,17 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     const wxString AutoForMatchLabel = _L("Convenient Mode");
     const wxString ManualLabel       = _L("Manual Mode");
 
-    const wxString AutoForFlushDetail = _L("Disregrad the filaments in AMS. Optimize filament usage "
-        "by calculating the best arrangement for the left and right "
-        "nozzles. Arrange the filaments on the printer based on "
-        "the slicing results.");
-    const wxString AutoForMatchDetail = _L("Based on the current filaments in the AMS, arrange the "
-        "filaments to the left and right nozzles.");
-    const wxString ManualDetail       = _L("Mannully arrange the filaments for the left and right nozzles.");
+    const wxString AutoForFlushDetail = _L("Calculate the best filament arrangement "
+        "to minimize usage. Need to manually arrange filaments on the printer "
+        "based on slicing results.");
+    const wxString AutoForMatchDetail = _L("Use AMS filaments to automatically assign filament "
+        "to the left or right nozzle.");
+    const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle.");
 
-    const wxString AutoForFlushDesp = _L("(Arrange after slicing)");
+    const wxString AutoForFlushDesp = ""; //_L("(Post-slicing arrangement)");
     const wxString ManualDesp       = "";
-    const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
-    const wxString MachineSyncTip = _L("(Please sync printer)");
+    const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
+
 
     wxBoxSizer *top_sizer         = new wxBoxSizer(wxVERTICAL);
     const int   horizontal_margin = FromDIP(16);
@@ -147,7 +146,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
-        wiki_link = new wxStaticText(this, wxID_ANY, _L("More info on wiki"));
+        wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
         wiki_link->SetBackgroundColour(BackGroundColor);
         wiki_link->SetForegroundColour(GreenColor);
         wiki_link->SetFont(Label::Body_12.Underlined());
@@ -191,8 +190,8 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
 
 void FilamentGroupPopup::Init()
 {
-    const wxString AutoForMatchDesp = _L("(Arrange before slicing)");
-    const wxString MachineSyncTip = _L("(Please sync printer)");
+    const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
+    const wxString MachineSyncTip   = _L("(Sync with printer)");
 
     radio_btns[ButtonType::btForMatch]->Enable(m_connected);
     if (m_connected) {

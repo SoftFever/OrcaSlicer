@@ -5375,19 +5375,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (printer_preset.get_current_printer_type(preset_bundle) != machine_type || !is_approx((float) preset_nozzle_diameter, machine_nozzle_diameter)) {
                         Preset *machine_preset = get_printer_preset(obj);
                         if (machine_preset != nullptr) {
+                            std::string printer_model = machine_preset->config.option<ConfigOptionString>("printer_model")->value;
                             bool sync_printer_info = false;
                             if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
-                                wxString tips = from_u8((boost::format(L("The printer you are currently bound to is %s,\nThe printer preset for your current file is %s,\n")) %
-                                                         machine_preset->name % printer_preset.name)
-                                                            .str());
-                                if (obj->is_multi_extruders())
-                                    tips += L("Do you want to sync printer presets, ams and nozzle information immediately?");
-                                else
-                                    tips += L("Do you want to sync printer presets immediately?");
+                                wxString tips = from_u8((boost::format(_u8L("Connected printer is %s. It must match the project preset for printing.\n")) % printer_model).str());
 
+                                tips += _L("Do you want to sync the printer information and automatically switch the preset?");
                                 TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO);
                                 if (dlg.ShowModal() == wxID_YES) { sync_printer_info = true; }
-                            } else {
+                            }
+                            else {
                                 sync_printer_info = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
                             }
                             if (sync_printer_info) {
@@ -15348,8 +15345,9 @@ int Plater::select_sliced_plate(int plate_index)
     return ret;
 }
 
-extern std::string object_limited_text;
-extern std::string object_clashed_text;
+extern std::string& get_object_limited_text();
+extern std::string& get_object_clashed_text();
+
 void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 {
     ObjectFilamentResults object_results;
@@ -15394,17 +15392,17 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         }
 
         if (!model_fits) {
-            p->notification_manager->push_plater_error_notification(object_clashed_text);
+            p->notification_manager->push_plater_error_notification(get_object_clashed_text());
         }
         else {
-            p->notification_manager->close_plater_error_notification(object_clashed_text);
+            p->notification_manager->close_plater_error_notification(get_object_clashed_text());
         }
 
         if (state == ModelInstancePVS_Limited) {
-            p->notification_manager->push_plater_warning_notification(object_limited_text);
+            p->notification_manager->push_plater_warning_notification(get_object_limited_text());
         }
         else {
-            p->notification_manager->close_plater_warning_notification(object_limited_text);
+            p->notification_manager->close_plater_warning_notification(get_object_limited_text());
         }
     }
 
