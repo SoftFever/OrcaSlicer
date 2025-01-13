@@ -2773,6 +2773,11 @@ void Sidebar::update_dynamic_filament_list()
     dynamic_filament_list_1_based.update();
 }
 
+PlaterPresetComboBox* Sidebar::printer_combox()
+{
+    return p->combo_printer;
+}
+
 ObjectList* Sidebar::obj_list()
 {
     // BBS

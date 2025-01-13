@@ -174,6 +174,7 @@ public:
     void show_SEMM_buttons(bool bshow);
     void update_dynamic_filament_list();
 
+    PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     ObjectLayers*           obj_layers();

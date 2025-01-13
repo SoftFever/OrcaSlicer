@@ -77,6 +77,8 @@ public:
     void set_filament_idx(const int extr_idx) { m_filament_idx = extr_idx; }
     int  get_filament_idx() const { return m_filament_idx; }
 
+    std::string get_selected_dev_id() const { return m_selected_dev_id; }
+
     // BBS
     wxString get_tooltip(const Preset& preset);
 
@@ -131,6 +133,8 @@ protected:
     // BBS: printer
     int m_first_printer_idx = 0;
     int m_last_printer_idx  = 0;
+
+    std::string              m_selected_dev_id;
 
     PrinterTechnology printer_technology {ptAny};
 
