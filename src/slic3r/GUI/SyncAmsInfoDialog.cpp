@@ -598,7 +598,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
                 m_plate_combox_sizer->Add(cur_combox, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL  | wxTOP | wxBOTTOM, FromDIP(3));
 
                 m_plate_combox_sizer->AddStretchSpacer(1); // m_plate_combox_sizer->AddSpacer(FromDIP(230));
-                m_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer") + ":  ");
+                m_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer") + ": ");
                 m_printer_title->SetForegroundColour(wxColour(107, 107, 107, 100));
                 m_plate_combox_sizer->Add(m_printer_title, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP , FromDIP(6));
                 m_printer_device_name = new wxStaticText(this, wxID_ANY, "");
