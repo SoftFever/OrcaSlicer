@@ -2860,9 +2860,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
         /*enable status*/
         if (obj->is_in_printing() ||
-            obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE || 
+            obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE ||
             targ_nozzle_id_from_pc != INVALID_NOZZLE_ID)
-        { 
+        {
             m_nozzle_btn_panel->Disable();
         }
         else
@@ -4759,7 +4759,7 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
             return;
         }
     }
-    
+
     m_nozzle_btn_panel->Enable();
 }
 
