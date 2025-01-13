@@ -1925,6 +1925,8 @@ void StatusBasePanel::show_filament_load_group(bool show)
             m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_fold", this, 24));
         }
         m_scale_panel->Show(show);
+        m_filament_step->SetupSteps(obj->get_current_extruder().ext_has_filament);
+
         m_show_filament_group = show;
         Layout();
         Fit();
@@ -3110,7 +3112,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     if (ams_loading_state) {
-        update_filament_step();
+        update_load_with_temp();
         m_filament_step->updateID(std::atoi(obj->m_ams_id.c_str()), std::atoi(obj->m_tray_id.c_str()));
 
         bool busy_for_vt_loading = false;
@@ -3897,9 +3899,8 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
     on_ams_load_curr();
 }
 
-void StatusPanel::update_filament_step()
+void StatusPanel::update_load_with_temp()
 {
-    m_filament_step->UpdateStepCtrl(obj->is_filament_at_extruder());
     if (!obj->is_filament_at_extruder()) {
         m_is_load_with_temp = true;
     }
@@ -3915,7 +3916,7 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
 
-        update_filament_step();
+        update_load_with_temp();
         //virtual tray
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0 ||
             curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) == 0)

@@ -640,7 +640,7 @@ protected:
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
-    void update_filament_step();
+    void update_load_with_temp();
     void on_ams_load_curr();
     void on_ams_load_vams(wxCommandEvent& event);
     void on_ams_switch(SimpleEvent &event);

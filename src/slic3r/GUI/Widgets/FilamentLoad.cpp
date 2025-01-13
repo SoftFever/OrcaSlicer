@@ -124,7 +124,7 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
     step_control->SetSlotInformation(slot_info);
 }
 
-void FilamentLoad::UpdateStepCtrl(bool has_fila_to_switch) {
+void FilamentLoad::SetupSteps(bool has_fila_to_switch) {
     m_filament_load_steps->DeleteAllItems();
     m_filament_unload_steps->DeleteAllItems();
     m_filament_vt_load_steps->DeleteAllItems();

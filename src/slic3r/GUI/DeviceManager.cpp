@@ -3522,7 +3522,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
 
                         /*the param is invalid in np for Yeshu*/
-                        if (jj.contains("hw_switch_state")) {
+                        if (!check_enable_np(jj) && jj.contains("hw_switch_state")) {
                             hw_switch_state = jj["hw_switch_state"].get<int>();
                             m_extder_data.extders[MAIN_NOZZLE_ID].ext_has_filament = hw_switch_state;
                         }
@@ -5546,6 +5546,17 @@ NozzleFlowType MachineObject::get_nozzle_flow_type(int extruder_id) const
     }
 
     return NozzleFlowType::NONE_FLOWTYPE;
+}
+
+const Extder& MachineObject::get_current_extruder() const
+{
+    if (m_extder_data.extders.size() <= m_extder_data.current_extder_id)
+    {
+        BOOST_LOG_TRIVIAL(error) << "get_current_extruder() failed";
+        return Extder();
+    }
+
+    return m_extder_data.extders[m_extder_data.current_extder_id];
 }
 
 void MachineObject::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun)

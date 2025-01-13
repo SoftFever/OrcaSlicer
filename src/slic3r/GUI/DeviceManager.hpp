@@ -749,6 +749,7 @@ public:
     /*extruder*/
     [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np; };
     [[nodiscard]] NozzleFlowType get_nozzle_flow_type(int extruder_id) const;
+    [[nodiscard]] const Extder& get_current_extruder() const;
 
     //new fan data
     AirDuctData m_air_duct_data;

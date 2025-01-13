@@ -55,7 +55,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     wxBoxSizer *m_ota_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_printer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
-   
+
     m_printer_img->SetBitmap(m_img_printer.bmp());
     m_ota_sizer->Add(m_printer_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
@@ -103,7 +103,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_staticText_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ver_val->Wrap(-1);
-    
+
 
     m_staticText_beta_version = new wxStaticText(this, wxID_ANY, "Beta", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_beta_version->SetForegroundColour("#778899");
@@ -143,7 +143,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ahb_panel = new AmsPanel(this, wxID_ANY);
     m_ahb_panel->m_staticText_ams->SetLabel("AMS HUB");
     m_ams_content_sizer->Add(m_ahb_panel, 0, wxEXPAND, 0);
-   
+
 
     m_ams_info_sizer = new wxFlexGridSizer(0, 2, FromDIP(30), FromDIP(30));
     m_ams_info_sizer->SetFlexibleDirection(wxHORIZONTAL);
@@ -386,7 +386,7 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_laser_sizer, 0, wxEXPAND, 0);
 }
 
-void MachineInfoPanel::msw_rescale() 
+void MachineInfoPanel::msw_rescale()
 {
     rescale_bitmaps();
     m_button_upgrade_firmware->SetSize(wxSize(FromDIP(-1), FromDIP(24)));
@@ -394,7 +394,7 @@ void MachineInfoPanel::msw_rescale()
     m_button_upgrade_firmware->SetMaxSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
     m_ahb_panel->msw_rescale();
-    for (auto &amspanel : m_amspanel_list) { 
+    for (auto &amspanel : m_amspanel_list) {
         amspanel->msw_rescale();
     }
     m_ext_panel->msw_rescale();
@@ -537,7 +537,7 @@ void MachineInfoPanel::update(MachineObject* obj)
 
 void MachineInfoPanel::update_version_text(MachineObject* obj)
 {
-    
+
     if (obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
         m_staticText_ver_val->SetLabelText("-");
         //m_staticText_ams_ver_val->SetLabelText("-");
@@ -655,14 +655,14 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             wxString sn_text = obj->module_vers.find("ahb")->second.sn;
             hub_sn           = sn_text.MakeUpper();
         }
-        
+
 
         wxString hub_ver = "-";
         if (!obj->module_vers.find("ahb")->second.sw_ver.empty()) {
             wxString sn_text = obj->module_vers.find("ahb")->second.sw_ver;
             hub_ver          = sn_text.MakeUpper();
         }
-        
+
        /* auto ver_item = obj->new_ver_list.find("ahb");
         if (ver_item != obj->new_ver_list.end()) {
             m_ahb_panel->m_ams_new_version_img->Show();
@@ -852,7 +852,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                                         ams_ver += wxString::Format("(%s)", _L("Beta version"));
                                     }
                                     ams_ver += wxString::Format("->%s", obj->ams_new_version_number);
-                                    
+
                                 }
                             }
                             else {
@@ -947,7 +947,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         if (!has_hub_model) { show_ams(false); }
         show_extra_ams(false);
     }
-    
+
     //ext
     auto ext_module = obj->module_vers.find("ext");
     if (ext_module == obj->module_vers.end() || is_o_series)
@@ -975,7 +975,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         // set sn and version
         m_ext_panel->m_staticText_ext_sn_val->SetLabelText(sn_text);
         m_ext_panel->m_staticText_ext_ver_val->SetLabelText(ext_ver);
-        
+
         show_ext(true);
     }
 
@@ -1202,7 +1202,7 @@ void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
     confirm_dlg->on_show();
 }
 
-void MachineInfoPanel::on_show_release_note(wxMouseEvent &event) 
+void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
 {
     DeviceManager *dev = wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -1217,7 +1217,7 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
             version_number            = m_obj->ota_new_version_number;
             next_version_release_note = wxString::FromUTF8(iter.description);
         }
-        if (iter.version == m_obj->get_ota_version()) { 
+        if (iter.version == m_obj->get_ota_version()) {
             version_number           = m_obj->get_ota_version();
             now_version_release_note = wxString::FromUTF8(iter.description);
         }
@@ -1267,8 +1267,8 @@ UpgradePanel::~UpgradePanel()
         delete consistency_dlg ;
 }
 
-void UpgradePanel::msw_rescale() 
-{ 
+void UpgradePanel::msw_rescale()
+{
     if (m_push_upgrade_panel)
         m_push_upgrade_panel->msw_rescale();
 }
@@ -1454,7 +1454,7 @@ bool UpgradePanel::Show(bool show)
      m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_ams_ver_val->SetForegroundColour("#262E30");
      m_staticText_ams_ver_val->Wrap(-1);
-     
+
      m_staticText_beta_version = new wxStaticText(this, wxID_ANY, "Beta", wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_beta_version->SetForegroundColour("#778899");
      m_staticText_beta_version->Wrap(-1);
@@ -1476,12 +1476,12 @@ bool UpgradePanel::Show(bool show)
      Layout();
  }
 
- AmsPanel::~AmsPanel() 
+ AmsPanel::~AmsPanel()
  {
 
  }
 
- void AmsPanel::msw_rescale() { 
+ void AmsPanel::msw_rescale() {
      upgrade_green_icon.msw_rescale();
      m_ams_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
@@ -1494,7 +1494,7 @@ bool UpgradePanel::Show(bool show)
      const wxString& name /*= wxEmptyString*/)
      : wxPanel(parent, id, pos, size, style)
  {
-     
+
      upgrade_green_icon = ScalableBitmap(this, "monitor_upgrade_online", 5);
 
      auto top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1554,8 +1554,8 @@ bool UpgradePanel::Show(bool show)
 
  }
 
- void ExtensionPanel::msw_rescale() 
- { 
+ void ExtensionPanel::msw_rescale()
+ {
      upgrade_green_icon.msw_rescale();
      m_ext_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
@@ -1568,7 +1568,7 @@ bool UpgradePanel::Show(bool show)
      const wxString& name /*= wxEmptyString*/)
      : AmsPanel(parent, id, pos, size, style)
  {
- 
+
  }
 
 }

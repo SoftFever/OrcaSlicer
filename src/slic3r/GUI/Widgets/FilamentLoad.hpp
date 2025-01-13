@@ -44,7 +44,7 @@ public:
     void SetFilamentStep(FilamentStep item_idx, FilamentStepType f_type);
     void ShowFilamentTip(bool hasams = true);
 
-    void UpdateStepCtrl(bool is_extrusion_exist);
+    void SetupSteps(bool is_extrusion_exist);
 
     void show_nofilament_mode(bool show);
     void updateID(int ams_id, int slot_id) { m_ams_id = ams_id; m_slot_id = slot_id; };
