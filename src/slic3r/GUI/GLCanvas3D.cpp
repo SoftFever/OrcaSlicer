@@ -1383,31 +1383,66 @@ void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, st
     }
 
     if (!object_result.filaments.empty()) {
-        if (object_result.mode < FilamentMapMode::fmmManual) {
-            error_string += _u8L("In the Filament auto-matching mode, Filament ");
-            for (auto& filament: object_result.filaments)
-                error_string += std::to_string(filament) + " ";
-            error_string += "are placed in the unprintable area of all extruders, making it impossible to match them with a suitable extruder. This may be caused by the following objects:\n";
-            for(ObjectFilamentInfo& object_filament: object_result.object_filaments)
-            {
-                error_string += object_filament.object->name;
-                error_string += "\n";
+        std::vector<ObjectFilamentInfo> left_unprintable_objects;
+        std::vector<ObjectFilamentInfo> right_unprintable_objects;
+
+        std::vector<int> conflicted_filaments = object_result.filaments;
+
+        auto mode = object_result.mode;
+
+        for (auto& obj_filament : object_result.object_filaments) {
+            if (mode == FilamentMapMode::fmmManual) {
+                for (auto& elem : obj_filament.manual_filaments) {
+                    bool found_left = false, found_right = false;
+                    int filamnet_id = elem.first;
+                    int extruder_id = elem.second;
+                    if (extruder_id == 1 && !found_left) {
+                        found_left = true;
+                        left_unprintable_objects.emplace_back(obj_filament);
+                    }
+                    if (extruder_id == 2 && !found_right) {
+                        found_right = true;
+                        right_unprintable_objects.emplace_back(obj_filament);
+                    }
+                }
             }
-            error_string += _u8L("Please solve the problem by moving them within the build volume.\n");
+            else {
+                if (!obj_filament.auto_filaments.empty()) {
+                    left_unprintable_objects.emplace_back(obj_filament);
+                    right_unprintable_objects.emplace_back(obj_filament);
+                }
+            }
         }
-        else {
-            error_string += _u8L("In the Filament manual-matching mode, Following filament->extruder maps: \n");
-            for (auto& filament: object_result.filaments)
-            {
-                error_string += std::to_string(filament) + "->" + std::to_string(object_result.filament_maps[filament]) + "\n";
+
+        std::vector<std::string> tips(2);
+        for (size_t idx = 0; idx < tips.size(); ++idx) {
+            const auto& unprintable_objs = idx == 0 ? left_unprintable_objects : right_unprintable_objects;
+            if (unprintable_objs.empty())
+                continue;
+            std::string nozzle_name = idx == 0 ? _u8L("left nozzle") : _u8L("right nozzle");
+            std::string opposite_nozzle_name = idx == 0 ? _u8L("right nozzle") : _u8L("left nozzle");
+            std::string model_prefix;
+            if (object_result.object_filaments.size() > 1)
+                model_prefix = _u8L("Some models are");
+            else
+                model_prefix = (boost::format(_u8L("The model %s is"))%object_result.object_filaments.front().object->name).str();
+            tips[idx] += model_prefix;
+            tips[idx] += (boost::format(_u8L(" located within the %s only area, making it impossible to print with the filaments assigned to %s.\n"
+                "Please move the model out of the %s only area or adjust the filament assignment\n")) % opposite_nozzle_name% nozzle_name % opposite_nozzle_name).str();
+
+            if (object_result.object_filaments.size() > 1) {
+                for (ObjectFilamentInfo& object_filament : left_unprintable_objects)
+                {
+                    tips[idx] += object_filament.object->name;
+                    tips[idx] += "\n";
+                }
             }
-            error_string += "cannot be printed as they are placed in the unprintable area of the corresponding extruder. This may be caused by the following objects:\n";
-            for(ObjectFilamentInfo& object_filament: object_result.object_filaments)
-            {
-                error_string += object_filament.object->name;
-                error_string += "\n";
+        }
+
+        for (size_t idx = 0; idx < tips.size(); ++idx) {
+            if (!tips[idx].empty()) {
+                error_string = tips[idx];
             }
-            error_string += _u8L("Please solve the problem by moving them within the build volume.\n");
         }
     }
 }
