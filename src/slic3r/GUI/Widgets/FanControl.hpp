@@ -104,6 +104,7 @@ public:
 
 public:
     void    set_fan_speeds(int g);
+    bool    check_printing_state();
     void    add_fan_speeds();
     void    decrease_fan_speeds();
 private:
@@ -157,7 +158,8 @@ public:
     void update_obj_state(bool stat) { m_update_already = stat; };
     void update_fan_data(const AirDuctData& data) { m_fan_data = data; };
     void command_control_fan();
-    void set_machine_obj(MachineObject* obj);
+    bool check_printing_state();
+    void set_machine_obj(MachineObject *obj);
     void set_name(wxString name);
     void set_part_id(int id){m_part_id = id;};
     void set_fan_speed(int g);
@@ -177,7 +179,7 @@ class FanControlPopupNew : public PopupWindow
 public:
     FanControlPopupNew(wxWindow* parent, MachineObject* obj, const AirDuctData& data);
     ~FanControlPopupNew() {};
-    
+
 
 private:
     wxBoxSizer* m_sizer_main{ nullptr };

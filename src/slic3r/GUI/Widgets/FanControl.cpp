@@ -226,13 +226,20 @@ void FanOperate::set_fan_speeds(int g)
     Refresh();
 }
 
-void FanOperate::add_fan_speeds()
+bool FanOperate::check_printing_state()
 {
     if (m_obj && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
-        if (msg_wingow.ShowModal() == wxID_CANCEL) {
-            return;
-        }
+        msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
+        if (msg_wingow.ShowModal() == wxID_CANCEL) { return false; }
+    }
+    return true;
+}
+
+void FanOperate::add_fan_speeds()
+{
+    if (!check_printing_state()) {
+        return;
     }
 
     if (m_current_speeds + 1 > m_max_speeds) return;
@@ -243,11 +250,8 @@ void FanOperate::add_fan_speeds()
 
 void FanOperate::decrease_fan_speeds()
 {
-    if (m_obj && m_obj->is_in_printing()) {
-        MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
-        if (msg_wingow.ShowModal() == wxID_CANCEL) {
-            return;
-        }
+    if (!check_printing_state()) {
+        return;
     }
 
     //turn off
@@ -444,13 +448,20 @@ void FanControlNew::command_control_fan()
     }
 }
 
-void FanControlNew::on_swith_fan(wxMouseEvent& evt)
+bool FanControlNew::check_printing_state()
 {
     if (m_obj && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
-        if (msg_wingow.ShowModal() == wxID_CANCEL) {
-            return;
-        }
+        msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
+        if (msg_wingow.ShowModal() == wxID_CANCEL) { return false; }
+    }
+    return true;
+}
+
+void FanControlNew::on_swith_fan(wxMouseEvent& evt)
+{
+    if (!check_printing_state()) {
+        return;
     }
 
     int speed = 0;
