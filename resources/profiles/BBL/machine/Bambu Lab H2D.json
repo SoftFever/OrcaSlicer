@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
     "name": "Bambu Lab H2D",
-    "nozzle_diameter": "0.2;0.4;0.6;0.8",
+    "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
     "bed_model": "bbl-3dp-H2D.stl",
     "bed_texture": "bbl-3dp-logo.svg",
