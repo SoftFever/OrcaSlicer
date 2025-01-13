@@ -111,6 +111,7 @@ jobs:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
+        arch: ${{ matrix.arch }}
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
       uses: WebFreak001/deploy-nightly@v3.1.0
