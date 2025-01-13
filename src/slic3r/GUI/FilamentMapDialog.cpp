@@ -50,7 +50,7 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
     std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
     applied_maps.resize(filament_colors.size(), 1);
 
-    if (!force_pop_up && applied_mode != fmmManual)
+    if (applied_mode != fmmManual)
         return true;
 
     std::vector<int> filament_lists;

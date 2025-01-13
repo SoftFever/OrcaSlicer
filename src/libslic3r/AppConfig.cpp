@@ -312,7 +312,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("pop_up_filament_map_dialog").empty()){
-        set_bool("pop_up_filament_map_dialog", true);
+        set_bool("pop_up_filament_map_dialog", false);
     }
 
     if (get("prefered_filament_map_mode").empty()){
