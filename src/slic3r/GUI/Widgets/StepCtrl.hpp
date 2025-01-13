@@ -10,7 +10,7 @@ class StepCtrlBase : public StaticBox
 {
 protected:
     wxFont font_tip;
-    StateColor clr_bar; 
+    StateColor clr_bar;
     StateColor clr_step;
     StateColor clr_text;
     StateColor clr_tip;
@@ -108,7 +108,7 @@ class FilamentStepIndicator : public StepCtrlBase
 
 {
     ScalableBitmap bmp_ok;
-    wxBitmap bmp_extruder;
+    //wxBitmap bmp_extruder;
     wxString m_slot_information = "";
 
 public:
