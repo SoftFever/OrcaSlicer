@@ -136,6 +136,7 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
     if (is_dirty_filament()) { return; }
 
     show_sizer(m_plate_combox_sizer, true);
+    update_printer_name();//m_printer_is_map_title is in m_plate_combox_sizer
     show_sizer(m_sizer_line, true);
     show_sizer(m_sizer_two_image, true);
 
@@ -1206,8 +1207,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         bSizer->Add(more_setting_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
         wxBoxSizer *confirm_boxsizer = new wxBoxSizer(wxVERTICAL);
-        m_confirm_title              = new wxStaticText(this, wxID_ANY,
-            _L("All of your configured filament presets and colors will discarded after sync."),
+        m_confirm_title              = new wxStaticText(this, wxID_ANY, "After sync, all currently configured filament presets and colors will be discarded.",
             wxDefaultPosition, wxDefaultSize);
         //m_confirm_title->Wrap(FromDIP(SyncAmsInfoDialogWidth - 50));
         //m_confirm_title->SetFont(Label::Head_14);
