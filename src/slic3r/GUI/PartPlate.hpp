@@ -333,6 +333,7 @@ public:
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
+    bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not

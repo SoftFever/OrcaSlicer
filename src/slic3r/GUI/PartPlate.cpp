@@ -1780,6 +1780,29 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
     return tpu_valid;
 }
 
+bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
+{
+    bool has_pla = false;
+    bool has_petg = false;
+
+    std::vector<int> used_filaments = get_extruders(true); // 1 base
+    if (!used_filaments.empty()) {
+        for (auto filament_idx : used_filaments) {
+            int                 filament_id        = filament_idx - 1;
+            std::string         filament_type      = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            if (filament_type == "PLA")
+                has_pla = true;
+            if (filament_type == "PETG")
+                has_petg = true;
+        }
+    }
+
+    if (has_pla && has_petg)
+        return false;
+
+    return true;
+}
+
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
 {
 	Vec3d wipe_tower_size;

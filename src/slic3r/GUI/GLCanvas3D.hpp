@@ -388,7 +388,8 @@ class GLCanvas3D
         FilamentPrintableError,
         MultiExtruderPrintableError,      // after slice
         MultiExtruderHeightOutside,       // after slice
-        FilamentUnPrintableOnFirstLayer
+        FilamentUnPrintableOnFirstLayer,
+        MixUsePLAAndPETG
     };
 
     class RenderStats
