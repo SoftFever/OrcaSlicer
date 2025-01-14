@@ -1279,6 +1279,18 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     multi_path.paths.emplace_back(std::move(*it_path));
                 }
 
+				//This is for staggered layers. 
+				//All odd perimeters are staggerd up by half the layer height                
+                if (extrusion->inset_idx % 2 == 1) {
+                    for (size_t path_idx = 0; path_idx < multi_path.paths.size(); path_idx++) {
+                        ExtrusionPath cur_path = multi_path.paths[path_idx];
+                        if (perimeter_generator.layer_id == 0)
+							cur_path.extrusion_multiplier = 1.5;
+                        else if (perimeter_generator.layer_id > 0)
+							cur_path.z_offset             = 0.5;
+                    }
+                }
+
                 extrusion_coll.append(ExtrusionMultiPath(std::move(multi_path)));
             }
         }
@@ -3112,8 +3124,15 @@ void PerimeterGenerator::process_arachne()
             }
         }
 
+        if (this->print_config->staggered_layers) { // If staggered layers are on, all odd perimeters will be staggered and should be printed after the non staggered perimeters
+            std::sort(ordered_extrusions.begin(), ordered_extrusions.end(), 
+                [](PerimeterGeneratorArachneExtrusion extrusion_1, PerimeterGeneratorArachneExtrusion extrusion_2) -> bool {
+                return extrusion_1.extrusion->inset_idx % 2 <= extrusion_2.extrusion->inset_idx % 2;
+                });
+        }
+
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0 && !this->print_config->staggered_layers ) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
@@ -3179,7 +3198,7 @@ void PerimeterGenerator::process_arachne()
                     // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found all three perimeters to re-order? If not the perimeters will be processed outside in.
                         std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
-                        inner_outer_extrusions.resize(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
+                        inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
                         // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
                         
                         for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out towards the external perimeter (perimeters in reverse order) and store all internal perimeters until the first one identified with inset index 2
