@@ -76,38 +76,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_sizer_ams_body = new wxBoxSizer(wxHORIZONTAL);
 
-    //ams tip
-//    m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
-//    m_ams_tip = new Label(m_amswin, _L("AMS"));
-//    m_ams_tip->SetFont(::Label::Body_12);
-//    m_ams_tip->SetBackgroundColour(*wxWHITE);
-//    m_img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-//    m_img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
-//
-//    m_sizer_ams_tips->Add(m_ams_tip, 0, wxTOP, FromDIP(5));
-//    m_sizer_ams_tips->Add(m_img_amsmapping_tip, 0, wxALL, FromDIP(3));
-//
-//    m_img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-//         wxPoint img_pos = m_img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
-//         wxPoint popup_pos(img_pos.x, img_pos.y + m_img_amsmapping_tip->GetRect().height);
-//         m_ams_introduce_popup.set_mode(true);
-//         m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
-//         m_ams_introduce_popup.Popup();
-//
-//#ifdef __WXMSW__
-//         wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-//         wxPostEvent(this, close_event);
-//#endif // __WXMSW__
-//    });
-//    m_img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-//         m_ams_introduce_popup.Dismiss();
-//    });
-//
-//
-
-
     //ams area
-
     m_sizer_ams_area_left = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_ams_area_right = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_down_road = new wxBoxSizer(wxHORIZONTAL);
@@ -133,9 +102,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_ams_right->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
 
-    //extra ams mode
-    //
-
     m_sizer_ams_area_left->Layout();
     m_sizer_ams_area_right->Layout();
 
@@ -145,12 +111,20 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_option_mid = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_option_right = new wxBoxSizer(wxHORIZONTAL);
 
-    /*m_sizer_option_left->SetMinSize( wxSize( AMS_CANS_SIZE.x,-1 ) );
-    m_sizer_option_right->SetMinSize( wxSize( AMS_CANS_SIZE.x,-1 ) );*/
-    /*m_sizer_option_left->SetMinSize(wxSize(FromDIP(239), -1));
-    m_sizer_option_right->SetMinSize(wxSize(FromDIP(239), -1));*/
-    m_sizer_option_left->SetMinSize(wxSize(FromDIP(140), -1));
-    m_sizer_option_right->SetMinSize(wxSize(FromDIP(140), -1));
+    auto m_panel_option_left    = new wxPanel(m_amswin);
+    auto m_panel_option_right   = new wxPanel(m_amswin);
+
+    m_panel_option_left->SetBackgroundColour(*wxWHITE);
+    m_panel_option_right->SetBackgroundColour(*wxWHITE);
+
+    m_panel_option_left->SetSizer(m_sizer_option_left);
+    m_panel_option_right->SetSizer(m_sizer_option_right);
+
+    m_panel_option_left->SetMinSize(wxSize(FromDIP(180), -1));
+    m_panel_option_left->SetMaxSize(wxSize(FromDIP(180), -1));
+
+    m_panel_option_right->SetMinSize(wxSize(FromDIP(180), -1));
+    m_panel_option_right->SetMaxSize(wxSize(FromDIP(180), -1));
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -176,25 +150,22 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     /*option left*/
-    m_button_auto_refill = new Button(m_amswin, _L("Auto-refill"));
+    m_button_auto_refill = new Button(m_panel_option_left, _L("Auto-refill"));
     m_button_auto_refill->SetBackgroundColor(btn_bg_white);
     m_button_auto_refill->SetBorderColor(btn_bd_white);
     m_button_auto_refill->SetTextColor(btn_text_white);
     m_button_auto_refill->SetFont(Label::Body_13);
-    // m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    // m_img_ams_backup->SetBackgroundColour(*wxWHITE);
-    // m_img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    // m_img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-    // m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
-    m_sizer_option_left->Add(m_button_auto_refill, 0, wxALIGN_CENTER_VERTICAL, 0);
+    m_button_auto_refill->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
+    m_button_auto_refill->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
 
     m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
     m_button_ams_setting_hover = ScalableBitmap(this, "ams_setting_hover", 24);
     m_button_ams_setting_press = ScalableBitmap(this, "ams_setting_press", 24);
 
-    m_button_ams_setting = new wxStaticBitmap(m_amswin, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
-    m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
-    m_sizer_option_left->Add(m_button_ams_setting, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    m_button_ams_setting = new wxStaticBitmap(m_panel_option_left, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
+    m_sizer_option_left->Add(m_button_auto_refill, 0, wxALIGN_CENTER, 0);
+    m_sizer_option_left->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    m_sizer_option_left->Add(m_button_ams_setting, 0, wxALIGN_CENTER, 0);
 
 
     /*option mid*/
@@ -203,15 +174,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     /*option right*/
-
-
-
-    m_button_extruder_feed = new Button(m_amswin, _L("Load"));
+    m_button_extruder_feed = new Button(m_panel_option_right, _L("Load"));
     m_button_extruder_feed->SetFont(Label::Body_13);
-
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
+    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(80),FromDIP(34)));
+    m_button_extruder_feed->SetMaxSize(wxSize(FromDIP(80),FromDIP(34)));
 
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_feed->SetFont(Label::Body_9);
@@ -225,11 +194,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "pt_BR") m_button_extruder_feed->SetLabel("Load");
 
-    m_button_extruder_back = new Button(m_amswin, _L("Unload"));
+    m_button_extruder_back = new Button(m_panel_option_right, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
     m_button_extruder_back->SetFont(Label::Body_13);
+    m_button_extruder_back->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
+    m_button_extruder_back->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_back->SetFont(Label::Body_9);
@@ -247,10 +218,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_option_right->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(0));
     m_sizer_option_right->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(20));
 
+    m_panel_option_left->Layout();
+    m_panel_option_right->Layout();
 
-    m_sizer_ams_option->Add(m_sizer_option_left, 0, wxALIGN_LEFT, 0);
-    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(90));
-    m_sizer_ams_option->Add(m_sizer_option_right, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add(m_panel_option_left, 0, wxALIGN_LEFT, 0);
+    m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
+    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
+    m_sizer_ams_option->Add(m_panel_option_right, 0, wxALIGN_RIGHT, 0);
 
 
     m_sizer_ams_body->Add(m_sizer_ams_area_left, wxALIGN_CENTER, 0);
@@ -260,8 +235,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_body->Add(m_sizer_ams_items, 0, wxALIGN_CENTER, 0);
     m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(10));
     m_sizer_body->Add(m_sizer_ams_body, 0, wxALIGN_CENTER, 0);
-    m_sizer_body->Add(m_sizer_down_road, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, 0);
-    m_sizer_body->Add(m_sizer_ams_option, 0, wxALIGN_CENTER, 0);
+    m_sizer_body->Add(m_sizer_down_road, 0, wxALIGN_CENTER, 0);
+    m_sizer_body->Add(m_sizer_ams_option, 0, wxEXPAND, 0);
 
     m_amswin->SetSizer(m_sizer_body);
     m_amswin->Layout();
@@ -428,7 +403,6 @@ void AMSControl::EnterNoneAMSMode()
     m_simplebook_ams_left->SetSelection(0);
     m_extruder->no_ams_mode(true);
     //m_button_ams_setting->Hide();
-    //m_button_guide->Hide();
     //m_button_extruder_feed->Show();
     //m_button_extruder_back->Show();
 
@@ -441,25 +415,8 @@ void AMSControl::EnterNoneAMSMode()
 
 void AMSControl::EnterGenericAMSMode()
 {
-    //m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::GENERIC_AMS) return;
-    //m_panel_items_left->Show();
-
-    //m_vams_lib->m_ams_model = AMSModel::GENERIC_AMS;
-    //m_ams_tip->SetLabel(_L("AMS"));
-    //m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
-    //m_img_vams_tip->Enable();
-    //m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
-    //m_img_amsmapping_tip->Enable();
-
-    //m_simplebook_ams_left->SetSelection(0);
     m_extruder->no_ams_mode(false);
-    /*m_button_ams_setting->Show();
-    m_button_guide->Show();
-    m_button_retry->Show();
-    m_button_extruder_feed->Show();
-    m_button_extruder_back->Show();
-    ShowFilamentTip(true);*/
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
@@ -472,22 +429,8 @@ void AMSControl::EnterExtraAMSMode()
     if(m_is_none_ams_mode == AMSModel::AMS_LITE) return;
     m_panel_prv_left->Hide();
 
-
-    //m_vams_lib->m_ams_model = AMSModel::EXTRA_AMS;
-    //m_ams_tip->SetLabel(wxEmptyString);
-    //m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
-    //m_img_vams_tip->Disable();
-    //m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
-    //m_img_amsmapping_tip->Disable();
-
     m_simplebook_ams_left->SetSelection(2);
     m_extruder->no_ams_mode(false);
-    /*m_button_ams_setting->Show();
-    m_button_guide->Show();
-    m_button_retry->Show();
-    m_button_extruder_feed->Show();
-    m_button_extruder_back->Show();
-    ShowFilamentTip(true);*/
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
@@ -525,14 +468,13 @@ void AMSControl::msw_rescale()
 
     m_extruder->msw_rescale();
 
-
-    if (m_button_extruder_feed) m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
-    if (m_button_extruder_back) m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
-    if (m_button_auto_refill) m_button_auto_refill->SetMinSize(wxSize(-1, FromDIP(24)));
+    if (m_button_extruder_feed) m_button_extruder_feed->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
+    if (m_button_extruder_feed) m_button_extruder_feed->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
+    if (m_button_extruder_back) m_button_extruder_back->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
+    if (m_button_extruder_back) m_button_extruder_back->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
+    if (m_button_auto_refill) m_button_auto_refill->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
+    if (m_button_auto_refill) m_button_auto_refill->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
     if (m_button_ams_setting) m_button_ams_setting->SetMinSize(wxSize(FromDIP(25), FromDIP(24)));
-    if (m_button_guide) m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
-    if (m_button_retry) m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
-    if (m_vams_lib) m_vams_lib->msw_rescale();
 
 
     for (auto ams_item : m_ams_item_list) {
@@ -628,10 +570,6 @@ void AMSControl::ClearAms() {
 
 void AMSControl::CreateAmsDoubleNozzle()
 {
-    /*m_ams_item_list.clear();
-    m_ams_generic_item_list.clear();
-    m_ams_extra_item_list.clear();*/
-
     std::vector<AMSinfo> single_info_left;
     std::vector<AMSinfo> single_info_right;
 
@@ -878,35 +816,6 @@ void AMSControl::enable_ams_setting(bool en)
 void AMSControl::show_vams_kn_value(bool show)
 {
     //m_vams_lib->show_kn_value(show);
-}
-
-void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
-{
-    //m_vams_lib->m_obj = obj;
-    //if (obj->cali_version >= 0) {
-    //    float k_value = 0;
-    //    float n_value = 0;
-    //    CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
-    //    m_vams_info.k        = k_value;
-    //    m_vams_info.n        = n_value;
-    //    m_vams_lib->m_info.k = k_value;
-    //    m_vams_lib->m_info.n = n_value;
-    //}
-    //else { // the remaining printer types
-    //    m_vams_info.k        = tray.k;
-    //    m_vams_info.n        = tray.n;
-    //    m_vams_lib->m_info.k = tray.k;
-    //    m_vams_lib->m_info.n = tray.n;
-    //}
-    //m_vams_info.material_name = tray.get_display_filament_type();
-    //m_vams_info.material_colour = tray.get_color();
-    //m_vams_lib->m_info.material_name = tray.get_display_filament_type();
-    //auto col= tray.get_color();
-    //if (col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254 && m_vams_lib->m_info.material_colour != col) {
-    //    m_vams_lib->transparent_changed = true;
-    //}
-    //m_vams_lib->m_info.material_colour = tray.get_color();
-    //m_vams_lib->Refresh();
 }
 
 std::vector<AMSinfo> AMSControl::GenerateSimulateData() {
@@ -1553,6 +1462,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     auto left = !IsAmsInRightPanel(ams_id);
     auto length = -1;
     auto model = AMSModel::AMS_LITE;
+    auto in_pair = false;
 
     if (std::find(cur_left_ams.begin(), cur_left_ams.end(), ams_id) != cur_left_ams.end()) {
         in_same_page = true;
@@ -1571,10 +1481,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         for (auto it : pair_id){
             if (it.first == ams_id){
                 length = left ? 218 : 124;
+                in_pair = true;
                 break;
             }
             else if (it.second == ams_id){
                 length = left ? 124 : 232;
+                in_pair = true;
                 break;
             }
         }
@@ -1597,7 +1509,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
             left = true;
             length = 50;
         } else {
-            length = left ? 110 : 82;
+            /*check in pair*/
+            if (in_pair) {
+                length = left ? 110 : 232;
+            } else {
+                length = left ? 192 : 82;
+            }
         }
     }
 

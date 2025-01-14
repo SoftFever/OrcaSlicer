@@ -3007,8 +3007,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
 
-
-    if (is_support_virtual_tray) m_ams_control->update_vams_kn_value(obj->vt_slot[0], obj);
+    //if (is_support_virtual_tray) m_ams_control->update_vams_kn_value(obj->vt_slot[0], obj);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;

@@ -110,8 +110,6 @@ protected:
     ScalableBitmap m_button_ams_setting_normal;
     ScalableBitmap m_button_ams_setting_hover;
     ScalableBitmap m_button_ams_setting_press;
-    Button *m_button_guide {nullptr};
-    Button *m_button_retry {nullptr};
 
     AmsHumidityTipPopup m_Humidity_tip_popup;
 
@@ -180,7 +178,6 @@ public:
     void show_auto_refill(bool show);
     void enable_ams_setting(bool en);
     void show_vams_kn_value(bool show);
-    void update_vams_kn_value(AmsTray tray, MachineObject* obj);
     void post_event(wxEvent&& event);
 
     virtual bool Enable(bool enable = true);
