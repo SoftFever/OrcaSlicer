@@ -2764,6 +2764,11 @@ bool MachineObject::is_in_prepare()
     return print_status == "PREPARE";
 }
 
+bool MachineObject::is_in_printing_pause() const
+{
+    return print_status == "PAUSE";
+}
+
 bool MachineObject::is_printing_finished()
 {
     if (print_status.compare("FINISH") == 0

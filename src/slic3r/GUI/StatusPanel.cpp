@@ -2859,7 +2859,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         }
 
         /*enable status*/
-        if (obj->is_in_printing() ||
+        /* Can do switch while printing pause STUDIO-9789*/
+        if ((obj->is_in_printing() && !obj->is_in_printing_pause()) ||
             obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE ||
             targ_nozzle_id_from_pc != INVALID_NOZZLE_ID)
         {
@@ -4745,7 +4746,8 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
 {
     if (obj) {
 
-        if (obj->is_in_printing() || obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        /*Enable switch head while printing is paused STUDIO-9789*/
+        if ((obj->is_in_printing() && !obj->is_in_printing_pause()) || obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
             MessageDialog dlg(nullptr, _L("The printer is busy on other print job"), _L("Error"), wxICON_WARNING | wxOK);
             dlg.ShowModal();
             return;
