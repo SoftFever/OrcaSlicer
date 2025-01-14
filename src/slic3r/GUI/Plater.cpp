@@ -2729,6 +2729,22 @@ void Sidebar::sync_ams_list()
             }
         }
     }
+    auto badge_combox_filament = [](PlaterPresetComboBox *c) {
+        auto cur_tip = c->GetToolTip()->GetTip();
+        auto tip     = _L("\nMaterial and color information have been synchronized, but slot information is not included.");
+        c->SetToolTip(cur_tip + tip);
+        c->ShowBadge(true);
+    };
+    { // badge ams filament
+        for (auto &c : p->combos_filament) {//clear flag
+            c->ShowBadge(false);
+        }
+        if (sync_result.direct_sync) {
+            for (auto &c : p->combos_filament) {
+                badge_combox_filament(c);
+            }
+        }
+    }
     if (!merge_info.is_empty() && wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams")) { // merge same color and preset filament//use same ams
         auto reduce_index = [](MergeFilamentInfo &merge_info,int value) {
             for (size_t i = 0; i < merge_info.merges.size(); i++) {
@@ -2740,12 +2756,40 @@ void Sidebar::sync_ams_list()
                 }
             }
         };
+        std::vector<bool> sync_ams_badges;
+        for (auto iter : sync_result.sync_maps) {
+            sync_ams_badges.push_back(false);
+            if (iter.second.ams_id == "" || iter.second.slot_id == "") {
+                continue;
+            }
+            sync_ams_badges.back() = true;
+        }
+
         for (size_t i = 0; i < merge_info.merges.size(); i++) {
             auto& cur = merge_info.merges[i];
             for (size_t j = cur.size() -1; j >= 1 ; j--) {
-                change_filament(cur[j], cur[0]);
+                auto last_index = cur[j];
+                change_filament(last_index, cur[0]);
                 cur.erase(cur.begin() + j);
+                sync_ams_badges.erase(sync_ams_badges.begin() + last_index);
                 reduce_index(merge_info, cur[j]);
+            }
+        }
+        for (size_t i = 0; i < sync_ams_badges.size(); i++) {
+            if (sync_ams_badges[i] == true) {
+                auto &c = p->combos_filament[i];
+                badge_combox_filament(c);
+            }
+        }
+    } else {
+        for (auto iter : sync_result.sync_maps) {
+            if (iter.second.ams_id == "" || iter.second.slot_id == "") {
+                continue;
+            }
+            auto temp_index = iter.first;
+            if (temp_index < p->combos_filament.size() && temp_index >= 0) {
+                auto &c        = p->combos_filament[temp_index];
+                badge_combox_filament(c);
             }
         }
     }
@@ -7646,6 +7690,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         if (flag != flag_is_change) {
             sidebar->auto_calc_flushing_volumes(idx);
         }
+        auto select_flag = combo->GetFlag(selection);
+        combo->ShowBadge(select_flag == (int)PresetComboBox::FilamentAMSType::FROM_AMS);
     }
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?

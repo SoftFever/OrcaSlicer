@@ -24,6 +24,7 @@ public:
         wxString group{};
         wxString alias{};
         wxString tip{};
+        int      flag{0};
     };
 
 private:

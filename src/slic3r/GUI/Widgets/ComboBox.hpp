@@ -53,6 +53,9 @@ public:
     void SetLabel(const wxString &label) override;
     wxString GetLabel() const override;
 
+    int GetFlag(unsigned int n);
+    void SetFlag(unsigned int n, int value);
+
     void SetTextLabel(const wxString &label);
     wxString GetTextLabel() const;
 

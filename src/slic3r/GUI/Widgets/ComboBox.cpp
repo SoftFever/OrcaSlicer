@@ -133,6 +133,19 @@ wxString ComboBox::GetLabel() const
         return TextInput::GetLabel();
 }
 
+int ComboBox::GetFlag(unsigned int n)
+{
+    if (n >= items.size())
+        return -1;
+    return items[n].flag;
+}
+
+void ComboBox::SetFlag(unsigned int n, int value) {
+    if (n >= items.size()) return;
+    items[n].flag = value;
+    drop.Invalidate();
+}
+
 void ComboBox::SetTextLabel(const wxString& label)
 {
     TextInput::SetLabel(label);

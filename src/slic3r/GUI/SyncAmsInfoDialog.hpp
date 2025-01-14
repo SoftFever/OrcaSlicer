@@ -10,7 +10,7 @@
 #include "SelectMachine.hpp"
 #include "DeviceManager.hpp"
 class Button;
-
+class CheckBox;
 namespace Slic3r { namespace GUI {
 class CapsuleButton;
 class SyncAmsInfoDialog : public DPIDialog
@@ -299,8 +299,12 @@ private:
     CapsuleButton *  m_colormap_btn = nullptr;
     CapsuleButton *  m_override_btn = nullptr;
     wxStaticText *   m_more_setting_tips = nullptr;
-    wxCheckBox* m_append_color_checkbox = nullptr;
-    wxCheckBox* m_merge_color_checkbox = nullptr;
+    wxBoxSizer *     m_append_color_sizer = nullptr;
+    CheckBox* m_append_color_checkbox = nullptr;
+    wxStaticText *   m_append_color_text = nullptr;
+    wxBoxSizer *     m_merge_color_sizer     = nullptr;
+    CheckBox* m_merge_color_checkbox = nullptr;
+    wxStaticText *   m_merge_color_text  = nullptr;
     bool m_is_empty_project = true;
     bool m_is_same_printer  = true;
     bool m_check_dirty_fialment  = true;

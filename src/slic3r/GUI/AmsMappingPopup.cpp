@@ -360,7 +360,8 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-     m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("Right Ams")), 0, wxEXPAND, 0);
+     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right Ams"));
+     m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_right->Add(m_right_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -402,7 +403,20 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      });
  }
 
- wxBoxSizer* AmsMapingPopup::create_split_sizer(wxWindow* parent, wxString text)
+ void AmsMapingPopup::set_sizer_title(wxBoxSizer *sizer, wxString text) {
+     if (!sizer) { return; }
+     wxSizerItemList items = sizer->GetChildren();
+     for (wxSizerItemList::iterator it = items.begin(); it != items.end(); ++it) {
+         wxSizerItem *item       = *it;
+         auto         temp_label = dynamic_cast<Label *>((item->GetWindow()));
+         if (temp_label) {
+             temp_label->SetLabel(text);
+             break;
+         }
+     }
+ }
+
+ wxBoxSizer *AmsMapingPopup::create_split_sizer(wxWindow *parent, wxString text)
  {
     wxBoxSizer* sizer_split_ams = new wxBoxSizer(wxHORIZONTAL);
     auto ams_title_text = new Label(parent, text);
@@ -539,6 +553,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         m_left_extra_slot->Hide();
         //m_left_marea_panel->Show();
         m_right_marea_panel->Show();
+        set_sizer_title(m_right_split_ams_sizer, _L("Ams"));
         m_right_extra_slot->Show();
     }
     else if (nozzle_nums > 1) {
@@ -559,6 +574,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         else if (m_show_type == ShowType::RIGHT)
         {
             m_right_marea_panel->Show();
+            set_sizer_title(m_right_split_ams_sizer, _L("Right Ams"));
             m_right_extra_slot->Show();
         }
         else if (m_show_type == ShowType::LEFT_AND_RIGHT)
@@ -568,9 +584,9 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
             m_right_marea_panel->Show();
+            set_sizer_title(m_right_split_ams_sizer, _L("Right Ams"));
             m_right_extra_slot->Show();
         }
-
     }
 
     for (int i = 0; i < obj->vt_slot.size(); i++) {

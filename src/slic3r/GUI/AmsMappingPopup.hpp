@@ -179,10 +179,12 @@ public:
 
     wxPanel*     m_left_marea_panel;
     wxPanel*     m_right_marea_panel;
+    wxBoxSizer * m_right_split_ams_sizer{nullptr};
 
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
 
+    void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
     wxString     format_text(wxString &m_msg);
     void         set_send_win(wxWindow* win) {send_win = win;};

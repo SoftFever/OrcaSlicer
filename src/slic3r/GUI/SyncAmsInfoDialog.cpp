@@ -16,12 +16,13 @@
 #include "Jobs/PlaterWorker.hpp"
 #include <chrono>
 #include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
 #include "CapsuleButton.hpp"
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 
 #define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
-#define SyncAmsInfoDialogWidth  FromDIP(620)
+#define SyncAmsInfoDialogWidth  FromDIP(675)
 
 namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
@@ -355,7 +356,7 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
     sizer_thumbnail->Add(image_button, 0, wxALIGN_CENTER, 0);
     if (left) {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text     = new wxStaticText(this, wxID_ANY, _L("Original"));
+        auto        sync_text  = new wxStaticText(this, wxID_ANY, L_CONTEXT("Original", "Sync_AMS"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
@@ -432,8 +433,8 @@ void SyncAmsInfoDialog::show_color_panel(bool flag) {
     m_more_setting_tips->Show(flag);
 
     if (!flag) {
-        m_append_color_checkbox->Show(false);
-        m_merge_color_checkbox->Show(false);
+        show_sizer(m_append_color_sizer, false);
+        show_sizer(m_merge_color_sizer, false);
     }
     else {
         update_more_setting();
@@ -454,9 +455,8 @@ void SyncAmsInfoDialog::show_color_panel(bool flag) {
 
 void SyncAmsInfoDialog::update_more_setting(bool layout)
 {
-    m_append_color_checkbox->Show(m_expand_more_settings);
-    m_merge_color_checkbox->Show(m_expand_more_settings);
-
+    show_sizer(m_append_color_sizer, m_expand_more_settings);
+    show_sizer(m_merge_color_sizer, m_expand_more_settings);
     if (layout) {
         Layout();
         Fit();
@@ -1165,8 +1165,9 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         wxBoxSizer *tip_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_attention_text      = new wxStaticText(this, wxID_ANY, _L("Attention") + ": ");
         tip_sizer->Add(m_attention_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
-        m_tip_text            = new wxStaticText(this, wxID_ANY, _L("Only synchronize filament type and color, not included AMS slot info."));
+        m_tip_text            = new wxStaticText(this, wxID_ANY, _L("Only synchronize filament type and color, not including AMS slot information."));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+        tip_sizer->AddSpacer(FromDIP(25));
         tip_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 
         bSizer->Add(tip_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
@@ -1182,7 +1183,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         });
         more_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
 
-        m_append_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Unused AMS filaments should also be added to the filament list."), wxDefaultPosition, wxDefaultSize, 0);
+        m_append_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
+        m_append_color_checkbox = new CheckBox(this, wxID_ANY);
         m_append_color_checkbox->SetToolTip(_L("When you click ok button,it will append unmapped color."));
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
@@ -1191,9 +1193,17 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
             wxGetApp().app_config->set_bool("enable_append_color_by_sync_ams",!flag);
         });
         m_append_color_checkbox->Hide();
-        more_setting_sizer->Add(m_append_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        m_append_color_sizer->Add(m_append_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        const int gap_between_checebox_and_text = 2;
+        m_append_color_text = new wxStaticText(this, wxID_ANY, _L("Unused AMS filaments should also be added to the filament list."));
+        m_append_color_text->Hide();
+        m_append_color_sizer->AddSpacer(FromDIP(gap_between_checebox_and_text));
+        m_append_color_sizer->Add(m_append_color_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
 
-        m_merge_color_checkbox = new wxCheckBox(this, wxID_ANY, _L("Automatically merge the same colors in the model after mapping."), wxDefaultPosition, wxDefaultSize, 0);
+        more_setting_sizer->Add(m_append_color_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+
+        m_merge_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
+        m_merge_color_checkbox = new CheckBox(this, wxID_ANY);
         m_merge_color_checkbox->SetToolTip(_L("When you click ok button,it will merge same ams to only one color."));
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
@@ -1202,7 +1212,14 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
             wxGetApp().app_config->set_bool("enable_merge_color_by_sync_ams",!flag);
         });
         m_merge_color_checkbox->Hide();
-        more_setting_sizer->Add(m_merge_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+        m_merge_color_sizer->Add(m_merge_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+
+        m_merge_color_text = new wxStaticText(this, wxID_ANY, _L("Automatically merge the same colors in the model after mapping."));
+        m_merge_color_text->Hide();
+        m_merge_color_sizer->AddSpacer(FromDIP(gap_between_checebox_and_text));
+        m_merge_color_sizer->Add(m_merge_color_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+
+        more_setting_sizer->Add(m_merge_color_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 
         bSizer->Add(more_setting_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
@@ -3813,7 +3830,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
             if (is_first_row) {
                 is_first_row              = false;
-                auto        tip0_text     = new wxStaticText(m_filament_panel, wxID_ANY, _L("Original"));
+                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, L_CONTEXT("Original", "Sync_AMS"));
                 tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
                 ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 

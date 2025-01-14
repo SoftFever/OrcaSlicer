@@ -51,6 +51,11 @@ public:
         LABEL_ITEM_MAX,
 	};
 
+    enum FilamentAMSType :unsigned int {
+        ORIGINAL ,
+        FROM_AMS,
+    };
+
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
     bool set_printer_technology(PrinterTechnology pt);
 
