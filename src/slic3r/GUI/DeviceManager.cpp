@@ -7391,7 +7391,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
 
             //third party
             if (vendor == "third party") {
-                if ("bambulab" != vendor && tag_type == type) {
+                if ("bambu lab" != tag_vendor && tag_type == type) {
                     in_blacklist = true;
                     ac = action;
                     info = description;
