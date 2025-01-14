@@ -4927,7 +4927,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("staggered_layers", coBool);
-    def->label   = L("Stagger Print Layers");
+    def->label   = L("Stagger print layers");
     def->category = L("Strength");
     def->tooltip = L("This is an experminetal feature that allows you to print staggered layers for better layer adhesion and strength.");
     def->mode    = comAdvanced;
