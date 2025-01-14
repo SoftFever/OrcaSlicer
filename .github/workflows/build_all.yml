@@ -63,7 +63,7 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 360
     env:
       date:
       ver:
@@ -81,6 +81,8 @@ jobs:
         arch: [x86_64, aarch64]
       fail-fast: false
     steps:
+    - name: Grant sudo permissions without password
+      run: echo 'runner ALL=(ALL) NOPASSWD:ALL' | sudo EDITOR='tee -a' visudo
     - name: "Remove unneeded stuff to free disk space"
       run:
         sudo rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
