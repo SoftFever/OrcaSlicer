@@ -3094,7 +3094,17 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("ironing_inset", coFloat);
+    def->label    = L("Ironing inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The distance to keep from the edges. A value of 0 sets this to half of the nozzle diameter");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
@@ -3407,8 +3417,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
-    def->tooltip = L("The minimum printing speed that the printer will slow down to to attempt to maintain the minimum layer time "
-                     "above, when slow down for better layer cooling is enabled.");
+    def->tooltip = L("The minimum print speed to which the printer slows down to maintain the minimum layer time defined above "
+                     "when the slowdown for better layer cooling is enabled.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
