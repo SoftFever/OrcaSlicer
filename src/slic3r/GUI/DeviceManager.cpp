@@ -3268,6 +3268,15 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         chamber_temp_edit_min = support_champer_range[0];
                         chamber_temp_edit_max = support_champer_range[1];
                     }
+
+                    if (jj.contains("support_chamber_temp_switch_heating"))
+                    {
+                        const auto& support_chamber_temp_switch_heating = jj["support_chamber_temp_switch_heating"];
+                        if (support_chamber_temp_switch_heating.is_number())
+                        {
+                            chamber_temp_switch_heat = support_chamber_temp_switch_heating.get<long>();
+                        }
+                    }
                 }
 
                 if (jj.contains("support_extrusion_cali")) {

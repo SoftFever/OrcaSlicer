@@ -737,6 +737,7 @@ public:
     float  chamber_temp_target;
     float  chamber_temp_edit_min = 0;
     float  chamber_temp_edit_max = 60;
+    long   chamber_temp_switch_heat = LONG_MAX;/*default to LONG_MAX*/
     float  frame_temp;
 
     /* cooling */
