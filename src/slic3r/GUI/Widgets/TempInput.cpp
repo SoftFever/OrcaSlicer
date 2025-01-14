@@ -126,8 +126,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     text_ctrl->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
     if (!normal_icon.IsEmpty()) { this->normal_icon = ScalableBitmap(this, normal_icon.ToStdString(), 16); }
     if (!actice_icon.IsEmpty()) { this->actice_icon = ScalableBitmap(this, actice_icon.ToStdString(), 16); }
-    this->left_icon = ScalableBitmap(this, "L", 16);
-    this->right_icon = ScalableBitmap(this, "R", 16);
+    this->round_scale_hint_icon = ScalableBitmap(this, "round", 16);
     this->degree_icon = ScalableBitmap(this, "degree", 16);
     messureSize();
 }
@@ -308,8 +307,7 @@ void TempInput::Rescale()
 {
     if (this->normal_icon.bmp().IsOk()) this->normal_icon.msw_rescale();
     if (this->degree_icon.bmp().IsOk()) this->degree_icon.msw_rescale();
-    if (this->left_icon.bmp().IsOk()) this->left_icon.msw_rescale();
-    if (this->right_icon.bmp().IsOk()) this->right_icon.msw_rescale();
+    if (this->round_scale_hint_icon.bmp().IsOk()) this->round_scale_hint_icon.msw_rescale();
     messureSize();
 }
 
@@ -354,7 +352,7 @@ void TempInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     left += 9;
 
     if (m_input_type == TEMP_OF_MAIN_NOZZLE_TYPE || m_input_type == TEMP_OF_DEPUTY_NOZZLE_TYPE) {
-        wxSize szIcon = left_icon.GetBmpSize();
+        wxSize szIcon = round_scale_hint_icon.GetBmpSize();
         left += szIcon.x + 3;
     }
 
@@ -432,10 +430,13 @@ void TempInput::render(wxDC &dc)
     }
 
     pt.x += szIcon.x + 9;
-    if (left_icon.bmp().IsOk() && m_input_type == TEMP_OF_DEPUTY_NOZZLE_TYPE){
-        wxSize szIcon = left_icon.GetBmpSize();
+
+    ScalableBitmap round_icon(this, "round", 16);/*icon diffs in normal and dark mode*/
+    round_icon.msw_rescale();
+    if (round_icon.bmp().IsOk() && m_input_type == TEMP_OF_DEPUTY_NOZZLE_TYPE){
+        wxSize szIcon = round_icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(left_icon.bmp(), pt);
+        dc.DrawBitmap(round_icon.bmp(), pt);
 
         dc.SetFont(::Label::Body_12);
         auto sepSize = dc.GetMultiLineTextExtent(wxString("L"));
@@ -447,10 +448,10 @@ void TempInput::render(wxDC &dc)
         pt.x += szIcon.x + 3;
     }
 
-    if (right_icon.bmp().IsOk() && m_input_type == TEMP_OF_MAIN_NOZZLE_TYPE) {
-        wxSize szIcon = right_icon.GetBmpSize();
+    if (round_icon.bmp().IsOk() && m_input_type == TEMP_OF_MAIN_NOZZLE_TYPE) {
+        wxSize szIcon = round_icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(right_icon.bmp(), pt);
+        dc.DrawBitmap(round_icon.bmp(), pt);
 
         dc.SetFont(::Label::Body_12);
         auto sepSize = dc.GetMultiLineTextExtent(wxString("R"));
@@ -529,7 +530,7 @@ void TempInput::messureMiniSize()
     width += 9;
 
     if (m_input_type == TEMP_OF_MAIN_NOZZLE_TYPE || m_input_type == TEMP_OF_DEPUTY_NOZZLE_TYPE) {
-        wxSize szIcon = left_icon.GetBmpSize();
+        wxSize szIcon = round_scale_hint_icon.GetBmpSize();
         width += szIcon.x;
     }
     width += 3;
@@ -589,7 +590,7 @@ void TempInput::messureSize()
     width += 9;
 
     if (m_input_type == TEMP_OF_MAIN_NOZZLE_TYPE || m_input_type == TEMP_OF_DEPUTY_NOZZLE_TYPE) {
-        wxSize szIcon = left_icon.GetBmpSize();
+        wxSize szIcon = round_scale_hint_icon.GetBmpSize();
         width += szIcon.x;
     }
     width += 3;

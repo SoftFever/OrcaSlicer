@@ -23,9 +23,7 @@ class TempInput : public wxNavigationEnabled<StaticBox>
     ScalableBitmap normal_icon;
     ScalableBitmap actice_icon;
     ScalableBitmap degree_icon;
-
-    ScalableBitmap left_icon;
-    ScalableBitmap right_icon;
+    ScalableBitmap round_scale_hint_icon;/*the size hint of icon, use to compute size*/
 
     StateColor   label_color;
     StateColor   text_color;
