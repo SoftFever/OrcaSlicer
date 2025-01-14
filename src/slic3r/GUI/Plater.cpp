@@ -6036,6 +6036,7 @@ void Plater::priv::reset(bool apply_presets_change)
 
     project.reset();
 
+    wxGetApp().sidebar().printer_combox()->clear_selected_dev_id();
     //BBS: reset all project embedded presets
     wxGetApp().preset_bundle->reset_project_embedded_presets();
     if (apply_presets_change)

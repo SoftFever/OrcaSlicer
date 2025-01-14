@@ -78,6 +78,7 @@ public:
     int  get_filament_idx() const { return m_filament_idx; }
 
     std::string get_selected_dev_id() const { return m_selected_dev_id; }
+    void clear_selected_dev_id() { m_selected_dev_id.clear(); }
 
     // BBS
     wxString get_tooltip(const Preset& preset);
