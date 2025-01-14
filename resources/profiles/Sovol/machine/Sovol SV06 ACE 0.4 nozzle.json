@@ -25,6 +25,9 @@
 	"retraction_length": [
 		"0.8"
 	],
+	"retraction_minimum_travel": [
+		"1"
+	],
 	"machine_max_acceleration_e": [
 		"5000",
 		"5000"
@@ -96,10 +99,6 @@
         "2",
 		"2"
     ],
-	"retract_minimum_trave": [
-		"1",
-		"1"
-	],
 	"retract_before_wipe": [
 		"100",
 		"100"
