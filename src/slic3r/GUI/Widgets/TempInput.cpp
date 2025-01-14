@@ -93,6 +93,8 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         SetFinish();
     });
     text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
+        /*the wxEVT_KILL_FOCUS will be triggered in Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus() for win or linux, but not APPLE*/
+#ifdef __APPLE__
         OnEdit();
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) return;
@@ -103,10 +105,13 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         if (tempint > max_temp) {
             Warning(true, WARNING_TOO_HIGH);
             return;
-        } else {
+        }
+        else {
             Warning(false, WARNING_TOO_LOW);
         }
         SetFinish();
+#endif
+
         Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus();
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
