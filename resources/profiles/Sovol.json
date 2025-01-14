@@ -100,12 +100,12 @@
             "sub_path": "process/0.20mm Standard @Sovol SV06Plus.json"
         },
         {
-            "name": "0.20mm Standard @Sovol SV06 ACE - official",
-            "sub_path": "process/0.20mm Standard @Sovol SV06 ACE - official.json"
+            "name": "0.20mm Standard @Sovol SV06 ACE",
+            "sub_path": "process/0.20mm Standard @Sovol SV06 ACE.json"
         },
         {
-            "name": "0.20mm Standard @Sovol SV06 Plus ACE - official",
-            "sub_path": "process/0.20mm Standard @Sovol SV06 Plus ACE - official.json"
+            "name": "0.20mm Standard @Sovol SV06 Plus ACE",
+            "sub_path": "process/0.20mm Standard @Sovol SV06 Plus ACE.json"
         },
 		{
             "name": "0.20mm Standard @Sovol SV07",

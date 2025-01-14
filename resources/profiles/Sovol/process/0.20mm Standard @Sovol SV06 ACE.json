@@ -1,7 +1,7 @@
 {
 	"type": "process",
 	"setting_id": "GP004",
-	"name": "0.20mm Standard @Sovol SV06 ACE - official",
+	"name": "0.20mm Standard @Sovol SV06 ACE",
 	"from": "system",
 	"inherits": "fdm_process_common",
 	"instantiation": "true",
