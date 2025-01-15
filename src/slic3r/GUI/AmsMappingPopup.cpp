@@ -517,8 +517,11 @@ void AmsMapingPopup::update_ams_data_multi_machines()
         tray_datas.push_back(td);
     }
 
-    m_amsmapping_container_list[m_amsmapping_container_list_index]->Show();
-    add_ams_mapping(tray_datas, m_amsmapping_container_list[m_amsmapping_container_list_index], m_amsmapping_container_sizer_list[m_amsmapping_container_list_index]);
+
+    if (m_amsmapping_container_list.size() > m_amsmapping_container_list_index ) {
+        m_amsmapping_container_list[m_amsmapping_container_list_index]->Show();
+        add_ams_mapping(tray_datas, m_amsmapping_container_list[m_amsmapping_container_list_index], m_amsmapping_container_sizer_list[m_amsmapping_container_list_index]);
+    }
 
     m_warning_text->Show(m_has_unmatch_filament);
 

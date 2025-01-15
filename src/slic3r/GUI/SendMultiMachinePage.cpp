@@ -1092,9 +1092,9 @@ wxPanel* SendMultiMachinePage::create_page()
     wxBoxSizer* title_filament = create_item_title(_L("Filament"), main_page, "");
     wxBoxSizer* radio_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* use_external_sizer = create_item_radiobox(_L("Use External Spool"), main_page, "", 0, "use_external");
-    wxBoxSizer* use_ams_sizer = create_item_radiobox(_L("Use AMS"), main_page, "", 0, "use_ams");
+    //wxBoxSizer* use_ams_sizer = create_item_radiobox(_L("Use AMS"), main_page, "", 0, "use_ams");
     radio_sizer->Add(use_external_sizer, 0, wxLeft, FromDIP(20));
-    radio_sizer->Add(use_ams_sizer, 0, wxLeft, FromDIP(5));
+    //radio_sizer->Add(use_ams_sizer, 0, wxLeft, FromDIP(5));
     sizer->Add(title_filament, 0, wxEXPAND, 0);
     sizer->Add(radio_sizer, 0, wxLEFT, FromDIP(20));
     sizer->AddSpacer(FromDIP(5));
@@ -1403,7 +1403,8 @@ void SendMultiMachinePage::sync_ams_list()
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size()) continue;
 
         MaterialItem* item = new MaterialItem(m_main_page, colour_rgb, _L(display_materials[extruder]));
-        item->set_ams_info(wxColour("#CECECE"), "A1", 0, std::vector<wxColour>());
+        //item->set_ams_info(wxColour("#CECECE"), "A1", 0, std::vector<wxColour>());
+        item->set_ams_info(wxColour("#CECECE"), "Ext", 0, std::vector<wxColour>());
         m_ams_list_sizer->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
