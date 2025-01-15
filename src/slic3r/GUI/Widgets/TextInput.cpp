@@ -111,6 +111,17 @@ void TextInput::SetIcon(const wxString &icon)
     Rescale();
 }
 
+void TextInput::SetIcon_1(const wxString &icon) {
+    if (this->icon_1.name() == icon.ToStdString())
+        return;
+    if (icon.empty()) {
+        this->icon_1 = ScalableBitmap();
+        return;
+    }
+    this->icon_1 = ScalableBitmap(this, icon.ToStdString(), 16);
+    Rescale();
+}
+
 void TextInput::SetLabelColor(StateColor const &color)
 {
     label_color = color;
@@ -127,6 +138,8 @@ void TextInput::Rescale()
 {
     if (!this->icon.name().empty())
         this->icon.msw_rescale();
+    if (!this->icon_1.name().empty())
+        this->icon_1.msw_rescale();
     messureSize();
     Refresh();
 }
@@ -165,6 +178,10 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (this->icon.bmp().IsOk()) {
         wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
+    }
+    if (this->icon_1.bmp().IsOk()) {
+        wxSize szIcon = this->icon_1.GetBmpSize();
+        textPos.x += (szIcon.x);
     }
     bool align_right = GetWindowStyle() & wxALIGN_RIGHT;
     if (align_right)
@@ -212,6 +229,16 @@ void TextInput::render(wxDC& dc)
                 pt.x = (size.x - (szIcon.x + 0 + labelSize.x)) / 2;
         }
         dc.DrawBitmap(icon.bmp(), pt);
+        pt.x += szIcon.x + 0;
+    }
+    if (icon_1.bmp().IsOk()) {
+        wxSize szIcon = icon_1.GetBmpSize();
+        pt.y          = (size.y - szIcon.y) / 2;
+        if (align_center) {
+            if (pt.x * 2 + szIcon.x + 0 + labelSize.x < size.x)
+                pt.x = (size.x - (szIcon.x + 0 + labelSize.x)) / 2;
+        }
+        dc.DrawBitmap(icon_1.bmp(), pt);
         pt.x += szIcon.x + 0;
     }
     auto text = wxWindow::GetLabel();

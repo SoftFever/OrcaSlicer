@@ -121,8 +121,18 @@ void ComboBox::SetLabel(const wxString &value)
 {
     if (GetTextCtrl()->IsShown() || text_off)
         GetTextCtrl()->SetValue(value);
-    else
-        TextInput::SetLabel(value);
+    else {
+        if (is_replace_text_to_image) {
+            auto new_value = value;
+            new_value.Replace(replace_text, "", false);//replace first text
+            TextInput::SetIcon_1(image_for_text);
+            TextInput::SetLabel(new_value);
+        }
+        else {
+            TextInput::SetIcon_1("");
+            TextInput::SetLabel(value);
+        }
+    }
 }
 
 wxString ComboBox::GetLabel() const
@@ -200,6 +210,13 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
 }
 
 unsigned int ComboBox::GetCount() const { return items.size(); }
+
+void ComboBox::set_replace_text(wxString text, wxString image_name)
+{
+    replace_text = text;
+    image_for_text = image_name;
+    is_replace_text_to_image  = true;
+}
 
 wxString ComboBox::GetString(unsigned int n) const
 { return n < items.size() ? items[n].text : wxString{}; }

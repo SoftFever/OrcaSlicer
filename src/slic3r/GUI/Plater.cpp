@@ -2618,8 +2618,10 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
         return;
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
 
-    for (auto c : p->combos_filament)
+    for (auto c : p->combos_filament){
         c->update();
+        c->ShowBadge(false);//change printer,then clear badge
+    }
 
     p->combo_printer->update();
 }
@@ -2730,9 +2732,8 @@ void Sidebar::sync_ams_list()
         }
     }
     auto badge_combox_filament = [](PlaterPresetComboBox *c) {
-        auto cur_tip = c->GetToolTip()->GetTip();
         auto tip     = _L("\nMaterial and color information have been synchronized, but slot information is not included.");
-        c->SetToolTip(cur_tip + tip);
+        c->SetToolTip(tip);
         c->ShowBadge(true);
     };
     { // badge ams filament

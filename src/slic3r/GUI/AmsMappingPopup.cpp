@@ -553,7 +553,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         m_left_extra_slot->Hide();
         //m_left_marea_panel->Show();
         m_right_marea_panel->Show();
-        set_sizer_title(m_right_split_ams_sizer, _L("Ams"));
+        set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
         m_right_extra_slot->Show();
     }
     else if (nozzle_nums > 1) {

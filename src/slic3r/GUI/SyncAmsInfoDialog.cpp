@@ -136,8 +136,6 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
     if (!m_input_info.connected_printer) { return; }
     if (is_dirty_filament()) { return; }
 
-    show_sizer(m_plate_combox_sizer, true);
-    update_printer_name();//m_printer_is_map_title is in m_plate_combox_sizer
     show_sizer(m_sizer_line, true);
     show_sizer(m_sizer_two_image, true);
 
@@ -1167,9 +1165,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         tip_sizer->Add(m_attention_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
         m_tip_text            = new wxStaticText(this, wxID_ANY, _L("Only synchronize filament type and color, not including AMS slot information."));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-        tip_sizer->AddSpacer(FromDIP(25));
         tip_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
-
+        tip_sizer->AddSpacer(FromDIP(25));
         bSizer->Add(tip_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
         add_two_image_control();
@@ -3200,6 +3197,9 @@ void SyncAmsInfoDialog::on_timer(wxTimerEvent &event)
         update_select_layout(obj_);
         update_ams_check(obj_);
         m_check_flag = true;
+
+        show_sizer(m_plate_combox_sizer, true);
+        update_printer_name(); // m_printer_is_map_title is in m_plate_combox_sizer
     }
 
     if (!obj_ || obj_->amsList.empty() || obj_->ams_exist_bits == 0 || !obj_->is_support_filament_backup || !obj_->is_support_show_filament_backup ||

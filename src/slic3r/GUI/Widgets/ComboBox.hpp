@@ -15,6 +15,9 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     DropDown               drop;
     bool     drop_down = false;
     bool     text_off = false;
+    bool     is_replace_text_to_image = false;
+    wxString replace_text;
+    wxString image_for_text;
 
 public:
     ComboBox(wxWindow *      parent,
@@ -37,6 +40,7 @@ public:
 
     int Append(const wxString &item, const wxBitmap &bitmap, const wxString &group, void *clientData = nullptr);
 
+    void set_replace_text(wxString text, wxString image_name);
     unsigned int GetCount() const override;
 
     int  GetSelection() const override;

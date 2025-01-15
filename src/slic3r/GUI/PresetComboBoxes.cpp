@@ -1185,8 +1185,10 @@ void PlaterPresetComboBox::update()
     if (m_type == Preset::TYPE_PRINTER)
         add_connected_printers("", true);
 
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor())
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor()) {
+        set_replace_text("Bambu", "BambuStudioBlack");
         add_ams_filaments(into_u8(selected_user_preset), true);
+    }
 
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
