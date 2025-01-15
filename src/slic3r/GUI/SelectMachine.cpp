@@ -130,12 +130,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    ops_auto.push_back(POItem{"auto", "Auto"});
-    ops_auto.push_back(POItem{"on", "On"});
-    ops_auto.push_back(POItem{"off", "Off"});
+    ops_auto.push_back(POItem{"auto", _L("Auto")});
+    ops_auto.push_back(POItem{"on", _L("On")});
+    ops_auto.push_back(POItem{"off", _L("Off")});
 
-    ops_no_auto.push_back(POItem{"on", "On"});
-    ops_no_auto.push_back(POItem{"off", "Off"});
+    ops_no_auto.push_back(POItem{"on", _L("On")});
+    ops_no_auto.push_back(POItem{"off", _L("Off")});
 
     SetMinSize(wxSize(FromDIP(700), -1));
     SetMaxSize(wxSize(FromDIP(700), -1));
