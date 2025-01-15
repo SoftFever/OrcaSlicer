@@ -1,0 +1,14 @@
+{
+	"type": "filament",
+	"setting_id": "GFSA04_CREALITY_00",
+	"name": "Creality Generic ABS @Hi",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "Creality Generic ABS",
+	"filament_max_volumetric_speed": ["9"],
+	"slow_down_layer_time": ["5"],
+	"compatible_printers": [
+		"Creality Hi 0.4 nozzle",
+		"Creality Hi 0.6 nozzle"
+	]
+}
