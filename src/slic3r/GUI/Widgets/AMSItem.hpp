@@ -140,7 +140,8 @@ enum FilamentStepType {
     STEP_TYPE_VT_LOAD   = 2,
 };
 
-#define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(8), FromDIP(14))
+#define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(9), FromDIP(14))
+#define AMS_ITEM_CUBE_SIZE2 wxSize(FromDIP(6), FromDIP(12))
 #define AMS_PREVIEW_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_SIZE wxSize(FromDIP(78), FromDIP(184))
 #define AMS_PREV_FOUR_SIZE wxSize(FromDIP(52), FromDIP(32))
@@ -617,7 +618,6 @@ public:
 /*************************************************
 Description:AMSPreview
 **************************************************/
-
 class AMSPreview : public wxWindow
 {
 public:
@@ -655,12 +655,10 @@ protected:
     ScalableBitmap m_ts_bitmap_cube;
     ScalableBitmap m_four_slot_bitmap;
     ScalableBitmap m_single_slot_bitmap;
-    ScalableBitmap m_ext_bitmap;
 
     void         paintEvent(wxPaintEvent &evt);
     void         render(wxDC &dc);
     void         doRender(wxDC &dc);
-    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 };
 
 

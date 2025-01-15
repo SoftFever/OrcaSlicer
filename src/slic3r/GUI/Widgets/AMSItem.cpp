@@ -1098,7 +1098,6 @@ void AMSLib::doRender(wxDC &dc)
     else {
         render_generic_lib(dc);
     }
-    //render_extra_lib(dc);
 }
 
 void AMSLib::render_lite_lib(wxDC& dc)
@@ -1184,7 +1183,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
             for (int i = 0; i < cols_size; i++) {
                 dc.SetBrush(wxBrush(m_info.material_cols[i]));
                 float x = FromDIP(10) + ((float)libsize.x - FromDIP(18)) * i / cols_size;
-                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)libsize.x - FromDIP(17)) / cols_size, libsize.y - FromDIP(18), 0);
+                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)libsize.x - FromDIP(17)) / cols_size, libsize.y - FromDIP(20), 0);
             }
             dc.SetBrush(wxBrush(tmp_lib_colour));
         }
@@ -1195,7 +1194,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
             dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16), 0);
         }
         else{
-            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(18), 0);
+            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(20), 0);
         }
 
     }
@@ -1237,8 +1236,6 @@ void AMSLib::render_generic_lib(wxDC &dc)
     //draw def background
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(AMS_CONTROL_DEF_LIB_BK_COLOUR));
-    //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
-    //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(m_radius - 2), m_radius);
     dc.DrawRoundedRectangle(FromDIP(2), FromDIP(2), size.x - FromDIP(4), size.y - FromDIP(3), m_radius);
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -1272,12 +1269,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     int top = height - curr_height;
 
     if (m_ams_model == EXT_AMS){
-        if (m_radius > 0){
-            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
-        }
-        else{
-            dc.DrawRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
-        }
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
         if (!m_disable_mode) {
             // edit icon
             if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE){
@@ -1385,20 +1377,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
                     dc.SetBrush(wxBrush(m_info.material_cols[i]));
                     if (i == 0 || i == m_info.material_cols.size() - 1) {
 #ifdef __APPLE__
-                        if (height - curr_height < m_radius){
-                            dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height, gwidth, curr_height, m_radius);
-                        }
-                        else{
-                            dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height, gwidth, curr_height, 0);
-                        }
-
+                        dc.DrawRoundedRectangle(left + gwidth * i - FromDIP(1), height - curr_height, gwidth, curr_height, m_radius);
 #else
-                        if (height - curr_height < m_radius) {
-                            dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height, gwidth, curr_height, m_radius - 1);
-                        }
-                        else {
-                            dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height, gwidth, curr_height, 0);
-                        }
+                        dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height, gwidth, curr_height, m_radius - 1);
 #endif
                         //add rectangle
                         int dr_gwidth = std::round(gwidth * 0.6);
@@ -1428,21 +1409,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
             auto brush = dc.GetBrush();
             if (alpha != 0 && alpha != 255 && alpha != 254) dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
-
-            //dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
-            if (top < m_radius){
-                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
-            }
-            else{
-                dc.DrawRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
-            }
+            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
 #else
-            if (top < m_radius) {
-                dc.DrawRoundedRectangle(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height, m_radius - 1);
-            }
-            else {
-                dc.DrawRoundedRectangle(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height, 0);
-            }
+            dc.DrawRoundedRectangle(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height, m_radius - 1);
 #endif
             dc.SetBrush(brush);
         }
@@ -2399,13 +2368,11 @@ void AMSPreview::Update(AMSinfo amsinfo)
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 14);
-    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 26);
-    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 26);
-    m_ext_bitmap = ScalableBitmap(this, "ext_ams_item", 26);
+    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
+    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
 
     SetMinSize(size);
     SetMaxSize(size);
-    //SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Refresh();
 }
 
@@ -2466,19 +2433,15 @@ void AMSPreview::render(wxDC &dc)
 void AMSPreview::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
-    /*dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
-    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(m_background_colour)));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);*/
-
-    auto left = 8;
-    m_space = 9;
     auto color = *wxWHITE;
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(color);
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 
+    auto left = 0;
     //four slot
     if (m_ams_item_type != AMSModel::EXT_AMS && m_ams_item_type != AMSModel::N3S_AMS){
+        left =  FromDIP(8);
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
@@ -2492,9 +2455,9 @@ void AMSPreview::doRender(wxDC &dc)
                 dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
             }
             if (iter->material_cols.size() > 1) {
-                int fleft = FromDIP(left);
-                float total_width = AMS_ITEM_CUBE_SIZE.x;
-                int gwidth = (total_width / (iter->material_cols.size() - 1));
+                int fleft = left;
+
+                int gwidth = (AMS_ITEM_CUBE_SIZE.x / (iter->material_cols.size() - 1));
                 if (iter->ctype == 0) {
                     for (int i = 0; i < iter->material_cols.size() - 1; i++) {
                         if (fleft + gwidth > (AMS_ITEM_CUBE_SIZE.x)) {
@@ -2510,34 +2473,31 @@ void AMSPreview::doRender(wxDC &dc)
                     int cols_size = iter->material_cols.size();
                     for (int i = 0; i < cols_size; i++) {
                         dc.SetBrush(wxBrush(iter->material_cols[i]));
-                        int x = FromDIP(left) + total_width * i / cols_size;
-                        dc.DrawRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y);
+                        int x = left + AMS_ITEM_CUBE_SIZE.x * i / cols_size;
+                        dc.DrawRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x / cols_size, AMS_ITEM_CUBE_SIZE.y);
                     }
                 }
             }
             else {
                 if (iter->material_colour.Alpha() == 0) {
-                    dc.DrawBitmap(m_ts_bitmap_cube.bmp(), FromDIP(left), (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                    dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
                 }
                 else {
-                    wxRect rect(FromDIP(left), (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+                    wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
                     if (iter->material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-
-                        // draw a slash when ams slot is empty
-                        /*dc.SetPen(wxPen(wxColor(0, 0, 0)));
-                        dc.DrawRoundedRectangle(rect, 3);*/
-                        //dc.DrawLine(rect.GetRight() - FromDIP(1), rect.GetTop() + FromDIP(1), rect.GetLeft() + FromDIP(1), rect.GetBottom() - FromDIP(1));
+                        dc.SetPen(wxPen(wxColor(0, 0, 0)));
+                        dc.DrawLine(rect.GetRight() - FromDIP(1), rect.GetTop() + FromDIP(1), rect.GetLeft() + FromDIP(1), rect.GetBottom() - FromDIP(1));
                     }
                     else {
                         dc.DrawRoundedRectangle(rect, 2);
                     }
                 }
             }
-            left += m_space;
+            left += AMS_ITEM_CUBE_SIZE.x;
         }
 
-        auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
-        dc.DrawBitmap(m_four_slot_bitmap.bmp(), pot);
+        //auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
+        dc.DrawBitmap(m_four_slot_bitmap.bmp(), wxPoint(0,0));
     }
 
     //single slot
@@ -2579,19 +2539,25 @@ void AMSPreview::doRender(wxDC &dc)
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(iter.material_colour);
             //dc.SetBrush(*wxGREEN);
-            auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x), (AMS_ITEM_CUBE_SIZE.y));
-            dc.DrawRoundedRectangle(rect, FromDIP(4));
+            if (m_ams_item_type == AMSModel::N3S_AMS) {
+                auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x), (AMS_ITEM_CUBE_SIZE.y));
+                dc.DrawRoundedRectangle(rect, 0);
+            } else {
+                auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE2.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE2.y) / 2), (AMS_ITEM_CUBE_SIZE2.x), (AMS_ITEM_CUBE_SIZE2.y));
+                dc.DrawRoundedRectangle(rect, FromDIP(3));
+            }
         }
+
         if (m_ams_item_type == AMSModel::N3S_AMS) {
-            auto pot = wxPoint(((size.x - m_single_slot_bitmap.GetBmpSize().x) / 2), ((size.y - m_single_slot_bitmap.GetBmpSize().y) / 2));
-            dc.DrawBitmap(m_single_slot_bitmap.bmp(), pot);
+            //auto pot = wxPoint(((size.x - m_single_slot_bitmap.GetBmpSize().x) / 2), ((size.y - m_single_slot_bitmap.GetBmpSize().y) / 2));
+            dc.DrawBitmap(m_single_slot_bitmap.bmp(), wxPoint(0,0));
         }
         if (((iter.material_colour.Red() >= 238 && iter.material_colour.Green() >= 238 && iter.material_colour.Blue() >= 238)
             || iter.material_colour.Alpha() == 0) && m_ams_item_type == AMSModel::EXT_AMS) {
             dc.SetPen(wxPen(AMS_CONTROL_GRAY500));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            auto rect = wxRect((size.x - AMS_ITEM_CUBE_SIZE.x) / 2, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
-            dc.DrawRoundedRectangle(rect, FromDIP(4));
+            auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE2.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE2.y) / 2), (AMS_ITEM_CUBE_SIZE2.x), (AMS_ITEM_CUBE_SIZE2.y));
+            dc.DrawRoundedRectangle(rect, FromDIP(3));
         }
     }
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
@@ -2611,14 +2577,13 @@ void AMSPreview::doRender(wxDC &dc)
     }
 }
 
-void AMSPreview::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/) { wxWindow::DoSetSize(x, y, width, height, sizeFlags); }
-void AMSPreview::msw_rescale() {
+void AMSPreview::msw_rescale()
+{
     m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 14);
-    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 26);
-    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 26);
-    m_ext_bitmap = ScalableBitmap(this, "ext_ams_item", 26);
-
-    Layout();
+    //m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
+    //m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 28);
+    m_four_slot_bitmap.msw_rescale();
+    m_single_slot_bitmap.msw_rescale();
     Refresh();
 }
 
