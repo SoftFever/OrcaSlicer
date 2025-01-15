@@ -882,6 +882,10 @@
             "sub_path": "filament/Fiberon PET-CF @base.json"
         },
         {
+            "name": "FusRock PET-CF @base",
+            "sub_path": "FusRock/FusRock/FusRock PET-CF @base.json"
+        },
+        {
             "name": "Generic PETG HF @base",
             "sub_path": "filament/Generic PETG HF @base.json"
         },
@@ -2277,6 +2281,10 @@
             "name": "Fiberon PET-CF @BBL X1C",
             "sub_path": "filament/Fiberon PET-CF @BBL X1C.json"
         },
+        {
+            "name": "FusRock PET-CF @BBL X1C",
+            "sub_path": "filament/FusRock/FusRock PET-CF @BBL X1C.json"
+        },       
         {
             "name": "Generic PETG HF @BBL X1C",
             "sub_path": "filament/Generic PETG HF @BBL X1C.json"
