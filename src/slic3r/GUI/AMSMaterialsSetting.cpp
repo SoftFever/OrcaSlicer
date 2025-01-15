@@ -822,6 +822,15 @@ bool AMSMaterialsSetting::Show(bool show)
     return DPIDialog::Show(show);
 }
 
+static void _collect_filament_info(const wxString& shown_name,
+                                   const Preset& filament,
+                                   unordered_map<wxString, wxString>& query_filament_vendors,
+                                   unordered_map<wxString, wxString>& query_filament_types)
+{
+    query_filament_vendors[shown_name] = filament.config.get_filament_vendor();
+    query_filament_vendors[shown_name] = filament.config.get_filament_type();
+}
+
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
 {
     if (!obj) return;
@@ -835,9 +844,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    int selection_idx = -1, idx = 0;
+    int idx = 0;
     wxArrayString filament_items;
     wxString bambu_filament_name;
+    wxString hint_filament_name; // the hint type to be selected
+    std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
+    std::unordered_map<wxString, wxString> query_filament_types;  //
 
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
@@ -869,6 +881,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         // name matched
                         if (filament_it->is_system) {
                             filament_items.push_back(filament_it->alias);
+                            _collect_filament_info(filament_it->alias, preset, query_filament_vendors, query_filament_types);
+
                             FilamentInfos filament_infos;
                             filament_infos.filament_id             = filament_it->filament_id;
                             filament_infos.setting_id              = filament_it->setting_id;
@@ -882,6 +896,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                                 user_preset_alias                = wx_user_preset_alias.ToStdString();
 
                                 filament_items.push_back(user_preset_alias);
+                                _collect_filament_info(user_preset_alias, preset, query_filament_vendors, query_filament_types);
+
                                 FilamentInfos filament_infos;
                                 filament_infos.filament_id            = filament_it->filament_id;
                                 filament_infos.setting_id             = filament_it->setting_id;
@@ -890,7 +906,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         }
 
                         if (filament_it->filament_id == ams_filament_id) {
-                            selection_idx = idx;
+                            hint_filament_name = filament_it->alias;
                             bambu_filament_name = filament_it->alias;
 
 
@@ -960,6 +976,74 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
         m_button_reset->Show();
         //m_button_confirm->Show();
+    }
+
+    // Sort the filaments
+    {
+        static std::unordered_map<wxString, int> sorted_names
+        {   {"Bambu PLA Basic",        0},
+            {"Bambu PLA Matte",        1},
+            {"Bambu PETG HF",          2},
+            {"Bambu ABS",              3},
+            {"Bambu PLA Silk",         4},
+            {"Bambu PLA-CF" ,          5},
+            {"Bambu PLA Galaxy",       6},
+            {"Bambu PLA Metal",        7},
+            {"Bambu PLA Marble",       8},
+            {"Bambu PETG-CF",          9},
+            {"Bambu PETG Translucent", 10},
+            {"Bambu ABS-GF",           11}
+        };
+
+        static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
+        static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
+        auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
+        {
+            { // Compare name order
+                const auto& iter1 = sorted_names.find(left);
+                int name_order1 = (iter1 != sorted_names.end()) ? iter1->second : INT_MAX;
+
+                const auto& iter2 = sorted_names.find(right);
+                int name_order2 = (iter2 != sorted_names.end()) ? iter2->second : INT_MAX;
+                if (name_order1 != name_order2)
+                {
+                    return name_order1 < name_order2;
+                }
+            }
+            { // Compare vendor
+                auto iter1 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[left]);
+                auto iter2 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[right]);
+                if (iter1 != iter2)
+                {
+                    return iter1 < iter2;
+                };
+            }
+            { // Compare type
+                auto iter1 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[left]);
+                auto iter2 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[right]);
+                if (iter1 != iter2)
+                {
+                    return iter1 < iter2;
+                }
+            }
+
+            return left < right;
+        };
+
+        std::sort(filament_items.begin(), filament_items.end(), _filament_sorter);
+    }
+
+    // traverse the hint selection idx
+    int selection_idx = -1;
+    {
+        for(int i = 0; i < filament_items.size(); i++)
+        {
+            if (hint_filament_name == filament_items[i])
+            {
+                selection_idx = i;
+                break;
+            }
+        }
     }
 
     m_comboBox_filament->Set(filament_items);

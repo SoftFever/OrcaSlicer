@@ -625,6 +625,10 @@ public:
     int update_values_from_single_to_multi_2(DynamicPrintConfig& multi_config, std::set<std::string>& key_set);
     int update_values_from_multi_to_single_2(std::set<std::string>& key_set);
 
+public:
+    // query filament
+    std::string get_filament_vendor() const;
+    std::string get_filament_type() const;
 };
 extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;
