@@ -237,7 +237,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_remote_proto = 0;
         m_model_download_support = false;
     }
-    Enable(obj && obj->is_connected() && obj->m_push_count > 0);
+    Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
     if (machine == m_machine) {
         if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_proto || m_remote_proto))) {
             auto fs = m_image_grid->GetFileSystem();

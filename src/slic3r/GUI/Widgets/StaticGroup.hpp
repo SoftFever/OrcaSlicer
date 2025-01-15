@@ -16,6 +16,7 @@ public:
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);
+    void PaintForeground(wxDC &dc, const struct tagRECT &rc) override;
 #endif
 
 private:

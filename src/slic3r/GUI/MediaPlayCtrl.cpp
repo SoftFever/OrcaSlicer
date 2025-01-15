@@ -171,7 +171,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_remote_proto = 0;
         m_device_busy = false;
     }
-    Enable(obj && obj->is_connected() && obj->m_push_count > 0);
+    Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();

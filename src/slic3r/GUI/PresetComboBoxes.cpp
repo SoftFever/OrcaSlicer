@@ -192,7 +192,9 @@ void PresetComboBox::update_selection()
      * there is no presets added to the list.
      * So, select last combobox item ("Add/Remove preset")
      */
-    validate_selection();
+    //validate_selection();
+    if (m_last_selected == INT_MAX)
+        m_last_selected == 1;
 
     SetSelection(m_last_selected);
 #ifdef __WXMSW__

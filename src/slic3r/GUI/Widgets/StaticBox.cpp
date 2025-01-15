@@ -23,7 +23,7 @@ StaticBox::StaticBox()
 {
     border_color = StateColor(
         std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
-        std::make_pair(0x303A3C, (int) StateColor::Normal));
+        std::make_pair(0xCECECE, (int) StateColor::Normal));
 }
 
 StaticBox::StaticBox(wxWindow* parent,
