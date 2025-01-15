@@ -1064,16 +1064,7 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-    const int min_val = m_opt.min == INT_MIN
-#ifdef __WXOSX__
-    // We will forcibly set the input value for SpinControl, since the value
-    // inserted from the keyboard is not updated under OSX.
-    // So, we can't set min control value bigger then 0.
-    // Otherwise, it couldn't be possible to input from keyboard value
-    // less then min_val.
-    || m_opt.min > 0
-#endif
-    ? 0 : m_opt.min;
+    const int min_val = m_opt.min == INT_MIN ? 0 : m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
     static Builder<SpinInput> builder;
@@ -1170,14 +1161,6 @@ void SpinCtrl::propagate_value()
         if (!m_value.empty()) // BBS: null value
             on_kill_focus();
 	} else {
-#ifdef __WXOSX__
-        // check input value for minimum
-        if (m_opt.min > 0 && tmp_value < m_opt.min) {
-            SpinInput* spin = static_cast<SpinInput*>(window);
-            spin->SetValue(m_opt.min);
-            // spin->GetText()->SetInsertionPointEnd(); // BBS
-        }
-#endif
         auto ctrl = dynamic_cast<SpinInput *>(window);
         if (m_value.empty() 
             ? !ctrl->GetTextCtrl()->GetLabel().IsEmpty()
