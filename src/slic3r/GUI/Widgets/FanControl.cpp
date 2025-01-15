@@ -943,7 +943,7 @@ void FanControlPopupNew::init_names() {
     radio_btn_name[AIR_DUCT::AIR_DUCT_INIT] = L("Init");
 
     fan_func_name[AIR_FUN::FAN_HEAT_BREAK_0_IDX] = _L("Hotend");
-    fan_func_name[AIR_FUN::FAN_COOLING_0_AIRDOOR] = _L("Part");
+    fan_func_name[AIR_FUN::FAN_COOLING_0_AIRDOOR] = _L("Parts");
     fan_func_name[AIR_FUN::FAN_REMOTE_COOLING_0_IDX] = _L("Aux");
     fan_func_name[AIR_FUN::FAN_CHAMBER_0_IDX] = _L("Exhaust");
     fan_func_name[AIR_FUN::FAN_HEAT_BREAK_1_IDX] = _L("Nozzle1");
