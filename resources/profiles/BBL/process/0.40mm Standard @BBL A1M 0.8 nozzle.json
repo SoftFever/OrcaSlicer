@@ -8,7 +8,6 @@
     "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
     "default_acceleration": "6000",
     "elefant_foot_compensation": "0",
-    "prime_tower_width": "40",
     "travel_speed": "700",
     "compatible_printers": [
         "Bambu Lab A1 mini 0.8 nozzle"

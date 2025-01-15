@@ -12,7 +12,6 @@
     "initial_layer_infill_speed": "28",
     "outer_wall_speed": "60",
     "outer_wall_acceleration": "2000",
-    "prime_tower_width": "40",
     "sparse_infill_pattern": "gyroid",
     "travel_speed": "700",
     "compatible_printers": [

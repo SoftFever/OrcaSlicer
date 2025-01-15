@@ -10,8 +10,6 @@
     "initial_layer_speed": "50",
     "internal_solid_infill_speed": "250",
     "outer_wall_speed": "200",
-    "prime_tower_brim_width": "8",
-    "prime_tower_outer_first": "1",
     "prime_tower_width": "60",
     "sparse_infill_speed": "350",
     "travel_speed": "1000",
