@@ -56,7 +56,6 @@ void FillBedJob::prepare()
 
             ArrangePolygon ap = get_instance_arrange_poly(mo->instances[inst_idx], global_config);
             BoundingBox ap_bb = ap.transformed_poly().contour.bounding_box();
-            ap.height = 1;
             ap.name = mo->name;
 
             if (selected)
@@ -173,7 +172,6 @@ void FillBedJob::prepare()
         ArrangePolygon ap = template_ap;
         ap.poly = m_selected.front().poly;
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
-        ap.height = 1;
         ap.itemid = -1;
         ap.setter = [this, mi](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
