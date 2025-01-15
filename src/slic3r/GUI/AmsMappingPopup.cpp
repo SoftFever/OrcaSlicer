@@ -971,7 +971,7 @@ void MappingItem::doRender(wxDC &dc)
 
 
     //draw a rectangle based on the material color, single color or muti color processing
-    if (m_tray_data.material_cols.size() > 1) {
+    if (m_tray_data.material_cols.size() > 1 && !m_unmatch) {
         int left = 0;
         int gwidth = std::round(MAPPING_ITEM_REAL_SIZE.x / (m_tray_data.material_cols.size() - 1));
         //gradient
@@ -991,7 +991,7 @@ void MappingItem::doRender(wxDC &dc)
             }
         }
     }
-    else if (color.Alpha() == 0) {
+    else if (color.Alpha() == 0 && !m_unmatch) {
        dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     }
     else {
