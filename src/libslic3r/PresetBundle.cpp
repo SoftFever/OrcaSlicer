@@ -43,11 +43,12 @@ static std::vector<std::string> s_project_options {
     "flush_multiplier",
 };
 
-//BBS: add BBL as default
-const char *PresetBundle::BBL_BUNDLE = "Custom";
-const char *PresetBundle::BBL_DEFAULT_PRINTER_MODEL = "MyKlipper 0.4 nozzle";
-const char *PresetBundle::BBL_DEFAULT_PRINTER_VARIANT = "0.4";
-const char *PresetBundle::BBL_DEFAULT_FILAMENT = "My Generic PLA";
+//Orca: add custom as default
+const char *PresetBundle::ORCA_DEFAULT_BUNDLE = "Custom";
+const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "MyKlipper 0.4 nozzle";
+const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
+const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "My Generic PLA";
+const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 
 PresetBundle::PresetBundle()
     : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
@@ -1094,7 +1095,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     }
 
     if (need_reset_printer_preset) {
-        std::string default_printer_model = BBL_DEFAULT_PRINTER_MODEL;
+        std::string default_printer_model = ORCA_DEFAULT_PRINTER_MODEL;
         std::string default_printer_name;
         for (auto it = printers.begin(); it != printers.end(); it++) {
             if (it->config.has("printer_model")) {
@@ -1244,45 +1245,59 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
     PresetsConfigSubstitutions  substitutions;
     std::string                 errors_cummulative;
     bool                        first = true;
-    for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-    {
+    std::vector<std::string> vendor_names;
+    // store all vendor names in vendor_names
+    for (auto& dir_entry : boost::filesystem::directory_iterator(dir)) {
         std::string vendor_file = dir_entry.path().string();
-        if (Slic3r::is_json_file(vendor_file)) {
-            std::string vendor_name = dir_entry.path().filename().string();
-            // Remove the .json suffix.
-            vendor_name.erase(vendor_name.size() - 5);
+        if (!Slic3r::is_json_file(vendor_file))
+            continue;
 
-            if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
-                continue;
+        std::string vendor_name = dir_entry.path().filename().string();
 
-            try {
-                // Load the config bundle, flatten it.
-                if (first) {
-                    // Reset this PresetBundle and load the first vendor config.
-                    append(substitutions, this->load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
-                    first = false;
-                } else {
-                    // Load the other vendor configs, merge them with this PresetBundle.
-                    // Report duplicate profiles.
-                    PresetBundle other;
-                    append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
-                    std::vector<std::string> duplicates = this->merge_presets(std::move(other));
-                    if (! duplicates.empty()) {
-                        errors_cummulative += "Found duplicated settings in vendor " + vendor_name + "'s json file lists: ";
-                        for (size_t i = 0; i < duplicates.size(); ++ i) {
-                            if (i > 0)
-                                errors_cummulative += ", ";
-                            errors_cummulative += duplicates[i];
-                        }
+        // Remove the .json suffix.
+        vendor_name.erase(vendor_name.size() - 5);
+        vendor_names.push_back(vendor_name);
+    }
+    // Move ORCA_FILAMENT_LIBRARY to the beginning of the list
+    for (size_t i = 0; i < vendor_names.size(); ++ i) {
+        if (vendor_names[i] == ORCA_FILAMENT_LIBRARY) {
+            std::swap(vendor_names[0], vendor_names[i]);
+            break;
+        }
+    }
+
+    for (auto &vendor_name : vendor_names)
+    {
+        if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
+            continue;
+
+        try {
+            // Load the config bundle, flatten it.
+            if (first) {
+                // Reset this PresetBundle and load the first vendor config.
+                append(substitutions, this->load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
+                first = false;
+            } else {
+                // Load the other vendor configs, merge them with this PresetBundle.
+                // Report duplicate profiles.
+                PresetBundle other;
+                append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
+                std::vector<std::string> duplicates = this->merge_presets(std::move(other));
+                if (! duplicates.empty()) {
+                    errors_cummulative += "Found duplicated settings in vendor " + vendor_name + "'s json file lists: ";
+                    for (size_t i = 0; i < duplicates.size(); ++ i) {
+                        if (i > 0)
+                            errors_cummulative += ", ";
+                        errors_cummulative += duplicates[i];
                     }
                 }
-            } catch (const std::runtime_error &err) {
-                if (validation_mode)
-                    throw err;
-                else {
-                    errors_cummulative += err.what();
-                    errors_cummulative += "\n";
-                }
+            }
+        } catch (const std::runtime_error &err) {
+            if (validation_mode)
+                throw err;
+            else {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
             }
         }
     }
