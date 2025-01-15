@@ -21,9 +21,18 @@
 
 namespace Slic3r {
 
+namespace {
+
+std::string pymeshlab_script()
+{
+    return resources_dir() + "/meshlab/meshlab-task.py";
+}
+
+}
+
 char const * repair_not_available_reason()
 {
-    return "meshlabserver not found";
+    return "PyMeshLab not found";
 }
 
 bool is_repair_available()
@@ -36,9 +45,10 @@ bool is_repair_available()
         char *line = nullptr;
         size_t linelen = 0;
 
-        const std::string marker{"MeshLabServer version:"};
+        const std::string marker{"PyMeshLab"};
 
-        FILE *f = popen("meshlabserver", "r");
+        std::string cmd = pymeshlab_script() + " --version";
+        FILE *f = popen(cmd.c_str(), "r");
         if (!f)
             return false;
 
@@ -73,9 +83,9 @@ void fix_model_by_meshlab(const std::string &path_src, const std::string &path_d
     int r;
     char *line = nullptr;
     size_t linelen = 0;
-    const std::string cmd = "meshlabserver -i " + path_src
-                            + " -o "  + path_dst
-                            + " -s " + resources_dir() + "/meshlab/meshlab-model-fix.mlx"
+    const std::string cmd = pymeshlab_script()
+                            + " -i " + path_src
+                            + " -o " + path_dst
                             + " 2>&1";
 
     FILE *f = popen(cmd.c_str(), "r");
