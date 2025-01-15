@@ -2000,6 +2000,8 @@ void NotificationManager::close_plater_warning_notification(const std::string& t
 		}
 	}
 }
+
+
 void NotificationManager::set_all_slicing_errors_gray(bool g)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {

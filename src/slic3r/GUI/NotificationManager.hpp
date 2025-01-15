@@ -85,6 +85,8 @@ enum class NotificationType
 	BBLGeneralError,
 	// Object partially outside the print volume. Cannot slice.
 	PlaterError,
+	LeftExtruderUnprintableError,
+	RightExtruderUnprintableError,
 	// Object fully outside the print volume, or extrusion outside the print volume. Slicing is not disabled.
 	PlaterWarning,
 	// Progress bar instead of text.
@@ -238,7 +240,6 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
-
 	// GCode exceeds the printing range of the extruder
     void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text);
     void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);

@@ -126,6 +126,17 @@ std::string& get_object_clashed_text() {
     return object_clashed_text;
 }
 
+std::string& get_left_extruder_unprintable_text() {
+    static std::string left_unprintable_text;
+    return left_unprintable_text;
+}
+
+std::string& get_right_extruder_unprintable_text() {
+    static std::string right_unprintable_text;
+    return right_unprintable_text;
+}
+
+
 wxString filament_printable_error_msg;
 
 GLCanvas3D::LayersEditing::~LayersEditing()
@@ -1382,69 +1393,74 @@ void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, st
         error_string += _u8L("Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n");
     }
 
-    if (!object_result.filaments.empty()) {
-        std::vector<ObjectFilamentInfo> left_unprintable_objects;
-        std::vector<ObjectFilamentInfo> right_unprintable_objects;
+}
 
-        std::vector<int> conflicted_filaments = object_result.filaments;
+static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilamentResults& object_result, std::string& left_extruder_unprintable_text, std::string& right_extruder_unprintable_text)
+{
+    if (object_result.filaments.empty())
+        return {false,false};
 
-        auto mode = object_result.mode;
+    static const std::vector<std::string> nozzle_name_list = { _u8L("left nozzle"), _u8L("right nozzle") };
 
-        for (auto& obj_filament : object_result.object_filaments) {
-            if (mode == FilamentMapMode::fmmManual) {
-                for (auto& elem : obj_filament.manual_filaments) {
-                    bool found_left = false, found_right = false;
-                    int filamnet_id = elem.first;
-                    int extruder_id = elem.second;
-                    if (extruder_id == 1 && !found_left) {
-                        found_left = true;
-                        left_unprintable_objects.emplace_back(obj_filament);
-                    }
-                    if (extruder_id == 2 && !found_right) {
-                        found_right = true;
-                        right_unprintable_objects.emplace_back(obj_filament);
-                    }
-                }
-            }
-            else {
-                if (!obj_filament.auto_filaments.empty()) {
+    std::vector<ObjectFilamentInfo> left_unprintable_objects;
+    std::vector<ObjectFilamentInfo> right_unprintable_objects;
+
+    std::vector<int> conflicted_filaments = object_result.filaments;
+
+    auto mode = object_result.mode;
+
+    for (auto& obj_filament : object_result.object_filaments) {
+        if (mode == FilamentMapMode::fmmManual) {
+            for (auto& elem : obj_filament.manual_filaments) {
+                bool found_left = false, found_right = false;
+                int filamnet_id = elem.first;
+                int extruder_id = elem.second;
+                if (extruder_id == 1 && !found_left) {
+                    found_left = true;
                     left_unprintable_objects.emplace_back(obj_filament);
+                }
+                if (extruder_id == 2 && !found_right) {
+                    found_right = true;
                     right_unprintable_objects.emplace_back(obj_filament);
                 }
             }
         }
-
-        std::vector<std::string> tips(2);
-        for (size_t idx = 0; idx < tips.size(); ++idx) {
-            const auto& unprintable_objs = idx == 0 ? left_unprintable_objects : right_unprintable_objects;
-            if (unprintable_objs.empty())
-                continue;
-            std::string nozzle_name = idx == 0 ? _u8L("left nozzle") : _u8L("right nozzle");
-            std::string opposite_nozzle_name = idx == 0 ? _u8L("right nozzle") : _u8L("left nozzle");
-            std::string model_prefix;
-            if (object_result.object_filaments.size() > 1)
-                model_prefix = _u8L("Some models are");
-            else
-                model_prefix = (boost::format(_u8L("The model %s is"))%object_result.object_filaments.front().object->name).str();
-            tips[idx] += model_prefix;
-            tips[idx] += (boost::format(_u8L(" located within the %s only area, making it impossible to print with the filaments assigned to %s.\n"
-                "Please move the model out of the %s only area or adjust the filament assignment\n")) % opposite_nozzle_name% nozzle_name % opposite_nozzle_name).str();
-
-            if (object_result.object_filaments.size() > 1) {
-                for (ObjectFilamentInfo& object_filament : left_unprintable_objects)
-                {
-                    tips[idx] += object_filament.object->name;
-                    tips[idx] += "\n";
-                }
-            }
-        }
-
-        for (size_t idx = 0; idx < tips.size(); ++idx) {
-            if (!tips[idx].empty()) {
-                error_string = tips[idx];
+        else {
+            if (!obj_filament.auto_filaments.empty()) {
+                left_unprintable_objects.emplace_back(obj_filament);
+                right_unprintable_objects.emplace_back(obj_filament);
             }
         }
     }
+
+    std::vector<std::string> tips(2);
+    for (size_t idx = 0; idx < tips.size(); ++idx) {
+        const auto& unprintable_objs = idx == 0 ? left_unprintable_objects : right_unprintable_objects;
+        auto& output_text = idx == 0 ? left_extruder_unprintable_text : right_extruder_unprintable_text;
+        if (unprintable_objs.empty())
+            continue;
+        std::string nozzle_name = nozzle_name_list[0];
+        std::string opposite_nozzle_name = idx == 0 ? nozzle_name_list[1] : nozzle_name_list[0];
+        std::string model_prefix;
+        if (object_result.object_filaments.size() > 1)
+            model_prefix = _u8L("Some models are");
+        else
+            model_prefix = (boost::format(_u8L("The model %s is")) % object_result.object_filaments.front().object->name).str();
+        tips[idx] += model_prefix;
+        tips[idx] += (boost::format(_u8L(" located within the %s only area, making it impossible to print with the filaments assigned to %s.\n"
+            "Please move the model out of the %s only area or adjust the filament assignment\n")) % opposite_nozzle_name % nozzle_name % opposite_nozzle_name).str();
+
+        if (object_result.object_filaments.size() > 1) {
+            for (ObjectFilamentInfo& object_filament : left_unprintable_objects)
+            {
+                tips[idx] += object_filament.object->name;
+                tips[idx] += "\n";
+            }
+        }
+        output_text = tips[idx];
+    }
+
+    return { !left_unprintable_objects.empty(),!right_unprintable_objects.empty() };
 }
 
 ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFilamentResults* object_results) const
@@ -1459,6 +1475,7 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFil
     m_volumes.check_outside_state(m_bed.build_volume(), &state, object_results);
 
     construct_error_string(*object_results, get_object_clashed_text());
+    construct_extruder_unprintable_error(*object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
     return state;
 }
 
@@ -2955,8 +2972,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
             construct_error_string(object_results, get_object_clashed_text());
+            auto unprintable_flag= construct_extruder_unprintable_error(object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
 
-            _set_warning_notification(EWarning::ObjectClashed, partlyOut || !object_results.filaments.empty());
+            _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+            _set_warning_notification(EWarning::LeftExtruderPrintableError, unprintable_flag.first);
+            _set_warning_notification(EWarning::RightExtruderPrintableError, unprintable_flag.second);
             _set_warning_notification(EWarning::ObjectLimited, objectLimited);
             //BBS: turn off the warning when fully outside
             //_set_warning_notification(EWarning::ObjectOutside, fullyOut);
@@ -2980,6 +3000,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
             _set_warning_notification(EWarning::ObjectClashed, false);
+            _set_warning_notification(EWarning::LeftExtruderPrintableError, false);
+            _set_warning_notification(EWarning::RightExtruderPrintableError, false);
             _set_warning_notification(EWarning::ObjectLimited, false);
             //_set_warning_notification(EWarning::SlaSupportsOutside, false);
            _set_warning_notification(EWarning::TPUPrintableError, false);
@@ -9846,6 +9868,7 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
+    using NotificationLevel = NotificationManager::NotificationLevel;
     enum ErrorType{
         PLATER_WARNING,
         PLATER_ERROR,
@@ -9891,6 +9914,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::FilamentPrintableError: {
         text  = filament_printable_error_msg.ToUTF8();
         error = ErrorType::SLICING_ERROR;
+        break;
+    }
+    case EWarning::LeftExtruderPrintableError:
+    case EWarning::RightExtruderPrintableError: {
+        error = ErrorType::PLATER_ERROR;
         break;
     }
     case EWarning::MultiExtruderPrintableError: {
@@ -10040,10 +10068,30 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             notification_manager.close_plater_warning_notification(text);
         break;
     case PLATER_ERROR:
-        if (state)
-            notification_manager.push_plater_error_notification(text);
-        else
-            notification_manager.close_plater_error_notification(text);
+        if (warning == EWarning::LeftExtruderPrintableError) {
+            if (state) {
+                if (auto left_str = get_left_extruder_unprintable_text();!left_str.empty())
+                    notification_manager.push_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel, left_str);
+            }
+            else {
+                notification_manager.close_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel);
+            }
+        }
+        else if (warning == EWarning::RightExtruderPrintableError) {
+            if (state) {
+                if (auto right_str = get_right_extruder_unprintable_text(); !right_str.empty())
+                    notification_manager.push_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel, right_str);
+            }
+            else {
+                notification_manager.close_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel);
+            }
+        }
+        else {
+            if (state)
+                notification_manager.push_plater_error_notification(text);
+            else
+                notification_manager.close_plater_error_notification(text);
+        }
         break;
     case SLICING_SERIOUS_WARNING:
         if (state)
@@ -10054,9 +10102,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case SLICING_ERROR:
         if (warning == EWarning::FilamentPrintableError) {
             if (state)
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text);
             else
-                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationManager::NotificationLevel::ErrorNotificationLevel);
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel);
         }
         else {
             if (state)
@@ -10067,15 +10115,15 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_LIMIT_ERROR:
         if (state)
-            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
+            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel, text);
         else
-            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationManager::NotificationLevel::ErrorNotificationLevel);
+            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel);
         break;
     case SLICING_HEIGHT_OUTSIDE:
         if (state)
-            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
+            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationLevel::ErrorNotificationLevel, text);
         else
-            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationManager::NotificationLevel::ErrorNotificationLevel);
+            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationLevel::ErrorNotificationLevel);
         break;
     default:
         break;
