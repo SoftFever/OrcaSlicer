@@ -493,7 +493,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
-    Utils/FixModelByWin10.hpp
+    Utils/FixModelByMeshlab.cpp
+    Utils/FixModel.hpp
     Utils/EmbossStyleManager.cpp
     Utils/EmbossStyleManager.hpp
     Utils/FontConfigHelp.cpp
