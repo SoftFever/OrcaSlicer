@@ -4580,8 +4580,8 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
          SetMaxSize(wxSize(-1, FromDIP(50)));
      }
      else {
-         SetMinSize(wxSize(-1, FromDIP(90)));
-         SetMaxSize(wxSize(-1, FromDIP(90)));
+         SetMinSize(wxSize(-1, FromDIP(95)));
+         SetMaxSize(wxSize(-1, FromDIP(95)));
      }
 
      m_ops = ops;
