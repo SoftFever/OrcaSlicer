@@ -2702,7 +2702,12 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (!obj) return;
 
     m_tempCtrl_bed->SetCurrTemp((int) obj->bed_temp);
-    m_tempCtrl_bed->SetMaxTemp(obj->get_bed_temperature_limit());
+
+    auto limit = obj->get_bed_temperature_limit();
+    if (obj->bed_temp_range.size() > 1) {
+        limit = obj->bed_temp_range[1];
+    }
+    m_tempCtrl_bed->SetMaxTemp(limit);
 
     if (obj->nozzle_temp_range.size() >= 2) {
         m_tempCtrl_nozzle->SetMinTemp(obj->nozzle_temp_range[0]);
@@ -3816,7 +3821,12 @@ void StatusPanel::on_set_bed_temp()
         long bed_temp;
         if (str.ToLong(&bed_temp) && obj) {
             set_hold_count(m_temp_bed_timeout);
+
             int limit = obj->get_bed_temperature_limit();
+            if (obj->bed_temp_range.size() > 1) {
+                limit = obj->bed_temp_range[1];
+            }
+
             if (bed_temp >= limit) {
                 BOOST_LOG_TRIVIAL(info) << "can not set over limit = " << limit << ", set temp = " << bed_temp;
                 bed_temp = limit;

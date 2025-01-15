@@ -3256,6 +3256,15 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
+                // bed temp range
+                if (jj.contains("bed_temp_range")) {
+                    if (jj["bed_temp_range"].is_array()) {
+                        for (auto it = jj["bed_temp_range"].begin(); it != jj["bed_temp_range"].end(); it++) {
+                            bed_temp_range.push_back(it.value().get<int>());
+                        }
+                    }
+                }
+
                 //supported function
                 if (jj.contains("support_chamber_temp_edit")) {
                     if (jj["support_chamber_temp_edit"].is_boolean()) {
