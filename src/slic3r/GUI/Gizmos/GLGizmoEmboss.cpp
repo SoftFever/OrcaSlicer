@@ -3598,7 +3598,7 @@ GuiCfg create_gui_configuration()
     float space = line_height_with_spacing - line_height;
     const ImGuiStyle &style  = ImGui::GetStyle();
 
-    cfg.max_style_name_width = ImGui::CalcTextSize("Maximal font name, extended").x;
+    cfg.max_style_name_width = ImGui::CalcTextSize("Maximal style name..").x;
 
     cfg.icon_width = static_cast<unsigned int>(std::ceil(line_height));
     // make size pair number
@@ -3692,11 +3692,11 @@ GuiCfg create_gui_configuration()
     // "Text is to object" + radio buttons
     cfg.height_of_volume_type_selector = separator_height + line_height_with_spacing + input_height;
 
-    int max_style_image_width = static_cast<int>(std::round(cfg.max_style_name_width/2 - 2 * style.FramePadding.x));
+    int max_style_image_width = static_cast<int>(std::round(cfg.max_style_name_width - 2 * style.FramePadding.x));
     int max_style_image_height = static_cast<int>(std::round(input_height));
     cfg.max_style_image_size = Vec2i32(max_style_image_width, line_height);
     cfg.face_name_size = Vec2i32(cfg.input_width, line_height_with_spacing);
-    cfg.face_name_texture_offset_x = cfg.face_name_size.x() + space;
+    cfg.face_name_texture_offset_x = cfg.face_name_size.x() + style.WindowPadding.x + space;
 
     cfg.max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
