@@ -1005,13 +1005,17 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	bool 						tool_changes_as_color_changes = mode == CustomGCode::SingleExtruder && model_mode == CustomGCode::MultiAsSingle;
 
 	// From the last layer to the first one:
+    coordf_t print_z_above = std::numeric_limits<coordf_t>::lowest();
 	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
 		LayerTools &lt = *it_lt;
 		// Add the extruders of the current layer to the set of extruders printing at and above this print_z.
 		for (unsigned int i : lt.extruders)
 			extruder_printing_above[i] = true;
 		// Skip all custom G-codes above this layer and skip all extruder switches.
-		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->type == CustomGCode::ToolChange); ++ custom_gcode_it);
+		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (
+            (print_z_above > lt.print_z && custom_gcode_it->print_z > 0.5 * (lt.print_z + print_z_above))
+            || custom_gcode_it->type == CustomGCode::ToolChange); ++ custom_gcode_it);
+        print_z_above = lt.print_z;
 		if (custom_gcode_it == custom_gcode_per_print_z.gcodes.rend())
 			// Custom G-codes were processed.
 			break;
@@ -1021,7 +1025,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		coordf_t print_z_below = 0.;
 		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())
 			print_z_below = it_lt_below->print_z;
-		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
+        if (custom_gcode.print_z > 0.5 * (print_z_below + lt.print_z)) {
 			// The custom G-code applies to the current layer.
 			bool color_change = custom_gcode.type == CustomGCode::ColorChange;
 			bool tool_change  = custom_gcode.type == CustomGCode::ToolChange;
