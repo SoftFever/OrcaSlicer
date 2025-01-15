@@ -248,7 +248,7 @@ void MaterialItem::doRender(wxDC& dc)
     else {
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(wxColour(acolor)));
-        dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x, MATERIAL_REC_WHEEL_SIZE.y);
+        dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
 
     }
 
