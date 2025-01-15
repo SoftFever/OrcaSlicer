@@ -87,10 +87,12 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
         &slices,
         &compatible_regions,
         this->layer()->height,
+        this->layer()->slice_z,
         this->flow(frPerimeter),
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
+        this->layer()->object(),
         spiral_mode,
         
         // output:

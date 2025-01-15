@@ -16,10 +16,24 @@ struct FuzzySkinConfig
     coord_t       thickness;
     coord_t       point_distance;
     bool          fuzzy_first_layer;
+    NoiseType     noise_type;
+    double        noise_scale;
+    int           noise_octaves;
+    double        noise_persistence;
+    std::string   displacement_map_path;
+
 
     bool operator==(const FuzzySkinConfig& r) const
     {
-        return type == r.type && thickness == r.thickness && point_distance == r.point_distance && fuzzy_first_layer == r.fuzzy_first_layer;
+        return type == r.type
+            && thickness == r.thickness
+            && point_distance == r.point_distance
+            && fuzzy_first_layer == r.fuzzy_first_layer
+            && noise_type == r.noise_type
+            && noise_scale == r.noise_scale
+            && noise_octaves == r.noise_octaves
+            && noise_persistence == r.noise_persistence
+            && displacement_map_path == r.displacement_map_path;
     }
 
     bool operator!=(const FuzzySkinConfig& r) const { return !(*this == r); }
@@ -35,6 +49,11 @@ template<> struct hash<Slic3r::FuzzySkinConfig>
         boost::hash_combine(seed, std::hash<coord_t>{}(c.thickness));
         boost::hash_combine(seed, std::hash<coord_t>{}(c.point_distance));
         boost::hash_combine(seed, std::hash<bool>{}(c.fuzzy_first_layer));
+        boost::hash_combine(seed, std::hash<Slic3r::NoiseType>{}(c.noise_type));
+        boost::hash_combine(seed, std::hash<double>{}(c.noise_scale));
+        boost::hash_combine(seed, std::hash<int>{}(c.noise_octaves));
+        boost::hash_combine(seed, std::hash<double>{}(c.noise_persistence));
+        boost::hash_combine(seed, std::hash<std::string>{}(c.displacement_map_path));
         return seed;
     }
 };
@@ -51,6 +70,7 @@ public:
     const ExPolygons            *lower_slices;
     double                       layer_height;
     int                          layer_id;
+    coordf_t                     slice_z;
     Flow                         perimeter_flow;
     Flow                         ext_perimeter_flow;
     Flow                         overhang_flow;
@@ -58,6 +78,8 @@ public:
     const PrintRegionConfig     *config;
     const PrintObjectConfig     *object_config;
     const PrintConfig           *print_config;
+    const PrintObject           *print_object;
+
     // Outputs:
     ExtrusionEntityCollection   *loops;
     ExtrusionEntityCollection   *gap_fill;
@@ -77,16 +99,18 @@ public:
     bool                                            has_fuzzy_skin = false;
     bool                                            has_fuzzy_hole = false;
     std::unordered_map<FuzzySkinConfig, ExPolygons> regions_by_fuzzify;
-    
+
     PerimeterGenerator(
         // Input:
         const SurfaceCollection*    slices,
         const LayerRegionPtrs       *compatible_regions,
         double                      layer_height,
+        coordf_t                    slice_z,
         Flow                        flow,
         const PrintRegionConfig*    config,
         const PrintObjectConfig*    object_config,
         const PrintConfig*          print_config,
+        const PrintObject*          print_object,
         const bool                  spiral_mode,
         // Output:
         // Loops with the external thin walls
@@ -98,9 +122,10 @@ public:
         //BBS
         ExPolygons*                 fill_no_overlap)
         : slices(slices), compatible_regions(compatible_regions), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
-            layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
+            slice_z(slice_z), layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
+            print_object(print_object),
             m_spiral_vase(spiral_mode),
             m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces), fill_no_overlap(fill_no_overlap),
@@ -118,6 +143,8 @@ public:
     //BBS
     double      smaller_width_ext_mm3_per_mm()   const { return m_ext_mm3_per_mm_smaller_width; }
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
+
+    const PrintObject* object() const { return print_object; }
 
 private:
     std::vector<Polygons>     generate_lower_polygons_series(float width);
