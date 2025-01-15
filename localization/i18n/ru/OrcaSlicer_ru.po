@@ -9885,6 +9885,9 @@ msgstr ""
 "получить, указав имя пользователя и пароль в поле URL-адрес в следующем "
 "формате: https://username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "Идентификатор принтера"
+
 msgid "Device UI"
 msgstr "URL-адрес хоста"
 

@@ -9676,6 +9676,9 @@ msgstr ""
 "parolanın aşağıdaki biçimdeki URL'ye girilmesiyle erişilebilir: https://"
 "username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "Yazıcı Kimliği"
+
 msgid "Device UI"
 msgstr "Cihaz kullanıcı arayüzü"
 

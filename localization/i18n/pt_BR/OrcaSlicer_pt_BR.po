@@ -9722,6 +9722,9 @@ msgstr ""
 "básica ativada pode ser acessado colocando o nome de usuário e senha na URL "
 "no seguinte formato: https://username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "ID da impressora"
+
 msgid "Device UI"
 msgstr "Interface do dispositivo"
 

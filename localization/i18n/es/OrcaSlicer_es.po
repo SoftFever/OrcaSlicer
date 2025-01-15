@@ -9837,6 +9837,9 @@ msgstr ""
 "URL en el siguiente formato: https://"
 "nombredeusuario:contraseña@tudirecciondeoctopi/"
 
+msgid "Printer ID"
+msgstr "Identificación de la impresora"
+
 msgid "Device UI"
 msgstr "IU de dispositivo"
 
