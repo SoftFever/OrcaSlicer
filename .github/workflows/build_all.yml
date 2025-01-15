@@ -99,7 +99,7 @@ jobs:
         cache: true
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
-      uses: WebFreak001/deploy-nightly@v3.1.0
+      uses: WebFreak001/deploy-nightly@v3.2.0
       with:
         upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
         release_id: 137995723
