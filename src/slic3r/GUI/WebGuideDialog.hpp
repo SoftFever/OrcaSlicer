@@ -103,7 +103,7 @@ private:
 
     wxString m_SectionName;
 
-    bool bbl_bundle_rsrc;
+    bool orca_bundle_rsrc;
     boost::filesystem::path vendor_dir;
     boost::filesystem::path rsrc_vendor_dir;
 

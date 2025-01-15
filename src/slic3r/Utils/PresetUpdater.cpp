@@ -1071,8 +1071,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
 }
 
 
-//BBS: refine preset update logic
-// Install indicies from resources. Only installs those that are either missing or older than in resources.
+// Orca: copy/update the vendor profiles from resource to system folder
 void PresetUpdater::priv::check_installed_vendor_profiles() const
 {
     BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:Checking whether the profile from resource is newer";
@@ -1080,8 +1079,9 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
     AppConfig *app_config = GUI::wxGetApp().app_config;
     const auto enabled_vendors = app_config->vendors();
 
-    //BBS: refine the init check logic
     std::vector<std::string> bundles;
+    // Orca: always install filament library
+    bundles.push_back(PresetBundle::ORCA_FILAMENT_LIBRARY);
     for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path)) {
         const auto &path = dir_entry.path();
         std::string file_path = path.string();
@@ -1111,11 +1111,11 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                             fs::remove_all(path_of_vendor);
                     }
                 }
-                else if ((vendor_name == PresetBundle::BBL_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {//if vendor has no file, copy it from resource for BBL
+                else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {//if vendor has no file, copy it from resource for ORCA_DEFAULT_BUNDLE
                     bundles.push_back(vendor_name);
                 }
             }
-            else if ((vendor_name == PresetBundle::BBL_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) { //always update configs from resource to vendor for BBL
+            else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) { //always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
                 bundles.push_back(vendor_name);
             }
         }

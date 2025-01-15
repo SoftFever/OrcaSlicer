@@ -592,7 +592,7 @@ bool GuideFrame::IsFirstUse()
     if (strVal == "1")
         return false;
 
-    if (bbl_bundle_rsrc == true)
+    if (orca_bundle_rsrc == true)
         return true;
 
     return true;
@@ -881,11 +881,11 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             variant.clear();
         return std::string();
     };
-    // Prusa printers are considered first, then 3rd party.
-    if (preferred_model = get_preferred_printer_model(PresetBundle::BBL_BUNDLE, preferred_variant);
+    // Orca "custom" printers are considered first, then 3rd party.
+    if (preferred_model = get_preferred_printer_model(PresetBundle::ORCA_DEFAULT_BUNDLE, preferred_variant);
         preferred_model.empty()) {
         for (const auto& bundle : enabled_vendors) {
-            if (bundle.first == PresetBundle::BBL_BUNDLE) { continue; }
+            if (bundle.first == PresetBundle::ORCA_DEFAULT_BUNDLE) { continue; }
             if (preferred_model = get_preferred_printer_model(bundle.first, preferred_variant);
                 !preferred_model.empty())
                     break;
@@ -962,10 +962,10 @@ bool GuideFrame::run()
             //we install the default here
             bool apply_keeped_changes = false;
             //clear filament section and use default materials
-            app.app_config->set_variant(PresetBundle::BBL_BUNDLE,
-                PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
+            app.app_config->set_variant(PresetBundle::ORCA_DEFAULT_BUNDLE,
+                PresetBundle::ORCA_DEFAULT_PRINTER_MODEL, PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT, "true");
             app.app_config->clear_section(AppConfig::SECTION_FILAMENTS);
-            app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+            app.preset_bundle->load_selections(*app.app_config, {PresetBundle::ORCA_DEFAULT_PRINTER_MODEL, PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT, PresetBundle::ORCA_DEFAULT_FILAMENT, std::string()});
 
             app.app_config->set_legacy_datadir(false);
             app.update_mode();
@@ -1099,13 +1099,13 @@ int GuideFrame::LoadProfile()
         vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR ).make_preferred();
         rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
-        // BBS: add BBL as default
-        // BBS: add json logic for vendor bundle
-        auto bbl_bundle_path = vendor_dir;
-        bbl_bundle_rsrc = false;
-        if (!boost::filesystem::exists((vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json"))) {
-            bbl_bundle_path = rsrc_vendor_dir;
-            bbl_bundle_rsrc = true;
+        // Orca: add custom as default
+        // Orca: add json logic for vendor bundle
+        auto orca_custom_bundle_path = vendor_dir;
+        orca_bundle_rsrc = false;
+        if (!boost::filesystem::exists((vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".json"))) {
+            orca_custom_bundle_path = rsrc_vendor_dir;
+            orca_bundle_rsrc = true;
         }
 
         // intptr_t    handle;
@@ -1126,8 +1126,8 @@ int GuideFrame::LoadProfile()
         //} while (_findnext(handle, &findData) == 0); // ???????????
 
 
-        //load BBL bundle from user data path
-        string                                targetPath = bbl_bundle_path.make_preferred().string();
+        //load custom bundle from user data path
+        string                                targetPath = orca_custom_bundle_path.make_preferred().string();
         boost::filesystem::path               myPath(targetPath);
         boost::filesystem::directory_iterator endIter;
         for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
@@ -1143,7 +1143,7 @@ int GuideFrame::LoadProfile()
                 strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
+                if ((w2s(strVendor) == PresetBundle::ORCA_DEFAULT_BUNDLE || w2s(strVendor) == PresetBundle::ORCA_FILAMENT_LIBRARY) && strExtension.CmpNoCase("json") == 0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
@@ -1162,13 +1162,13 @@ int GuideFrame::LoadProfile()
                 strVendor          = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
+                if (w2s(strVendor) != PresetBundle::ORCA_DEFAULT_BUNDLE && w2s(strVendor) != PresetBundle::ORCA_FILAMENT_LIBRARY && strExtension.CmpNoCase("json")==0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
 
 
-        //LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
+        //LoadProfileFamily(PresetBundle::ORCA_DEFAULT_BUNDLE, bbl_bundle_path.string());
 
         const auto enabled_filaments = wxGetApp().app_config->has_section(AppConfig::SECTION_FILAMENTS) ? wxGetApp().app_config->get_section(AppConfig::SECTION_FILAMENTS) : std::map<std::string, std::string>();
         m_appconfig_new.set_vendors(*wxGetApp().app_config);

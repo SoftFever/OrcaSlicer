@@ -2,7 +2,7 @@
 var m_ProfileItem;
 
 var FilamentPriority=new Array( "pla","abs","pet","tpu","pc");
-var VendorPriority=new Array("bambu lab","bambulab","bbl","kexcelled","polymaker","esun","generic");
+var VendorPriority=new Array("Orca Built-in","bambu lab","bambulab","bbl","kexcelled","polymaker","esun","Generic");
   
 function OnInit()
 {
@@ -139,7 +139,7 @@ function SortUI()
 		if( fModel=='')
 		{
 			// Orca: hide
-			bFind=false;
+			bFind=true;
 		}
 		else
 		{

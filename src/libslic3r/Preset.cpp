@@ -566,9 +566,10 @@ std::string Preset::label(bool no_alias) const
 
 bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
     auto &condition             = preset.preset.compatible_prints_condition();
     auto *compatible_prints     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_prints"));
     bool  has_compatible_prints = compatible_prints != nullptr && ! compatible_prints->values.empty();
@@ -603,9 +604,10 @@ bool is_compatible_with_parent_printer(const PresetWithVendorProfile& preset, co
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
     auto &condition               = preset.preset.compatible_printers_condition();
     auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
     bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();

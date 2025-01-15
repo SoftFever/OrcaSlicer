@@ -1,0 +1,84 @@
+{
+    "name": "OrcaFilamentLibrary",
+    "version": "02.02.00.04",
+    "force_update": "0",
+    "description": "Orca Filament Library",
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "PLA",
+            "sub_path": "filament/PLA.json"
+        },
+        {
+            "name": "PLA-CF",
+            "sub_path": "filament/PLA-CF.json"
+        },
+        {
+            "name": "PETG",
+            "sub_path": "filament/PETG.json"
+        },
+        {
+            "name": "ABS",
+            "sub_path": "filament/ABS.json"
+        },
+        {
+            "name": "TPU",
+            "sub_path": "filament/TPU.json"
+        },
+        {
+            "name": "ASA",
+            "sub_path": "filament/ASA.json"
+        },
+        {
+            "name": "PC",
+            "sub_path": "filament/PC.json"
+        },
+        {
+            "name": "PVA",
+            "sub_path": "filament/PVA.json"
+        },
+        {
+            "name": "PA",
+            "sub_path": "filament/PA.json"
+        },
+        {
+            "name": "PA-CF",
+            "sub_path": "filament/PA-CF.json"
+        }
+    ]
+}
