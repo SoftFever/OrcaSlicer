@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "en": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Laser module is installed, but cutting platform is detected. Please place the laser platform and perform laser calibration."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Cutting module is installed, but the laser platform is detected. Please place the cutting platform for calibration."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Cutting module is installed, but the laser platform is detected.  Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Laser module is installed, but cutting platform is detected. Please place the matching laser platform, then restart the thickness measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Cutting module is installed, but the laser platform is detected, please place the cutting platform (cutting protection base + StrongGrip cutting mat)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "Device is busy and cannot perform this operation. To proceed, please pause or stop the current task."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "The module mounted on the toolhead does not match the task. Please install the correct module."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "The foreign object detection function is not working. You can continue the task or check assistant for solutions."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "No laser platform was detected, which may affect thickness measurement accuracy. Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Toolhead camera calibration failed. Please ensure the marker on laser homing area is clean and undamaged, then re-run the calibration process."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked for laser calibration."
@@ -99,10 +143,6 @@
                     "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Cutting platform detected. Please place the laser platform for laser calibration."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Cutting platform detected, which may affect height measurement accuracy. Please place the laser platform, then restart the height measurement in the software before initiating the task."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the height measurement in the software before initiating the task."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Toolhead camera calibration failed. Please ensure the calibration marker is clean and undamaged, then re-run the calibration process."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "Heatbed limit block is obstructed or contaminated. Please clean and ensure the limit block is visible, otherwise platform position offset detection may be inaccurate."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "No laser platform was detected, which may affect height measurement accuracy. Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the height measurement in the software before initiating the task."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Check if the right external filament spool or filament is stuck."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Please place the cutting platform (cutting protection base + StrongGrip cutting mat)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "The laser platform detected, please replace it the cutting platform (cutting protection base + StrongGrip cutting mat)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Failed to cut the filament of the left extruder. Please check the cutter."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Laser platform detected. Please place the cutting platform for calibration."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "The cutter of the right extruder is stuck. Please pull out the cutter handle."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Laser platform detected. Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "The foreign object detection function is not working. You can continue the task or view the assistant for troubleshooting."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "en": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "The extruder servo motor has an open circuit. The connection may be loose, or the motor may have failed."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "The extruder servo motor has a short-circuit. It may have failed."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "The resistance of the extruder servo motor is abnormal; the motor may have failed."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "The extruder servo motor's current sensor is abnormal. A failure of the hardware sampling circuit may cause this."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "The system voltage is unstable. Triggering the power failure protection function."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Chamber heating failed. The chamber heater may fail to blow hot air."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "New AMS detected. Please set it up to check which extruder the AMS is connected to."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "Foreign object detection is not working. Detected the Live View Camera has been replaced. If a laser or cutting module is installed, please uninstall the module, tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "New AMS-HT detected. Please set it up to check which extruder the AMS-HT is connected to."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Laser module is installed. Platform type mismatch detected. Please place a laser platform."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Cutting module is installed. Platform type mismatch detected. Please place the correct cutting platform."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Laser module is installed. Platform type mismatch detected. Please place the laser platform for laser calibration."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Cutting module is installed. Platform type mismatch detected. Please place the cutting platform for cutting calibration."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Material is too small and placed too far left for detection. Please move it to the center or right side."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "No material is detected, please place the material to be processed."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "The device does not support material thickness measurement. Please install the laser head and try again."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Thickness measurement failed, the material appears to be transparent or uneven."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Laser engraving Z-axis focus calibration failed. Please check if the calibration card is properly placed and its surface is clean and intact."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "BirdsEye camera is not certified, and camera-related functions are invalid."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS B to the extruder is properly connected."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS C to the extruder is properly connected."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "New AMS detected. Please set up before use."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "A new BirdsEye Camera or a camera angle shift was detected. Please complete the setup before use."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS-HT B to the extruder is properly connected."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "New AMS-HT detected. Please set up before use."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "The cutting platform type does not match; please place the correct cutting platform."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Unknown cutting protection base type. Please replace it with the correct cutting protection base."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Incorrect platform type. Please place the laser platform for laser calibration."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "BirdsEye camera is not connected. Please check the hardware and cable connections."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Toolbox\" on printer screen and re-calibrate the Live View Camera."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Toolbox\" on printer screen and re-calibrate the Live View Camera."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "Foreign object detection is not working. Detected the Live View Camera has been replaced. If a laser or cutting module is installed, please uninstall the module, tab \"Settings>Toolbox\" on printer screen and re-calibrate the Live View Camera."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "The platform type does not match; please place a laser platform."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "No platform detected; please make sure the laser plate is placed properly."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "The platform type is unknown; please replace it with the correct one and check if the BirdsEye camera is obstructed."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Incorrect platform type. Please place the cutting platform for cutting calibration."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Failed to extrude AMS E Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Failed to extrude AMS E Slot 4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "The AMS A slot 1 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "AMS-HT E Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "AMS-HT E Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "The resistance of Motor-Z is abnormal; the motor may have failed."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "The resistance of Motor-E is abnormal; the motor may have failed."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Failed to report print state; please check your network connection."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "The RFID-tag on AMS C Slot2 is damaged, or its content cannot be identified."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "The RFID-tag on AMS D Slot2 is damaged, or its content cannot be identified."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "The position sensor of extrusion motor is abnormal. The connection to the sensor may be loose."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "The system voltage is unstable, triggering the power failure protection function."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "Chamber heating failed. The chamber may not be enclosed, the ambient temperature may be too low, or the heat dissipation vent of the power supply may be blocked."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "The RFID-tag on AMS B Slot3 is damaged, or its content cannot be identified."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "The AMS Hub communication is abnormal; the cable may be not well connected."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "Data transmission over the serial port is abnormal; the software system may be faulty."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "Chamber heating failed. The chamber heater may be failing to blow hot air."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "Chamber heating failed. The temperature of power supply may be too high."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Motor-Z has a short-circuit. It may have failed."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Motor-E has an open-circuit. The connection may be loose, or the motor may have failed."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Motor-E has a short-circuit. It may have failed."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Heatbed force sensor 1 is too sensitive. It may be stuck between the strain arm and heatbed support, or the adjusting screw may be too tight."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "The current sensor of Motor-Z is abnormal. This may be caused by a failure of the hardware sampling circuit."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "The current sensor of Motor-E is abnormal. This may be caused by a failure of the hardware sampling circuit."
                 },
                 {
                     "ecode": "0300170000010001",

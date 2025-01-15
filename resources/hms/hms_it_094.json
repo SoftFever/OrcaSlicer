@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "it": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Il modulo laser è installato, ma la piattaforma di taglio non è riconosciuta. Si prega di posizionare la piattaforma laser e di eseguire la calibrazione del laser."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Il modulo di taglio è installato, ma viene riconosciuta la piattaforma laser. Si prega di posizionare la piattaforma di taglio per la calibrazione."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Il modulo di taglio è installato, ma viene riconosciuta la piattaforma laser. Si prega di posizionare la piattaforma di taglio (base di protezione per il taglio + tappetino LightGrip per il taglio)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Il modulo laser è installato, ma viene riconosciuta la piattaforma di taglio. Si prega di posizionare la piattaforma laser corrispondente, quindi riavviare la misurazione dello spessore nel software prima di avviare il compito."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Il modulo di taglio è installato, ma viene riconosciuta la piattaforma laser. Si prega di posizionare la piattaforma di taglio (base di protezione per il taglio + tappetino StrongGrip per il taglio)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "Il dispositivo è occupato e non può eseguire quest'operazione. Per procedere, si prega di mettere in pausa o fermare il compito attuale."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "Il modulo montato sulla testa dello strumento non corrisponde al compito. Si prega di installare il modulo corretto."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "La funzione di rilevamento oggetti estranei non funziona. È possibile continuare il compito o controllare l'assistente per soluzioni."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Nessuna piattaforma laser rilevata, il che potrebbe influenzare l'accuratezza della misurazione dello spessore. Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marcatori posteriori non siano bloccati, quindi riavviare la misurazione dello spessore nel software prima di avviare il compito."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marcatori posteriori non siano bloccati, quindi riavviare la misurazione dello spessore nel software prima di avviare il compito."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "La calibrazione della telecamera dell'utensile è fallita. Si prega di assicurarsi che il marcatore nell'area di allineamento laser sia pulito e non danneggiato, quindi ripetere il processo di calibrazione."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marker posteriori non siano bloccati per la calibrazione del laser."
@@ -99,10 +143,6 @@
                     "intro": "Si prega di osservare l'ugello dell'estrusore sinistro. Se il filamento è stato estruso, cliccare \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare \"Riprova\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Piattaforma di taglio rilevata. Si prega di posizionare la piattaforma laser per la calibrazione del laser."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Si prega di osservare l'ugello dell'estrusore destro. Se il filamento è stato estruso, cliccare \"Continua\"; se non lo è, si prega di spingere leggermente il filamento in avanti e poi cliccare \"Riprova\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "L'estrusore non sta estrudendo normalmente; si prega di consultare l'Assistente. Dopo la risoluzione dei problemi. Se i difetti sono accettabili, si prega di riprendere."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Piattaforma di taglio rilevata, il che potrebbe influire sull'accuratezza della misurazione dell'altezza. Si prega di posizionare la piattaforma laser, quindi riavviare la misurazione dell'altezza nel software prima di avviare il compito."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Si prega di posizionare correttamente la piattaforma laser e assicurarsi che i marker posteriori non siano bloccati, quindi riavviare la misurazione dell'altezza nel software prima di avviare il compito."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Si prega di osservare l'ugello del fusore destro. Se il filamento è stato estruso, fare clic su \"Continua\"; in caso contrario, spingere leggermente in avanti il filamento e poi fare clic su \"Riprova\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "La calibrazione della telecamera del toolhead non è riuscita. Assicurati che il marker di calibrazione sia pulito e non danneggiato, quindi ripeti il processo di calibrazione."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "Il blocco di limite del piano riscaldato è ostruito o contaminato. Si prega di pulire e assicurarsi che il blocco di limite sia visibile, altrimenti la rilevazione dell'offset di posizione della piattaforma potrebbe essere imprecisa."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Nessuna piattaforma laser è stata rilevata, il che potrebbe influire sull'accuratezza della misurazione dell'altezza. Si prega di posizionare correttamente la piattaforma laser e garantire che i marker posteriori non siano bloccati, quindi riavviare la misurazione dell'altezza nel software prima di avviare il compito."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Controlla se il giusto rocchetto di filamento esterno o il filamento è bloccato."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Si prega di posizionare la piattaforma di taglio (base di protezione per il taglio + tappetino di taglio StrongGrip)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Piattaforma laser rilevata, si prega di sostituirla con la piattaforma di taglio (base di protezione per il taglio + tappetino di taglio StrongGrip)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Impossibile tagliare il filamento dell'estrusore sinistro. Controlla il taglierino."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Piattaforma laser rilevata. Si prega di posizionare la piattaforma di taglio per la calibrazione."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Impossibile ritirare il filamento dall'estrusore destro. Si prega di controllare se il filamento è bloccato nell'estrusore sinistro."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "Il cutter dell'estrusore destro è bloccato. Si prega di estrarre la maniglia del cutter."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Piattaforma laser rilevata. Si prega di posizionare la piattaforma di taglio (base di protezione per il taglio + tappetino LightGrip)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Si prega di posizionare la piattaforma da taglio (base di protezione per il taglio + tappetino da taglio LightGrip)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "La funzione di rilevamento di oggetti estranei non funziona. Puoi continuare il compito o consultare l'assistente per la risoluzione dei problemi."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "it": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "Il motore servo dell'estrusore ha un circuito aperto. La connessione potrebbe essere allentata, oppure il motore potrebbe essere guasto."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "Il motore servo dell'estrusore ha un cortocircuito. Potrebbe essere guasto."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "La resistenza del motore servo dell'estrusore è anomala; il motore potrebbe essere guasto."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "Il sensore di corrente del motore servo dell'estrusore è anomalo. Un guasto del circuito di campionamento hardware potrebbe causare questo."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "La tensione del sistema è instabile. Attivazione della funzione di protezione contro i guasti di alimentazione."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Il riscaldamento della camera è fallito. Il riscaldatore della camera potrebbe non riuscire a soffiare aria calda."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Nuovo AMS rilevato. Si prega di configurarlo per verificare a quale estrusore è collegato l'AMS."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Il rilevamento di oggetti estranei non funziona. Si consiglia di disinstallare il laser o il modulo di taglio se è stato installato, quindi toccare \"Impostazioni>Calibrazione\" sullo schermo della stampante e ri-calibrare la Telecamera Live View."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Il rilevamento di oggetti estranei non funziona. Si consiglia di disinstallare il laser o il modulo di taglio se è stato installato, quindi toccare \"Impostazioni>Calibrazione\" sullo schermo della stampante e ri-calibrare la Telecamera Live View."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "Il rilevamento di oggetti estranei non funziona. È stato rilevato che la Telecamera Live View è stata sostituita. Se è installato un laser o un modulo di taglio, si prega di disinstallare il modulo, toccare \"Impostazioni>Calibrazione\" sullo schermo della stampante e ri-calibrare la Telecamera Live View."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Nuovo AMS-HT rilevato. Si prega di configurarlo per verificare a quale estrusore è collegato l'AMS-HT."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Modulo laser installato. Rilevato un incompatibilità con il tipo di piattaforma. Si prega di posizionare una piattaforma laser."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Modulo di taglio installato. Rilevata un'incompatibilità con il tipo di piattaforma. Si prega di posizionare la piattaforma di taglio corretta."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Modulo laser installato. Rilevata un'incompatibilità con il tipo di piattaforma. Si prega di posizionare la piattaforma laser per la calibrazione del laser."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Modulo di taglio installato. Rilevata un'incompatibilità con il tipo di piattaforma. Si prega di posizionare la piattaforma di taglio per la calibrazione del taglio."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Impossibile alimentare il filamento nel toolhead. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Impossibile alimentare il filamento nel toolhead. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Impossibile alimentare il filamento nel toolhead. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Impossibile alimentare il filamento nel toolhead. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Impossibile alimentare il filamento nel toolhead. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Impossibile inserire il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testa dello strumento. Possibile causa: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Il materiale è troppo piccolo e posizionato troppo a sinistra per la rilevazione. Si prega di spostarlo al centro o sul lato destro."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Nessun materiale rilevato, si prega di posizionare il materiale da lavorare."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Il dispositivo non supporta la misurazione dello spessore del materiale. Si prega di installare la testa laser e riprovare."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testina. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testina. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Impossibile alimentare il filamento nella testina. Causa possibile: filamento o bobina bloccati."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "La misurazione dello spessore è fallita, il materiale sembra essere trasparente o irregolare."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "La calibrazione del fuoco dell'asse Z per la incisione laser è fallita. Si prega di controllare se la scheda di calibrazione è posizionata correttamente e se la sua superficie è pulita e intatta."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "La camera BirdsEye non è certificata e le funzioni correlate alla camera non sono valide."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS B all'estrusore è correttamente collegato."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS C all'estrusore è correttamente collegato."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Nuovo AMS rilevato. Si prega di configurarlo prima dell'uso."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "È stata rilevata una nuova BirdsEye Camera o un cambio di angolazione della camera. Si prega di completare la configurazione prima dell'uso."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "Rilevata disconnessione del tubo PTFE durante il caricamento del filamento. Si prega di controllare se il tubo PTFE dall'AMS-HT B all'estrusore è correttamente collegato."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nuovo AMS-HT rilevato. Si prega di configurarlo prima dell'uso."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "Il filamento AMS-HT è esaurito. Per favore inserisci un nuovo filamento nello stesso slot dell'AMS e riprendi."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Il tipo di piattaforma di taglio non corrisponde; per favore posiziona la piattaforma di taglio corretta."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Tipo di base di protezione da taglio sconosciuto. Si prega di sostituirlo con la corretta base di protezione da taglio."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Tipo di piattaforma errato. Si prega di posizionare la piattaforma laser per la calibrazione del laser."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "La telecamera BirdsEye non è collegata. Si prega di controllare le connessioni hardware e il cavo."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "Il rilevamento di oggetti estranei non funziona. Si consiglia di disinstallare il modulo laser o di taglio se è stato installato, e di selezionare \"Impostazioni>Cassetta degli attrezzi\" sullo schermo della stampante e ricalibrare la telecamera Live View."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Il rilevamento degli oggetti estranei non sta funzionando. Si consiglia di disinstallare il modulo laser o di taglio in caso sia stato installato, poi selezionare \"Impostazioni > Cassetta degli attrezzi\" sullo schermo della stampante e ricalibrare la telecamera Live View."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "Il rilevamento di oggetti estranei non funziona. Si è rilevato che la telecamera Live View è stata sostituita. Se un modulo laser o di taglio è installato, si prega di disinstallare il modulo, selezionare \"Impostazioni>Cassetta degli attrezzi\" sullo schermo della stampante e ricalibrare la telecamera Live View."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "È stato rilevato un mismatch della nozzle durante la stampa. Si prega di avviare la stampa dopo la ri-slicizzazione o di continuare la stampa dopo aver sostituito la giusta nozzle. Attenzione: la temperatura del hotend è alta."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "Il tipo di piattaforma non corrisponde; si prega di posizionare una piattaforma laser."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "Nessuna piattaforma rilevata; si prega di assicurarsi che la piastra laser sia posizionata correttamente."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "Il tipo di piattaforma è sconosciuto; si prega di sostituirlo con quello corretto e verificare se la telecamera BirdsEye è ostruita."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Tipo di piattaforma non corretto. Si prega di posizionare la piattaforma di taglio per la calibrazione del taglio."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Impossibile far retrocedere il filamento dall'ugello ad AMS-HT. Possibile causa: filamento o bobina bloccati. Fare riferimento all'Assistente per i dettagli."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Impossibile far avanzare il filamento nell'ugello. Possibile causa: filamento o bobina bloccati. Fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Impossibile estrarre il filamento AMS E Slot 1; l'estrusore potrebbe essere ostruito o il filamento potrebbe essere troppo sottile, causando lo slittamento dell'estrusore."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT Si è verificato un errore nell'alimentazione del filamento all'estrusore della testina del utensile; ciò potrebbe essere dovuto all'usura del filamento che ha causato lo slittamento del motore di assistenza. Si prega di tagliare la sezione usurata del filamento."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina del utensile. Possibile causa: filamento o supporto del filamento bloccati. Si prega di consultare l'Assistente per i dettagli."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Errore del chip di crittografia."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Impossibile far avanzare il filamento nella testina. Possibile causa: il filamento o la bobina si sono bloccati. Si prega di consultare il supporto per ulteriori dettagli."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Impossibile estrudere il filamento dello slot 4 dell'AMS E; l'estrusore potrebbe essere occluso o il filamento potrebbe essere troppo sottile, causando lo slittamento dell'estrusore."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina degli strumenti. Possibile causa: filamento o bobina bloccati. Si prega di fare riferimento al programma Assistant per i dettagli."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Impossibile estrudere il filamento. Possibile causa: occlusione dell'estrusore o del getto. Si prega di fare riferimento al programma Assistant per i dettagli."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "L'aggiunta del filamento AMS F alla ruota di estrusione del motore di assistenza non è riuscita. Ciò potrebbe essere causato dall'ingresso di un piccolo pezzo di filamento rotto nel tubo di alimentazione. Si prega di rimuovere il filamento rotto dal tubo di alimentazione."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "L'alimentazione del filamento nella testina non è riuscita. Possibile causa: il filamento o la bobina sono bloccati. Si prega di consultare l'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "Il motore dello slot 1 di AMS A ha slittato. La ruota di estrusione potrebbe non funzionare correttamente o il filamento potrebbe essere troppo sottile."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E Non è stato possibile estrarre il filamento; ciò potrebbe essere dovuto alla perdita di connessione del motore DC. Verificare che la spina del motore DC sia correttamente collegata."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Non è stato possibile alimentare il filamento nella testina degli strumenti. Possibile causa: il filamento o la bobina sono bloccati. Consultare l'Assistente per ulteriori dettagli."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Impossibile ottenere la tabella di mappatura AMS; fare clic su \"Riprendi\" per riprovare."
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Impossibile inserire il filamento nella testina degli strumenti. Possibile causa: filamento o bobina bloccati. Fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "La fuoriuscita del filamento dal motorino di assistenza di estrusione AMS-HT B non è riuscita. Ciò potrebbe essere dovuto all'ingresso di un piccolo pezzo di filamento rotto nel tubo di alimentazione. Si prega di eliminare il filamento rotto dal tubo di alimentazione."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Impossibile inserire il filamento nella testina degli strumenti. Possibile causa: filamento o bobina bloccati. Fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E L'alimentazione del filamento al buffer è fallita; ciò potrebbe essere dovuto a un filamento consumato che causa lo slittamento del motore di assistenza. Tagliare la sezione consumata del filamento."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: filamento o bobina bloccati. Consultare l'Assistente per maggiori informazioni."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "AMS-HT E L'estrazione del filamento è fallita; ciò potrebbe essere causato dal distacco del filamento dalla bobina. Sostituire la bobina con una nuova."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: il filamento o la bobina sono bloccati. Consultare l'Assistente per maggiori dettagli."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: il filamento o la bobina sono bloccati. Consultare l'Assistente per maggiori dettagli."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "AMS-HT E L'assistenza all'estrusore per afferrare il filamento è fallita; ciò potrebbe essere causato dallo slittamento del motore di assistenza. Si prega di tagliare la sezione logora del filamento."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H L'introduzione del filamento nell'estrusore della testina utensile è fallita; ciò potrebbe essere dovuto all'usura del filamento e causare lo slittamento del motore di assistenza. Si prega di tagliare la sezione consumata del filamento."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "L'introduzione del filamento nella testina utensile è fallita. Possibile causa: filamento o bobina bloccati. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "La resistenza di Motor-Z è anormale; il motore potrebbe essere guasto."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "La resistenza di Motor-E è anormale; il motore potrebbe essere guasto."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Impossibile riportare lo stato di stampa; controllare la connessione di rete."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "Il tag RFID sulla Slot2 di AMS C è danneggiato o il suo contenuto non può essere identificato."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: filamento o bobina bloccati. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "Il tag RFID su AMS D Slot2 è danneggiato o il suo contenuto non può essere identificato."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina. Possibile causa: filamento o bobina bloccati. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "Il sensore di posizione del motore di estrusione è anomalo. Il collegamento al sensore potrebbe essere allentato."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "La tensione di sistema è instabile, attivando la funzione di protezione da interruzione di corrente."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "Riscaldamento della camera fallito. La camera potrebbe non essere chiusa, la temperatura ambiente potrebbe essere troppo bassa, oppure la ventola di dissipazione del calore dell'alimentatore potrebbe essere bloccata."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "Il tag RFID su AMS B Slot3 è danneggiato o non è possibile identificarne il contenuto."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina di stampa. Possibile causa: filamento bloccato o attorcigliato nel rotolo di materiale. Consultare l'Assistente per maggiori dettagli."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "La comunicazione del centro AMS è anomala; il cavo potrebbe non essere ben collegato."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Impossibile alimentare il filamento nella testina dell'utensile. Possibile causa: filamento o bobina bloccati. Consultare l'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "La trasmissione dei dati sulla porta seriale non è normale; potrebbe esserci un guasto del sistema software."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "Il riscaldamento della camera è fallito. Il riscaldatore della camera potrebbe non soffiare aria calda."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "Il riscaldamento della camera è fallito. La temperatura dell'alimentatore potrebbe essere troppo alta."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Il motore-Z ha un cortocircuito. Potrebbe essersi guastato."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Il motore-E ha un circuito aperto. Il collegamento potrebbe essere allentato o il motore potrebbe essere guasto."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Il motore-E ha un cortocircuito. Potrebbe essersi guastato."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Il sensore di forza del letto riscaldato 1 è troppo sensibile. Potrebbe essere bloccato tra il braccio di stress e il supporto del letto riscaldato, oppure la vite di regolazione potrebbe essere troppo stretta."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "Il sensore di corrente di Motor-Z non è normale. Ciò potrebbe essere causato da un malfunzionamento del circuito di campionamento hardware."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "Il sensore attuale di Motor-E è anomalo. Ciò potrebbe essere causato da un guasto del circuito di campionamento dell'hardware."
                 },
                 {
                     "ecode": "0300170000010001",

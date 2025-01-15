@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "nl": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Lasermodule is geïnstalleerd, maar snijplatform wordt niet gedetecteerd. Plaats het laserplatform en voer de laserafstemming uit."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform voor afstemming."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Lasermodule is geïnstalleerd, maar snijplatform wordt gedetecteerd. Plaats het bijpassende laserplatform, start vervolgens de diktemeting in de software opnieuw voordat je de taak start."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform (snijbeschermingsbasis + StrongGrip snijmat)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "Apparaat is bezig en kan deze bewerking niet uitvoeren. Om verder te gaan, pauzeer of stop de huidige taak."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "De module die op de gereedschaphouder is gemonteerd, komt niet overeen met de taak. Installeer de juiste module."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor oplossingen."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Er werd geen laserplatform gedetecteerd, wat de nauwkeurigheid van de diktemeting kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en herstart vervolgens de diktemeting in de software voordat je de taak start."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en herstart vervolgens de diktemeting in de software voordat je de taak start."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Kalibratie van de camera in de toolhead is mislukt. Zorg ervoor dat de marker in het laser-hominggebied schoon en onbeschadigd is, en voer vervolgens het calibratieproces opnieuw uit."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Plaats het laserplatform correct en zorg ervoor dat de achterste markeringen niet geblokkeerd zijn voor laser kalibratie."
@@ -99,10 +143,6 @@
                     "intro": "Gelieve de monding van de linker extruder te bekijken. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet zo is, duw het filament dan iets naar voren en klik vervolgens op \"Probeer opnieuw\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Snijplatform gedetecteerd. Plaats alstublieft het laserplatform voor lasercalibratie."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Gelieve de monding van de rechter extruder te bekijken. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet zo is, duw het filament dan iets naar voren en klik vervolgens op \"Probeer opnieuw\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg alstublieft de Assistent. Na het oplossen van problemen. Als de defecten acceptabel zijn, hervat dan."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Snijdplatform gedetecteerd, wat de nauwkeurigheid van de hoogtemeting kan beïnvloeden. Plaats alstublieft het laserplatform en start vervolgens de hoogtemeting opnieuw in de software voordat u de taak start."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Plaats alstublieft het laserplatform correct en zorg ervoor dat de achterste markeringen niet geblokkeerd zijn, en start dan de hoogtemeting opnieuw in de software voordat u de taak start."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Controleer de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; zo niet, duw het filament dan iets naar voren en klik daarna op \"Probeer opnieuw\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Toolhead camera calibratie is mislukt. Zorg ervoor dat de calibratie marker schoon en onbeschadigd is, en voer dan het calibratieproces opnieuw uit."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "De limietblok van de verwarmde bed is obstructief of vervuild. Maak het schoon en zorg ervoor dat de limietblok zichtbaar is, anders kan de detectie van de positie-afwijking van het platform onnauwkeurig zijn."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Er werd geen laserplatform gedetecteerd, wat de nauwkeurigheid van de hoogtemeting kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de achterste markeringen niet geblokkeerd zijn, start dan de hoogtemeting opnieuw in de software voordat je de taak aanvraagt."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Controleer of de juiste externe filamentspoel of filament vastzit."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Plaats alstublieft het snijplatform (snijbeschermingsbasis + StrongGrip snijmat)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Het laserplatform is gedetecteerd, vervang het alstublieft door het snijplatform (snijbeschermbasis + StrongGrip snijmat)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Het is niet gelukt om het filament van de linkse extruder te snijden. Controleer de snijder."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Laserplatform gedetecteerd. Plaats de snijplatform voor kalibratie."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Het is niet gelukt om het filament terug te trekken uit de rechter extruder. Controleer of het filament vastzit in de linker extruder."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "De snijder van de rechter extruder zit vast. Trek de snijdhandgreep eruit."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Laserplatform gedetecteerd. Plaats de snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Plaats het snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "De functie voor het detecteren van vreemde objecten werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "nl": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "De extruder servo motor heeft een open circuit. De verbinding kan los zijn, of de motor is mogelijk defect."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "De extruder servo motor heeft een kortsluiting. Hij is mogelijk defect."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "De weerstand van de extruder servo motor is abnormaal; de motor is mogelijk defect."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "De stroomsensor van de extruder servo motor is abnormaal. Een defect in de hardware-monitorkring kan dit veroorzaken."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "De systeemspanning is instabiel. De stroomonderbrekingsbeschermingsfunctie wordt geactiveerd."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "De verwarming van de kamer is mislukt. De kamerverwarming kan mogelijk geen warme lucht blazen."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Nieuwe AMS gedetecteerd. Stel deze in om te controleren met welke extruder de AMS is verbonden."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Detectie van vreemde objecten werkt niet. Het wordt aanbevolen om de laser of snijmodule te verwijderen als deze geïnstalleerd was, en tab \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Detectie van vreemde objecten werkt niet. Het wordt aanbevolen om de laser of snijmodule te verwijderen als deze geïnstalleerd was, en tik op \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "Detectie van vreemde objecten werkt niet. Gedetecteerd dat de Live View Camera is vervangen. Als er een laser of snijmodule is geïnstalleerd, verwijder dan de module, tik op \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Nieuwe AMS-HT gedetecteerd. Stel deze in om te controleren op welke extruder de AMS-HT is aangesloten."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Laser module is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft een laserplatform."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Snijmodule is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het juiste snijplatform."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Laser module is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het laserplatform voor laser calibratie."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Snijmodule is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het snijplatform voor snijcalibratie."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vastgelopen."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vastgelopen."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vastgelopen."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vastgelopen."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vastgelopen."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Mislukt om de filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Materiaal is te klein en te ver naar links geplaatst voor detectie. Verplaats het naar het midden of de rechterzijde."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Geen materiaal gedetecteerd, plaats alstublieft het te verwerken materiaal."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Het apparaat ondersteunt geen meting van materiaal dikte. Installeer alstublieft de laser kop en probeer het opnieuw."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Eten van het filament in de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Eten van het filament in de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Eten van het filament in de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vast."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Diktemeting mislukt, het materiaal lijkt transparant of ongelijk."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Lasergraveer Z-as focus calibratie mislukt. Controleer of de calibratiekaart goed is geplaatst en of het oppervlak schoon en intact is."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "BirdsEye-camera is niet gecertificeerd en camera-gerelateerde functies zijn ongeldig."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE-buis losgekoppeld tijdens filament laden. Controleer of de PTFE-buis van AMS B naar de extruder goed is aangesloten."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "PTFE-buis losgekoppeld tijdens filament laden. Controleer of de PTFE-buis van AMS C naar de extruder goed is aangesloten."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Nieuwe AMS gedetecteerd. Gelieve deze in te stellen vóór gebruik."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "Een nieuwe BirdsEye-camera of een camerahoekverschuiving is gedetecteerd. Voltooi de installatie vóór gebruik."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "PTFE-buis losgekoppeld tijdens filament laden. Controleer of de PTFE-buis van AMS-HT B naar de extruder goed is aangesloten."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nieuwe AMS-HT gedetecteerd. Gelieve deze in te stellen vóór gebruik."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Het type snijplatform komt niet overeen; gelieve het juiste snijplatform te plaatsen."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Onbekend type snijbeschermingsbasis. Vervang het met de juiste snijbeschermingsbasis."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Onjuist platformtype. Gelieve het laserplatform te plaatsen voor lasercalibratie."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "De BirdsEye-camera is niet verbonden. Controleer de hardware en kabelverbindingen."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "De detectie van vreemde objecten werkt niet. Het wordt aanbevolen om de laser of snijmodule te deïnstalleren (als deze is geïnstalleerd), vervolgens \"Instellingen> Toolbox\" te selecteren op het printerscherm en de Live View-camera opnieuw te kalibreren."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "De detectie van vreemde objecten werkt niet. Het wordt aanbevolen om de laser of snijmodule te deïnstalleren (indien geïnstalleerd), vervolgens \"Instellingen> Toolbox\" op het printerscherm te selecteren en de Live View-camera opnieuw te kalibreren."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "De detectie van vreemde objecten werkt niet. Er is gedetecteerd dat de Live View-camera is vervangen. Als er een lasermodule of snijmodule is geïnstalleerd, dient u de module te deïnstalleren en \"Instellingen> Toolbox\" op het printerscherm te selecteren om de Live View-camera opnieuw te kalibreren."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "Er is een nozzlemismatch gedetecteerd tijdens het afdrukken. Start de afdruk opnieuw na het opnieuw slicen of vervang de juiste nozzle en ga door met het printen. Let op: de hotend-temperatuur is hoog."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "Het platformtype komt niet overeen; plaats een laserplatform."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "Geen platform gedetecteerd; zorg ervoor dat de lasertafel op de juiste manier is geplaatst."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "Het platformtype is onbekend; vervang het met de juiste en controleer of de BirdsEye-camera geblokkeerd is."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Onjuist platformtype. Plaats de snijtafel voor snijkalibratie."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Niet gelukt om het filament terug te trekken van de toolhead naar AMS-HT. Mogelijke oorzaak: filament of spoel vast. Raadpleeg de Assistent voor details."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: filament of spoel vast. Raadpleeg de Assistent voor details."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Niet gelukt om het AMS E Slot 1 filament te extruderen; de extruder kan verstopt zijn of het filament kan te dun zijn waardoor de extruder uitglijdt."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT Het invoeren van filament naar de extruder van de printkop is mislukt; dit kan worden veroorzaakt doordat het filament versleten is en ervoor zorgt dat de hulpmotor slippen. Knip het versleten gedeelte van het filament weg."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Het invoeren van de filament in de printkop is mislukt. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de assistent voor meer informatie."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Encryptie-chipfout."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Het is niet gelukt om het filament in de toolhead te voeden. Mogelijke oorzaken: vastzittend filament of spoel. Raadpleeg de assistent voor verdere details."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Het extruderen van AMS E Slot 4 filament is mislukt; de extruder kan verstopt zijn of het filament kan te dun zijn waardoor de extruder wegglijdt."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Het voeden van filament naar de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de Assistent voor details."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Het extruderen van het filament is mislukt. Mogelijke oorzaak: verstopte extruder of nozzle. Raadpleeg de Assistent voor details."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "Het invoeren van een filament naar het hulpmotor-extrusiewiel van AMS F is mislukt. Dit kan komen door een klein stukje gebroken filament dat in de invoerbuis terechtkwam. Verwijder het gebroken filament uit de invoerbuis alstublieft."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "Het invoeren van het filament in de toolhead is niet gelukt. Mogelijke oorzaak: filament of haspel vastgelopen. Raadpleeg de Assistant voor meer informatie."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "De AMS A Sleuf 1-motor is doorgeschoten. Het extrusiewiel functioneert mogelijk niet goed of het filament is te dun."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan het verliezen van de verbinding met de DC-motor. Controleer of de DC-motor stekker juist is aangesloten."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Het invoeren van het filament in de gereedschapskop is mislukt. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de Assistant voor meer informatie."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Kan AMS toewijzingstabel niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Mislukt om de filament in de printkop te voeden. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de assistent voor meer details."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "De toevoer van filament naar de hulp motor extrusiewiel van AMS-HT B is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerpijp terecht is gekomen. Verwijder het gebroken filament uit de toevoerpijp."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Mislukt om de filament in de printkop te voeden. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de assistent voor meer details."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E Het invoeren van filament in de buffer is mislukt; dit kan komen doordat het filament versleten is en de hulp motor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaak: het filament of de spoel is vastgelopen. Raadpleeg de Assistant voor meer details."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "Het uittrekken van filament van AMS-HT E is mislukt; dit kan te wijten zijn aan het loskomen van het filament van de spoel. Vervang de spoel door een nieuwe."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaken: vastzittend filament of spoel. Raadpleeg de assistent voor meer informatie."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Het is niet gelukt om het filament in de toolhead te voeren. Mogelijke oorzaken: vastzittend filament of spoel. Raadpleeg de assistent voor meer informatie."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "Het assisteren van de extruder van AMS-HT E om het filament vast te pakken is mislukt; dit kan te wijten zijn aan een slip in de assist motor. Knip het versleten gedeelte van het filament af."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H Het toevoeren van filament aan de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan versleten filament waardoor de hulpmotor slip veroorzaakt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Het is niet gelukt om het filament in de gereedschapskop te voeren. Mogelijke oorzaak: filament of spoel zit vast. Raadpleeg alstublieft de assistent voor details."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "De weerstand van Motor-Z is abnormaal; de motor is mogelijk defect."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "De weerstand van Motor-E is abnormaal; de motor is mogelijk defect."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Mislukt om afdrukstatus te rapporteren; controleer uw netwerkverbinding."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "De RFID-tag op AMS C Slot2 is beschadigd of de inhoud kan niet worden geïdentificeerd."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Kon de filament niet in de extruder voeren. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de assistent voor meer informatie."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "De RFID-tag op AMS D Slot2 is beschadigd of de inhoud kan niet worden geïdentificeerd."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "De filament kon niet in het gereedschap worden gevoed. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg de Assistent voor details."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "De positie-sensor van de extrusiemotor is abnormaal. De verbinding met de sensor kan los zitten."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "De systeemspanning is onstabiel en activeert de functie voor het beschermen tegen stroomuitval."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "Het verwarmen van de behuizing is mislukt. De behuizing is mogelijk niet afgesloten, de omgevingstemperatuur kan te laag zijn, of het warmteafvoerventilatie van de voeding kan geblokkeerd zijn."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "De RFID-tag op AMS B Slot3 is beschadigd of de inhoud kan niet worden geïdentificeerd."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Toevoerfout: het filament kan niet in de printkop worden gevoerd. Mogelijke oorzaak: vastzittend filament of spoel. Raadpleeg de Assistent voor details."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "De communicatie met de AMS-hub is abnormaal; de kabel is mogelijk niet goed aangesloten."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Kon het filament niet in de toolhead voeren. Mogelijke oorzaak: filament of spoel vastgelopen. Raadpleeg Assistant voor details."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "De gegevensoverdracht via de seriële poort is abnormaal; het besturingssysteem van de software is mogelijk defect."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "De verwarming van de kamer is mislukt. De kamerverwarming werkt mogelijk niet goed."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "De verwarming van de kamer is mislukt. De temperatuur van de voeding kan te hoog zijn."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Motor-Z heeft een kortsluiting. Het kan defect zijn."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Motor-E heeft een onderbreking. De verbinding kan los zitten of de motor kan defect zijn."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Motor-E heeft een kortsluiting. Het kan defect zijn."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Heatbed krachtsensor 1 is te gevoelig. Het kan vastzitten tussen de rekarm en het ondersteuningsbed van de warmte of de afstelschroef kan te strak zitten."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "De stroomsensor van Motor-Z is abnormaal. Dit kan worden veroorzaakt door een storing van het hardware-samplingcircuit."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "De huidige sensor van Motor-E is abnormaal. Dit kan veroorzaakt worden door een storing in het hardware sampling circuit."
                 },
                 {
                     "ecode": "0300170000010001",

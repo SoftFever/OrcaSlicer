@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "pl": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Moduł lasera jest zainstalowany, ale platforma tnąca jest wykrywana. Proszę umieścić platformę laserową i przeprowadzić kalibrację lasera."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Moduł tnący jest zainstalowany, ale wykrywana jest platforma laserowa. Proszę umieścić platformę tnącą do kalibracji."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Moduł tnący jest zainstalowany, ale wykrywana jest platforma laserowa. Proszę umieścić platformę tnącą (podstawa ochronna + mata LightGrip)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Moduł lasera jest zainstalowany, ale wykrywana jest platforma tnąca. Proszę umieścić odpowiednią platformę laserową, a następnie zrestartować pomiar grubości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Moduł tnący jest zainstalowany, ale wykrywana jest platforma laserowa. Proszę umieścić platformę tnącą (podstawa ochronna + mata StrongGrip)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "Urządzenie jest zajęte i nie może wykonać tej operacji. Aby kontynuować, proszę wstrzymać lub zatrzymać bieżące zadanie."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "Moduł zamontowany na głowicy narzędzia nie odpowiada zadaniu. Proszę zainstalować odpowiedni moduł."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub sprawdzić asystenta w celu uzyskania rozwiązań."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Nie wykryto platformy laserowej, co może wpłynąć na dokładność pomiaru grubości. Proszę poprawnie umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie zrestartować pomiar grubości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Proszę poprawnie umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie zrestartować pomiar grubości w oprogramowaniu przed rozpoczęciem zadania."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Kalibracja kamery głowicy narzędzia nie powiodła się. Proszę upewnić się, że znacznik w obszarze homingu lasera jest czysty i nieuszkodzony, a następnie ponownie uruchomić proces kalibracji."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane podczas kalibracji lasera."
@@ -99,10 +143,6 @@
                     "intro": "Proszę obserwować dyszę lewego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, delikatnie przesuń filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Wykryto platformę do cięcia. Proszę umieścić platformę laserową do kalibracji lasera."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, delikatnie przesuń filament do przodu, a następnie kliknij \"Spróbuj ponownie\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "Ekstruder nie działa prawidłowo; proszę skonsultować się z Asystentem. Po rozwiązaniu problemu. Jeśli wady są akceptowalne, proszę kontynuować."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Wykryto platformę tnącą, co może wpłynąć na dokładność pomiaru wysokości. Proszę umieścić platformę laserową, a następnie zrestartować pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie zrestartować pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Proszę obserwować dyszę prawego ekstrudera. Jeśli filament został wytłoczony, kliknij \"Kontynuuj\"; jeśli nie, proszę lekko przesunąć filament do przodu, a następnie kliknąć \"Ponów\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Nie powiodła się kalibracja kamery głowicy narzędzia. Upewnij się, że znacznik kalibracyjny jest czysty i nieuszkodzony, a następnie powtórz proces kalibracji."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "Blok ogranicznika podgrzewanej platformy jest zablokowany lub zanieczyszczony. Proszę wyczyścić i upewnić się, że blok ogranicznika jest widoczny, w przeciwnym razie wykrywanie przesunięcia pozycji platformy może być niedokładne."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Nie wykryto platformy laserowej, co może wpłynąć na dokładność pomiaru wysokości. Proszę prawidłowo umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie uruchomić pomiar wysokości w oprogramowaniu przed rozpoczęciem zadania."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Sprawdź, czy prawy zewnętrzny szpul filamentu lub filament jest zablokowany."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Proszę umieścić platformę tnącą (podstawę ochronną + matę tnącą StrongGrip)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Wykryto platformę laserową, proszę wymienić ją na platformę tnącą (podstawa ochronna do cięcia + mata do cięcia StrongGrip)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Nie udało się przeciąć filamentu w lewym ekstruderze. Proszę sprawdzić nóż."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Wykryto platformę laserową. Proszę ustawić platformę tnącą do kalibracji."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Nie udało się cofnąć filamentu z prawego ekstrudera. Proszę sprawdzić, czy filament nie jest zablokowany wewnątrz lewego ekstrudera."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "Nożyk prawego ekstrudera jest zablokowany. Proszę wyciągnąć uchwyt nożyka."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Wykryto platformę laserową. Proszę ustawić platformę tnącą (podstawa ochronna + mata tnąca LightGrip)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Proszę umieścić platformę tnącą (podstawę ochrony cięcia + matę tnącą LightGrip)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "Funkcja wykrywania obcych obiektów nie działa. Możesz kontynuować zadanie lub skorzystać z pomocy w celu rozwiązania problemu."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "pl": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "Silnik serwo ekstrudera ma otwarte obwód. Połączenie może być luźne lub silnik mógł ulec awarii."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "Silnik serwo ekstrudera ma zwarcie. Mógł ulec awarii."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "Opór silnika serwo ekstrudera jest nieprawidłowy; silnik mógł ulec awarii."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "Czujnik prądu silnika serwo ekstrudera jest nieprawidłowy. Może to być spowodowane awarią obwodu próbkowania sprzętowego."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "Napięcie systemu jest niestabilne. Aktywacja funkcji ochrony przed awarią zasilania."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Grzanie komory nie powiodło się. Grzałka komory może nie wydmuchiwać gorącego powietrza."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Wykryto nowy AMS. Proszę skonfigurować go, aby sprawdzić, do którego ekstrudera jest podłączony AMS."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Wykrywanie obiektów obcych nie działa. Zaleca się odinstalowanie lasera lub modułu tnącego, jeśli był zainstalowany, a następnie przejście do zakładki \"Ustawienia>Kalibracja\" na ekranie drukarki i ponowne skalibrowanie kamery Live View."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Wykrywanie obiektów obcych nie działa. Zaleca się odinstalowanie lasera lub modułu tnącego, jeśli był zainstalowany, a następnie kliknięcie w zakładkę \"Ustawienia>Kalibracja\" na ekranie drukarki i ponowne skalibrowanie kamery Live View."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "Wykrywanie obiektów obcych nie działa. Wykryto, że kamera Live View została wymieniona. Jeśli jest zainstalowany laser lub moduł tnący, proszę go odinstalować, przejść do zakładki \"Ustawienia>Kalibracja\" na ekranie drukarki i ponownie skalibrować kamerę Live View."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Wykryto nowy AMS-HT. Proszę skonfigurować go, aby sprawdzić, do którego ekstrudera jest podłączony AMS-HT."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Moduł laserowy jest zainstalowany. Wykryto niezgodność typu platformy. Proszę umieścić platformę laserową."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Moduł tnący jest zainstalowany. Wykryto niezgodność typu platformy. Proszę umieścić odpowiednią platformę tnącą."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Moduł laserowy jest zainstalowany. Wykryto niezgodność typu platformy. Proszę umieścić platformę laserową do kalibracji lasera."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Moduł tnący jest zainstalowany. Wykryto niezgodność typu platformy. Proszę umieścić platformę tnącą do kalibracji cięcia."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula utknęły."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula utknęły."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula utknęły."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula utknęły."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula utknęły."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowana."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Materiał jest zbyt mały i umieszczony zbyt daleko w lewo, aby go wykryć. Proszę przesunąć go do środka lub na prawą stronę."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Nie wykryto materiału, proszę umieścić materiał do przetworzenia."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Urządzenie nie obsługuje pomiaru grubości materiału. Proszę zainstalować głowicę laserową i spróbować ponownie."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędziowej. Możliwa przyczyna: filament lub szpula zablokowane."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędziowej. Możliwa przyczyna: filament lub szpula zablokowane."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędziowej. Możliwa przyczyna: filament lub szpula zablokowane."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Pomiar grubości niepowodzeniem, materiał wydaje się być przezroczysty lub nierówny."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Nie udało się skalibrować ostrości osi Z dla grawerowania laserowego. Proszę sprawdzić, czy karta kalibracyjna jest prawidłowo umieszczona, a jej powierzchnia jest czysta i nienaruszona."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "Kamera BirdsEye nie jest certyfikowana, a funkcje związane z kamerą są nieważne."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS B do ekstrudera jest prawidłowo podłączona."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS C do ekstrudera jest prawidłowo podłączona."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Wykryto nowe AMS. Proszę skonfigurować przed użyciem."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "Wykryto nową kamerę BirdsEye lub zmianę kąta kamery. Proszę ukończyć konfigurację przed użyciem."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "Wykryto rozłączenie rurki PTFE podczas ładowania filamentu. Proszę sprawdzić, czy rurka PTFE od AMS-HT B do ekstrudera jest prawidłowo podłączona."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Wykryto nowe AMS-HT. Proszę skonfigurować przed użyciem."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "Filament AMS-HT się skończył. Proszę włożyć nowy filament do tego samego slotu w AMS i wznowić."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Typ platformy tnącej się nie zgadza; proszę umieścić odpowiednią platformę tnącą."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Nieznany typ podstawy ochrony przed cięciem. Proszę wymienić na odpowiednią podstawę ochrony przed cięciem."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Nieprawidłowy typ platformy. Proszę umieścić platformę laserową do kalibracji lasera."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "Kamera BirdsEye nie jest podłączona. Proszę sprawdzić sprzęt i połączenia kablowe."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "Wykrywanie obiektów obcych nie działa. Zaleca się odinstalować moduł lasera lub tnący, jeśli był zainstalowany, a następnie na ekranie drukarki dotknąć zakładki \"Ustawienia> Narzędzia\" i przekalibrować kamerę Live View."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Wykrywanie obiektów obcych nie działa. Zaleca się odinstalować moduł lasera lub tnący, jeśli był zainstalowany, a następnie na ekranie drukarki dotknąć zakładki \"Ustawienia> Narzędzia\" i ponownie skalibrować kamerę Live View."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "Wykrywanie obiektów obcych nie działa. Wykryto wymianę kamery Live View. Jeśli jest zainstalowany moduł lasera lub tnący, należy go odinstalować i na ekranie drukarki dotknąć zakładki \"Ustawienia> Narzędzia\" oraz ponownie skalibrować kamerę Live View."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "Podczas drukowania wykryto nieodpowiednie dopasowanie dyszy. Przed rozpoczęciem drukowania wykonaj ponowne szlifowanie, lub kontynuuj drukowanie po wymianie odpowiedniej dyszy. Uwaga: temperatura hotendu jest wysoka."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "Typ platformy nie jest właściwy; proszę ułożyć platformę laserową."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "Nie wykryto platformy; proszę upewnij się, że płyta laserowa jest poprawnie umieszczona."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "Nieznany typ platformy; proszę wymienić na właściwą oraz sprawdzić, czy kamera BirdsEye nie jest zablokowana."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Niepoprawny typ platformy. Proszę umieścić platformę tnącą do kalibracji tnącej."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Nie udało się odciągnąć filamentu z głowicy narzędzia do AMS-HT. Możliwą przyczyną jest przyczepienie filamentu lub szpuli. Szczegóły znajdują się w Asystencie."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Nie udało się podać filamentu do głowicy narzędzia. Możliwą przyczyną jest przyczepienie filamentu lub szpuli. Szczegóły znajdują się w Asystencie."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Nie udało się wycisnąć filamentu AMS E Slot 1; wyciskarka może być zatkana lub filament może być zbyt cienki, powodując poślizg wyciskarki."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT Wózek zasilający filament do ekstrudera głowicy narzędziowej przestał działać; może to być spowodowane zużyciem filamentu, co powoduje poślizg silnika pomocniczego. Proszę obciąć zużytą sekcję filamentu."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Nie można wprowadzić filamentu do głowicy narzędziowej. Możliwa przyczyna: zablokowanie filamentu lub szpuli. Szczegółowe informacje można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Awaria układu szyfrującego."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwą przyczyną może być zablokowany filament lub szpulka. Szczegóły można znaleźć w pomocy Asystenta."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Nie udało się wyeksplodować filamentu w slocie AMS E 4; ekstruder może być zapchany lub filament może być zbyt cienki, powodując poślizg ekstrudera."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Podawanie filamentu do bloku drukującego nie powiodło się. Możliwe przyczyny: filament lub szpula się zablokowały. Szczegóły znajdują się w Pomocy."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Nie udało się wyeksplodować filamentu. Możliwe przyczyny: zapchanie ekstrudera lub dyszy. Szczegóły znajdują się w Pomocy."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "Podawanie filamentu AMS F do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem małego kawałka zepsutego filamentu do rurki podającej. Proszę usunąć zepsuty filament z rurki podającej."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "Niepowodzenie podawania filamentu do głowicy narzędzia. Możliwą przyczyną jest zapchanie filamentu lub szpuli. Szczegółowe informacje znajdują się u Asystenta."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "Silnik slocie 1 AMS A zsunięty. Koło wyciskające może być uszkodzone lub filament może być zbyt cienki."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E Wycofywanie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika DC. Sprawdź wtyczkę silnika DC, aby upewnić się, że jest ona poprawnie podłączona."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Nie udało się podać filamentu do głowicy narzędzia. Możliwą przyczyną może być zacięcie filamentu lub rolki z filamentem. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; kliknij przycisk \"Wznów\", aby spróbować ponownie."
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy drukującej. Możliwa przyczyna: filament lub szpula zablokowana. Aby uzyskać szczegółowe informacje, zapoznaj się z Asystentem."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "AMS-HT B Nie udało się wprowadzić filamentu do koła wytłaczającego silnika pomocniczego. Może to być spowodowane małym kawałkiem złamanego filamentu wpadłego do rury zasilającej. Proszę usunąć złamany filament z rury zasilającej."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy drukującej. Możliwa przyczyna: filament lub szpula zablokowana. Aby uzyskać szczegółowe informacje, zapoznaj się z Asystentem."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E Zasilanie filamentem do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwe przyczyny: zablokowany filament lub szpula. Szczegóły znajdziesz u Asystenta."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "Wyciąganie filamentu z narzędzia AMS-HT E nie powiodło się; może to być spowodowane odłączeniem filamentu od szpuli. Proszę wymienić szpulę na nową."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Nie udało się dostarczyć filamentu do narzędzia. Może to być spowodowane zablokowanym filamentem lub szpulą. Proszę odnieść się do Asystenta w celu uzyskania szczegółów."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Nie udało się dostarczyć filamentu do narzędzia. Może to być spowodowane zablokowanym filamentem lub szpulą. Proszę odnieść się do Asystenta w celu uzyskania szczegółów."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "Nieudane wsparcie ekstrudera w chwytaniu filamentu w narzędziu AMS-HT E; może to być spowodowane poślizgiem, motor nie działa poprawnie. Proszę uciąć zużyty odcinek filamentu."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H Podanie filamentu do wytłaczarki narzędziowej nie powiodło się; może to być spowodowane zużyciem filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Podanie filamentu do narzędzi głowicy nie powiodło się. Możliwą przyczyną jest zablokowanie filamentu lub szpuli. Proszę odnieść się do asystenta w celu uzyskania szczegółów."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "Opór Motoru-Z jest nienormalny; silnik może ulec awarii."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "Opór Motoru-E jest nienormalny; silnik może ulec awarii."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Zgłoszenie stanu druku nie powiodło się; sprawdź swoje połączenie sieciowe."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "RFID-tag na slocie 2 AMS C jest uszkodzony lub jego zawartość nie może zostać zidentyfikowana."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Nie udało się naładować filamentu do głowicy narzędzia. Możliwa przyczyna: filament lub szpula zablokowany. Szczegóły znajdziesz w asystencie."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "Etykieta RFID na slocie 2 AMS D jest uszkodzona lub jej zawartość nie może zostać zidentyfikowana."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwą przyczyną może być zatkana rolka filamentu lub szpula. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "Czujnik pozycji silnika wytłaczania jest nietypowy. Połączenie z czujnikiem może być luźne."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "Napięcie w systemie jest niestabilne, co włącza funkcję ochrony przed przerwaniem zasilania."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "Nagrzewnica komory nie działa. Komora może nie być zamknięta, temperatura otoczenia może być zbyt niska lub otwór wentylacyjny zasilania ciepła może być zablokowany."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "RFID-tag w slocie AMS B3 jest uszkodzony lub nie można zidentyfikować jego zawartości."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Nie udało się wprowadzić filamentu do głowicy narzędzia. Możliwe przyczyny: zacięcie filamentu lub szpuli. Szczegóły znajdziesz w Asystencie."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "Komunikacja z hubem AMS jest niestabilna; prawdopodobnie kabel jest źle podłączony."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Nie powiodło się załadowanie filamentu do głowicy drukującej. Możliwe przyczyny: filament lub rolka wcięte. Proszę odnosić się do asystenta w celu uzyskania szczegółowych informacji."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "Przesyłanie danych przez port szeregowy jest nieprawidłowe; system oprogramowania może być wadliwy."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "Nie udało się rozgrzać komory. Nagrzewnica komory może nie dostarczać gorącego powietrza."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "Nie udało się rozgrzać komory. Temperatura źródła zasilania może być zbyt wysoka."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Motor-Z ma zwarcie. Może być uszkodzony."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Motor-E ma przerwany obwód. Połączenie może być luźne lub silnik może być uszkodzony."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Motor-E ma zwarcie. Może być uszkodzony."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Czujnik siły stołu grzejnego 1 jest zbyt wrażliwy. Może być uwięziony między ramieniem  obciążeniowym a podporą stołu grzejnego lub śruba regulacyjna może być zbyt mocno dokręcona."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "Czujnik prądu silnika-Z jest nietypowy. Może to być spowodowane awarią obwodu próbkowania sprzętu."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "Aktualny czujnik Motor-E jest nienormalny. Może to być spowodowane awarią obwodu próbkowania sprzętu."
                 },
                 {
                     "ecode": "0300170000010001",

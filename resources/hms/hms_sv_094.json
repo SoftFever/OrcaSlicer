@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "sv": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Laser-modulen är installerad, men skärplattformen detekteras. Var vänligen placera laserplattformen och utför laserkalibrering."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Skärmodulen är installerad, men laserplattformen detekteras. Var vänligen placera skärplattformen för kalibrering."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Skärmodulen är installerad, men laserplattformen detekteras. Var vänligen placera skärplattformen (skärskyddsbas + LightGrip skärmatta)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Laser-modulen är installerad, men skärplattformen detekteras. Var vänligen placera den matchande laserplattformen, och starta sedan om tjockleksmätningen i programvaran innan uppgiften påbörjas."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Skärmodulen är installerad, men laserplattformen detekteras. Var vänligen placera skärplattformen (skärskyddsbas + StrongGrip skärmatta)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "Enheten är upptagen och kan inte utföra denna åtgärd. För att fortsätta, var vänligen pausa eller stoppa den aktuella uppgiften."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "Modulen som är monterad på verktygshuvudet matchar inte uppgiften. Var vänligen installera rätt modul."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "Funktionen för upptäckta främmande objekt fungerar inte. Du kan fortsätta uppgiften eller kolla assistenten för lösningar."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Ingen laserplattform hittades, vilket kan påverka noggrannheten i tjockleksmätningen. Vänligen placera laserplattformen korrekt och se till att bakre markörerna inte är blockerade, och starta sedan om tjockleksmätningen i programvaran innan du påbörjar uppgiften."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Vänligen placera laserplattformen korrekt och se till att bakre markörerna inte är blockerade, och starta sedan om tjockleksmätningen i programvaran innan du påbörjar uppgiften."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Kalibrering av verktygshuvudets kamera misslyckades. Vänligen se till att markören på laserhörområdet är ren och oskadd, och kör sedan om kalibreringsprocessen."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Vänligen placera laserplattan korrekt och se till att bakmarkeringarna inte blockeras för laserkalibrering."
@@ -99,10 +143,6 @@
                     "intro": "Vänligen observera munstycket på den vänstra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Klippplattform detekterad. Vänligen placera laserplattformen för laser kalibrering."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Vänligen observera munstycket på den högra extrudern. Om filamentet har extruderats, klicka på \"Fortsätt\"; om det inte har det, vänligen tryck filamentet framåt lite, och klicka sedan på \"Försök igen\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "Extraktern fungerar inte normalt; vänligen kontakta Assistenten. Efter felsökning. Om felen är acceptabla, vänligen fortsätt."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Skäroverflaten har upptäckts, vilket kan påverka höjdmätningsnoggrannheten. Vänligen placera laserplattformen, och starta sedan om höjdmätingen i mjukvaran innan du påbörjar uppgiften."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Vänligen placera laserplattformen korrekt och se till att de bakre markörerna inte är blockerade, och starta sedan om höjdmätingen i mjukvaran innan du påbörjar uppgiften."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Vänligen observera munstycket på höger extruder. Om filamentet har extruderats, klicka på \"Fortsätt\"; om inte, vänligen tryck filamentet framåt lite och klicka sedan på \"Försök igen\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Verktygshuvudets kamerakalibrering misslyckades. Vänligen se till att kalibreringsmarkören är ren och oskadad, och kör sedan kalibreringsprocessen igen."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "Värmebäddens gränsblock är blockerat eller förorenat. Vänligen rengör och se till att gränsblocket är synligt, annars kan avkänning av plattformens positionsförskjutning bli felaktig."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Ingen laserskärmplattform upptäcktes, vilket kan påverka noggrannheten i höjdmätningen. Vänligen placera laserskärmplattformen korrekt och se till att de bakre markörerna inte är blockerade, och återstarta sedan höjdmätningen i programvaran innan du påbörjar uppgiften."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Kontrollera om den högra externa filamentspolen eller filamentet sitter fast."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Var vänlig placera skärplattformen (skärskyddsbas + StrongGrip skärmatta)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Laserplattformen har upptäckts, var vänlig byt ut den mot skärplattformen (skärskyddsbas + StrongGrip skärmatta)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Misslyckades med att skära filamentet från den vänstra extrudern. Vänligen kontrollera snittverktyget."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Laserplattformen upptäcktes. Vänligen placera skärplattformen för kalibrering."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet fastnat i den vänstra extrudern."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "Klippverktyget på den högra extrudern är fast. Vänligen dra ut klippverktygets handtag."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Laserplattformen upptäcktes. Vänligen placera skärplattformen (skärskyddsbas + LightGrip skärmatta)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Vänligen placera skärplattan (skärskyddsbas + LightGrip skärmatta)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "Funktionen för att upptäcka främmande objekt fungerar inte. Du kan fortsätta uppgiften eller se assistenten för felsökning."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "sv": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "Extruderens servomotor har en öppen krets. Anslutningen kan vara lös, eller så kan motorn ha gått sönder."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "Extruderens servomotor har en kortslutning. Den kan ha gått sönder."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "Motståndet hos extruderens servomotor är onormalt; motorn kan ha gått sönder."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "Extruderens servomotors strömindikator är onormal. Ett fel på hårdvarusamplingkretsen kan orsaka detta."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "Systemspänningen är instabil. Utlöser funktionen för strömavbrottsskydd."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Kammartemperaturen misslyckades. Kammarvärmaren kanske inte fungerar för att blåsa varm luft."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Ny AMS upptäcktes. Vänligen ställ in den för att kontrollera vilken extruder AMS:en är ansluten till."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Detektion av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och sedan gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Detektion av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "Detektion av främmande föremål fungerar inte. Detekterat att Live View-kameran har bytts ut. Om en laser- eller skärmodul är installerad, vänligen avinstallera modulen, gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Ny AMS-HT upptäckt. Vänligen ställ in den för att kontrollera vilken extruder AMS-HT är ansluten till."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Laser modul är installerad. Plattformstyp mismatch upptäckt. Vänligen placera en laserplattform."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Skärmodul är installerad. Plattformstyp mismatch upptäckt. Vänligen placera den rätta skärplattformen."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Laser modul är installerad. Plattformstyp mismatch upptäckt. Vänligen placera laserplattformen för laser kalibrering."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Skärmodul är installerad. Plattformstyp mismatch upptäckt. Vänligen placera skärplattformen för skär kalibrering."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Materialet är för litet och placerat för långt till vänster för att kunna upptäckas. Vänligen flytta det till mitten eller högra sidan."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Inget material har upptäckts, vänligen lägg dit materialet som ska bearbetas."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Enheten stöder inte mätning av materialtjocklek. Vänligen installera laserhuvudet och försök igen."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Mätning av tjocklek misslyckades, materialet verkar vara genomskinligt eller ojämnt."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Kalibrering av Z-axelns fokus för lasergravering misslyckades. Kontrollera om kalibreringskortet är korrekt placerat och att ytan är ren och intakt."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "BirdsEye-kameran är inte certifierad och kamera-relaterade funktioner är ogiltiga."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS B till extrudern är korrekt anslutet."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS C till extrudern är korrekt anslutet."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Ny AMS upptäcktes. Vänligen ställ in innan användning."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "En ny BirdsEye-kamera eller en kameravinkeländring upptäcktes. Vänligen slutför installationen innan användning."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS-HT B till extrudern är korrekt anslutet."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Ny AMS-HT upptäcktes. Vänligen ställ in innan användning."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "AMS-HT filament är slut. Vänligen sätt i en ny filament i samma fack i AMS och fortsätt."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Typen av skärplattform matchar inte; vänligen placera den rätta skärplattformen."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Okänd typ av skärskyddsbas. Vänligen ersätt den med rätt skärskyddsbas."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Fel plattformstyp. Vänligen placera laserplattformen för laserkalibrering."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "BirdsEye-kameran är inte ansluten. Var vänlig kontrollera hårdvaran och kabelanslutningarna."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "Detektering av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och klicka på \"Inställningar> Verktygslåda\" på skrivarskärmen och kalibrera Live View-kameran igen."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Detektering av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och klicka på \"Inställningar> Verktygslåda\" på skrivarskärmen och kalibrera Live View-kameran igen."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "Detektering av främmande föremål fungerar inte. Det har upptäckts att Live View-kameran har ersatts. Om en laserm eller en skärmodul är installerad, vänligen avinstallera modulen, klicka på \"Inställningar > Verktygslåda\" på skärmen och kalibrera Live View-kameran igen."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "Ingenzzlemismatch upptäcktes under utskrift. Starta utskriften efter omskivning eller fortsätt utskriften efter att ha bytt ut rätt munstycke. Varning: Hettopstemperaturen är hög."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "Typen av plattform matchar inte; vänligen placera en laserplattform."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "Ingen plattform detekterades; vänligen se till att laserplattan är placerad korrekt."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "Plattformstypen är okänd. Vänligen byt till rätt typ och kontrollera om BirdsEye-kameran är blockerad."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Fel plattformstyp. Vänligen placera skärplattformen för skärkalibrering."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Misslyckades att dra tillbaka tråden från verktygshuvudet till AMS-HT. Möjlig orsak: tråden eller rullen sitter fast. Vänligen se Assistant för detaljer."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Misslyckades att mata in tråden i verktygshuvudet. Möjlig orsak: tråden eller rullen sitter fast. Vänligen se Assistant för detaljer."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Misslyckades att extrudera AMS E Spår 1-tråd; extrudern kan vara igensatt eller tråden kan vara för tunn, vilket får extrudern att glida."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT Det uppstod problem med att mata fram filament till verktygshuvudets extruder. Detta kan bero på att filamentet har slitits ut och får assistmotor att halka. Vänligen trimma bort det slitna avsnittet av filamentet."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Misslyckades att mata fram filamentet till verktygshuvudet. Möjlig orsak: filamentet eller spolen fastnat. Vänligen rådfråga assistenten för detaljer."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Krypteringschipfel."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filamentet eller spolen fastnat. Vänligen se Assistenten för detaljer."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Misslyckades att extrudera filament i AMS E Slot 4; Extrudern kan vara igensatt eller filamenet kan vara för tunt vilket kan få extrudern att slira, tack."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Misslyckades att mata filamentet in i verktygshuvudet. Möjlig orsak: Filament eller spole fastnat. Se Assistenten för detaljer, tack."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Misslyckades att extrudera filamentet. Möjlig orsak: Extrudern eller munstycket är igensatt. Se Assistenten för detaljer, tack."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "AMS F Feeding filament till hjälpmotorns extruderhjul misslyckades. Detta kan bero på att en liten bit bruten filament har kommit in i matningstuben. Var god ta bort det brutna filamentet från matningstuben."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "Det gick inte att mata in filamentet i verktyget. Möjlig orsak: filamentet eller rullen är fast. Var god se Assistansen för detaljer."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "AMS A slot 1 motorn har slirat. Extruderhjulet kan vara felaktigt eller så kan filamentet vara för tunt."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E Att dra ut filament har misslyckats; detta kan bero på att DC-motorn har förlorat anslutningen. Kontrollera att DC-motorpluggen är korrekt ansluten."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Misslyckades att mata fram filamentet till verktygshuvudet. Möjlig orsak: filamentet eller spolen fastnat. Se Assistenten för detaljer."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Misslyckades med att få AMS-kartläggningstabellen; klicka på \"Fortsätt\" för att försöka igen"
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller rulle fastnat. Se Assistant för detaljer."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "AMS-HT B misslyckades med att mata in filamentet till hjälpmotorns extrusionshjul. Detta kan bero på en liten bit av brutet filament som kommit in i matningsröret. Ta bort det brutna filamentet från matningsröret."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller rulle fastnat. Se Assistant för detaljer."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E Det misslyckades att mata in filament i bufferten, det kan bero på att filamnetet är slitet vilket orsakar att hjälp motorn glider. Klipp av den slitna delen av filamentet."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Misslyckades att mata in filament i verktygshuvudet. Möjlig orsak: Filamentet eller rullen har fastnat. Läs informationen i Assistant för mer detaljer."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "Det misslyckades att dra ut filamentet från AMS-HT E. Det här kan bero på att filamentet avlossnar från spolen. Vänligen byt spolen med en ny."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat. Vänligen hänvisa till assistenten för detaljer."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Misslyckades att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat. Vänligen konsultera assistenten för mer information."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "Det misslyckades att assistera extrudern att greppa filamentet AMS-HT E. Detta kan bero på att assistmotorn slirar. Vänligen klipp bort den slitna delen av filamentet."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H Matningsfilament till verktygshuvudet extrudern har misslyckats; detta kan bero på att filamentet har slitits ut och orsakat att assistansmotorn slinter. Vänligen klipp bort den slitna delen av filamentet."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Misslyckades att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnade. Vänligen se Assistant för detaljer."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "Motorns resistans är onormal; motorn kan ha slagit fel."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "Motorns resistans är onormal; motorn kan ha slagit fel."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Misslyckades med att rapportera utskriftstillstånd; kontrollera din nätverksanslutning."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "RFID-etiketten på AMS C Platshållare 2 är skadad, eller så kan dess innehåll inte identifieras."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: Filament eller spole fastnat. Se assistenten för mer information."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "RFID-taggen på AMS D Slot2 är skadad, eller dess innehåll kan inte identifieras."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Det gick inte att mata in filamentet i verktygshuvudet. Möjlig orsak: filamentet eller rullen sitter fast. För ytterligare detaljer, se Assistant."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "Positionsensorn för extrudermotorn är onormal. Anslutningen till sensorn kan vara löst."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "Systemspänningen är instabil och utlöser skyddsfunktionen för strömavbrott."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "Uppvärmningen av kammaren misslyckades. Kammen kanske inte är sluten, omgivande temperaturen kan vara för låg, eller värmespridningsventilen till strömförsörjningen kan vara blockerad."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "RFID-taggen på AMS B Spår3 är skadad eller så går det inte att identifiera dess innehåll."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller rulle fastnat. Se assistenten för mer information."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "Kommunikationen med AMS-hubben är onormal; kabeln kanske inte är välansluten."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Misslyckades att mata in filament i verktygshuvudet. Möjlig orsak: Filamentet eller spolen fastnar. Se assistenten för detaljer."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "Dataöverföring via serieporten är onormal, mjukvarusystemet kan vara felaktigt."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "Kammaren värms inte upp. Kammarens värmeelement kan misslyckas med att blåsa varm luft."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "Kammaren värms inte upp. Temperaturen på strömförsörjningen kan vara för hög."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Motor-Z har en kortslutning. Den kan ha slutat fungera."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Motor-E har en brytning. Anslutningen kan vara lös eller så har motorn slutat fungera."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Motor-E har en kortslutning. Den kan ha slutat fungera."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Heatbed force sensor 1 är för känslig. Den kan vara fastklämd mellan spännarmen och värmebäddsstödet, eller justeringsskruven kan vara för hårt åtdragen."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "Strömsensorn till Motor-Z är onormal. Detta kan bero på en felaktig hårdvarusamplingskrets."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "Strömsensorn på Motor-E är onormal. Detta kan bero på ett fel i hårdvarusamplingskretsen."
                 },
                 {
                     "ecode": "0300170000010001",

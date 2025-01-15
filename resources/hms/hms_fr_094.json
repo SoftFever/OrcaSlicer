@@ -1,11 +1,55 @@
 {
     "result": 0,
-    "t": 1736735054,
+    "t": 1736930690,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "fr": [
+                {
+                    "ecode": "05008055",
+                    "intro": "Le module laser est installé, mais la plateforme de découpe est détectée. Veuillez placer la plateforme laser et effectuer la calibration du laser."
+                },
+                {
+                    "ecode": "05008056",
+                    "intro": "Le module de découpe est installé, mais la plateforme laser est détectée. Veuillez placer la plateforme de découpe pour la calibration."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "Le module de découpe est installé, mais la plateforme laser est détectée. Veuillez placer la plateforme de découpe (base de protection de découpe + tapis de découpe LightGrip)."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Le module laser est installé, mais la plateforme de découpe est détectée. Veuillez placer la plateforme laser correspondante, puis redémarrez la mesure d'épaisseur dans le logiciel avant de commencer la tâche."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Le module de découpe est installé, mais la plateforme laser est détectée. Veuillez placer la plateforme de découpe (base de protection de découpe + tapis de découpe StrongGrip)."
+                },
+                {
+                    "ecode": "0500C07F",
+                    "intro": "L'appareil est occupé et ne peut pas effectuer cette opération. Pour continuer, veuillez mettre en pause ou arrêter la tâche en cours."
+                },
+                {
+                    "ecode": "0300804C",
+                    "intro": "Le module monté sur la tête de l'outil ne correspond pas à la tâche. Veuillez installer le module correct."
+                },
+                {
+                    "ecode": "0C008016",
+                    "intro": "La fonction de détection d'objet étranger ne fonctionne pas. Vous pouvez continuer la tâche ou consulter l'assistant pour des solutions."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Aucune plateforme laser n'a été détectée, ce qui peut affecter la précision de la mesure d'épaisseur. Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas obstrués, puis redémarrez la mesure d'épaisseur dans le logiciel avant de commencer la tâche."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas obstrués, puis redémarrez la mesure d'épaisseur dans le logiciel avant de commencer la tâche."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "L'étalonnage de la caméra du porte-outil a échoué. Veuillez vous assurer que le marqueur sur la zone de retour à l'origine du laser est propre et non endommagé, puis relancez le processus d'étalonnage."
+                },
                 {
                     "ecode": "05008064",
                     "intro": "Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas bloqués pour la calibration laser."
@@ -99,10 +143,6 @@
                     "intro": "Veuillez observer la buse de l'extrudeuse de gauche. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Plateforme de découpe détectée. Veuillez placer la plateforme laser pour la calibration du laser."
-                },
-                {
                     "ecode": "07FF8007",
                     "intro": "Veuillez observer la buse de l'extrudeuse de droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant, puis cliquez sur \"Réessayer\"."
                 },
@@ -155,20 +195,8 @@
                     "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après le dépannage. Si les défauts sont acceptables, veuillez reprendre."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Plateforme de découpe détectée, ce qui peut affecter la précision de mesure de la hauteur. Veuillez placer la plateforme laser, puis redémarrez la mesure de hauteur dans le logiciel avant de commencer la tâche."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Veuillez placer correctement la plateforme laser et vous assurer que les marqueurs arrière ne sont pas bloqués, puis redémarrez la mesure de hauteur dans le logiciel avant de commencer la tâche."
-                },
-                {
                     "ecode": "07FFC00A",
                     "intro": "Veuillez observer la buse de l'extrudeuse droite. Si le filament a été extrudé, cliquez sur \"Continuer\" ; sinon, veuillez pousser légèrement le filament vers l'avant puis cliquez sur \"Réessayer\"."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "L'étalonnage de la caméra Toolhead a échoué. Veuillez vous assurer que le marqueur d'étalonnage est propre et indemne, puis relancez le processus d'étalonnage."
                 },
                 {
                     "ecode": "1803800A",
@@ -379,10 +407,6 @@
                     "intro": "Le bloc de limite du plateaux chauffant est obstrué ou contaminé. Veuillez nettoyer et vous assurer que le bloc de limite est visible, sinon la détection de décalage de position de la plateforme peut être inexacte."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Aucune plateforme laser n'a été détectée, ce qui peut affecter la précision de la mesure de hauteur. Veuillez placer la plateforme laser correctement et vous assurer que les marqueurs arrière ne sont pas bloqués, puis redémarrez la mesure de hauteur dans le logiciel avant de commencer la tâche."
-                },
-                {
                     "ecode": "18FF8010",
                     "intro": "Vérifiez si la bonne bobine de filament externe ou le filament est bloqué."
                 },
@@ -397,10 +421,6 @@
                 {
                     "ecode": "0500807C",
                     "intro": "Veuillez placer la plateforme de découpe (base de protection de découpe + tapis de découpe StrongGrip)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "La plateforme laser a été détectée, veuillez la remplacer par la plateforme de découpe (base de protection de découpe + tapis de découpe StrongGrip)."
                 },
                 {
                     "ecode": "05008067",
@@ -447,20 +467,12 @@
                     "intro": "Échec de la coupe du filament de l'extrudeuse gauche. Veuillez vérifier le coupeur."
                 },
                 {
-                    "ecode": "05008056",
-                    "intro": "Plateforme laser détectée. Veuillez placer la plateforme de découpe pour la calibration."
-                },
-                {
                     "ecode": "07FF8004",
                     "intro": "Échec du retrait du filament de l'extrudeuse droite. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse gauche."
                 },
                 {
                     "ecode": "07FF8002",
                     "intro": "Le couteau de l'extrudeuse droite est coincé. Veuillez tirer sur la poignée du couteau."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Plateforme laser détectée. Veuillez placer la plateforme de découpe (base de protection de découpe + tapis de découpe LightGrip)."
                 },
                 {
                     "ecode": "07FF8024",
@@ -629,10 +641,6 @@
                 {
                     "ecode": "0500807B",
                     "intro": "Veuillez placer la plateforme de découpe (base de protection de découpe + tapis de découpe LightGrip)."
-                },
-                {
-                    "ecode": "0C008016",
-                    "intro": "La fonction de détection d'objets étrangers ne fonctionne pas. Vous pouvez continuer la tâche ou consulter l'assistant pour le dépannage."
                 },
                 {
                     "ecode": "0C008018",
@@ -2392,6 +2400,154 @@
             "ver": 202502042359,
             "fr": [
                 {
+                    "ecode": "0300090000010001",
+                    "intro": "Le moteur servo de l'extrudeuse a un circuit ouvert. La connexion peut être lâche, ou le moteur peut avoir échoué."
+                },
+                {
+                    "ecode": "0300090000010002",
+                    "intro": "Le moteur servo de l'extrudeuse a un court-circuit. Il peut avoir échoué."
+                },
+                {
+                    "ecode": "0300090000010003",
+                    "intro": "La résistance du moteur servo de l'extrudeuse est anormale ; le moteur peut avoir échoué."
+                },
+                {
+                    "ecode": "0300160000010001",
+                    "intro": "Le capteur de courant du moteur servo de l'extrudeuse est anormal. Une défaillance du circuit d'échantillonnage matériel peut en être la cause."
+                },
+                {
+                    "ecode": "0300410000010001",
+                    "intro": "La tension du système est instable. Déclenchement de la fonction de protection contre les pannes de courant."
+                },
+                {
+                    "ecode": "0300900000010001",
+                    "intro": "Le chauffage de la chambre a échoué. Le chauffage de la chambre peut ne pas souffler d'air chaud."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Nouveau AMS détecté. Veuillez le configurer pour vérifier à quel extrudeuse l'AMS est connecté."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé, puis d'appuyer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et de re-calibrer la caméra Live View."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé, puis de cliquer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et de re-calibrer la caméra Live View."
+                },
+                {
+                    "ecode": "0C00030000020015",
+                    "intro": "La détection d'objet étranger ne fonctionne pas. Il a été détecté que la caméra Live View a été remplacée. Si un module laser ou de coupe est installé, veuillez désinstaller le module, puis cliquer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et re-calibrer la caméra Live View."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Nouvelle AMS-HT détectée. Veuillez la configurer pour vérifier à quel extrudeur l'AMS-HT est connectée."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Module laser installé. Incompatibilité de type de plateforme détectée. Veuillez placer une plateforme laser."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Module de découpe installé. Incompatibilité de type de plateforme détectée. Veuillez placer la bonne plateforme de découpe."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Module laser installé. Incompatibilité de type de plateforme détectée. Veuillez placer la plateforme laser pour la calibration laser."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Module de découpe installé. Incompatibilité de type de plateforme détectée. Veuillez placer la plateforme de découpe pour la calibration de découpe."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine bloqué."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine bloqué."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Le matériel est trop petit et placé trop à gauche pour être détecté. Veuillez le déplacer au centre ou sur le côté droit."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Aucun matériel n'est détecté, veuillez placer le matériel à traiter."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "L'appareil ne prend pas en charge la mesure de l'épaisseur du matériau. Veuillez installer la tête laser et réessayer."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "La mesure d'épaisseur a échoué, le matériau semble être transparent ou inégal."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "La calibration du focus de l'axe Z pour la gravure laser a échoué. Veuillez vérifier si la carte de calibration est correctement placée et si sa surface est propre et intacte."
+                },
+                {
+                    "ecode": "0C00010000020018",
+                    "intro": "La caméra BirdsEye n'est pas certifiée, et les fonctions liées à la caméra sont invalides."
+                },
+                {
                     "ecode": "0701200000020006",
                     "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS B à l'extrudeuse est correctement connecté."
                 },
@@ -2400,20 +2556,12 @@
                     "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS C à l'extrudeuse est correctement connecté."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Nouvel AMS détecté. Veuillez le configurer avant utilisation."
-                },
-                {
                     "ecode": "0500040000020031",
                     "intro": "Une nouvelle caméra BirdsEye ou un changement d'angle de caméra a été détecté. Veuillez compléter la configuration avant utilisation."
                 },
                 {
                     "ecode": "1801200000020006",
                     "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS-HT B à l'extrudeuse est correctement connecté."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nouvel AMS-HT détecté. Veuillez le configurer avant utilisation."
                 },
                 {
                     "ecode": "0705200000020006",
@@ -2584,16 +2732,8 @@
                     "intro": "Le filament AMS-HT est épuisé. Veuillez mettre un nouveau filament dans le même emplacement dans l'AMS et reprendre."
                 },
                 {
-                    "ecode": "050004000002004B",
-                    "intro": "Le type de plateforme de découpe ne correspond pas ; veuillez placer la bonne plateforme de découpe."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Type de base de protection de coupe inconnu. Veuillez le remplacer par la bonne base de protection de coupe."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Type de plateforme incorrect. Veuillez placer la plateforme laser pour la calibration laser."
                 },
                 {
                     "ecode": "0300D00000010002",
@@ -2934,18 +3074,6 @@
                 {
                     "ecode": "0500060000020033",
                     "intro": "La caméra BirdsEye n'est pas connectée. Veuillez vérifier les connexions matérielles et les câbles."
-                },
-                {
-                    "ecode": "0C00030000020014",
-                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé et de sélectionner \"Paramètres>Boîte à outils\" sur l'écran de l'imprimante, puis de recalibrer la caméra Live View."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé, de sélectionner \"Paramètres> Boîte à outils\" sur l'écran de l'imprimante et de recalibrer la caméra Live View."
-                },
-                {
-                    "ecode": "0C00030000020015",
-                    "intro": "La détection d'objet étranger ne fonctionne pas. Il a été détecté que la caméra Live View a été remplacée. Si un module laser ou de coupe est installé, veuillez le désinstaller, sélectionner \"Paramètres> Boîte à outils\" sur l'écran de l'imprimante et recalibrer la caméra Live View."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3408,10 +3536,6 @@
                     "intro": "Une incompatibilité de buse a été détectée pendant l'impression. Veuillez lancer l'impression après un nouveau tranchage ou continuer l'impression après avoir remplacé la buse correcte. Attention : la température de l'extrudeur est élevée."
                 },
                 {
-                    "ecode": "050004000002004A",
-                    "intro": "Le type de plateforme ne correspond pas ; veuillez placer une plateforme laser."
-                },
-                {
                     "ecode": "0500040000020048",
                     "intro": "Aucune plateforme détectée ; veuillez vous assurer que la plaque laser est correctement placée."
                 },
@@ -3430,10 +3554,6 @@
                 {
                     "ecode": "0500040000020049",
                     "intro": "Le type de plateforme est inconnu ; veuillez la remplacer par la bonne et vérifiez si la caméra BirdsEye est obstruée."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Type de plateforme incorrect. Veuillez placer la plateforme de coupe pour l'étalonnage de la coupe."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -4260,10 +4380,6 @@
                     "intro": "Impossible de récupérer le filament de la tête d'outil vers AMS-HT. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
-                    "ecode": "1805700000020002",
-                    "intro": "Impossible d'alimenter le filament dans la tête d'outil. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Impossible d'extruder le filament AMS E fente 1 ; l'extrudeur peut être obstrué ou le filament peut être trop mince, ce qui fait que l'extrudeur glisse."
                 },
@@ -4290,10 +4406,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT: L'alimentation de filaments vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû au fil endommagé qui conduit à un patinage du moteur d'assistance. Veuillez couper la partie abîmée du filament."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Échec dans l'alimentation du filament vers la tête d'outil. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "18FF800000010002",
@@ -4574,10 +4686,6 @@
                 {
                     "ecode": "1800310000010004",
                     "intro": "Défaillance de la puce de chiffrement."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Échec pour alimenter le filament dans la tête d'outil. Cause possible : le filament ou la bobine est coincé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1801700000020044",
@@ -5160,10 +5268,6 @@
                     "intro": "Échec de l'extrusion du filament de la fente 4 d'AMS E; l'extrudeur peut être obstrué ou le filament peut être trop mince, causant le patinage de l'extrudeur."
                 },
                 {
-                    "ecode": "0707700000020002",
-                    "intro": "Échec de l'alimentation de filament dans la tête d'outil. Cause possible: filament ou bobine coincée. Veuillez vous référer à Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0706700000020003",
                     "intro": "Échec de l'extrusion du filament. Cause possible: l'extrudeur ou la buse est obstruée. Veuillez vous référer à Assistant pour plus de détails."
                 },
@@ -5476,10 +5580,6 @@
                     "intro": "Le chargement de filament dans la roue d'extrusion d'assistance AMS F a échoué. Cela pourrait être dû à un petit morceau de filament cassé entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
                 },
                 {
-                    "ecode": "1803700000020002",
-                    "intro": "Impossible d'acheminer le filament dans la tête d'outil. Une cause possible : le filament ou la bobine peuvent être bloqués. Veuillez consulter l'assistant pour plus de détails."
-                },
-                {
                     "ecode": "0700100000010001",
                     "intro": "Le moteur de l'emplacement 1 AMS A a patiné. La roue d'extrusion peut être défectueuse ou le filament peut être trop fin."
                 },
@@ -5762,10 +5862,6 @@
                 {
                     "ecode": "1804700000020042",
                     "intro": "AMS-HT E L'extraction du filament a échoué ; cela pourrait être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Impossible d'alimenter le filament dans la tête d'outil. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus d'informations."
                 },
                 {
                     "ecode": "1801700000020042",
@@ -6284,16 +6380,8 @@
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "1801700000020002",
-                    "intro": "Impossible d'alimenter le filament dans la tête d'impression. Cause possible : le filament ou la bobine est bloqué(e). Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT B a échoué. Cela pourrait être dû à un petit morceau de filament cassé qui est entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Impossible d'alimenter le filament dans la tête d'impression. Cause possible : le filament ou la bobine est bloqué(e). Veuillez consulter l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0704700000020008",
@@ -6826,10 +6914,6 @@
                 {
                     "ecode": "1804700000020022",
                     "intro": "AMS-HT E L’alimentation du filament dans le tampon a échoué ; cela pourrait être dû à un filament usé, ce qui provoque un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Impossible d'alimenter le filament dans le bloc d'extrusion. Cause possible: filament ou bobine bloqué. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0707210000020009",
@@ -8192,14 +8276,6 @@
                     "intro": "AMS-HT E Échec de l'extraction du filament; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
                 },
                 {
-                    "ecode": "0705700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outillage. Cause possible : filament ou bobine bloquée. Veuillez vous référer à l'assistant pour plus de détails."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outillage. Cause possible : filament ou bobine bloquée. Veuillez vous référer à l'assistant pour plus de détails."
-                },
-                {
                     "ecode": "1804700000020060",
                     "intro": "AMS-HT E L'assistance de l'extrudeur pour attraper le filament a échoué; cela pourrait être dû au glissement du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
@@ -8210,10 +8286,6 @@
                 {
                     "ecode": "0707700000020031",
                     "intro": "AMS H L'alimentation du filament au système d'extrusion de la tête d'outil a échoué; cela peut être dû à l'usure du filament et à la glissade du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "L'alimentation du filament dans la tête d'outil a échoué. La cause possible est un filament ou une bobine bloqués. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0707700000020032",
@@ -9700,10 +9772,6 @@
                     "intro": "La résistance du moteur-Z est anormale ; le moteur pourrait être défectueux."
                 },
                 {
-                    "ecode": "0300090000010003",
-                    "intro": "La résistance du moteur-E est anormale ; le moteur pourrait être défectueux."
-                },
-                {
                     "ecode": "0500040000010002",
                     "intro": "Échec de rapport de l'état d'impression ; veuillez vérifier votre connexion réseau."
                 },
@@ -9734,10 +9802,6 @@
                 {
                     "ecode": "0702310000020002",
                     "intro": "La balise RFID sur le slot 2 AMS C est endommagée ou son contenu ne peut pas être identifié."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la buse. Cause possible : filament ou bobine bloqué(e). Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0703310000010004",
@@ -10082,10 +10146,6 @@
                 {
                     "ecode": "0703310000020002",
                     "intro": "La puce RFID sur le Slot2 de l'AMS D est endommagée ou son contenu ne peut pas être identifié."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Impossible de faire avancer le filament dans la tête d'outil. Cause possible: le filament ou la bobine est coincé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0C0001000001000B",
@@ -10656,10 +10716,6 @@
                     "intro": "Le capteur de position du moteur extrudeur est anormal. La connexion au capteur peut être desserrée."
                 },
                 {
-                    "ecode": "0300410000010001",
-                    "intro": "La tension du système est instable, déclenchant la fonction de protection contre les pannes de courant."
-                },
-                {
                     "ecode": "0300900000010002",
                     "intro": "La chauffe de la chambre a échoué. La chambre peut ne pas être fermée, la température ambiante peut être trop basse ou la sortie de dissipation de chaleur de l'alimentation électrique peut être bloquée."
                 },
@@ -10678,10 +10734,6 @@
                 {
                     "ecode": "0701320000020002",
                     "intro": "Le tag RFID sur le slot 3 de l'AMS B est endommagé ou son contenu ne peut pas être identifié."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Échec alimentation du filament dans la tête d'impression. Cause possible : filament ou bobine coincé(e). Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0702700000020006",
@@ -10954,10 +11006,6 @@
                 {
                     "ecode": "0700400000020003",
                     "intro": "La communication du concentrateur AMS est anormale; le câble est peut-être mal connecté."
-                },
-                {
-                    "ecode": "0700700000020002",
-                    "intro": "Impossible d'alimenter le filament dans l'extrudeur. Cause possible: le filament ou la bobine est coincé. Veuillez consulter l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0700700000020004",
@@ -14980,10 +15028,6 @@
                     "intro": "La transmission de données sur le port série est anormale ; le système logiciel peut être défectueux."
                 },
                 {
-                    "ecode": "0300900000010001",
-                    "intro": "Echec du chauffage de la chambre. Le chauffage de la chambre peut ne pas souffler de l'air chaud."
-                },
-                {
                     "ecode": "0300900000010003",
                     "intro": "Echec du chauffage de la chambre. La température de l'alimentation électrique pourrait être trop élevée."
                 },
@@ -15096,14 +15140,6 @@
                     "intro": "Le moteur Z a un court-circuit. Il a peut-être échoué."
                 },
                 {
-                    "ecode": "0300090000010001",
-                    "intro": "Le moteur E a un circuit ouvert. La connexion peut être lâche ou le moteur peut avoir échoué."
-                },
-                {
-                    "ecode": "0300090000010002",
-                    "intro": "Le moteur E a un court-circuit. Il a peut-être échoué."
-                },
-                {
                     "ecode": "03000A0000010001",
                     "intro": "Le capteur de force du lit chauffant 1 est trop sensible. Il peut être coincé entre le bras de tension et le support de lit chauffant, ou la vis de réglage peut être trop serrée."
                 },
@@ -15186,10 +15222,6 @@
                 {
                     "ecode": "0300150000010001",
                     "intro": "Le capteur de courant du moteur-Z est anormal. Cela peut être causé par une défaillance du circuit d'échantillonnage du matériel."
-                },
-                {
-                    "ecode": "0300160000010001",
-                    "intro": "Le capteur de courant actuel de Motor-E est anormal. Cela peut être causé par une défaillance du circuit d'échantillonnage matériel."
                 },
                 {
                     "ecode": "0300170000010001",
