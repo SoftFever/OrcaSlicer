@@ -1348,8 +1348,7 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 
 int PartPlate::picking_id_component(int idx) const
 {
-	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
-	return id;
+    return this->m_plate_index * GRABBER_COUNT + idx;
 }
 
 std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
