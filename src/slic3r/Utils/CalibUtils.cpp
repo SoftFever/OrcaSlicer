@@ -69,6 +69,25 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
     return wxString();
 }
 
+void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id)
+{
+    assert(obj);
+    if (!obj)
+        return;
+
+    if (in_tray_id == VIRTUAL_TRAY_MAIN_ID || in_tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        ams_id  = in_tray_id;
+        slot_id = 0;
+        tray_id = ams_id;
+        if (!obj->is_enable_np)
+            tray_id = VIRTUAL_TRAY_DEPUTY_ID;
+    } else {
+        ams_id  = in_tray_id / 4;
+        slot_id = in_tray_id % 4;
+        tray_id = in_tray_id;
+    }
+}
+
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {
     switch(cali_mode) {

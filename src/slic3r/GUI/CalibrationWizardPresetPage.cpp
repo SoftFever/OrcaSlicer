@@ -1390,6 +1390,11 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
 
 bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips)
 {
+    int ams_id;
+    int slot_id;
+    int out_tray_id;
+    get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
+
     if (!m_ext_spool_radiobox->GetValue() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
@@ -1400,7 +1405,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             std::string vendor_name = vendor->values[0];
-            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, tray_id, in_blacklist, action, info);
+            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, ams_id, in_blacklist, action, info);
         }
 
         if (in_blacklist) {

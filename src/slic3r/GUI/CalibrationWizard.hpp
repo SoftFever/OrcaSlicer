@@ -78,7 +78,6 @@ public:
 
 protected:
     void on_cali_go_home();
-    void get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 
 protected:
     /* wx widgets*/

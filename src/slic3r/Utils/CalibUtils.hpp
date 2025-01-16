@@ -80,6 +80,8 @@ private:
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
+extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
+
 extern void get_default_k_n_value(const std::string &filament_id, float &k, float &n);
 extern wxString get_nozzle_volume_type_name(NozzleVolumeType type);
 
