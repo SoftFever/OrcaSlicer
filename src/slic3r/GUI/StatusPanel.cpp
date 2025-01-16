@@ -3896,7 +3896,7 @@ void StatusPanel::on_set_chamber_temp()
                 m_tempCtrl_chamber->Warning(false);
             }
 
-            if (chamber_temp > obj->chamber_temp_switch_heat)
+            if (chamber_temp >= obj->chamber_temp_switch_heat)
             {
                 delete champer_switch_head_dlg;
                 champer_switch_head_dlg = new  MessageDialog(nullptr, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
