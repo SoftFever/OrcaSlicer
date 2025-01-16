@@ -660,7 +660,7 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 
 // BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {
-    {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
+    {10.f, 10.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
 };
 
 WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool, const float wipe_tower_height) :
