@@ -354,13 +354,13 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
-     m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("Left Ams")), 0, wxEXPAND, 0);
+     m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("Left AMS")), 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right Ams"));
+     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -574,7 +574,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         else if (m_show_type == ShowType::RIGHT)
         {
             m_right_marea_panel->Show();
-            set_sizer_title(m_right_split_ams_sizer, _L("Right Ams"));
+            set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
             m_right_extra_slot->Show();
         }
         else if (m_show_type == ShowType::LEFT_AND_RIGHT)
@@ -584,7 +584,7 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
             m_right_marea_panel->Show();
-            set_sizer_title(m_right_split_ams_sizer, _L("Right Ams"));
+            set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
             m_right_extra_slot->Show();
         }
     }

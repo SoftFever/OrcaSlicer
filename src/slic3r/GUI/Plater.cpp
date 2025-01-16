@@ -2652,8 +2652,11 @@ void Sidebar::update_sync_status(const MachineObject *obj)
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
-
-    p->ams_list_device = device;
+    bool device_change     = false;
+    if (p->ams_list_device != device) {
+        p->ams_list_device = device;
+        device_change      = true;
+    }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
     if (wxGetApp().preset_bundle->filament_ams_list == filament_ams_list)
         return;
@@ -2661,7 +2664,9 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 
     for (auto c : p->combos_filament){
         c->update();
-        c->ShowBadge(false);//change printer,then clear badge
+        if (device_change) {
+            c->ShowBadge(false);//change printer,then clear badge
+        }
     }
 
     p->combo_printer->update();

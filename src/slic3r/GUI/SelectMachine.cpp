@@ -1767,7 +1767,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
-        wxString msg_text = _L("Please do not mix-use the Ext with Ams");
+        wxString msg_text = _L("Please do not mix-use the Ext with AMS");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

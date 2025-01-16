@@ -1245,13 +1245,13 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         bSizer_button->AddStretchSpacer(1);
         StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                                 std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok = new Button(this, _L("OK"));
+        m_button_ok = new Button(this, _L("Synchronize now"));
         m_button_ok->SetBackgroundColor(btn_bg_green);
         m_button_ok->SetBorderColor(*wxWHITE);
         m_button_ok->SetTextColor(wxColour(0xFFFFFE));
         m_button_ok->SetFont(Label::Body_12);
-        m_button_ok->SetSize(BUTTON_SIZE);
-        m_button_ok->SetMinSize(BUTTON_SIZE);
+        m_button_ok->SetSize(wxSize(FromDIP(90), FromDIP(24)));
+        m_button_ok->SetMinSize(wxSize(FromDIP(90), FromDIP(24)));
         m_button_ok->SetCornerRadius(FromDIP(12));
         bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
@@ -1264,7 +1264,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                                 std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-        m_button_cancel = new Button(this, _L("Cancel"));
+        m_button_cancel = new Button(this, m_input_info.cancel_text_to_later ? _L("Later") :_L("Cancel"));
         m_button_cancel->SetBackgroundColor(btn_bg_white);
         m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
         m_button_cancel->SetFont(Label::Body_12);
@@ -2109,7 +2109,7 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
-        wxString msg_text = _L("Please do not mix-use the Ext with Ams");
+        wxString msg_text = _L("Please do not mix-use the Ext with AMS");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

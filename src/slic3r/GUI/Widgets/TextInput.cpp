@@ -118,7 +118,7 @@ void TextInput::SetIcon_1(const wxString &icon) {
         this->icon_1 = ScalableBitmap();
         return;
     }
-    this->icon_1 = ScalableBitmap(this, icon.ToStdString(), 16);
+    this->icon_1 = ScalableBitmap(this, icon.ToStdString(), 14);
     Rescale();
 }
 
@@ -238,6 +238,7 @@ void TextInput::render(wxDC& dc)
             if (pt.x * 2 + szIcon.x + 0 + labelSize.x < size.x)
                 pt.x = (size.x - (szIcon.x + 0 + labelSize.x)) / 2;
         }
+        pt.x += szIcon.x / 4.f;
         dc.DrawBitmap(icon_1.bmp(), pt);
         pt.x += szIcon.x + 0;
     }

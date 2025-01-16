@@ -229,6 +229,7 @@ public:
     {
         bool connected_printer = false;
         bool first_sync = false;
+        bool cancel_text_to_later = false;
     };
     struct SyncResult
     {

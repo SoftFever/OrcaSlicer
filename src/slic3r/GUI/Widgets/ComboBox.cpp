@@ -124,14 +124,15 @@ void ComboBox::SetLabel(const wxString &value)
     else {
         if (is_replace_text_to_image) {
             auto new_value = value;
-            new_value.Replace(replace_text, "", false);//replace first text
-            TextInput::SetIcon_1(image_for_text);
-            TextInput::SetLabel(new_value);
+            if (new_value.starts_with(replace_text)) {
+                new_value.Replace(replace_text, "", false); // replace first text
+                TextInput::SetIcon_1(image_for_text);
+                TextInput::SetLabel(new_value);
+                return;
+            }
         }
-        else {
-            TextInput::SetIcon_1("");
-            TextInput::SetLabel(value);
-        }
+        TextInput::SetIcon_1("");
+        TextInput::SetLabel(value);
     }
 }
 
