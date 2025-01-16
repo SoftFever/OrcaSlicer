@@ -6,7 +6,7 @@
     "setting_id": "GFSC00_23",
     "instantiation": "true",
     "chamber_temperatures": [
-        "65"
+        "60"
     ],
     "filament_deretraction_speed": [
         "nil",

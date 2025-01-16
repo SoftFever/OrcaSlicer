@@ -6,15 +6,11 @@
     "setting_id": "GFSB51_06",
     "instantiation": "true",
     "chamber_temperatures": [
-        "65"
+        "60"
     ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "0.9",
@@ -29,14 +25,6 @@
         "18"
     ],
     "filament_retract_before_wipe": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
@@ -77,6 +65,18 @@
         "nil"
     ],
     "filament_z_hop_types": [
+        "nil",
+        "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_retract_lift_above": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],

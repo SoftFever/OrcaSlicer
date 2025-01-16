@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFST97_01",
     "instantiation": "true",
-    "chamber_temperatures": [
-        "65"
-    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"

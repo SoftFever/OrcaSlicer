@@ -6,7 +6,7 @@
     "setting_id": "GFSC01_18",
     "instantiation": "true",
     "chamber_temperatures": [
-        "65"
+        "60"
     ],
     "fan_max_speed": [
         "40"

@@ -7,7 +7,19 @@
     "instantiation": "true",
     "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "chamber_temperatures": [
-        "65"
+        "60"
+    ],
+    "counter_coef_2": [
+        "3860"
+    ],
+    "counter_coef_3": [
+        "-32000"
+    ],
+    "counter_limit_min": [
+        "-35000"
+    ],
+    "counter_limit_max": [
+        "33000"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -80,6 +92,18 @@
     "filament_retract_lift_below": [
         "nil",
         "nil"
+    ],
+    "hole_coef_2": [
+        "-8000"
+    ],
+    "hole_coef_3": [
+        "135000"
+    ],
+    "hole_limit_min": [
+        "88000"
+    ],
+    "hole_limit_max": [
+        "220000"
     ],
     "nozzle_temperature": [
         "270",

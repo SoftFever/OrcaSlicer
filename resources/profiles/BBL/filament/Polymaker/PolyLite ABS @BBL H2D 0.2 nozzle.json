@@ -6,7 +6,7 @@
     "setting_id": "GFSB60_09",
     "instantiation": "true",
     "chamber_temperatures": [
-        "65"
+        "60"
     ],
     "filament_deretraction_speed": [
         "nil",
