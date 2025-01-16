@@ -1001,7 +1001,11 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     //label_ams->SetMinSize({FromDIP(70), -1});
     if (index >= 0) {
         btn_edit = new ScalableButton(this, wxID_ANY, "dot");
+#ifdef __WXOSX__
+        btn_edit->SetBackgroundColour("#F7F7F7");
+#else
         btn_edit->SetBackgroundColour(*wxWHITE);
+#endif
         btn_edit->Hide();
         btn_edit->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
             PopupWindow *window = new AMSCountPopupWindow(this, index);
@@ -1300,7 +1304,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
     left_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[0]));
     right_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[1]));
+    is_switching_diameter = true;
     switch_diameter(false);
+    is_switching_diameter = false;
     AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
@@ -1751,7 +1757,7 @@ Sidebar::Sidebar(Plater *parent)
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
             p->is_switching_diameter = true;
-            auto result   = p->switch_diameter(extruder == p->single_extruder);
+            p->switch_diameter(extruder == p->single_extruder);
             p->is_switching_diameter = false;
         };
         p->left_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);

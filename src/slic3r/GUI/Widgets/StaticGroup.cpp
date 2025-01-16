@@ -61,10 +61,11 @@ void StaticGroup::PaintForeground(wxDC &dc, const struct tagRECT &rc)
     int right = rc.right - 1;
     int bottom = rc.bottom - 1;
     auto blue  = GetBackgroundColour().Blue();
-    while (image.GetBlue(0, top) == blue) ++top;
-    while (image.GetBlue(left, top) != blue) ++left; // --left; // fix start
-    while (image.GetBlue(right, top) != blue) --right; ++right;
-    while (image.GetBlue(0, bottom) == blue) --bottom;
+    while (image.GetBlue(0, top) == blue && top < bottom) ++top;
+    while (image.GetBlue(left, top) != blue && left < right) ++left; // --left; // fix start
+    while (image.GetBlue(right, top) != blue && right > 0) --right;
+    ++right;
+    while (image.GetBlue(0, bottom) == blue && bottom > 0) --bottom;
     // Draw border with foreground color
     wxPoint polygon[] = { {left, top}, {0, top}, {0, bottom}, {rc.right - 1, bottom}, {rc.right - 1, top}, {right, top} };
     dc.SetPen(wxPen(borderColor_, 1));
