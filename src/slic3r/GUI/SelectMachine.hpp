@@ -82,6 +82,8 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingMixInvalid,
     PrintStatusNozzleMatchInvalid,
     PrintStatusNozzleDataInvalid,
+    PrintStatusNozzleDiameterMismatch,
+    PrintStatusNozzleTypeMismatch,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -491,7 +493,6 @@ public:
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_bed_name(std::string plate_name);
     wxString    format_steel_name(NozzleType type);
-    wxString    format_text(wxString &m_msg);
     PrintDialogStatus  get_status() { return m_print_status; }
 };
 

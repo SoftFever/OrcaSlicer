@@ -75,33 +75,7 @@ void SelectMachineDialog::stripWhiteSpace(std::string& str)
     }
 }
 
-static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
-    //"auto",
-    "pc",
-    "pe",
-    "pei",
-    "pte",
-};
 
-wxString SelectMachineDialog::format_text(wxString &m_msg)
-{
-    if (wxGetApp().app_config->get("language") != "zh_CN") {return m_msg; }
-
-    wxString out_txt      = m_msg;
-    wxString count_txt    = "";
-    int      new_line_pos = 0;
-
-    for (int i = 0; i < m_msg.length(); i++) {
-        auto text_size = m_statictext_ams_msg->GetTextExtent(count_txt);
-        if (text_size.x < (FromDIP(600))) {
-            count_txt += m_msg[i];
-        } else {
-            out_txt.insert(i - 1, '\n');
-            count_txt = "";
-        }
-    }
-    return out_txt;
-}
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
 std::vector<string> SelectMachineDialog::MachineBedTypeString;
 void                SelectMachineDialog::init_machine_bed_types()
@@ -1593,8 +1567,6 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
             Fit();
         }
     } else {
-        msg = format_text(msg);
-
         auto str_new = msg.utf8_string();
         stripWhiteSpace(str_new);
 
@@ -1626,8 +1598,6 @@ void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_warning
             Fit();
         }
     } else {
-        msg          = format_text(msg);
-
         auto str_new = msg.utf8_string();
         stripWhiteSpace(str_new);
 
@@ -1785,7 +1755,16 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
+    } else if (status == PrintStatusNozzleDiameterMismatch && !params.empty()) {
+        update_print_status_msg(params[0], true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintStatusNozzleTypeMismatch && !params.empty()) {
+        update_print_status_msg(params[0], true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }
+    else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
         wxString msg_text;
         if (params.size() > 1)
             msg_text = wxString::Format(_L("Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
@@ -2221,41 +2200,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (has_unknown_filament) {
         has_slice_warnings = true;
         confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
-    }
-
-    if (!obj_->m_extder_data.extders[0].current_nozzle_type != ntUndefine && (m_print_type == PrintFromType::FROM_NORMAL))
-    {
-        float nozzle_diameter = 0;
-        if (!is_same_nozzle_diameters(nozzle_diameter))
-        {
-            has_slice_warnings = true;
-            // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
-            
-            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %.1f %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].current_nozzle_diameter, "");
-
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
-                + "\n    " + nozzle_in_preset 
-                + "\n    " + nozzle_in_printer
-                + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
-        }
-
-        /*check nozzle type*/
-        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
-        const std::vector<Extder>& extders = obj ? obj->m_extder_data.extders : std::vector<Extder>();
-        for (const auto& extder : extders)
-        {
-            std::string filament_type;
-            if (!is_same_nozzle_type(extder, filament_type))
-            {
-                has_slice_warnings = true;
-                is_printing_block = true;
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"),
-                                                             filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
-                confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
-            }
-        }
     }
 
     if (has_slice_warnings)
@@ -3325,6 +3269,47 @@ void SelectMachineDialog::update_show_status()
         if (!is_nozzle_type_match(obj_->m_extder_data)) {
             show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
             return;
+        }
+    }
+
+    // check nozzle type and diameter
+    if (m_print_type == PrintFromType::FROM_NORMAL)
+    {
+        float nozzle_diameter = 0;
+        if (!is_same_nozzle_diameters(nozzle_diameter))
+        {
+            std::vector<wxString> error_msg;
+            const wxString& tips = _L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting.");
+            if (obj_->m_extder_data.total_extder_count == 2)
+            {
+                const wxString& nozzle_config = wxString::Format(_L("The nozzle diameter (%.1fmm) in slice file is unconsistent with"
+                                                                     "the left nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)"
+                                                                     "set on your print."), nozzle_diameter,
+                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter,
+                                                                     obj_->m_extder_data.extders[1].current_nozzle_diameter);
+                error_msg.emplace_back(nozzle_config + "\n\n" + tips);
+            }
+            else
+            {
+                const wxString& nozzle_config = wxString::Format(_L("The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle diameter (%.1fmm) set on your print."
+                                                                     "You can't send to print until they are consistent."), nozzle_diameter,
+                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter);
+                error_msg.emplace_back(nozzle_config + "\n\n" + tips);
+            }
+
+            return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, error_msg);
+        }
+
+        for (const auto& extder : obj_->m_extder_data.extders)
+        {
+            std::string filament_type;
+            if (!is_same_nozzle_type(extder, filament_type))
+            {
+                std::vector<wxString> error_msg;
+                error_msg.emplace_back(wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"),
+                                                            filament_type, format_steel_name(extder.current_nozzle_type)));
+                return show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+            }
         }
     }
 
