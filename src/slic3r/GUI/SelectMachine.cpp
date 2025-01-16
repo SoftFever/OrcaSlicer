@@ -3269,19 +3269,18 @@ void SelectMachineDialog::update_show_status()
             const wxString& tips = _L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting.");
             if (obj_->m_extder_data.total_extder_count == 2)
             {
-                const wxString& nozzle_config = wxString::Format(_L("The nozzle diameter (%.1fmm) in slice file is unconsistent with"
-                                                                     "the left nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)"
-                                                                     "set on your print."), nozzle_diameter,
-                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter,
-                                                                     obj_->m_extder_data.extders[1].current_nozzle_diameter);
+                const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (Left: %.1fmm  Right: %.1fmm) doesn't match with the slicing file (%.1fmm). "
+                                                                     "Please make sure the nozzle installed matches with settings in printer, then set the "
+                                                                     "corresponding printer preset when slicing."), obj_->m_extder_data.extders[1].current_nozzle_diameter,
+                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter, nozzle_diameter);
                 error_msg.emplace_back(nozzle_config + "\n\n" + tips);
             }
             else
             {
-                const wxString& nozzle_config = wxString::Format(_L("The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle diameter (%.1fmm) set on your print."
-                                                                     "You can't send to print until they are consistent."), nozzle_diameter,
-                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter);
-                error_msg.emplace_back(nozzle_config + "\n\n" + tips);
+                const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). "
+                                                                     "Please make sure the nozzle installed matches with settings in printer, then set the "
+                                                                     "corresponding printer preset when slicing."), obj_->m_extder_data.extders[0].current_nozzle_diameter,
+                                                                     nozzle_diameter);
             }
 
             return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, error_msg);
@@ -3709,7 +3708,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
-        item->SetToolTip(_L("Top half of combobox: Original\nDown half of combobox: Filament of AMS\nAnd you can click it to modify"));
+        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
