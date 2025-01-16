@@ -244,6 +244,8 @@ public:
 public:
     struct SyncInfo
     {
+        wxPoint dialog_pos;
+        bool use_dialog_pos = false;
         bool connected_printer = false;
         bool first_sync = false;
         bool cancel_text_to_later = false;
@@ -267,7 +269,6 @@ public:
     void update_select_layout(MachineObject *obj);
     void set_default_normal(const ThumbnailData &);
     bool is_must_finish_slice_then_connected_printer() ;
-    void update_printer_name() ;
     void hide_no_use_controls();
     void show_sizer(wxSizer *sizer, bool show);
     void deal_ok();
@@ -312,10 +313,10 @@ private:
     wxStaticText *  m_confirm_title                = nullptr;
     wxStaticText *  m_are_you_sure_title                = nullptr;
 
-    wxBoxSizer *    m_plate_combox_sizer          = nullptr;
+   // wxBoxSizer *    m_plate_combox_sizer          = nullptr;
     wxBoxSizer *    m_mode_combox_sizer           = nullptr;
     wxBoxSizer *    m_sizer_line                   = nullptr;
-    wxStaticText *  m_printer_title                = nullptr;
+    //wxStaticText *  m_printer_title                = nullptr;
     wxStaticText *  m_printer_device_name          = nullptr;
     wxStaticText *  m_printer_is_map_title         = nullptr;
 
@@ -344,6 +345,54 @@ private:
         Override,
     };
     MapModeEnum m_map_mode{MapModeEnum::ColorMap};
+};
+
+class SyncNozzleAndAmsDialog : public Slic3r::GUI::DPIDialog
+{
+public:
+    struct InputInfo
+    {
+        wxPoint dialog_pos{wxPoint(400, 200)};
+    };
+    struct ResultInfo
+    {};
+    SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &input_info);
+    ~SyncNozzleAndAmsDialog() override;
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void deal_ok();
+    void deal_cancel();
+    //bool Show(bool show) override;
+private:
+    InputInfo &m_input_info;
+    ResultInfo m_result_info;
+
+    wxBoxSizer *m_sizer_main{nullptr};
+    Button *m_button_ok     = nullptr;
+    Button *m_button_cancel = nullptr;
+};
+
+class FinishSyncAmsDialog : public Slic3r::GUI::DPIDialog
+{
+public:
+    struct InputInfo
+    {
+        wxPoint dialog_pos{wxPoint(400, 200)};
+    };
+    struct ResultInfo
+    {};
+    FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info);
+    ~FinishSyncAmsDialog() override;
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void deal_ok();
+    void deal_cancel();
+    // bool Show(bool show) override;
+private:
+    InputInfo &m_input_info;
+    ResultInfo m_result_info;
+
+    wxBoxSizer *m_sizer_main{nullptr};
+    Button *    m_button_ok     = nullptr;
+    Button *    m_button_cancel = nullptr;
 };
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_

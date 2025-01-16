@@ -124,6 +124,9 @@ public:
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
+    Button *         btn_sync{nullptr};
+    ScalableButton *  ams_btn{nullptr};
+
 public:
     enum DockingState
     {
@@ -166,10 +169,12 @@ public:
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
-    void sync_ams_list();
+    void sync_ams_list(bool is_from_big_sync_btn = false);
     bool sync_extruder_list();
     bool auto_sync_extruder_list_on_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
+    void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
+    void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     // Orca
     void show_SEMM_buttons(bool bshow);
     void update_dynamic_filament_list();
@@ -515,6 +520,7 @@ public:
     FilamentMapMode get_global_filament_map_mode() const;
 
     void update_menus();
+    bool is_same_printer_for_connected_and_selected();
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
 

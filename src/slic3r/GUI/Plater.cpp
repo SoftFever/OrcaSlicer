@@ -1171,6 +1171,14 @@ bool Sidebar::priv::sync_extruder_list()
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
     AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+
+    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
+    wxPoint                           big_btn_pt;
+    wxSize                            big_btn_size;
+    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
+    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 2), FromDIP(big_btn_size.y / 10.f));
+    SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
+    na_dialog.ShowModal();
     return true;
 }
 
@@ -1572,7 +1580,7 @@ Sidebar::Sidebar(Plater *parent)
         project_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
         // Sync printer information
-        auto btn_sync = new Button(p->m_panel_printer_content, _L("Sync printer information"), "printer_sync", 0, 32);
+        btn_sync = new Button(p->m_panel_printer_content, _L("Sync printer information"), "printer_sync", 0, 32);
         //btn_sync->SetFont(Label::Body_8);
         btn_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         btn_sync->SetCornerRadius(8);
@@ -1722,7 +1730,7 @@ Sidebar::Sidebar(Plater *parent)
         //bSizer39->Hide(p->m_bpButton_del_filament); // ORCA: Hide delete filament button if there is only one filament
     }
 
-    auto ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 16); // ORCA match icon size with other icons as 16x16
     ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
@@ -2657,6 +2665,15 @@ void Sidebar::update_sync_status(const MachineObject *obj)
     p->update_sync_status(obj);
 }
 
+void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
+    size =btn_sync->GetSize();
+    pt = btn_sync->GetScreenPosition();
+}
+void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
+    size = ams_btn->GetSize();
+    pt   = ams_btn->GetScreenPosition();
+}
+
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
@@ -2680,7 +2697,7 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
     p->combo_printer->update();
 }
 
-void Sidebar::sync_ams_list()
+void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 {
     wxBusyCursor cursor;
     // Force load ams list
@@ -2695,6 +2712,9 @@ void Sidebar::sync_ams_list()
         sync_dlg.ShowModal();//printer is not connected
         return;
     }
+    if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected()) {
+        return;
+    }
     std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
     std::vector<std::string> list2;
     if (!ams_filament_ids.empty()) {
@@ -2702,8 +2722,14 @@ void Sidebar::sync_ams_list()
     }
     wxGetApp().plater()->update_all_plate_thumbnails(true);//preview thumbnail for sync_dlg
     SyncAmsInfoDialog::SyncInfo temp_info;
+    temp_info.use_dialog_pos = true;
+    temp_info.cancel_text_to_later = is_from_big_sync_btn;
+    wxPoint small_btn_pt;
+    wxSize  big_btn_size;
+    get_small_btn_sync_pos_size(small_btn_pt, big_btn_size);
+    auto cur_dialog_pos        = small_btn_pt + wxPoint(big_btn_size.x * 3.6 + 5,0);
+    temp_info.dialog_pos        = cur_dialog_pos;
     temp_info.connected_printer = true;
-    temp_info.first_sync = ams_filament_ids.empty();
     SyncAmsInfoDialog           sync_dlg(this, temp_info);
     int dlg_res{(int) wxID_CANCEL};
     if (sync_dlg.is_need_show()) {
@@ -2852,9 +2878,10 @@ void Sidebar::sync_ams_list()
     }
     Layout();
 
-    NotificationManager *notify_manager = p->plater->get_notification_manager();
-    std::string          info_text      = _u8L("Sync filaments with AMS successfully.");
-    notify_manager->bbl_show_seqprintinfo_notification(info_text);
+    FinishSyncAmsDialog::InputInfo temp_fsa_info;
+    temp_fsa_info.dialog_pos = cur_dialog_pos;
+    FinishSyncAmsDialog            fsa_dialog(this, temp_fsa_info);
+    fsa_dialog.ShowModal();
 }
 
 void Sidebar::show_SEMM_buttons(bool bshow)
@@ -15096,6 +15123,29 @@ void Plater::optimize_rotation()
     }
 }
 void Plater::update_menus()         { p->menus.update(); }
+bool Plater::is_same_printer_for_connected_and_selected()
+{
+    MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (obj == nullptr) {
+        return false;
+    }
+    if (!check_printer_initialized(obj))
+        return false;
+    std::string   machine_print_name = obj->printer_type;
+    PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
+    std::string   target_model_id    = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
+    Preset *      machine_preset     = get_printer_preset(obj);
+    if (!machine_preset)
+        return false;
+
+    if (machine_print_name != target_model_id) {
+        MessageDialog dlg(this,_L("The currently selected machine preset is inconsistent with the connected printer type.Please change device or currently selected machine.\n"),
+                          _L("Synchronize AMS Filament Information"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+        return false;
+    }
+    return true;
+}
 // BBS
 //void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
