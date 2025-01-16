@@ -116,7 +116,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      bool                            machine_synced,
                                      bool                            show_default,
                                      bool                            with_checkbox)
-    : wxDialog(parent, wxID_ANY, _L("Filament arrangement"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_map(filament_map)
+    : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_map(filament_map)
 {
     SetBackgroundColour(*wxWHITE);
 

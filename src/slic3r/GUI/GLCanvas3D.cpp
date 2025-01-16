@@ -1448,15 +1448,7 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
             model_prefix = (boost::format(_u8L("The model %s is")) % object_result.object_filaments.front().object->name).str();
         tips[idx] += model_prefix;
         tips[idx] += (boost::format(_u8L(" located within the %s only area, making it impossible to print with the filaments assigned to %s.\n"
-            "Please move the model out of the %s only area or adjust the filament assignment.")) % opposite_nozzle_name % nozzle_name % opposite_nozzle_name).str();
-
-        if (object_result.object_filaments.size() > 1) {
-            for (ObjectFilamentInfo& object_filament : left_unprintable_objects)
-            {
-                tips[idx] += object_filament.object->name;
-                tips[idx] += "\n";
-            }
-        }
+            "Please move the model out of the %s only area or adjust the filament assignment.\n")) % opposite_nozzle_name % nozzle_name % opposite_nozzle_name).str();
         output_text = tips[idx];
     }
 

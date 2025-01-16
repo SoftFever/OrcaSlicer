@@ -56,7 +56,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER | wxEXPAND);
 
     m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles.\n"
-                                "But your filament arrangement may not be the most efficient for filament usage."));
+                                "But your filament grouping may not be the most efficient for filament usage."));
     m_tips->SetFont(Label::Body_14);
     m_tips->SetForegroundColour(TextNormalGreyColor);
     top_sizer->AddSpacer(FromDIP(8));
@@ -273,11 +273,10 @@ void GUI::FilamentMapBtnPanel::Show()
 
 FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced) : wxPanel(parent)
 {
-    const wxString AutoForFlushDetail = _L("Calculate the best filament arrangement "
-        "to minimize usage. Need to manually arrange filaments on the printer "
+    const wxString AutoForFlushDetail = _L("Calculate the best filament grouping "
+        "to minimize filament waste. Need to manually place filaments on the printer "
         "based on slicing results.");
-    const wxString AutoForMatchDetail = _L("Use AMS filaments to automatically assign filament "
-        "to the left or right nozzle.");
+    const wxString AutoForMatchDetail = _L("Calculate the filament grouping based on the printer's filaments, reducing the need for adjusting filaments at the printer.");
 
     auto                  sizer              = new wxBoxSizer(wxHORIZONTAL);
     m_flush_panel                            = new FilamentMapBtnPanel(this, _L("Filament-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
@@ -345,7 +344,7 @@ FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(par
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_label = new Label(this, _L("The filament arrangement for current plate follows the global settings."));
+    m_label = new Label(this, _L("The filament grouping for current plate follows the global settings."));
     m_label->SetFont(Label::Body_14);
     m_label->SetBackgroundColour(*wxWHITE);
 

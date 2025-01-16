@@ -51,13 +51,12 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
 {
     const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
     const wxString AutoForMatchLabel = _L("Convenient Mode");
-    const wxString ManualLabel       = _L("Manual Mode");
+    const wxString ManualLabel       = _L("Custom Mode");
 
-    const wxString AutoForFlushDetail = _L("Calculate the best filament arrangement "
-        "to minimize usage. Need to manually arrange filaments on the printer "
+    const wxString AutoForFlushDetail = _L("Calculate the best filament grouping "
+        "to minimize filament waste. Need to manually place filaments on the printer "
         "based on slicing results.");
-    const wxString AutoForMatchDetail = _L("Use AMS filaments to automatically assign filament "
-        "to the left or right nozzle.");
+    const wxString AutoForMatchDetail = _L("Calculate the filament grouping based on the printer's filaments, reducing the need for adjusting filaments at the printer.");
     const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle.");
 
     const wxString AutoForFlushDesp = ""; //_L("(Post-slicing arrangement)");
@@ -145,13 +144,15 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
+        const std::string wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
+
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
         wiki_link->SetBackgroundColour(BackGroundColor);
         wiki_link->SetForegroundColour(GreenColor);
         wiki_link->SetFont(Label::Body_12.Underlined());
         wiki_link->SetCursor(wxCursor(wxCURSOR_HAND));
-        wiki_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) { wxLaunchDefaultBrowser("http//:example.com"); });
+        wiki_link->Bind(wxEVT_LEFT_DOWN, [wiki_path](wxMouseEvent &) { wxLaunchDefaultBrowser(wxString(wiki_path.c_str())); });
         wiki_sizer->Add(wiki_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
 
         button_sizer->Add(wiki_sizer, 0, wxLEFT, horizontal_margin);

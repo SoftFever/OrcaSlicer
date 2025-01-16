@@ -1276,10 +1276,10 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif
 
 #if 0
-    auto title_filament_group = create_item_title(_L("Filament Arrange"), page, _L("Filament Arrange"));
+    auto title_filament_group = create_item_title(_L("Filament Grouping"), page, _L("Filament Grouping"));
     //temporarily disable it
     //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
-    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament arrangement mode"), page, _L("Pop up to select filament arrangement mode"), 50, "pop_up_filament_map_dialog");
+    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament grouping mode"), page, _L("Pop up to select filament grouping mode"), 50, "pop_up_filament_map_dialog");
 #endif
 
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
