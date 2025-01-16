@@ -137,7 +137,7 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
     if (is_dirty_filament()) { return; }
 
     show_sizer(m_sizer_line, true);
-    show_sizer(m_sizer_two_image, true);
+    m_two_thumbnail_panel->Show(true);
 
     m_attention_text->Show();
     m_tip_text->Show();
@@ -227,7 +227,7 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
                 image.SetAlpha((int) c, (int) r, px[3]);
             }
         }
-        image = image.Rescale(FromDIP(THUMBNAIL_SIZE_WIDTH), FromDIP(THUMBNAIL_SIZE_WIDTH));
+        image = image.Rescale(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH));
         m_left_image_button->SetBitmap(image);
     }
     if (data.is_valid() && m_right_image_button) {
@@ -241,7 +241,7 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
                 image.SetAlpha((int) c, (int) r, px[3]);
             }
         }
-        image = image.Rescale(FromDIP(THUMBNAIL_SIZE_WIDTH), FromDIP(THUMBNAIL_SIZE_WIDTH));
+        image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH));
         m_right_image_button->SetBitmap(image);
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         if (wxGetApp().plater()->get_extruders_colors().size() == extruders.size()) {
@@ -271,7 +271,7 @@ bool SyncAmsInfoDialog::is_must_finish_slice_then_connected_printer() {
 void SyncAmsInfoDialog::update_printer_name() {
     if (m_printer_title) {
         m_printer_device_name->SetLabel(m_printer_name);
-        if (!m_is_same_printer && m_printer_title->IsShown()) {
+        if (!m_result.is_same_printer && m_printer_title->IsShown()) {
             m_printer_is_map_title->Show();
         }
         else {
@@ -307,7 +307,7 @@ void SyncAmsInfoDialog::show_sizer(wxSizer *sizer, bool show)
 void SyncAmsInfoDialog::deal_ok()
 {
     if (m_input_info.connected_printer && !m_is_empty_project) {
-        if (m_map_mode == MapModeEnum::Override) {
+        if (m_map_mode == MapModeEnum::Override || !m_result.is_same_printer) {
             m_is_empty_project = true;
             return;
         }
@@ -351,21 +351,21 @@ bool SyncAmsInfoDialog::is_need_show()
 wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bool left)
 {
     auto sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
-    sizer_thumbnail->Add(image_button, 0, wxALIGN_CENTER, 0);
     if (left) {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text  = new wxStaticText(this, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
+        auto        sync_text  = new wxStaticText(image_button->GetParent(), wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
     }
     else {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text  = new wxStaticText(this, wxID_ANY, _L("After mapping"));
+        auto        sync_text  = new wxStaticText(image_button->GetParent(), wxID_ANY, _L("After mapping"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
     }
+    sizer_thumbnail->Add(image_button, 0, wxALIGN_CENTER, 0);
     return sizer_thumbnail;
 }
 
@@ -379,6 +379,10 @@ void SyncAmsInfoDialog::update_when_change_plate(int idx) {
 
     wxCommandEvent empty;
     on_selection_changed(empty);
+
+    update_swipe_button_state();
+    Layout();
+    Fit();
 }
 
 void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
@@ -417,12 +421,13 @@ void SyncAmsInfoDialog::update_panel_status(PageType page)
     }
 }
 
-void SyncAmsInfoDialog::show_color_panel(bool flag) {
+void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
+{
     show_sizer(m_plate_combox_sizer, flag);
     if (m_sizer_line) {
         show_sizer(m_sizer_line, flag);
     }
-    show_sizer(m_sizer_two_image, flag);
+    m_two_thumbnail_panel->Show(flag);
 
     m_filament_panel->Show(flag);  // empty_project
 
@@ -447,8 +452,10 @@ void SyncAmsInfoDialog::show_color_panel(bool flag) {
         //m_used_colors_tip_text->Hide();
     }
     update_printer_name();
-    Layout();
-    Fit();
+    if (update_layout){
+        Layout();
+        Fit();
+    }
 }
 
 void SyncAmsInfoDialog::update_more_setting(bool layout)
@@ -461,35 +468,158 @@ void SyncAmsInfoDialog::update_more_setting(bool layout)
     }
 }
 
+void SyncAmsInfoDialog::init_bitmaps()
+{
+    m_swipe_left_bmp_normal  = ScalableBitmap(this, "previous_item", m_bmp_pix_cont);
+    m_swipe_left_bmp_hover   = ScalableBitmap(this, "previous_item_hover", m_bmp_pix_cont);
+    m_swipe_right_bmp_normal = ScalableBitmap(this, "next_item", m_bmp_pix_cont);
+    m_swipe_right_bmp_hover  = ScalableBitmap(this, "next_item_hover", m_bmp_pix_cont);
+}
+
+
 void SyncAmsInfoDialog::add_two_image_control()
 {// thumbnail
-    m_sizer_two_image = new wxBoxSizer(wxHORIZONTAL);
-    int left_right_gap = 70;
-    m_sizer_two_image->AddSpacer(FromDIP(left_right_gap));
-    m_left_image_button = new wxButton(this, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(THUMBNAIL_SIZE_WIDTH), FromDIP(THUMBNAIL_SIZE_WIDTH)), wxBORDER_NONE | wxBU_AUTODRAW);
-    // m_left_image_button->SetBitmap(image);
-    m_left_image_button->SetCanFocus(false);
-    m_right_image_button = new wxButton(this, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(THUMBNAIL_SIZE_WIDTH), FromDIP(THUMBNAIL_SIZE_WIDTH)),
-                                        wxBORDER_NONE | wxBU_AUTODRAW);
-    // m_left_image_button->SetBitmap(image);
-    m_right_image_button->SetCanFocus(false);
+    m_two_thumbnail_panel = new StaticBox(this);
+    // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_two_thumbnail_panel->SetBorderWidth(0);
+    //m_two_thumbnail_panel->SetMinSize(wxSize(FromDIP(637), -1));
+    //m_two_thumbnail_panel->SetMaxSize(wxSize(FromDIP(637), -1));
+    m_two_thumbnail_panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_left_sizer_thumbnail = create_sizer_thumbnail(m_left_image_button, true);
-    m_sizer_two_image->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxTOP, FromDIP(2));
+    auto view_two_thumbnail_sizer = new wxBoxSizer(wxHORIZONTAL);
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(60));
+    auto swipe_left__sizer = new wxBoxSizer(wxVERTICAL);
+    swipe_left__sizer->AddStretchSpacer();
+    init_bitmaps();
+    m_swipe_left_button = new ScalableButton(m_two_thumbnail_panel, wxID_ANY, "previous_item", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true,
+                                             m_bmp_pix_cont);
+    m_swipe_left_button->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        m_swipe_left_button->SetBitmap(m_swipe_left_bmp_hover.bmp());
+    });
+    m_swipe_left_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        m_swipe_left_button->SetBitmap(m_swipe_left_bmp_normal.bmp());
+    });
+    m_swipe_left_button->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::to_previous_plate, this);
+    swipe_left__sizer->Add(m_swipe_left_button, 0, wxALIGN_CENTER | wxEXPAND | wxALIGN_CENTER_VERTICAL);
+    swipe_left__sizer->AddStretchSpacer();
+    view_two_thumbnail_sizer->Add(swipe_left__sizer, 0, wxEXPAND);
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(20));
+    {
+        m_two_image_panel = new StaticBox(m_two_thumbnail_panel);
+        // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+        m_two_image_panel->SetBorderWidth(0);
+        //m_two_image_panel->SetForegroundColour(wxColour(248, 248, 248, 100));
+        m_two_image_panel->SetBackgroundColor(wxColour(248, 248, 248, 100));
+        m_two_image_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_left_image_button     = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH)),
+                                           wxBORDER_NONE | wxBU_AUTODRAW);
+        m_left_sizer_thumbnail = create_sizer_thumbnail(m_left_image_button, true);
+        m_two_image_panel_sizer->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND , FromDIP(0));
+        m_two_image_panel_sizer->AddSpacer(FromDIP(5));
 
-    /* wxBoxSizer *arrow_sizer = new wxBoxSizer(wxVERTICAL);
-     auto sync_text            = new wxStaticText(this, wxID_ANY, _L("Synchronization"));
-     sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-     arrow_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
-     auto arrow_text = new wxStaticText(this, wxID_ANY,           _L("--------------->"));
-     arrow_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-     arrow_sizer->Add(arrow_text, 0, wxALIGN_CENTER | wxALL, 0);
-     m_sizer_two_image->Add(arrow_sizer, FromDIP(0), wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));*/
-    m_sizer_two_image->AddStretchSpacer();
-    m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
-    m_sizer_two_image->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_RIGHT | wxEXPAND, FromDIP(0));
-    m_sizer_two_image->AddSpacer(FromDIP(left_right_gap));
-    m_sizer_main->Add(m_sizer_two_image, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxTOP, FromDIP(10));
+        m_right_image_button = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition,
+                                            wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
+                                            wxBORDER_NONE | wxBU_AUTODRAW);
+        m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
+        m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND , FromDIP(0));
+        m_two_image_panel->SetSizer(m_two_image_panel_sizer);
+        m_two_image_panel->Layout();
+        m_two_image_panel->Fit();
+
+        view_two_thumbnail_sizer->Add(m_two_image_panel, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxTOP, FromDIP(2));
+    }
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(20));
+    auto swipe_right__sizer = new wxBoxSizer(wxVERTICAL);
+    swipe_right__sizer->AddStretchSpacer();
+    m_swipe_right_button    = new ScalableButton(m_two_thumbnail_panel, wxID_ANY, "next_item", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true,
+                                              m_bmp_pix_cont);
+    m_swipe_right_button->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { m_swipe_right_button->SetBitmap(m_swipe_right_bmp_hover.bmp()); });
+    m_swipe_right_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { m_swipe_right_button->SetBitmap(m_swipe_right_bmp_normal.bmp()); });
+    m_swipe_right_button->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::to_next_plate, this);
+
+    swipe_right__sizer->Add(m_swipe_right_button, 0, wxALIGN_CENTER | wxEXPAND | wxALIGN_CENTER_VERTICAL);
+    swipe_right__sizer->AddStretchSpacer();
+    view_two_thumbnail_sizer->Add(swipe_right__sizer, 0, wxEXPAND);
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(60));
+    m_two_thumbnail_panel_sizer->Add(view_two_thumbnail_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+
+    m_choose_plate_sizer         = new wxBoxSizer(wxHORIZONTAL);
+    m_choose_plate_sizer->AddStretchSpacer();
+
+    wxStaticText *chose_combox_title = new wxStaticText(m_two_thumbnail_panel, wxID_ANY, _CTX(L_CONTEXT("Plate", "Sync_AMS"), "Sync_AMS"));
+    m_choose_plate_sizer->Add(chose_combox_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP, FromDIP(6));
+    m_choose_plate_sizer->AddSpacer(FromDIP(10));
+
+    m_combobox_plate = new ComboBox(m_two_thumbnail_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), 0, NULL, wxCB_READONLY);
+    for (size_t i = 0; i < m_plate_number_choices_str.size(); i++) {
+        m_combobox_plate->Append(m_plate_number_choices_str[i]);
+    }
+    auto iter = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx);
+    if (iter != m_plate_choices.end()) {
+        auto index = iter - m_plate_choices.begin();
+        m_combobox_plate->SetSelection(index);
+    }
+    m_combobox_plate->Bind(wxEVT_COMBOBOX, [this](auto &e) {
+        if (e.GetSelection() < m_plate_choices.size()) {
+            update_when_change_plate(m_plate_choices[e.GetSelection()]);
+        }
+    });
+    m_choose_plate_sizer->Add(m_combobox_plate, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(3));
+    m_choose_plate_sizer->AddStretchSpacer();
+    m_two_thumbnail_panel_sizer->Add(m_choose_plate_sizer, 0, wxEXPAND |wxTOP, FromDIP(4));
+
+    m_two_thumbnail_panel->SetSizer(m_two_thumbnail_panel_sizer);
+    m_two_thumbnail_panel->Layout();
+    m_two_thumbnail_panel->Fit();
+    m_sizer_main->Add(m_two_thumbnail_panel, FromDIP(0), wxALIGN_CENTER | wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
+
+    update_swipe_button_state();
+}
+
+void SyncAmsInfoDialog::to_next_plate(wxCommandEvent &event) {
+    auto cobox_idx  = m_combobox_plate->GetSelection();
+    cobox_idx++;
+    m_combobox_plate->SetSelection(cobox_idx);
+    update_when_change_plate(m_plate_choices[cobox_idx]);
+}
+
+void SyncAmsInfoDialog::to_previous_plate(wxCommandEvent &event) {
+    auto cobox_idx = m_combobox_plate->GetSelection();
+    cobox_idx--;
+    m_combobox_plate->SetSelection(cobox_idx);
+
+    update_when_change_plate(m_plate_choices[cobox_idx]);
+}
+
+void SyncAmsInfoDialog::update_swipe_button_state()
+{
+    m_swipe_left_button->Enable();
+    m_swipe_left_button->SetToolTip("");
+    m_swipe_right_button->Enable();
+    m_swipe_right_button->SetToolTip("");
+    if (m_combobox_plate->GetSelection() == 0) { // auto plate_index = m_plate_choices[m_combobox_plate->GetSelection()];
+        m_swipe_left_button->Disable();
+    }
+    if (m_combobox_plate->GetSelection() == m_combobox_plate->GetCount() - 1) {
+        m_swipe_right_button->Disable();
+    }
+}
+
+void SyncAmsInfoDialog::updata_ui_when_priner_not_same() {
+    show_color_panel(false);
+    m_are_you_sure_title->Show(false);
+    if (m_mode_combox_sizer)
+        m_mode_combox_sizer->Show(false);
+
+    m_button_cancel->Hide();
+    m_button_ok->Show();
+    m_button_ok->SetLabel(_L("OK"));
+    m_confirm_title->Show();
+    m_confirm_title->SetLabel(_L("The connected printer does not match the currently selected printer. Please change the selected printer."));
+    SetMinSize(wxSize(FromDIP(800), -1));
+    SetMaxSize(wxSize(FromDIP(800), -1));
+    Layout();
+    Fit();
 }
 
 SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
@@ -541,14 +671,14 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         GUI::PartPlateList &plate_list             = wxGetApp().plater()->get_partplate_list();
         GUI::PartPlate *    curr_plate             = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
         m_is_empty_project                         = true;
-        wxArrayString       choices;
+        m_plate_number_choices_str.clear();
         for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
             auto temp_plate = GUI::wxGetApp().plater()->get_partplate_list().get_plate(i);
             if (!temp_plate->get_objects_on_this_plate().empty()) {
                 if (m_is_empty_project) {
                     m_is_empty_project     = false;
                 }
-                choices.Add(i < 10 ? ("0"+std::to_wstring(i + 1)) : std::to_wstring(i));
+                m_plate_number_choices_str.Add(i < 10 ? ("0" + std::to_wstring(i + 1)) : std::to_wstring(i));
                 m_plate_choices.emplace_back(i);
             }
         }
@@ -572,29 +702,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
             { // choose camera view angle type
                 m_plate_combox_sizer       = new wxBoxSizer(wxHORIZONTAL);
                 m_plate_combox_sizer->AddSpacer(FromDIP(25));
-                wxStaticText *chose_combox_title = new wxStaticText(this, wxID_ANY, _L("Plate"));
-                m_plate_combox_sizer->Add(chose_combox_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP, FromDIP(6));
-
-                wxStaticText *space_title = new wxStaticText(this, wxID_ANY, "   ");
-                m_plate_combox_sizer->Add(space_title, FromDIP(0), wxALIGN_LEFT | wxALL, FromDIP(0));
-
-                auto cur_combox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), 0, NULL, wxCB_READONLY);
-                for (size_t i = 0; i < choices.size(); i++) {
-                    cur_combox->Append(choices[i]);
-                }
-                auto iter = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx);
-                if (iter != m_plate_choices.end()) {
-                    auto index = iter - m_plate_choices.begin();
-                    cur_combox->SetSelection(index);
-                }
-                cur_combox->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-                    if (e.GetSelection() < m_plate_choices.size()) {
-                        update_when_change_plate(m_plate_choices[e.GetSelection()]);
-                        Layout();
-                        Fit();
-                    }
-                });
-                m_plate_combox_sizer->Add(cur_combox, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL  | wxTOP | wxBOTTOM, FromDIP(3));
 
                 m_plate_combox_sizer->AddStretchSpacer(1); // m_plate_combox_sizer->AddSpacer(FromDIP(230));
                 m_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer") + ": ");
@@ -1221,7 +1328,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         bSizer->Add(more_setting_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
         wxBoxSizer *confirm_boxsizer = new wxBoxSizer(wxVERTICAL);
-        m_confirm_title              = new wxStaticText(this, wxID_ANY, "After sync, all currently configured filament presets and colors will be discarded.",
+        m_confirm_title              = new wxStaticText(this, wxID_ANY, _L("After sync, all currently configured filament presets and colors will be discarded."),
             wxDefaultPosition, wxDefaultSize);
         //m_confirm_title->Wrap(FromDIP(SyncAmsInfoDialogWidth - 50));
         //m_confirm_title->SetFont(Label::Head_14);
@@ -1245,7 +1352,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         bSizer_button->AddStretchSpacer(1);
         StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                                 std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok = new Button(this, _L("Synchronize now"));
+        m_button_ok = new Button(this, m_input_info.connected_printer ? _L("Synchronize now") : _L("OK"));
         m_button_ok->SetBackgroundColor(btn_bg_green);
         m_button_ok->SetBorderColor(*wxWHITE);
         m_button_ok->SetTextColor(wxColour(0xFFFFFE));
@@ -2025,7 +2132,7 @@ bool SyncAmsInfoDialog::has_tips(MachineObject *obj)
 void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
     if (m_print_status != status) {
-        m_is_same_printer = true;
+        m_result.is_same_printer = true;
         update_printer_name();
         BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << get_print_status_info(status) << ")";
     }
@@ -2193,9 +2300,13 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."), sourcet_print_name,
                                         target_print_name);
-            m_is_same_printer = false;
-            update_printer_name();
-            update_print_status_msg(msg_text, true, true);
+            if (m_result.is_same_printer) {
+                m_result.is_same_printer = false;
+                updata_ui_when_priner_not_same();
+            }
+            //update_printer_name();
+            //update_print_status_msg(msg_text, true, true);
+            return;
         } catch (...) {}
 
         Enable_Send_Button(false);
@@ -3860,7 +3971,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         contronal_index++;
-        item->SetToolTip(_L("Top half of combobox: Original\nDown half of combobox: Filament of AMS\nAnd you can click it to modify"));
+        item->SetToolTip(_L("Up: Original\nDown: filament in AMS\nAnd you can click it to modify it."));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
@@ -4335,7 +4446,11 @@ wxString SyncAmsInfoDialog::format_bed_name(std::string plate_name)
     return name;
 }
 
-SyncAmsInfoDialog::~SyncAmsInfoDialog() { delete m_refresh_timer; }
+SyncAmsInfoDialog::~SyncAmsInfoDialog() {
+    if (m_refresh_timer) {
+        delete m_refresh_timer;
+    }
+}
 
 void SyncAmsInfoDialog::update_lan_machine_list()
 {

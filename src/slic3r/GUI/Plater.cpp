@@ -2710,7 +2710,9 @@ void Sidebar::sync_ams_list()
     if (dlg_res == wxID_CANCEL)
         return;
     auto sync_result = sync_dlg.get_result();
-
+    if (!sync_result.is_same_printer) {
+        return;
+    }
     list2.resize(list.size());
     auto iter = list.begin();
     for (int i = 0; i < list.size(); ++i, ++iter) {

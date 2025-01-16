@@ -127,9 +127,26 @@ protected:
     std::vector<wxColour>     m_cur_colors_in_thumbnail;
     std::vector<bool>         m_edge_pixels;
 
-    StaticBox *m_filament_panel;
-    StaticBox *m_filament_left_panel;
-    StaticBox *m_filament_right_panel;
+    StaticBox * m_two_image_panel{nullptr};
+    wxBoxSizer *m_two_image_panel_sizer{nullptr};
+    StaticBox *m_two_thumbnail_panel{nullptr};
+    wxBoxSizer *m_two_thumbnail_panel_sizer{nullptr};
+    wxBoxSizer *m_choose_plate_sizer{nullptr};
+    ComboBox *  m_combobox_plate{nullptr};
+    //TextInput *m_plate_number{nullptr};
+    wxArrayString    m_plate_number_choices_str;
+    std::vector<int> m_plate_choices;
+    ScalableButton * m_swipe_left_button{nullptr};
+    ScalableButton * m_swipe_right_button{nullptr};
+    int              m_bmp_pix_cont = 32;
+    ScalableBitmap   m_swipe_left_bmp_normal;
+    ScalableBitmap   m_swipe_left_bmp_hover;
+    ScalableBitmap   m_swipe_right_bmp_normal;
+    ScalableBitmap   m_swipe_right_bmp_hover;
+
+    StaticBox *m_filament_panel{nullptr};
+    StaticBox *m_filament_left_panel{nullptr};
+    StaticBox *m_filament_right_panel{nullptr};
 
     wxBoxSizer *m_filament_panel_sizer;
     wxBoxSizer *m_filament_panel_left_sizer;
@@ -234,6 +251,7 @@ public:
     struct SyncResult
     {
         bool direct_sync = true;
+        bool is_same_printer = true;
         std::map<int, AMSMapInfo> sync_maps;
     };
     SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info);
@@ -264,9 +282,14 @@ private:
     void        update_when_change_map_mode(int);
     void        update_when_change_map_mode(wxCommandEvent &e);
     void        update_panel_status(PageType page);
-    void        show_color_panel(bool);
+    void        show_color_panel(bool,bool update_layout = true);
     void        update_more_setting(bool layout = true);
     void        add_two_image_control();
+    void        to_next_plate(wxCommandEvent &event);
+    void        to_previous_plate(wxCommandEvent &event);
+    void        update_swipe_button_state();
+    void        updata_ui_when_priner_not_same();
+    void        init_bitmaps();
 
 private:
     SyncInfo & m_input_info;
@@ -291,7 +314,6 @@ private:
 
     wxBoxSizer *    m_plate_combox_sizer          = nullptr;
     wxBoxSizer *    m_mode_combox_sizer           = nullptr;
-    wxBoxSizer *    m_sizer_two_image              = nullptr;
     wxBoxSizer *    m_sizer_line                   = nullptr;
     wxStaticText *  m_printer_title                = nullptr;
     wxStaticText *  m_printer_device_name          = nullptr;
@@ -307,12 +329,13 @@ private:
     CheckBox* m_merge_color_checkbox = nullptr;
     wxStaticText *   m_merge_color_text  = nullptr;
     bool m_is_empty_project = true;
-    bool m_is_same_printer  = true;
+
     bool m_check_dirty_fialment  = true;
     bool m_expand_more_settings  = false;
     bool m_image_is_top          = false;
-    std::vector<int> m_plate_choices;
-    const int THUMBNAIL_SIZE_WIDTH = 200;
+
+    const int LEFT_THUMBNAIL_SIZE_WIDTH = 100;
+    const int RIGHT_THUMBNAIL_SIZE_WIDTH = 300;
     int      m_specify_plate_idx{0};
     wxString m_printer_name;
 
