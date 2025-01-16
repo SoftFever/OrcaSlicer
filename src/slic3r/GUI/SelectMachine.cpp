@@ -464,13 +464,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Extruder"));
     left_recommend_title1->SetFont(::Label::Head_13);
     left_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
-    auto left_recommend_title2 = new Label(m_filament_left_panel, _L("(Recommended filament)"));
-    left_recommend_title2->SetFont(::Label::Body_13);
-    left_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
-    left_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
     left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
-    left_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
-    left_recommend_title_sizer->Add(left_recommend_title2, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_left = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
     m_filament_panel_left_sizer->Add(left_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
@@ -489,14 +483,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Extruder"));
     right_recommend_title1->SetFont(::Label::Head_13);
     right_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
-
-    auto right_recommend_title2 = new Label(m_filament_right_panel, _L("(Recommended filament)"));
-    right_recommend_title2->SetFont(::Label::Body_13);
-    right_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
-    right_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
     right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
-    right_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
-    right_recommend_title_sizer->Add(right_recommend_title2, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_right = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
     m_filament_panel_right_sizer->Add(right_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
