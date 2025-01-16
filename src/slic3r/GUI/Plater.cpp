@@ -358,20 +358,27 @@ struct ExtruderGroup : StaticGroup
     ScalableButton *  btn_up{nullptr};
     ScalableButton *  btn_down{nullptr};
     wxBoxSizer *hsizer_ams { nullptr };
-    int               page_cur{0};
-    int               page_num{3};
-    int               ams_n4 = 0;
-    int               ams_n1 = 0;
+    size_t               page_cur{0};
+    size_t               page_num{3};
+    size_t               ams_n4 = 0;
+    size_t               ams_n1 = 0;
+    std::vector<AMSinfo> ams_4;
+    std::vector<AMSinfo> ams_1;
 
     void set_ams_count(int n4, int n1)
     {
         ams_n4 = n4;
         ams_n1 = n1;
-        if (btn_edit)
-            update_ams();
+
+        if (btn_edit) {
+            if (GUI::wxGetApp().plater())
+                GUI::wxGetApp().plater()->update_machine_sync_status();
+        }
     }
 
     void update_ams();
+
+    void sync_ams(MachineObject const *obj, std::vector<Ams *> const &ams4, std::vector<Ams *> const &ams1);
 
     void Rescale()
     {
@@ -464,6 +471,7 @@ struct Sidebar::priv
     //ScalableButton *btn_eject_device;
     ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
+    bool                    is_switching_diameter{false};
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
@@ -827,11 +835,9 @@ public:
         txt1->SetForegroundColour(0x6B6B6B);
         int ams4 = 0, ams1 = 0;
         GetAMSCount(index, ams4, ams1);
-        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4 - ams1, ams4);
-        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4 - ams4, ams1);
+        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
+        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 8, ams1);
         auto event_handler = [index, val4, val1, extruder](auto &evt) {
-            val4->SetRange(0, 4 - val1->GetValue());
-            val1->SetRange(0, 4 - val4->GetValue());
             SetAMSCount(index, val4->GetValue(), val1->GetValue());
             UpdateAMSCount(index, extruder);
         };
@@ -996,7 +1002,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         label_ams->Hide();
         ams_not_installed_msg->Hide();
         wxStaticBoxSizer *hsizer     = new wxStaticBoxSizer(this, wxHORIZONTAL);
-        hsizer->Add(hsizer_nozzle, 1, wxEXPAND | wxALL, FromDIP(2));
+        hsizer->Add(hsizer_nozzle, 1, wxEXPAND | wxALL, FromDIP(8));
         hsizer->AddSpacer(FromDIP(4));
         this->sizer = hsizer;
     } else {
@@ -1011,74 +1017,38 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
 
 void ExtruderGroup::update_ams()
 {
-    int    display_capacity  = 8;
-
-    //if (ams_n4 * 4 + ams_n1 * 2 <= 8)
-    //    is_upward = false;
-
-    std::vector<wxColour> colors = {
-        wxColour(255, 110, 100),
-        wxColour(97, 27, 22),
-        wxColour(7, 134, 219),
-        wxColour(170, 111, 252)
-    };
-
-    bool   display_front_ams = false; //!is_upward;
-    size_t i                 = 0;
-    for (; i < ams_n4 && i < 4; ++i) {
-        display_capacity -= 4;
-        bool show_this_ams = (display_capacity >= 0) && display_front_ams;
-        show_this_ams |= (display_capacity < 0) && !display_front_ams;
-        if (show_this_ams) {
-            AMSinfo ams_info;
-            ams_info.ams_type = AMSModel::GENERIC_AMS;
-            for (size_t i = 0; i < 4; ++i) {
-                Caninfo can_info;
-                //can_info.material_colour = colors[i];
-                ams_info.cans.push_back(can_info);
-            }
-            ams[i]->Update(ams_info);
-            ams[i]->Refresh();
-            ams[i]->Open();
-        } else {
-            ams[i]->Close();
-        }
+    static AMSinfo info4;
+    static AMSinfo info1;
+    if (info4.cans.empty()) {
+        for (size_t i = 0; i < 4; ++i) info4.cans.push_back({});
+        info1.ams_type = AMSModel::N3S_AMS;
+        info1.cans.push_back({});
     }
 
-    for (; i < ams_n4 + ams_n1 && i < 4; ++i) {
-        display_capacity -= 2;
-        bool show_this_ams = (display_capacity >= 0) && display_front_ams;
-        show_this_ams |= (display_capacity < 0) && !display_front_ams;
-        if (show_this_ams) {
-            AMSinfo ams_info;
-            ams_info.ams_type = AMSModel::N3S_AMS;
-            Caninfo can_info;
-            //can_info.material_colour = wxColour(255, 110, 100);
-            ams_info.cans.push_back(can_info);
-            ams[i]->Update(ams_info);
-            ams[i]->Refresh();
-            ams[i]->Open();
-        } else {
-            ams[i]->Close();
-        }
+    page_num  = (ams_n4 * 2 + ams_n1 + 3) / 4;
+    size_t i4 = page_cur * 2;
+    size_t i1 = 0;
+    if (i4 > ams_n4) {
+        i1 = (i4 - ams_n4) * 2;
+        i4 = ams_n4;
     }
 
-    if (i == 0) {
-        ams_not_installed_msg->Show();
-        btn_up->Hide();
-        for (AMSPreview *a : ams) {
-            a->Close();
-        }
-    } else {
-        ams_not_installed_msg->Hide();
-        for (; i < 4; ++i) { ams[i]->Close(); }
-        if (display_capacity < 0) {
-            btn_up->Show();
-        } else {
-            btn_up->Hide();
-        }
+    size_t left  = 4;
+    size_t index = 0;
+    for (size_t i = i4; i < ams_n4 && left > 0; ++i, ++index, left -= 2) {
+        ams[index]->Update(i < ams_4.size() ? ams_4[i] : info4);
+        ams[index]->Refresh();
+        ams[index]->Open();
     }
+    for (size_t i = i1; i < ams_n1 && left > 0; ++i, ++index, --left) {
+        ams[index]->Update(i < ams_1.size() ? ams_1[i] : info1);
+        ams[index]->Refresh();
+        ams[index]->Open();
+    }
+    for (; index < 4; ++index)
+        ams[index]->Close();
 
+    ams_not_installed_msg->Show(ams_n4 == 0 && ams_n1 == 0);
     btn_up->Show(page_cur > 0);
     btn_down->Show(page_cur + 1 < page_num);
 
@@ -1091,7 +1061,7 @@ void ExtruderGroup::update_ams()
     }
     for (size_t i = 0; i < 4; ++i) {
         if (ams[i]->IsShown())
-            hsizer_ams->Add(this->ams[i], 0, wxLEFT, FromDIP(4));
+            hsizer_ams->Add(this->ams[i], 0, wxLEFT, FromDIP(1));
     }
     if (btn_up->IsShown() || btn_down->IsShown()) {
         hsizer_ams->AddStretchSpacer(1);
@@ -1109,9 +1079,21 @@ void ExtruderGroup::update_ams()
     }
 
     sizer->Layout();
+}
 
-    if (GUI::wxGetApp().plater())
-        GUI::wxGetApp().plater()->update_machine_sync_status();
+void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const &ams4, std::vector<Ams *> const &ams1)
+{
+    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<Ams *> const &ams) {
+        infos.clear();
+        for (auto a : ams) {
+            AMSinfo ams_info;
+            ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity);
+            infos.push_back(ams_info);
+        }
+    };
+    sync(ams_4, ams4);
+    sync(ams_1, ams1);
+    update_ams();
 }
 
 bool Sidebar::priv::sync_extruder_list()
@@ -1187,9 +1169,12 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     auto clear_all_sync_status = [this]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
-        //left_extruder->ShowBadge(false);
+        left_extruder->ShowBadge(false);
+        left_extruder->sync_ams(nullptr, {}, {});
         right_extruder->ShowBadge(false);
+        right_extruder->sync_ams(nullptr, {}, {});
         single_extruder->ShowBadge(false);
+        single_extruder->sync_ams(nullptr, {}, {});
     };
 
     if (!obj || !obj->is_info_ready()) {
@@ -1220,6 +1205,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         //int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
+        std::vector<Ams *> ams_v4;
+        std::vector<Ams *> ams_v1;
 
         bool operator==(const ExtruderInfo &other) const
         {
@@ -1279,8 +1266,10 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
         if (item.second->type == 4) { // N3S
             machine_extruder_infos[item.second->nozzle].ams_1++;
+            machine_extruder_infos[item.second->nozzle].ams_v1.push_back(item.second);
         } else {
             machine_extruder_infos[item.second->nozzle].ams_4++;
+            machine_extruder_infos[item.second->nozzle].ams_v4.push_back(item.second);
         }
     }
 
@@ -1290,25 +1279,34 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums == 1) {
         if (extruder_infos == machine_extruder_infos) {
             single_extruder->ShowBadge(true);
+            single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
         }
-        else
+        else {
             single_extruder->ShowBadge(false);
+            single_extruder->sync_ams(obj, {}, {});
+        }
     }
     else if (extruder_nums == 2) {
         if (extruder_infos[0] == machine_extruder_infos[0]) {
             left_extruder->ShowBadge(true);
+            left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
         }
-        else
+        else {
             left_extruder->ShowBadge(false);
+            left_extruder->sync_ams(obj, {}, {});
+        }
 
         if (extruder_infos[1] == machine_extruder_infos[1]) {
             right_extruder->ShowBadge(true);
+            right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             extruder_synced[1] = true;
         }
-        else
+        else {
             right_extruder->ShowBadge(false);
+            right_extruder->sync_ams(obj, {}, {});
+        }
     }
 
     StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
