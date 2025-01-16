@@ -197,7 +197,7 @@ void AppConfig::set_defaults()
 
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
-        set_bool("show_hints", true);
+        set_bool("show_hints", false);
 //#endif
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
