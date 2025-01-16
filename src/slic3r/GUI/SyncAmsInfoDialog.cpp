@@ -354,7 +354,7 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
     sizer_thumbnail->Add(image_button, 0, wxALIGN_CENTER, 0);
     if (left) {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text  = new wxStaticText(this, wxID_ANY, L_CONTEXT("Original", "Sync_AMS"));
+        auto        sync_text  = new wxStaticText(this, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
@@ -3830,7 +3830,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
             if (is_first_row) {
                 is_first_row              = false;
-                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, L_CONTEXT("Original", "Sync_AMS"));
+                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
                 tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
                 ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 
