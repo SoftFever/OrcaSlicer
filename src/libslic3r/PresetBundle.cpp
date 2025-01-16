@@ -1241,11 +1241,9 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
     if (validation_mode)
         dir = (boost::filesystem::path(data_dir())).make_preferred();
 
-    PresetsConfigSubstitutions  substitutions;
-    std::string                 errors_cummulative;
-    bool                        first = true;
-    for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-    {
+    // Gather all vendors
+    std::vector<std::string> vendor_names;
+    for (auto& dir_entry : boost::filesystem::directory_iterator(dir)) {
         std::string vendor_file = dir_entry.path().string();
         if (Slic3r::is_json_file(vendor_file)) {
             std::string vendor_name = dir_entry.path().filename().string();
@@ -1255,34 +1253,77 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
             if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
                 continue;
 
-            try {
-                // Load the config bundle, flatten it.
-                if (first) {
-                    // Reset this PresetBundle and load the first vendor config.
-                    append(substitutions, this->load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
-                    first = false;
-                } else {
-                    // Load the other vendor configs, merge them with this PresetBundle.
-                    // Report duplicate profiles.
-                    PresetBundle other;
-                    append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
-                    std::vector<std::string> duplicates = this->merge_presets(std::move(other));
-                    if (! duplicates.empty()) {
-                        errors_cummulative += "Found duplicated settings in vendor " + vendor_name + "'s json file lists: ";
-                        for (size_t i = 0; i < duplicates.size(); ++ i) {
-                            if (i > 0)
-                                errors_cummulative += ", ";
-                            errors_cummulative += duplicates[i];
-                        }
+            vendor_names.emplace_back(vendor_name);
+        }
+    }
+
+    // Load the config bundle, flatten it.
+    PresetsConfigSubstitutions  substitutions;
+    std::string                 errors_cummulative;
+
+    // Reset this PresetBundle and load the first vendor config.
+    bool                        first = true;
+    auto vendor_name = vendor_names.begin();
+    for (; vendor_name != vendor_names.end() && first; ++vendor_name) {
+        try {
+            append(substitutions, this->load_vendor_configs_from_json(dir.string(), *vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
+            first = false;
+        } catch (const std::runtime_error &err) {
+            if (validation_mode)
+                throw err;
+            else {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    }
+    if (!first && vendor_name != vendor_names.end()) {
+        // Load the other vendor configs in parallel
+        struct LoadCtx
+        {
+            size_t                     idx;
+            PresetBundle               bundle;
+            bool                       succeed = false;
+            PresetsConfigSubstitutions substitutions;
+            std::string                err;
+        };
+        std::vector<LoadCtx> ctxs(vendor_names.end() - vendor_name);
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, ctxs.size()), [&ctxs, validation_mode = validation_mode, dir = dir.string(),
+                                                                       &vendor_name,
+                                                                       compatibility_rule](const tbb::blocked_range<size_t>& range) {
+            for (size_t idx = range.begin(); idx < range.end(); ++idx) {
+                auto& ctx = ctxs[idx];
+                try {
+                    ctx.substitutions = std::move(ctx.bundle.load_vendor_configs_from_json(dir, vendor_name[idx], PresetBundle::LoadSystem, compatibility_rule).first);
+                    ctx.idx     = idx;
+                    ctx.succeed = true;
+                } catch (const std::runtime_error& err) {
+                    if (validation_mode)
+                        throw err;
+                    else {
+                        ctx.err = err.what();
                     }
                 }
-            } catch (const std::runtime_error &err) {
-                if (validation_mode)
-                    throw err;
-                else {
-                    errors_cummulative += err.what();
-                    errors_cummulative += "\n";
+            }
+        });
+
+        // Merge them with this PresetBundle.
+        // Report duplicate profiles.
+        for (auto& ctx : ctxs) {
+            if (ctx.succeed) {
+                append(substitutions, std::move(ctx.substitutions));
+                std::vector<std::string> duplicates = this->merge_presets(std::move(ctx.bundle));
+                if (! duplicates.empty()) {
+                    errors_cummulative += "Found duplicated settings in vendor " + (vendor_name[ctx.idx]) + "'s json file lists: ";
+                    for (size_t i = 0; i < duplicates.size(); ++ i) {
+                        if (i > 0)
+                            errors_cummulative += ", ";
+                        errors_cummulative += duplicates[i];
+                    }
                 }
+            } else {
+                errors_cummulative += ctx.err;
+                errors_cummulative += "\n";
             }
         }
     }
