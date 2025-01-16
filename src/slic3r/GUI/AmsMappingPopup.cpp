@@ -807,6 +807,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 
         if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
             if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.filament_type)) return;
+            if (item->m_tray_data.type == TrayType::EMPTY) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         }
@@ -1250,6 +1251,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
         if (tray_data[i].type == EMPTY) {
             m_mapping_item->set_data(wxColour(0xCE, 0xCE, 0xCE), "-", remain_detect_flag, tray_data[i]);
             m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
+                return; //not allowed to map to empty slots
                 m_mapping_item->send_event(m_current_filament_id);
                 Dismiss();
             });
