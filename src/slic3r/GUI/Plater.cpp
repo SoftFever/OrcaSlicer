@@ -394,8 +394,10 @@ struct ExtruderGroup : StaticGroup
             return;
         ams_n4 = n4;
         ams_n1 = n1;
+
         if (btn_edit) {
-            update_ams();
+            if (GUI::wxGetApp().plater())
+                GUI::wxGetApp().plater()->update_machine_sync_status();
         }
     }
 
@@ -1748,15 +1750,9 @@ Sidebar::Sidebar(Plater *parent)
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
+            p->is_switching_diameter = true;
             auto result   = p->switch_diameter(extruder == p->single_extruder);
-            if (result) {
-                if (extruder != p->single_extruder) {
-                    extruder->combo_diameter->SetSelection(evt.GetInt());
-                    extruder->diameter = evt.GetString();
-                }
-            } else {
-                extruder->combo_diameter->SetValue(extruder->diameter);
-            }
+            p->is_switching_diameter = false;
         };
         p->left_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
         p->right_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
@@ -2364,12 +2360,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (is_dual_extruder) {
             AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
             AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
-            update_extruder_diameter(*p->left_extruder);
-            update_extruder_diameter(*p->right_extruder);
+            if (!p->is_switching_diameter) {
+                update_extruder_diameter(*p->left_extruder);
+                update_extruder_diameter(*p->right_extruder);
+            }
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
-            update_extruder_diameter(*p->single_extruder);
+            if (!p->is_switching_diameter)
+                update_extruder_diameter(*p->single_extruder);
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 32));
         }
 
