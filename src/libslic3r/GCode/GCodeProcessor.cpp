@@ -4918,10 +4918,13 @@ void GCodeProcessor::run_post_process()
     // add lines M104 to exported gcode
     auto process_line_T = [this, &export_lines](const std::string& gcode_line, const size_t g1_lines_counter, const ExportLines::Backtrace& backtrace) {
         const std::string cmd = GCodeReader::GCodeLine::extract_cmd(gcode_line);
+
+        int tool_number = -1;
+        if (!parse_number(std::string_view(cmd).substr(1), tool_number)){
+            // invalid T<n> command, such as the "TIMELAPSE_TAKE_FRAME" gcode, just ignore
+            return;
+        }
         if (cmd.size() >= 2) {
-            std::stringstream ss(cmd.substr(1));
-            int tool_number = -1;
-            ss >> tool_number;
             if (tool_number != -1) {
                 if (tool_number < 0 || (int)m_extruder_temps_config.size() <= tool_number) {
                     // found an invalid value, clamp it to a valid one
