@@ -1120,7 +1120,7 @@ bool Sidebar::priv::sync_extruder_list()
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
-    if (obj == nullptr || !obj->is_info_ready(false)) {
+    if (obj == nullptr) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
         dlg.ShowModal();
         return false;
@@ -2626,30 +2626,31 @@ bool Sidebar::sync_extruder_list()
     return p->sync_extruder_list();
 }
 
+bool Sidebar::auto_sync_extruder_list_on_connect_priner(const MachineObject *obj)
+{
+    if(!obj)
+        return false;
+
+    std::string   machine_print_name = obj->printer_type;
+    PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
+    std::string   target_model_id    = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
+    if (machine_print_name != target_model_id) {
+        return false;
+    }
+
+    if (preset_bundle->get_printer_extruder_count() <= 1)
+        return false;
+
+    return p->sync_extruder_list();
+}
+
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
 }
 
-bool Sidebar::should_sync_extruder_list(MachineObject *obj)
-{
-    if (obj && obj->is_connected() && obj->is_multi_extruders() && wxGetApp().plater()->is_multi_extruder_ams_empty()) {
-        std::string   machine_print_name = obj->printer_type;
-        PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
-        std::string   target_model_id    = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        if (machine_print_name == target_model_id) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
-    // Remove auto sync
-    //if (should_sync_extruder_list(obj))
-    //    sync_extruder_list();
-
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 
     p->ams_list_device = device;
