@@ -593,6 +593,9 @@ private:
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
+    // 1 << 0: A1 series cannot supprot traditional timelapse when printing by object (cannot turn on timelapse)
+    // 1 << 1: A1 series cannot supprot traditional timelapse with spiral vase mode   (cannot turn on timelapse)
+    // 1 << 2: Timelapse in smooth mode without wipe tower (turn on with prompt)
     int m_timelapse_warning_code = 0;
     bool m_support_traditional_timelapse = true;
 

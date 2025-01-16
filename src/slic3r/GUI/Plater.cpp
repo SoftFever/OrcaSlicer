@@ -4400,6 +4400,8 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
         return _L("Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode.");
     } else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
         return wxString();
+    } else if (warning.msg == SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER) {
+        return _L("Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again.");
     }
     else {
         return wxString(warning.msg);

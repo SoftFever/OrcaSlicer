@@ -24,6 +24,7 @@ class Print;
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
 #define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
+#define SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER                        "smooth_timelapse_without_prime_tower"
 #define LONG_RETRACTION_WHEN_CUT                                    "activate_long_retraction_when_cut"
 
     enum class EMoveType : unsigned char

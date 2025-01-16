@@ -1792,8 +1792,12 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
         m_timelapse_warning_code += 1;
     }
-    if (m_config.printer_structure.value == PrinterStructure::psI3 && print->config().print_sequence == PrintSequence::ByObject) {
+    if ((m_config.printer_structure.value == PrinterStructure::psI3 || m_config.nozzle_diameter.size() == 2)
+        && print->config().print_sequence == PrintSequence::ByObject) {
         m_timelapse_warning_code += (1 << 1);
+    }
+    if (m_config.timelapse_type.value == TimelapseType::tlSmooth && !m_config.enable_prime_tower.value) {
+        m_timelapse_warning_code += (1 << 2);
     }
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
     m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
@@ -4799,8 +4803,17 @@ LayerResult GCode::process_layer(
     log_memory_info();
 
     if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        // The traditional model of thin-walled object will have flaws for I3
         if (m_support_traditional_timelapse && printer_structure == PrinterStructure::psI3)
             m_support_traditional_timelapse = false;
+
+        // The traditional model will have flaws for multi_extruder when switching extruder
+        if (m_config.nozzle_diameter.values.size() == 2
+            && m_support_traditional_timelapse
+            && m_config.timelapse_type.value == TimelapseType::tlTraditional
+            && (writer().filament() && get_extruder_id(writer().filament()->id()) != most_used_extruder)) {
+            m_support_traditional_timelapse = false;
+        }
 
         gcode += this->retract(false, false, LiftType::SpiralLift);
         m_writer.add_object_change_labels(gcode);
