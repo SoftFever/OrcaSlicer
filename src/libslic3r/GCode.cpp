@@ -3823,10 +3823,16 @@ LayerResult GCode::process_layer(
         return next_extruder;
     };
     
-    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic) {
-        for (const auto &layer_to_print : layers) {
-            m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
-                                                                layer_to_print.object_layer);
+    for (const auto &layer_to_print : layers) {
+        if (layer_to_print.object_layer) {
+            const auto& regions = layer_to_print.object_layer->regions();
+            const bool  enable_overhang_speed = std::any_of(regions.begin(), regions.end(), [](const LayerRegion* r) {
+                return r->has_extrusions() && r->region().config().enable_overhang_speed && !r->region().config().overhang_speed_classic;
+            });
+            if (enable_overhang_speed) {
+                m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
+                                                                    layer_to_print.object_layer);
+            }
         }
     }
 
@@ -4190,8 +4196,11 @@ LayerResult GCode::process_layer(
                     }
                 }
 
-                if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic)
-                    m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
+                // Orca(#7946): set current obj regardless of the `enable_overhang_speed` value, because
+                // `enable_overhang_speed` is a PrintRegionConfig and here we don't have a region yet.
+                // And no side effect doing this even if `enable_overhang_speed` is off, so don't bother
+                // checking anything here.
+                m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
