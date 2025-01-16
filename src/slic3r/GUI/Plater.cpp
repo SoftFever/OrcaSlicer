@@ -9170,13 +9170,13 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
             {
                 SyncInfoDialog(wxWindow *parent)
                     : MessageDialog(parent,
-                                    _L("It is detected that you have not synchronized the nozzle and AMS information.\n"
-                                       "If you synchronize it before slicing, the filament arrangement will be more reasonable.\n"
-                                       "Do you need to synchronize it ?"),
+                                    _L("The nozzle type and AMS quantity information has not been synced from the connected printer.\n"
+                                       "After syncing, software can optimize printing time and filament usage when slicing.\n"
+                                       "Would you like to sync now ?"),
                                     _L("Warning"), 0)
                 {
                     add_button(wxID_YES, true, _L("Sync now"));
-                    add_button(wxID_NO, true, _L("Out of sync"));
+                    add_button(wxID_NO, true, _L("Later"));
                 }
             } dlg(q);
             dlg.Fit();
@@ -13096,7 +13096,7 @@ bool check_printer_initialized(MachineObject *obj)
     }
 
     if (!has_been_initialized) {
-        MessageDialog dlg(wxGetApp().plater(), _L("It is detected that the nozzle type is not set. please set the nozzle first and then perform the current operation again."), _L("Warning"), wxOK | wxICON_WARNING);
+        MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
 
         PrinterPartsDialog* print_parts_dlg = new PrinterPartsDialog(nullptr);

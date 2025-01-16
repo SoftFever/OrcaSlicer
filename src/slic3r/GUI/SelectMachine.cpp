@@ -532,7 +532,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_mapping_sugs->SetMinSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetMaxSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetBackgroundColour(*wxWHITE);
-    m_txt_mapping_sugs->SetLabel(_L("Your material arrangement method is not optimal."));
+    m_txt_mapping_sugs->SetLabel(_L("Your filament arrangement method is not optimal."));
     m_mapping_sugs_sizer->Add(m_img_mapping_sugs, 0, wxALIGN_CENTER, 0);
     m_mapping_sugs_sizer->Add(m_txt_mapping_sugs, 0, wxALIGN_CENTER, 0);
 

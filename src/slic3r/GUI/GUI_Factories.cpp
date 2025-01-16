@@ -1485,7 +1485,7 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
             []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
     }
 
-    const int item_id = menu->FindItem(_L("Delete then replace with"));
+    const int item_id = menu->FindItem(_L("Merge with"));
     if (item_id != wxNOT_FOUND)
         menu->Destroy(item_id);
 
@@ -1503,7 +1503,7 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
             [i](wxCommandEvent&) { plater()->sidebar().change_filament(-2, i); }, *icons[i], menu,
             []() { return true; }, m_parent);
     }
-    append_submenu(menu, sub_menu, wxID_ANY, _L("Delete then replace with"), "", "",
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Merge with"), "", "",
         [filaments_cnt]() { return filaments_cnt > 1; }, m_parent);
 }
 
