@@ -1743,6 +1743,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
+        update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
         update_print_status_msg(wxEmptyString, false, false);
         Enable_Send_Button(true);
@@ -1756,7 +1760,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
+    }  else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
         update_print_status_msg(msg_text, false, false);
         Enable_Send_Button(true);
@@ -3347,6 +3351,12 @@ void SelectMachineDialog::update_show_status()
     }
 
     // check ams and vt_slot mix use status
+    if (obj_->is_ams_on_settingup())
+    {
+        show_status(PrintDialogStatus::PrintStatusAmsOnSettingup);
+        return;
+    }
+
     struct ExtruderStatus
     {
         bool has_ams{false};

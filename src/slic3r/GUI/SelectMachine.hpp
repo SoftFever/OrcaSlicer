@@ -75,6 +75,7 @@ enum PrintDialogStatus {
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
     PrintStatusDisableAms,
+    PrintStatusAmsOnSettingup,
     PrintStatusAmsMappingSuccess,
     PrintStatusAmsMappingInvalid,
     PrintStatusAmsMappingU0Invalid,

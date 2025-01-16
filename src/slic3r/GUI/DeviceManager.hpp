@@ -700,6 +700,8 @@ public:
     bool    is_ams_need_update;
 
     inline bool is_ams_unload() { return m_tray_tar.compare("255") == 0; }
+    [[nodiscard]] bool is_ams_on_settingup() const;
+
     Ams*     get_curr_Ams();
     AmsTray* get_curr_tray();
     AmsTray *get_ams_tray(std::string ams_id, std::string tray_id);
