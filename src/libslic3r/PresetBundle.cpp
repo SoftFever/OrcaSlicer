@@ -4215,6 +4215,9 @@ bool PresetBundle::has_errors() const
     for (auto& preset : filaments) {
         if (!preset.is_system)
             continue;
+        // It's per design that the Orca Filament Library can have the empty compatible_printers.
+        if(preset.vendor->name == PresetBundle::ORCA_FILAMENT_LIBRARY)
+            continue;
         auto* compatible_printers = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("compatible_printers"));
         if (compatible_printers == nullptr || compatible_printers->values.empty()) {
             has_errors = true;
