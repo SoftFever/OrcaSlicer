@@ -48,7 +48,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
+            arch: x86_64
+          - os: ubuntu-20.04
+            arch: aarch64
           - os: ubuntu-24.04
+            arch: x86_64
+          - os: ubuntu-24.04
+            arch: aarch64
           - os: windows-latest
           - os: macos-14
             arch: x86_64
@@ -62,7 +68,15 @@ jobs:
     secrets: inherit
   flatpak:
     name: "Flatpak"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include: 
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-latest
+            arch: aarch64
+      fail-fast: false
     env:
       date:
       ver:
@@ -97,6 +111,7 @@ jobs:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
+        arch: ${{ matrix.arch }}
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
       uses: WebFreak001/deploy-nightly@v3.1.0
