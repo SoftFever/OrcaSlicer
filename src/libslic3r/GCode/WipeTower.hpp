@@ -392,7 +392,8 @@ private:
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
 
-    double       m_nozzle_change_length = 10;
+    double       m_nozzle_change_length = 0;
+    std::vector<double> m_filaments_change_length;
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
     std::vector<int>   m_filament_map;

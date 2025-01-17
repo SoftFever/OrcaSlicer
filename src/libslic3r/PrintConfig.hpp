@@ -1222,6 +1222,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionBools,               filament_is_support))
+    ((ConfigOptionFloats,              filament_change_length))
     ((ConfigOptionFloats,              filament_cost))
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS

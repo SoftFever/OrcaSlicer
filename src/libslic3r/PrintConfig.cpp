@@ -2474,6 +2474,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
+    def           = this->add("filament_change_length", coFloats);
+    def->label    = L("Filament change length");
+    def->tooltip  = L("Filament change length");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{10});
+
     def = this->add("filament_is_support", coBools);
     def->label = L("Support material");
     def->tooltip = L("Support material is commonly used to print supports and support interfaces.");
@@ -4532,7 +4540,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{10});
+    def->set_default_value(new ConfigOptionFloats{0});
 
     def = this->add("extruder_ams_count", coStrings);
     def->label = "Extruder ams count";

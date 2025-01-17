@@ -3530,6 +3530,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_soluble");
         // BBS
         optgroup->append_single_option_line("filament_is_support");
+        optgroup->append_single_option_line("filament_change_length");
+
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");

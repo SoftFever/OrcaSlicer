@@ -683,6 +683,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_wipe_volume(prime_volume),
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
     m_nozzle_change_length(config.extruder_change_length.get_at(0)),
+    m_filaments_change_length(config.filament_change_length.values),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
     m_is_print_outer_first(config.prime_tower_outer_first.value),
     m_use_gap_wall(config.prime_tower_skip_points.value)
@@ -1680,7 +1681,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     float nozzle_change_depth = 0;
     if (!m_filament_map.empty() && m_filament_map[old_tool] != m_filament_map[new_tool]) {
         double e_flow                   = extrusion_flow(0.2);
-        double length                   = m_nozzle_change_length / e_flow;
+        double length                   = (m_nozzle_change_length + m_filaments_change_length[old_tool]) / e_flow;
         int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
         if (has_tpu_filament())
             nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_perimeter_width;

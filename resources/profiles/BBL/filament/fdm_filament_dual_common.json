@@ -62,5 +62,8 @@
     "nozzle_temperature_initial_layer": [
         "",
         ""
+    ],
+    "filament_change_length": [
+        "10"
     ]
 }
