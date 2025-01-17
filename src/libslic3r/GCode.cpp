@@ -4804,7 +4804,9 @@ LayerResult GCode::process_layer(
 
     if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
         // The traditional model of thin-walled object will have flaws for I3
-        if (m_support_traditional_timelapse && printer_structure == PrinterStructure::psI3)
+        if (m_support_traditional_timelapse
+            && printer_structure == PrinterStructure::psI3
+            && m_config.timelapse_type.value == TimelapseType::tlTraditional)
             m_support_traditional_timelapse = false;
 
         // The traditional model will have flaws for multi_extruder when switching extruder

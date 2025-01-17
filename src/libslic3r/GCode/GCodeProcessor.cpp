@@ -5866,6 +5866,7 @@ void GCodeProcessor::update_slice_warnings()
     }
 
     if (!warning.params.empty()) {
+        warning.level       = 3;
         warning.msg         = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
         warning.error_code  = "1000C001";
         m_result.warnings.push_back(warning);
@@ -5899,6 +5900,7 @@ void GCodeProcessor::update_slice_warnings()
     }
 
     if (!warning.params.empty()) {
+        warning.level      = 3;
         warning.msg = NOZZLE_HRC_CHECKER;
         warning.error_code = "1000C002";
         m_result.warnings.push_back(warning);
@@ -5910,6 +5912,11 @@ void GCodeProcessor::update_slice_warnings()
     if (!m_result.support_traditional_timelapse) {
         warning.level      = 2;
         warning.msg        = NOT_SUPPORT_TRADITIONAL_TIMELAPSE;
+        warning.error_code = "10018003";
+        m_result.warnings.push_back(warning);
+
+        // Compatible with older version for A series
+        warning.level      = 3;
         warning.error_code = "1000C003";
         m_result.warnings.push_back(warning);
     }
@@ -5918,19 +5925,19 @@ void GCodeProcessor::update_slice_warnings()
         if (m_result.timelapse_warning_code & 1) {
             warning.level      = 1;
             warning.msg        = NOT_GENERATE_TIMELAPSE;
-            warning.error_code = "1001C001";
+            warning.error_code = "10014001";
             m_result.warnings.push_back(warning);
         }
         if ((m_result.timelapse_warning_code >> 1) & 1) {
             warning.level      = 1;
             warning.msg        = NOT_GENERATE_TIMELAPSE;
-            warning.error_code = "1001C002";
+            warning.error_code = "10014002";
             m_result.warnings.push_back(warning);
         }
         if ((m_result.timelapse_warning_code >> 2) & 1) {
             warning.level      = 2;
             warning.msg        = SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER;
-            warning.error_code = "1001C004";
+            warning.error_code = "10018004";
             m_result.warnings.push_back(warning);
         }
     }
