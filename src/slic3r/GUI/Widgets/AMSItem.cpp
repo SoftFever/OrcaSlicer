@@ -2446,7 +2446,7 @@ void AMSPreview::doRender(wxDC &dc)
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
-            if (wxWindow::IsEnabled()) {
+            if (wxWindow::IsThisEnabled()) {
                 wxColour color = iter->material_colour;
                 change_the_opacity(color);
                 dc.SetBrush(wxBrush(color));
