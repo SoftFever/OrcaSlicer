@@ -3281,6 +3281,7 @@ void SelectMachineDialog::update_show_status()
                                                                      "Please make sure the nozzle installed matches with settings in printer, then set the "
                                                                      "corresponding printer preset when slicing."), obj_->m_extder_data.extders[0].current_nozzle_diameter,
                                                                      nozzle_diameter);
+                error_msg.emplace_back(nozzle_config + "\n\n" + tips);
             }
 
             return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, error_msg);
