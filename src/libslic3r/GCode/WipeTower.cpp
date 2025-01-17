@@ -16,6 +16,8 @@ namespace Slic3r
 {
 static const double wipe_tower_wall_infill_overlap = 0.0;
 static const double wipe_tower_wall_infill_overlap_new = -0.2;
+static constexpr double WIPE_TOWER_RESOLUTION = 0.0375;
+#define SCALED_WIPE_TOWER_RESOLUTION (WIPE_TOWER_RESOLUTION / SCALING_FACTOR)
 inline float align_round(float value, float base)
 {
     return std::round(value / base) * base;
@@ -60,11 +62,230 @@ static bool is_valid_gcode(const std::string &gcode)
     return is_valid;
 }
 
+Polygon chamfer_polygon(Polygon &polygon, double chamfer_dis = 2., double angle_tol = 30. / 180. * PI)
+{
+    if (polygon.points.size() < 3) return polygon;
+    Polygon res;
+    res.points.reserve(polygon.points.size() * 2);
+    int    mod           = polygon.points.size();
+    double cos_angle_tol = abs(std::cos(angle_tol));
+
+    for (int i = 0; i < polygon.points.size(); i++) {
+        Vec2d  a        = unscaled(polygon.points[(i - 1 + mod) % mod]);
+        Vec2d  b        = unscaled(polygon.points[i]);
+        Vec2d  c        = unscaled(polygon.points[(i + 1) % mod]);
+        double ab_len   = (a - b).norm();
+        double bc_len   = (b - c).norm();
+        Vec2d  ab       = (b - a) / ab_len;
+        Vec2d  bc       = (c - b) / bc_len;
+        assert(ab_len != 0);
+        assert(bc_len != 0);
+        float  cosangle = ab.dot(bc);
+        //std::cout << " angle " << acos(cosangle) << " cosangle " << cosangle << std::endl;
+        //std::cout << " ab_len " << ab_len << " bc_len " << bc_len << std::endl;
+        if (abs(cosangle) < cos_angle_tol) {
+            float real_chamfer_dis = std::min({chamfer_dis, ab_len / 2.1, bc_len / 2.1}); // 2.1 to ensure the points do not coincide
+            Vec2d left             = b - ab * real_chamfer_dis;
+            Vec2d right            = b + bc * real_chamfer_dis;
+            res.points.push_back(scaled(left));
+            res.points.push_back(scaled(right));
+        } else
+            res.points.push_back(polygon.points[i]);
+    }
+    res.points.shrink_to_fit();
+    return res;
+}
+
+Polygon rounding_polygon(Polygon &polygon, double rounding = 2., double angle_tol = 30. / 180. * PI)
+{
+    if (polygon.points.size() < 3) return polygon;
+    Polygon res;
+    res.points.reserve(polygon.points.size() * 2);
+    int    mod           = polygon.points.size();
+    double cos_angle_tol = abs(std::cos(angle_tol));
+
+    for (int i = 0; i < polygon.points.size(); i++) {
+        Vec2d  a      = unscaled(polygon.points[(i - 1 + mod) % mod]);
+        Vec2d  b      = unscaled(polygon.points[i]);
+        Vec2d  c      = unscaled(polygon.points[(i + 1) % mod]);
+        double ab_len = (a - b).norm();
+        double bc_len = (b - c).norm();
+        Vec2d  ab     = (b - a) / ab_len;
+        Vec2d  bc     = (c - b) / bc_len;
+        assert(ab_len != 0);
+        assert(bc_len != 0);
+        float cosangle = ab.dot(bc);
+        cosangle       = std::clamp(cosangle, -1.f, 1.f);
+        bool  is_ccw   = cross2(ab, bc) > 0;
+        if (abs(cosangle) < cos_angle_tol) {
+            float real_rounding_dis = std::min({rounding, ab_len / 2.1, bc_len / 2.1}); // 2.1 to ensure the points do not coincide
+            Vec2d left              = b - ab * real_rounding_dis;
+            Vec2d right             = b + bc * real_rounding_dis;
+            //Point r_left            = scaled(left);
+            //Point r_right            = scaled(right);
+           // std::cout << " r_left  " << r_left[0] << " " << r_left[1] << std::endl;
+            //std::cout << " r_right  " << r_right[0] << " " << r_right[1] << std::endl;
+            {
+                float half_angle = std::acos(cosangle)/2.f;
+                //std::cout << " half_angle  " << cos(half_angle) << std::endl;
+
+                Vec2d dir        = (right - left).normalized();
+                dir              = Vec2d{-dir[1], dir[0]};
+                dir                  = is_ccw ? dir : -dir;
+                double dis       = real_rounding_dis / sin(half_angle);
+                //std::cout << " dis  " << dis << std::endl;
+
+                Vec2d  center    = b + dir * dis;
+                double radius    = (left - center).norm();
+                ArcSegment arc(scaled(center), scaled(radius), scaled(left), scaled(right), is_ccw ? ArcDirection::Arc_Dir_CCW : ArcDirection::Arc_Dir_CW);
+                float      sample_angle = 5.f / 180.f * PI;
+                int        n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                //std::cout << "start  " << arc.start_point[0] << " " << arc.start_point[1] << std::endl;
+                //std::cout << "end  " << arc.end_point[0] << " " << arc.end_point[1] << std::endl;
+                //std::cout << "start angle   " << arc.polar_start_theta << " end angle " << arc.polar_end_theta << std::endl;
+                for (int j = 0; j < n; j++) {
+                    float cur_angle = arc.polar_start_theta + (float)j/n * arc.angle_radians ;
+                    //std::cout << " cur_angle " << cur_angle << std::endl;
+                    if (cur_angle > 2 * PI)
+                        cur_angle -= 2 * PI;
+                    else if (cur_angle < 0)
+                        cur_angle += 2 * PI;
+                    Point tmp = arc.center + Point{arc.radius * std::cos(cur_angle), arc.radius *std::sin(cur_angle)};
+                    //std::cout << "j = " << j << std::endl;
+                    //std::cout << "tmp  = " << tmp[0]<<" "<<tmp[1] << std::endl;
+                    res.points.push_back(tmp);
+                }
+            }
+            res.points.push_back(scaled(right));
+        } else
+            res.points.push_back(polygon.points[i]);
+    }
+    res.points.shrink_to_fit();
+    return res;
+}
+
+Polygon rounding_rectangle(Polygon &polygon, double rounding = 2., double angle_tol = 30. / 180. * PI) {
+    if (polygon.points.size() < 3) return polygon;
+    Polygon res;
+    res.points.reserve(polygon.points.size() * 2);
+    int    mod           = polygon.points.size();
+    double cos_angle_tol = abs(std::cos(angle_tol));
+
+    for (int i = 0; i < polygon.points.size(); i++) {
+        Vec2d  a      = unscaled(polygon.points[(i - 1 + mod) % mod]);
+        Vec2d  b      = unscaled(polygon.points[i]);
+        Vec2d  c      = unscaled(polygon.points[(i + 1) % mod]);
+        double ab_len = (a - b).norm();
+        double bc_len = (b - c).norm();
+        Vec2d  ab     = (b - a) / ab_len;
+        Vec2d  bc     = (c - b) / bc_len;
+        assert(ab_len != 0);
+        assert(bc_len != 0);
+        float cosangle = ab.dot(bc);
+        cosangle       = std::clamp(cosangle, -1.f, 1.f);
+        bool is_ccw    = cross2(ab, bc) > 0;
+        if (abs(cosangle) < cos_angle_tol) {
+            float real_rounding_dis = std::min({rounding, ab_len / 2.1, bc_len / 2.1}); // 2.1 to ensure the points do not coincide
+            Vec2d left              = b - ab * real_rounding_dis;
+            Vec2d right             = b + bc * real_rounding_dis;
+            //Point r_left            = scaled(left);
+            //Point r_right           = scaled(right);
+            // std::cout << " r_left  " << r_left[0] << " " << r_left[1] << std::endl;
+            // std::cout << " r_right  " << r_right[0] << " " << r_right[1] << std::endl;
+            {
+                Vec2d      center = b;
+                double     radius = real_rounding_dis;
+                ArcSegment arc(scaled(center), scaled(radius), scaled(left), scaled(right), is_ccw ? ArcDirection::Arc_Dir_CCW : ArcDirection::Arc_Dir_CW);
+                float      sample_angle = 5.f / 180.f * PI;
+                int        n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                // std::cout << "start  " << arc.start_point[0] << " " << arc.start_point[1] << std::endl;
+                // std::cout << "end  " << arc.end_point[0] << " " << arc.end_point[1] << std::endl;
+                // std::cout << "start angle   " << arc.polar_start_theta << " end angle " << arc.polar_end_theta << std::endl;
+                for (int j = 0; j < n; j++) {
+                    float cur_angle = arc.polar_start_theta + (float) j / n * arc.angle_radians;
+                    // std::cout << " cur_angle " << cur_angle << std::endl;
+                    if (cur_angle > 2 * PI)
+                        cur_angle -= 2 * PI;
+                    else if (cur_angle < 0)
+                        cur_angle += 2 * PI;
+                    Point tmp = arc.center + Point{arc.radius * std::cos(cur_angle), arc.radius * std::sin(cur_angle)};
+                    // std::cout << "j = " << j << std::endl;
+                    // std::cout << "tmp  = " << tmp[0]<<" "<<tmp[1] << std::endl;
+                    res.points.push_back(tmp);
+                }
+            }
+            res.points.push_back(scaled(right));
+        } else
+            res.points.push_back(polygon.points[i]);
+    }
+    res.points.shrink_to_fit();
+    return res;
+}
+
+std::pair<bool, Vec2f> ray_intersetion_line(const Vec2f &a, const Vec2f &v1, const Vec2f &b, const Vec2f &c)
+{
+    const Vec2f v2    = c - b;
+    double      denom = cross2(v1, v2);
+    if (fabs(denom) < EPSILON) return {false, Vec2f(0, 0)};
+    const Vec2f v12    = (a - b);
+    double      nume_a = cross2(v2, v12);
+    double      nume_b = cross2(v1, v12);
+    double      t1     = nume_a / denom;
+    double      t2     = nume_b / denom;
+    if (t1 >= 0 && t2 >= 0 && t2 <= 1.) {
+        // Get the intersection point.
+        Vec2f res = a + t1 * v1;
+        return std::pair<bool, Vec2f>(true, res);
+    }
+    return std::pair<bool, Vec2f>(false, Vec2f{0, 0});
+}
+Polygon scale_polygon(const std::vector<Vec2f> &points) {
+    Polygon res;
+    for (const auto &p : points) res.points.push_back(scaled(p));
+    return res;
+}
+std::vector<Vec2f> unscale_polygon(const Polygon& polygon)
+{
+    std::vector<Vec2f> res;
+    for (const auto &p : polygon.points) res.push_back(unscaled<float>(p));
+    return res;
+}
+
+Polygon generate_rectange(const Line &line, coord_t offset)
+{
+    Point p1 = line.a;
+    Point p2 = line.b;
+
+    double dx = p2.x() - p1.x();
+    double dy = p2.y() - p1.y();
+
+    double length = std::sqrt(dx * dx + dy * dy);
+
+    double ux = dx / length;
+    double uy = dy / length;
+
+    double vx = -uy;
+    double vy = ux;
+
+    double ox = vx * offset;
+    double oy = vy * offset;
+
+    Points rect;
+    rect.resize(4);
+    rect[0] = {p1.x() + ox, p1.y() + oy};
+    rect[1] = {p1.x() - ox, p1.y() - oy};
+    rect[2] = {p2.x() - ox, p2.y() - oy};
+    rect[3] = {p2.x() + ox, p2.y() + oy};
+    Polygon poly(rect);
+    return poly;
+};
+
 struct Segment
 {
     Vec2f start;
     Vec2f end;
-
+    bool  is_arc = false;
+    ArcSegment arcsegment;
     Segment(const Vec2f &s, const Vec2f &e) : start(s), end(e) {}
     bool is_valid() const { return start.y() < end.y(); }
 };
@@ -91,6 +312,216 @@ static std::vector<Segment> remove_points_from_segment(const Segment &segment, c
 
     result.erase(std::remove_if(result.begin(), result.end(), [](const Segment &seg) { return !seg.is_valid(); }), result.end());
     return result;
+}
+
+struct IntersectionInfo
+{
+    Vec2f pos;
+    int   idx;
+    int   pair_idx; // gap_pair idx
+    float dis_from_idx;
+    bool  is_forward;
+};
+
+struct PointWithFlag
+{
+    Vec2f pos;
+    int   pair_idx; // gap_pair idx
+    bool  is_forward;
+};
+IntersectionInfo move_point_along_polygon(const std::vector<Vec2f> &points, const Vec2f &startPoint, int startIdx, float offset, bool forward, int pair_idx)
+{
+    float            remainingDistance = offset;
+    IntersectionInfo res;
+    int  mod = points.size();
+    if (forward) {
+        int next = (startIdx + 1) % mod;
+        remainingDistance -= (points[next] - startPoint).norm();
+        if (remainingDistance <= 0) {
+            res.idx          = startIdx;
+            res.pos          = startPoint + (points[next] - startPoint).normalized() * offset;
+            res.pair_idx     = pair_idx;
+            res.dis_from_idx = (points[startIdx] - res.pos).norm();
+            return res;
+        } else {
+            for (int i = (startIdx + 1) % mod; i != startIdx; i = (i + 1) % mod) {
+                float segmentLength = (points[(i + 1) % mod] - points[i]).norm();
+                if (remainingDistance <= segmentLength) {
+                    float ratio      = remainingDistance / segmentLength;
+                    res.idx          = i;
+                    res.pos          = points[i] + ratio * (points[(i + 1) % mod] - points[i]);
+                    res.dis_from_idx = remainingDistance;
+                    res.pair_idx     = pair_idx;
+                    return res;
+                }
+                remainingDistance -= segmentLength;
+            }
+            res.idx          = (startIdx - 1 + mod) % mod;
+            res.pos          = points[startIdx];
+            res.pair_idx     = pair_idx;
+            res.dis_from_idx = (res.pos - points[res.idx]).norm();
+        }
+    } else {
+        int next = (startIdx + 1) % mod;
+        remainingDistance -= (points[startIdx] - startPoint).norm();
+        if (remainingDistance <= 0) {
+            res.idx          = startIdx;
+            res.pos          = startPoint - (points[next] - points[startIdx]).normalized() * offset;
+            res.dis_from_idx = (res.pos - points[startIdx]).norm();
+            res.pair_idx     = pair_idx;
+            return res;
+        }
+        for (int i = (startIdx - 1 + mod) % mod; i != startIdx; i = (i - 1 + mod) % mod) {
+            float segmentLength = (points[(i + 1) % mod] - points[i]).norm();
+            if (remainingDistance <= segmentLength) {
+                float ratio      = remainingDistance / segmentLength;
+                res.idx          = i;
+                res.pos          = points[(i + 1) % mod] - ratio * (points[(i + 1) % mod] - points[i]);
+                res.dis_from_idx = segmentLength - remainingDistance;
+                res.pair_idx     = pair_idx;
+                return res;
+            }
+            remainingDistance -= segmentLength;
+        }
+        res.idx          = startIdx;
+        res.pos          = points[res.idx];
+        res.pair_idx     = pair_idx;
+        res.dis_from_idx = 0;
+    }
+    return res;
+};
+
+void insert_points(std::vector<PointWithFlag> &pl, int idx, Vec2f pos, int pair_idx, bool is_forward)
+{
+    int   next = (idx + 1) % pl.size();
+    Vec2f pos1 = pl[idx].pos;
+    Vec2f pos2 = pl[next].pos;
+    if ((pos - pos1).squaredNorm() < EPSILON) {
+        pl[idx].pair_idx   = pair_idx;
+        pl[idx].is_forward = is_forward;
+    } else if ((pos - pos2).squaredNorm() < EPSILON) {
+        pl[next].pair_idx   = pair_idx;
+        pl[next].is_forward = is_forward;
+    } else {
+        pl.insert(pl.begin() + idx + 1, PointWithFlag{pos, pair_idx, is_forward});
+    }
+}
+
+Polylines remove_points_from_polygon(const Polygon &polygon, const std::vector<Vec2f> &skip_points, double range, bool is_left ,Polygon& insert_skip_pg)
+{
+    Polylines result;
+    std::vector<PointWithFlag> new_pl; // add intersection points for gaps, where bool indicates whether it's a gap point.
+    std::vector<IntersectionInfo> inter_info;
+    Vec2f                         ray = is_left ? Vec2f(-1, 0) : Vec2f(1, 0);
+    std::vector<Vec2f>            points;
+    points.reserve(polygon.points.size());
+    for (auto &p : polygon.points) points.push_back(unscale(p).cast<float>());
+    for (int i = 0; i < skip_points.size(); i++) {
+        for (int j = 0; j < points.size(); j++) {
+            Vec2f& p1                   = points[j];
+            Vec2f& p2                   = points[(j + 1) % points.size()];
+            auto [is_inter, inter_pos] = ray_intersetion_line(skip_points[i], ray, p1, p2);
+            if (is_inter) {
+                IntersectionInfo forward  = move_point_along_polygon(points, inter_pos, j, range, true, i);
+                IntersectionInfo backward = move_point_along_polygon(points, inter_pos, j, range, false, i);
+                backward.is_forward       = false;
+                forward.is_forward        = true;
+                inter_info.push_back(backward);
+                inter_info.push_back(forward);
+                break;
+            }
+        }
+    }
+
+    // insert point to new_pl
+    for (const auto &p : points) new_pl.push_back({p, -1});
+    std::sort(inter_info.begin(), inter_info.end(), [](const IntersectionInfo &lhs, const IntersectionInfo &rhs) {
+        if (rhs.idx == lhs.idx) return lhs.dis_from_idx < rhs.dis_from_idx;
+        return lhs.idx < rhs.idx;
+    });
+    for (int i = inter_info.size() - 1; i >= 0; i--) { insert_points(new_pl, inter_info[i].idx, inter_info[i].pos, inter_info[i].pair_idx, inter_info[i].is_forward); }
+
+    {
+        //set insert_pg for wipe_path
+        for (auto &p : new_pl) insert_skip_pg.points.push_back(scaled(p.pos));
+    }
+
+    //assume that no interval is completely contained within another interval.
+    int beg = -1;
+    for (int i = 0; i < skip_points.size(); i++) {
+        if (beg != -1) break;
+        for (int j = 0; j < new_pl.size(); j++) {
+            if (new_pl[j].pair_idx == i && !new_pl[j].is_forward) {
+                bool is_include_pair = false;
+                int  k               = (j + 1) % new_pl.size();
+                while (k != j) {
+                    if (new_pl[k].pair_idx == i && new_pl[k].is_forward) { break; }
+                    if (new_pl[k].pair_idx != -1 && new_pl[k].pair_idx != i && new_pl[k].is_forward) {
+                        is_include_pair = true;
+                        break;
+                    }
+                    k = (k + 1) % new_pl.size();
+                }
+                if (!is_include_pair) {
+                    beg = k;
+                    break;
+                }
+            }
+        }
+    }
+    if (beg == -1) beg = 0;
+    bool skip = true;
+    int  i    = beg;
+    Polyline pl;
+
+    do {
+        if (skip || new_pl[i].pair_idx == -1) {
+            pl.points.push_back(scaled(new_pl[i].pos));
+            i    = (i + 1) % new_pl.size();
+            skip = false;
+        } else {
+            if (!pl.points.empty()) {
+                pl.points.push_back(scaled(new_pl[i].pos));
+                result.push_back(pl);
+                pl.points.clear();
+            }
+            int left = new_pl[i].pair_idx;
+            int j    = (i + 1) % new_pl.size();
+            while (j != beg && new_pl[j].pair_idx != left) j = (j + 1) % new_pl.size();
+            i    = j;
+            skip = true;
+        }
+    } while (i != beg);
+
+    if (!pl.points.empty()) {
+        if (new_pl[i].pair_idx==-1) pl.points.push_back(scaled(new_pl[i].pos));
+        result.push_back(pl);
+    }
+    return result;
+}
+
+Polylines contrust_gap_for_skip_points(const Polygon &polygon, const std::vector<Vec2f> & skip_points ,float wt_width,float gap_length,Polygon& insert_skip_polygon)
+{
+    if (skip_points.empty()) {
+        insert_skip_polygon = polygon;
+        return Polylines{to_polyline(polygon)};
+    }
+    bool is_left  = false;
+    const auto &pt      = skip_points.front();
+    if (abs(pt.x()) < wt_width/2.f) {
+        is_left = true;
+    }
+    return remove_points_from_polygon(polygon, skip_points, gap_length, is_left, insert_skip_polygon);
+
+};
+
+Polygon generate_rectange_polygon(const Vec2f &wt_box_min ,const Vec2f & wt_box_max) {
+    Polygon res;
+    res.points.push_back(scaled(wt_box_min));
+    res.points.push_back(scaled(Vec2f{wt_box_max[0], wt_box_min[1]}));
+    res.points.push_back(scaled(wt_box_max));
+    res.points.push_back(scaled(Vec2f{wt_box_min[0], wt_box_max[1]}));
+    return res;
 }
 
 class WipeTowerWriter
@@ -264,6 +695,74 @@ public:
 		return *this;
 	}
 
+    	// Extrude with an explicitely provided amount of extrusion.
+    WipeTowerWriter &extrude_arc_explicit(ArcSegment &arc, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
+    {
+        float x   = (float)unscale(arc.end_point).x();
+        float y   = (float)unscale(arc.end_point).y();
+        float len = unscaled<float>(arc.length);
+        float e   = len * m_extrusion_flow;
+        if (len < (float) EPSILON && e == 0.f && (f == 0.f || f == m_current_feedrate))
+            // Neither extrusion nor a travel move.
+            return *this;
+        if (record_length) m_used_filament_length += e;
+
+        // Now do the "internal rotation" with respect to the wipe tower center
+        Vec2f rotated_current_pos(this->pos_rotated());
+        Vec2f rot(this->rotate(Vec2f(x, y))); // this is where we want to go
+
+        if (!m_preview_suppressed && e > 0.f && len > 0.f) {
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+            change_analyzer_mm3_per_mm(len, e);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+       // Width of a squished extrusion, corrected for the roundings of the squished extrusions.
+       // This is left zero if it is a travel move.
+            float width = e * m_filpar[0].filament_area / (len * m_layer_height);
+            // Correct for the roundings of a squished extrusion.
+            width += m_layer_height * float(1. - M_PI / 4.);
+            if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos) m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
+            {
+                float sample_angle = 5.f / 180.f * PI;
+                int   n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                for (int j = 0; j < n; j++) {
+                    float cur_angle = arc.polar_start_theta + (float) j / n * arc.angle_radians;
+                    if (cur_angle > 2 * PI)
+                        cur_angle -= 2 * PI;
+                    else if (cur_angle < 0)
+                        cur_angle += 2 * PI;
+                    Point tmp = arc.center + Point{arc.radius * std::cos(cur_angle), arc.radius * std::sin(cur_angle)};
+                    m_extrusions.emplace_back(WipeTower::Extrusion(this->rotate(unscaled<float>(tmp)), width, m_current_tool));
+                }
+                m_extrusions.emplace_back(WipeTower::Extrusion(rot, width, m_current_tool));
+            }
+
+        }
+        m_gcode += arc.direction == ArcDirection::Arc_Dir_CCW ? "G3" : "G2";
+        const Vec2f center_offset = this->rotate(unscaled<float>(arc.center)) - rotated_current_pos;
+        m_gcode += set_format_X(rot.x());
+        m_gcode += set_format_Y(rot.y());
+        m_gcode += set_format_I(center_offset.x());
+        m_gcode += set_format_J(center_offset.y());
+
+        if (e != 0.f) m_gcode += set_format_E(e);
+
+        if (f != 0.f && f != m_current_feedrate) {
+            if (limit_volumetric_flow) {
+                float e_speed = e / (((len == 0.f) ? std::abs(e) : len) / f * 60.f);
+                f /= std::max(1.f, e_speed / m_filpar[m_current_tool].max_e_speed);
+            }
+            m_gcode += set_format_F(f);
+        }
+
+        m_current_pos.x() = x;
+        m_current_pos.y() = y;
+
+        // Update the elapsed time with a rough estimate.
+        m_elapsed_time += ((len == 0.f) ? std::abs(e) : len) / m_current_feedrate * 60.f;
+        m_gcode += "\n";
+        return *this;
+    }
+
 	WipeTowerWriter& extrude_explicit(const Vec2f &dest, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
 		{ return extrude_explicit(dest.x(), dest.y(), e, f, record_length); }
 
@@ -281,6 +780,10 @@ public:
 		float dy = y - m_current_pos.y();
         return extrude_explicit(x, y, std::sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
 	}
+    WipeTowerWriter &extrude_arc(ArcSegment &arc, float f = 0.f)
+    {
+        return extrude_arc_explicit(arc, f, true);
+    }
 
 	WipeTowerWriter& extrude(const Vec2f &dest, const float f = 0.f)
 		{ return extrude(dest.x(), dest.y(), f); }
@@ -354,6 +857,48 @@ public:
         rectangle(Vec2f(box.ld.x(), box.ld.y()),
                   box.ru.x() - box.lu.x(),
                   box.ru.y() - box.rd.y(), f);
+        return (*this);
+    }
+    WipeTowerWriter &polygon(const Polygon &wall_polygon, const float f = 0.f)
+    {
+        Polyline    pl = to_polyline(wall_polygon);
+        pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+
+        auto get_closet_idx = [this](std::vector<Segment> &corners) -> int {
+            Vec2f anchor{this->m_current_pos.x(), this->m_current_pos.y()};
+            int   closestIndex = -1;
+            float minDistance  = std::numeric_limits<float>::max();
+            for (int i = 0; i < corners.size(); ++i) {
+                float distance = (corners[i].start - anchor).squaredNorm();
+                if (distance < minDistance) {
+                    minDistance  = distance;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        };
+        std::vector<Segment> segments;
+        for (int i = 0; i < pl.fitting_result.size(); i++) {
+            if (pl.fitting_result[i].path_type == EMovePathType::Linear_move) {
+                for (int j = pl.fitting_result[i].start_point_index; j < pl.fitting_result[i].end_point_index; j++)
+                    segments.push_back({unscaled<float>(pl.points[j]), unscaled<float>(pl.points[j + 1])});
+            } else {
+                int beg = pl.fitting_result[i].start_point_index;
+                int end = pl.fitting_result[i].end_point_index;
+                segments.push_back({unscaled<float>(pl.points[beg]), unscaled<float>(pl.points[end])});
+                segments.back().is_arc     = true;
+                segments.back().arcsegment = pl.fitting_result[i].arc_data;
+            }
+        }
+        int index_of_closest = get_closet_idx(segments);
+        int i                = index_of_closest;
+        travel(segments[i].start); // travel to the closest points
+        segments[i].is_arc ? extrude_arc(segments[i].arcsegment, f) : extrude(segments[i].end, f);
+        do {
+            i = (i + 1) % segments.size();
+            if (i == index_of_closest) break;
+            segments[i].is_arc ? extrude_arc(segments[i].arcsegment, f) : extrude(segments[i].end, f);
+        } while (1);
         return (*this);
     }
 
@@ -538,6 +1083,71 @@ public:
         return add_wipe_point(Vec2f(x, y));
     }
 
+    WipeTowerWriter &add_wipe_path(const Polygon & polygon,double wipe_dist)
+    {
+        int closest_idx = polygon.closest_point_index(scaled(m_current_pos));
+        Polyline wipe_path   = polygon.split_at_index(closest_idx);
+        wipe_path.reverse();
+        for (int i = 0; i < wipe_path.size(); ++i) {
+            if (wipe_dist < EPSILON) break;
+            add_wipe_point(unscaled<float>(wipe_path[i]));
+            if (i != 0) wipe_dist -= (unscaled(wipe_path[i]) - unscaled(wipe_path[i - 1])).norm();
+        }
+        return *this;
+    }
+    void generate_path(Polylines &pls, float feedrate, float retract_length, float retract_speed, bool used_fillet)
+    {
+        auto get_closet_idx = [this](std::vector<Segment> &corners) -> int {
+            Vec2f anchor{this->m_current_pos.x(), this->m_current_pos.y()};
+            int   closestIndex = -1;
+            float minDistance  = std::numeric_limits<float>::max();
+            for (int i = 0; i < corners.size(); ++i) {
+                float distance = (corners[i].start - anchor).squaredNorm();
+                if (distance < minDistance) {
+                    minDistance  = distance;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        };
+        for (auto &pl : pls) pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+
+        std::vector<Segment> segments;
+        for (const auto &pl : pls) {
+            if (pl.points.size()<2) continue;
+            for (int i = 0; i < pl.fitting_result.size(); i++) {
+                if (pl.fitting_result[i].path_type == EMovePathType::Linear_move) {
+                    for (int j = pl.fitting_result[i].start_point_index; j < pl.fitting_result[i].end_point_index; j++)
+                        segments.push_back({unscaled<float>(pl.points[j]), unscaled<float>(pl.points[j + 1])});
+                } else {
+                    int beg = pl.fitting_result[i].start_point_index;
+                    int end = pl.fitting_result[i].end_point_index;
+                    segments.push_back({unscaled<float>(pl.points[beg]), unscaled<float>(pl.points[end])});
+                    segments.back().is_arc = true;
+                    segments.back().arcsegment = pl.fitting_result[i].arc_data;
+                }
+            }
+        }
+        int index_of_closest = get_closet_idx(segments);
+        int i = index_of_closest;
+        travel(segments[i].start); // travel to the closest points
+        segments[i].is_arc? extrude_arc(segments[i].arcsegment,feedrate) : extrude(segments[i].end, feedrate);
+        do {
+            i         = (i + 1) % segments.size();
+            if (i == index_of_closest) break;
+            float dx  = segments[i].start.x() - m_current_pos.x();
+            float dy  = segments[i].start.y() - m_current_pos.y();
+            float len = std::sqrt(dx * dx + dy * dy);
+            if (len > EPSILON) {
+                retract(retract_length, retract_speed);
+                travel(segments[i].start, 600.);
+                retract(-retract_length, retract_speed);
+            }
+            segments[i].is_arc ? extrude_arc(segments[i].arcsegment, feedrate) : extrude(segments[i].end, feedrate);
+        } while (1);
+    }
+
+
 private:
 	Vec2f         m_start_pos;
 	Vec2f         m_current_pos;
@@ -589,6 +1199,8 @@ private:
         m_current_feedrate = f;
         return buf;
 	}
+    std::string set_format_I(float i) { return " I" + Slic3r::float_to_string_decimal_point(i, 3); }
+    std::string set_format_J(float j) { return " J" + Slic3r::float_to_string_decimal_point(j, 3); }
 
 	WipeTowerWriter& operator=(const WipeTowerWriter &rhs);
 
@@ -686,7 +1298,11 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_filaments_change_length(config.filament_change_length.values),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
     m_is_print_outer_first(config.prime_tower_outer_first.value),
-    m_use_gap_wall(config.prime_tower_skip_points.value)
+    m_use_gap_wall(config.prime_tower_skip_points.value),
+    m_use_rib_wall(config.prime_tower_rib_wall.value),
+    m_extra_rib_length(config.prime_tower_extra_rib_length.value),
+    m_rib_width(config.prime_tower_rib_width.value),
+    m_used_fillet(config.prime_tower_fillet_wall.value)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -788,6 +1404,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 
     m_filpar[idx].retract_length = config.retraction_length.get_at(idx);
     m_filpar[idx].retract_speed  = config.retraction_speed.get_at(idx);
+    m_filpar[idx].wipe_dist      = config.wipe_distance.get_at(idx);
 }
 
 
@@ -2273,12 +2890,15 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     }
     box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
-    if (extrude_perimeter) {
-        if (m_use_gap_wall)
-            generate_support_wall(writer, wt_box, feedrate, first_layer);
-        else
-            writer.rectangle(wt_box, feedrate);
-    }
+
+    //if (extrude_perimeter && !m_use_rib_wall) {
+    //    if (!m_use_gap_wall)
+    //        writer.rectangle(wt_box, feedrate);
+    //    else
+    //        generate_support_wall(writer, wt_box, feedrate, first_layer);
+    //}
+    Polygon outer_wall;
+    outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, extrude_perimeter, m_use_gap_wall);
 
     // brim chamfer
     float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
@@ -2298,28 +2918,49 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     }
 
     if (loops_num > 0) {
-        box_coordinates box = wt_box;
+        //box_coordinates box = wt_box;
         for (size_t i = 0; i < loops_num; ++i) {
-            box.expand(spacing);
-            writer.rectangle(box, feedrate);
+            outer_wall = offset(outer_wall, scaled(spacing)).front();
+            writer.polygon(outer_wall, feedrate);
         }
+            /*for (size_t i = 0; i < loops_num; ++i) {
+                box.expand(spacing);
+                writer.rectangle(box, feedrate);
+            }*/
 
         if (first_layer) {
             // Save actual brim width to be later passed to the Print object, which will use it
             // for skirt calculation and pass it to GLCanvas for precise preview box
-            m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
+            m_wipe_tower_brim_width_real = loops_num * spacing + spacing / 2.f;
+            //m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
+
+            // set wipe_tower_bbx
+            auto real_polygon = outer_wall;
+            real_polygon      = offset(real_polygon, scaled(spacing/2.f)).front();
+            auto real_box     = get_extents(real_polygon);
+            m_wipe_tower_bbx  = BoundingBoxf(unscale(real_box.min), unscale(real_box.max));
         }
-        wt_box = box;
+        //wt_box = box;
+    }
+    else {
+        if (first_layer) {
+            auto real_polygon = outer_wall;
+            real_polygon      = offset(real_polygon, scaled(spacing / 2.f)).front();
+            auto real_box     = get_extents(real_polygon);
+            m_wipe_tower_bbx = BoundingBoxf(unscale(real_box.min), unscale(real_box.max));
+        }
     }
 
-    // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
-    Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
+    if (extrude_perimeter) writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
+    else {
+        // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
+        Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
 
-    // BBS: add wipe_path for this case: only with finish rectangle
-    if (finish_rect_wipe_path.size() == 2 && finish_rect_wipe_path[0] == writer.pos()) target = finish_rect_wipe_path[1];
+        // BBS: add wipe_path for this case: only with finish rectangle
+        if (finish_rect_wipe_path.size() == 2 && finish_rect_wipe_path[0] == writer.pos()) target = finish_rect_wipe_path[1];
 
-    writer.add_wipe_point(writer.pos()).add_wipe_point(target);
-
+        writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+    }
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.
@@ -2713,6 +3354,7 @@ void WipeTower::update_all_layer_depth(float wipe_tower_depth)
 void WipeTower::generate_wipe_tower_blocks()
 {
     // 1. generate all layer depth
+    m_all_layers_depth.clear();
     m_all_layers_depth.resize(m_plan.size());
     m_cur_layer_id = 0;
     for (auto& info : m_plan) {
@@ -2791,12 +3433,42 @@ void WipeTower::generate_wipe_tower_blocks()
 
 void WipeTower::plan_tower_new()
 {
+    if (m_use_rib_wall) {
+        // recalculate wipe_tower_with and layer's depth
+        generate_wipe_tower_blocks();
+        float max_depth    = std::accumulate(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), 0.f, [](float a, const auto &t) { return a + t.depth; }) + m_perimeter_width;
+        float square_width = align_ceil(std::sqrt(max_depth * m_wipe_tower_width), m_perimeter_width);
+        //std::cout << " before  m_wipe_tower_width = " << m_wipe_tower_width << "  max_depth = " << max_depth << std::endl;
+        m_wipe_tower_width = square_width;
+        float width        = m_wipe_tower_width - 2 * m_perimeter_width;
+        for (int idx = 0; idx < m_plan.size(); idx++) {
+            for (auto &toolchange : m_plan[idx].tool_changes) {
+                float length_to_extrude   = toolchange.wipe_length;
+                float depth               = std::ceil(length_to_extrude / width) * m_perimeter_width;
+                float nozzle_change_depth = 0;
+                if (!m_filament_map.empty() && m_filament_map[toolchange.old_tool] != m_filament_map[toolchange.new_tool]) {
+                    double e_flow                   = extrusion_flow(m_plan[idx].height);
+                    double length                   = m_nozzle_change_length / e_flow;
+                    int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
+                    if (has_tpu_filament())
+                        nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_perimeter_width;
+                    else
+                        nozzle_change_depth = nozzle_change_line_count * m_perimeter_width;
+                    depth += nozzle_change_depth;
+                }
+                toolchange.nozzle_change_depth = nozzle_change_depth;
+                toolchange.required_depth      = depth;
+            }
+        }
+    }
+
     generate_wipe_tower_blocks();
 
     float max_depth = 0.f;
     for (const auto &block : m_wipe_tower_blocks) {
         max_depth += block.depth;
     }
+    //std::cout << " after square " << m_wipe_tower_width << "  depth  " << max_depth << std::endl;
 
     float min_wipe_tower_depth = 0.f;
     auto  iter                 = WipeTower::min_depth_per_height.begin();
@@ -2837,6 +3509,10 @@ void WipeTower::plan_tower_new()
 
         if (max_depth + EPSILON < min_wipe_tower_depth) {
             m_extra_spacing = min_wipe_tower_depth / max_depth;
+            if (m_use_rib_wall) {
+                m_rib_length    = std::max(m_rib_length, min_wipe_tower_depth * (float) std::sqrt(2));
+                m_extra_spacing = 1.f;
+            }
         }
 
         for (int idx = 0; idx < m_plan.size(); idx++) {
@@ -2873,6 +3549,8 @@ void WipeTower::plan_tower_new()
     }
 
     update_all_layer_depth(max_depth);
+    m_rib_length = std::max({m_rib_length, sqrt(m_wipe_tower_depth * m_wipe_tower_depth + m_wipe_tower_width * m_wipe_tower_width)});
+    m_rib_length += m_extra_rib_length;
 }
 
 int WipeTower::get_wall_filament_for_all_layer()
@@ -3242,14 +3920,16 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
         wipe_tower_depth = m_wipe_tower_depth;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
-    if (m_use_gap_wall)
-        generate_support_wall(writer, wt_box, feedrate, first_layer);
-    else
-        writer.rectangle(wt_box, feedrate);
-
+    Polygon outer_wall;
+    //if (m_use_gap_wall)
+    //    generate_support_wall(writer, wt_box, feedrate, first_layer);
+    //else
+    //    writer.rectangle(wt_box, feedrate);
+    outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, true, m_use_gap_wall);
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
-    Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
-    writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+    // Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
+    //writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+    writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
@@ -3259,6 +3939,83 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
         if (m_current_tool < m_used_filament_length.size()) m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
     return construct_tcr(writer, false, old_tool, true, false, 0.f);
+}
+
+Polygon WipeTower::generate_rib_polygon(const box_coordinates &wt_box)
+{
+    auto    get_current_layer_rib_len = [](float cur_height, float max_height, float max_len) -> float { return std::abs(max_height - cur_height) / max_height * max_len; };
+    coord_t diagonal_width            = scaled(m_rib_width)/2;
+    float   a = this->m_wipe_tower_width, b = this->m_wipe_tower_depth;
+    Line    line_1(Point::new_scale(Vec2f{0, 0}), Point::new_scale(Vec2f{a, b}));
+    Line    line_2(Point::new_scale(Vec2f{a, 0}), Point::new_scale(Vec2f{0, b}));
+    float   diagonal_extra_length = std::max(0.f, m_rib_length - (float) unscaled(line_1.length())) / 2.f;
+    diagonal_extra_length         = scaled(get_current_layer_rib_len(this->m_z_pos, this->m_wipe_tower_height, diagonal_extra_length));
+    Point y_shift{0, scaled(this->m_y_shift)};
+
+    line_1.extend(double(diagonal_extra_length));
+    line_2.extend(double(diagonal_extra_length));
+    line_1.translate(-y_shift);
+    line_2.translate(-y_shift);
+
+    Polygon poly_1 = generate_rectange(line_1, diagonal_width);
+    Polygon poly_2 = generate_rectange(line_2, diagonal_width);
+    Polygon poly;
+    poly.points.push_back(Point::new_scale(wt_box.ld));
+    poly.points.push_back(Point::new_scale(wt_box.rd));
+    poly.points.push_back(Point::new_scale(wt_box.ru));
+    poly.points.push_back(Point::new_scale(wt_box.lu));
+
+    Polygons           p_1_2    = union_({poly_1, poly_2, poly});
+    //Polygon            res_poly = p_1_2.front();
+    //for (auto &p : res_poly.points) res.push_back(unscale(p).cast<float>());
+    /*if (p_1_2.front().points.size() != 16)
+        std::cout << "error " << std::endl;*/
+    return p_1_2.front();
+};
+
+Polygon WipeTower::generate_support_wall_new(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer,bool rib_wall, bool extrude_perimeter, bool skip_points)
+{
+    auto get_closet_idx = [this, &writer](Polylines &pls) -> std::pair<int,int> {
+        Vec2f anchor{writer.x(), writer.y()};
+        int   closestIndex = -1;
+        int   closestPl = -1;
+        float minDistance  = std::numeric_limits<float>::max();
+        for (int i = 0; i < pls.size(); ++i) {
+            for (int j = 0; j < pls[i].size(); ++j) {
+                float distance = (unscaled<float>(pls[i][j]) - anchor).squaredNorm();
+                if (distance < minDistance) {
+                    minDistance  = distance;
+                    closestPl    = i;
+                    closestIndex = j;
+                }
+            }
+        }
+        return {closestPl, closestIndex};
+    };
+
+    float retract_length = m_filpar[m_current_tool].retract_length;
+    float retract_speed  = m_filpar[m_current_tool].retract_speed * 60;
+    Polygon wall_polygon   = rib_wall ? generate_rib_polygon(wt_box) : generate_rectange_polygon(wt_box.ld, wt_box.ru);
+    Polylines result_wall;
+    Polygon   insert_skip_polygon;
+    if (m_used_fillet) {
+        if (!rib_wall && m_y_shift > EPSILON)// do nothing because the fillet will cause it to be suspended.
+        {
+        } else {
+            wall_polygon           = rib_wall ? rounding_polygon(wall_polygon) : wall_polygon; // rectangle_wall do nothing
+            Polygon wt_box_polygon = generate_rectange_polygon(wt_box.ld, wt_box.ru);
+            wall_polygon           = union_({wall_polygon, wt_box_polygon}).front();
+        }
+    }
+    if (!extrude_perimeter) return wall_polygon;
+
+    if (skip_points) { result_wall = contrust_gap_for_skip_points(wall_polygon,m_wall_skip_points,m_wipe_tower_width,2.5*m_perimeter_width,insert_skip_polygon); }
+    else {
+        result_wall.push_back(to_polyline(wall_polygon));
+        insert_skip_polygon = wall_polygon;
+    }
+    writer.generate_path(result_wall, feedrate, retract_length, retract_speed,m_used_fillet);
+    return insert_skip_polygon;
 }
 
 Polygon WipeTower::generate_support_wall(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer)

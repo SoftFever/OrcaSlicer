@@ -1894,7 +1894,7 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	}
 
 	x = std::clamp(x, margin, (float)plate_width - w - margin - wp_brim_width);
-	y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
+    y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
 
 	arrangement::ArrangePolygon wipe_tower_ap;
 	Polygon ap({

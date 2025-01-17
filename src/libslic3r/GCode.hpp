@@ -114,11 +114,12 @@ public:
 
     bool enable_timelapse_print() const { return m_enable_timelapse_print; }
     void set_wipe_tower_depth(float depth) { m_wipe_tower_depth = depth; }
+    void set_wipe_tower_bbx(const BoundingBoxf & bbx) { m_wipe_tower_bbx = bbx; }
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
     std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
-    std::string generate_path_to_wipe_tower(GCode &gcodegen, const Point &wipe_tower_left_front, const Point &start_pos, const Point &end_pos, int width, int depth, int brim_width) const;
+    Polyline generate_path_to_wipe_tower(const Point &start_pos, const Point &end_pos, const BoundingBox &avoid_polygon, const BoundingBox &printer_bbx) const;
     std::string append_tcr2(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
 
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
@@ -146,6 +147,8 @@ private:
     bool                                                         m_is_first_print;
     const PrintConfig *                                          m_print_config;
     float                                                        m_wipe_tower_depth;
+    BoundingBoxf                                                 m_wipe_tower_bbx;
+
 };
 
 class ColorPrintColors

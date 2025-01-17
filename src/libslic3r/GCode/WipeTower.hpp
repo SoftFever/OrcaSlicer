@@ -180,9 +180,12 @@ public:
 
 	WipeTower::ToolChangeResult only_generate_out_wall(bool is_new_mode = false);
     Polygon generate_support_wall(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer);
+    Polygon generate_support_wall_new(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer,bool rib_wall, bool extrude_perimeter, bool skip_points);
 
+    Polygon generate_rib_polygon(const box_coordinates &wt_box);
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
+    BoundingBoxf get_bbx() const { return m_wipe_tower_bbx; }
     float get_height() const { return m_wipe_tower_height; }
     float get_layer_height() const { return m_layer_height; }
 
@@ -305,6 +308,7 @@ public:
         float               filament_area;
         float               retract_length;
         float               retract_speed;
+        float               wipe_dist;
     };
 
 
@@ -401,6 +405,11 @@ private:
     bool               m_is_multi_extruder{false};
     bool               m_is_print_outer_first{false};
     bool               m_use_gap_wall{false};
+    bool               m_use_rib_wall{false};
+    float              m_rib_length=0.f;
+    float              m_rib_width=0.f;
+    float              m_extra_rib_length=0.f;
+    bool               m_used_fillet{false};
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
@@ -446,8 +455,8 @@ private:
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
-
-	 std::vector<Vec2f> m_wall_skip_points;
+    BoundingBoxf    m_wipe_tower_bbx;
+    std::vector<Vec2f> m_wall_skip_points;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
 	// Calculates length of extrusion line to extrude given volume
