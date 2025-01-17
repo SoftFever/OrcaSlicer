@@ -821,22 +821,30 @@ public:
     AMSCountPopupWindow(ExtruderGroup *extruder, int index)
         : PopupWindow(extruder, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
     {
-        auto msg  = new wxStaticText(this, wxID_ANY, _L("Please set the number of ams installed on the this extrusion head."));
+        SetBackgroundColour(*wxWHITE);
+        auto msg  = new wxStaticText(this, wxID_ANY, _L("Set the number of AMS installed on the nozzle."));
         msg->SetFont(Label::Body_14);
-        msg->SetForegroundColour(0x6B6B6B);
-        msg->Wrap(FromDIP(240));
-        auto img4 = new ScalableButton(this, wxID_ANY, "ams_4_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
-        auto img1 = new ScalableButton(this, wxID_ANY, "ams_1_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
-        auto txt4 = new wxStaticText(this, wxID_ANY, _L("AMS(4 colors)"));
+        msg->SetForegroundColour("#262E30");
+        msg->Wrap(FromDIP(280));
+        auto box = new StaticBox(this, wxID_ANY);
+        box->SetBackgroundColor(0xF8F8F8);
+        box->SetBorderWidth(0);
+        auto img4 = new ScalableButton(box, wxID_ANY, "ams_4_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
+        //img4->SetBackgroundColour(*wxWHITE);
+        auto img1 = new ScalableButton(box, wxID_ANY, "ams_1_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
+        //img1->SetBackgroundColour(*wxWHITE);
+        auto txt4 = new wxStaticText(box, wxID_ANY, _L("AMS(4 slots)"));
         txt4->SetFont(Label::Body_14);
-        txt4->SetForegroundColour(0x6B6B6B);
-        auto txt1 = new wxStaticText(this, wxID_ANY, _L("AMS(single color)"));
+        txt4->SetBackgroundColour(0xF8F8F8);
+        txt4->SetForegroundColour("#262E30");
+        auto txt1 = new wxStaticText(box, wxID_ANY, _L("AMS(1 slot)"));
         txt1->SetFont(Label::Body_14);
-        txt1->SetForegroundColour(0x6B6B6B);
+        txt1->SetBackgroundColour(0xF8F8F8);
+        txt1->SetForegroundColour("#262E30");
         int ams4 = 0, ams1 = 0;
         GetAMSCount(index, ams4, ams1);
-        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
-        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 8, ams1);
+        auto val4          = new SpinInput(box, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
+        auto val1          = new SpinInput(box, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 8, ams1);
         auto event_handler = [index, val4, val1, extruder](auto &evt) {
             SetAMSCount(index, val4->GetValue(), val1->GetValue());
             UpdateAMSCount(index, extruder);
@@ -846,18 +854,20 @@ public:
 
         wxSizer * sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(msg, 0, wxTOP | wxLEFT | wxRIGHT, FromDIP(10));
-            wxSizer * sizer2 = new wxBoxSizer(wxHORIZONTAL);
-                wxSizer *sizer21 = new wxBoxSizer(wxVERTICAL);
+            wxSizer *sizer2  = new wxBoxSizer(wxVERTICAL);
+                wxSizer *sizer21 = new wxBoxSizer(wxHORIZONTAL);
                 sizer21->Add(img4, 0, wxALIGN_CENTRE);
-                sizer21->Add(txt4, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
-                sizer21->Add(val4, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
-            sizer2->Add(sizer21, 1);
-                wxSizer *sizer22 = new wxBoxSizer(wxVERTICAL);
+                sizer21->Add(txt4, 2, wxLEFT | wxALIGN_CENTRE, FromDIP(10));
+                sizer21->Add(val4, 1, wxLEFT | wxALIGN_CENTRE, FromDIP(10));
+            sizer2->Add(sizer21, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, FromDIP(14));
+            sizer2->AddSpacer(FromDIP(6));
+                wxSizer *sizer22 = new wxBoxSizer(wxHORIZONTAL);
                 sizer22->Add(img1, 0, wxALIGN_CENTRE);
-                sizer22->Add(txt1, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
-                sizer22->Add(val1, 0, wxTOP | wxALIGN_CENTRE, FromDIP(10));
-            sizer2->Add(sizer22, 1);
-        sizer->Add(sizer2, 0, wxTOP | wxBOTTOM | wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
+                sizer22->Add(txt1, 2, wxLEFT | wxALIGN_CENTRE, FromDIP(10));
+                sizer22->Add(val1, 1, wxLEFT | wxALIGN_CENTRE, FromDIP(10));
+            sizer2->Add(sizer22, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, FromDIP(14));
+            box->SetSizer(sizer2);
+        sizer->Add(box, 0, wxTOP | wxBOTTOM | wxLEFT | wxRIGHT | wxEXPAND, FromDIP(14));
         SetSizer(sizer);
 
         Layout();
@@ -16345,7 +16355,7 @@ void Plater::set_need_update(bool need_update)
 bool Plater::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
 {
     if (dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER))->m_extruders_count > 1) {
-        MessageDialog dlg(this, _L("Currently, the object configuration form cannot be used with multiple extruders."), _L("Not available"), wxOK | wxICON_WARNING);
+        MessageDialog dlg(this, _L("Currently, the object configuration form cannot be used with a multiple-extruder printer."), _L("Not available"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return false;
     }
