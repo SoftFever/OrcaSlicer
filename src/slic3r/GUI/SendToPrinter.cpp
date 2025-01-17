@@ -1209,7 +1209,7 @@ void SendToPrinterDialog::update_show_status()
     }
 
     if (!m_is_in_sending_mode) {
-#if BBL_RELEASE_PUPBLIC
+#if BBL_RELEASE_TO_PUBLIC
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
     }
