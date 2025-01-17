@@ -1380,7 +1380,7 @@ BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
     return test_volume;
 }
 
-void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, std::string& error_string)
+static bool construct_error_string(ObjectFilamentResults& object_result, std::string& error_string)
 {
     error_string.clear();
     if (!object_result.partly_outside_objects.empty()) {
@@ -1391,8 +1391,9 @@ void GLCanvas3D::construct_error_string(ObjectFilamentResults& object_result, st
             error_string += "\n";
         }
         error_string += _u8L("Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n");
+        return true;
     }
-
+    return false;
 }
 
 static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilamentResults& object_result, std::string& left_extruder_unprintable_text, std::string& right_extruder_unprintable_text)
@@ -1439,8 +1440,8 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
         auto& output_text = idx == 0 ? left_extruder_unprintable_text : right_extruder_unprintable_text;
         if (unprintable_objs.empty())
             continue;
-        std::string nozzle_name = nozzle_name_list[0];
-        std::string opposite_nozzle_name = idx == 0 ? nozzle_name_list[1] : nozzle_name_list[0];
+        std::string nozzle_name = nozzle_name_list[idx];
+        std::string opposite_nozzle_name = nozzle_name_list[1-idx];
         std::string model_prefix;
         if (object_result.object_filaments.size() > 1)
             model_prefix = _u8L("Some models are");
@@ -2963,10 +2964,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
             const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
-            construct_error_string(object_results, get_object_clashed_text());
+            auto clash_flag = construct_error_string(object_results, get_object_clashed_text());
             auto unprintable_flag= construct_extruder_unprintable_error(object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
 
-            _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+            _set_warning_notification(EWarning::ObjectClashed, clash_flag);
             _set_warning_notification(EWarning::LeftExtruderPrintableError, unprintable_flag.first);
             _set_warning_notification(EWarning::RightExtruderPrintableError, unprintable_flag.second);
             _set_warning_notification(EWarning::ObjectLimited, objectLimited);
@@ -10024,7 +10025,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
-        text = get_object_clashed_text();
         error = ErrorType::PLATER_ERROR;
         break;
     case EWarning::ObjectLimited:
@@ -10076,6 +10076,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel);
+            }
+        }
+        else if (warning == EWarning::ObjectClashed) {
+            auto str = get_object_clashed_text();
+            if(state){
+                if (!str.empty())
+                    notification_manager.push_plater_error_notification(str);
+            }
+            else{
+                notification_manager.close_plater_error_notification(str);
             }
         }
         else {

@@ -15559,11 +15559,13 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
         }
 
+        auto clashed_text = get_object_clashed_text();
         if (!model_fits) {
-            p->notification_manager->push_plater_error_notification(get_object_clashed_text());
+            if(!clashed_text.empty())
+                p->notification_manager->push_plater_error_notification(clashed_text);
         }
         else {
-            p->notification_manager->close_plater_error_notification(get_object_clashed_text());
+            p->notification_manager->close_plater_error_notification(clashed_text);
         }
 
         if (state == ModelInstancePVS_Limited) {
