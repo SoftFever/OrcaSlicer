@@ -31,6 +31,11 @@ modules:
       - -Ddoc=disabled
       - -Dexamples=disabled
       - -Dtests=disabled
+    build-options:
+      arch:
+        aarch64:
+          config-opts:
+            - -Dlibunwind=disabled
     sources:
       - type: archive
         url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
