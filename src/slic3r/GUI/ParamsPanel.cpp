@@ -23,7 +23,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key, long style)
+TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key, long style,std::map<wxStandardID,wxString> option_map)
     : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
     m_app_key(app_key)
 {
@@ -59,19 +59,31 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
 
     if (style & wxOK) {
-        Button* btn = add_button(wxID_OK, _L("OK"), true);
+        wxString str = _L("OK");
+        if (auto iter = option_map.find(wxID_OK); iter != option_map.end())
+            str = iter->second;
+        Button* btn = add_button(wxID_OK, str, true);
         m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
     }
     if (style & wxYES) {
-        Button *btn = add_button(wxID_YES, _L("Yes"), true);
+        wxString str = _L("Yes");
+        if (auto iter = option_map.find(wxID_YES); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_YES, str, true);
         m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
     }
     if (style & wxNO) {
-        Button *btn = add_button(wxID_NO, _L("No"), false);
+        wxString str = _L("No");
+        if (auto iter = option_map.find(wxID_NO); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_NO, str, false);
         m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
     }
     if (style & wxCANCEL) {
-        Button *btn = add_button(wxID_CANCEL, _L("Cancel"), false);
+        wxString str = _L("Cancel");
+        if (auto iter = option_map.find(wxID_CANCEL); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_CANCEL, str, false);
         m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
     }
 
