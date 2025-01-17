@@ -69,7 +69,7 @@ jobs:
           - os: ubuntu-latest
             arch: x86_64
           - os: ubuntu-latest
-            arch: arm64
+            arch: aarch64
       fail-fast: false
     env:
       date:
