@@ -2409,14 +2409,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (is_dual_extruder) {
             AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
             AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
-            if (!p->is_switching_diameter) {
+            //if (!p->is_switching_diameter) {
                 update_extruder_diameter(*p->left_extruder);
                 update_extruder_diameter(*p->right_extruder);
-            }
+            //}
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
-            if (!p->is_switching_diameter)
+            //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
         }
