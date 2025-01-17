@@ -5003,7 +5003,7 @@ void Tab::reactive_preset_combo_box()
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
     int previous_extruder_count = 0;
 

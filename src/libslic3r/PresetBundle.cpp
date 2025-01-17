@@ -1661,7 +1661,7 @@ void PresetBundle::update_selections(AppConfig &config)
 // This is done on application start up or after updates are applied.
 void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
 
@@ -1815,7 +1815,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (!initial_physical_printer_name.empty())
         physical_printers.select_printer(initial_physical_printer_name);
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -1863,7 +1863,7 @@ void PresetBundle::export_selections(AppConfig &config)
     //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     //config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
     //BBS: add config related log
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
 }
 
 // BBS
@@ -3409,7 +3409,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
             loaded.m_from_orca_filament_lib = is_from_lib;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << loaded.name << " load filament_id: " << filament_id;
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << __LINE__ << ", " << loaded.name << " load filament_id: " << filament_id;
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
                     ++m_errors;
@@ -3696,7 +3696,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         const std::vector<std::string> &m_prefered_names;
     };
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("update_compatibility for all presets enter");
+    BOOST_LOG_TRIVIAL(info) << boost::format("update_compatibility for all presets enter, select_other_print_if_incompatible %1%, select_other_filament_if_incompatible %2%")%(int)select_other_print_if_incompatible %(int)select_other_filament_if_incompatible;
 	switch (printer_preset.printer_technology()) {
     case ptFFF:
     {
