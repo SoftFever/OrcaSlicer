@@ -1035,6 +1035,9 @@ void ExtruderGroup::update_ams()
         info1.cans.push_back({});
     }
 
+    if (btn_edit == nullptr)
+        return;
+
     page_num  = (ams_n4 * 2 + ams_n1 + 3) / 4;
     size_t i4 = page_cur * 2;
     size_t i1 = 0;

@@ -783,7 +783,7 @@ void PrinterFileSystem::UpdateFocusThumbnail()
                 names.push_back({file.name, ""});
             else
                 paths.push_back({file.name, file.path});
-            if (names.size() >= 5 || paths.size() >= 5)
+            if (names.size() >= 2 || paths.size() >= 2)
                 break;
             if ((file.flags & FF_THUMNAIL_RETRY) != 0) {
                 const_cast<File&>(file).flags &= ~FF_THUMNAIL_RETRY;
