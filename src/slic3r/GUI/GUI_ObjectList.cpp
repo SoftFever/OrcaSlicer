@@ -766,7 +766,7 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
                     if (replace_id >= 0)
                         new_extruder = replace_filament_id;
                     extruder = wxString::Format("%d", new_extruder);
-                    object->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+                    object->volumes[id]->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
                 } else {
                     int new_extruder = object->volumes[id]->config.extruder() > filament_id ? object->volumes[id]->config.extruder() - 1 : object->volumes[id]->config.extruder();
                     extruder = wxString::Format("%d", new_extruder);
@@ -814,9 +814,6 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
             }
         }
     }
-
-    // BBS
-    wxGetApp().plater()->update();
 }
 
 

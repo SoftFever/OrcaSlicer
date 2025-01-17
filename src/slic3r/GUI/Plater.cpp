@@ -2518,6 +2518,8 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id > (int)filament_id ? (replace_filament_id - 1) : replace_filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+
+    wxGetApp().plater()->update();
 }
 
 void Sidebar::change_filament(size_t from_id, size_t to_id)
