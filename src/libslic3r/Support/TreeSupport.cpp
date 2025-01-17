@@ -2380,7 +2380,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& base_areas = ts_layer->base_areas;
 
                 int layer_nr_lower = layer_nr - 1;
-                for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
+                for (; layer_nr_lower >= 0; layer_nr_lower--) {
                     if (!m_object->get_support_layer(layer_nr_lower + m_raft_layers)->area_groups.empty()) break;
                 }
                 if (layer_nr_lower <= 0) continue;
@@ -2470,7 +2470,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 if (ts_layer->area_groups.empty()) continue;
 
                 int layer_nr_lower = layer_nr - 1;
-                for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
+                for (; layer_nr_lower >= 0; layer_nr_lower--) {
                     if (!m_object->get_support_layer(layer_nr_lower + m_raft_layers)->area_groups.empty()) break;
                 }
                 if (layer_nr_lower < 0) continue;
