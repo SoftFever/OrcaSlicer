@@ -1040,7 +1040,7 @@ void PrintingTaskPanel::set_star_count(int star_count)
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
 {
-    this->SetScrollRate(5, 5);
+    this->SetScrollRate(25, 25);
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     obj = dev->get_selected_machine();
