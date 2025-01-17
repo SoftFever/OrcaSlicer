@@ -56,7 +56,7 @@ modules:
       - "*.a"
     sources:
       - type: archive
-        url: https://archive.mesa3d.org/mesa-20.2.6.tar.xz
+        url: https://archive.mesa3d.org/older-versions/20.x/mesa-20.2.6.tar.xz
         sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
