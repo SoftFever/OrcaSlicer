@@ -1701,7 +1701,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
-        update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false);
+        update_print_status_msg(_L("AMS is setting up. Please try again later."), true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
@@ -1729,12 +1729,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with AMS");
-        update_print_status_msg(msg_text, true, false);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
         wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
-        update_print_status_msg(msg_text, true, false);
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid) {
@@ -3322,11 +3322,13 @@ void SelectMachineDialog::update_show_status()
     }
 
     // check ams and vt_slot mix use status
+#if 0 /*AP is supporting, send the print job and let the device check it*/
     if (obj_->is_ams_on_settingup())
     {
         show_status(PrintDialogStatus::PrintStatusAmsOnSettingup);
         return;
     }
+#endif
 
     struct ExtruderStatus
     {
