@@ -45,11 +45,11 @@ modules:
       - -Dgallium-drivers=[]
       - -Dvulkan-drivers=[]
       - -Dplatforms=[]
-    build-options:
-      arch:
-        aarch64:
-          config-opts:
-            - -Dlibunwind=disabled
+   # build-options:
+   #   arch:
+   #     aarch64:
+   #       config-opts:
+   #         - -Dlibunwind=disabled
     cleanup:
       - /share/drirc.d
       - /include
