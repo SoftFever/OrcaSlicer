@@ -84,7 +84,7 @@ jobs:
             ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
             brew install zstd
 
-
+      # Note for later: may need libtool and libpng++-dev dependencies for arm builds
       - name: Install Ubuntu Build Dependencies
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
@@ -103,13 +103,13 @@ jobs:
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
-            mkdir -p ${{ github.workspace }}/deps/build
-            mkdir -p ${{ github.workspace }}/deps/build/destdir
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/destdir
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
-            cd deps/build
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
+            cd deps/build_${{ inputs.arch }}
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d")_${{ inputs.arch }}.tar.gz destdir
 
 
       # Upload Artifacts
