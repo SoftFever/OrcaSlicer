@@ -354,12 +354,27 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
+     auto left_tips = new Label(m_left_marea_panel);
+     left_tips->SetForegroundColour(0x262E30);
+     left_tips->SetBackgroundColour(*wxWHITE);
+     left_tips->SetFont(::Label::Body_13);
+     left_tips->SetLabel(_L("Select filament that installed to the left nozzle"));
+
+
+     auto right_tips = new Label(m_right_marea_panel);
+     right_tips->SetForegroundColour(0x262E30);
+     right_tips->SetBackgroundColour(*wxWHITE);
+     right_tips->SetFont(::Label::Body_13);
+     right_tips->SetLabel(_L("Select filament that installed to the right nozzle"));
+
+     m_sizer_ams_left->Add(left_tips, 0, wxEXPAND|wxBOTTOM, FromDIP(8));
      m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("Left AMS")), 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
+     m_sizer_ams_right->Add(right_tips, 0, wxEXPAND|wxBOTTOM, FromDIP(8));
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -692,10 +707,10 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
             if (nozzle_id == 0) {   //right slot
-                m_sizer_ams_basket_right->Add(ams_mapping_item_container, 0, wxALIGN_CENTER, 0);
+                m_sizer_ams_basket_right->Add(ams_mapping_item_container, 0, wxLEFT, 0);
             }
             else if (nozzle_id == 1) {  //left slot
-                m_sizer_ams_basket_left->Add(ams_mapping_item_container, 0, wxALIGN_CENTER, 0);
+                m_sizer_ams_basket_left->Add(ams_mapping_item_container, 0, wxLEFT, 0);
             }
 
             //m_warning_text->Show(m_has_unmatch_filament);
