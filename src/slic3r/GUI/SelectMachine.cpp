@@ -3527,6 +3527,11 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
         material1.second->item->msw_rescale();
     }
 
+    for(auto opt : m_checkbox_list)
+    {
+        opt.second->msw_rescale();
+    }
+
     Fit();
     Refresh();
 }
@@ -4650,7 +4655,7 @@ void PrintOption::doRender(wxDC &dc)
     auto size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(GetBackgroundColour());
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 }
 
 void PrintOption::setValue(std::string value)
