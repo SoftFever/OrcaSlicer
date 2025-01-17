@@ -86,7 +86,7 @@ jobs:
 
       # Note for later: may need libtool and libpng++-dev dependencies for arm builds
       - name: Install Ubuntu Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
         working-directory: ${{ github.workspace }}
         env:
           apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
@@ -100,7 +100,7 @@ jobs:
             gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
 
       - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
         working-directory: ${{ github.workspace }}
         run: |
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
