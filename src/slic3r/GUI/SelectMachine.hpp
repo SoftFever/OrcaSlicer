@@ -32,7 +32,7 @@
 #include "DeviceManager.hpp"
 #include "Plater.hpp"
 #include "BBLStatusBar.hpp"
-#include "BBLStatusBarSend.hpp"
+#include "BBLStatusBarPrint.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -137,7 +137,9 @@ enum class ConfigNozzleIdx : int
 WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
 
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(57), FromDIP(32))
+#define SELECT_MACHINE_DIALOG_BUTTON_SIZE2 wxSize(FromDIP(80), FromDIP(32))
 #define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
+#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2 wxSize(FromDIP(645), FromDIP(32))
 #define LIST_REFRESH_INTERVAL 200
 static int get_brightness_value(wxImage image) {
 
@@ -298,7 +300,7 @@ private:
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::vector<int>                    m_filaments_map;
-    std::shared_ptr<BBLStatusBarSend>   m_status_bar;
+    std::shared_ptr<BBLStatusBarPrint>  m_status_bar;
     std::unique_ptr<Worker>             m_worker;
 
     //SendModeSwitchButton*               m_mode_print {nullptr};

@@ -421,6 +421,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
     wxBoxSizer* sizer_split_ams = new wxBoxSizer(wxHORIZONTAL);
     auto ams_title_text = new Label(parent, text);
     ams_title_text->SetFont(::Label::Body_13);
+    ams_title_text->SetBackgroundColour(*wxWHITE);
     ams_title_text->SetForegroundColour(0x909090);
     auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_split_left_line->SetBackgroundColour(0xeeeeee);

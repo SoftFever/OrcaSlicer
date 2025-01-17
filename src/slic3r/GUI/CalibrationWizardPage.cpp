@@ -817,7 +817,7 @@ CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, wxWindowID id, cons
     Layout();
     Fit();
 
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+    Bind(EVT_SHOW_ERROR_INFO_SEND, [this](auto& e) {
         show_send_failed_info(true);
         });
 }

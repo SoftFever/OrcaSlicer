@@ -461,7 +461,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_left_sizer = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Extruder"));
+    auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Nozzle"));
     left_recommend_title1->SetFont(::Label::Head_13);
     left_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
     left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
@@ -480,7 +480,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Extruder"));
+    auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Nozzle"));
     right_recommend_title1->SetFont(::Label::Head_13);
     right_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
     right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
@@ -559,12 +559,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_split_options->Add(m_split_options_line, 1, wxALIGN_CENTER, 0);
 
     wxBoxSizer *sizer_advanced_options_title  = new wxBoxSizer(wxHORIZONTAL);
+
+    m_hyperlink          = new wxHyperlinkCtrl(this, wxID_ANY, _L("Click here if you can't connect to the printer"),
+                                      wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink->SetFont(::Label::Body_13);
+
+
+
     auto        advanced_options_title       = new Label(this, _L("Advanced Options"));
     advanced_options_title->SetFont(::Label::Body_13);
     advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
 
     m_advanced_options_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option1", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
 
+
+    sizer_advanced_options_title->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
     sizer_advanced_options_title->Add(advanced_options_title, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(m_advanced_options_icon, 0, wxALIGN_CENTER, 0);
@@ -648,43 +657,39 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     option_nozzle_offset_cali_cali->Hide();
     option_use_ams->Hide();
 
-    m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE, 0);
+    m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2, 0);
+    m_simplebook->SetMinSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2);
+    m_simplebook->SetMaxSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2);
 
     // perpare mode
     m_panel_prepare = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_prepare->SetBackgroundColour(m_colour_def_color);
-    wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxVERTICAL);
 
-    m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
-    auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
-    m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Click here if you can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-
-    hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
 
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
     m_button_ensure->SetBorderColor(m_btn_bg_enable);
     m_button_ensure->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-    m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(5));
+    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
+    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
+    m_button_ensure->SetCornerRadius(FromDIP(4));
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
 
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_pcont->Add(m_button_ensure, 0,wxRIGHT, 0);
+    m_sizer_pcont->Add(m_button_ensure, 0,wxALIGN_CENTER, 0);
 
+    m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
+    m_sizer_prepare->Add(m_sizer_pcont, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
     m_panel_prepare->Layout();
     m_simplebook->AddPage(m_panel_prepare, wxEmptyString, true);
 
     // sending mode
-    m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
+    m_status_bar    = std::make_shared<BBLStatusBarPrint>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
     
@@ -716,11 +721,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
 
     //show bind failed info
-    m_sw_print_failed_info = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(125)), wxVSCROLL);
+    m_sw_print_failed_info = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2.x, FromDIP(125)), wxVSCROLL);
     m_sw_print_failed_info->SetBackgroundColour(*wxWHITE);
     m_sw_print_failed_info->SetScrollRate(0, 5);
-    m_sw_print_failed_info->SetMinSize(wxSize(FromDIP(380), FromDIP(125)));
-    m_sw_print_failed_info->SetMaxSize(wxSize(FromDIP(380), FromDIP(125)));
+    m_sw_print_failed_info->SetMinSize(wxSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2.x, FromDIP(125)));
+    m_sw_print_failed_info->SetMaxSize(wxSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2.x, FromDIP(125)));
 
     wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
     m_sw_print_failed_info->SetSizer(sizer_print_failed_info);
@@ -741,8 +746,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_st_txt_error_code->SetFont(::Label::Body_13);
     st_title_error_code->SetMinSize(wxSize(FromDIP(74), -1));
     st_title_error_code->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(500), -1));
+    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(500), -1));
     sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
     sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
     sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
@@ -759,8 +764,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_st_txt_error_desc->SetFont(::Label::Body_13);
     st_title_error_desc->SetMinSize(wxSize(FromDIP(74), -1));
     st_title_error_desc->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(500), -1));
+    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(500), -1));
     sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
     sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
     sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
@@ -776,8 +781,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_st_txt_extra_info->SetFont(::Label::Body_13);
     st_title_extra_info->SetMinSize(wxSize(FromDIP(74), -1));
     st_title_extra_info->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(260), -1));
+    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(500), -1));
+    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(500), -1));
     sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
     sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
@@ -816,8 +821,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_options_timelapse, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(30));
+    m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(18));
 
@@ -899,9 +905,9 @@ void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString d
             m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_print_error_msg));
             m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_print_error_extra));
 
-            m_st_txt_error_code->Wrap(FromDIP(260));
-            m_st_txt_error_desc->Wrap(FromDIP(260));
-            m_st_txt_extra_info->Wrap(FromDIP(260));
+            m_st_txt_error_code->Wrap(FromDIP(500));
+            m_st_txt_error_desc->Wrap(FromDIP(500));
+            m_st_txt_extra_info->Wrap(FromDIP(500));
         }
         else {
             m_sw_print_failed_info->Show(false);
@@ -3522,8 +3528,8 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
         ams_mapping_help_icon->msw_rescale();
         if (img_amsmapping_tip)img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
     }
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(12));
+    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
+    m_button_ensure->SetCornerRadius(FromDIP(4));
     m_status_bar->msw_rescale();
 
     for (auto material1 : m_materialList) {

@@ -300,7 +300,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_button_ensure->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(12));
+    m_button_ensure->SetCornerRadius(6);
 
     m_button_ensure->Bind(wxEVT_BUTTON, &SendToPrinterDialog::on_ok, this);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
@@ -423,7 +423,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
     // bind
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+    Bind(EVT_SHOW_ERROR_INFO_SEND, [this](auto& e) {
         show_print_failed_info(true);
     });
 

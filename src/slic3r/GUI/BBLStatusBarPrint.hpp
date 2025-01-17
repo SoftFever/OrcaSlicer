@@ -1,5 +1,5 @@
-#ifndef BBLSTATUSBARSEND_HPP
-#define BBLSTATUSBARSEND_HPP
+#ifndef BBLStatusBarPrint_HPP
+#define BBLStatusBarPrint_HPP
 
 #include <wx/panel.h>
 #include <wx/stattext.h>
@@ -26,7 +26,7 @@ class wxFont;
 
 namespace Slic3r {
 
-class BBLStatusBarSend : public ProgressIndicator
+class BBLStatusBarPrint : public ProgressIndicator
 {
     wxPanel *     m_self; // we cheat! It should be the base class but: perl!
     wxGauge *     m_prog;
@@ -44,8 +44,8 @@ class BBLStatusBarSend : public ProgressIndicator
     wxWindow *    block_right;
 
 public:
-    BBLStatusBarSend(wxWindow *parent = nullptr, int id = -1);
-    ~BBLStatusBarSend() = default;
+    BBLStatusBarPrint(wxWindow *parent = nullptr, int id = -1);
+    ~BBLStatusBarPrint() = default;
 
     int get_progress() const;
     // if the argument is less than 0 it shows the last state or
@@ -59,7 +59,7 @@ public:
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();
-    void        set_cancel_callback_fina(BBLStatusBarSend::CancelFn ccb);
+    void        set_cancel_callback_fina(BBLStatusBarPrint::CancelFn ccb);
     inline bool is_busy() const { return m_busy; }
     void        set_cancel_callback(CancelFn = CancelFn()) override;
     inline void reset_cancel_callback() { set_cancel_callback(); }
@@ -95,10 +95,10 @@ private:
 };
 
 namespace GUI {
-using Slic3r::BBLStatusBarSend;
+using Slic3r::BBLStatusBarPrint;
 }
 
-wxDECLARE_EVENT(EVT_SHOW_ERROR_INFO_SEND, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_ERROR_INFO, wxCommandEvent);
 
 } // namespace Slic3r
 
