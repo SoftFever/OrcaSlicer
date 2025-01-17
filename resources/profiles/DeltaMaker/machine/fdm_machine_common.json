@@ -44,7 +44,7 @@
     "change_filament_gcode": "",
     "z_lift_type": "NormalLift",
     "default_print_profile": "",
-    "nozzle_type": "undefined",
+    "nozzle_type": "undefine",
     "auxiliary_fan": "0",
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",

@@ -26,7 +26,7 @@
     "wall_infill_order": "inner wall/outer wall/infill",
     "infill_direction": "45",
     "sparse_infill_density": "50%",
-    "sparse_infill_pattern": "rectilinear",
+    "sparse_infill_pattern": "gyroid",
     "initial_layer_print_height": "0.25",
     "infill_combination": "0",
     "infill_wall_overlap": "25%",
