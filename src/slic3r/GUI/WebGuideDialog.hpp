@@ -110,6 +110,8 @@ private:
 
     //First Load
     bool bFirstComplete{false};
+    bool m_destroy{false};
+    boost::thread* m_load_task{ nullptr };
 
     // User Config
     bool PrivacyUse;
