@@ -362,7 +362,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 // BBS
 static const t_config_enum_values s_keys_map_LayerSeq = {
     { "Auto",              flsAuto },
-    { "Customize",         flsCutomize },
+    { "Customize",         flsCustomize },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
