@@ -599,28 +599,19 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     auto option_timelapse           = new PrintOption(this, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
 
-    auto option_auto_bed_level      = new PrintOption(
-        m_options_other,
-        _L("Auto Bed Leveling"),
-        _L("Check heatbed flatness. Leveling makes extruded height uniform.\n*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."),
-        ops_auto,
-        "bed_leveling"
-    );
+        auto option_auto_bed_level = new PrintOption(
+        m_options_other, _L("Auto Bed Leveling"),
+        _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."),
+        ops_auto, "bed_leveling");
 
-    auto option_flow_dynamics_cali  = new PrintOption(
-            m_options_other,
-            _L("Flow Dynamics Calibration"),
-            _L("Find the best coefficient for dynamic flow calibration to enhance print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
-            ops_auto,
-            "flow_cali"
-        );
+    auto option_flow_dynamics_cali =
+        new PrintOption(m_options_other, _L("Flow Dynamics Calibration"),
+                        _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
+                        ops_auto, "flow_cali");
 
-    auto option_nozzle_offset_cali_cali  = new PrintOption(
-        m_options_other,
-        _L("Nozzle Offset Calibration"),
-        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."),
-        ops_auto
-    );
+    auto option_nozzle_offset_cali_cali =
+        new PrintOption(m_options_other, _L("Nozzle Offset Calibration"),
+                        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."), ops_auto);
 
     auto option_use_ams             = new PrintOption(
         m_options_other,

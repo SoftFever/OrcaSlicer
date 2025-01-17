@@ -1263,7 +1263,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         m_append_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
         m_append_color_checkbox = new ::CheckBox(this, wxID_ANY);
-        m_append_color_checkbox->SetToolTip(_L("When you click \"Synchronize now\" button,it will append unmapped color."));
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
         m_append_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
@@ -1282,7 +1281,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         m_merge_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
         m_merge_color_checkbox = new ::CheckBox(this, wxID_ANY);
-        m_merge_color_checkbox->SetToolTip(_L("When you click \"Synchronize now\" button,it will merge same ams to only one color."));
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
         m_merge_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
