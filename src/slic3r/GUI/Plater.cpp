@@ -1174,14 +1174,6 @@ bool Sidebar::priv::sync_extruder_list()
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
     AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
-
-    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
-    wxPoint                           big_btn_pt;
-    wxSize                            big_btn_size;
-    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
-    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 2), FromDIP(big_btn_size.y / 10.f));
-    SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
-    na_dialog.ShowModal();
     return true;
 }
 
@@ -1603,7 +1595,7 @@ Sidebar::Sidebar(Plater *parent)
         btn_sync->SetMaxSize(PRINTER_PANEL_SIZE);
         btn_sync->SetVertical();
         btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-            p->sync_extruder_list();
+            deal_btn_sync();
         });
         p->timer_sync_printer->Bind(wxEVT_TIMER, [this] (wxTimerEvent & e) {
             p->flush_printer_sync();
@@ -2979,6 +2971,18 @@ bool Sidebar::show_export_removable(bool show) const { return p->btn_export_gcod
 bool Sidebar::is_multifilament()
 {
     return p->combos_filament.size() > 1;
+}
+
+void Sidebar::deal_btn_sync() {
+    p->sync_extruder_list();
+
+    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
+    wxPoint                           big_btn_pt;
+    wxSize                            big_btn_size;
+    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
+    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 2), FromDIP(big_btn_size.y / 10.f));
+    SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
+    na_dialog.ShowModal();
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
