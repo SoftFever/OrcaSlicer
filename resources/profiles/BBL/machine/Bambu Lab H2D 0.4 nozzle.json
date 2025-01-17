@@ -82,6 +82,12 @@
     "machine_switch_extruder_time": "5.6",
     "machine_unload_filament_time": "24",
     "master_extruder_id": "2",
+    "nozzle_volume": [
+        "130",
+        "133",
+        "145",
+        "148"
+    ],
     "printable_area": [
         "0x0",
         "350x0",
