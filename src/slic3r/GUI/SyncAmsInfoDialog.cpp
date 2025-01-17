@@ -356,6 +356,9 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
 }
 
 void SyncAmsInfoDialog::update_when_change_plate(int idx) {
+    if (idx < 0) {
+        return;
+    }
     m_specify_plate_idx = idx;
 
     reset_and_sync_ams_list();
@@ -457,8 +460,10 @@ void SyncAmsInfoDialog::init_bitmaps()
 {
     m_swipe_left_bmp_normal  = ScalableBitmap(this, "previous_item", m_bmp_pix_cont);
     m_swipe_left_bmp_hover   = ScalableBitmap(this, "previous_item_hover", m_bmp_pix_cont);
+    m_swipe_left_bmp_disable  = ScalableBitmap(this, "previous_item_disable", m_bmp_pix_cont);
     m_swipe_right_bmp_normal = ScalableBitmap(this, "next_item", m_bmp_pix_cont);
     m_swipe_right_bmp_hover  = ScalableBitmap(this, "next_item_hover", m_bmp_pix_cont);
+    m_swipe_right_bmp_disable  = ScalableBitmap(this, "next_item_disable", m_bmp_pix_cont);
 }
 
 
@@ -479,9 +484,11 @@ void SyncAmsInfoDialog::add_two_image_control()
     m_swipe_left_button = new ScalableButton(m_two_thumbnail_panel, wxID_ANY, "previous_item", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true,
                                              m_bmp_pix_cont);
     m_swipe_left_button->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (!m_swipe_left_button_enable) { return; }
         m_swipe_left_button->SetBitmap(m_swipe_left_bmp_hover.bmp());
     });
     m_swipe_left_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        if (!m_swipe_left_button_enable) { return; }
         m_swipe_left_button->SetBitmap(m_swipe_left_bmp_normal.bmp());
     });
     m_swipe_left_button->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::to_previous_plate, this);
@@ -518,8 +525,14 @@ void SyncAmsInfoDialog::add_two_image_control()
     swipe_right__sizer->AddStretchSpacer();
     m_swipe_right_button    = new ScalableButton(m_two_thumbnail_panel, wxID_ANY, "next_item", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true,
                                               m_bmp_pix_cont);
-    m_swipe_right_button->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { m_swipe_right_button->SetBitmap(m_swipe_right_bmp_hover.bmp()); });
-    m_swipe_right_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { m_swipe_right_button->SetBitmap(m_swipe_right_bmp_normal.bmp()); });
+    m_swipe_right_button->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (!m_swipe_right_button_enable) { return; }
+        m_swipe_right_button->SetBitmap(m_swipe_right_bmp_hover.bmp());
+    });
+    m_swipe_right_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        if (!m_swipe_right_button_enable) { return; }
+        m_swipe_right_button->SetBitmap(m_swipe_right_bmp_normal.bmp());
+    });
     m_swipe_right_button->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::to_next_plate, this);
 
     swipe_right__sizer->Add(m_swipe_right_button, 0, wxALIGN_CENTER | wxEXPAND | wxALIGN_CENTER_VERTICAL);
@@ -564,6 +577,9 @@ void SyncAmsInfoDialog::add_two_image_control()
 void SyncAmsInfoDialog::to_next_plate(wxCommandEvent &event) {
     auto cobox_idx  = m_combobox_plate->GetSelection();
     cobox_idx++;
+    if (cobox_idx >= m_combobox_plate->GetCount()) {
+        return;
+    }
     m_combobox_plate->SetSelection(cobox_idx);
     update_when_change_plate(m_plate_choices[cobox_idx]);
 }
@@ -571,22 +587,28 @@ void SyncAmsInfoDialog::to_next_plate(wxCommandEvent &event) {
 void SyncAmsInfoDialog::to_previous_plate(wxCommandEvent &event) {
     auto cobox_idx = m_combobox_plate->GetSelection();
     cobox_idx--;
+    if (cobox_idx < 0) {
+        return;
+    }
     m_combobox_plate->SetSelection(cobox_idx);
-
     update_when_change_plate(m_plate_choices[cobox_idx]);
 }
 
 void SyncAmsInfoDialog::update_swipe_button_state()
 {
+    m_swipe_left_button_enable = true;
     m_swipe_left_button->Enable();
-    m_swipe_left_button->SetToolTip("");
+    m_swipe_left_button->SetBitmap(m_swipe_left_bmp_normal.bmp());
+    m_swipe_right_button_enable = true;
     m_swipe_right_button->Enable();
-    m_swipe_right_button->SetToolTip("");
+    m_swipe_right_button->SetBitmap(m_swipe_right_bmp_normal.bmp());
     if (m_combobox_plate->GetSelection() == 0) { // auto plate_index = m_plate_choices[m_combobox_plate->GetSelection()];
-        m_swipe_left_button->Disable();
+        m_swipe_left_button->SetBitmap(m_swipe_left_bmp_disable.bmp());
+        m_swipe_left_button_enable = false;
     }
     if (m_combobox_plate->GetSelection() == m_combobox_plate->GetCount() - 1) {
-        m_swipe_right_button->Disable();
+        m_swipe_right_button->SetBitmap(m_swipe_right_bmp_disable.bmp());
+        m_swipe_right_button_enable = false;
     }
 }
 
@@ -684,43 +706,12 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
             bSizer->Add(m_mode_combox_sizer, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
             m_specify_plate_idx = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
-            //{
-            //    m_plate_combox_sizer       = new wxBoxSizer(wxHORIZONTAL);
-            //    m_plate_combox_sizer->AddSpacer(FromDIP(25));
 
-            //    m_plate_combox_sizer->AddStretchSpacer(1); // m_plate_combox_sizer->AddSpacer(FromDIP(230));
-            //    m_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer") + ": ");
-            //    m_printer_title->SetForegroundColour(wxColour(107, 107, 107, 100));
-            //    m_plate_combox_sizer->Add(m_printer_title, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP , FromDIP(6));
-            //    m_printer_device_name = new wxStaticText(this, wxID_ANY, "");
-            //    m_plate_combox_sizer->Add(m_printer_device_name, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP, FromDIP(6));
-            //    m_printer_is_map_title = new wxStaticText(this, wxID_ANY, " " + _L("(Inconsistent)"));
-            //   // m_printer_is_map_title->SetBackgroundColour(wxColour(38, 46, 48, 255));
-            //    m_printer_is_map_title->SetForegroundColour(wxColour(255, 111, 0, 255));
-            //    m_printer_is_map_title->SetToolTip(_L("The device printer and the currently selected printer are not consistent. It is recommended to be consistent."));
-
-            //    m_plate_combox_sizer->Add(m_printer_is_map_title, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxTOP, FromDIP(6));
-
-            //    m_plate_combox_sizer->AddSpacer(FromDIP(25));
-            //    bSizer->Add(m_plate_combox_sizer, FromDIP(0), wxEXPAND |wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
-
-            //    m_sizer_line  = new wxBoxSizer(wxVERTICAL);
-            //    auto staticline1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-            //    staticline1->SetBackgroundColour(wxColour(224, 224, 224, 100));
-            //    m_sizer_line->Add(staticline1, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-            //    bSizer->Add(m_sizer_line, FromDIP(0), wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
-            //}
-            //add_two_image_control();
+            bool not_exist = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx) == m_plate_choices.end();
+            if (not_exist) {
+                m_specify_plate_idx = m_plate_choices[0];
+            }
         }
-      //  wxBoxSizer *  snyc_ship_boxsizer          = new wxBoxSizer(wxHORIZONTAL);
-      //  m_specify_color_cluster_title  = new wxStaticText(this, wxID_ANY, _L("The synchronization correspondence is as follows:"));
-      //  //m_specify_color_cluster_title->SetFont(Label::Head_14);
-      //  snyc_ship_boxsizer->Add(m_specify_color_cluster_title, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(5));
-      ///*  m_used_colors_tip_text = new wxStaticText(this, wxID_ANY, _L("colors used."));
-      //  m_used_colors_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));*/
-      //  m_used_colors_tip_text->Hide();
-      //  snyc_ship_boxsizer->Add(m_used_colors_tip_text, 0, wxALIGN_LEFT | wxTOP| wxBOTTOM, FromDIP(5));
-      //  bSizer->Add(snyc_ship_boxsizer, FromDIP(0), wxALIGN_LEFT | wxLEFT, FromDIP(25));
     }
 
     m_basic_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -4347,7 +4338,7 @@ std::string SyncAmsInfoDialog::get_print_status_info(PrintDialogStatus status)
 }
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &input_info)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
+    : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
     , m_input_info(input_info)
 {
     //SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
@@ -4409,14 +4400,16 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     m_button_cancel->SetCornerRadius(FromDIP(6));
     bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        deal_cancel();
+        });
 
     m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    wxGetApp().UpdateDlgDarkUI(this);
+    wxGetApp().UpdateFrameDarkUI(this);
 }
 
 SyncNozzleAndAmsDialog::~SyncNozzleAndAmsDialog() {}
@@ -4427,16 +4420,25 @@ void SyncNozzleAndAmsDialog::deal_ok() {
     //temp_info.connected_printer = true;
     //SyncAmsInfoDialog sync_dlg(this, temp_info);
     //auto dlg_res = wxGetApp().plater()->sidebar().pop_sync_ams_info_dialog(sync_dlg);
-    Close();
+    on_hide();
     wxGetApp().plater()->sidebar().sync_ams_list(true);
 }
 
 void SyncNozzleAndAmsDialog::deal_cancel() {
-    //no deal
+    on_hide();
+}
+
+void SyncNozzleAndAmsDialog::on_hide()
+{
+    this->Hide();
+    if (wxGetApp().mainframe != nullptr) {
+        wxGetApp().mainframe->Show();
+        wxGetApp().mainframe->Raise();
+    }
 }
 
 FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
+    : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
     , m_input_info(input_info)
 {
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
@@ -4485,8 +4487,6 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         deal_ok();
-        EndModal(wxID_YES);
-        SetFocusIgnoringChildren();
     });
 
     //m_button_cancel = new Button(this, _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"));
@@ -4504,10 +4504,18 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    wxGetApp().UpdateDlgDarkUI(this);
+    wxGetApp().UpdateFrameDarkUI(this);
 }
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
 void FinishSyncAmsDialog::on_dpi_changed(const wxRect &suggested_rect) {}
-void FinishSyncAmsDialog::deal_ok() {}
+void FinishSyncAmsDialog::deal_ok() { on_hide(); }
 void FinishSyncAmsDialog::deal_cancel() {}
+void FinishSyncAmsDialog::on_hide()
+{
+    this->Hide();
+    if (wxGetApp().mainframe != nullptr) {
+        wxGetApp().mainframe->Show();
+        wxGetApp().mainframe->Raise();
+    }
+}
 }} // namespace Slic3r

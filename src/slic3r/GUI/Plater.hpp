@@ -78,7 +78,8 @@ struct Camera;
 class GLToolbar;
 class PlaterPresetComboBox;
 class PartPlateList;
-
+class SyncNozzleAndAmsDialog;
+class FinishSyncAmsDialog;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
@@ -126,7 +127,8 @@ class Sidebar : public wxPanel
     ConfigOptionMode    m_mode;
     Button *         btn_sync{nullptr};
     ScalableButton *  ams_btn{nullptr};
-
+    std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
+    std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
 public:
     enum DockingState
     {

@@ -2875,8 +2875,12 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 
     FinishSyncAmsDialog::InputInfo temp_fsa_info;
     temp_fsa_info.dialog_pos = cur_dialog_pos;
-    FinishSyncAmsDialog            fsa_dialog(this, temp_fsa_info);
-    fsa_dialog.ShowModal();
+    if (m_fna_dialog) {
+       m_fna_dialog.reset();
+    }
+    m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(this, temp_fsa_info);
+    m_fna_dialog->Show();
+    m_fna_dialog->Raise();
 }
 
 void Sidebar::show_SEMM_buttons(bool bshow)
@@ -2988,8 +2992,13 @@ void Sidebar::deal_btn_sync() {
         auto cur_dialog_pos       = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
         temp_na_info.dialog_pos.x = cur_dialog_pos.x;
         temp_na_info.dialog_pos.y += FromDIP(2);
-        SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
-        na_dialog.ShowModal();
+
+        if (m_sna_dialog) {
+            m_sna_dialog.reset();
+        }
+        m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(this, temp_na_info);
+        m_sna_dialog->Show();
+        m_sna_dialog->Raise();
     }
 }
 

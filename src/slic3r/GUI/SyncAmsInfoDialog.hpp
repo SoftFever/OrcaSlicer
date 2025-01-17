@@ -136,9 +136,13 @@ protected:
     std::vector<int> m_plate_choices;
     ScalableButton * m_swipe_left_button{nullptr};
     ScalableButton * m_swipe_right_button{nullptr};
+    bool             m_swipe_left_button_enable;
+    bool             m_swipe_right_button_enable;
     int              m_bmp_pix_cont = 32;
+    ScalableBitmap   m_swipe_left_bmp_disable;
     ScalableBitmap   m_swipe_left_bmp_normal;
     ScalableBitmap   m_swipe_left_bmp_hover;
+    ScalableBitmap   m_swipe_right_bmp_disable;
     ScalableBitmap   m_swipe_right_bmp_normal;
     ScalableBitmap   m_swipe_right_bmp_hover;
 
@@ -345,7 +349,7 @@ private:
     MapModeEnum m_map_mode{MapModeEnum::ColorMap};
 };
 
-class SyncNozzleAndAmsDialog : public Slic3r::GUI::DPIDialog
+class SyncNozzleAndAmsDialog : public Slic3r::GUI::DPIFrame
 {
 public:
     struct InputInfo
@@ -359,9 +363,10 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void deal_ok();
     void deal_cancel();
+    void on_hide();
     //bool Show(bool show) override;
 private:
-    InputInfo &m_input_info;
+    InputInfo& m_input_info;
     ResultInfo m_result_info;
 
     wxBoxSizer *m_sizer_main{nullptr};
@@ -369,7 +374,7 @@ private:
     Button *m_button_cancel = nullptr;
 };
 
-class FinishSyncAmsDialog : public Slic3r::GUI::DPIDialog
+class FinishSyncAmsDialog : public Slic3r::GUI::DPIFrame
 {
 public:
     struct InputInfo
@@ -383,9 +388,10 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void deal_ok();
     void deal_cancel();
+    void on_hide();
     // bool Show(bool show) override;
 private:
-    InputInfo &m_input_info;
+    InputInfo& m_input_info;
     ResultInfo m_result_info;
 
     wxBoxSizer *m_sizer_main{nullptr};
