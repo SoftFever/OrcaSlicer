@@ -15695,7 +15695,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
             curr_plate->set_filament_map_mode(new_map_mode);
         }
 
-        if (new_map_mode == fmmManual && old_filament_maps != new_filament_maps){
+        if (new_map_mode == fmmManual){
             curr_plate->set_filament_maps(new_filament_maps);
         }
 
