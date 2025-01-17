@@ -517,7 +517,7 @@ void AMSextruderImage::doRender(wxDC &dc)
 AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos)
 {
     wxWindow::Create(parent, id, pos, size);
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     m_ams_extruder = ScalableBitmap(this, file_name,36);
     m_file_name = file_name;
