@@ -1731,10 +1731,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 {
     error_message.clear();
     FilamentMapMode mode = config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
-    bool has_valid_result = this->is_slice_result_valid();
-
     // only check printablity if we have explicit map result
-    if (!has_valid_result && mode != fmmManual)
+    if (mode != fmmManual)
         return true;
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
