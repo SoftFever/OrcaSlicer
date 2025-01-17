@@ -29,8 +29,8 @@ namespace Slic3r { namespace GUI {
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
- MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
- : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+ MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, bool use_in_ams_sync)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), m_use_in_ams_sync(use_in_ams_sync)
  {
     m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", 12);
     m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", 12);

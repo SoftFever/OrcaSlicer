@@ -1116,12 +1116,12 @@ bool Sidebar::priv::sync_extruder_list()
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj == nullptr) {
-        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
+        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync printer information"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return false;
     }
     if (obj->m_extder_data.extders.size() != 2) {
-        MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
+        MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync printer information"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return false;
     }
@@ -1138,7 +1138,7 @@ bool Sidebar::priv::sync_extruder_list()
 
     if (machine_print_name != target_model_id) {
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
-                                            "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);
+                                            "Are you sure to continue syncing?"), _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
         if (dlg.ShowModal() == wxID_NO) {
             return false;
         }
@@ -2720,9 +2720,9 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     temp_info.use_dialog_pos = true;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
     wxPoint small_btn_pt;
-    wxSize  big_btn_size;
-    get_small_btn_sync_pos_size(small_btn_pt, big_btn_size);
-    auto cur_dialog_pos        = small_btn_pt + wxPoint(big_btn_size.x * 3.6 + 5,0);
+    wxSize  small_btn_size;
+    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+    auto cur_dialog_pos         = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
     temp_info.dialog_pos        = cur_dialog_pos;
     temp_info.connected_printer = true;
     SyncAmsInfoDialog           sync_dlg(this, temp_info);
@@ -2974,15 +2974,23 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
-    p->sync_extruder_list();
+    auto ok = p->sync_extruder_list();
+    if (ok) {
+        SyncNozzleAndAmsDialog::InputInfo temp_na_info;
+        wxPoint                           big_btn_pt;
+        wxSize                            big_btn_size;
+        wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
+        temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
 
-    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
-    wxPoint                           big_btn_pt;
-    wxSize                            big_btn_size;
-    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
-    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 2), FromDIP(big_btn_size.y / 10.f));
-    SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
-    na_dialog.ShowModal();
+        wxPoint small_btn_pt;
+        wxSize  small_btn_size;
+        get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+        auto cur_dialog_pos       = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
+        temp_na_info.dialog_pos.x = cur_dialog_pos.x;
+        temp_na_info.dialog_pos.y += FromDIP(2);
+        SyncNozzleAndAmsDialog na_dialog(nullptr, temp_na_info);
+        na_dialog.ShowModal();
+    }
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)

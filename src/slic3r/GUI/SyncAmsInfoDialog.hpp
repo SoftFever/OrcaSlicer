@@ -85,8 +85,6 @@ protected:
     wxStaticBitmap *          m_rename_button{nullptr};
     ComboBox *                m_comboBox_printer{nullptr};
     wxStaticBitmap *          m_staticbitmap{nullptr};
-    wxStaticBitmap *          m_bitmap_last_plate{nullptr};
-    wxStaticBitmap *          m_bitmap_next_plate{nullptr};
     wxStaticBitmap *          img_amsmapping_tip{nullptr};
     ThumbnailPanel *          m_thumbnailPanel{nullptr};
     wxPanel *                 m_panel_status{nullptr};

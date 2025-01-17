@@ -88,8 +88,6 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_rename_button->Hide();
         m_rename_edit_panel->Hide();
         m_rename_input->Hide();
-        m_bitmap_last_plate->Hide();
-        m_bitmap_next_plate->Hide();
         //print_time->Hide();
         hide_no_use_controls();
     }
@@ -129,12 +127,7 @@ bool SyncAmsInfoDialog::Show(bool show)
     }
     Layout();
     Fit();
-    if (m_input_info.use_dialog_pos) {
-        SetPosition(m_input_info.dialog_pos);
-    }
-    else {
-        CenterOnParent();
-    }
+    CenterOnParent();
     return DPIDialog::Show(show);
 }
 
@@ -506,14 +499,14 @@ void SyncAmsInfoDialog::add_two_image_control()
         m_left_image_button     = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH)),
                                            wxBORDER_NONE | wxBU_AUTODRAW);
         m_left_sizer_thumbnail = create_sizer_thumbnail(m_left_image_button, true);
-        m_two_image_panel_sizer->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND , FromDIP(0));
+        m_two_image_panel_sizer->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel_sizer->AddSpacer(FromDIP(5));
 
         m_right_image_button = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition,
                                             wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
                                             wxBORDER_NONE | wxBU_AUTODRAW);
         m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
-        m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND , FromDIP(0));
+        m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel->SetSizer(m_two_image_panel_sizer);
         m_two_image_panel->Layout();
         m_two_image_panel->Fit();
@@ -794,20 +787,9 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_rename_switch_panel->AddPage(m_rename_edit_panel, wxEmptyString, false);
 
     /*last & next page*/
-    auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bitmap_last_plate   = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_last_plate", this, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
-    m_bitmap_last_plate->Hide();
-    last_plate_sizer->Add(m_bitmap_last_plate, 0, wxALIGN_CENTER, 0);
-
-    auto next_plate_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bitmap_next_plate   = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_next_plate", this, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
-    m_bitmap_next_plate->Hide();
-    next_plate_sizer->Add(m_bitmap_next_plate, 0, wxALIGN_CENTER, 0);
-
     sizer_rename->Add(m_rename_switch_panel, 0, wxALIGN_CENTER, 0);
     sizer_rename->Add(0, 0, 0, wxEXPAND, 0);
-    sizer_rename->Add(m_bitmap_last_plate, 0, wxALIGN_CENTER, 0);
-    sizer_rename->Add(m_bitmap_next_plate, 0, wxALIGN_CENTER, 0);
+
 
     /*printer combobox*/
     /*wxBoxSizer *sizer_split_printer = new wxBoxSizer(wxHORIZONTAL);
@@ -1281,7 +1263,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         m_append_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
         m_append_color_checkbox = new ::CheckBox(this, wxID_ANY);
-        m_append_color_checkbox->SetToolTip(_L("When you click ok button,it will append unmapped color."));
+        m_append_color_checkbox->SetToolTip(_L("When you click \"Synchronize now\" button,it will append unmapped color."));
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
         m_append_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
@@ -1300,7 +1282,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         m_merge_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
         m_merge_color_checkbox = new ::CheckBox(this, wxID_ANY);
-        m_merge_color_checkbox->SetToolTip(_L("When you click ok button,it will merge same ams to only one color."));
+        m_merge_color_checkbox->SetToolTip(_L("When you click \"Synchronize now\" button,it will merge same ams to only one color."));
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
         m_merge_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
@@ -1411,10 +1393,7 @@ void SyncAmsInfoDialog::init_bind()
         check_fcous_state(this);
         e.Skip();
     });
-    m_bitmap_last_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
-    m_bitmap_last_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
-    m_bitmap_next_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
-    m_bitmap_next_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+
 
     Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent &e) {
         if (e.GetInt() == 0) {
@@ -1424,22 +1403,6 @@ void SyncAmsInfoDialog::init_bind()
             if (!obj) return;
 
             if (obj->dev_id == e.GetString()) { m_comboBox_printer->SetValue(obj->dev_name + "(LAN)"); }
-        }
-    });
-
-    m_bitmap_last_plate->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
-        if (m_print_plate_idx > 0) {
-            m_print_plate_idx--;
-            update_page_turn_state(true);
-            set_default_from_sdcard();
-        }
-    });
-
-    m_bitmap_next_plate->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
-        if (m_print_plate_idx < (m_print_plate_total - 1)) {
-            m_print_plate_idx++;
-            update_page_turn_state(true);
-            set_default_from_sdcard();
         }
     });
 }
@@ -3841,10 +3804,6 @@ void SyncAmsInfoDialog::set_default(bool hide_some)
         m_cur_input_thumbnail_data = m_specify_plate_idx == -1 ? m_plater->get_partplate_list().get_curr_plate()->thumbnail_data :
                                                                  m_plater->get_partplate_list().get_plate(m_specify_plate_idx)->thumbnail_data;
         set_default_normal(m_cur_input_thumbnail_data);
-    } else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-        // todo:unify_deal_thumbnail_data(input_data, no_light_data);this include m_print_type = PrintFromType::FROM_SDCARD_VIEW
-        // and notice update_page_turn_state(true)
-        set_default_from_sdcard();
     }
 
     Layout();
@@ -3941,10 +3900,10 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
         MaterialItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));// m_filament_left_panel//special
+                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]),true);// m_filament_left_panel//special
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), true); // m_filament_right_panel
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_right
             }
             else {
@@ -3952,11 +3911,11 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 continue;
             }
         } else {
-            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), true);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         contronal_index++;
-        item->SetToolTip(_L("Up: Original\nDown: filament in AMS\nAnd you can click it to modify it."));
+        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
@@ -4263,117 +4222,6 @@ void SyncAmsInfoDialog::change_default_normal(int old_filament_id, wxColour temp
     } else {
         BOOST_LOG_TRIVIAL(error) << "SyncAmsInfoDialog::change_defa:no_light_data is empty,error";
     }
-}
-
-void SyncAmsInfoDialog::set_default_from_sdcard()
-{
-    m_print_plate_total = m_required_data_plate_data_list.size();
-    update_page_turn_state(true);
-
-    ThumbnailData &data = m_required_data_plate_data_list[m_print_plate_idx]->plate_thumbnail;
-
-    if (data.pixels.size() > 0) {
-        wxMemoryInputStream mis((unsigned char *) data.pixels.data(), data.pixels.size());
-        wxImage             image = wxImage(mis);
-        image                     = image.Rescale(FromDIP(198), FromDIP(198));
-        m_thumbnailPanel->set_thumbnail(image);
-    }
-
-    // for black list
-    std::vector<std::string> materials;
-    std::vector<std::string> brands;
-    std::vector<std::string> display_materials;
-
-    for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
-        FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
-        display_materials.push_back(fo.type);
-        materials.push_back(fo.type);
-        brands.push_back(fo.brand);
-    }
-
-    // init MaterialItem
-    MaterialHash::iterator iter = m_materialList.begin();
-    while (iter != m_materialList.end()) {
-        int       id   = iter->first;
-        Material *item = iter->second;
-        item->item->Destroy();
-        delete item;
-        iter++;
-    }
-
-    m_ams_mapping_result.clear();
-    m_sizer_ams_mapping->Clear();
-    m_materialList.clear();
-    m_filaments.clear();
-
-    for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
-        FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
-
-        MaterialItem *item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.type);
-        m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
-
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent &e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, fo](wxMouseEvent &e) {
-            MaterialHash::iterator iter = m_materialList.begin();
-            while (iter != m_materialList.end()) {
-                int           id   = iter->first;
-                Material *    item = iter->second;
-                MaterialItem *m    = item->item;
-                m->on_normal();
-                iter++;
-            }
-
-            try {
-                m_current_filament_id = fo.id;
-            } catch (...) {}
-            item->on_selected();
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
-            // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject *obj_ = dev_manager->get_selected_machine();
-
-            if (obj_ && obj_->is_support_ams_mapping()) {
-                if (m_mapping_popup.IsShown())
-                    return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
-
-                if (obj_ && obj_->has_ams() && (m_checkbox_list["use_ams"]->getValue() == "on") && obj_->dev_id == m_printer_last_select) {
-                    m_mapping_popup.set_parent_item(item);
-                    m_mapping_popup.set_current_filament_id(fo.id);
-                    m_mapping_popup.set_tag_texture(fo.type);
-                    m_mapping_popup.update(obj_);
-                    m_mapping_popup.Popup();
-                }
-            }
-        });
-
-        Material *material_item = new Material();
-        material_item->id       = fo.id;
-        material_item->item     = item;
-        m_materialList[i]       = material_item;
-
-        // build for ams mapping
-        m_filaments.push_back(fo);
-    }
-
-    if (m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size() <= 4) {
-        m_sizer_ams_mapping->SetCols(m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size());
-    } else {
-        m_sizer_ams_mapping->SetCols(4);
-    }
-
-    m_basic_panel->Layout();
-    m_basic_panel->Fit();
-
-    set_flow_calibration_state(true);
-    wxSize screenSize = wxGetDisplaySize();
-    auto   dialogSize = this->GetSize();
-    reset_ams_material();
 }
 
 void SyncAmsInfoDialog::update_page_turn_state(bool show)
