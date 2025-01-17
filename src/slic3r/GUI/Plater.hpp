@@ -171,7 +171,7 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list(bool is_from_big_sync_btn = false);
     bool sync_extruder_list();
-    bool auto_sync_extruder_list_on_connect_priner(const MachineObject* obj);
+    bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
@@ -219,11 +219,16 @@ public:
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            update_printer_thumbnail();
+
+    bool need_auto_sync_after_connect_printer() const { return m_need_auto_sync_after_connect_printer; }
+    void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
+    bool            m_need_auto_sync_after_connect_printer{false};
 };
 
 class Plater: public wxPanel

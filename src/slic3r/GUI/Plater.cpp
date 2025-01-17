@@ -2637,7 +2637,7 @@ bool Sidebar::sync_extruder_list()
     return p->sync_extruder_list();
 }
 
-bool Sidebar::auto_sync_extruder_list_on_connect_priner(const MachineObject *obj)
+bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObject *obj)
 {
     if(!obj)
         return false;
@@ -2649,10 +2649,10 @@ bool Sidebar::auto_sync_extruder_list_on_connect_priner(const MachineObject *obj
         return false;
     }
 
-    if (preset_bundle->get_printer_extruder_count() <= 1)
+    if (preset_bundle->get_printer_extruder_count() <= 1 || !obj->is_multi_extruders())
         return false;
 
-    return p->sync_extruder_list();
+    return true;
 }
 
 void Sidebar::update_sync_status(const MachineObject *obj)

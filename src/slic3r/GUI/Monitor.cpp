@@ -300,8 +300,9 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         obj_->last_cali_version = -1;
         obj_->reset_pa_cali_history_result();
         obj_->reset_pa_cali_result();
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
-        GUI::wxGetApp().sidebar().auto_sync_extruder_list_on_connect_priner(obj_);
+        Sidebar &sidebar = GUI::wxGetApp().sidebar();
+        sidebar.load_ams_list(obj_->dev_id, obj_);
+        sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
     }
 
     Layout();
