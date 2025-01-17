@@ -13143,7 +13143,7 @@ Preset *get_printer_preset(MachineObject *obj)
     return printer_preset;
 }
 
-bool check_printer_initialized(MachineObject *obj)
+bool check_printer_initialized(MachineObject *obj,bool only_warning)
 {
     if (!obj)
         return false;
@@ -13163,12 +13163,17 @@ bool check_printer_initialized(MachineObject *obj)
     }
 
     if (!has_been_initialized) {
-        MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
-        dlg.ShowModal();
+        if (!only_warning) {
+            MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
+            dlg.ShowModal();
 
-        PrinterPartsDialog* print_parts_dlg = new PrinterPartsDialog(nullptr);
-        print_parts_dlg->update_machine_obj(obj);
-        print_parts_dlg->ShowModal();
+            PrinterPartsDialog *print_parts_dlg = new PrinterPartsDialog(nullptr);
+            print_parts_dlg->update_machine_obj(obj);
+            print_parts_dlg->ShowModal();
+        } else {
+            MessageDialog dlg(wxGetApp().plater(), _L("Printer not connected. Please connect or choose a printer on the Device page and try again."), _L("Warning"), wxOK | wxICON_WARNING);
+            dlg.ShowModal();
+        }
         return false;
     }
     return true;
@@ -15155,7 +15160,7 @@ bool Plater::is_same_printer_for_connected_and_selected()
     if (obj == nullptr) {
         return false;
     }
-    if (!check_printer_initialized(obj))
+    if (!check_printer_initialized(obj,true))
         return false;
     std::string   machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle      = wxGetApp().preset_bundle;

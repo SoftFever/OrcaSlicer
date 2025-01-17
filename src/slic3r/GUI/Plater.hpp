@@ -896,8 +896,9 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 
 Preset *get_printer_preset(MachineObject *obj);
 wxArrayString get_all_camera_view_type();
-bool check_printer_initialized(MachineObject* obj);
- } // namespace GUI
+
+bool check_printer_initialized(MachineObject *obj, bool only_warning = false);
+} // namespace GUI
 } // namespace Slic3r
 
 #endif

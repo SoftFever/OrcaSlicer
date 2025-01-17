@@ -4414,7 +4414,11 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
 
 SyncNozzleAndAmsDialog::~SyncNozzleAndAmsDialog() {}
 
-void SyncNozzleAndAmsDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void SyncNozzleAndAmsDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    m_button_ok->Rescale();
+    m_button_cancel->Rescale();
+}
 void SyncNozzleAndAmsDialog::deal_ok() {
     //SyncAmsInfoDialog::SyncInfo temp_info;
     //temp_info.connected_printer = true;
@@ -4507,7 +4511,10 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     wxGetApp().UpdateFrameDarkUI(this);
 }
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
-void FinishSyncAmsDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void FinishSyncAmsDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    m_button_ok->Rescale();
+}
 void FinishSyncAmsDialog::deal_ok() { on_hide(); }
 void FinishSyncAmsDialog::deal_cancel() {}
 void FinishSyncAmsDialog::on_hide()
