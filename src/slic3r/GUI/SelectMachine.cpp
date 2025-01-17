@@ -545,8 +545,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_change_filament_times->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
     m_txt_change_filament_times->SetBackgroundColour(*wxWHITE);
     m_txt_change_filament_times->SetLabel(wxEmptyString);
-    m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxALIGN_CENTER, 0);
-    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxALIGN_CENTER, 0);
+    m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxTOP, FromDIP(2));
+    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, 0);
 
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
@@ -808,9 +808,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxLEFT|wxRIGHT, FromDIP(18));
-    m_sizer_main->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(18));
     m_sizer_main->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(18));
+    m_sizer_main->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_options_timelapse, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -3043,18 +3044,31 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
 
 void SelectMachineDialog::update_filament_change_count()
 {
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj) return;
+
     /*check filament change times*/
     PartPlate *  part_plate   = m_plater->get_partplate_list().get_curr_plate();
     PrintBase *  print        = nullptr;
     GCodeResult *gcode_result = nullptr;
 
+    m_change_filament_times_sizer->Show(false);
+    m_txt_change_filament_times->Show(false);
 
     part_plate->get_print(&print, &gcode_result, NULL);
     if (gcode_result && gcode_result->filament_change_count_map.size() > 0 && m_ams_mapping_result.size() > 0) {
 
         std::vector<int> filament_ids;
         for (auto mr : m_ams_mapping_result) {
-            if (mr.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || mr.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) { filament_ids.push_back(mr.id); }
+            if (mr.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || mr.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                filament_ids.push_back(mr.id);
+            }
+        }
+
+        if (m_ams_mapping_result.size() == filament_ids.size()) {
+            return;
         }
 
         int hand_changes_count = 0;
@@ -3067,7 +3081,15 @@ void SelectMachineDialog::update_filament_change_count()
         if (hand_changes_count > 0) {
             m_change_filament_times_sizer->Show(true);
             m_txt_change_filament_times->Show(true);
-            m_txt_change_filament_times->SetLabel(wxString::Format(_L("You picked both external and AMS filament, You will need to manually change filament %d times."), hand_changes_count));
+
+            if (obj->m_extder_data.total_extder_count > 1) {
+                m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously on the same nozzle. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
+            } else {
+                m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
+            }
+
+            m_txt_change_filament_times->Wrap(FromDIP(580));
+            m_txt_change_filament_times->Layout();
         }
     }
 
