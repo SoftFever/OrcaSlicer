@@ -355,6 +355,7 @@ public:
     struct InputInfo
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
+        bool    only_external_material = false;
     };
     struct ResultInfo
     {};

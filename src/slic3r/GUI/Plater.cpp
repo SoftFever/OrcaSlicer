@@ -482,7 +482,7 @@ struct Sidebar::priv
     void jump_to_object(ObjectDataViewModelNode* item);
     void can_search();
 
-    bool sync_extruder_list();
+    bool sync_extruder_list(bool &only_external_material);
     void update_sync_status(const MachineObject* obj);
 
 #ifdef _WIN32
@@ -1109,7 +1109,7 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const 
     update_ams();
 }
 
-bool Sidebar::priv::sync_extruder_list()
+bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
@@ -1167,7 +1167,10 @@ bool Sidebar::priv::sync_extruder_list()
                 ++deputy_4;
         }
     }
-
+    only_external_material = false;
+    if (obj->amsList.size() == 0) {
+        only_external_material = true;
+    }
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
     AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
@@ -2636,7 +2639,8 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
 
 bool Sidebar::sync_extruder_list()
 {
-    return p->sync_extruder_list();
+    bool only_external_material;
+    return p->sync_extruder_list(only_external_material);
 }
 
 bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObject *obj)
@@ -2980,7 +2984,8 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
-    auto ok = p->sync_extruder_list();
+    bool only_external_material;
+    auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
         SyncNozzleAndAmsDialog::InputInfo temp_na_info;
         wxPoint                           big_btn_pt;
@@ -2994,7 +2999,7 @@ void Sidebar::deal_btn_sync() {
         auto cur_dialog_pos       = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
         temp_na_info.dialog_pos.x = cur_dialog_pos.x;
         temp_na_info.dialog_pos.y += FromDIP(2);
-
+        temp_na_info.only_external_material = only_external_material;
         if (m_sna_dialog) {
             m_sna_dialog.reset();
         }

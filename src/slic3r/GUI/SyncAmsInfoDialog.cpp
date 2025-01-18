@@ -4377,7 +4377,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Pressed), std::pair<wxColour, int>(wxColour(43, 45, 42), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Normal));
-    m_button_ok = new Button(this,  _L("Sync AMS filament"));
+    m_button_ok = new Button(this, m_input_info.only_external_material ? _L("Sync filament") : _L("Sync AMS filament"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderWidth(0);
     m_button_ok->SetTextColor(wxColour(0xFEFEFE));
