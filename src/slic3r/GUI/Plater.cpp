@@ -15613,12 +15613,12 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
                 NotificationManager::NotificationLevel::ErrorNotificationLevel);
         }
 
-        if (state == ModelInstancePVS_Limited) {
+        /*if (state == ModelInstancePVS_Limited) {
             p->notification_manager->push_plater_warning_notification(get_object_limited_text());
         }
         else {
             p->notification_manager->close_plater_warning_notification(get_object_limited_text());
-        }
+        }*/
     }
 
     PartPlate* part_plate = p->partplate_list.get_curr_plate();
