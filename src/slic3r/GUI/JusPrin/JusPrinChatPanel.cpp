@@ -496,9 +496,13 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 }
 
 void JusPrinChatPanel::DiscardCurrentPresetChanges() {
-    wxGetApp().preset_bundle->printers.discard_current_changes();
-    wxGetApp().preset_bundle->filaments.discard_current_changes();
-    wxGetApp().preset_bundle->prints.discard_current_changes();
+    PresetBundle* bundle = wxGetApp().preset_bundle;
+    if (!bundle) {
+        return;
+    }
+    bundle->printers.discard_current_changes();
+    bundle->filaments.discard_current_changes();
+    bundle->prints.discard_current_changes();
 }
 
 }} // namespace Slic3r::GUI
