@@ -263,7 +263,7 @@ void SwitchBoard::doRender(wxDC &dc)
     } else {
         dc.SetTextForeground(0x333333);
     }
-    dc.DrawText(rightLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2 + GetSize().x / 2, (GetSize().y - right_txt_size.y) / 2));
+    dc.DrawText(rightLabel, wxPoint((GetSize().x / 2 - right_txt_size.x) / 2 + GetSize().x / 2, (GetSize().y - right_txt_size.y) / 2));
 
 }
 
@@ -311,7 +311,7 @@ void SwitchBoard::Enable()
 void SwitchBoard::Disable()
 {
     if (is_enable == false)
-    { 
+    {
         return;
     }
 
