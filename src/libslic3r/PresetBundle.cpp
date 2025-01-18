@@ -1975,6 +1975,11 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
         index++;
         if (filament_id.empty()) {
             if (use_map) {
+                for (int j = maps.size() - 1; j >= 0; j--) {
+                    if (maps[j].slot_id == slot_id && maps[j].ams_id == ams_id) {
+                        maps.erase(j);
+                    }
+                }
                 ams_filament_presets.push_back("Generic PLA");//for unknow matieral
                 auto default_unknown_color = "#CECECE";
                 ams_filament_colors.push_back(default_unknown_color);

@@ -1256,9 +1256,10 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_append_color_checkbox = new ::CheckBox(this, wxID_ANY);
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
-        m_append_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
+        m_append_color_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
             auto flag = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
             wxGetApp().app_config->set_bool("enable_append_color_by_sync_ams",!flag);
+            m_append_color_checkbox->SetValue(!flag);
         });
         m_append_color_checkbox->Hide();
         m_append_color_sizer->Add(m_append_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
@@ -1274,9 +1275,10 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_merge_color_checkbox = new ::CheckBox(this, wxID_ANY);
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
-        m_merge_color_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &e) {
+        m_merge_color_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
             auto flag = wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams");
             wxGetApp().app_config->set_bool("enable_merge_color_by_sync_ams",!flag);
+            m_merge_color_checkbox->SetValue(!flag);
         });
         m_merge_color_checkbox->Hide();
         m_merge_color_sizer->Add(m_merge_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
