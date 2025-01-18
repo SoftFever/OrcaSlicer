@@ -2858,7 +2858,7 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+    m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow ratio"));
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
         [this](wxCommandEvent&) {
             if (!m_pa_calib_dlg)
@@ -2945,7 +2945,7 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
+    append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow ratio"),_L("Flow ratio"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
     flowrate_menu->AppendSeparator();
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
