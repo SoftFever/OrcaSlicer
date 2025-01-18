@@ -15539,6 +15539,8 @@ int Plater::select_sliced_plate(int plate_index)
 
 extern std::string& get_object_limited_text();
 extern std::string& get_object_clashed_text();
+extern std::string& get_left_extruder_unprintable_text();
+extern std::string& get_right_extruder_unprintable_text();
 
 void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 {
@@ -15583,13 +15585,32 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
         }
 
-        auto clashed_text = get_object_clashed_text();
-        if (!model_fits) {
-            if(!clashed_text.empty())
-                p->notification_manager->push_plater_error_notification(clashed_text);
+        std::string clashed_text = get_object_clashed_text();
+        if (state == ModelInstancePVS_Partly_Outside) {
+            p->notification_manager->push_plater_error_notification(clashed_text);
         }
         else {
             p->notification_manager->close_plater_error_notification(clashed_text);
+        }
+        std::string left_unprintable_text = get_left_extruder_unprintable_text(), right_unprintable_text = get_right_extruder_unprintable_text();
+        if (!left_unprintable_text.empty())
+        {
+            p->notification_manager->push_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError,
+                NotificationManager::NotificationLevel::ErrorNotificationLevel, left_unprintable_text);
+        }
+        else {
+            p->notification_manager->close_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError,
+                NotificationManager::NotificationLevel::ErrorNotificationLevel);
+        }
+
+        if (!right_unprintable_text.empty())
+        {
+            p->notification_manager->push_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError,
+                NotificationManager::NotificationLevel::ErrorNotificationLevel, right_unprintable_text);
+        }
+        else {
+            p->notification_manager->close_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError,
+                NotificationManager::NotificationLevel::ErrorNotificationLevel);
         }
 
         if (state == ModelInstancePVS_Limited) {

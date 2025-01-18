@@ -115,8 +115,8 @@ float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleF
 
 
 std::string& get_object_limited_text() {
-    static std::string object_limited_text = _u8L("An object is laid on the left/right nozzle only area.\n"
-            "Please make sure the filaments used by this object on this area are not mapped to the other nozzles.");
+    static std::string object_limited_text = _u8L("An object is placed in the left/right nozzle-only area or exceeds the printable height of the left nozzle.\n"
+            "Please ensure the filaments used by this object are not arranged to other nozzles.");
     return object_limited_text;
 }
 
@@ -1398,6 +1398,8 @@ static bool construct_error_string(ObjectFilamentResults& object_result, std::st
 
 static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilamentResults& object_result, std::string& left_extruder_unprintable_text, std::string& right_extruder_unprintable_text)
 {
+    left_extruder_unprintable_text.clear();
+    right_extruder_unprintable_text.clear();
     if (object_result.filaments.empty())
         return {false,false};
 
