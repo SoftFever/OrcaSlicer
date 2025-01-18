@@ -484,8 +484,10 @@ void ObjColorPanel::send_new_filament_to_ui()
 void ObjColorPanel::cancel_paint_color() {
     m_filament_ids.clear();
     auto mo = m_obj_in_out.model->objects[0];
+    mo->config.set("extruder", 1);
     auto mv = mo->volumes[0];
     mv->mmu_segmentation_facets.reset();
+    mv->config.set("extruder", 1);
 }
 
 void ObjColorPanel::update_filament_ids()
