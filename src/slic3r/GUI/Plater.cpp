@@ -1607,7 +1607,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->left_extruder  = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
         p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
-        p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, "Nozzle");
+        p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
         p->vsizer_printer = new wxBoxSizer(wxVERTICAL);
         p->layout_printer(true, true);

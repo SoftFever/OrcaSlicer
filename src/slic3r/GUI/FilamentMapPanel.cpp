@@ -32,8 +32,8 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     auto drag_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_left_panel  = new DragDropPanel(this, wxT("Left Nozzle:"), false);
-    m_right_panel = new DragDropPanel(this, wxT("Right Nozzle:"), false);
+    m_left_panel  = new DragDropPanel(this, _L("Left Nozzle"), false);
+    m_right_panel = new DragDropPanel(this, _L("Right Nozzle"), false);
     m_switch_btn  = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
 
     for (size_t idx = 0; idx < m_filament_map.size(); ++idx) {

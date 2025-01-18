@@ -499,8 +499,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_panel->Hide();
 
     m_statictext_ams_msg = new Label(this, wxEmptyString);
-    m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(600), -1));
-    m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(600), -1));
+    m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(645), -1));
+    m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(645), -1));
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
@@ -525,7 +525,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     });
 
     m_mapping_sugs_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto m_img_mapping_sugs = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+    //auto m_img_mapping_sugs = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
     auto m_txt_mapping_sugs = new Label(this, wxEmptyString);
     m_txt_mapping_sugs->SetFont(::Label::Body_13);
     m_txt_mapping_sugs->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
@@ -533,11 +533,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_mapping_sugs->SetMaxSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetBackgroundColour(*wxWHITE);
     m_txt_mapping_sugs->SetLabel(_L("Your filament grouping method is not optimal."));
-    m_mapping_sugs_sizer->Add(m_img_mapping_sugs, 0, wxALIGN_CENTER, 0);
+    //m_mapping_sugs_sizer->Add(m_img_mapping_sugs, 0, wxALIGN_CENTER, 0);
     m_mapping_sugs_sizer->Add(m_txt_mapping_sugs, 0, wxALIGN_CENTER, 0);
 
     m_change_filament_times_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto m_img_change_filament_times = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+    //auto m_img_change_filament_times = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
     m_txt_change_filament_times = new Label(this, wxEmptyString);
     m_txt_change_filament_times->SetFont(::Label::Body_13);
     m_txt_change_filament_times->SetMinSize(wxSize(FromDIP(580), -1));
@@ -545,8 +545,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_change_filament_times->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
     m_txt_change_filament_times->SetBackgroundColour(*wxWHITE);
     m_txt_change_filament_times->SetLabel(wxEmptyString);
-    m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxTOP, FromDIP(2));
-    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, FromDIP(2));
+    //m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxTOP, FromDIP(2));
+    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, 0);
 
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
@@ -1558,7 +1558,7 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
         if (str_new != str_old) {
             if (m_statictext_ams_msg->GetLabel() != msg) {
                 m_statictext_ams_msg->SetLabel(msg);
-                m_statictext_ams_msg->Wrap(FromDIP(600));
+                m_statictext_ams_msg->Wrap(FromDIP(645));
                 m_statictext_ams_msg->Show();
                 Layout();
                 Fit();
@@ -1822,8 +1822,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 
             auto target_print_name = wxString(obj_->get_preset_printer_model_name(target_model_id));
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
-            msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."), sourcet_print_name, target_print_name);
-            
+            msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."), sourcet_print_name, target_print_name);
+
             update_print_status_msg(msg_text, true, true);
         }
         catch (...){}
@@ -1873,7 +1873,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     }
     else if (status == PrintStatusMixAmsAndVtSlotWarning) {
-        wxString msg_text = _L("You selected external and AMS filament at the same time in an extruder, you will need manually change external filament.");
+        wxString msg_text = _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -2980,18 +2980,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
         m_check_flag = false;
-
-        /*check nozzle & filament is it the best*/
-        if (obj->m_extder_data.total_extder_count > 1) {
-            auto stats = m_plater->get_partplate_list().get_current_fff_print().statistics_by_extruder();
-            auto best  = stats.stats_by_multi_extruder_best;
-            auto curr  = stats.stats_by_multi_extruder_curr;
-
-            if (curr.filament_flush_weight > best.filament_flush_weight) {
-                m_link_edit_nozzle->Show(true);
-                m_mapping_sugs_sizer->Show(true);
-            }
-        }
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;
@@ -3066,22 +3054,38 @@ void SelectMachineDialog::update_filament_change_count()
         }
 
         int hand_changes_count = 0;
+        auto saving_weight = 0;
+
         for (auto fi : filament_ids) {
             for (auto counts : gcode_result->filament_change_count_map) {
                 if (counts.first.first == fi || counts.first.second == fi) { hand_changes_count += counts.second; }
             }
         }
 
-        if (hand_changes_count > 0) {
+        /*check nozzle & filament is it the best*/
+        if (obj->m_extder_data.total_extder_count > 1) {
+            auto stats = m_plater->get_partplate_list().get_current_fff_print().statistics_by_extruder();
+            auto best  = stats.stats_by_multi_extruder_best;
+            auto curr  = stats.stats_by_multi_extruder_curr;
+
+            if (curr.filament_flush_weight > best.filament_flush_weight) {
+                m_link_edit_nozzle->Show(true);
+                m_mapping_sugs_sizer->Show(true);
+                saving_weight = curr.filament_flush_weight - best.filament_flush_weight;
+            }
+        }
+
+        if (hand_changes_count > 0 || saving_weight > 0) {
             m_change_filament_times_sizer->Show(true);
             m_txt_change_filament_times->Show(true);
 
-            if (obj->m_extder_data.total_extder_count > 1) {
+            /*if (obj->m_extder_data.total_extder_count > 1) {
                 m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously on the same nozzle. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
             } else {
                 m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
-            }
+            }*/
 
+            m_txt_change_filament_times->SetLabel(wxString::Format(_L("Cost %dg filament and %d changes more than optimal grouping."), saving_weight, hand_changes_count));
             m_txt_change_filament_times->Wrap(FromDIP(580));
             m_txt_change_filament_times->Layout();
         }

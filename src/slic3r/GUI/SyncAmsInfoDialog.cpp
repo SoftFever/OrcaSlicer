@@ -4464,7 +4464,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     image_sizer->AddStretchSpacer();
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new wxStaticText(this, wxID_ANY, _L("Successfully synchronized color and type of filament in AMS."));
+    auto finish_text = new wxStaticText(this, wxID_ANY, _L("Successfully synchronized color and type of filament from printer."));
     finish_text->Wrap(win_width - 40);
     finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
     text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
