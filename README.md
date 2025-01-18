@@ -10,7 +10,7 @@ Join our Discord community here:<br>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
-Please be aware that "orcaslicer.net" is NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
+Please be aware that "**orcaslicer.net**" or "**orcaslicer.info**" are NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
 
 The only official platforms for OrcaSlicer are our GitHub project page and the  <a href="https://discord.gg/P4VE9UY9gJ">official Discord channel</a> .
 
@@ -103,11 +103,19 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
           - Run => Options tab => Document Versions: uncheck `Allow debugging when browsing versions`
       - menu bar: Product => Run
 
-- Ubuntu 
-  - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
-  - run 'sudo ./BuildLinux.sh -u'
-  - run './BuildLinux.sh -dsir'
-
+- Linux (All Distros)
+    - Docker
+        - Dependencies: Docker [Installation Instructions](https://www.docker.com/get-started/), git
+        - clone this repository `git clone https://github.com/SoftFever/OrcaSlicer`
+        - run `cd OrcaSlicer`
+        - run `./DockerBuild.sh`
+        - To run OrcaSlicer:
+            - run `./DockerRun.sh`
+                - For most common errors, open `DockerRun.sh` and read the comments.  
+    - Ubuntu 
+      - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
+      - run 'sudo ./BuildLinux.sh -u'
+      - run './BuildLinux.sh -dsir'
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
@@ -131,11 +139,6 @@ Thank you! :)
 <td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
-</a>
-</td>
-<td>
-<a href="https://phrozen3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="96" height="">
 </a>
 </td>
 <td>
