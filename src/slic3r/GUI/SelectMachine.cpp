@@ -546,7 +546,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_change_filament_times->SetBackgroundColour(*wxWHITE);
     m_txt_change_filament_times->SetLabel(wxEmptyString);
     m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxTOP, FromDIP(2));
-    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, 0);
+    m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, FromDIP(2));
 
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
@@ -1100,11 +1100,8 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                 if (f->tray_id == VIRTUAL_TRAY_MAIN_ID || f->tray_id == VIRTUAL_TRAY_DEPUTY_ID)
                 {
                     ams_id = "Ext";
-                }
-
-                else if (f->tray_id >= 0) {
+                }else if (f->tray_id >= 0) {
                     ams_id = wxGetApp().transition_tridid(f->tray_id);
-                    //ams_id = wxString::Format("%02d", f->tray_id + 1);
                 } else {
                     ams_id = "-";
                 }

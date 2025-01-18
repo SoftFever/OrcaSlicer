@@ -91,9 +91,11 @@ public:
     ScalableBitmap m_arraw_bitmap_white;
     ScalableBitmap m_transparent_mitem;
     ScalableBitmap m_ams_wheel_mitem;
+    ScalableBitmap m_ams_not_match;
 
     bool m_selected {false};
     bool m_warning{false};
+    bool m_match {true};
 
     void msw_rescale();
     void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>());
@@ -107,6 +109,7 @@ public:
     void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
+    void match(bool mat);
     void doRender(wxDC &dc);
 };
 
@@ -156,7 +159,7 @@ public:
     ~AmsMapingPopup() {};
 
     wxWindow* send_win{ nullptr };
-    wxStaticText *           m_warning_text{nullptr};
+    Label*      m_warning_text{nullptr};
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
     std::vector<wxWindow*>   m_amsmapping_container_list;
@@ -181,6 +184,7 @@ public:
 
     wxPanel*     m_left_marea_panel;
     wxPanel*     m_right_marea_panel;
+    wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
 
     wxBoxSizer* m_sizer_split_ams_left;
@@ -188,7 +192,6 @@ public:
 
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
-    wxString     format_text(wxString &m_msg);
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
