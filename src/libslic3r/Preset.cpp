@@ -1137,7 +1137,7 @@ void PresetCollection::load_presets(
                     if (key_values.find("instantiation") != key_values.end())
                         preset.is_visible = key_values["instantiation"] != "false";
 
-                    //BBS: use inherit config as the base
+                    //Orca: find and use the inherit config as the base
                     Preset* inherit_preset = nullptr;
                     ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
 
@@ -1146,6 +1146,12 @@ void PresetCollection::load_presets(
                         ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                         std::string inherits_value = option_str->value;
                         inherit_preset = this->find_preset(inherits_value, false, true);
+                        // Orca: try to find if the parent preset has been renamed
+                        if (inherit_preset == nullptr) {
+                            auto it = this->find_preset_renamed(inherits_value);
+                            if (it != m_presets.end())
+                                inherit_preset = &(*it);
+                        }
                     } else {
                         ;
                     }
