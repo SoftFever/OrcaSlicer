@@ -234,10 +234,10 @@ static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
 static t_config_enum_values s_keys_map_SupportType{
-    { "normal(auto)",   stNormalAuto },
-    { "tree(auto)", stTreeAuto },
-    { "normal(manual)", stNormal },
-    { "tree(manual)", stTree }
+    { "Normal (auto)",   stNormalAuto },
+    { "Tree (auto)", stTreeAuto },
+    { "Normal (manual)", stNormal },
+    { "Tree (manual)", stTree }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 
@@ -4406,17 +4406,17 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_type", coEnum);
     def->label = L("Type");
     def->category = L("Support");
-    def->tooltip = L("normal(auto) and tree(auto) is used to generate support automatically. "
-                     "If normal(manual) or tree(manual) is selected, only support enforcers are generated");
+    def->tooltip = L("Normal (auto) and Tree (auto) is used to generate support automatically. "
+                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
-    def->enum_values.push_back("normal(auto)");
-    def->enum_values.push_back("tree(auto)");
-    def->enum_values.push_back("normal(manual)");
-    def->enum_values.push_back("tree(manual)");
-    def->enum_labels.push_back(L("normal(auto)"));
-    def->enum_labels.push_back(L("tree(auto)"));
-    def->enum_labels.push_back(L("normal(manual)"));
-    def->enum_labels.push_back(L("tree(manual)"));
+    def->enum_values.push_back("Normal (auto)");
+    def->enum_values.push_back("Tree (auto)");
+    def->enum_values.push_back("Normal (manual)");
+    def->enum_values.push_back("Tree (manual)");
+    def->enum_labels.push_back(L("Normal (auto)"));
+    def->enum_labels.push_back(L("Tree (auto)"));
+    def->enum_labels.push_back(L("Normal (manual)"));
+    def->enum_labels.push_back(L("Tree (manual)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
@@ -6217,12 +6217,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // old file "0" is None, "2" is Traditional
         // new file "0" is Traditional, erase "2"
         value = "0";
-    } else if (opt_key == "support_type" && value == "normal") {
-        value = "normal(manual)";
-    } else if (opt_key == "support_type" && value == "tree") {
-        value = "tree(manual)";
-    } else if (opt_key == "support_type" && value == "hybrid(auto)") {
-        value = "tree(auto)";
+    } else if (opt_key == "support_type" && value == "Normal") {
+        value = "Normal (manual)";
+    } else if (opt_key == "support_type" && value == "Tree") {
+        value = "Tree (manual)";
+    } else if (opt_key == "support_type" && value == "Hybrid (auto)") {
+        value = "Tree (auto)";
     } else if (opt_key == "support_base_pattern" && value == "none") {
         value = "hollow";
     } else if (opt_key == "different_settings_to_system") {

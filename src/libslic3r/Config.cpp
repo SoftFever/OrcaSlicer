@@ -850,7 +850,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                     //some logic for special values
                     if (opt_key == "support_type") {
                         //std::string new_value = dynamic_cast<ConfigOptionString*>(this->option(opt_key))->value;
-                        if (it.value() == "hybrid(auto)") {
+                        if (it.value() == "Hybrid (auto)") {
                             different_settings_append.push_back(opt_key);
                             different_settings_append.push_back("support_style");
                             new_support_style = "tree_hybrid";
