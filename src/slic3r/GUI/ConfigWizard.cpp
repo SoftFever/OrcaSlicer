@@ -123,18 +123,18 @@ BundleMap BundleMap::load()
     const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
     const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
-    //BBS: add BBL as default
-    //BBS: add json logic for vendor bundle
-    auto bbl_bundle_path = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
-    auto bbl_bundle_rsrc = false;
-    if (!boost::filesystem::exists(bbl_bundle_path)) {
-        bbl_bundle_path = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
-        bbl_bundle_rsrc = true;
+    //Orca: add custom as default
+    //Orca: add json logic for vendor bundle
+    auto orca_bundle_path = (vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".json");
+    auto orca_bundle_rsrc = false;
+    if (!boost::filesystem::exists(orca_bundle_path)) {
+        orca_bundle_path = (rsrc_vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".json");
+        orca_bundle_rsrc = true;
     }
     {
         Bundle bbl_bundle;
-        if (bbl_bundle.load(std::move(bbl_bundle_path), bbl_bundle_rsrc, true))
-            res.emplace(PresetBundle::BBL_BUNDLE, std::move(bbl_bundle));
+        if (bbl_bundle.load(std::move(orca_bundle_path), orca_bundle_rsrc, true))
+            res.emplace(PresetBundle::ORCA_DEFAULT_BUNDLE, std::move(bbl_bundle));
     }
 
     // Load the other bundles in the datadir/vendor directory
@@ -163,10 +163,10 @@ BundleMap BundleMap::load()
 
 Bundle& BundleMap::bbl_bundle()
 {
-    //BBS: add BBL as default
-    auto it = find(PresetBundle::BBL_BUNDLE);
+    //Orca: add custom as default
+    auto it = find(PresetBundle::ORCA_DEFAULT_BUNDLE);
     if (it == end()) {
-        throw Slic3r::RuntimeError("ConfigWizard: Internal error in BundleMap: BBL_BUNDLE not loaded");
+        throw Slic3r::RuntimeError("ConfigWizard: Internal error in BundleMap: ORCA_DEFAULT_BUNDLE not loaded");
     }
 
     return it->second;
@@ -625,12 +625,11 @@ std::set<std::string> PagePrinters::get_selected_models()
 
 void PagePrinters::set_run_reason(ConfigWizard::RunReason run_reason)
 {
-    //BBS: add BBL as default
+    //Orca: add custom as default
     if (is_primary_printer_page
         && (run_reason == ConfigWizard::RR_DATA_EMPTY || run_reason == ConfigWizard::RR_DATA_LEGACY)
         && printer_pickers.size() > 0 
-        && printer_pickers[0]->vendor_id == PresetBundle::BBL_BUNDLE) {
-        //BBS: select alll bbs machine by default
+        && printer_pickers[0]->vendor_id == PresetBundle::ORCA_DEFAULT_BUNDLE) {
         //printer_pickers[0]->select_one(0, true);
         printer_pickers[0]->select_all(true);
     }
@@ -1941,8 +1940,8 @@ void ConfigWizard::priv::create_3rdparty_pages()
 {
     for (const auto &pair : bundles) {
         const VendorProfile *vendor = pair.second.vendor_profile;
-        //BBS: add BBL as default
-        if (vendor->id == PresetBundle::BBL_BUNDLE) { continue; }
+        //Orca: add custom as default
+        if (vendor->id == PresetBundle::ORCA_DEFAULT_BUNDLE) { continue; }
 
         bool is_fff_technology = false;
         bool is_sla_technology = false;

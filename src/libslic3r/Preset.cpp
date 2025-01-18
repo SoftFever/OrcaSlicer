@@ -566,9 +566,10 @@ std::string Preset::label(bool no_alias) const
 
 bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
     auto &condition             = preset.preset.compatible_prints_condition();
     auto *compatible_prints     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_prints"));
     bool  has_compatible_prints = compatible_prints != nullptr && ! compatible_prints->values.empty();
@@ -603,9 +604,10 @@ bool is_compatible_with_parent_printer(const PresetWithVendorProfile& preset, co
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
     auto &condition               = preset.preset.compatible_printers_condition();
     auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
     bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
@@ -1135,7 +1137,7 @@ void PresetCollection::load_presets(
                     if (key_values.find("instantiation") != key_values.end())
                         preset.is_visible = key_values["instantiation"] != "false";
 
-                    //BBS: use inherit config as the base
+                    //Orca: find and use the inherit config as the base
                     Preset* inherit_preset = nullptr;
                     ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
 
@@ -1144,6 +1146,12 @@ void PresetCollection::load_presets(
                         ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                         std::string inherits_value = option_str->value;
                         inherit_preset = this->find_preset(inherits_value, false, true);
+                        // Orca: try to find if the parent preset has been renamed
+                        if (inherit_preset == nullptr) {
+                            auto it = this->find_preset_renamed(inherits_value);
+                            if (it != m_presets.end())
+                                inherit_preset = &(*it);
+                        }
                     } else {
                         ;
                     }
