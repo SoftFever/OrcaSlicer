@@ -3,6 +3,7 @@
 #include "StaticBox.hpp"
 #include "../wxExtensions.hpp"
 
+#include "slic3r/GUI/I18N.hpp"
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
@@ -110,7 +111,7 @@ void ImageSwitchButton::render(wxDC& dc)
 	wxSize szIcon;
 	wxSize szContent = textSize;
     ScalableBitmap &icon      = GetValue() ? m_on : m_off;
-	
+
 	int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
 
 	wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
@@ -126,9 +127,9 @@ void ImageSwitchButton::render(wxDC& dc)
         dc.SetTextForeground(text_color.colorForStates(states));
 
     auto fina_txt = GetValue() ? labels[0] : labels[1];
-    if (dc.GetTextExtent(fina_txt).x > size.x) { 
+    if (dc.GetTextExtent(fina_txt).x > size.x) {
         wxString forment_txt = wxEmptyString;
-        for (auto i = 0; i < fina_txt.length(); i++) { 
+        for (auto i = 0; i < fina_txt.length(); i++) {
             forment_txt = fina_txt.SubString(0, i) + "...";
             if (dc.GetTextExtent(forment_txt).x > size.x) {
                 pt.x = (size.x - dc.GetTextExtent(forment_txt).x) / 2;
@@ -138,7 +139,7 @@ void ImageSwitchButton::render(wxDC& dc)
         }
     } else {
         dc.DrawText(fina_txt, pt);
-    }  
+    }
 }
 
 void ImageSwitchButton::Rescale()
@@ -280,7 +281,7 @@ void FanSwitchButton::render(wxDC& dc)
         pt.x += icon.GetBmpWidth() + FromDIP(9);
     }
 
-    wxString fan_txt = "Fan";
+    wxString fan_txt = _L("Fan");
     dc.SetFont(::Label::Head_15);
     pt.y = FromDIP(9);
     dc.DrawText(fan_txt, pt);

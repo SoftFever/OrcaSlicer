@@ -77,6 +77,7 @@ src/slic3r/GUI/MainFrame.cpp
 src/slic3r/GUI/MediaPlayCtrl.cpp
 src/slic3r/GUI/MediaFilePanel.cpp
 src/slic3r/GUI/ImageGrid.cpp
+src/slic3r/GUI/ImageSwitchButton.cpp
 src/slic3r/GUI/Printer/PrinterFileSystem.cpp
 src/slic3r/GUI/Mouse3DController.cpp
 src/slic3r/GUI/SelectMachinePop.cpp
