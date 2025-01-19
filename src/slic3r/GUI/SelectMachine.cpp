@@ -581,12 +581,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
     advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
     advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        if (m_options_other->IsShown()) {
+        if (m_print_status == PrintStatusUnsupportedPrinter) {
             m_options_other->Hide();
-            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
         } else {
-            m_options_other->Show();
-            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option2", this, 18));
+            if (m_options_other->IsShown()) {
+                m_options_other->Hide();
+                m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
+            } else {
+                m_options_other->Show();
+                m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option2", this, 18));
+            }
         }
         Layout();
         Fit();
