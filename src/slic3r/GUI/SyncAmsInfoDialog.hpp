@@ -11,6 +11,7 @@
 #include "DeviceManager.hpp"
 class Button;
 class CheckBox;
+class Label;
 namespace Slic3r { namespace GUI {
 class CapsuleButton;
 class SyncAmsInfoDialog : public DPIDialog
@@ -312,7 +313,9 @@ private:
     wxBoxSizer *    sizer_basic_right_info = nullptr;
     wxBoxSizer *    sizer_advanced_options_title = nullptr;
     wxPanel *    m_rename_edit_panel  = nullptr;
-    wxStaticText *  m_confirm_title                = nullptr;
+    Label *  m_confirm_title                = nullptr;
+    wxString        m_undone_str;
+    wxString        m_override_undone_str;
     wxStaticText *  m_are_you_sure_title                = nullptr;
 
    // wxBoxSizer *    m_plate_combox_sizer          = nullptr;

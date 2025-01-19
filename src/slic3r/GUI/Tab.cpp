@@ -1595,7 +1595,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
         if ((printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3)
             || m_preset_bundle->get_printer_extruder_count() == 2) {
-            wxString msg_text = _(L("Timelapse is not supported because Print sequence is set to \"By object\"."));
+            wxString msg_text = _(L("The current printer does not support timelapse in Traditional Mode when printing By-Object."));
             msg_text += "\n\n" + _(L("Still print by object?"));
 
             MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);

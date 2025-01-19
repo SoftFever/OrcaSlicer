@@ -1864,7 +1864,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
                     msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
                 }
                 else if (warning.error_code == "1001C002") {
-                    msg_text = _L("Timelapse is not supported because Print sequence is set to \"By object\".");
+                    msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
                 }
             }
         }

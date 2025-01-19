@@ -16,6 +16,7 @@
 #include "Jobs/BoostThreadWorker.hpp"
 #include "Jobs/PlaterWorker.hpp"
 #include <chrono>
+#include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "CapsuleButton.hpp"
@@ -24,7 +25,7 @@ using namespace Slic3r::GUI;
 
 #define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
 #define SyncAmsInfoDialogWidth  FromDIP(675)
-
+#define SyncLabelWidth FromDIP(640)
 namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
@@ -105,14 +106,9 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_button_cancel->Hide();
         m_confirm_title->Show();
         m_confirm_title->SetLabel(_L("Printer not connected. Please connect or choose a printer on the Device page and try again."));
-        SetMinSize(wxSize(FromDIP(700), -1));
-        SetMaxSize(wxSize(FromDIP(700), -1));
-       // m_confirm_title->SetForegroundColour(wxColour(250, 10, 10, 255));
     } else if (dirty_filament) {
          m_confirm_title->Show();
          m_confirm_title->SetLabel(_L("Synchronizing AMS filaments will discard your modified but unsaved filament presets.\nAre you sure you want to continue?"));
-         SetMinSize(wxSize(FromDIP(700), -1));
-         SetMaxSize(wxSize(FromDIP(700), -1));
     } else if (!m_check_dirty_fialment) {
         show_color_panel(true);
         m_filament_left_panel->Show(false); // empty_project
@@ -121,10 +117,10 @@ bool SyncAmsInfoDialog::Show(bool show)
         if (m_mode_combox_sizer) {
             m_mode_combox_sizer->Show(true);
         }
-        m_confirm_title->SetLabel(_L("After sync, all currently configured filament presets and colors will be discarded."));
-        SetMinSize(wxSize(SyncAmsInfoDialogWidth, -1));
-        SetMaxSize(wxSize(SyncAmsInfoDialogWidth, -1));
+        m_confirm_title->SetLabel(m_undone_str);
     }
+
+
     Layout();
     Fit();
     CenterOnParent();
@@ -378,12 +374,15 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
 {
     m_map_mode = (MapModeEnum) idx;
     if (m_map_mode == MapModeEnum::ColorMap) {
-        m_are_you_sure_title->SetLabel(_L("Are you sure to synchronize the filaments?"));
         show_color_panel(true);
+        m_confirm_title->SetLabel(m_undone_str);
     } else if (m_map_mode == MapModeEnum::Override) {
-        m_are_you_sure_title->SetLabel(_L("Are you sure to directly override current filaments?"));
         show_color_panel(false);
+        m_confirm_title->Show();
+        m_confirm_title->SetLabel(m_override_undone_str);
     }
+    Layout();
+    Fit();
 }
 
 void SyncAmsInfoDialog::update_when_change_map_mode(wxCommandEvent &e)
@@ -432,6 +431,7 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
         update_more_setting();
     }
     m_confirm_title->Show(flag);
+    m_are_you_sure_title->Show(flag);
     if (flag) {
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         /*if (wxGetApp().plater()->get_extruders_colors().size() != extruders.size()) {
@@ -623,8 +623,7 @@ void SyncAmsInfoDialog::updata_ui_when_priner_not_same() {
     m_button_ok->SetLabel(_L("OK"));
     m_confirm_title->Show();
     m_confirm_title->SetLabel(_L("The connected printer does not match the currently selected printer. Please change the selected printer."));
-    SetMinSize(wxSize(FromDIP(800), -1));
-    SetMaxSize(wxSize(FromDIP(800), -1));
+
     Layout();
     Fit();
 }
@@ -1293,15 +1292,17 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         bSizer->Add(more_setting_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
         wxBoxSizer *confirm_boxsizer = new wxBoxSizer(wxVERTICAL);
-        m_confirm_title              = new wxStaticText(this, wxID_ANY, _L("After sync, all currently configured filament presets and colors will be discarded."),
-            wxDefaultPosition, wxDefaultSize);
-        //m_confirm_title->Wrap(FromDIP(SyncAmsInfoDialogWidth - 50));
-        //m_confirm_title->SetFont(Label::Head_14);
-        confirm_boxsizer->Add(m_confirm_title, 0, wxALIGN_LEFT | wxTOP | wxRIGHT, FromDIP(10));
+
+        m_override_undone_str = _L("The project's filament list will be directly replaced with the information of all filaments from the printer. This action cannot be undone.");
+        m_undone_str = _L("After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone.");
+        m_confirm_title = new Label(this, m_undone_str, LB_AUTO_WRAP);
+        m_confirm_title->SetMinSize(wxSize(SyncLabelWidth, -1));
+        m_confirm_title->SetMaxSize(wxSize(SyncLabelWidth, -1));
+        confirm_boxsizer->Add(m_confirm_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(10));
         m_are_you_sure_title = new wxStaticText(this, wxID_ANY,_L("Are you sure to synchronize the filaments?"));
         //m_are_you_sure_title->SetFont(Label::Head_14);
-        confirm_boxsizer->Add(m_are_you_sure_title, 0, wxALIGN_LEFT | wxTOP, FromDIP(0));
-        bSizer->Add(confirm_boxsizer, 0, wxALIGN_LEFT | wxLEFT, FromDIP(25));
+        confirm_boxsizer->Add(m_are_you_sure_title, 0, wxALIGN_LEFT  | wxTOP, FromDIP(0));
+        bSizer->Add(confirm_boxsizer, 0, wxALIGN_LEFT | wxLEFT , FromDIP(25));
 
         wxBoxSizer *warning_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_warning_text            = new wxStaticText(this, wxID_ANY, _L("Error") + ":");
@@ -1864,7 +1865,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(ExtderData data)
 
     const auto &project_config = wxGetApp().preset_bundle->project_config;
     // check nozzle used
-    auto                       used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();                   // 1 based
+    auto                       used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();                // 1 based
     auto                       filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config); // 1 based
     std::map<int, std::string> used_extruders_flow;
     std::vector<int>           used_extruders; // 0 based
@@ -4377,7 +4378,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Pressed), std::pair<wxColour, int>(wxColour(43, 45, 42), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Normal));
-    m_button_ok = new Button(this, m_input_info.only_external_material ? _L("Sync filament") : _L("Sync AMS filament"));
+    m_button_ok = new Button(this,  _L("Continue to sync filaments"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderWidth(0);
     m_button_ok->SetTextColor(wxColour(0xFEFEFE));
