@@ -1781,7 +1781,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
+        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("Storage is not available or is in read-only mode.");
