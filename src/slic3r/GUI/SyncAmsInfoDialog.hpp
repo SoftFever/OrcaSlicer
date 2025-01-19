@@ -124,6 +124,7 @@ protected:
     ThumbnailData             m_preview_thumbnail_data; // when ams map change
     std::vector<wxColour>     m_preview_colors_in_thumbnail;
     std::vector<wxColour>     m_cur_colors_in_thumbnail;
+    std::vector<wxColour>     m_back_cur_colors_in_thumbnail;
     std::vector<bool>         m_edge_pixels;
 
     StaticBox * m_two_image_panel{nullptr};
@@ -193,15 +194,16 @@ public:
     void     on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);
     void     reset_and_sync_ams_list();
-    void     clone_thumbnail_data();
+    void     clone_thumbnail_data(bool allow_clone_ams_color);
     void     record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour &color);
     void     final_deal_edge_pixels_data(ThumbnailData &data);
     void     updata_thumbnail_data_after_connected_printer();
-    void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data);
+    void     show_ams_controls(bool flag);
+    void     show_advanced_settings(bool flag);
+    void     update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color);
+    void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data,bool allow_clone_ams_color);
     void     change_default_normal(int old_filament_id, wxColour temp_ams_color);
-    void     set_default_from_sdcard();
-    void     update_page_turn_state(bool show);
     void     on_timer(wxTimerEvent &event);
     void     on_selection_changed(wxCommandEvent &event);
     void     update_flow_cali_check(MachineObject *obj);
@@ -284,6 +286,7 @@ private:
     wxBoxSizer *create_sizer_thumbnail(wxButton *image_button, bool left);
     void        update_when_change_plate(int);
     void        update_when_change_map_mode(int);
+    void        update_map_when_change_map_mode();
     void        update_when_change_map_mode(wxCommandEvent &e);
     void        update_panel_status(PageType page);
     void        show_color_panel(bool,bool update_layout = true);
@@ -301,6 +304,7 @@ private:
     Button *   m_button_ok     = nullptr;
     Button *   m_button_cancel = nullptr;
 
+    wxStaticText *m_after_map_text{nullptr};
     wxStaticText *m_attention_text{nullptr};
     wxStaticText* m_tip_text{nullptr};
     //wxStaticText *m_specify_color_cluster_title = nullptr;
@@ -320,7 +324,6 @@ private:
 
    // wxBoxSizer *    m_plate_combox_sizer          = nullptr;
     wxBoxSizer *    m_mode_combox_sizer           = nullptr;
-    wxBoxSizer *    m_sizer_line                   = nullptr;
     //wxStaticText *  m_printer_title                = nullptr;
     wxStaticText *  m_printer_device_name          = nullptr;
     wxStaticText *  m_printer_is_map_title         = nullptr;

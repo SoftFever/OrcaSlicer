@@ -131,7 +131,6 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
     if (!m_input_info.connected_printer) { return; }
     if (is_dirty_filament()) { return; }
 
-    show_sizer(m_sizer_line, true);
     m_two_thumbnail_panel->Show(true);
 
     m_attention_text->Show();
@@ -209,7 +208,6 @@ void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
 
 void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
 {
-    update_page_turn_state(false);
     if (m_cur_input_thumbnail_data.is_valid() && m_left_image_button) {
         auto &   temp_data = m_cur_input_thumbnail_data;
         wxImage image(temp_data.width, temp_data.height);
@@ -247,13 +245,9 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
             //m_used_colors_tip_text->SetLabel("  (" + std::to_string(extruders.size()) + " " + _L("colors used") + ")");
         }
     }
-    // disable pei bed
-    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev_manager)
-        return;
-    MachineObject *obj_       = dev_manager->get_selected_machine();
-    wxSize         screenSize = wxGetDisplaySize();
-    auto           dialogSize = this->GetSize();
+    if (m_map_mode == MapModeEnum::ColorMap) {
+        m_back_cur_colors_in_thumbnail = m_cur_colors_in_thumbnail;
+    }
 }
 
 bool SyncAmsInfoDialog::is_must_finish_slice_then_connected_printer() {
@@ -342,10 +336,10 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
     }
     else {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text  = new wxStaticText(image_button->GetParent(), wxID_ANY, _L("After mapping"));
-        sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-        text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
-        sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
+        m_after_map_text       = new wxStaticText(image_button->GetParent(), wxID_ANY, _L("After mapping"));
+        m_after_map_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+        text_sizer->Add(m_after_map_text, 0, wxALIGN_CENTER | wxALL, 0);
+        sizer_thumbnail->Add(m_after_map_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
     }
     sizer_thumbnail->Add(image_button, 0, wxALIGN_CENTER, 0);
     return sizer_thumbnail;
@@ -357,13 +351,7 @@ void SyncAmsInfoDialog::update_when_change_plate(int idx) {
     }
     m_specify_plate_idx = idx;
 
-    reset_and_sync_ams_list();
-    m_cur_input_thumbnail_data = m_plater->get_partplate_list().get_plate(m_specify_plate_idx)->thumbnail_data;
-    clone_thumbnail_data();
-    set_default_normal(m_cur_input_thumbnail_data);
-
-    wxCommandEvent empty;
-    on_selection_changed(empty);
+    update_thumbnail_data_accord_plate_index(false); // share current map
 
     update_swipe_button_state();
     Layout();
@@ -376,13 +364,42 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
     if (m_map_mode == MapModeEnum::ColorMap) {
         show_color_panel(true);
         m_confirm_title->SetLabel(m_undone_str);
+        m_after_map_text->SetLabel(_L("After mapping"));
     } else if (m_map_mode == MapModeEnum::Override) {
         show_color_panel(false);
         m_confirm_title->Show();
         m_confirm_title->SetLabel(m_override_undone_str);
+        m_after_map_text->SetLabel(_L("After overwriting"));
     }
+    update_map_when_change_map_mode();
     Layout();
     Fit();
+}
+
+void SyncAmsInfoDialog::update_map_when_change_map_mode() {
+    if (m_map_mode == MapModeEnum::ColorMap) {
+        m_cur_colors_in_thumbnail = m_back_cur_colors_in_thumbnail;
+    } else if (m_map_mode == MapModeEnum::Override) {
+        auto ams_colors = wxGetApp().preset_bundle->get_ams_colors();
+        for (size_t i = 0; i < m_preview_colors_in_thumbnail.size(); i++) {
+            if (i < ams_colors.size()) {
+                auto color_str = ams_colors[i];
+                if (color_str.front() == '#') {
+                    color_str = color_str.substr(1);
+                }
+                if (color_str.size() == 6) {
+                    color_str += "FF";
+                }
+                auto result                  = AmsTray::decode_color(color_str);
+                m_cur_colors_in_thumbnail[i] = result;
+            }
+            else {
+                //todo:give warning
+                m_cur_colors_in_thumbnail[i] = m_cur_colors_in_thumbnail[0];
+            }
+        }
+    }
+    update_thumbnail_data_accord_plate_index(false);
 }
 
 void SyncAmsInfoDialog::update_when_change_map_mode(wxCommandEvent &e)
@@ -412,24 +429,11 @@ void SyncAmsInfoDialog::update_panel_status(PageType page)
 void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
 {
     //show_sizer(m_plate_combox_sizer, flag);
-    if (m_sizer_line) {
-        show_sizer(m_sizer_line, flag);
-    }
-    m_two_thumbnail_panel->Show(flag);
-
     m_filament_panel->Show(flag);  // empty_project
 
     m_attention_text->Show(flag);
     m_tip_text->Show(flag);
-    m_more_setting_tips->Show(flag);
-
-    if (!flag) {
-        show_sizer(m_append_color_sizer, false);
-        show_sizer(m_merge_color_sizer, false);
-    }
-    else {
-        update_more_setting();
-    }
+    show_advanced_settings(flag);
     m_confirm_title->Show(flag);
     m_are_you_sure_title->Show(flag);
     if (flag) {
@@ -3993,23 +3997,27 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
     // reset_ams_material();//show "-"
 }
 
-void SyncAmsInfoDialog::clone_thumbnail_data()
+void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
 {
     // record preview_colors
     MaterialHash::iterator iter = m_materialList.begin();
-    if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) { m_preview_colors_in_thumbnail.resize(m_materialList.size()); }
-    while (iter != m_materialList.end()) {
-        int           id                  = iter->first;
-        Material *    item                = iter->second;
-        auto          m                   = item->item;
-        m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
-        if (item->id < m_cur_colors_in_thumbnail.size()) {
-            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
-        } else { // exist empty or unrecognized type ams in machine
-            m_cur_colors_in_thumbnail.resize(item->id + 1);
-            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+    if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
+        m_preview_colors_in_thumbnail.resize(m_materialList.size());
+    }
+    if (allow_clone_ams_color) {
+        while (iter != m_materialList.end()) {
+            int       id                      = iter->first;
+            Material *item                    = iter->second;
+            auto      m                       = item->item;
+            m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
+            if (item->id < m_cur_colors_in_thumbnail.size()) {
+                m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+            } else { // exist empty or unrecognized type ams in machine
+                m_cur_colors_in_thumbnail.resize(item->id + 1);
+                m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+            }
+            iter++;
         }
-        iter++;
     }
     // copy data
     auto &data = m_cur_input_thumbnail_data;
@@ -4118,16 +4126,44 @@ void SyncAmsInfoDialog::final_deal_edge_pixels_data(ThumbnailData &data)
 void SyncAmsInfoDialog::updata_thumbnail_data_after_connected_printer()
 {
     updata_ui_data_after_connected_printer();
+    update_thumbnail_data_accord_plate_index(true);
+}
+
+void SyncAmsInfoDialog::show_advanced_settings(bool flag) {
+    m_more_setting_tips->Show(flag);
+    if (!flag) {
+        show_sizer(m_append_color_sizer, false);
+        show_sizer(m_merge_color_sizer, false);
+    } else {
+        update_more_setting();
+    }
+}
+
+void SyncAmsInfoDialog::show_ams_controls(bool flag)
+{
+    m_filament_panel->Show(flag);
+    m_attention_text->Show(flag);
+}
+
+void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color)
+{
+    if (m_map_mode == MapModeEnum::Override) {
+        show_ams_controls(false);
+        show_advanced_settings(false);
+    } else if (m_map_mode == MapModeEnum::ColorMap) {
+        show_ams_controls(true);
+        show_advanced_settings(true);
+    }
     // change thumbnail_data
     ThumbnailData &input_data    = m_specify_plate_idx == -1 ? m_plater->get_partplate_list().get_curr_plate()->thumbnail_data :
                                                                m_plater->get_partplate_list().get_plate(m_specify_plate_idx)->thumbnail_data;
     ThumbnailData &no_light_data = m_specify_plate_idx == -1 ? m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data :
                                                                m_plater->get_partplate_list().get_plate(m_specify_plate_idx)->no_light_thumbnail_data;
     if (input_data.width == 0 || input_data.height == 0 || no_light_data.width == 0 || no_light_data.height == 0) { wxGetApp().plater()->update_all_plate_thumbnails(false); }
-    unify_deal_thumbnail_data(input_data, no_light_data);
+    unify_deal_thumbnail_data(input_data, no_light_data, allow_clone_ams_color);
 }
 
-void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data)
+void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data, bool allow_clone_ams_color)
 {
     if (input_data.width == 0 || input_data.height == 0 || no_light_data.width == 0 || no_light_data.height == 0) {
         BOOST_LOG_TRIVIAL(error) << "SyncAmsInfoDialog::no_light_data is empty,error";
@@ -4135,7 +4171,7 @@ void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, Thu
     }
     m_cur_input_thumbnail_data    = input_data;
     m_cur_no_light_thumbnail_data = no_light_data;
-    clone_thumbnail_data();
+    clone_thumbnail_data(allow_clone_ams_color);
     MaterialHash::iterator iter               = m_materialList.begin();
     bool                   is_connect_printer = true;
     while (iter != m_materialList.end()) {
@@ -4216,25 +4252,6 @@ void SyncAmsInfoDialog::change_default_normal(int old_filament_id, wxColour temp
     }
 }
 
-void SyncAmsInfoDialog::update_page_turn_state(bool show)
-{
-    /* m_bitmap_last_plate->Show(show);
-     m_bitmap_next_plate->Show(show);
-
-     if (show) {
-         if (m_print_plate_idx <= 0) { m_bitmap_last_plate->Hide(); }
-         else { m_bitmap_last_plate->Show(); }
-
-         if ((m_print_plate_idx + 1) >= m_print_plate_total) { m_bitmap_next_plate->Hide(); }
-         else { m_bitmap_next_plate->Show(); }
-
-         if (m_print_plate_total == 1) {
-             m_bitmap_last_plate->Show(false);
-             m_bitmap_next_plate->Show(false);
-         }
-     }*/
-}
-
 void SyncAmsInfoDialog::sys_color_changed()
 {
     if (wxGetApp().dark_mode()) {
@@ -4246,8 +4263,6 @@ void SyncAmsInfoDialog::sys_color_changed()
     }
     m_rename_button->Refresh();
 }
-
-
 
 wxString SyncAmsInfoDialog::format_bed_name(std::string plate_name)
 {

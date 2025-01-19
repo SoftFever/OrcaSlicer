@@ -1944,6 +1944,55 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     update_multi_material_filament_presets(to_del_flament_id);
 }
 
+std::vector<std::string> PresetBundle::get_ams_colors() {
+    std::vector<std::string> ams_filament_colors;
+    std::vector<std::string> ams_filament_presets;
+    auto                 is_double_extruder = get_printer_extruder_count() == 2;
+    for (auto &entry : filament_ams_list) {
+        auto &ams                  = entry.second;
+        auto  filament_id          = ams.opt_string("filament_id", 0u);
+        auto  filament_color       = ams.opt_string("filament_colour", 0u);
+        auto  filament_changed     = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        auto  filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colors")->values;
+        if (filament_id.empty()) {
+            continue;
+        }
+        if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
+            ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+            ams_filament_colors.push_back(filament_color);
+            ams_multi_color_filment.push_back(filament_multi_color);
+            continue;
+        }
+        auto iter = std::find_if(filaments.begin(), filaments.end(),
+                                 [this, &filament_id](auto &f) { return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (iter == filaments.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            auto filament_type = ams.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter          = std::find_if(filaments.begin(), filaments.end(),
+                                    [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+            }
+            if (iter == filaments.end()) {
+                // Prefer old selection
+                if (ams_filament_presets.size() < this->filament_presets.size()) {
+                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+                    ams_filament_colors.push_back(filament_color);
+                    ams_multi_color_filment.push_back(filament_multi_color);
+                    continue;
+                }
+                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
+                if (iter == filaments.end())
+                    continue;
+            }
+            filament_id = iter->filament_id;
+        }
+        ams_filament_presets.push_back(iter->name);
+        ams_filament_colors.push_back(filament_color);
+    }
+    return ams_filament_colors;
+}
+
 unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
 {
     std::vector<std::string> ams_filament_presets;
