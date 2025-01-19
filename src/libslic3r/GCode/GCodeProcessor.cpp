@@ -5018,9 +5018,18 @@ void GCodeProcessor::run_post_process()
                 // End of line is indicated also if end of file was reached.
                 eol |= eof && it_end == it_bufend;
                 gcode_line.insert(gcode_line.end(), it, it_end);
+
+                it = it_end;
+                // append EOL.
+                if (it != it_bufend && *it == '\r') {
+                    gcode_line += *it++;
+                }
+                if (it != it_bufend && *it == '\n') {
+                    gcode_line += *it++;
+                }
+
                 if (eol) {
                     ++line_id;
-                    gcode_line += "\n";
                     const unsigned int internal_g1_lines_counter = export_lines.update(gcode_line, line_id, g1_lines_counter);
                     // replace placeholder lines
                     bool processed = process_placeholders(gcode_line);
@@ -5057,12 +5066,6 @@ void GCodeProcessor::run_post_process()
                     export_lines.write(out, 1.1f * max_backtrace_time, m_result, out_path);
                     gcode_line.clear();
                 }
-                // Skip EOL.
-                it = it_end;
-                if (it != it_bufend && *it == '\r')
-                    ++it;
-                if (it != it_bufend && *it == '\n')
-                    ++it;
             }
             if (eof)
                 break;
