@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSU02_01",
     "instantiation": "true",
+    "fan_max_speed": [
+        "40"
+    ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
