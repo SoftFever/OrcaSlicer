@@ -71,11 +71,10 @@ struct TrayData
 
 class MaterialItem: public wxPanel
 {
+protected:
     int m_text_pos_y = -1;
-    bool m_use_in_ams_sync = false;
-
 public:
-    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, bool use_in_ams_sync = false);
+    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname);
     ~MaterialItem();
 
     wxPanel*    m_main_panel;
@@ -108,9 +107,19 @@ public:
 
     void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
+    virtual void render(wxDC &dc);
     void match(bool mat);
-    void doRender(wxDC &dc);
+    virtual void doRender(wxDC &dc);
+};
+
+class MaterialSyncItem : public MaterialItem
+{
+public:
+    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname);
+    ~MaterialSyncItem();
+
+    void render(wxDC &dc) override;
+    void doRender(wxDC &dc) override;
 };
 
 class MappingItem : public wxPanel

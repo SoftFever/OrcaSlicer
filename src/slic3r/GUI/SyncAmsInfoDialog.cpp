@@ -1525,7 +1525,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
         while (iter != m_materialList.end()) {
             int           id   = iter->second->id;
             Material *    item = iter->second;
-            MaterialItem *m    = item->item;
+            auto          m    = item->item;
 
             if (f->id == id) {
                 wxString ams_id;
@@ -2418,7 +2418,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_type(std::string &filament_type, NozzleTy
     MaterialHash::iterator iter          = m_materialList.begin();
     while (iter != m_materialList.end()) {
         Material *    item                = iter->second;
-        MaterialItem *m                   = item->item;
+        auto               m              = item->item;
         auto          filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(m->m_material_name.ToStdString());
 
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
@@ -2982,7 +2982,7 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
             Material *    item = iter->second;
-            MaterialItem *m    = item->item;
+            auto          m    = item->item;
             if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
                 m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);
@@ -3644,7 +3644,7 @@ void SyncAmsInfoDialog::reset_ams_material()
     while (iter != m_materialList.end()) {
         int           id      = iter->first;
         Material *    item    = iter->second;
-        MaterialItem *m       = item->item;
+        auto          m       = item->item;
         wxString      ams_id  = "-";
         wxColour      ams_col = wxColour(0xEE, 0xEE, 0xEE);
         m->set_ams_info(ams_col, ams_id);
@@ -3889,13 +3889,13 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             contronal_index++;
         }
 
-        MaterialItem *item = nullptr;
+        MaterialSyncItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]),true);// m_filament_left_panel//special
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), true); // m_filament_right_panel
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_right
             }
             else {
@@ -3903,7 +3903,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 continue;
             }
         } else {
-            item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), true);
+            item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         contronal_index++;
@@ -3914,7 +3914,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             while (iter != m_materialList.end()) {
                 int           id   = iter->first;
                 Material *    item = iter->second;
-                MaterialItem *m    = item->item;
+                auto          m    = item->item;
                 m->on_normal();
                 iter++;
             }
@@ -4001,7 +4001,7 @@ void SyncAmsInfoDialog::clone_thumbnail_data()
     while (iter != m_materialList.end()) {
         int           id                  = iter->first;
         Material *    item                = iter->second;
-        MaterialItem *m                   = item->item;
+        auto          m                   = item->item;
         m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
         if (item->id < m_cur_colors_in_thumbnail.size()) {
             m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
@@ -4141,7 +4141,7 @@ void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, Thu
     while (iter != m_materialList.end()) {
         int           id   = iter->first;
         Material *    item = iter->second;
-        MaterialItem *m    = item->item;
+        auto          m    = item->item;
         if (m->m_ams_name == "-") {
             is_connect_printer = false;
             break;
