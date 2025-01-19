@@ -647,9 +647,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
         float alpha = m_wipe_tower_rotation / 180.f * float(M_PI);
 
-        auto transform_wt_pt = [&alpha, this](const Vec2f &pt) -> Vec2f {
+        auto transform_wt_pt = [&alpha, this](const Vec2f& pt) -> Vec2f {
             Vec2f out = Eigen::Rotation2Df(alpha) * pt;
-            out += m_wipe_tower_pos;
+            out += m_wipe_tower_pos + m_rib_offset;
             return out;
         };
 
@@ -664,7 +664,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             tool_change_start_pos = transform_wt_pt(tool_change_start_pos);
         }
 
-        Vec2f wipe_tower_offset   = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
+        Vec2f wipe_tower_offset   = (tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos) + m_rib_offset;
         float wipe_tower_rotation = tcr.priming ? 0.f : alpha;
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
@@ -2850,6 +2850,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                                                             print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
                 m_wipe_tower->set_wipe_tower_depth(print.get_wipe_tower_depth());
                 m_wipe_tower->set_wipe_tower_bbx(print.get_wipe_tower_bbx());
+                m_wipe_tower->set_rib_offset(print.get_rib_offset());
                 //BBS
                 file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
 

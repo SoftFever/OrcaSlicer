@@ -755,8 +755,9 @@ struct WipeTowerData
     float                                                 depth;
     std::vector<std::pair<float, float>>                  z_and_depth_pairs;
     float                                                 brim_width;
-    BoundingBoxf                                          bbx;
     float                                                 height;
+    BoundingBoxf                                          bbx;
+    Vec2f                                                 rib_offset;
 
     void clear() {
         priming.reset(nullptr);
@@ -1050,6 +1051,7 @@ public:
     Vec2d translate_to_print_space(const Vec2d &point) const;
     float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
     BoundingBoxf        get_wipe_tower_bbx() const { return m_wipe_tower_data.bbx; }
+    Vec2f               get_rib_offset() const { return m_wipe_tower_data.rib_offset; }
 
     // scaled point
     Vec2d translate_to_print_space(const Point &point) const;

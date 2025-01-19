@@ -25,6 +25,7 @@ public:
 
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
+    static float get_limit_depth_by_height(float max_height);
 
     struct Extrusion
     {
@@ -361,6 +362,7 @@ public:
     ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length);
+    Vec2f              get_rib_offset() const { return m_rib_offset; }
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -410,6 +412,7 @@ private:
     float              m_rib_width=0.f;
     float              m_extra_rib_length=0.f;
     bool               m_used_fillet{false};
+    Vec2f              m_rib_offset{Vec2f(0.f, 0.f)};
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;

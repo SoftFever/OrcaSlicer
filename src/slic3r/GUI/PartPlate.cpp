@@ -1801,6 +1801,45 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
     return true;
 }
 
+Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
+{
+    Vec3d  wipe_tower_size;
+    double layer_height = 0.08f; // hard code layer height
+    double max_height   = 0.f;
+    wipe_tower_size.setZero();
+
+    const ConfigOption *layer_height_opt = config.option("layer_height");
+    if (layer_height_opt)
+        layer_height = layer_height_opt->getFloat();
+
+    std::vector<int> plate_extruders = get_extruders(true);
+	plate_extruder_size = plate_extruders.size();
+    if (plate_extruder_size == 0)
+        return wipe_tower_size;
+
+    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+        if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
+            continue;
+
+        BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
+        max_height         = std::max(bbox.size().z(), max_height);
+    }
+    wipe_tower_size(2) = max_height;
+
+    auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+    bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
+
+	int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+    double depth = std::sqrt(wipe_volume * (nozzle_nums == 2 ? plate_extruder_size : (plate_extruder_size - 1)) / layer_height);
+    if (timelapse_enabled || plate_extruder_size > 1) {
+        float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
+        depth = std::max((double) min_wipe_tower_depth, depth);
+        wipe_tower_size(0) = wipe_tower_size(1) = depth;
+    }
+
+    return wipe_tower_size;
+}
+
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
 {
 	Vec3d wipe_tower_size;

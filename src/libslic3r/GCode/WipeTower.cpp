@@ -722,6 +722,7 @@ public:
             width += m_layer_height * float(1. - M_PI / 4.);
             if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos) m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
             {
+
                 float sample_angle = 5.f / 180.f * PI;
                 int   n            = std::ceil(abs(arc.angle_radians) / sample_angle);
                 for (int j = 0; j < n; j++) {
@@ -890,6 +891,7 @@ public:
                 segments.back().arcsegment = pl.fitting_result[i].arc_data;
             }
         }
+
         int index_of_closest = get_closet_idx(segments);
         int i                = index_of_closest;
         travel(segments[i].start); // travel to the closest points
@@ -1126,6 +1128,7 @@ public:
                     segments.back().is_arc = true;
                     segments.back().arcsegment = pl.fitting_result[i].arc_data;
                 }
+
             }
         }
         int index_of_closest = get_closet_idx(segments);
@@ -1274,6 +1277,42 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 const std::map<float, float> WipeTower::min_depth_per_height = {
     {10.f, 10.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
 };
+
+float WipeTower::get_limit_depth_by_height(float max_height)
+{
+    float min_wipe_tower_depth = 0.f;
+    auto  iter                 = WipeTower::min_depth_per_height.begin();
+    while (iter != WipeTower::min_depth_per_height.end()) {
+        auto curr_height_to_depth = *iter;
+
+        // This is the case that wipe tower height is lower than the first min_depth_to_height member.
+        if (curr_height_to_depth.first >= max_height) {
+            min_wipe_tower_depth = curr_height_to_depth.second;
+            break;
+        }
+
+        iter++;
+
+        // If curr_height_to_depth is the last member, use its min_depth.
+        if (iter == WipeTower::min_depth_per_height.end()) {
+            min_wipe_tower_depth = curr_height_to_depth.second;
+            break;
+        }
+
+        // If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
+        auto next_height_to_depth = *iter;
+        if (next_height_to_depth.first > max_height) {
+            float height_base    = curr_height_to_depth.first;
+            float height_diff    = next_height_to_depth.first - curr_height_to_depth.first;
+            float min_depth_base = curr_height_to_depth.second;
+            float depth_diff     = next_height_to_depth.second - curr_height_to_depth.second;
+
+            min_wipe_tower_depth = min_depth_base + (max_height - curr_height_to_depth.first) / height_diff * depth_diff;
+            break;
+        }
+    }
+    return min_wipe_tower_depth;
+}
 
 WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool, const float wipe_tower_height) :
     m_semm(config.single_extruder_multi_material.value),
@@ -2322,37 +2361,7 @@ void WipeTower::plan_tower()
     for (auto& info : m_plan)
         max_depth = std::max(max_depth, info.toolchanges_depth());
 
-    float min_wipe_tower_depth = 0.f;
-    auto iter = WipeTower::min_depth_per_height.begin();
-    while (iter != WipeTower::min_depth_per_height.end()) {
-        auto curr_height_to_depth = *iter;
-
-        // This is the case that wipe tower height is lower than the first min_depth_to_height member.
-        if (curr_height_to_depth.first >= m_wipe_tower_height) {
-            min_wipe_tower_depth = curr_height_to_depth.second;
-            break;
-        }
-
-        iter++;
-
-        // If curr_height_to_depth is the last member, use its min_depth.
-        if (iter == WipeTower::min_depth_per_height.end()) {
-            min_wipe_tower_depth = curr_height_to_depth.second;
-            break;
-        }
-
-        // If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
-        auto next_height_to_depth = *iter;
-        if (next_height_to_depth.first > m_wipe_tower_height) {
-            float height_base = curr_height_to_depth.first;
-            float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
-            float min_depth_base = curr_height_to_depth.second;
-            float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;
-
-            min_wipe_tower_depth = min_depth_base + (m_wipe_tower_height - curr_height_to_depth.first) / height_diff * depth_diff;
-            break;
-        }
-    }
+    float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(m_wipe_tower_height);
 
     {
         if (m_enable_timelapse_print && max_depth < EPSILON)
@@ -2923,6 +2932,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
             outer_wall = offset(outer_wall, scaled(spacing)).front();
             writer.polygon(outer_wall, feedrate);
         }
+
             /*for (size_t i = 0; i < loops_num; ++i) {
                 box.expand(spacing);
                 writer.rectangle(box, feedrate);
@@ -3448,7 +3458,7 @@ void WipeTower::plan_tower_new()
                 float nozzle_change_depth = 0;
                 if (!m_filament_map.empty() && m_filament_map[toolchange.old_tool] != m_filament_map[toolchange.new_tool]) {
                     double e_flow                   = extrusion_flow(m_plan[idx].height);
-                    double length                   = m_nozzle_change_length / e_flow;
+                    double length                   = m_filaments_change_length[toolchange.old_tool] / e_flow;
                     int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
                     if (has_tpu_filament())
                         nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_perimeter_width;
@@ -3551,6 +3561,7 @@ void WipeTower::plan_tower_new()
     update_all_layer_depth(max_depth);
     m_rib_length = std::max({m_rib_length, sqrt(m_wipe_tower_depth * m_wipe_tower_depth + m_wipe_tower_width * m_wipe_tower_width)});
     m_rib_length += m_extra_rib_length;
+
 }
 
 int WipeTower::get_wall_filament_for_all_layer()
@@ -3927,8 +3938,10 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     //    writer.rectangle(wt_box, feedrate);
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, true, m_use_gap_wall);
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
+
     // Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
     //writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+
     writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
@@ -4015,6 +4028,11 @@ Polygon WipeTower::generate_support_wall_new(WipeTowerWriter &writer, const box_
         insert_skip_polygon = wall_polygon;
     }
     writer.generate_path(result_wall, feedrate, retract_length, retract_speed,m_used_fillet);
+    if (m_cur_layer_id == 0) {
+        BoundingBox bbox = get_extents(result_wall);
+        m_rib_offset     = Vec2f(-unscaled<float>(bbox.min.x()), -unscaled<float>(bbox.min.y()));
+    }
+
     return insert_skip_polygon;
 }
 

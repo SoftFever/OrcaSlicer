@@ -115,6 +115,7 @@ public:
     bool enable_timelapse_print() const { return m_enable_timelapse_print; }
     void set_wipe_tower_depth(float depth) { m_wipe_tower_depth = depth; }
     void set_wipe_tower_bbx(const BoundingBoxf & bbx) { m_wipe_tower_bbx = bbx; }
+    void set_rib_offset(const Vec2f &rib_offset) { m_rib_offset = rib_offset; }
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
@@ -148,7 +149,7 @@ private:
     const PrintConfig *                                          m_print_config;
     float                                                        m_wipe_tower_depth;
     BoundingBoxf                                                 m_wipe_tower_bbx;
-
+    Vec2f                                                        m_rib_offset{Vec2f(0, 0)};
 };
 
 class ColorPrintColors

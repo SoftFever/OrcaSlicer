@@ -971,6 +971,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     float        depth                     = print.wipe_tower_data(filaments_count).depth;
     //float        brim_width                = print.wipe_tower_data(filaments_count).brim_width;
 
+    if (config.prime_tower_rib_wall.value)
+        width = depth;
+
     Polygons convex_hulls_temp;
     if (print.has_wipe_tower()) {
         Polygon wipe_tower_convex_hull;
@@ -2800,6 +2803,29 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
     if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
+        if (m_config.prime_tower_rib_wall.value) {
+            double layer_height = 0.08f; // hard code layer height
+            double wipe_volume  = m_config.prime_volume;
+            double max_height   = 0;
+            for (size_t obj_idx = 0; obj_idx < m_objects.size(); obj_idx++) {
+                double object_z = (double) m_objects[obj_idx]->size().z();
+                max_height      = std::max(unscale_(object_z), max_height);
+            }
+            if (max_height < EPSILON)
+                return m_wipe_tower_data;
+
+            layer_height = m_objects.front()->config().layer_height.value;
+            int    filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
+            if (filaments_cnt == 1 && enable_timelapse_print())
+                filament_depth_count = 1;
+            double depth = std::sqrt(wipe_volume * filament_depth_count / layer_height);
+
+            float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
+            depth  = std::max((double) min_wipe_tower_depth, depth);
+            const_cast<Print *>(this)->m_wipe_tower_data.depth = depth;
+            const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
+        }
+        else {
         double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
         if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
@@ -2825,6 +2851,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
             }
         }
         const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
+        }
     }
 
     return m_wipe_tower_data;
@@ -2986,6 +3013,7 @@ void Print::_make_wipe_tower()
         m_wipe_tower_data.depth      = wipe_tower.get_depth();
         m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
         m_wipe_tower_data.bbx = wipe_tower.get_bbx();
+        m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
         // Unload the current filament over the purge tower.
         coordf_t layer_height = m_objects.front()->config().layer_height.value;
@@ -3013,7 +3041,6 @@ void Print::_make_wipe_tower()
                                                   wipe_tower.get_layer_height(), m_wipe_tower_data.depth, m_wipe_tower_data.brim_width,
                                                   {scale_(origin.x()), scale_(origin.y())});
         m_fake_wipe_tower.real_bbx = wipe_tower.get_bbx();
-        m_config.prime_tower_width.set(new ConfigOptionFloat( wipe_tower.width()));
     } else {
         // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
