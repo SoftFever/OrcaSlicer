@@ -359,6 +359,8 @@ void MonitorPanel::update_all()
             ;
         }
     }
+    if (obj)
+        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
 
     if (obj) {
         wxGetApp().reset_to_active();

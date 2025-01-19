@@ -36,6 +36,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED           -23
 #define BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET       -24
 #define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
+#define BAMBU_NETWORK_SIGNED_ERROR                      -26
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -78,6 +79,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_SP_PATCH_PROJECT_FAILED             -3110 //failed to patch project
 #define BAMBU_NETWORK_ERR_PRINT_SP_POST_TASK_FAILED                 -3120 //failed to post task
 #define BAMBU_NETWORK_ERR_PRINT_SP_WAIT_PRINTER_FAILED              -3130 //failed to wait the ack from printer
+#define BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY               -3140 //failed to get flag info
 
 //start_local_print   error
 #define BAMBU_NETWORK_ERR_PRINT_LP_FILE_OVER_SIZE                   -4010 //the size of the uploaded file cannot exceed 1 GB
@@ -95,7 +97,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.09.02.05"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.10.02.05"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -138,6 +140,9 @@ typedef std::function<void(int result, std::string info)> ResultFn;
 typedef std::function<bool()> CancelFn;
 typedef std::function<bool(std::map<std::string, std::string> info)> CheckFn;
 
+//err callbacks
+typedef std::function<void(std::string url, int status)> OnServerErrFn;
+
 enum SendingPrintJobStage {
     PrintingStageCreate = 0,
     PrintingStageUpload = 1,
@@ -170,6 +175,17 @@ enum ConnectStatus {
     ConnectStatusOk = 0,
     ConnectStatusFailed = 1,
     ConnectStatusLost = 2,
+};
+
+struct detectResult {
+    std::string    result_msg;
+    std::string    command;
+    std::string    dev_id;
+    std::string    model_id;
+    std::string    dev_name;
+    std::string    version;
+    std::string    bind_state;
+    std::string    connect_type;
 };
 
 /* print job*/
@@ -237,6 +253,13 @@ struct CertificateInformation {
     std::string     start_date;
     std::string     end_date;
     std::string     serial_number;
+};
+
+enum class MessageFlag : int
+{
+    MSG_FLAG_NONE = 0,
+    MSG_SIGN = 1 << 0,
+    MSG_ENCRYPT = 1 << 1,
 };
 
 }

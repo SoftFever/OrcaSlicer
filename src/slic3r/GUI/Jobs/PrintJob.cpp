@@ -21,6 +21,7 @@ static auto file_over_size_str = _u8L("The print file exceeds the maximum allowa
 static auto print_canceled_str    = _u8L("Task canceled.");
 static auto send_print_failed_str = _u8L("Failed to send the print job. Please try again.");
 static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please try again.");
+static auto print_signed_str            = _u8L("Your software is not signed, and some printing functions have been restricted. Please use the officially signed software version.");
 
 static auto     desc_network_error          = _u8L("Check the current status of the bambu server by clicking on the link above.");
 static auto     desc_file_too_large         = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
@@ -123,7 +124,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
         ;
     }
     return wxEmptyString;
-} 
+}
 
 void PrintJob::process(Ctl &ctl)
 {
@@ -264,8 +265,8 @@ void PrintJob::process(Ctl &ctl)
                 params.preset_name = profile_name->second;
             }
             catch (...) {}
-        } 
-        
+        }
+
         auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
         if (model_name != model_info->metadata_items.end()) {
             try {
@@ -341,9 +342,9 @@ void PrintJob::process(Ctl &ctl)
     auto update_fn = [this, &ctl,
         &is_try_lan_mode,
         &is_try_lan_mode_failed,
-        &msg, 
-        &error_str, 
-        &curr_percent, 
+        &msg,
+        &error_str,
+        &curr_percent,
         &error_text,
         StagePercentPoint
     ](int stage, int code, std::string info) {
@@ -406,7 +407,7 @@ void PrintJob::process(Ctl &ctl)
                             }
                         }
 
-                        //get errors 
+                        //get errors
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
                             if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
                                 m_plater->update_print_error_info(code, desc_file_too_large, info);
@@ -427,7 +428,7 @@ void PrintJob::process(Ctl &ctl)
             return ctl.was_canceled();
         };
 
-    
+
     DeviceManager* dev = wxGetApp().getDeviceManager();
     MachineObject* obj = dev->get_selected_machine();
 
@@ -545,7 +546,7 @@ void PrintJob::process(Ctl &ctl)
                 ctl.update_status(curr_percent, _u8L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
             }
-        } 
+        }
     } else {
         if (this->has_sdcard) {
             ctl.update_status(curr_percent, _u8L("Sending print job over LAN"));
@@ -558,8 +559,10 @@ void PrintJob::process(Ctl &ctl)
 
     if (result < 0) {
         curr_percent = -1;
-
-        if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
+        if (result == BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY) {
+            msg_text = _u8L("Retrieving printer information, please try again later.");
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE || result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
@@ -572,6 +575,8 @@ void PrintJob::process(Ctl &ctl)
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
             ctl.update_status(0, msg_text);
+        } else if (result == BAMBU_NETWORK_SIGNED_ERROR) {
+            msg_text = print_signed_str;
         } else {
             msg_text = send_print_failed_str;
         }
@@ -579,7 +584,7 @@ void PrintJob::process(Ctl &ctl)
         if (result != BAMBU_NETWORK_ERR_CANCELED) {
             ctl.show_error_info(msg_text, 0, "", "");
         }
-        
+
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
         // wait for printer mqtt ready the same job id

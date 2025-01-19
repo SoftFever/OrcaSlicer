@@ -49,7 +49,7 @@ protected:
 
     void Play();
 
-    void Stop(wxString const &msg = {});
+    void Stop(wxString const &msg = {}, wxString const &msg2 = {});
 
     void TogglePlay();
 
@@ -83,7 +83,7 @@ private:
     std::string m_tutk_state;
     bool m_camera_exists = false;
     bool m_lan_mode = false;
-    bool m_remote_support = false;
+    int m_remote_proto = 0;
     bool m_device_busy = false;
     bool m_disable_lan = false;
     wxString m_url;

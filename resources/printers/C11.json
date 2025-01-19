@@ -58,7 +58,7 @@
         "print": {
             "ipcam": {
                 "liveview": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             }
         }
@@ -79,7 +79,7 @@
         "print": {
             "ipcam": {
                 "file": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             },
             "support_user_preset":true

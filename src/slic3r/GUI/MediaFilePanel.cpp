@@ -219,10 +219,10 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
-        m_device_busy    = obj->is_camera_busy_off();
+        m_device_busy  = obj->is_camera_busy_off();
         m_sdcard_exist = obj->has_sdcard();
-        m_local_support  = obj->file_local;
-        m_remote_support = obj->file_remote;
+        m_local_proto  = obj->file_local;
+        m_remote_proto = obj->file_remote;
         m_model_download_support = obj->file_model_download;
     } else {
         m_lan_mode  = false;
@@ -231,13 +231,13 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_dev_ver.clear();
         m_sdcard_exist = false;
         m_device_busy = false;
-        m_local_support = false;
-        m_remote_support = false;
+        m_local_proto = 0;
+        m_remote_proto = 0;
         m_model_download_support = false;
     }
     Enable(obj && obj->is_connected() && obj->m_push_count > 0);
     if (machine == m_machine) {
-        if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_support || m_remote_support))) {
+        if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_proto || m_remote_proto))) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
         }
@@ -433,7 +433,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     m_waiting_enable = false;
-    if (!m_local_support && !m_remote_support) {
+    if (!m_local_proto && !m_remote_proto) {
         m_waiting_support = true;
         m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in current firmware. Please update the printer firmware."));
         fs->SetUrl("0");
@@ -452,7 +452,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     m_waiting_support = false;
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if ((m_lan_mode || !m_remote_support) && m_local_support && !m_lan_ip.empty()) {
+    if ((m_lan_mode || !m_remote_proto) && m_local_proto && !m_lan_ip.empty()) {
         std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         url += "&device=" + m_machine;
         url += "&net_ver=" + agent_version;
@@ -462,7 +462,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl(url);
         return;
     }
-    if (!m_remote_support && m_local_support) { // not support tutk
+    if (!m_remote_proto && m_local_proto) { // not support tutk
         m_image_grid->SetStatus(m_bmp_failed, _L("Please enter the IP of printer to connect."));
         fs->SetUrl("0");
         fs.reset();
@@ -478,12 +478,14 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     if (agent) {
-        agent->get_camera_url(m_machine,
-            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
+        std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+        agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver, agent](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + m;
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
+                url += "&network_agent=" + boost::lexical_cast<std::string>(agent->get_network_agent());
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }

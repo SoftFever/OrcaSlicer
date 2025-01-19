@@ -1431,6 +1431,9 @@ void MachineObject::parse_status(int flag)
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 
     network_wired = ((flag >> 18) & 0x1) != 0;
+    is_support_agora = ((flag >> 30) & 0x1) != 0;
+    if (is_support_agora)
+        is_support_tunnel_mqtt = false;
 }
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
@@ -2617,29 +2620,29 @@ bool MachineObject::is_camera_busy_off()
     return false;
 }
 
-int MachineObject::publish_json(std::string json_str, int qos)
+int MachineObject::publish_json(std::string json_str, int qos, int flag)
 {
     if (is_lan_mode_printer()) {
-        return local_publish_json(json_str, qos);
+        return local_publish_json(json_str, qos, flag);
     } else {
-        return cloud_publish_json(json_str, qos);
+        return cloud_publish_json(json_str, qos, flag);
     }
 }
 
-int MachineObject::cloud_publish_json(std::string json_str, int qos)
+int MachineObject::cloud_publish_json(std::string json_str, int qos, int flag)
 {
     int result = -1;
     if (m_agent)
-        result = m_agent->send_message(dev_id, json_str, qos);
+        result = m_agent->send_message(dev_id, json_str, qos, flag);
 
     return result;
 }
 
-int MachineObject::local_publish_json(std::string json_str, int qos)
+int MachineObject::local_publish_json(std::string json_str, int qos, int flag)
 {
     int result = -1;
     if (m_agent) {
-        result = m_agent->send_message_to_printer(dev_id, json_str, qos);
+        result = m_agent->send_message_to_printer(dev_id, json_str, qos, flag);
     }
     return result;
 }
@@ -2902,7 +2905,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
             }
 
             if (!key_field_only) {
-                if (!DeviceManager::EnableMultiMachine) {
+                if (!DeviceManager::EnableMultiMachine && !is_support_agora) {
                     if (jj.contains("support_tunnel_mqtt")) {
                         if (jj["support_tunnel_mqtt"].is_boolean()) {
                             is_support_tunnel_mqtt = jj["support_tunnel_mqtt"].get<bool>();
@@ -3687,11 +3690,18 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 if (ipcam.contains("liveview")) {
                                     char const *local_protos[] = {"none", "disabled", "local", "rtsps", "rtsp"};
                                     liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
-                                    liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
+                                    char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
+                                    liveview_remote = enum_index_of(ipcam["liveview"].value<std::string>("remote", "none").c_str(), remote_protos, 4, LiveviewRemote::LVR_None);
+                                    if (is_support_agora)
+                                        liveview_remote = liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
                                 }
                                 if (ipcam.contains("file")) {
-                                    file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
-                                    file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
+                                    char const *local_protos[] = {"none", "local"};
+                                    file_local  = enum_index_of(ipcam["file"].value<std::string>("local", "none").c_str(), local_protos, 2, FileLocal::FL_None);
+                                    char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
+                                    file_remote = enum_index_of(ipcam["file"].value<std::string>("remote", "none").c_str(), remote_protos, 4, FileRemote::FR_None);
+                                    if (is_support_agora)
+                                        file_remote = file_remote == FR_None ? FR_Agora : file_remote == FR_Tutk ? FR_TutkAgora : file_remote;
                                     file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
                                 }
                                 virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
@@ -5265,14 +5275,27 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-
-
             BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
     }
     catch (...) {
         ;
     }
+}
+
+MachineObject* DeviceManager::insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
+{
+    MachineObject* obj;
+    obj = new MachineObject(m_agent, dev_name, dev_id, dev_ip);
+    obj->printer_type = MachineObject::parse_printer_type("C11");
+    obj->dev_connection_type = connection_type;
+    obj->bind_state = bind_state;
+    obj->bind_sec_link = "secure";
+    obj->bind_ssdp_version = version;
+    obj->m_is_online = true;
+    obj->set_access_code(access_code, false);
+    obj->set_user_access_code(access_code, false);
+    return obj;
 }
 
 void DeviceManager::disconnect_all()
@@ -5458,13 +5481,13 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = empty";
-                    m_agent->set_user_selected_machine("");
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
                     it->second->connect(false, Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else
                     it->second->connect(false, it->second->local_use_ssl_for_mqtt);
 #endif
+                    m_agent->set_user_selected_machine(dev_id);
                     it->second->set_lan_mode_connection_state(true);
                 }
             }
