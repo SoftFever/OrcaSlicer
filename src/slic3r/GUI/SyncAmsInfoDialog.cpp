@@ -4408,6 +4408,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
 
     m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) { this->on_hide(); });
     SetSizer(m_sizer_main);
     Layout();
     Fit();
@@ -4447,7 +4448,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     , m_input_info(input_info)
 {
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
-    SetTransparent(200);
+    SetTransparent(220);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
     auto win_width = 288;
     SetMinSize(wxSize(FromDIP(win_width), -1));
@@ -4506,6 +4507,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     //bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
     m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) { this->on_hide(); });
     SetSizer(m_sizer_main);
     Layout();
     Fit();
