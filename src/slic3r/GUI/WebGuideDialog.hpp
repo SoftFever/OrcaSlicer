@@ -115,6 +115,8 @@ private:
     bool InstallNetplugin;
     bool network_plugin_ready {false};
 
+    json m_OrcaFilaList;
+
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;
     wxMenuItem *m_script_date_el;

@@ -2523,6 +2523,17 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
         first_visible_if_not_found ? &this->first_visible() : nullptr;
 }
 
+const Preset* PresetCollection::find_preset2(const std::string& name) const
+{
+    auto preset = const_cast<PresetCollection*>(this)->find_preset(name, false, true);
+    if (preset == nullptr) {
+        auto _name = get_preset_name_renamed(name);
+        if(_name != nullptr) 
+            preset     = const_cast<PresetCollection*>(this)->find_preset(*_name, false, true);
+    }
+    return preset;
+}
+
 // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
 size_t PresetCollection::first_visible_idx() const
 {

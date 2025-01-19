@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "PrintConfig.hpp"
 #include "libslic3r.h"
 #include "Utils.hpp"
 #include "Model.hpp"
@@ -1281,7 +1282,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
                 // Load the other vendor configs, merge them with this PresetBundle.
                 // Report duplicate profiles.
                 PresetBundle other;
-                append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule).first);
+                append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem, compatibility_rule, this).first);
                 std::vector<std::string> duplicates = this->merge_presets(std::move(other));
                 if (! duplicates.empty()) {
                     errors_cummulative += "Found duplicated settings in vendor " + vendor_name + "'s json file lists: ";
@@ -3300,7 +3301,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
 //BBS: Load a config bundle file from json
 std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_from_json(
-    const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule)
+    const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule, const PresetBundle* base_bundle)
 {
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
     ConfigSubstitutionContext  substitution_context { compatibility_rule };
@@ -3509,7 +3510,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     PresetCollection         *presets = nullptr;
     size_t                   presets_loaded = 0;
 
-    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile](
+    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile, base_bundle](
         ConfigSubstitutionContext& substitution_context,
         PresetsConfigSubstitutions& substitutions,
         LoadConfigBundleAttributes& flags,
@@ -3554,19 +3555,32 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             if (it1 != key_values.end()) {
                 inherits = it1->second;
                 auto it2 = config_maps.find(inherits);
-                if (it2 != config_maps.end()) {
+                default_config = nullptr;
+                if (it2 != config_maps.end())
                     default_config = &(it2->second);
+                if(default_config == nullptr && base_bundle != nullptr) {
+                    auto base_it2 = base_bundle->m_config_maps.find(inherits);
+                    if (base_it2 != base_bundle->m_config_maps.end())
+                        default_config = &(base_it2->second);
+                }
+                if (default_config != nullptr) {
                     if (filament_id.empty() && (presets_collection->type() == Preset::TYPE_FILAMENT)) {
                         auto filament_id_map_iter = filament_id_maps.find(inherits);
                         if (filament_id_map_iter != filament_id_maps.end()) {
                             filament_id = filament_id_map_iter->second;
                         }
+                        if (filament_id.empty() && base_bundle != nullptr) {
+                            auto filament_id_map_iter = base_bundle->m_filament_id_maps.find(inherits);
+                            if (filament_id_map_iter != base_bundle->m_filament_id_maps.end()) {
+                                filament_id = filament_id_map_iter->second;
+                            }
+                        }
                     }
                 }
                 else {
                     ++m_errors;
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": can not find inherits "<<inherits<<" for " << preset_name;
-                    //throw ConfigurationError(format("can not find inherits %1% for %2%", inherits, preset_name));
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not find inherits " << inherits << " for " << preset_name;
+                    // throw ConfigurationError(format("can not find inherits %1% for %2%", inherits, preset_name));
                     reason = "Can not find inherits: " + inherits;
                     return reason;
                 }
@@ -3747,6 +3761,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse filament setting from %1%") % subfile_path;
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
+    }
+    if (vendor_name == ORCA_FILAMENT_LIBRARY) {
+        m_config_maps      = configs;
+        m_filament_id_maps = filament_id_maps;
     }
 
     //3.3) paste the printers
