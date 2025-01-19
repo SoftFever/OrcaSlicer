@@ -4729,6 +4729,13 @@ void TabPrinter::on_preset_loaded()
     if (!base_printer)
         base_printer = &current_printer;
     std::string base_name = base_printer->name;
+    // update the extruders count field
+    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
+    size_t extruders_count = nozzle_diameter->values.size();
+    // update the GUI field according to the number of nozzle diameters supplied
+    if (m_extruders_count != extruders_count)
+        extruders_count_changed(extruders_count);
+
     if (base_name != m_base_preset_name) {
         bool use_default_nozzle_volume_type = true;
         m_base_preset_name = base_name;
@@ -4743,12 +4750,6 @@ void TabPrinter::on_preset_loaded()
             m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
         }
     }
-
-    // update the extruders count field
-    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
-    size_t extruders_count = nozzle_diameter->values.size();
-    // update the GUI field according to the number of nozzle diameters supplied
-    extruders_count_changed(extruders_count);
 }
 
 void TabPrinter::update_pages()
