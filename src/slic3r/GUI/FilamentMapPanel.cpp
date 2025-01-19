@@ -343,7 +343,7 @@ FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(par
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_label = new Label(this, _L("The filament grouping for current plate follows the global settings."));
+    m_label = new Label(this, _L("The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."));
     m_label->SetFont(Label::Body_14);
     m_label->SetBackgroundColour(*wxWHITE);
 

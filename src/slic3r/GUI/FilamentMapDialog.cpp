@@ -138,7 +138,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, _L("Auto"), false);
     m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
     if (show_default)
-        m_default_btn = new CapsuleButton(this, PageType::ptDefault, _L("Default"), true);
+        m_default_btn = new CapsuleButton(this, PageType::ptDefault, _L("Same as Global"), true);
     else
         m_default_btn = nullptr;
 
