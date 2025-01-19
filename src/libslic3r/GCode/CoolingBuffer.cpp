@@ -7,6 +7,7 @@
 #include <float.h>
 #include <system_error>
 #include <unordered_map>
+#include <cstdlib> // for atof
 
 #if 0
     #define DEBUG
@@ -321,13 +322,17 @@ std::string CoolingBuffer::process_layer(std::string &&gcode, size_t layer_id, b
         float layer_time_stretched = this->calculate_layer_slowdown(per_extruder_adjustments);
         out = this->apply_layer_cooldown(m_gcode, layer_id, layer_time_stretched, per_extruder_adjustments);
         m_gcode.clear();
+        // ORCA: Insert custom gcode tag containing adjusted layer time after slowdown is applied.
+        char buf[64];
+        sprintf(buf, ";LAYER_TIME_ADJ:%d\n", int(layer_time_stretched));
+        out += buf;
     }
     return out;
 }
 
 // Parse the layer G-code for the moves, which could be adjusted.
 // Return the list of parsed lines, bucketed by an extruder.
-std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::string &gcode, std::vector<float> &current_pos) const
+std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::string &gcode, std::vector<float> &current_pos)
 {
     std::vector<PerExtruderAdjustments> per_extruder_adjustments(m_extruder_ids.size());
     std::vector<size_t>                 map_extruder_to_per_extruder_adjustment(m_num_extruders, 0);
@@ -364,6 +369,14 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         // CoolingLine will contain the trailing '\n'.
         if (*line_end == '\n')
             ++ line_end;
+        
+        // Orca: Parse gcode line testing for acceleration values
+        if (parse_acceleration(sline)) {
+            // Debug statement
+            //printf("Acceleration: %f\n", m_current_acceleration);
+            // We found an accel command; skip further logic as not needed
+            continue;
+        }
         CoolingLine line(0, line_start - gcode.c_str(), line_end - gcode.c_str());
         if (boost::starts_with(sline, "G0 "))
             line.type = CoolingLine::TYPE_G0;
@@ -459,8 +472,15 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 }
                 line.feedrate = new_pos[4];
                 assert((line.type & CoolingLine::TYPE_ADJUSTABLE) == 0 || line.feedrate > 0.f);
-                if (line.length > 0)
-                    line.time = line.length / line.feedrate;
+                if (line.length > 0){
+                    // Orca: Replace linear time calculation with move time computed from trapezoid calculation for improved accuracy
+                    //line.time = line.length / line.feedrate;
+                    line.time = compute_move_time_trapezoid(
+                        line.length,
+                        line.feedrate,
+                        m_current_acceleration
+                    );
+                }
                 line.time_max = line.time;
                 if ((line.type & CoolingLine::TYPE_ADJUSTABLE) || active_speed_modifier != size_t(-1))
                     line.time_max = (adjustment->slow_down_min_speed == 0.f) ? FLT_MAX : std::max(line.time, line.length / adjustment->slow_down_min_speed);
@@ -938,5 +958,107 @@ std::string CoolingBuffer::apply_layer_cooldown(
 
     return new_gcode;
 }
+
+//Orca: helper to detect & parse acceleration commands (Marlin & Klipper)
+bool CoolingBuffer::parse_acceleration(std::string &sline)
+{
+    // Trim leading/trailing whitespace
+    std::string line = boost::algorithm::trim_copy(sline);
+    if (line.empty())
+        return false;
+
+    // -----------------------------------------------------
+    // 1) Check for Marlin acceleration commands:
+    //    M201, M204, or M205
+    // -----------------------------------------------------
+    if (boost::starts_with(line, "M201") ||
+        boost::starts_with(line, "M204") ||
+        boost::starts_with(line, "M205"))
+    {
+        // We'll do a simple parse. Marlin often uses:
+        //   M201 X1000 Y1000 Z100 E500  (axis accel)
+        //   M204 P800 T1500 R3000 S1000 (print/travel/retract accel, etc.)
+        //
+        // For simplicity, let's just look for 'S' or 'P' or 'X'
+        // and take the largest numeric value we find as "current" acceleration.
+
+        float new_accel = m_current_acceleration;
+        const char* cstr = line.c_str();
+        bool found_any = false;
+
+        for (int i = 0; cstr[i] != '\0'; ++i) {
+            if (cstr[i] == 'S' || cstr[i] == 'P' || cstr[i] == 'X' ||
+                cstr[i] == 'Y' || cstr[i] == 'Z' || cstr[i] == 'E')
+            {
+                // parse number right after the letter
+                float val = std::atof(&cstr[i + 1]);
+                if (val > new_accel) {
+                    new_accel = val;
+                    found_any = true;
+                }
+            }
+        }
+
+        if (found_any)
+            m_current_acceleration = new_accel;
+        return true; // We recognized this as an accel command
+    }
+
+    // -----------------------------------------------------
+    // 2) Check for Klipper acceleration command:
+    //    SET_VELOCITY_LIMIT ACCEL=...
+    // -----------------------------------------------------
+    if (boost::starts_with(line, "SET_VELOCITY_LIMIT")) {
+        float new_accel = m_current_acceleration;
+        bool found_accel = false;
+
+        // Look for "ACCEL="
+        std::size_t pos = line.find("ACCEL=");
+        if (pos != std::string::npos) {
+            const char *cptr = line.c_str() + pos + 6; // skip "ACCEL="
+            float val = std::atof(cptr);
+            if (val > 0.f) {
+                new_accel   = val;
+                found_accel = true;
+            }
+        }
+
+        if (found_accel)
+            m_current_acceleration = new_accel;
+        return true; // recognized
+    }
+
+    // Not a recognized accel command
+    return false;
+}
+
+// Orca: helper to compute movement type using a trapezoidal calculation
+float CoolingBuffer::compute_move_time_trapezoid(float distance_mm, float feedrate_mm_s, float accel_mm_s2)
+{
+    // If any parameter is invalid, fall back to naive distance / speed:
+    if (accel_mm_s2 <= 0.f || distance_mm <= 0.f || feedrate_mm_s <= 0.f)
+        return (feedrate_mm_s > 0.f) ? (distance_mm / feedrate_mm_s) : 0.f;
+
+    // Distance needed to accelerate from 0 to feedrate_mm_s:
+    // d_accel = v^2 / (2*a)
+    float dist_accel = (feedrate_mm_s * feedrate_mm_s) / (2.f * accel_mm_s2);
+
+    // If there's enough distance to reach top speed, cruise, then decelerate:
+    if (distance_mm > 2.f * dist_accel) {
+        // Full trapezoid
+        float t_accel   = feedrate_mm_s / accel_mm_s2;
+        float dist_cruise = distance_mm - 2.f * dist_accel;
+        float t_cruise  = dist_cruise / feedrate_mm_s;
+        float t_decel   = t_accel; // symmetrical deceleration
+        return t_accel + t_cruise + t_decel;
+    } else {
+        // Not enough distance to reach full feedrate => triangular profile
+        // Solve for v_peak s.t. distance = v_peak^2 / a
+        // => v_peak = sqrt(a * distance)
+        // Then total time = 2 * (v_peak / a)
+        return 2.f * std::sqrt(distance_mm / accel_mm_s2);
+    }
+}
+
 
 } // namespace Slic3r

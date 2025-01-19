@@ -29,7 +29,7 @@ public:
 
 private:
 	CoolingBuffer& operator=(const CoolingBuffer&) = delete;
-    std::vector<PerExtruderAdjustments> parse_layer_gcode(const std::string &gcode, std::vector<float> &current_pos) const;
+    std::vector<PerExtruderAdjustments> parse_layer_gcode(const std::string &gcode, std::vector<float> &current_pos);
     float       calculate_layer_slowdown(std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
     // Apply slow down over G-code lines stored in per_extruder_adjustments, enable fan if needed.
     // Returns the adjusted G-code.
@@ -56,6 +56,15 @@ private:
     unsigned int                m_current_extruder;
     //BBS: current fan speed
     int                         m_current_fan_speed;
+    
+    //Orca: Implement basic trapezoid calculation to improve layer time calculation accuracy
+    // Orca: Store current acceleration below to persist accross layers if no new accel is set in the gcode. Initialise with a 1k variable in case no accel is set
+    // anywhere in the gcode.
+    float                         m_current_acceleration = 1000.0f;
+    //Orca: helper to detect & parse acceleration commands (Marlin & Klipper)
+    bool parse_acceleration(std::string &sline);
+    // Orca: helper to compute movement type using a trapezoidal calculation
+    float compute_move_time_trapezoid(float distance_mm, float feedrate_mm_s, float accel_mm_s2);
 };
 
 }
