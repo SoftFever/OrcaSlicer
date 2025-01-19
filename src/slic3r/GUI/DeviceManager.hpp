@@ -708,9 +708,22 @@ public:
         LVL_Rtsps,
         LVL_Rtsp
     } liveview_local{ LVL_None };
-    bool        liveview_remote{false};
-    bool        file_local{false};
-    bool        file_remote{false};
+    enum LiveviewRemote {
+        LVR_None,
+        LVR_Tutk, 
+        LVR_Agora,
+        LVR_TutkAgora
+    } liveview_remote{ LVR_None };
+    enum FileLocal {
+        FL_None, 
+        FL_Local
+    } file_local{ FL_None };
+    enum FileRemote {
+        FR_None, 
+        FR_Tutk, 
+        FR_Agora,
+        FR_TutkAgora
+    } file_remote{ FR_None };
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
@@ -762,6 +775,8 @@ public:
     bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
+    bool is_support_filament_setting_inprinting{false};
+    bool is_support_agora{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
@@ -940,9 +955,9 @@ public:
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    int publish_json(std::string json_str, int qos = 0);
-    int cloud_publish_json(std::string json_str, int qos = 0);
-    int local_publish_json(std::string json_str, int qos = 0);
+    int publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
@@ -1006,7 +1021,7 @@ public:
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);
-
+    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
     /* disconnect all machine connections */
     void disconnect_all();
     int query_bind_status(std::string &msg);
